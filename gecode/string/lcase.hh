@@ -17,12 +17,12 @@ namespace Gecode { namespace String {
       <StringView, PC_STRING_DOM, StringView, PC_STRING_DOM>::x1;
 
     /// Constructor for cloning \a p
-    LowerCase(Space& home, bool share, LowerCase& p);
+    LowerCase(Space& home, LowerCase& p);
     /// Constructor for posting
     LowerCase(Home home, StringView x0, StringView x1);
   public:
     /// Copy propagator during cloning
-    virtual Actor* copy(Space& home, bool share);
+    virtual Actor* copy(Space& home);
     /// Perform propagation
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator \f$ z=x \cdot y \f$

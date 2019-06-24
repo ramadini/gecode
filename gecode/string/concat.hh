@@ -18,12 +18,12 @@ namespace Gecode { namespace String {
     using MixTernaryPropagator<StringView, PC_STRING_DOM, StringView, PC_STRING_DOM,
                                StringView, PC_STRING_DOM>::x2;
     /// Constructor for cloning \a p
-    Concat(Space& home, bool share, Concat& p);
+    Concat(Space& home, Concat& p);
     /// Constructor for posting
     Concat(Home home, StringView x0, StringView x1, StringView x2);
   public:
     /// Copy propagator during cloning
-    virtual Actor* copy(Space& home, bool share);
+    virtual Actor* copy(Space& home);
     /// Perform propagation
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator \f$ z=x \cdot y \f$

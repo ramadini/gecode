@@ -7,10 +7,10 @@ namespace Gecode { namespace String {
     (home, x, y) {}
 
   forceinline
-  StrToNat::StrToNat(Space& home, bool share, StrToNat& p)
+  StrToNat::StrToNat(Space& home, StrToNat& p)
   : MixBinaryPropagator
   <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_BND>
-    (home, share, p) {}
+    (home, p) {}
       
   forceinline ExecStatus
   StrToNat::post(Home home, StringView x, Gecode::Int::IntView y) {
@@ -26,8 +26,8 @@ namespace Gecode { namespace String {
   }
 
   forceinline Actor*
-  StrToNat::copy(Space& home, bool share) {
-    return new (home) StrToNat(home, share, *this);
+  StrToNat::copy(Space& home) {
+    return new (home) StrToNat(home, *this);
   }
 
   forceinline NSBlocks

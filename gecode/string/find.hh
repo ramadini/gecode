@@ -21,12 +21,12 @@ namespace Gecode { namespace String {
       StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_BND>
         ::x2;
     /// Constructor for cloning \a p
-    Find(Space& home, bool share, Find& p);
+    Find(Space& home, Find& p);
     /// Constructor for posting
     Find(Home home, StringView, StringView, Gecode::Int::IntView);
   public:
     /// Copy propagator during cloning
-    virtual Actor* copy(Space& home, bool);
+    virtual Actor* copy(Space& home);
     /// Perform propagation
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator for \f n = find(x, y) \f$

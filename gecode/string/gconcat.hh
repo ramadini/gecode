@@ -10,12 +10,12 @@ namespace Gecode { namespace String {
     using NaryOnePropagator<StringView, PC_STRING_DOM>::x;
     using NaryOnePropagator<StringView, PC_STRING_DOM>::y;
     /// Constructor for cloning \a p
-    GConcat(Space& home, bool share, GConcat& p);
+    GConcat(Space& home, GConcat& p);
     /// Constructor for posting
     GConcat(Home home, ViewArray<StringView>& x, StringView y);
   public:
     /// Copy propagator during cloning
-    virtual Actor* copy(Space& home, bool share);
+    virtual Actor* copy(Space& home);
     /// Perform propagation
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator \f$ y = x_1 + \dots + x_n \f$

@@ -21,12 +21,12 @@ namespace Gecode { namespace String {
     using MixBinaryPropagator
     <StringView,PC_STRING_DOM,Gecode::Int::IntView,Gecode::Int::PC_INT_BND>::x1;
     /// Constructor for cloning \a p
-    StrToNat(Space& home, bool share, StrToNat& p);
+    StrToNat(Space& home, StrToNat& p);
     /// Constructor for posting
     StrToNat(Home home, StringView x0, Gecode::Int::IntView x1);
   public:
     /// Copy propagator during cloning
-    virtual Actor* copy(Space& home, bool share);
+    virtual Actor* copy(Space& home);
     /// Perform propagation
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator \f$ x=y \f$
@@ -55,12 +55,12 @@ namespace Gecode { namespace String {
     using MixBinaryPropagator
     <Gecode::Int::IntView,Gecode::Int::PC_INT_BND,StringView,PC_STRING_DOM>::x1;
     /// Constructor for cloning \a p
-    NatToStr(Space& home, bool share, NatToStr& p);
+    NatToStr(Space& home, NatToStr& p);
     /// Constructor for posting
     NatToStr(Home home, Gecode::Int::IntView x0, StringView x1);
   public:
     /// Copy propagator during cloning
-    virtual Actor* copy(Space& home, bool share);
+    virtual Actor* copy(Space& home);
     /// Perform propagation
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator \f$ x=y \f$

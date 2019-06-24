@@ -43,12 +43,12 @@ namespace Gecode { namespace String {
   protected:
     using UnaryPropagator<StringView, PC_STRING_DOM>::x0;
     /// Constructor for cloning \a p
-    Reg(Space& home, bool share, Reg& p);
+    Reg(Space& home, Reg& p);
     /// Constructor for posting
     Reg(Home home, StringView, stringDFA* p);
   public:
     /// Copy propagator during cloning
-    virtual Actor* copy(Space& home, bool);
+    virtual Actor* copy(Space& home);
     /// Perform propagation
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator
@@ -76,14 +76,14 @@ namespace Gecode { namespace String {
     StringView x0;
     CtrlView b;
     /// Constructor for cloning \a p
-    ReReg(Space& home, bool share, ReReg&);
+    ReReg(Space& home, ReReg&);
     /// Constructor for posting
     ReReg(Home home, StringView x, stringCDFA* d, CtrlView b);
   private:
     stringCDFA* dfa;
   public:
     /// Copy propagator during cloning
-    virtual Actor* copy(Space& home,bool);
+    virtual Actor* copy(Space& home);
     /// Cost function (defined as PC_TERNARY_LO)
     virtual PropCost cost(const Space& home, const ModEventDelta& med) const;
     /// Schedule function

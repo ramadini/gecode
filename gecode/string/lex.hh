@@ -14,12 +14,12 @@ namespace Gecode { namespace String {
     using MixBinaryPropagator
       <StringView, PC_STRING_DOM, StringView, PC_STRING_DOM>::x1;
     /// Constructor for cloning \a p
-    Lex(Space& home, bool share, Lex& p);
+    Lex(Space& home, Lex& p);
     /// Constructor for posting
     Lex(Home home, StringView x0, StringView x1, bool eq);
   public:
     /// Copy propagator during cloning
-    virtual Actor* copy(Space& home, bool share);
+    virtual Actor* copy(Space& home);
     /// Perform propagation
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator \f$ x \neq y \f$

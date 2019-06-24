@@ -13,12 +13,12 @@ namespace Gecode { namespace String {
   protected:
     using UnaryPropagator<StringView, PC_STRING_DOM>::x0;
     /// Constructor for cloning \a p
-    Dom(Space& home, bool share, Dom& p);
+    Dom(Space& home, Dom& p);
     /// Constructor for posting
     Dom(Home home, StringView, NSBlocks& p);
   public:
     /// Copy propagator during cloning
-    virtual Actor* copy(Space& home, bool share);
+    virtual Actor* copy(Space& home);
     /// Perform propagation
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator \f$ x=y \f$

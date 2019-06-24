@@ -16,12 +16,12 @@ namespace Gecode { namespace String {
     <StringView, PC_STRING_DOM, StringView, PC_STRING_DOM>::x1;
 
     /// Constructor for cloning \a p
-    Rev(Space& home, bool share, Rev& p);
+    Rev(Space& home, Rev& p);
     /// Constructor for posting
     Rev(Home home, StringView x0, StringView x1);
   public:
     /// Copy propagator during cloning
-    virtual Actor* copy(Space& home, bool share);
+    virtual Actor* copy(Space& home);
     /// Perform propagation
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator \f$ z=x \cdot y \f$

@@ -9,12 +9,12 @@ namespace Gecode { namespace String {
   protected:
     using UnaryPropagator<StringView, PC_STRING_DOM>::x0;
     /// Constructor for cloning \a p
-    Inc(Space& home, bool share, Inc& p);
+    Inc(Space& home, Inc& p);
     /// Constructor for posting
     Inc(Home home, StringView x, bool lt);
   public:
     /// Copy propagator during cloning
-    virtual Actor* copy(Space& home, bool share);
+    virtual Actor* copy(Space& home);
     /// Perform propagation
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator

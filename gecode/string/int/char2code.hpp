@@ -13,14 +13,14 @@ namespace Gecode { namespace String {
   }
 
   forceinline
-  Char2Code::Char2Code(Space& home, bool share, Char2Code& p)
+  Char2Code::Char2Code(Space& home, Char2Code& p)
   : MixBinaryPropagator
   <StringView, PC_STRING_DOM, Gecode::Int::IntView,Gecode::Int::PC_INT_BND>
     (home, share, p) {}
 
   forceinline Actor*
-  Char2Code::copy(Space& home, bool share) {
-    return new (home) Char2Code(home,share,*this);
+  Char2Code::copy(Space& home) {
+    return new (home) Char2Code(home, *this);
   }
 
   forceinline ExecStatus

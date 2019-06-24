@@ -16,7 +16,7 @@ namespace Gecode { namespace String {
     StringView x1;
     CtrlView b;
     /// Constructor for cloning \a p
-    ReLex(Space& home, bool share, ReLex&);
+    ReLex(Space& home, ReLex&);
     /// Constructor for posting
     ReLex(Home home, StringView x0, StringView x1, CtrlView b, bool strict);
   public:

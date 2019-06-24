@@ -6,13 +6,13 @@ namespace Gecode { namespace String {
     Gecode::Int::PC_INT_BND, StringView, PC_STRING_DOM> (home, x, n, y) {}
 
   forceinline
-  Pow::Pow(Space& home, bool share, Pow& p)
+  Pow::Pow(Space& home, Pow& p)
   : MixTernaryPropagator<StringView, PC_STRING_DOM, Gecode::Int::IntView,
-    Gecode::Int::PC_INT_BND, StringView, PC_STRING_DOM> (home, share, p) {}
+    Gecode::Int::PC_INT_BND, StringView, PC_STRING_DOM> (home, p) {}
 
   Actor*
-  Pow::copy(Space& home, bool share) {
-    return new (home) Pow(home, share, *this);
+  Pow::copy(Space& home) {
+    return new (home) Pow(home, *this);
   }
   
   forceinline ExecStatus

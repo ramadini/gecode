@@ -16,14 +16,14 @@ namespace Gecode { namespace String {
     using MixBinaryPropagator
     <StringView, PC_STRING_DOM, StringView, PC_STRING_DOM>::x1;
     /// Constructor for cloning \a p
-    UpperCase(Space& home, bool share, UpperCase& p);
+    UpperCase(Space& home, UpperCase& p);
     /// Constructor for posting
     UpperCase(Home home, StringView x0, StringView x1);
   public:
     static NSIntSet _LCASE_SET;
     static NSIntSet _UCASE_SET;
     /// Copy propagator during cloning
-    virtual Actor* copy(Space& home, bool share);
+    virtual Actor* copy(Space& home);
     /// Perform propagation
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator \f$ z=x \cdot y \f$

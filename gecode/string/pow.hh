@@ -17,12 +17,12 @@ namespace Gecode { namespace String {
     using MixTernaryPropagator<StringView, PC_STRING_DOM, Gecode::Int::IntView,
       Gecode::Int::PC_INT_BND, StringView, PC_STRING_DOM>::x2;
     /// Constructor for cloning \a p
-    Pow(Space& home, bool share, Pow& p);
+    Pow(Space& home, Pow& p);
     /// Constructor for posting
     Pow(Home home, StringView, Gecode::Int::IntView, StringView);
   public:
     /// Copy propagator during cloning
-    virtual Actor* copy(Space& home, bool);
+    virtual Actor* copy(Space& home);
     /// Perform propagation
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator for \f$ |s|=x \f$
