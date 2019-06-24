@@ -6,9 +6,9 @@ namespace Gecode { namespace String {
     (home, x, y) {}
 
   forceinline
-  Eq::Eq(Space& home, bool share, Eq& p)
+  Eq::Eq(Space& home, Eq& p)
   : MixBinaryPropagator<StringView, PC_STRING_DOM, StringView, PC_STRING_DOM>
-    (home, share, p) {}
+    (home, p) {}
 
   forceinline ExecStatus
   Eq::post(Home home, StringView x, StringView y) {
@@ -18,8 +18,8 @@ namespace Gecode { namespace String {
   }
 
   forceinline Actor*
-  Eq::copy(Space& home, bool share) {
-    return new (home) Eq(home, share, *this);
+  Eq::copy(Space& home) {
+    return new (home) Eq(home, *this);
   }
 
   forceinline ExecStatus

@@ -58,10 +58,10 @@ namespace Gecode { namespace String {
 
   template <class CtrlView, ReifyMode rm>
   forceinline
-  ReReg<CtrlView, rm>::ReReg(Space& home, bool share, ReReg& p)
-  : Propagator(home, share, p), dfa(p.dfa) {
-    x0.update (home, share, p.x0);
-    b .update (home, share, p.b);
+  ReReg<CtrlView, rm>::ReReg(Space& home, ReReg& p)
+  : Propagator(home, p), dfa(p.dfa) {
+    x0.update (home, p.x0);
+    b .update (home, p.b);
   }
 
   template<class CtrlView, ReifyMode rm>
@@ -124,8 +124,8 @@ namespace Gecode { namespace String {
 
   template <class CtrlView, ReifyMode rm>
   Actor*
-  ReReg<CtrlView, rm>::copy(Space& home, bool share) {
-    return new (home) ReReg(home, share, *this);
+  ReReg<CtrlView, rm>::copy(Space& home) {
+    return new (home) ReReg(home, *this);
   }
 
   template<class CtrlView, ReifyMode rm>

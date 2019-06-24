@@ -289,8 +289,8 @@ namespace Gecode { namespace String {
   }
 
   forceinline
-  Reg::Reg(Space& home, bool share, Reg& p)
-  : UnaryPropagator<StringView, PC_STRING_DOM>(home, share, p), dfa(p.dfa) {}
+  Reg::Reg(Space& home, Reg& p)
+  : UnaryPropagator<StringView, PC_STRING_DOM>(home, p), dfa(p.dfa) {}
 
   forceinline ExecStatus
   Reg::post(Home home, StringView x, const DFA& d) {
@@ -329,8 +329,8 @@ namespace Gecode { namespace String {
   }
 
   forceinline Actor*
-  Reg::copy(Space& home, bool share) {
-    return new (home) Reg(home, share, *this);
+  Reg::copy(Space& home) {
+    return new (home) Reg(home, *this);
   }
 
   forceinline std::vector<NSIntSet>

@@ -6,9 +6,9 @@ namespace Gecode { namespace String {
     (home, x, y), lt(b) {}
 
   forceinline
-  Lex::Lex(Space& home, bool share, Lex& p)
+  Lex::Lex(Space& home, Lex& p)
   : MixBinaryPropagator<StringView, PC_STRING_DOM, StringView, PC_STRING_DOM>
-    (home, share, p), lt(p.lt) {}
+    (home, p), lt(p.lt) {}
 
   forceinline ExecStatus
   Lex::post(Home home, StringView x, StringView y, bool b) {
@@ -23,8 +23,8 @@ namespace Gecode { namespace String {
   }
 
   forceinline Actor*
-  Lex::copy(Space& home, bool share) {
-    return new (home) Lex(home, share, *this);
+  Lex::copy(Space& home) {
+    return new (home) Lex(home, *this);
   }
 
   forceinline ExecStatus

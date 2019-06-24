@@ -5,8 +5,8 @@ namespace Gecode { namespace String {
     : UnaryPropagator<StringView, PC_STRING_DOM> (home, x), dom(new NSBlocks(d)) {}
 
   forceinline
-  Dom::Dom(Space& home, bool share, Dom& p)
-    : UnaryPropagator<StringView, PC_STRING_DOM>(home, share, p), dom(p.dom) {}
+  Dom::Dom(Space& home, Dom& p)
+    : UnaryPropagator<StringView, PC_STRING_DOM>(home, p), dom(p.dom) {}
 
   ExecStatus
   Dom::post(Home home, StringView x, NSBlocks& d) {
@@ -16,8 +16,8 @@ namespace Gecode { namespace String {
   }
 
   Actor*
-  Dom::copy(Space& home, bool share) {
-    return new (home) Dom(home, share, *this);
+  Dom::copy(Space& home) {
+    return new (home) Dom(home, *this);
   }
 
   ExecStatus

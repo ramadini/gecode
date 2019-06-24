@@ -16,7 +16,7 @@ namespace Gecode { namespace String {
   Char2Code::Char2Code(Space& home, Char2Code& p)
   : MixBinaryPropagator
   <StringView, PC_STRING_DOM, Gecode::Int::IntView,Gecode::Int::PC_INT_BND>
-    (home, share, p) {}
+    (home, p) {}
 
   forceinline Actor*
   Char2Code::copy(Space& home) {

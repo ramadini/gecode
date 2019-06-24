@@ -13,8 +13,8 @@ namespace Gecode { namespace String {
   }
   
   forceinline Actor*
-  Rev::copy(Space& home, bool share) {
-    return new (home) Rev(home, share, *this);
+  Rev::copy(Space& home) {
+    return new (home) Rev(home, *this);
   }
 
   forceinline
@@ -23,9 +23,9 @@ namespace Gecode { namespace String {
     (home, y0, y1) {}
 
   forceinline
-  Rev::Rev(Space& home, bool share, Rev& p)
+  Rev::Rev(Space& home, Rev& p)
   : MixBinaryPropagator<StringView, PC_STRING_DOM, StringView, PC_STRING_DOM>
-    (home, share, p) {}
+    (home, p) {}
 
   forceinline ExecStatus
   Rev::propagate(Space& home, const ModEventDelta&) {

@@ -21,7 +21,7 @@ namespace Gecode { namespace String {
     ReLex(Home home, StringView x0, StringView x1, CtrlView b, bool strict);
   public:
     /// Copy propagator during cloning
-    virtual Actor* copy(Space& home,bool);
+    virtual Actor* copy(Space& home);
     /// Cost function (defined as PC_TERNARY_LO)
     virtual PropCost cost(const Space& home, const ModEventDelta& med) const;
     /// Schedule function

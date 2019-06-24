@@ -13,8 +13,8 @@ namespace Gecode { namespace String {
   }
 
   forceinline Actor*
-  UpperCase::copy(Space& home, bool share) {
-    return new (home) UpperCase(home, share, *this);
+  UpperCase::copy(Space& home) {
+    return new (home) UpperCase(home, *this);
   }
 
   forceinline
@@ -23,9 +23,9 @@ namespace Gecode { namespace String {
     (home, y0, y1) {}
 
   forceinline
-  UpperCase::UpperCase(Space& home, bool share, UpperCase& p)
+  UpperCase::UpperCase(Space& home, UpperCase& p)
   : MixBinaryPropagator<StringView, PC_STRING_DOM, StringView, PC_STRING_DOM>
-    (home, share, p) {}
+    (home, p) {}
 
   forceinline ExecStatus
   UpperCase::propagate(Space& home, const ModEventDelta&) {

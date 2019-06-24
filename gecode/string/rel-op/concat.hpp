@@ -14,19 +14,19 @@ namespace Gecode { namespace String {
   }
 
   forceinline Actor*
-  Concat::copy(Space& home, bool share) {
-    return new (home) Concat(home, share, *this);
+  Concat::copy(Space& home) {
+    return new (home) Concat(home, *this);
   }
 
   forceinline
   Concat::Concat(Home home, StringView y0, StringView y1, StringView y2)
-  : MixTernaryPropagator<StringView, PC_STRING_DOM, StringView, PC_STRING_DOM, StringView,
-    PC_STRING_DOM>(home, y0, y1, y2) {}
+  : MixTernaryPropagator<StringView, PC_STRING_DOM, StringView, PC_STRING_DOM, 
+      StringView, PC_STRING_DOM>(home, y0, y1, y2) {}
 
   forceinline
-  Concat::Concat(Space& home, bool share,
-  Concat& p): MixTernaryPropagator<StringView, PC_STRING_DOM,
-         StringView, PC_STRING_DOM, StringView,PC_STRING_DOM>(home, share, p) {}
+  Concat::Concat(Space& home, Concat& p)
+  : MixTernaryPropagator<StringView, PC_STRING_DOM,
+         StringView, PC_STRING_DOM, StringView,PC_STRING_DOM>(home, p) {}
 
   forceinline ExecStatus
   Concat::propagate(Space& home, const ModEventDelta&) {

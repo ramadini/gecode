@@ -6,9 +6,9 @@ namespace Gecode { namespace String {
   <StringView, PC_STRING_DOM, IntView, Gecode::Int::PC_INT_BND>(home, v, i) {}
 
   forceinline
-  Element::Element(Space& home, bool share, Element& p) : MixNaryOnePropagator 
+  Element::Element(Space& home, Element& p) : MixNaryOnePropagator 
   <StringView, PC_STRING_DOM, IntView, Gecode::Int::PC_INT_BND>
-    (home, share, p) {}
+    (home, p) {}
 
   forceinline ExecStatus
   Element::post(Home home, ViewArray<StringView> a, IntView i, StringView x) {
@@ -23,8 +23,8 @@ namespace Gecode { namespace String {
   }
 
   forceinline Actor*
-  Element::copy(Space& home, bool share) {
-    return new (home) Element(home, share, *this);
+  Element::copy(Space& home) {
+    return new (home) Element(home, *this);
   }
 
   forceinline ExecStatus

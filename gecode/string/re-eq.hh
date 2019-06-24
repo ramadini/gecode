@@ -14,12 +14,12 @@ namespace Gecode { namespace String {
     StringView x1;
     CtrlView b;
     /// Constructor for cloning \a p
-    ReEq(Space& home, bool share, ReEq&);
+    ReEq(Space& home, ReEq&);
     /// Constructor for posting
     ReEq(Home home, StringView x0, StringView x1, CtrlView b);
   public:
     /// Copy propagator during cloning
-    virtual Actor* copy(Space& home,bool);
+    virtual Actor* copy(Space& home);
     /// Cost function (defined as PC_TERNARY_LO)
     virtual PropCost cost(const Space& home, const ModEventDelta& med) const;
     /// Schedule function

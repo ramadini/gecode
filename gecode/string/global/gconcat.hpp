@@ -5,8 +5,8 @@ namespace Gecode { namespace String {
   : NaryOnePropagator<StringView, PC_STRING_DOM>(home, x, y) {}
 
   forceinline
-  GConcat::GConcat(Space& home, bool share, GConcat& p)
-  : NaryOnePropagator<StringView, PC_STRING_DOM>(home, share, p) {}
+  GConcat::GConcat(Space& home, GConcat& p)
+  : NaryOnePropagator<StringView, PC_STRING_DOM>(home, p) {}
 
   forceinline ExecStatus
   GConcat::post(Home home, ViewArray<StringView>& x, StringView y) {
@@ -25,8 +25,8 @@ namespace Gecode { namespace String {
   }
   
   forceinline Actor*
-  GConcat::copy(Space& home, bool share) {
-    return new (home) GConcat(home, share, *this);
+  GConcat::copy(Space& home) {
+    return new (home) GConcat(home, *this);
   }
 
   forceinline bool

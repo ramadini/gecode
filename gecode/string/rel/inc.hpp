@@ -7,9 +7,9 @@ namespace Gecode { namespace String {
       (home, x), strict(b) {}
 
   forceinline
-  Inc::Inc(Space& home, bool share, Inc& p)
+  Inc::Inc(Space& home, Inc& p)
     : UnaryPropagator<StringView, PC_STRING_DOM>
-      (home, share, p), strict(p.strict) {}
+      (home, p), strict(p.strict) {}
 
   forceinline ExecStatus
   Inc::post(Home home, StringView x, bool b) {
@@ -18,8 +18,8 @@ namespace Gecode { namespace String {
   }
 
   forceinline Actor*
-  Inc::copy(Space& home, bool share) {
-    return new (home) Inc(home, share, *this);
+  Inc::copy(Space& home) {
+    return new (home) Inc(home, *this);
   }
 
   forceinline ExecStatus

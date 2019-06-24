@@ -16,14 +16,14 @@ namespace Gecode { namespace String {
   }
 
   forceinline
-  Find::Find(Space& home, bool share, Find& p)
+  Find::Find(Space& home, Find& p)
   : MixTernaryPropagator<StringView, PC_STRING_DOM, 
     StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_BND> 
-    (home, share, p) {}
+    (home, p) {}
 
   forceinline Actor*
-  Find::copy(Space& home, bool share) {
-    return new (home) Find(home, share, *this);
+  Find::copy(Space& home) {
+    return new (home) Find(home, *this);
   }
 
   forceinline ExecStatus

@@ -13,11 +13,11 @@ namespace Gecode { namespace String {
 
   template<class CtrlView, ReifyMode rm>
   forceinline
-  ReEq<CtrlView, rm>::ReEq(Space& home, bool share, ReEq& p)
-  : Propagator(home, share, p) {
-    x0.update (home, share, p.x0);
-    x1.update (home, share, p.x1);
-    b .update (home, share, p.b);
+  ReEq<CtrlView, rm>::ReEq(Space& home, ReEq& p)
+  : Propagator(home, p) {
+    x0.update (home, p.x0);
+    x1.update (home, p.x1);
+    b .update (home, p.b);
   }
 
   template<class CtrlView, ReifyMode rm>
@@ -53,8 +53,8 @@ namespace Gecode { namespace String {
 
   template<class CtrlView, ReifyMode rm>
   forceinline Actor*
-  ReEq<CtrlView, rm>::copy(Space& home, bool share) {
-    return new (home) ReEq<CtrlView, rm>(home, share, *this);
+  ReEq<CtrlView, rm>::copy(Space& home) {
+    return new (home) ReEq<CtrlView, rm>(home, *this);
   }
 
   template<class CtrlView, ReifyMode rm>

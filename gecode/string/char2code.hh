@@ -18,12 +18,12 @@ namespace Gecode { namespace String {
     <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_BND>
       ::x1;
     /// Constructor for cloning \a p
-    Char2Code(Space& home, bool share, Char2Code& p);
+    Char2Code(Space& home, Char2Code& p);
     /// Constructor for posting
     Char2Code(Home home, StringView, Gecode::Int::IntView);
   public:
     /// Copy propagator during cloning
-    virtual Actor* copy(Space& home,bool);
+    virtual Actor* copy(Space& home);
     /// Perform propagation
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator for \f$ |s|=x \f$

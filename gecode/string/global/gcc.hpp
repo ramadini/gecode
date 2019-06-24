@@ -11,10 +11,10 @@ namespace Gecode { namespace String {
   }
 
   forceinline
-  GCC::GCC(Space& home, bool share, GCC& p)
+  GCC::GCC(Space& home, GCC& p)
   : MixNaryOnePropagator
   <Gecode::Int::IntView, Gecode::Int::PC_INT_BND, StringView, PC_STRING_DOM> 
-    (home, share, p), A(p.A), C(p.C) {}
+    (home, p), A(p.A), C(p.C) {}
 
   forceinline ExecStatus
   GCC::post(
@@ -29,8 +29,8 @@ namespace Gecode { namespace String {
   }
 
   forceinline Actor*
-  GCC::copy(Space& home, bool share) {
-    return new (home) GCC(home, share, *this);
+  GCC::copy(Space& home) {
+    return new (home) GCC(home, *this);
   }
 
   forceinline ExecStatus
