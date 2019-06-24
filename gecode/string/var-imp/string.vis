@@ -1,0 +1,48 @@
+[General]
+Name:           String
+Namespace:      Gecode::String
+Ifdef:          GECODE_HAS_STRING_VARS
+Bits:           0
+Dispose:        false
+
+[ModEventHeader]
+  /**
+   * \defgroup TaskActorStringMEPC String modification events and propagation conditions
+   * \ingroup TaskActorString
+   */
+  //@{
+
+[ModEvent]
+Name:           FAILED=FAILED
+#        <text to precede definition, optional>
+
+[ModEvent]
+Name:           NONE=NONE
+#        <text to precede definition, optional>
+
+[ModEvent]
+Name:           VAL=ASSIGNED
+Combine:        VAL=VAL, DOM=VAL
+
+[ModEvent]
+Name:           DOM=SUBSCRIBE
+Combine:        VAL=VAL, DOM=DOM
+
+[ModEventFooter]
+
+
+[PropCondHeader]
+[PropCond]
+Name:           NONE=NONE
+
+[PropCond]
+Name:           VAL=ASSIGNED
+ScheduledBy:    VAL
+
+[PropCond]
+Name:           DOM
+ScheduledBy:    VAL, DOM
+
+[PropCondFooter]
+  //@}
+[End]

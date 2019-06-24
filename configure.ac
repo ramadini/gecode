@@ -269,6 +269,18 @@ AC_GECODE_VTI(set,
 	 AC_SUBST(LINKSET,[])
 	]
 	)
+	
+AC_GECODE_VTI(string,
+	[finite string library (implies --enable-int-vars)],
+	yes,
+	[\$(top_srcdir)/gecode/string/var-imp/string.vis],
+	[enable_int_vars="yes";
+	 AC_SUBST(LINKSTRING,[${LINKLIBDIR}${LINKPREFIX}${STRING}${DLL_ARCH}${LINKSUFFIX}])
+	],
+	[
+	 AC_SUBST(LINKSTRING,[])
+	]
+	)
 
 AC_GECODE_VTI(int, finite domain library, yes,
 	[\$(top_srcdir)/gecode/int/var-imp/int.vis \$(top_srcdir)/gecode/int/var-imp/bool.vis],

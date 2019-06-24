@@ -4,6 +4,7 @@
  *    edit the following files instead:
  *     - ./gecode/int/var-imp/int.vis
  *     - ./gecode/int/var-imp/bool.vis
+ *     - ./gecode/string/var-imp/string.vis
  *     - ./gecode/set/var-imp/set.vis
  *     - ./gecode/float/var-imp/float.vis
  *
@@ -127,6 +128,52 @@ namespace Gecode { namespace Int {
      * Otherwise, the propagator is scheduled for execution
      * with modification event \a me provided that \a pc is different
      * from \a PC_BOOL_VAL.
+     */
+    void reschedule(Gecode::Space& home, Gecode::Propagator& p, Gecode::PropCond pc, bool assigned);
+    //@}
+  };
+}}
+#endif
+#ifdef GECODE_HAS_STRING_VARS
+namespace Gecode { namespace String {
+  /// Base-class for String-variable implementations
+  class StringVarImpBase : public Gecode::VarImp<Gecode::String::StringVarImpConf> {
+  protected:
+    /// Constructor for cloning \a x
+    StringVarImpBase(Gecode::Space& home, StringVarImpBase& x);
+  public:
+    /// Constructor for creating static instance of variable
+    StringVarImpBase(void);
+    /// Constructor for creating variable
+    StringVarImpBase(Gecode::Space& home);
+    /// \name Dependencies
+    //@{
+    /** \brief Subscribe propagator \a p with propagation condition \a pc
+     *
+     * In case \a schedule is false, the propagator is just subscribed but
+     * not scheduled for execution (this must be used when creating
+     * subscriptions during propagation).
+     *
+     * In case the variable is assigned (that is, \a assigned is
+     * true), the subscribing propagator is scheduled for execution.
+     * Otherwise, the propagator subscribes and is scheduled for execution
+     * with modification event \a me provided that \a pc is different
+     * from \a PC_STRING_VAL.
+     */
+    void subscribe(Gecode::Space& home, Gecode::Propagator& p, Gecode::PropCond pc, bool assigned, bool schedule);
+    /// Subscribe advisor \a a if \a assigned is false.
+    void subscribe(Gecode::Space& home, Gecode::Advisor& a, bool assigned, bool failed);
+    /// Notify that variable implementation has been modified with modification event \a me and delta information \a d
+    Gecode::ModEvent notify(Gecode::Space& home, Gecode::ModEvent me, Gecode::Delta& d);
+    /// \brief Schedule propagator \a p
+    static void schedule(Gecode::Space& home, Gecode::Propagator& p, Gecode::ModEvent me);
+    /** \brief Re-schedule propagator \a p
+     *
+     * In case the variable is assigned (that is, \a assigned is
+     * true), the propagator is scheduled for execution.
+     * Otherwise, the propagator is scheduled for execution
+     * with modification event \a me provided that \a pc is different
+     * from \a PC_STRING_VAL.
      */
     void reschedule(Gecode::Space& home, Gecode::Propagator& p, Gecode::PropCond pc, bool assigned);
     //@}
@@ -329,6 +376,61 @@ namespace Gecode { namespace Int {
 
 }}
 #endif
+#ifdef GECODE_HAS_STRING_VARS
+namespace Gecode { namespace String {
+
+  forceinline
+  StringVarImpBase::StringVarImpBase(void) {}
+
+  forceinline
+  StringVarImpBase::StringVarImpBase(Gecode::Space& home)
+    : Gecode::VarImp<Gecode::String::StringVarImpConf>(home) {}
+
+  forceinline
+  StringVarImpBase::StringVarImpBase(Gecode::Space& home, StringVarImpBase& x)
+    : Gecode::VarImp<Gecode::String::StringVarImpConf>(home,x) {}
+
+  forceinline void
+  StringVarImpBase::subscribe(Gecode::Space& home, Gecode::Propagator& p, Gecode::PropCond pc, bool assigned, bool schedule) {
+    Gecode::VarImp<Gecode::String::StringVarImpConf>::subscribe(home,p,pc,assigned,ME_STRING_DOM,schedule);
+  }
+  forceinline void
+  StringVarImpBase::subscribe(Gecode::Space& home, Gecode::Advisor& a, bool assigned, bool failed) {
+    Gecode::VarImp<Gecode::String::StringVarImpConf>::subscribe(home,a,assigned,failed);
+  }
+
+  forceinline void
+  StringVarImpBase::schedule(Gecode::Space& home, Gecode::Propagator& p, Gecode::ModEvent me) {
+    Gecode::VarImp<Gecode::String::StringVarImpConf>::schedule(home,p,me);
+  }
+  forceinline void
+  StringVarImpBase::reschedule(Gecode::Space& home, Gecode::Propagator& p, Gecode::PropCond pc, bool assigned) {
+    Gecode::VarImp<Gecode::String::StringVarImpConf>::reschedule(home,p,pc,assigned,ME_STRING_DOM);
+  }
+
+  forceinline Gecode::ModEvent
+  StringVarImpBase::notify(Gecode::Space& home, Gecode::ModEvent me, Gecode::Delta& d) {
+    switch (me) {
+    case ME_STRING_VAL:
+      // Conditions: VAL, DOM
+      Gecode::VarImp<Gecode::String::StringVarImpConf>::schedule(home,PC_STRING_VAL,PC_STRING_DOM,ME_STRING_VAL);
+      if (!Gecode::VarImp<Gecode::String::StringVarImpConf>::advise(home,ME_STRING_VAL,d))
+        return ME_STRING_FAILED;
+      cancel(home);
+      break;
+    case ME_STRING_DOM:
+      // Conditions: DOM
+      Gecode::VarImp<Gecode::String::StringVarImpConf>::schedule(home,PC_STRING_DOM,PC_STRING_DOM,ME_STRING_DOM);
+      if (!Gecode::VarImp<Gecode::String::StringVarImpConf>::advise(home,ME_STRING_DOM,d))
+        return ME_STRING_FAILED;
+      break;
+    default: GECODE_NEVER;
+    }
+    return me;
+  }
+
+}}
+#endif
 #ifdef GECODE_HAS_SET_VARS
 namespace Gecode { namespace Set {
 
@@ -485,6 +587,9 @@ namespace Gecode {
 #endif
 #ifdef GECODE_HAS_INT_VARS
     Gecode::VarImp<Gecode::Int::BoolVarImpConf>::update(*this,sub);
+#endif
+#ifdef GECODE_HAS_STRING_VARS
+    Gecode::VarImp<Gecode::String::StringVarImpConf>::update(*this,sub);
 #endif
 #ifdef GECODE_HAS_SET_VARS
     Gecode::VarImp<Gecode::Set::SetVarImpConf>::update(*this,sub);

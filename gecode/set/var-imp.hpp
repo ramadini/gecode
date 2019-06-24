@@ -171,7 +171,7 @@ namespace Gecode { namespace Set {
     /// \name Cloning
     //@{
     /// Update this set to be a clone of set \a x
-    void update(Space& home, BndSet& x);
+    void update(Space& home, const BndSet& x);
     //@}
 
     /// Check whether internal invariants hold

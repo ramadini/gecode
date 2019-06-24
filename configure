@@ -660,6 +660,8 @@ GMP_LIB_PATH
 GMP_CPPFLAGS
 enable_int_vars
 LINKINT
+enable_string_vars
+LINKSTRING
 enable_set_vars
 LINKSET
 enable_float_vars
@@ -674,6 +676,7 @@ DRIVER
 FLATZINC
 GIST
 MM
+STRING
 SET
 FLOAT
 INT
@@ -702,6 +705,7 @@ GECODE_BUILD_DRIVER_FLAG
 GECODE_BUILD_FLATZINC_FLAG
 GECODE_BUILD_GIST_FLAG
 GECODE_BUILD_MINIMODEL_FLAG
+GECODE_BUILD_STRING_FLAG
 GECODE_BUILD_SET_FLAG
 GECODE_BUILD_FLOAT_FLAG
 GECODE_BUILD_INT_FLAG
@@ -816,6 +820,7 @@ enable_doc_docset
 with_vis
 enable_float_vars
 enable_set_vars
+enable_string_vars
 enable_int_vars
 enable_mpfr
 with_gmp_include
@@ -1491,6 +1496,8 @@ Optional Features:
                           --enable-int-vars) [default=yes]
   --enable-set-vars       build finite set library (implies --enable-int-vars)
                           [default=yes]
+  --enable-string-vars    build finite string library (implies
+                          --enable-int-vars) [default=yes]
   --enable-int-vars       build finite domain library [default=yes]
   --enable-mpfr           build with MPFR support [default=yes]
   --enable-qt             build with Qt support, requires at least Qt 4.3
@@ -6616,6 +6623,8 @@ gnu)
 
    GECODE_BUILD_SET_FLAG=""
 
+   GECODE_BUILD_STRING_FLAG=""
+
    GECODE_BUILD_MINIMODEL_FLAG=""
 
    GECODE_BUILD_GIST_FLAG=""
@@ -6660,6 +6669,8 @@ gnu)
 
    GECODE_BUILD_SET_FLAG="-DGECODE_BUILD_SET"
 
+   GECODE_BUILD_STRING_FLAG="-DGECODE_BUILD_STRING"
+
    GECODE_BUILD_MINIMODEL_FLAG="-DGECODE_BUILD_MINIMODEL"
 
    GECODE_BUILD_GIST_FLAG="-DGECODE_BUILD_GIST"
@@ -6694,6 +6705,8 @@ gnu)
    GECODE_BUILD_FLOAT_FLAG=""
 
    GECODE_BUILD_SET_FLAG=""
+
+   GECODE_BUILD_STRING_FLAG=""
 
    GECODE_BUILD_MINIMODEL_FLAG=""
 
@@ -7768,6 +7781,8 @@ fi
   FLOAT="float"
 
   SET="set"
+
+  STRING="string"
 
   MM="minimodel"
 
@@ -9428,6 +9443,8 @@ fi
 
    GECODE_BUILD_SET_FLAG="-DGECODE_BUILD_SET"
 
+   GECODE_BUILD_STRING_FLAG="-DGECODE_BUILD_STRING"
+
    GECODE_BUILD_MINIMODEL_FLAG="-DGECODE_BUILD_MINIMODEL"
 
    GECODE_BUILD_GIST_FLAG="-DGECODE_BUILD_GIST"
@@ -9463,6 +9480,8 @@ fi
   INT="Int"
 
   FLOAT="Float"
+
+  STRING="String"
 
   SET="Set"
 
@@ -9592,6 +9611,8 @@ $as_echo "no" >&6; }
 
    GECODE_BUILD_SET_FLAG=""
 
+   GECODE_BUILD_STRING_FLAG=""
+
    GECODE_BUILD_MINIMODEL_FLAG=""
 
    GECODE_BUILD_GIST_FLAG=""
@@ -9636,6 +9657,8 @@ $as_echo "no" >&6; }
 
    GECODE_BUILD_SET_FLAG="-DGECODE_BUILD_SET"
 
+   GECODE_BUILD_STRING_FLAG="-DGECODE_BUILD_STRING"
+
    GECODE_BUILD_MINIMODEL_FLAG="-DGECODE_BUILD_MINIMODEL"
 
    GECODE_BUILD_GIST_FLAG="-DGECODE_BUILD_GIST"
@@ -9670,6 +9693,8 @@ $as_echo "no" >&6; }
    GECODE_BUILD_FLOAT_FLAG=""
 
    GECODE_BUILD_SET_FLAG=""
+
+   GECODE_BUILD_STRING_FLAG=""
 
    GECODE_BUILD_MINIMODEL_FLAG=""
 
@@ -10745,6 +10770,8 @@ fi
 
   SET="set"
 
+  STRING="string"
+
   MM="minimodel"
 
   GIST="gist"
@@ -11517,6 +11544,8 @@ fi
 
    GECODE_BUILD_SET_FLAG="-DGECODE_BUILD_SET"
 
+   GECODE_BUILD_STRING_FLAG="-DGECODE_BUILD_STRING"
+
    GECODE_BUILD_MINIMODEL_FLAG="-DGECODE_BUILD_MINIMODEL"
 
    GECODE_BUILD_GIST_FLAG="-DGECODE_BUILD_GIST"
@@ -11552,6 +11581,8 @@ fi
   INT="Int"
 
   FLOAT="Float"
+
+  STRING="String"
 
   SET="Set"
 
@@ -11838,6 +11869,39 @@ $as_echo "#define GECODE_HAS_SET_VARS /**/" >>confdefs.h
 $as_echo "no" >&6; }
    fi
    enable_set_vars=${enable_set_vars}
+
+
+
+
+   # Check whether --enable-string-vars was given.
+if test "${enable_string_vars+set}" = set; then :
+  enableval=$enable_string_vars;
+fi
+
+   ac_gecode_vis="\$(top_srcdir)/gecode/string/var-imp/string.vis${ac_gecode_vis:+ }${ac_gecode_vis}"
+   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to build the string variables library" >&5
+$as_echo_n "checking whether to build the string variables library... " >&6; }
+   if test "${enable_string_vars:-yes}" = "yes"; then
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+     enable_string_vars="yes";
+     enable_int_vars="yes";
+	 LINKSTRING=${LINKLIBDIR}${LINKPREFIX}${STRING}${DLL_ARCH}${LINKSUFFIX}
+
+
+
+$as_echo "#define GECODE_HAS_STRING_VARS /**/" >>confdefs.h
+
+   else
+     enable_string_vars="no";
+
+
+
+
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+   fi
+   enable_string_vars=${enable_string_vars}
 
 
 

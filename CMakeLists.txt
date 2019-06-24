@@ -199,6 +199,7 @@ set(GECODE_DLL_USERPREFIX "")
 set(GECODE_DLL_USERSUFFIX "")
 set(GECODE_HAS_INT_VARS "/**/")
 set(GECODE_HAS_SET_VARS "/**/")
+set(GECODE_HAS_STRING_VARS "/**/")
 set(GECODE_HAS_FLOAT_VARS "/**/")
 set(GECODE_STATIC_LIBS 1)
 set(GECODE_ALLOCATOR "/**/")
@@ -334,6 +335,7 @@ file(WRITE ${GECODE_BINARY_DIR}/gecode/support/config.hpp
 #define GECODE_BUILD_SEARCH
 #define GECODE_BUILD_INT
 #define GECODE_BUILD_SET
+#define GECODE_BUILD_STRING
 #define GECODE_BUILD_FLOAT
 #define GECODE_BUILD_MINIMODEL
 #define GECODE_BUILD_FLATZINC
@@ -378,7 +380,7 @@ foreach (line ${lines})
   endif ()
 endforeach ()
 
-foreach (lib support kernel search int set float
+foreach (lib support kernel search int set float string
              minimodel driver flatzinc ${EXTRA_LIBS})
   if (lib STREQUAL "minimodel")
     set(libupper MM)
@@ -414,6 +416,7 @@ target_link_libraries(gecodesearch gecodekernel)
 target_link_libraries(gecodeint gecodekernel)
 target_link_libraries(gecodeset gecodeint)
 target_link_libraries(gecodefloat gecodeint)
+target_link_libraries(gecodestring gecodeint)
 target_link_libraries(gecodeminimodel gecodeint gecodeset gecodesearch)
 target_link_libraries(gecodedriver gecodeint)
 target_link_libraries(gecodeflatzinc gecodeminimodel gecodedriver)
