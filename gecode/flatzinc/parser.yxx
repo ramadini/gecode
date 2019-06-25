@@ -65,6 +65,9 @@ extern int yydebug;
 
 using namespace Gecode;
 using namespace Gecode::FlatZinc;
+using namespace Gecode::String;
+#include <gecode/string/ext/parse-reg.hpp>
+vector<pair<AST::StringVar*, RegEx*>> REGEX;
 
 void yyerror(void* parm, const char *str) {
   ParserState* pp = static_cast<ParserState*>(parm);
@@ -143,6 +146,18 @@ AST::Node* getArrayElement(ParserState* pp, string id, int offset,
           }
           return new AST::FloatVar(pp->arrays[e.i+offset],n);
         }
+      case ST_STRINGVARARRAY:
+        if (offset > pp->arrays[e.i])
+          goto error;
+        {
+          std::string n;
+          if (annotation) {
+            std::ostringstream oss;
+            oss << id << "[" << offset << "]";
+            n = oss.str();
+          }          
+          return new AST::StringVar(pp->arrays[e.i+offset],n);
+        }
       case ST_INTVALARRAY:
         if (offset > pp->arrays[e.i])
           goto error;
@@ -155,6 +170,10 @@ AST::Node* getArrayElement(ParserState* pp, string id, int offset,
         if (offset > pp->arrays[e.i])
           goto error;
         return new AST::FloatLit(pp->floatvals[pp->arrays[e.i+1]+offset-1]);
+      case ST_STRINGVALARRAY:
+        if (offset > pp->arrays[e.i])
+          goto error;
+        return new AST::StringDom(pp->stringvals[pp->arrays[e.i+1]+offset-1]);
       default:
         break;
       }
@@ -178,6 +197,7 @@ AST::Node* getVarRefArg(ParserState* pp, string id, bool annotation = false) {
     case ST_BOOLVAR: return new AST::BoolVar(e.i,n);
     case ST_SETVAR: return new AST::SetVar(e.i,n);
     case ST_FLOATVAR: return new AST::FloatVar(e.i,n);
+    case ST_STRINGVAR: return new AST::StringVar(e.i,n);
     default: break;
     }
   }
@@ -221,6 +241,24 @@ void addDomainConstraint(ParserState* pp, AST::Node* var,
   delete dom.some();
 }
 
+void addDomainConstraint(ParserState* pp, AST::Node* var,
+                         Option<AST::StringDom*> dom) {
+  if (!dom())
+    return;
+  if (dom.some()->l != -1) {
+    AST::Array* args = new AST::Array(2);
+    args->a[0] = var;
+    args->a[1] = dom.some();
+    pp->domainConstraints.push_back(new ConExpr("str_chars", args, NULL));
+  }
+  else if (dom.some()->c == NULL) {
+    AST::Array* args = new AST::Array(2);
+    args->a[0] = var;
+    args->a[1] = new AST::String(dom.some()->s);
+    pp->domainConstraints.push_back(new ConExpr("str_eq", args, NULL));
+  }
+}
+
 int getBaseIntVar(ParserState* pp, int i) {
   int base = i;
   IntVarSpec* ivs = static_cast<IntVarSpec*>(pp->intvars[base].second);
@@ -257,6 +295,15 @@ int getBaseSetVar(ParserState* pp, int i) {
   }
   return base;
 }
+int getBaseStringVar(ParserState* pp, int i) {
+  int base = i;
+  StringVarSpec* ivs = static_cast<StringVarSpec*>(pp->stringvars[base].second);
+  while (ivs->alias) {
+    base = ivs->i;
+    ivs = static_cast<StringVarSpec*>(pp->stringvars[base].second);
+  }
+  return base;
+}
 
 /*
  * Initialize the root gecode space
@@ -269,6 +316,7 @@ void initfg(ParserState* pp) {
                  pp->boolvars.size(),
                  pp->setvars.size(),
                  pp->floatvars.size());
+                 pp->stringvars.size());
 
   for (unsigned int i=0; i<pp->intvars.size(); i++) {
     if (!pp->hadError) {
@@ -316,6 +364,18 @@ void initfg(ParserState* pp) {
     delete pp->floatvars[i].second;
     pp->floatvars[i].second = NULL;
   }
+  for (unsigned int i=0; i<pp->stringvars.size(); i++) {
+    if (!pp->hadError) {
+      try {
+        pp->fg->newStringVar(
+          static_cast<StringVarSpec*>(pp->stringvars[i].second));
+      } catch (Gecode::FlatZinc::Error& e) {
+        yyerror(pp, e.toString().c_str());
+      }
+    }      
+    delete pp->stringvars[i].second;
+    pp->stringvars[i].second = NULL;
+  }
   if (!pp->hadError) {
     pp->fg->postConstraints(pp->domainConstraints);
     pp->fg->postConstraints(pp->constraints);
@@ -347,7 +407,14 @@ void fillPrinter(ParserState& pp, Gecode::FlatZinc::Printer& p) {
       p.addSetVarName(pp.setvars[i].first);
     }
   }
-#endif  
+#endif
+#ifdef GECODE_HAS_STRING_VARS
+  for (unsigned int i=0; i<pp.stringvars.size(); i++) {
+    if (!pp.hadError) {
+      p.addStringVarName(pp.stringvars[i].first);
+    }
+  }
+#endif 
 }
 
 AST::Node* arrayOutput(AST::Call* ann) {
@@ -394,7 +461,7 @@ AST::Node* arrayOutput(AST::Call* ann) {
 namespace Gecode { namespace FlatZinc {
 
   FlatZincSpace* parse(const std::string& filename, Printer& p, std::ostream& err,
-                       FlatZincSpace* fzs, Rnd& rnd) {
+                       const FlatZincOptions& opt, FlatZincSpace* fzs, Rnd& rnd) {
 #ifdef HAVE_MMAP
     int fd;
     char* data;
@@ -434,6 +501,18 @@ namespace Gecode { namespace FlatZinc {
 #endif
     yylex_init(&pp.yyscanner);
     yyset_extra(&pp, pp.yyscanner);
+    
+    int n = opt.max_length();
+    if (n < Gecode::String::DashedString::_MAX_STR_LENGTH) {
+      assert (n >= 0);
+      Gecode::String::DashedString::_MAX_STR_LENGTH = n;
+    }
+    n = opt.max_alpha();
+    if (n < Gecode::String::DashedString::_MAX_STR_ALPHA) {
+      assert (n >= 0);
+      Gecode::String::DashedString::_MAX_STR_ALPHA = n;
+    }
+    
     // yydebug = 1;
     yyparse(&pp);
     fillPrinter(pp, p);
@@ -444,7 +523,7 @@ namespace Gecode { namespace FlatZinc {
   }
 
   FlatZincSpace* parse(std::istream& is, Printer& p, std::ostream& err,
-                       FlatZincSpace* fzs, Rnd& rnd) {
+                       const FlatZincOptions& opt, FlatZincSpace* fzs, Rnd& rnd) {
     std::string s = string(istreambuf_iterator<char>(is),
                            istreambuf_iterator<char>());
 
@@ -471,9 +550,12 @@ namespace Gecode { namespace FlatZinc {
          std::vector<int>* setValue;
          Gecode::FlatZinc::AST::SetLit* setLit;
          std::vector<double>* floatSetValue;
+         std::vector<std::string>* stringSetValue;
          std::vector<Gecode::FlatZinc::AST::SetLit>* setValueList;
          Gecode::FlatZinc::Option<Gecode::FlatZinc::AST::SetLit* > oSet;
          Gecode::FlatZinc::Option<std::pair<double,double>* > oPFloat;
+         Gecode::FlatZinc::AST::CharSetLit* charsetLit;
+         Gecode::FlatZinc::Option<Gecode::FlatZinc::AST::StringDom*> oPString;
          Gecode::FlatZinc::VarSpec* varSpec;
          Gecode::FlatZinc::Option<Gecode::FlatZinc::AST::Node*> oArg;
          std::vector<Gecode::FlatZinc::VarSpec*>* varSpecVec;

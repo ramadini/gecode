@@ -98,14 +98,17 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 470 "gecode/flatzinc/parser.yxx" /* yacc.c:1909  */
+#line 549 "gecode/flatzinc/parser.yxx" /* yacc.c:1909  */
  int iValue; char* sValue; bool bValue; double dValue;
          std::vector<int>* setValue;
          Gecode::FlatZinc::AST::SetLit* setLit;
          std::vector<double>* floatSetValue;
+         std::vector<std::string>* stringSetValue;
          std::vector<Gecode::FlatZinc::AST::SetLit>* setValueList;
          Gecode::FlatZinc::Option<Gecode::FlatZinc::AST::SetLit* > oSet;
          Gecode::FlatZinc::Option<std::pair<double,double>* > oPFloat;
+         Gecode::FlatZinc::AST::CharSetLit* charsetLit;
+         Gecode::FlatZinc::Option<Gecode::FlatZinc::AST::StringDom*> oPString;
          Gecode::FlatZinc::VarSpec* varSpec;
          Gecode::FlatZinc::Option<Gecode::FlatZinc::AST::Node*> oArg;
          std::vector<Gecode::FlatZinc::VarSpec*>* varSpecVec;
@@ -114,7 +117,7 @@ union YYSTYPE
          Gecode::FlatZinc::AST::Array* argVec;
        
 
-#line 118 "gecode/flatzinc/parser.tab.hpp" /* yacc.c:1909  */
+#line 121 "gecode/flatzinc/parser.tab.hpp" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

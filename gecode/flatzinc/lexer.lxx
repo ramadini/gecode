@@ -67,6 +67,41 @@ bool parseInt(const char* text, int& value) {
   return true;
 }
 
+char
+unescape(char x, char** p) {
+  switch(x) {
+    case 'a':
+      return '\a';
+    case 'b':
+      return '\b';
+    case 'e':
+      return '\e';
+    case 'f':
+      return '\f';
+    case 'n':
+      return '\n';
+    case 'r':
+      return '\r';
+    case 't':
+      return '\t';
+    case 'v':
+      return '\v';
+    case 'x': {
+      char s[3];
+      s[0] = *(++(*p));
+      s[1] = *(++(*p));
+      s[2] = '\0';
+      return (char) strtol(s, 0, 16);
+    }
+    case '\'':
+    case '"':
+    case '\\':
+      return x;
+    default:
+      throw std::runtime_error("Unable to unescape: " + string(1, x) + "\n");
+  }
+}
+
 int yy_input_proc(char* buf, int size, yyscan_t yyscanner);
 #define YY_INPUT(buf, result, max_size) \
   result = yy_input_proc(buf, max_size, yyscanner);
@@ -143,11 +178,38 @@ int yy_input_proc(char* buf, int size, yyscan_t yyscanner);
 "where"           { return FZ_WHERE; }
 [A-Za-z][A-Za-z0-9_]* { yylval->sValue = strdup(yytext); return FZ_ID; }
 _[_]*[A-Za-z][A-Za-z0-9_]* { yylval->sValue = strdup(yytext); return FZ_U_ID; }
-\"[^"\n]*\"       {
-                    yylval->sValue = strdup(yytext+1);
-                    yylval->sValue[strlen(yytext)-2] = 0;
-                    return FZ_STRING_LIT; }
-.                 { yyerror("Unknown character"); }
+\"([^"\\]|(\\.))*\" { 
+  // FIXME: Assuming only single-line string literals.
+  char* d = yytext;
+  for (char* p = yytext; *p != '\0'; ++p) {
+   if (*p == '\\') {
+     ++p;
+     switch (*p) {
+       case '(':
+       case ')':
+       case '[':
+       case ']':
+       case '&':
+       case '|':
+       case '*':
+       case '\\':
+         *d = '\\'; ++d; *d = *p;
+         break;               
+       default:
+         *d = unescape(*p, &p);
+     }
+   }
+   else
+     *d = *p;
+   ++d;
+  }
+  *d = '\0';
+
+  yylval->sValue = strdup(yytext+1);
+  yylval->sValue[strlen(yytext)-2] = 0;
+  return FZ_STRING_LIT; 
+}
+.                   { yyerror("Unknown character"); }
 %%
 int yy_input_proc(char* buf, int size, yyscan_t yyscanner) {
   Gecode::FlatZinc::ParserState* parm =
