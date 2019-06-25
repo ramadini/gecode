@@ -2132,7 +2132,7 @@ namespace Gecode { namespace FlatZinc {
   }
 
   void p_str_gcc(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-	std::vector<stringv = s.arg2stringvec(ce[1]);
+	  std::vector<string> v = s.arg2stringvec(ce[1]);
 	  IntArgs a;
 	  for (auto c : v)
 	    a << String::char2int(c[0]);
@@ -2153,15 +2153,15 @@ namespace Gecode { namespace FlatZinc {
     int noOfTrans = 0, symbols = S->s.size();
     for (int i = 0; i < q; ++i)
       for (int j = 0; j < symbols; j++)
-        if (d[i * symbols + j] 0)
+        if (d[i * symbols + j] > 0)
 	  	    noOfTrans++;
     // Transitions.
-    Region re(s);
+    Region re;
     DFA::Transition* t = re.alloc<DFA::Transition>(noOfTrans + 1);
     noOfTrans = 0;
     for (int i = 0; i < q; i++)
       for (int j = 0; j < symbols; j++)
-        if (d[i * symbols + j] 0) {
+        if (d[i * symbols + j] > 0) {
           t[noOfTrans].i_state = i + 1;
           t[noOfTrans].symbol  = S->s.nth(j + 1);
           t[noOfTrans].o_state = d[i * symbols + j];

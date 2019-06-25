@@ -48,6 +48,9 @@
 #ifdef GECODE_HAS_FLOAT_VARS
 #include <gecode/float.hh>
 #endif
+#ifdef GECODE_HAS_STRING_VARS
+#include <gecode/string.hh>
+#endif
 #include <map>
 
 /*
@@ -118,6 +121,10 @@ namespace Gecode { namespace FlatZinc {
     /// Names of set variables
     std::vector<std::string> sv_names;
 #endif
+#ifdef GECODE_HAS_STRING_VARS
+    /// Names of string variables
+    std::vector<std::string> tv_names;
+#endif
     AST::Array* _output;
     void printElem(std::ostream& out,
                    AST::Node* ai,
@@ -130,6 +137,10 @@ namespace Gecode { namespace FlatZinc {
 #ifdef GECODE_HAS_FLOAT_VARS
                   ,
                   const Gecode::FloatVarArray& fv
+#endif
+#ifdef GECODE_HAS_STRING_VARS
+                  ,
+                  const Gecode::StringVarArray& tv
 #endif
                    ) const;
     void printElemDiff(std::ostream& out,
@@ -148,6 +159,11 @@ namespace Gecode { namespace FlatZinc {
                        const Gecode::FloatVarArray& fv1,
                        const Gecode::FloatVarArray& fv2
 #endif
+#ifdef GECODE_HAS_STRING_VARS
+                       ,
+                       const Gecode::StringVarArray& tv1,
+                       const Gecode::StringVarArray& tv2
+#endif
                        ) const;
   public:
     Printer(void) : _output(NULL) {}
@@ -164,6 +180,10 @@ namespace Gecode { namespace FlatZinc {
                ,
                const Gecode::FloatVarArray& fv
 #endif
+#ifdef GECODE_HAS_STRING_VARS
+               ,
+               const Gecode::StringVarArray& tv
+#endif
                ) const;
 
     void printDiff(std::ostream& out,
@@ -177,6 +197,11 @@ namespace Gecode { namespace FlatZinc {
                ,
                const Gecode::FloatVarArray& fv1,
                const Gecode::FloatVarArray& fv2
+#endif
+#ifdef GECODE_HAS_STRING_VARS
+               ,
+               const Gecode::StringVarArray& tv1,
+               const Gecode::StringVarArray& tv2
 #endif
                ) const;
 
@@ -195,10 +220,15 @@ namespace Gecode { namespace FlatZinc {
     void addSetVarName(const std::string& n);
     const std::string& setVarName(int i) const { return sv_names[i]; }
 #endif
+#ifdef GECODE_HAS_STRING_VARS
+    void addStringVarName(const std::string& n);
+    const std::string& stringVarName(int i) const { return tv_names[i]; }
+#endif
 
     void shrinkElement(AST::Node* node,
                        std::map<int,int>& iv, std::map<int,int>& bv,
-                       std::map<int,int>& sv, std::map<int,int>& fv);
+                       std::map<int,int>& sv, std::map<int,int>& fv,
+                       std::map<int,int>& tv);
 
     void shrinkArrays(Space& home,
                       int& optVar, bool optVarIsInt,
@@ -211,6 +241,10 @@ namespace Gecode { namespace FlatZinc {
 #ifdef GECODE_HAS_FLOAT_VARS
                       ,
                       Gecode::FloatVarArray& fv
+#endif
+#ifdef GECODE_HAS_STRING_VARS
+                      ,
+                      Gecode::StringVarArray& tv
 #endif
                      );
 
@@ -253,6 +287,15 @@ namespace Gecode { namespace FlatZinc {
       Gecode::Driver::StringOption      _mode;       ///< Script mode to run
       Gecode::Driver::BoolOption        _stat;       ///< Emit statistics
       Gecode::Driver::StringValueOption _output;     ///< Output file
+      
+      /// \name String options
+      //@{
+      Gecode::Driver::BoolOption _reverse_regex; ///< Use reverse propagation for regular
+      Gecode::Driver::BoolOption _decomp_regex; ///< Decompose flat regular expressions      
+      Gecode::Driver::IntOption _max_length; ///< Maximum string length
+      Gecode::Driver::IntOption _max_alpha; ///< Alphabet size (the identifier of each character is in [0, _max_alpha - 1]
+      Gecode::Driver::BoolOption _quad_sweep; ///< Quadratic version of sweep algorithm      
+      //@}
 
 #ifdef GECODE_HAS_CPPROFILER
 
@@ -291,7 +334,17 @@ namespace Gecode { namespace FlatZinc {
       _step("step","step distance for float optimization",0.0),
       _mode("mode","how to execute script",Gecode::SM_SOLUTION),
       _stat("s","emit statistics"),
-      _output("o","file to send output to")
+      _output("o","file to send output to"),
+      _reverse_regex("-reverse-regex", "use reverse propagation for regular",
+	      Gecode::String::DashedString::_DECOMP_REGEX),
+	    _decomp_regex("-decomp-regex", "decomp flat regular expression",
+			  Gecode::String::DashedString::_DECOMP_REGEX),
+	    _max_length("-max-length", "maximum string length",
+			  Gecode::String::DashedString::_MAX_STR_LENGTH),
+	    _max_alpha("-max-alpha", "alphabet size",
+			  Gecode::String::DashedString::_MAX_STR_ALPHA),
+			_quad_sweep("-quad-sweep", "quadratic version of sweep algorithm",
+			  Gecode::String::DashedString::_QUAD_SWEEP)
 
 #ifdef GECODE_HAS_CPPROFILER
       ,
@@ -322,6 +375,11 @@ namespace Gecode { namespace FlatZinc {
       add(_nogoods); add(_nogoods_limit);
       add(_mode); add(_stat);
       add(_output);
+      add(_reverse_regex); 
+      add(_decomp_regex); 
+      add(_max_length); 
+      add(_max_alpha);
+      add(_quad_sweep);
 #ifdef GECODE_HAS_CPPROFILER
       add(_profiler_id);
       add(_profiler_port);
@@ -339,6 +397,9 @@ namespace Gecode { namespace FlatZinc {
       }
       if (_stat.value())
         _mode.value(Gecode::SM_STAT);
+      Gecode::String::DashedString::_DECOMP_REGEX = _decomp_regex.value();
+      Gecode::String::DashedString::_REVERSE_REGEX = _reverse_regex.value();
+      Gecode::String::DashedString::_QUAD_SWEEP = _quad_sweep.value();
     }
 
     virtual void help(void) {
@@ -389,6 +450,17 @@ namespace Gecode { namespace FlatZinc {
 #endif
 
     void allSolutions(bool b) { _allSolutions.value(b); }
+    
+    bool decomp_regex() const { return _decomp_regex.value(); }
+    void decomp_regex(bool b) { _decomp_regex.value(b); }
+    bool reverse_regex() const { return _reverse_regex.value(); }
+    void reverse_regex(bool b) { _reverse_regex.value(b); }
+    int max_length() const { return _max_length.value(); }
+    void max_length(int i) { _max_length.value(i); }
+    int max_alpha() const { return _max_alpha.value(); }
+    void max_alpha(int i) { _max_alpha.value(i); }
+    bool quad_sweep() const { return _quad_sweep.value(); }
+    void quad_sweep(bool b) { _quad_sweep.value(b); }
   };
 
   class BranchInformation : public SharedHandle {
@@ -443,6 +515,8 @@ namespace Gecode { namespace FlatZinc {
     int floatVarCount;
     /// Number of set variables
     int setVarCount;
+    /// Number of string variables
+    int stringVarCount;
 
     /// Index of the variable to optimize
     int _optVar;
@@ -517,6 +591,14 @@ namespace Gecode { namespace FlatZinc {
     /// Step by which a next solution has to have lower cost
     Gecode::FloatNum step;
 #endif
+#ifdef GECODE_HAS_STRING_VARS
+    /// The string variables
+    Gecode::StringVarArray tv;
+    /// The introduced string variables
+    Gecode::StringVarArray tv_aux;
+    /// Indicates whether a string variable is introduced by mzn2fzn
+    std::vector<bool> tv_introduced;
+#endif
     /// Whether the introduced variables still need to be copied
     bool needAuxVars;
     /// Construct empty space
@@ -526,7 +608,7 @@ namespace Gecode { namespace FlatZinc {
     ~FlatZincSpace(void);
 
     /// Initialize space with given number of variables
-    void init(int intVars, int boolVars, int setVars, int floatVars);
+    void init(int intVars, int boolVars, int setVars, int floatVars, int stringVars);
 
     /// Create new integer variable from specification
     void newIntVar(IntVarSpec* vs);
@@ -540,6 +622,8 @@ namespace Gecode { namespace FlatZinc {
     void newSetVar(SetVarSpec* vs);
     /// Create new float variable from specification
     void newFloatVar(FloatVarSpec* vs);
+    /// Create new string variable from specification
+    void newStringVar(StringVarSpec* vs);
 
     /// Post a constraint specified by \a ce
     void postConstraints(std::vector<ConExpr*>& ces);
@@ -654,6 +738,14 @@ namespace Gecode { namespace FlatZinc {
     /// Convert \a n to FloatVarArgs
     FloatVarArgs arg2floatvarargs(AST::Node* arg, int offset = 0);
 #endif
+#ifdef GECODE_HAS_STRING_VARS
+    /// Convert \a n to a vector of strings.
+    std::vector<string> arg2stringvec(AST::Node* arg);
+    /// Convert \a n to SetVar
+    StringVar arg2StringVar(AST::Node* n);
+    /// Convert \a n to SetVarArgs
+    StringVarArgs arg2stringvarargs(AST::Node* arg, int offset = 0);
+#endif
     /// Convert \a ann to integer propagation level
     IntPropLevel ann2ipl(AST::Node* ann);
     /// Share DFA \a a if possible
@@ -677,8 +769,8 @@ namespace Gecode { namespace FlatZinc {
    * Creates a new empty FlatZincSpace if \a fzs is NULL.
    */
   GECODE_FLATZINC_EXPORT
-  FlatZincSpace* parse(const std::string& fileName,
-                       Printer& p, std::ostream& err = std::cerr,
+  FlatZincSpace* parse(const std::string& fileName, Printer& p,
+                       const FlatZincOptions&, std::ostream& err = std::cerr,
                        FlatZincSpace* fzs=NULL, Rnd& rnd=defrnd);
 
   /**
@@ -687,8 +779,9 @@ namespace Gecode { namespace FlatZinc {
    * Creates a new empty FlatZincSpace if \a fzs is NULL.
    */
   GECODE_FLATZINC_EXPORT
-  FlatZincSpace* parse(std::istream& is,
-                       Printer& p, std::ostream& err = std::cerr,
+  FlatZincSpace* parse(std::istream& is, Printer& p, 
+                       const FlatZincOptions&,
+                       std::ostream& err = std::cerr,
                        FlatZincSpace* fzs=NULL, Rnd& rnd=defrnd);
 
 }}

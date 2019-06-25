@@ -2228,6 +2228,9 @@ namespace Gecode { namespace FlatZinc {
 #ifdef GECODE_HAS_FLOAT_VARS
     , fv
 #endif
+#ifdef GECODE_HAS_STRING_VARS
+    , tv
+#endif
     );
   }
 
@@ -2402,7 +2405,8 @@ namespace Gecode { namespace FlatZinc {
 			}
 			else if (a->a[i]->isStringDom()) {
 				string value = a->a[i]->getStringDom()->s;
-				StringVar tv(*this, value);+				ta[i+offset] = tv;
+				StringVar tv(*this, value);
+				ta[i+offset] = tv;
 			}
 			else if (a->a[i]->isString()) {
 				string value = a->a[i]->getString();
@@ -2749,6 +2753,10 @@ namespace Gecode { namespace FlatZinc {
 #ifdef GECODE_HAS_FLOAT_VARS
                        , const Gecode::FloatVarArray& fv1,
                        const Gecode::FloatVarArray& fv2
+#endif
+#ifdef GECODE_HAS_STRING_VARS
+                       , const Gecode::StringVarArray&,
+                       const Gecode::StringVarArray&
 #endif
                        ) const {
 #ifdef GECODE_HAS_GIST

@@ -59,9 +59,9 @@ int main(int argc, char** argv) {
   Rnd rnd(opt.seed());
   try {
     if (!strcmp(filename, "-")) {
-      fg = FlatZinc::parse(cin, p, std::cerr, NULL, rnd);
+      fg = FlatZinc::parse(cin, p, opt, std::cerr, NULL, rnd);
     } else {
-      fg = FlatZinc::parse(filename, p, std::cerr, NULL, rnd);
+      fg = FlatZinc::parse(filename, p, opt, std::cerr, NULL, rnd);
     }
 
     if (fg) {
