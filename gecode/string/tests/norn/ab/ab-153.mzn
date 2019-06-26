@@ -1,0 +1,20 @@
+var string: var_0;
+var string: var_1;
+var string: var_2;
+var string: var_3;
+var string: var_4;
+var string: var_5;
+var string: var_6;
+var string: var_7;
+var string: var_8;
+var string: var_9;
+var string: var_10;
+var string: var_11;
+var string: var_12;
+constraint str_reg(var_0, "((a)*)(b)((b)*)");
+constraint str_reg(var_0, "([a-u])*");
+constraint not (str_reg(var_0, "((a)*)(b)"));
+constraint ((0) <= (str_len (var_0))) /\ (not (not (let { var int: v;
+ } in
+((v) * (2)) = ((str_len (var_0)) + (2)))));
+solve satisfy;
