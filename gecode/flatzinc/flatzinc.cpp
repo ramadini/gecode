@@ -1643,10 +1643,20 @@ namespace Gecode { namespace FlatZinc {
           branchInfo.add(bg,def_float_rel_left,def_float_rel_right,fv_tmp_names);
         }
   #endif
-
       }
     }
-
+#ifdef GECODE_HAS_STRING_VARS
+  // FIXME: Workaround: search annotations not yet defined for strings.
+  std::cerr << "Branching on all string variables with blockmin_llll strategy.\n";
+  //  StringVarArgs btv;
+  //  for (int i = 0; i < stringVarCount; ++i)
+//    if (!tv_introduced[2*i])
+//      btv << tv[i];
+//  std::cout << btv << "\n";
+// Using a default search strategy on all the string variables.
+//  std::cerr << tv << " -- size: " << tv.size() << '\n';
+  blockmin_llll(*this, tv);
+#endif
     if (_method == MIN) {
       if (_optVarIsInt) {
         std::vector<std::string> names(1);
@@ -1681,18 +1691,6 @@ namespace Gecode { namespace FlatZinc {
         branch(bg(*this), fv[_optVar], FLOAT_VAL_SPLIT_MAX(),
                &varValPrintF);
         branchInfo.add(bg,"<=",">",names);
-#endif
-#ifdef GECODE_HAS_STRING_VARS
-  // FIXME: Workaround: search annotations not yet defined for strings.
-  std::cerr << "Branching on all string variables with blockmin_llll strategy.\n";
-  //  StringVarArgs btv;
-  //  for (int i = 0; i < stringVarCount; ++i)
-//    if (!tv_introduced[2*i])
-//      btv << tv[i];
-//  std::cout << btv << "\n";
-// Using a default search strategy on all the string variables.
-//  std::cerr << tv << " -- size: " << tv.size() << '\n';
-  blockmin_llll(*this, tv);
 #endif
       }
     }
@@ -1915,6 +1913,11 @@ namespace Gecode { namespace FlatZinc {
     for (int i = 0; i < sv.size(); i++)
       oss << "var " << sv[i] << ": " << p.setVarName(i) << ";" << std::endl;
 #endif
+#ifdef GECODE_HAS_STRING_VARS
+    for (int i = 0; i < tv.size(); i++)
+      oss << "var " << tv[i] << ": " << p.stringVarName(i) << ";" << std::endl;
+#endif
+
 
     return oss.str();
   }

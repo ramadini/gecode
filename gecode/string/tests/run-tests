@@ -2,9 +2,9 @@
 
 TEST_DIR="${0%/*}"
 TEST_CMD=$TEST_DIR/test
-X=$MAIN_DIR/x
-Y=$MAIN_DIR/y
-Z=$MAIN_DIR/z
+X=$TEST_DIR/x
+Y=$TEST_DIR/y
+Z=$TEST_DIR/z
 if
   [[ $1 != "mzn" ]]
 then
@@ -75,8 +75,7 @@ then
     echo "===== Done! ====="
   done
 fi &&
-MZN_GSTRINGS=$MAIN_DIR/tools/flatzinc/mzn-gstrings
-$MZN_GSTRINGS $TEST_DIR/test.mzn > $X;
+mzn-gstrings $TEST_DIR/test.mzn > $X;
 Y=$TEST_DIR/output_mzn;
 diff $X $Y > $Z
 if
@@ -87,7 +86,7 @@ then
   exit 1
 fi &&
 cat $X && 
-$MZN_GSTRINGS $TEST_DIR/ex_js.mzn > $X;
+mzn-gstrings $TEST_DIR/ex_js.mzn > $X;
 x=`grep SVAL_TMP3 "$X" | awk -F" = " '{print $2}'`;
 if
   [ "$x" == "Hello0;" ]
@@ -101,7 +100,7 @@ fi &&
 for m in `ls $TEST_DIR/appscan/*.mzn`
 do  
   if
-    [ `$MZN_GSTRINGS $m 2>/dev/null | grep "\----------"` ]
+    [ `mzn-gstrings $m 2>/dev/null | grep "\----------"` ]
   then
     echo "Solved $m"
   else
@@ -111,7 +110,7 @@ do
 done &&
 for m in `ls $TEST_DIR/pisa/*.mzn | sort`
 do
-  $MZN_GSTRINGS $m 2>/dev/null > $X
+  timeout 10 mzn-gstrings $m 2>/dev/null > $X
   if
     [[ `grep "\----------" $X` ]]
   then
@@ -146,7 +145,7 @@ done &&
 for m in `ls $TEST_DIR/norn/*/*.mzn | sort`
 do
   echo "Solving $m..."
-  $MZN_GSTRINGS $m 2>/dev/null > $X
+  timeout 10 mzn-gstrings $m 2>/dev/null > $X
   if
     [[ `grep "\----------" $X` ]]
   then
