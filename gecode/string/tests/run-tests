@@ -1,0 +1,182 @@
+#!/bin/bash
+
+TEST_DIR="${0%/*}"
+TEST_CMD=$TEST_DIR/test
+X=$MAIN_DIR/x
+Y=$MAIN_DIR/y
+Z=$MAIN_DIR/z
+if
+  [[ $1 != "mzn" ]]
+then
+  make depend &&
+  make -j 4 &&
+  sudo make install &&
+  $TEST_CMD $TEST_DIR/anbn.cpp           10000 $1 &&
+  $TEST_CMD $TEST_DIR/chunk_split.cpp    10000 $1 &&
+  $TEST_CMD $TEST_DIR/hamming_mod.cpp    10000 $1 && 
+  $TEST_CMD $TEST_DIR/levenshtein.cpp    10000 $1 &&
+  $TEST_CMD $TEST_DIR/string_replace.cpp 10000 $1 &&
+  if
+    [[ $1 == "opt" ]]
+  then
+    # Optimised mode.
+    timeout 2 $TEST_CMD $TEST_DIR/sql.cpp 11    &&
+    timeout 2 $TEST_CMD $TEST_DIR/sql.cpp 12    &&
+    timeout 2 $TEST_CMD $TEST_DIR/sql.cpp 100   &&
+    timeout 2 $TEST_CMD $TEST_DIR/sql.cpp 200   &&
+    timeout 3 $TEST_CMD $TEST_DIR/sql.cpp 250   &&
+    timeout 3 $TEST_CMD $TEST_DIR/sql.cpp 300   &&
+    timeout 2 $TEST_CMD $TEST_DIR/sql.cpp 400   &&
+    timeout 2 $TEST_CMD $TEST_DIR/sql.cpp 500   &&
+    timeout 2 $TEST_CMD $TEST_DIR/sql.cpp 1000  &&
+    timeout 2 $TEST_CMD $TEST_DIR/sql.cpp 2500  &&
+    timeout 3 $TEST_CMD $TEST_DIR/sql.cpp 5000  &&
+    timeout 2 $TEST_CMD $TEST_DIR/sql.cpp 10000 &&
+    declare -a TESTS=( \
+      'str_test1.cpp' 'str_test2.cpp' 'str_ex1.cpp' 'str_ex2.cpp' 'str_ex3.cpp'\      
+      'str_ex4.cpp' 'str_ex5.cpp' 'str_ex6.cpp' 'str_ex7.cpp' 'str_ex8.cpp'\
+      'str_ex9.cpp' 'str_ex10.cpp' 'str_ex11.cpp'\
+      'palindrome.cpp' 'gray.cpp' 'min_superstr.cpp')
+  else
+    # Debug mode.
+    for i in 11 12 100 200 250 300 400 500
+    do
+      $TEST_CMD $TEST_DIR/sql.cpp $i $1
+      if
+        [ $? -ne 0 ]
+      then
+        exit 1
+      fi
+    done &&
+    for i in 1000 2500 5000 10000
+    do
+      $TEST_CMD $TEST_DIR/sql.cpp $i
+      if
+        [ $? -ne 0 ]
+      then
+        exit 1
+      fi
+    done &&
+    declare -a TESTS=( \
+      'str_test2.cpp' 'str_ex1.cpp' 'str_ex2.cpp' 'str_ex3.cpp'\
+      'str_ex4.cpp' 'str_ex5.cpp' 'str_ex6.cpp' 'str_ex7.cpp' 'str_ex8.cpp'\
+      'str_ex9.cpp' 'str_ex10.cpp' 'str_ex11.cpp'\
+      'palindrome.cpp' 'gray.cpp' 'min_superstr.cpp')
+  fi &&
+  for t in "${TESTS[@]}"
+  do
+    echo "===== Testing $t ====="
+    $TEST_CMD $TEST_DIR/$t $1
+    if
+      [ $? -ne 0 ]
+    then
+      exit 1
+    fi
+    echo "===== Done! ====="
+  done
+fi &&
+MZN_GSTRINGS=$MAIN_DIR/tools/flatzinc/mzn-gstrings
+$MZN_GSTRINGS $TEST_DIR/test.mzn > $X;
+Y=$TEST_DIR/output_mzn;
+diff $X $Y > $Z
+if
+  [ -s $Z ]
+then
+  echo "Error! MZN output not expected!"
+  cat $Z
+  exit 1
+fi &&
+cat $X && 
+$MZN_GSTRINGS $TEST_DIR/ex_js.mzn > $X;
+x=`grep SVAL_TMP3 "$X" | awk -F" = " '{print $2}'`;
+if
+  [ "$x" == "Hello0;" ]
+then
+  cat $X
+else
+  echo "Error! MZN output not expected!"
+  cat $X
+  exit 1
+fi &&
+for m in `ls $TEST_DIR/appscan/*.mzn`
+do  
+  if
+    [ `$MZN_GSTRINGS $m 2>/dev/null | grep "\----------"` ]
+  then
+    echo "Solved $m"
+  else
+    echo "Error! $m not sound."
+    exit 1
+  fi
+done &&
+for m in `ls $TEST_DIR/pisa/*.mzn | sort`
+do
+  $MZN_GSTRINGS $m 2>/dev/null > $X
+  if
+    [[ `grep "\----------" $X` ]]
+  then
+    m=`basename $m`
+    res=`grep $m $TEST_DIR/pisa/pisa_check.txt | awk '{print $2}'`
+    if
+      [[ $res == "sat" ]]
+    then
+      echo "Solved $m!"
+    else
+      echo "Error! $m not sound."
+      exit 1
+    fi
+  elif 
+    [[ `grep "=====UNSATISFIABLE=====" $X` ]]
+  then
+    m=`basename $m`
+    res=`grep $m $TEST_DIR/pisa/pisa_check.txt | awk '{print $2}'`
+    if
+      [[ $res == "uns" ]]
+    then
+      echo "Solved $m!"
+    else
+      echo "Error! $m not sound."
+      exit 1
+    fi
+  else
+    echo "Error! $m not sound."
+    exit 1
+  fi
+done &&
+for m in `ls $TEST_DIR/norn/*/*.mzn | sort`
+do
+  echo "Solving $m..."
+  $MZN_GSTRINGS $m 2>/dev/null > $X
+  if
+    [[ `grep "\----------" $X` ]]
+  then
+    m=`basename $m`
+    res=`grep $m $TEST_DIR/norn/norn_check.txt | awk '{print $2}'`
+    if
+      [[ $res == "sat" ]]
+    then
+      echo "Solved $m!"
+    else
+      echo "Error! $m not found."
+      exit 1
+    fi
+  elif 
+    [[ `grep "=====UNSATISFIABLE=====" $X` ]]
+  then
+    m=`basename $m`
+    res=`grep $m $TEST_DIR/norn/norn_check.txt | awk '{print $2}'`
+    if
+      [[ $res == "uns" ]]
+    then
+      echo "Solved $m!"
+    else
+      echo "Error! $m not sound."
+      exit 1
+    fi
+  else
+    echo "Error! $m not sound."
+    exit 1
+  fi
+done &&
+rm $X $Z && echo "===== All good! ====="
+
