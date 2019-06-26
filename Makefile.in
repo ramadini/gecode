@@ -898,6 +898,13 @@ export FLATZINCLIB		= $(LIBPREFIX)@FLATZINC@$(LIBSUFFIX)
 export LINKFLATZINC		= $(LINKPREFIX)@FLATZINC@$(LINKSUFFIX)
 export FLATZINCMZNLIB		= gecode/flatzinc/mznlib
 FLATZINCEXE	= tools/flatzinc/fzn-gecode$(EXESUFFIX)
+ifeq "@enable_string_vars@" "yes"
+FZNSTR = fzn-gstrings
+MZNSTR = mzn-gstrings
+MZNFZNSTR = mzn2fzn-gstrings
+MZNFZNSTREXE = tools/flatzinc/mzn2fzn-str
+MZNFZNSTRTGZ = tools/flatzinc/mzn2fzn-str.tar.gz
+endif
 ifeq "@need_soname@" "yes"
 export FLATZINCSONAME = @WLSONAME@$(LIBPREFIX)@FLATZINC@$(SOSUFFIX)
 else
@@ -1139,8 +1146,13 @@ LIBLIBTARGETS =
 PDBTARGETS =
 endif
 
-EXETARGETS = $(FLATZINCEXE) tools/flatzinc/mzn-gecode@BATCHFILE@
-
+ifeq "@enable_string_vars@" "yes"
+EXETARGETS = $(FLATZINCEXE) tools/flatzinc/mzn-gecode@BATCHFILE@ \
+  tools/flatzinc/$(FZNSTR) tools/flatzinc/$(MZNSTR) tools/flatzinc/$(MZNFZNSTR)\
+  $(MZNFZNSTREXE)
+else
+EXETARGETS = $(FLATZINCEXE) tools/flatzinc/mzn-gecode@BATCHFILE@ 
+endif
 #
 # Testing
 #
@@ -2055,17 +2067,25 @@ endif
 
 .PHONY: install
 
+
 ifeq "@BUILD_MACOS_FRAMEWORK@" "yes"
 install: installframework
 else
 
+ifeq "@enable_string_vars@" "yes"
+install: installlibstr
+
+else
 ifeq "@enable_examples@" "yes"
 install: installlib installexamples
+
 else
 install: installlib
-endif
 
 endif
+endif
+endif
+
 
 doinstallheaders: $(ALLHDR:%=$(top_srcdir)/%) $(EXTRA_HEADERS) $(VARIMPHDR)
 	mkdir -p $(DESTDIR)$(includedir) && \
@@ -2081,7 +2101,11 @@ doinstallheaders: $(ALLHDR:%=$(top_srcdir)/%) $(EXTRA_HEADERS) $(VARIMPHDR)
 	  for f in $$for_mznlib; do \
 		mkdir -p $(DESTDIR)$(datadir)/gecode/mznlib; \
 		cp $(top_srcdir)/$$f/*.mzn \
-		  $(DESTDIR)$(datadir)/gecode/mznlib; done
+		  $(DESTDIR)$(datadir)/gecode/mznlib; done && \
+  cp -R $(top_srcdir)/gecode/flatzinc/javascript $(DESTDIR)$(datadir)/gecode && \
+  cp -R $(top_srcdir)/gecode/flatzinc/string $(DESTDIR)$(datadir)/gecode && \
+  ln -s $(DESTDIR)$(datadir)/gecode/mznlib $(DESTDIR)$(datadir)/gecode/std
+  
 
 doinstalllib:
 	mkdir -p $(DESTDIR)$(sharedlibdir) && \
@@ -2109,11 +2133,23 @@ else
 ranliblib:
 endif
 
-installlib: compilelib
+installlib: compilelib	
 	$(MAKE) doinstalllib
 	$(MAKE) doinstallheaders
 	$(MAKE) ranliblib
 	$(MAKE) installsubdirs
+	
+installlibstr: nil #compilelib
+	$(MAKE) domznfznstr
+	$(MAKE) doinstalllib
+	$(MAKE) doinstallheaders
+	$(MAKE) ranliblib
+	$(MAKE) installsubdirs
+
+nil:
+
+domznfznstr:
+	tar xvf $(MZNFZNSTRTGZ) && mv mzn2fzn-str tools/flatzinc
 
 installexamples: compileexamples
 	mkdir -p $(DESTDIR)$(bindir); \
@@ -2185,6 +2221,10 @@ clean:
 		$(TESTEXE:%=%.rc) $(TESTEXE:%=%.res)
 	$(RMF) $(FLATZINCEXE:%.exe=%.pdb) $(FLATZINCEXE:%=%.manifest) \
 		$(FLATZINCEXE:%=%.rc) $(FLATZINCEXE:%=%.res)
+	ifeq "@enable_string_vars@" "yes"	
+	rm tools/flatzinc/$(FZNSTR) tools/flatzinc/$(MZNSTR) tools/flatzinc/$(MZNFZNSTR)\
+  tools/flatzinc/$(MZNFZNSTREXE)
+	endif
 
 veryclean: clean
 	$(RMF) $(LIBTARGETS) \

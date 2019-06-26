@@ -526,7 +526,7 @@ namespace Gecode { namespace FlatZinc {
     return pp.hadError ? NULL : pp.fg;
   }
 
-  FlatZincSpace* parse(std::istream& is, Printer& p, const FlatZincOptions&, 
+  FlatZincSpace* parse(std::istream& is, Printer& p, const FlatZincOptions& opt, 
                        std::ostream& err, FlatZincSpace* fzs, Rnd& rnd) {
     std::string s = string(istreambuf_iterator<char>(is),
                            istreambuf_iterator<char>());
@@ -537,6 +537,18 @@ namespace Gecode { namespace FlatZinc {
     ParserState pp(s, err, fzs);
     yylex_init(&pp.yyscanner);
     yyset_extra(&pp, pp.yyscanner);
+    
+    int n = opt.max_length();
+    if (n < Gecode::String::DashedString::_MAX_STR_LENGTH) {
+      assert (n >= 0);
+      Gecode::String::DashedString::_MAX_STR_LENGTH = n;
+    }
+    n = opt.max_alpha();
+    if (n < Gecode::String::DashedString::_MAX_STR_ALPHA) {
+      assert (n >= 0);
+      Gecode::String::DashedString::_MAX_STR_ALPHA = n;
+    }
+    
     // yydebug = 1;
     yyparse(&pp);
     fillPrinter(pp, p);
