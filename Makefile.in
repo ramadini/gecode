@@ -2104,7 +2104,7 @@ doinstallheaders: $(ALLHDR:%=$(top_srcdir)/%) $(EXTRA_HEADERS) $(VARIMPHDR)
 		  $(DESTDIR)$(datadir)/gecode/mznlib; done && \
   cp -R $(top_srcdir)/gecode/flatzinc/javascript $(DESTDIR)$(datadir)/gecode && \
   cp -R $(top_srcdir)/gecode/flatzinc/string $(DESTDIR)$(datadir)/gecode && \
-  ln -s $(DESTDIR)$(datadir)/gecode/mznlib $(DESTDIR)$(datadir)/gecode/std
+  cp -R $(top_srcdir)/gecode/flatzinc/std $(DESTDIR)$(datadir)/gecode
   
 
 doinstalllib:
@@ -2139,17 +2139,21 @@ installlib: compilelib
 	$(MAKE) ranliblib
 	$(MAKE) installsubdirs
 	
-installlibstr: nil #compilelib
+installlibstr: nil #FIXME compilelib
 	$(MAKE) domznfznstr
 	$(MAKE) doinstalllib
 	$(MAKE) doinstallheaders
 	$(MAKE) ranliblib
 	$(MAKE) installsubdirs
+	$(MAKE) chmodstr
 
 nil:
 
 domznfznstr:
 	tar xvf $(MZNFZNSTRTGZ) && mv mzn2fzn-str tools/flatzinc
+
+chmodstr:
+	chmod a+x tools/flatzinc/$(FZNSTR) tools/flatzinc/$(MZNSTR) tools/flatzinc/$(MZNFZNSTR)
 
 installexamples: compileexamples
 	mkdir -p $(DESTDIR)$(bindir); \
@@ -2202,7 +2206,21 @@ distdoc: doc
 # Maintenance targets
 #
 
-clean:
+
+
+
+ifeq "@enable_string_vars@" "yes"	
+clean: cleanstr cleannostr
+else
+clean: cleannostr
+endif
+
+cleanstr:
+	rm -f $(DESTDIR)$(bindir)/$(FZNSTR) $(DESTDIR)$(bindir)/$(MZNSTR) \
+    $(DESTDIR)$(bindir)/$(MZNFZNSTR) $(DESTDIR)$(bindir)/$(MZNFZNSTREXE) \
+    tools/flatzinc/$(MZNFZNSTREXE)
+
+cleannostr:
 	$(RMF) *.stackdump core gmon.out \
 		vc70.pdb vc80.pdb vc90.pdb vc100.pdb vc110.pdb \
 		vc120.pdb vc130.pdb vc140.pdb
@@ -2221,10 +2239,6 @@ clean:
 		$(TESTEXE:%=%.rc) $(TESTEXE:%=%.res)
 	$(RMF) $(FLATZINCEXE:%.exe=%.pdb) $(FLATZINCEXE:%=%.manifest) \
 		$(FLATZINCEXE:%=%.rc) $(FLATZINCEXE:%=%.res)
-	ifeq "@enable_string_vars@" "yes"	
-	rm tools/flatzinc/$(FZNSTR) tools/flatzinc/$(MZNSTR) tools/flatzinc/$(MZNFZNSTR)\
-  tools/flatzinc/$(MZNFZNSTREXE)
-	endif
 
 veryclean: clean
 	$(RMF) $(LIBTARGETS) \
