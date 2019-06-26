@@ -1,0 +1,4 @@
+#!/bin/sh
+
+LIB=/usr/local/share/gecode
+mzn2fzn-str --no-output-ozn --stdlib-dir ${LIB} -I ${LIB}/string -I ${LIB}/javascript "$@" 

@@ -1,0 +1,3 @@
+#!/bin/sh
+
+fzn-gecode -c-d 1 "$@"
