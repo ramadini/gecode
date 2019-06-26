@@ -1085,7 +1085,7 @@ ALLSRC = \
 	$(MPFRFLOATEXAMPLESRC) $(GISTSRC) $(FLATZINCALLSRC)
 ALLGECODEHDR = \
 	$(SUPPORTHDR) $(KERNELHDR) $(SEARCHHDR) \
-        $(INTHDR) $(FLOATHDR) $(SETHDR) $(MMHDR) \
+        $(INTHDR) $(FLOATHDR) $(STRINGHDR) $(SETHDR) $(MMHDR) \
 	$(DRIVERHDR) $(ITERHDR) $(GISTHDR) $(FLATZINCHDR) \
 	$(INTEXAMPLEHDR)
 ALLHDR = \
@@ -2139,15 +2139,13 @@ installlib: compilelib
 	$(MAKE) ranliblib
 	$(MAKE) installsubdirs
 	
-installlibstr: nil #FIXME compilelib
+installlibstr: compilelib
 	$(MAKE) domznfznstr
 	$(MAKE) doinstalllib
 	$(MAKE) doinstallheaders
 	$(MAKE) ranliblib
 	$(MAKE) installsubdirs
 	$(MAKE) chmodstr
-
-nil:
 
 domznfznstr:
 	tar xvf $(MZNFZNSTRTGZ) && mv mzn2fzn-str tools/flatzinc

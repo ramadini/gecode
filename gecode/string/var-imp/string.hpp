@@ -317,11 +317,6 @@ namespace Gecode { namespace String {
   }
 
   forceinline void
-  StringVarImp::subscribe(Space& home, Advisor& a, bool failed) {
-    StringVarImpBase::subscribe(home, a, assigned(), failed);
-  }
-
-  forceinline void
   StringVarImp::cancel(Space& home, Propagator& p, PropCond pc) {
     StringVarImpBase::cancel(home, p, pc);
   }

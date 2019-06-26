@@ -125,8 +125,6 @@ namespace Gecode { namespace String {
     void cancel(Space& home, Propagator& p, PropCond pc);
     /// Re-schedule propagator \a p
     void reschedule(Space& home, Propagator& p, PropCond pc);
-    /// Subscribe advisor \a a to variable
-    void subscribe(Space& home, Advisor& a, bool failed);
     /// Cancel subscription of advisor \a a
     void cancel(Space& home, Advisor& a);
     //@}
