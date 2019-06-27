@@ -335,15 +335,15 @@ namespace Gecode { namespace FlatZinc {
       _mode("mode","how to execute script",Gecode::SM_SOLUTION),
       _stat("s","emit statistics"),
       _output("o","file to send output to"),
-      _reverse_regex("-reverse-regex", "use reverse propagation for regular",
+      _reverse_regex("reverse-regex", "use reverse propagation for regular",
 	      Gecode::String::DashedString::_DECOMP_REGEX),
-	    _decomp_regex("-decomp-regex", "decomp flat regular expression",
+	    _decomp_regex("decomp-regex", "decomp flat regular expression",
 			  Gecode::String::DashedString::_DECOMP_REGEX),
-	    _max_length("-max-length", "maximum string length",
+	    _max_length("max-length", "maximum string length",
 			  Gecode::String::DashedString::_MAX_STR_LENGTH),
-	    _max_alpha("-max-alpha", "alphabet size",
+	    _max_alpha("max-alpha", "alphabet size",
 			  Gecode::String::DashedString::_MAX_STR_ALPHA),
-			_quad_sweep("-quad-sweep", "quadratic version of sweep algorithm",
+			_quad_sweep("quad-sweep", "quadratic version of sweep algorithm",
 			  Gecode::String::DashedString::_QUAD_SWEEP)
 
 #ifdef GECODE_HAS_CPPROFILER

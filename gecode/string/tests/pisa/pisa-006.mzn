@@ -1,4 +1,4 @@
-int: N = 1000;
+int: N = 100;
 var string(N): s;
 var string(N): filename_0;
 var string(N): filename_1;

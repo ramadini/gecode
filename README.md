@@ -13,6 +13,11 @@ modular and extensible.
 [develop](https://github.com/Gecode/gecode/tree/develop): 
 [![Build Status develop](https://api.travis-ci.org/Gecode/gecode.svg?branch=develop)](https://travis-ci.org/Gecode/gecode)
 
+## String Variables
+
+This repository extends Gecode solver version 6.2.0 with string variables. For more details please refer to 
+[G-Strings](https://bitbucket.org/robama/g-strings) solver (which however is built on top of Gecode 5.0.0).
+
 ## Getting All the Info You Need...
 
 You can find lots of information on
