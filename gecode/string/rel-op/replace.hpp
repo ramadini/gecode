@@ -57,11 +57,33 @@ namespace Gecode { namespace String {
         }
         return home.ES_SUBSUMED(*this);
       }
-      // Compute fixed components of x[2] to see if x[0] occurs in it.
+      // Compute fixed components of x[2] to see if x[0] must occur in it.      
+      string curr = "";
+      bool occur = false;
+      DashedString* p = x[2].pdomain();
+      for (int i = 0; i < p->length(); ++i) {
+        const DSBlock& b = p->at(i);
+        if (b.S.size() == 1) {
+          string w(b.l, b.S.min());
+          curr += w;
+          if (curr.find(sx) != string::npos) {
+            occur = true;
+            break;
+          }
+          if (b.u > b.l)
+            curr = w;
+        }
+        else
+          curr = "";
+      }
     }
-    // Check if find(x, y) = 0
-    // Check if find(x', y') = 0
+    // If x[0] may not occur in x[2], then we check if it must not occur, and if 
+    // x[1] must not occur in x[3]
+      // Check if find(x, y) = 0
+      // Check if find(x', y') = 0
+        
     // Equate on y and y'    
+    
     return x[0].assigned() && x[1].assigned() ? ES_NOFIX : ES_FIX;
     // std::cerr<<"After replace: "<< x <<"\n";
     return ES_FIX;
