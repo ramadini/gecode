@@ -14,8 +14,8 @@ modular and extensible.
 [![Build Status develop](https://api.travis-ci.org/Gecode/gecode.svg?branch=develop)](https://travis-ci.org/Gecode/gecode)
 
 
-This repository contains G-Strings solver, an extension of Gecode enabling 
-string variables and constraints based on the dashed string representation.
+This repository contains __G-Strings__ solver, an extension of Gecode enabling 
+string variables and constraints based on the _dashed string_ representation.
 We refer to [1,2,3,4,5,6] for more details.
 
 ## Installation
@@ -52,16 +52,16 @@ or in two steps:
 
 In particular, (2) converts ```M.mzn``` into a FlatZinc instance ```M.fzn``` 
 (this is the _F^{str}_ conversion described in [1]). If you wish to decompose 
-```M.mzn``` into a FlatZinc instance not containing string variables, use:
+```M.mzn``` into a FlatZinc instance _not_ containing string variables, use:
 
-    $ mzn2fzn-str --stdlib-dir G-Strings/gecode-5.0.0/gecode/flatzinc M.mzn [D.dzn]
+    $ mzn2fzn-str --stdlib-dir gecode/flatzinc M.mzn [D.dzn]
   
 and then solve the corresponding FlatZinc instance, where string variables and 
 constraints are translated into corresponding integer variables and constraints.
 Note that this translation (i.e., the _F^{int}_ conversion of [1]) can take a 
 long time and, although supporting all the constraints of [1], does not handle 
 all the string constraints supported by G-Strings. This translation is defined 
-in ```G-Strings/gecode-5.0.0/gecode/flatzinc/std/nostrings.mzn```
+in ```gecode/flatzinc/std/nostrings.mzn``` library.
 
 ## Getting All the Info You Need...
 
