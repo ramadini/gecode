@@ -1,4 +1,4 @@
-# Gecode - Generic Constraint Development Environment
+# G-Strings - Gecode with String Variables
 
 ![Gecode](images/gecode-logo-100.png "Gecode")
 
@@ -13,10 +13,55 @@ modular and extensible.
 [develop](https://github.com/Gecode/gecode/tree/develop): 
 [![Build Status develop](https://api.travis-ci.org/Gecode/gecode.svg?branch=develop)](https://travis-ci.org/Gecode/gecode)
 
-## String Variables
 
-This repository extends Gecode solver version 6.2.0 with string variables. For more details please refer to 
-[G-Strings](https://bitbucket.org/robama/g-strings) solver (which however is built on top of Gecode 5.0.0).
+This repository contains G-Strings solver, an extension of Gecode enabling 
+string variables and constraints based on the dashed string representation.
+We refer to [1,2,3,4,5,6] for more details.
+
+## Installation
+
+To install G-Strings:
+
+1. move into ```gecode``` folder
+
+2. ```./configure``` with ```--enable-stringvars``` option enabled.
+
+3. ```make```
+
+4. ```sudo make install```
+
+Note that C++ 11 is needed. If you want to perform some sanity checks on string 
+variables run the script ```run-tests``` in ```gecode/string/tests``` folder.
+
+## MiniZinc support
+
+G-Strings can solve problems encoded in [MiniZinc](http://www.minizinc.org/) 
+language. The support for string variables in MiniZinc is still in progress and 
+not part of the official release (for more information about MiniZinc with 
+strings, please see [1]).
+
+You can solve a MiniZinc model with strings ```M.mzn``` (together with optional 
+data ```D.dzn```) in one step:
+
+    $ mzn-gstrings M.mzn [D.dzn]       (1)
+   
+or in two steps:
+   
+    $ mzn2fzn-gstrings M.mzn [D.dzn]   (2)
+    $ fzn-gstrings M.fzn              
+
+In particular, (2) converts ```M.mzn``` into a FlatZinc instance ```M.fzn``` 
+(this is the _F^{str}_ conversion described in [1]). If you wish to decompose 
+```M.mzn``` into a FlatZinc instance not containing string variables, use:
+
+    $ mzn2fzn-str --stdlib-dir G-Strings/gecode-5.0.0/gecode/flatzinc M.mzn [D.dzn]
+  
+and then solve the corresponding FlatZinc instance, where string variables and 
+constraints are translated into corresponding integer variables and constraints.
+Note that this translation (i.e., the _F^{int}_ conversion of [1]) can take a 
+long time and, although supporting all the constraints of [1], does not handle 
+all the string constraints supported by G-Strings. This translation is defined 
+in ```G-Strings/gecode-5.0.0/gecode/flatzinc/std/nostrings.mzn```
 
 ## Getting All the Info You Need...
 
@@ -44,4 +89,25 @@ We happily accept smaller contributions and fixes, please provide them as pull r
 Gecode is licensed under the
 [MIT license](https://github.com/Gecode/gecode/blob/master/LICENSE).
 
+## References
 
+1. R. Amadini, P. Flener, J. Pearson, J.D. Scott, P.J. Stuckey, G. Tack.
+   MiniZinc with Strings. In LOPSTR 2016, Edinburgh, Scotland, UK.
+
+2. R. Amadini, G. Gange, P.J. Stuckey, G. Tack. A Novel Approach to String 
+   Constraint Solving. In CP 2017, Melbourne, Victoria, Australia.
+
+3. R. Amadini, G. Gange, P.J. Stuckey. Sweep-based Propagation for String 
+   Constraint Solving. In AAAI 2018, New Orleans, Lousiana, USA.
+
+4. R. Amadini, G. Gange, P.J. Stuckey. Propagating lex, find and replace with
+   dashed strings. In CPAIOR 2018, Delft, The Netherlands.
+
+5. R. Amadini, G. Gange, P.J. Stuckey. Propagating regular membership with 
+   dashed strings. In CP 2018, Lille, France.
+   
+6. R. Amadini, M. Andrlon, G. Gange, P. Schachte, H. Søndergaard, P. J. Stuckey. 
+   Constraint Programming for Dynamic Symbolic Execution of JavaScript. In 
+   CPAIOR 2019, Thessaloniki, Greece.   
+   
+   
