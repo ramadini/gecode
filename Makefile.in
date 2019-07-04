@@ -2122,7 +2122,7 @@ doinstalllib:
 	    cp $$f $(DESTDIR)$(libdir); done &&\
 	for_exetargets="$(EXETARGETS)" && \
 	  for f in $$for_exetargets; do \
-	    cp $$f $(DESTDIR)$(bindir); done
+	    cp -p $$f $(DESTDIR)$(bindir); done
 
 ifeq "@BUILDSTATIC@" "yes"
 ranliblib:
@@ -2145,13 +2145,9 @@ installlibstr: compilelib
 	$(MAKE) doinstallheaders
 	$(MAKE) ranliblib
 	$(MAKE) installsubdirs
-	$(MAKE) chmodstr
 
 domznfznstr:
 	tar xvf $(MZNFZNSTRTGZ) && mv mzn2fzn-str tools/flatzinc
-
-chmodstr:
-	chmod a+x tools/flatzinc/$(FZNSTR) tools/flatzinc/$(MZNSTR) tools/flatzinc/$(MZNFZNSTR)
 
 installexamples: compileexamples
 	mkdir -p $(DESTDIR)$(bindir); \
