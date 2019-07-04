@@ -3,8 +3,30 @@
 #include <gecode/string/rev.hh>
 #include <gecode/string/ucase.hh>
 #include <gecode/string/lcase.hh>
+#include <gecode/string/replace.hh>
 
 namespace Gecode { namespace String {
+
+  void
+  rel_op_post(
+    Home home, StringView x0, StringView x1, StringView x2, StringOpType ot, 
+    StringView x3
+  ) {
+    GECODE_POST;
+    switch (ot) {
+    case STRT_REP: {
+      ViewArray<StringView> x(home, 4);
+      x[0] = x0;
+      x[1] = x1;
+      x[2] = x2;
+      x[3] = x3;
+      GECODE_ES_FAIL((Replace::post(home, x)));
+      break;
+    }
+    default:
+      throw UnknownRelation("String::rel-op");
+    }
+  }
 
   void
   rel_op_post(
@@ -43,6 +65,15 @@ namespace Gecode { namespace String {
 
 namespace Gecode {
 
+  void
+  rel(
+    Home home, StringVar x, StringVar y, StringOpType o, StringVar z, 
+    StringVar t
+  ) {
+    using namespace String;
+    rel_op_post(home, x, y, z, o, t);
+  }
+  
   void
   rel(Home home, StringVar x, StringVar y, StringOpType o, StringVar z) {
     using namespace String;

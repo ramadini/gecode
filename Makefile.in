@@ -546,7 +546,7 @@ FLOATBUILDDIRS	= \
 STRINGSRC0 = \
 	var/string.cpp var-imp/string.cpp dashed/dashed-string.cpp exception.cpp \
 	array.cpp branch.cpp length.cpp char2code.cpp pow.cpp find.cpp rel.cpp rel-op.cpp substr.cpp \
-	replace.cpp gcc.cpp gconcat.cpp extensional.cpp element.cpp channel.cpp
+	gcc.cpp gconcat.cpp extensional.cpp element.cpp channel.cpp
 
 STRINGHDR0 = \
 	var-imp.hpp view.hpp var-imp/string.hpp var-imp/delta.hpp var/string.hpp \
@@ -554,11 +554,11 @@ STRINGHDR0 = \
 	rel/dom.hpp rel/eq.hpp rel/nq.hpp rel/lex.hpp rel/re-lex.hpp rel/inc.hpp rel/re-eq.hpp array-traits.hpp array.hpp \
 	branch/var.hpp branch/val.hpp branch.hh branch/blockmin_llll.hpp branch/lenmax_llll.hpp \
 	branch/lenmin_llll.hpp branch/none_llll.hpp branch/sizemin_llul.hpp \
-	int/length.hpp int/char2code.hpp rel-op/rev.hpp rel-op/concat.hpp int/pow.hpp int/find.hpp \
+	int/length.hpp int/char2code.hpp rel-op/rev.hpp rel-op/concat.hpp rel-op/replace.hpp int/pow.hpp int/find.hpp \
 	rel-op/lcase.hpp rel-op/ucase.hpp gcc.hh global/gcc.hpp gconcat.hh global/gconcat.hpp \
 	dashed/sweep-equate.hpp dashed/vec.h dashed/ns-dashed-string.hpp \
 	dashed/aux-equate.hpp dashed/aux-lex.hpp dashed/aux-find.hpp \
-	eq.hh nq.hh re-eq.hh lex.hh re-lex.hh inc.hh dom.hh concat.hh rev.hh lcase.hh ucase.hh \
+	eq.hh nq.hh re-eq.hh lex.hh re-lex.hh inc.hh dom.hh concat.hh replace.hh rev.hh lcase.hh ucase.hh \
 	length.hh char2code.hh pow.hh find.hh channel.hh int/str2nat.hpp int/nat2str.hpp extensional.hh ext/reg.hpp \
 	ext/re-reg.hpp ext/parse-reg.hpp element.hh global/element.hpp
 
