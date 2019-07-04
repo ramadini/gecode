@@ -1,16 +1,21 @@
 namespace Gecode { namespace String {
 
+  // x[3] is the string resulting from replacing the first occurrence of x[0] 
+  // with x[1] in the target string x[2].
+
   forceinline ExecStatus
   Replace::post(Home home, ViewArray<StringView>& x) {
-    //TODO
-//    if (x0.same(x1))
-//      rel(home, x2, STRT_EQ, StringVar(home, ""));
-//    else if (x0.same(x2))
-//      rel(home, x1, STRT_EQ, StringVar(home, ""));
-//    else if (x1.same(x2))
-//      rel(home, x0, STRT_EQ, StringVar(home, ""));
-//    else
-//      (void) new (home) Replace(home, x0, x1, x2);
+    if (x[0].same(x[1])) {
+      rel(home, x[2], STRT_EQ, x[3]);
+      return ES_OK;
+    }
+    else if (x[0].same(x[2])) {
+      rel(home, x[1], STRT_EQ, x[3]);
+      return ES_OK;
+    }
+    else if (x[0].same(x[3]))
+      rel(home, x[0], STRT_SUB, x[1]);
+    (void) new (home) Replace(home, x);
     return ES_OK;
   }
 
@@ -29,16 +34,16 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   Replace::propagate(Space& home, const ModEventDelta&) {
-    // std::cerr<<"\nReplace::propagate: "<<x2<<" = "<<x0<<" ++ "<<x1<<std::endl;
+    // std::cerr<<"\nReplace::propagate: "<<x[2]<<" = "<<x[0]<<" ++ "<<x[1]<<std::endl;
     
     //TODO
     
-    // std::cerr<<"After concat: "<<x2<<" = "<<x0<<" ++ "<<x1<<std::endl;
-//    assert (x0.pdomain()->is_normalized() && x1.pdomain()->is_normalized() &&
-//            x2.pdomain()->is_normalized());
-//    switch (x0.assigned() + x1.assigned() + x2.assigned()) {
+    // std::cerr<<"After concat: "<<x[2]<<" = "<<x[0]<<" ++ "<<x[1]<<std::endl;
+//    assert (x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
+//            x[2].pdomain()->is_normalized());
+//    switch (x[0].assigned() + x[1].assigned() + x[2].assigned()) {
 //      case 3:
-//        assert (x2.val() == x0.val() + x1.val());
+//        assert (x[2].val() == x[0].val() + x[1].val());
 //        return home.ES_SUBSUMED(*this);
 //      case 2:
 //        return ES_NOFIX;
