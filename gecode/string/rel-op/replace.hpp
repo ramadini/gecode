@@ -34,22 +34,12 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   Replace::propagate(Space& home, const ModEventDelta&) {
-    // std::cerr<<"\nReplace::propagate: "<<x[2]<<" = "<<x[0]<<" ++ "<<x[1]<<std::endl;
-    
+    // std::cerr<<"\nReplace::propagate: "<< x <<"\n";
+    assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
+           x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());
     //TODO
-    
-    // std::cerr<<"After concat: "<<x[2]<<" = "<<x[0]<<" ++ "<<x[1]<<std::endl;
-//    assert (x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
-//            x[2].pdomain()->is_normalized());
-//    switch (x[0].assigned() + x[1].assigned() + x[2].assigned()) {
-//      case 3:
-//        assert (x[2].val() == x[0].val() + x[1].val());
-//        return home.ES_SUBSUMED(*this);
-//      case 2:
-//        return ES_NOFIX;
-//      default:
-//        return ES_FIX;
-//    }
+    return x[0].assigned() && x[1].assigned() ? ES_NOFIX : ES_FIX;
+    // std::cerr<<"After replace: "<< x <<"\n";
     return ES_FIX;
   }
 
