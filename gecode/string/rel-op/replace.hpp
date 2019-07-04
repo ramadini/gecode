@@ -37,7 +37,31 @@ namespace Gecode { namespace String {
     // std::cerr<<"\nReplace::propagate: "<< x <<"\n";
     assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
            x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());
-    //TODO
+    if (x[0].assigned()) {
+      string sx = x[0].val();
+      if (sx == "") {
+        rel(home, x[1], x[2], STRT_CAT, x[3]);
+        return home.ES_SUBSUMED(*this);
+      }
+      if (x[2].assigned()) {
+        string sy = x[2].val();
+        int n = sy.find(sx);
+        string pref = sy.substr(0, n);
+        string suff = sy.substr(n + sx.size());
+        if (x[1].assigned())
+          GECODE_ME_CHECK(x[3].eq(home, pref + x[1].val() + suff));
+        else {
+          StringVar z(home);
+          rel(home, StringVar(home, pref), x[1], STRT_CAT, z);
+          rel(home, z, StringVar(home, suff), STRT_CAT, x[3]);
+        }
+        return home.ES_SUBSUMED(*this);
+      }
+      // Compute fixed components of x[2] to see if x[0] occurs in it.
+    }
+    // Check if find(x, y) = 0
+    // Check if find(x', y') = 0
+    // Equate on y and y'    
     return x[0].assigned() && x[1].assigned() ? ES_NOFIX : ES_FIX;
     // std::cerr<<"After replace: "<< x <<"\n";
     return ES_FIX;
