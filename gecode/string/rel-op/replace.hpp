@@ -57,7 +57,8 @@ namespace Gecode { namespace String {
         }
         return home.ES_SUBSUMED(*this);
       }
-      // Compute fixed components of x[2] to see if x[0] must occur in it.      
+      // Compute fixed components of x[2] to see if x[0] must occur in it, i.e.,
+      // if we actually replace x[0] with x[1] in x[2].
       string curr = "";
       bool occur = false;
       DashedString* p = x[2].pdomain();
@@ -77,14 +78,17 @@ namespace Gecode { namespace String {
           curr = "";
       }
     }
-    // If x[0] may not occur in x[2], then we check if it must not occur, and if 
-    // x[1] must not occur in x[3]
-      // Check if find(x, y) = 0
-      // Check if find(x', y') = 0
-        
-    // Equate on y and y'    
+    // If x[0] must not occur in x[1], then x[2] = x[3]. Otherwise, we use the 
+    // earliest/latest start/end positions of x[0] in x[2] to possibly refine 
+    // x[2] and x[3] via equation.
+    // TODO
     
-    return x[0].assigned() && x[1].assigned() ? ES_NOFIX : ES_FIX;
+    // If x[1] must not occur in x[3], then find(x[0], x[2]) = 0 /\ x[2] = x[3].
+    // Otherwise, we use the earliest/latest start/end positions of x[1] in x[3]
+    // to possibly refine x[2] and x[3] via equation.
+    // TODO
+    
+    return x[0].assigned() && x[2].assigned() ? ES_NOFIX : ES_FIX;
     // std::cerr<<"After replace: "<< x <<"\n";
     return ES_FIX;
   }
