@@ -82,10 +82,20 @@ namespace Gecode { namespace String {
     // earliest/latest start/end positions of x[0] in x[2] to possibly refine 
     // x[3] via equation.
     Position pos[4];
-    if (sweep_replace(*x[0].pdomain(), *x[2].pdomain(), pos)) {
+    DashedString* px = x[2].pdomain();
+    if (sweep_replace(*x[0].pdomain(), *px, pos)) {
       NSBlocks v;
-      DashedString* px;
-      //x[2][ : pos[0]];
+      // Prefix of x[2].
+      for (int i = 0; i < pos[0].idx; ++i)
+        v.push_back(NSBlock(px->at(i)));
+      int off = pos[0].off;
+      if (off > 0) {
+        const DSBlock& b = px->at(pos[0].idx);
+        if (off < b.l)
+          v.push_back(NSBlock(b.S, off, off));
+        else
+          v.push_back(NSBlock(b.S, b.l, off));
+      }
       //crush(x[2][pos[0] : pos[1]]);
       if (occur) {
         px = x[1].pdomain();
@@ -93,7 +103,7 @@ namespace Gecode { namespace String {
           v.push_back(NSBlock(px->at(i)));
       }
       //crush(x[2][pos[2] : pos[3]]);
-      //x[2][pos[3] : ];
+      // Suffix of x[2] [pos[3] : ];
       v.normalize();
       GECODE_ME_CHECK(x[3].dom(home, v));
     }
@@ -104,10 +114,20 @@ namespace Gecode { namespace String {
     // If x[1] must not occur in x[3], then find(x[0], x[2]) = 0 /\ x[2] = x[3].
     // Otherwise, we use the earliest/latest start/end positions of x[1] in x[3]
     // to possibly refine x[2] via equation.
-    if (sweep_replace(*x[1].pdomain(), *x[3].pdomain(), pos)) {
+    px = x[3].pdomain();
+    if (sweep_replace(*x[1].pdomain(), *px, pos)) {
       NSBlocks v;
-      DashedString* px;
-      //x[3][ : pos[0]];
+      // Prefix of x[3].
+      for (int i = 0; i < pos[0].idx; ++i)
+        v.push_back(NSBlock(px->at(i)));
+      int off = pos[0].off;
+      if (off > 0) {
+        const DSBlock& b = px->at(pos[0].idx);
+        if (off < b.l)
+          v.push_back(NSBlock(b.S, off, off));
+        else
+          v.push_back(NSBlock(b.S, b.l, off));
+      }
       //crush(x[3][pos[0] : pos[1]]);
       if (occur) {
         px = x[0].pdomain();
@@ -115,7 +135,7 @@ namespace Gecode { namespace String {
           v.push_back(NSBlock(px->at(i)));
       }
       //crush(x[3][pos[2] : pos[3]]);
-      //x[3][pos[3] : ];
+      // Suffix of x[3] [pos[3] : ];
       v.normalize();
       GECODE_ME_CHECK(x[3].dom(home, v));
     }
