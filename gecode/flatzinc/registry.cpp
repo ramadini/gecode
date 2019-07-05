@@ -2043,6 +2043,11 @@ namespace Gecode { namespace FlatZinc {
     rel(s, s.arg2StringVar(ce[0]), s.arg2StringVar(ce[1]), srt,
         s.arg2StringVar(ce[2]));
   }
+  
+  void p_str_op3(FlatZincSpace& s, StringOpType srt, const ConExpr& ce) {
+    rel(s, s.arg2StringVar(ce[0]), s.arg2StringVar(ce[1]),
+        s.arg2StringVar(ce[2]), srt, s.arg2StringVar(ce[3]));
+  }
 
   void p_str_rev(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
     p_str_op1(s, STRT_REV, ce);
@@ -2068,9 +2073,9 @@ namespace Gecode { namespace FlatZinc {
 
   void p_str_len(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
 	  if (ce[1]->isSet()) {
-        const IntSet& d(s.arg2intset(ce[1]));
-        length(s, s.arg2StringVar(ce[0]), IntVar(s, d));
-      }
+      const IntSet& d(s.arg2intset(ce[1]));
+      length(s, s.arg2StringVar(ce[0]), IntVar(s, d));
+    }
 	  else
 	    length(s, s.arg2StringVar(ce[0]), s.arg2IntVar(ce[1]));
   }
@@ -2120,6 +2125,10 @@ namespace Gecode { namespace FlatZinc {
 
   void p_str_rfind(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
     rfind(s, s.arg2StringVar(ce[0]), s.arg2StringVar(ce[1]), s.arg2IntVar(ce[2]));
+  }
+
+  void p_str_replace(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+    p_str_op3(s, STRT_REP, ce);
   }
 
   void p_str_contains(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
@@ -2187,11 +2196,12 @@ namespace Gecode { namespace FlatZinc {
     return dfa;
   }
 
-  void p_str_dfa(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-	if (ce[1]->isDFA())
-	  extensional(s, s.arg2StringVar(ce[0]), ce[1]->getDFA()->d);
-	else
-	  extensional(s, s.arg2StringVar(ce[0]), toDFA(s, ce));
+  void 
+  p_str_dfa(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+	  if (ce[1]->isDFA())
+	    extensional(s, s.arg2StringVar(ce[0]), ce[1]->getDFA()->d);
+	  else
+	    extensional(s, s.arg2StringVar(ce[0]), toDFA(s, ce));
   }
 
   void p_str_nfa(FlatZincSpace&, const ConExpr&, AST::Node *) {
@@ -2262,6 +2272,7 @@ namespace Gecode { namespace FlatZinc {
     	  registry().add("str_char2code", &p_str_char2code);
     	  registry().add("str_find", &p_str_find);
     	  registry().add("str_rfind", &p_str_rfind);
+    	  registry().add("str_replace", &p_str_replace);
     	  registry().add("str_concat", &p_str_concat);
     	  registry().add("str_concat_c", &p_str_concat);
     	  registry().add("str_gconcat", &p_str_gconcat);

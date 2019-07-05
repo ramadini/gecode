@@ -67,7 +67,7 @@ namespace Gecode {
 
   void
   rel(
-    Home home, StringVar x, StringVar y, StringOpType o, StringVar z, 
+    Home home, StringVar x, StringVar y, StringVar z, StringOpType o,
     StringVar t
   ) {
     using namespace String;

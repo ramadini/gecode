@@ -266,6 +266,9 @@ namespace Gecode {
   GECODE_STRING_EXPORT void
   rel(Home home, StringVar x, StringVar y, StringOpType ot, StringVar z);
 
+  GECODE_STRING_EXPORT void
+  rel(Home home, StringVar, StringVar, StringVar, StringOpType, StringVar);
+
   /// Post propagator for \f$ |x| = l \f$
   GECODE_STRING_EXPORT void
   length(Home home, StringVar x, IntVar l);
@@ -309,7 +312,7 @@ namespace Gecode {
 
   /// Post propagator for \f$ y1 = replace(x, x1, y) \f$
   GECODE_STRING_EXPORT void
-  replace(Home home, StringVar x, StringVar x1, StringVar y, StringVar y1, VarArgs& va);
+  replace(Home home, StringVar x, StringVar x1, StringVar y, StringVar y1);
 
   /// Post propagator for \f$ gcc(x, a, n) \f$
   GECODE_STRING_EXPORT void

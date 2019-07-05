@@ -1,5 +1,6 @@
 #include <gecode/string.hh>
 #include <gecode/string/find.hh>
+#include <gecode/string/replace.hh>
 #include <gecode/int/arithmetic.hh>
 
 namespace Gecode {
@@ -42,6 +43,17 @@ namespace Gecode {
     channel(home, b, r);
     // n = e * r.
     Int::Arithmetic::MultBnd::post(home, e, r, n);
+  }
+  
+  void
+  replace(Home home, StringVar x, StringVar x1, StringVar y, StringVar y1) {
+    GECODE_POST;
+    ViewArray<String::StringView> a(home, 4);
+    a[0] = x;
+    a[1] = x1;
+    a[2] = y;
+    a[3] = y1;
+    GECODE_ES_FAIL(String::Replace::post(home, a));
   }
 
 }

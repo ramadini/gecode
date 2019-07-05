@@ -904,14 +904,11 @@ namespace Gecode { namespace String {
         switch (val) {
           case Branch::MIN:
             block.u = block.l;
-            if (block.u == 0)
-              refine_card(h, _min_length, _max_length);
-            else
-              refine_ub(h, _max_length);
+            refine_card(h, _min_length, _max_length);
             return;
           case Branch::MAX:
             block.l = block.u;
-            refine_lb(_min_length);
+            refine_card(h, _min_length, _max_length);
             return;
           default:
             GECODE_NEVER;
@@ -978,11 +975,11 @@ namespace Gecode { namespace String {
         switch (val) {
           case Branch::MIN:
              block.l++;
-             refine_lb(_min_length);
+             refine_card(h, _min_length, _max_length);
              return;
           case Branch::MAX:
              block.u--;
-             refine_ub(h, _max_length);
+             refine_card(h, _min_length, _max_length);
              return;
           default:
             GECODE_NEVER;
@@ -1031,8 +1028,8 @@ namespace Gecode { namespace String {
   DashedString::commit(
     Space& h, Branch::Level l, Branch::Value v, Branch::Block b, unsigned a
   ) {
-    // std::cerr<<"\nDashedString::commit "<< *this <<" ["<<_min_length<< ", "
-    // << _max_length << "] -- " << l <<' '<< v << ' ' << b << ' '<< a <<'\n';
+    //std::cerr<<"\nDashedString::commit "<< *this <<" ["<<_min_length<< ", "
+    //<< _max_length << "] -- " << l <<' '<< v << ' ' << b << ' '<< a <<'\n';
     int i;
     switch (b) {
       case Branch::FIRST:
@@ -1053,6 +1050,8 @@ namespace Gecode { namespace String {
   forceinline bool
   DashedString::is_normalized() const {
     // std::cerr << *this << "\n";
+    if (_min_length > _max_length)
+      return false;
     int n = length();
     for (int i = 1; i < n; ++i) {
       const DSBlock& b = at(i);
