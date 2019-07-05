@@ -37,6 +37,7 @@ namespace Gecode { namespace String {
     // std::cerr<<"\nReplace::propagate: "<< x <<"\n";
     assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
            x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());
+    bool occur = false;
     if (x[0].assigned()) {
       string sx = x[0].val();
       if (sx == "") {
@@ -60,7 +61,6 @@ namespace Gecode { namespace String {
       // Compute fixed components of x[2] to see if x[0] must occur in it, i.e.,
       // if we actually replace x[0] with x[1] in x[2].
       string curr = "";
-      bool occur = false;
       DashedString* p = x[2].pdomain();
       for (int i = 0; i < p->length(); ++i) {
         const DSBlock& b = p->at(i);
@@ -77,17 +77,53 @@ namespace Gecode { namespace String {
         else
           curr = "";
       }
-    }
-    // If x[0] must not occur in x[1], then x[2] = x[3]. Otherwise, we use the 
+    }    
+    // If x[0] must not occur in x[2], then x[2] = x[3]. Otherwise, we use the 
     // earliest/latest start/end positions of x[0] in x[2] to possibly refine 
-    // x[2] and x[3] via equation.
-    // TODO
-    
+    // x[3] via equation.
+    Position pos[4];
+    if (sweep_replace(*x[0].pdomain(), *x[2].pdomain(), pos)) {
+      NSBlocks v;
+      DashedString* px;
+      //x[2][ : pos[0]];
+      //crush(x[2][pos[0] : pos[1]]);
+      if (occur) {
+        px = x[1].pdomain();
+        for (int i = 0; i < px->length(); ++i)
+          v.push_back(NSBlock(px->at(i)));
+      }
+      //crush(x[2][pos[2] : pos[3]]);
+      //x[2][pos[3] : ];
+      v.normalize();
+      GECODE_ME_CHECK(x[3].dom(home, v));
+    }
+    else {
+      rel(home, x[2], STRT_EQ, x[3]);
+      return home.ES_SUBSUMED(*this);
+    }
     // If x[1] must not occur in x[3], then find(x[0], x[2]) = 0 /\ x[2] = x[3].
     // Otherwise, we use the earliest/latest start/end positions of x[1] in x[3]
-    // to possibly refine x[2] and x[3] via equation.
-    // TODO
-    
+    // to possibly refine x[2] via equation.
+    if (sweep_replace(*x[1].pdomain(), *x[3].pdomain(), pos)) {
+      NSBlocks v;
+      DashedString* px;
+      //x[3][ : pos[0]];
+      //crush(x[3][pos[0] : pos[1]]);
+      if (occur) {
+        px = x[0].pdomain();
+        for (int i = 0; i < px->length(); ++i)
+          v.push_back(NSBlock(px->at(i)));
+      }
+      //crush(x[3][pos[2] : pos[3]]);
+      //x[3][pos[3] : ];
+      v.normalize();
+      GECODE_ME_CHECK(x[3].dom(home, v));
+    }
+    else {
+      find(home, x[0], x[2], IntVar(home, 0, 0));
+      rel(home, x[2], STRT_EQ, x[3]);      
+      return home.ES_SUBSUMED(*this);
+    }    
     return x[0].assigned() && x[2].assigned() ? ES_NOFIX : ES_FIX;
     // std::cerr<<"After replace: "<< x <<"\n";
     return ES_FIX;

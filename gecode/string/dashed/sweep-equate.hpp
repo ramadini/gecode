@@ -364,11 +364,14 @@ namespace Gecode { namespace String {
     }
   }
 
-  // Set up latest/earliest start/end positions for x-blocks in y. The lep 
-  // parameter is set to false for the find propagator.
+  // Set up latest/earliest start/end positions for x-blocks in y. The find
+  // parameter is set to 1 by the find propagator, the rep parameter is set to 1
+  // by the replace propagator.
   template <class Block1, class Blocks1, class Block2, class Blocks2>
   forceinline bool
-  init_x(const Blocks1& x, const Blocks2& y, matching& m, bool lep = true) {
+  init_x(const Blocks1& x, const Blocks2& y, matching& m, 
+         bool find = false, bool repl = false) {
+    assert (!find || !repl);
     Position firstf {0, 0};
     int xlen = x.length(), ylen = y.length();
     if (xlen == 0) {
@@ -376,7 +379,7 @@ namespace Gecode { namespace String {
         return true;
       Position firstb(first_bwd(y));
       for (int i = 0; i < ylen; ++i) {
-        if (lep && lower(y.at(i)) > 0)
+        if (!find && !repl && lower(y.at(i)) > 0)
             return false;
         m.lep.push(firstf);
         m.esp.push(firstb);
@@ -386,7 +389,7 @@ namespace Gecode { namespace String {
     if (ylen == 0) {
       Position firstb(first_bwd(y));
       for (int i = 0; i < xlen; ++i) {
-        if (lep && lower(x.at(i)) > 0)
+        if (!find && !repl && lower(x.at(i)) > 0)
           return false;
         m.lep.push(firstf);
         m.esp.push(firstb);
@@ -399,7 +402,7 @@ namespace Gecode { namespace String {
       m.lep.push(firstb);
     }
     // Stretching forward for latest end positions.
-    if (lep) {
+    if (!find) {
       Position curr = firstf;
       for (int i = 0; i < xlen; ++i) {
         curr = stretch<Fwd, Block1, Block2, Blocks2>(y, x.at(i), curr, lastf);
@@ -407,7 +410,7 @@ namespace Gecode { namespace String {
         // std::cerr << i << ": LEP(" << x.at(i) << ") = " << m.lep[i] << "\n";
       }
     }
-    if (lep && Bwd::lt(firstb, m.lep.last()))
+    if (!find && !repl && Bwd::lt(firstb, m.lep.last()))
       return false;
     // Stretching backward for earliest start positions.
     Position curr = firstb;
@@ -416,7 +419,7 @@ namespace Gecode { namespace String {
       m.esp[i] = dual(y, curr);
       // std::cerr << i << ": ESP(" << x.at(i) << ") = " << m.esp[i] << "\n";
     }
-    return !lep || !Fwd::lt(firstf, m.esp[0]);
+    return !find || !repl || !Fwd::lt(firstf, m.esp[0]);
   }
 
   // Matches each x-block against the blocks of y, and records into up parameter

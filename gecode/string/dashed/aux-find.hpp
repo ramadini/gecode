@@ -206,8 +206,7 @@ namespace Gecode { namespace String {
     matching m;
     DSBlocks& xblocks = x.blocks();
     DSBlocks& yblocks = y.blocks();
-    if (!init_x<DSBlock, DSBlocks, DSBlock, DSBlocks>(xblocks, yblocks, m, 0))
-      return false;
+    init_x<DSBlock, DSBlocks, DSBlock, DSBlocks>(xblocks, yblocks, m, 1);
     // Looking for the first position in y where x can occur.
     int b = 0, p = lb - 1;
     while (b < y.length() && p >= y.at(b).u) {
@@ -243,5 +242,53 @@ namespace Gecode { namespace String {
     }
     return true;
   }
+
+  // Returns true iff x may be a substring of y, and initializes pos such that:
+  //   pos[0] = earliest start position of x in y
+  //   pos[1] = latest start position of x in y
+  //   pos[2] = earliest end position of x in y
+  //   pos[3] = latest end position of x in y
+  forceinline bool
+  sweep_replace(DashedString& x, DashedString& y, Position* pos) {
+    matching m;
+    if (!init_x<DSBlock, DSBlocks, DSBlock, DSBlocks>
+       (x.blocks(), y.blocks(), m, 0, 1))
+      return false;
+    int xlen = x.length();
+    for (int i = 0; i < xlen; ++i) {
+      Position es = m.esp[i];
+      Position le = m.lep[i];
+      Position ls = i ? dual(y, m.lep[i - 1]) : m.esp[0];
+      Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[xlen - 1];
+      if (!Fwd::le(es, ls, upper(y.at(ls.idx)))) {
+        if (es.idx == ls.idx) {
+          if (es.off - ls.off > upper(y.at(es.idx)) - lower(y.at(es.idx)))
+            return false;
+          es = ls;
+        }
+        return false;
+      } 
+      if (!Bwd::le(le, ee, upper(y.at(ee.idx)))) {
+        if (ee.idx == le.idx) {
+          if (ee.off - le.off > upper(y.at(ee.idx)) - lower(y.at(ee.idx)))
+            return false;
+          le = ee;
+        }
+        else
+          return false;
+      }
+      if (i == 0) {
+        pos[0] = es;
+        pos[1] = ls;
+      }
+      if (i == xlen - 1) {
+        pos[2] = ee;
+        pos[3] = le;
+      }      
+    }
+    return true;
+  }
+  
+  
 
 }}
