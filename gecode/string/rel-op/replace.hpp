@@ -97,7 +97,11 @@ namespace Gecode { namespace String {
           //TODO
         }
         else {
-          int n = sy.find(sx);
+          size_t n = sy.find(sx);
+          if (n == string::npos) {
+            rel(home, x[2], STRT_EQ, x[3]);
+            return home.ES_SUBSUMED(*this); 
+          }
           string pref = sy.substr(0, n);
           string suff = sy.substr(n + sx.size());
           if (x[1].assigned())
