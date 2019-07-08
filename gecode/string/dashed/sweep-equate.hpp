@@ -474,7 +474,7 @@ namespace Gecode { namespace String {
       Position le = m.lep[i]; // Bwd direction (negative offset).
       Position ee = i + 1 < xlen ? dual(y, m.esp[i + 1]) : m.lep.last(); // Bwd.
       // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
-        // <<" ls: "<<ls<<" le: "<<le<<'\n';
+      //   <<" ls: "<<ls<<" le: "<<le<<'\n';
       if (!Fwd::le(es, ls, upper(y.at(ls.idx)))) {
         if (es.idx == ls.idx) {
           if (es.off - ls.off > upper(y.at(es.idx)) - lower(y.at(es.idx)))
@@ -513,7 +513,7 @@ namespace Gecode { namespace String {
           opt_region<Block2, Blocks2>(y, dual(y, ee), le, p_reg);
         for (unsigned i = 0; i < p_reg.size(); ++i)
           p_set.include(p_reg[i].S);
-      }      
+      }
       int k = xi.u - p_l;
       if (k < 0)
         return false;
@@ -537,7 +537,7 @@ namespace Gecode { namespace String {
           // propagation is preserved by constraining the min/max string length.
           p_reg.normalize();
           up.push(std::make_pair(0, p_reg));
-          //std::cerr << "x'_i: " << p_reg << "\n";
+          // std::cerr << "1) x'_i: " << p_reg << "\n";
           return true;
         }
         // Possibly crushing the matching region into a single block.
@@ -546,7 +546,7 @@ namespace Gecode { namespace String {
         if (p_l > xi.l || u < xi.u || (int) xi.S.size() < n) {
           NSBlocks b(1, NSBlock(xi.S, max(p_l, xi.l), min(u, xi.u)));
           up.push(std::make_pair(i, b));
-          //std::cerr << "x'_i: " << b << "\n";
+          // std::cerr << "2) x'_i: " << b << "\n";
         }       
         continue;
       }
@@ -564,7 +564,7 @@ namespace Gecode { namespace String {
           assert (xi.l == 0 || p_reg[i].l == 0);
       }
       w.normalize();
-      //std::cerr << "x'_i: " << w << "\n";
+      // std::cerr << "3) x'_i: " << w << "\n";
       if (w.size() != 1 || !(w[0] == xi))
         up.push(std::make_pair(i, w));
     }

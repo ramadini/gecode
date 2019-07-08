@@ -124,26 +124,32 @@ namespace Gecode { namespace String {
         else
           curr = "";
       }
-    }    
+    }
+    // x[2] != x[3] => x[0] occur in x[1] /\ x[2] occur in x[4].
+    occur |= !x[2].pdomain()->check_equate(*x[3].pdomain());    
     // If x[0] must not occur in x[2], then x[2] = x[3]. Otherwise, we use the 
     // earliest/latest start/end positions of x[0] in x[2] to possibly refine 
     // x[3] via equation.
     Position pos[4];
+    // std::cerr << "occur: " << occur << "\n";
     if (sweep_replace(*x[0].pdomain(), *x[2].pdomain(), pos)) {      
       // Prefix: x[2][: es]
       NSBlocks v = prefix(2, pos[0]);
       // Crush x[2][ee : le] into a single block.  
       v.push_back(crush(2, pos[0], pos[1]));
       // If x[0] surely occcurs in x[2], then x[1] replaces x[0] in x[3].
-      if (occur) {
-        DashedString* px = x[1].pdomain();
-        for (int i = 0; i < px->length(); ++i)
-          v.push_back(NSBlock(px->at(i)));
+      DashedString* px = x[1].pdomain();
+      for (int i = 0; i < px->length(); ++i) {
+        const DSBlock& b = px->at(i);
+        if (occur)
+          v.push_back(NSBlock(b));
+        else
+          v.push_back(NSBlock(b.S, 0, b.u));
       }
       // Crush x[2][ee : le] into a single block.
       v.push_back(crush(2, pos[2], pos[3]));
       // Suffix: x[2][le :]
-      v.extend(suffix(2, pos[3]));
+      v.extend(suffix(2, pos[3]));      
       v.normalize();
       // std::cerr << "Equating y' = " << x[3] << " with " << v << "\n";
       GECODE_ME_CHECK(x[3].dom(home, v));
@@ -159,18 +165,21 @@ namespace Gecode { namespace String {
       // Prefix: x[3][: es].
       NSBlocks v = prefix(3, pos[0]);
       // Crush x[3][ee : le] into a single block.
-      v.push_back(crush(3, pos[0], pos[1]));      
-      if (occur) {
-        DashedString* px = x[0].pdomain();
-        for (int i = 0; i < px->length(); ++i)
-          v.push_back(NSBlock(px->at(i)));
+      v.push_back(crush(3, pos[0], pos[1]));  
+      DashedString* px = x[0].pdomain();
+      for (int i = 0; i < px->length(); ++i) {
+        const DSBlock& b = px->at(i);
+        if (occur)
+          v.push_back(NSBlock(b));
+        else
+          v.push_back(NSBlock(b.S, 0, b.u));
       }
       // Crush x[3][ee : le] into a single block.
       v.push_back(crush(3, pos[2], pos[3]));
       // Suffix: x[3][le :]
       v.extend(suffix(3, pos[3]));
       v.normalize();
-      // std::cerr << "Equating y' = " << x[3] << " with " << v << "\n";
+      // std::cerr << "Equating y = " << x[2] << " with " << v << "\n";
       GECODE_ME_CHECK(x[2].dom(home, v));
     }
     else {

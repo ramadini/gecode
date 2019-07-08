@@ -19,6 +19,8 @@ class Ex8 : public Script {
 
 public:
 
+  static bool sat;
+
   Ex8(Ex8& s): Script(s) {
     int_vars.update(*this, s.int_vars);
     string_vars.update(*this, s.string_vars);
@@ -44,7 +46,7 @@ public:
     StringVar y(*this, v, 0, 100);
     StringVar y1(*this, v1, 0, 100);
     StringVar z(*this, v, 0, 100);
-      StringVar z1(*this, v, 0, 100);
+    StringVar z1(*this, v, 0, 100);
 
     StringVarArgs sva;
     sva << x << x1 << y << y1 << z << z1;
@@ -79,13 +81,17 @@ public:
     assert (y.find(x) != string::npos && y1.find(x1) != string::npos &&
       z.find(x) == string::npos && z1.find(x1) == string::npos &&
       z == z1);
+    sat = true;
   }
 
 };
+
+bool Ex8::sat = false;
 
 int main() {
   StringOptions opt("*** Ex8 ***");
   opt.solutions(3);
   Script::run<Ex8, DFS, StringOptions>(opt);
+  assert (Ex8::sat);
   return 0;
 }
