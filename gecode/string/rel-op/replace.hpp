@@ -143,11 +143,19 @@ namespace Gecode { namespace String {
         const DSBlock& b = px->at(i);
         if (occur)
           v.push_back(NSBlock(b));
-        else
-          v.push_back(NSBlock(b.S, 0, b.u));
+        else {
+          v.back().S.include(b.S);
+          v.back().u += b.u;
+        }
       }
       // Crush x[2][ee : le] into a single block.
-      v.push_back(crush(2, pos[2], pos[3]));
+      NSBlock b = crush(2, pos[2], pos[3]);
+      if (occur)
+        v.push_back(b);
+      else {
+        v.back().S.include(b.S);
+        v.back().u += b.u;
+      }
       // Suffix: x[2][le :]
       v.extend(suffix(2, pos[3]));      
       v.normalize();
@@ -171,11 +179,19 @@ namespace Gecode { namespace String {
         const DSBlock& b = px->at(i);
         if (occur)
           v.push_back(NSBlock(b));
-        else
-          v.push_back(NSBlock(b.S, 0, b.u));
+        else {
+          v.back().S.include(b.S);
+          v.back().u += b.u;
+        }
       }
       // Crush x[3][ee : le] into a single block.
-      v.push_back(crush(3, pos[2], pos[3]));
+      NSBlock b = crush(3, pos[2], pos[3]);
+      if (occur)
+        v.push_back(b);
+      else {
+        v.back().S.include(b.S);
+        v.back().u += b.u;
+      }
       // Suffix: x[3][le :]
       v.extend(suffix(3, pos[3]));
       v.normalize();
