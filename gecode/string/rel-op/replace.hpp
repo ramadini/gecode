@@ -129,8 +129,7 @@ namespace Gecode { namespace String {
     // earliest/latest start/end positions of x[0] in x[2] to possibly refine 
     // x[3] via equation.
     Position pos[4];
-    DashedString* px = x[2].pdomain();
-    if (sweep_replace(*x[0].pdomain(), *px, pos)) {      
+    if (sweep_replace(*x[0].pdomain(), *x[2].pdomain(), pos)) {      
       // Prefix: x[2][: es]
       NSBlocks v = prefix(2, pos[0]);
       // Crush x[2][ee : le] into a single block.  
@@ -156,40 +155,31 @@ namespace Gecode { namespace String {
     // If x[1] must not occur in x[3], then find(x[0], x[2]) = 0 /\ x[2] = x[3].
     // Otherwise, we use the earliest/latest start/end positions of x[1] in x[3]
     // to possibly refine x[2] via equation.
-    px = x[3].pdomain();
-    if (sweep_replace(*x[1].pdomain(), *px, pos)) {
-      NSBlocks v;
+    if (sweep_replace(*x[1].pdomain(), *x[3].pdomain(), pos)) {
       // Prefix: x[3][: es].
-      Position es = pos[0];
-      for (int i = 0; i < es.idx; ++i)
-        v.push_back(NSBlock(px->at(i)));
-      int off = pos[0].off;
-      if (off > 0) {
-        const DSBlock& b = px->at(es.idx);
-        if (off < b.l)
-          v.push_back(NSBlock(b.S, off, off));
-        else
-          v.push_back(NSBlock(b.S, b.l, off));
-      }
-      //crush(x[3][pos[0] : pos[1]]);
+      NSBlocks v = prefix(3, pos[0]);
+      // Crush x[3][ee : le] into a single block.
+      v.push_back(crush(3, pos[0], pos[1]));      
       if (occur) {
-        px = x[0].pdomain();
+        DashedString* px = x[0].pdomain();
         for (int i = 0; i < px->length(); ++i)
           v.push_back(NSBlock(px->at(i)));
       }
-      //crush(x[3][pos[2] : pos[3]]);
-      // Suffix of x[3] [pos[3] : ];
+      // Crush x[3][ee : le] into a single block.
+      v.push_back(crush(3, pos[2], pos[3]));
+      // Suffix: x[3][le :]
+      v.extend(suffix(3, pos[3]));
       v.normalize();
-      GECODE_ME_CHECK(x[3].dom(home, v));
+      // std::cerr << "Equating y' = " << x[3] << " with " << v << "\n";
+      GECODE_ME_CHECK(x[2].dom(home, v));
     }
     else {
       find(home, x[0], x[2], IntVar(home, 0, 0));
       rel(home, x[2], STRT_EQ, x[3]);      
       return home.ES_SUBSUMED(*this);
-    }    
-    return x[0].assigned() && x[2].assigned() ? ES_NOFIX : ES_FIX;
+    }
     // std::cerr<<"After replace: "<< x <<"\n";
-    return ES_FIX;
+    return x[0].assigned() && x[2].assigned() ? ES_NOFIX : ES_FIX;    
   }
 
 }}
