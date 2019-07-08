@@ -4,7 +4,7 @@ namespace Gecode { namespace String {
   // with x[1] in the target string x[2].
 
   forceinline ExecStatus
-  Replace::post(Home home, ViewArray<StringView>& x) {
+  Replace::post(Home home, ViewArray<StringView>& x, bool replaceAll) {
     if (x[0].same(x[1])) {
       rel(home, x[2], STRT_EQ, x[3]);
       return ES_OK;
@@ -15,7 +15,7 @@ namespace Gecode { namespace String {
     }
     else if (x[0].same(x[3]))
       rel(home, x[0], STRT_SUB, x[1]);
-    (void) new (home) Replace(home, x);
+    (void) new (home) Replace(home, x, replaceAll);
     return ES_OK;
   }
 
@@ -25,12 +25,12 @@ namespace Gecode { namespace String {
   }
 
   forceinline
-  Replace::Replace(Home home, ViewArray<StringView>& x)
-  : NaryPropagator<StringView, PC_STRING_DOM>(home, x) {}
+  Replace::Replace(Home home, ViewArray<StringView>& x, bool replaceall)
+  : NaryPropagator<StringView, PC_STRING_DOM>(home, x), all(replaceall) {}
 
   forceinline
   Replace::Replace(Space& home, Replace& p)
-  : NaryPropagator<StringView, PC_STRING_DOM>(home, p) {}
+  : NaryPropagator<StringView, PC_STRING_DOM>(home, p), all(p.all) {}
 
 
   // Crush x[k][p : q] into a single block.
@@ -87,21 +87,26 @@ namespace Gecode { namespace String {
     bool occur = false;
     if (x[0].assigned()) {
       string sx = x[0].val();
-      if (sx == "") {
+      if (sx == "" && !all) {
         rel(home, x[1], x[2], STRT_CAT, x[3]);
         return home.ES_SUBSUMED(*this);
       }
       if (x[2].assigned()) {
         string sy = x[2].val();
-        int n = sy.find(sx);
-        string pref = sy.substr(0, n);
-        string suff = sy.substr(n + sx.size());
-        if (x[1].assigned())
-          GECODE_ME_CHECK(x[3].eq(home, pref + x[1].val() + suff));
+        if (all) {
+          //TODO
+        }
         else {
-          StringVar z(home);
-          rel(home, StringVar(home, pref), x[1], STRT_CAT, z);
-          rel(home, z, StringVar(home, suff), STRT_CAT, x[3]);
+          int n = sy.find(sx);
+          string pref = sy.substr(0, n);
+          string suff = sy.substr(n + sx.size());
+          if (x[1].assigned())
+            GECODE_ME_CHECK(x[3].eq(home, pref + x[1].val() + suff));
+          else {
+            StringVar z(home);
+            rel(home, StringVar(home, pref), x[1], STRT_CAT, z);
+            rel(home, z, StringVar(home, suff), STRT_CAT, x[3]);
+          }
         }
         return home.ES_SUBSUMED(*this);
       }

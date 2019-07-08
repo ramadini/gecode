@@ -55,5 +55,16 @@ namespace Gecode {
     a[3] = y1;
     GECODE_ES_FAIL(String::Replace::post(home, a));
   }
+  
+  void
+  replaceAll(Home home, StringVar x, StringVar x1, StringVar y, StringVar y1) {
+    GECODE_POST;
+    ViewArray<String::StringView> a(home, 4);
+    a[0] = x;
+    a[1] = x1;
+    a[2] = y;
+    a[3] = y1;
+    GECODE_ES_FAIL(String::Replace::post(home, a, true));
+  }
 
 }

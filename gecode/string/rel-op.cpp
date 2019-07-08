@@ -14,13 +14,14 @@ namespace Gecode { namespace String {
   ) {
     GECODE_POST;
     switch (ot) {
-    case STRT_REP: {
+    case STRT_REP:
+    case STRT_REPALL: {
       ViewArray<StringView> x(home, 4);
       x[0] = x0;
       x[1] = x1;
       x[2] = x2;
       x[3] = x3;
-      GECODE_ES_FAIL((Replace::post(home, x)));
+      GECODE_ES_FAIL((Replace::post(home, x, ot == STRT_REPALL)));
       break;
     }
     default:

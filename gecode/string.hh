@@ -140,12 +140,13 @@ namespace Gecode {
   };
 
   enum StringOpType {
-    STRT_CAT,   ///< Concatenation (\f$\cdot\f$)
-    STRT_SUB,   ///< Sub-string
-    STRT_REV,   ///< Reverse
-    STRT_REP,   ///< Replace
-	  STRT_LCASE, ///< Lower case
-	  STRT_UCASE, ///< Upper case
+    STRT_CAT,    ///< Concatenation (\f$\cdot\f$)
+    STRT_SUB,    ///< Sub-string
+    STRT_REV,    ///< Reverse
+    STRT_REP,    ///< Replace
+    STRT_REPALL, ///< Replace all
+	  STRT_LCASE,  ///< Lower case
+	  STRT_UCASE,  ///< Upper case
   };
 
 }
