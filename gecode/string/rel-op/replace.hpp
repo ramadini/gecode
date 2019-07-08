@@ -32,6 +32,53 @@ namespace Gecode { namespace String {
   Replace::Replace(Space& home, Replace& p)
   : NaryPropagator<StringView, PC_STRING_DOM>(home, p) {}
 
+
+  // Crush x[k][p : q] into a single block.
+  forceinline NSBlock
+  Replace::crush(int k, const Position& p, const Position& q) {
+    NSBlock block;
+    DashedString* px = x[k].pdomain();
+    for (int i = p.idx; i <= q.idx; ++i) {
+      const DSBlock& b = px->at(i);
+      block.S.include(b.S);
+      block.u += b.u;
+    }
+    return block;
+  }
+
+  // Returns the prefix of x[k] until position p.
+  forceinline NSBlocks
+  Replace::prefix(int k, const Position& p) {
+    NSBlocks pref;
+    DashedString* px = x[k].pdomain();
+    for (int i = 0; i < p.idx; ++i)
+      pref.push_back(NSBlock(px->at(i)));
+    int off = p.off;
+    if (off > 0) {
+      const DSBlock& b = px->at(p.idx);
+      if (off < b.l)
+        pref.push_back(NSBlock(b.S, off, off));
+      else
+        pref.push_back(NSBlock(b.S, b.l, off));
+    }
+    return pref;
+  }
+  
+  // Returns the suffix of x[k] from position p.
+  forceinline NSBlocks
+  Replace::suffix(int k, const Position& p) {
+    NSBlocks suff;
+    DashedString* px = x[k].pdomain();
+    int off = p.off;
+    if (off > 0) {
+      const DSBlock& b = px->at(p.idx);
+      suff.push_back(NSBlock(b.S, max(0, off - b.u + b.l), b.u));
+    }
+    for (int i = p.idx + 1; i < px->length(); ++i)
+      suff.push_back(NSBlock(px->at(i)));
+    return suff;
+  }
+
   forceinline ExecStatus
   Replace::propagate(Space& home, const ModEventDelta&) {
     // std::cerr<<"\nReplace::propagate: "<< x <<"\n";
@@ -83,28 +130,23 @@ namespace Gecode { namespace String {
     // x[3] via equation.
     Position pos[4];
     DashedString* px = x[2].pdomain();
-    if (sweep_replace(*x[0].pdomain(), *px, pos)) {
-      NSBlocks v;
-      // Prefix of x[2].
-      for (int i = 0; i < pos[0].idx; ++i)
-        v.push_back(NSBlock(px->at(i)));
-      int off = pos[0].off;
-      if (off > 0) {
-        const DSBlock& b = px->at(pos[0].idx);
-        if (off < b.l)
-          v.push_back(NSBlock(b.S, off, off));
-        else
-          v.push_back(NSBlock(b.S, b.l, off));
-      }
-      //crush(x[2][pos[0] : pos[1]]);
+    if (sweep_replace(*x[0].pdomain(), *px, pos)) {      
+      // Prefix: x[2][: es]
+      NSBlocks v = prefix(2, pos[0]);
+      // Crush x[2][ee : le] into a single block.  
+      v.push_back(crush(2, pos[0], pos[1]));
+      // If x[0] surely occcurs in x[2], then x[1] replaces x[0] in x[3].
       if (occur) {
-        px = x[1].pdomain();
+        DashedString* px = x[1].pdomain();
         for (int i = 0; i < px->length(); ++i)
           v.push_back(NSBlock(px->at(i)));
       }
-      //crush(x[2][pos[2] : pos[3]]);
-      // Suffix of x[2] [pos[3] : ];
+      // Crush x[2][ee : le] into a single block.
+      v.push_back(crush(2, pos[2], pos[3]));
+      // Suffix: x[2][le :]
+      v.extend(suffix(2, pos[3]));
       v.normalize();
+      // std::cerr << "Equating y' = " << x[3] << " with " << v << "\n";
       GECODE_ME_CHECK(x[3].dom(home, v));
     }
     else {
@@ -117,12 +159,13 @@ namespace Gecode { namespace String {
     px = x[3].pdomain();
     if (sweep_replace(*x[1].pdomain(), *px, pos)) {
       NSBlocks v;
-      // Prefix of x[3].
-      for (int i = 0; i < pos[0].idx; ++i)
+      // Prefix: x[3][: es].
+      Position es = pos[0];
+      for (int i = 0; i < es.idx; ++i)
         v.push_back(NSBlock(px->at(i)));
       int off = pos[0].off;
       if (off > 0) {
-        const DSBlock& b = px->at(pos[0].idx);
+        const DSBlock& b = px->at(es.idx);
         if (off < b.l)
           v.push_back(NSBlock(b.S, off, off));
         else

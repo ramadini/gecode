@@ -4,6 +4,10 @@
 namespace Gecode { namespace String {
 
   class Replace : public NaryPropagator<StringView, PC_STRING_DOM> {
+  private:
+    NSBlock crush(int, const Position&, const Position&);
+    NSBlocks prefix(int, const Position&);
+    NSBlocks suffix(int, const Position&);
   protected:
     using NaryPropagator<StringView, PC_STRING_DOM>::x;
     /// Constructor for cloning \a p
