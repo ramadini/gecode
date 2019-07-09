@@ -296,14 +296,13 @@ namespace Gecode { namespace String {
 
   // Returns true iff x may be a substring of y, and initializes pos such that:
   //   pos[0] = earliest start position of x in y
-  //   pos[1] = latest start position of x in y
-  //   pos[2] = earliest end position of x in y
-  //   pos[3] = latest end position of x in y
+  //   pos[1] = latest end position of x in y
+  // The offset of both pos[0] and pos[1] is positive.
   forceinline bool
   sweep_replace(DashedString& x, DashedString& y, Position* pos) {
-    std::cerr << "sweep_replace " << x << ' ' << y << '\n';
+    // std::cerr << "sweep_replace " << x << ' ' << y << '\n';
     matching m;
-    DSBlocks& xblocks = x.blocks();    
+    DSBlocks& xblocks = x.blocks();
     DSBlocks& yblocks = y.blocks();
     if (!init_x<DSBlock,DSBlocks,DSBlock,DSBlocks>(xblocks, yblocks, m, 0, 1))
       return false;
@@ -338,15 +337,12 @@ namespace Gecode { namespace String {
         else
           return false;
       }
-      if (i == 0) {
+      if (i == 0)
         pos[0] = es;
-        pos[1] = ls;
-      }
-      if (i == xlen - 1) {
-        pos[2] = ee;
-        pos[3] = le;
-      }      
+      if (i == xlen - 1)
+        pos[1] = dual(y, ee);
     }
+    assert (!Fwd::lt(pos[1], pos[0]));
     return true;
   }
   

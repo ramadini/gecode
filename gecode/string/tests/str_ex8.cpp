@@ -57,7 +57,6 @@ public:
     iva << l;
 
     length(*this, z1, l);
-    VarArgs va;
     replace(*this, x, x1, y, y1);
     replace(*this, x, x1, z, z1);
     sizemin_llul(*this, string_vars);

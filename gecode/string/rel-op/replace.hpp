@@ -37,6 +37,9 @@ namespace Gecode { namespace String {
   forceinline NSBlock
   Replace::crush(int k, const Position& p, const Position& q) {
     NSBlock block;
+    if (p == q)
+      return block;
+    assert (Fwd::lt(p, q));
     DashedString* px = x[k].pdomain();
     for (int i = p.idx; i <= q.idx; ++i) {
       const DSBlock& b = px->at(i);
@@ -70,9 +73,9 @@ namespace Gecode { namespace String {
     NSBlocks suff;
     DashedString* px = x[k].pdomain();
     int off = p.off;
-    if (off > 0) {
+    if (off < px->at(p.idx).u) {
       const DSBlock& b = px->at(p.idx);
-      suff.push_back(NSBlock(b.S, max(0, off - b.u + b.l), b.u));
+      suff.push_back(NSBlock(b.S, max(0, b.l - off), b.u - off));
     }
     for (int i = p.idx + 1; i < px->length(); ++i)
       suff.push_back(NSBlock(px->at(i)));
@@ -81,7 +84,7 @@ namespace Gecode { namespace String {
   
   forceinline ExecStatus
   Replace::replaceAll(Space& home) {
-    std::cerr << "replaceAll\n";
+    // std::cerr << "replaceAll\n";
     string sx = x[0].val(), sy = x[2].val();
     if (x[1].assigned()) {
       string sx1 = x[1].val();
@@ -123,7 +126,7 @@ namespace Gecode { namespace String {
       }
       GECODE_ME_CHECK(x[3].dom(home, y1));
     }
-    std::cerr << "After replaceAll: " << x << "\n";
+    // std::cerr << "After replaceAll: " << x << "\n";
     return x[1].assigned() ? home.ES_SUBSUMED(*this) : ES_FIX;
   }
 
@@ -131,7 +134,7 @@ namespace Gecode { namespace String {
   Replace::propagate(Space& home, const ModEventDelta&) {
     std::cerr<<"\nReplace::propagate: "<< x <<"\n";
     assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
-           x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());
+           x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());                     
     bool occur = false;
     if (x[0].assigned()) {
       string sx = x[0].val();
@@ -189,34 +192,28 @@ namespace Gecode { namespace String {
     // If x[0] must not occur in x[2], then x[2] = x[3]. Otherwise, we use the 
     // earliest/latest start/end positions of x[0] in x[2] to possibly refine 
     // x[3] via equation.
-    Position pos[4];
+    Position pos[2];
     std::cerr << "occur: " << occur << "\n";
     if (sweep_replace(*x[0].pdomain(), *x[2].pdomain(), pos)) {
       // Prefix: x[2][: es]
-      NSBlocks v = prefix(2, pos[0]);
-      // Crush x[2][ee : le] into a single block.  
-      v.push_back(crush(2, pos[0], pos[1]));
-      // If x[0] surely occcurs in x[2], then x[1] replaces x[0] in x[3].
-      DashedString* px = x[1].pdomain();
-      for (int i = 0; i < px->length(); ++i) {
-        const DSBlock& b = px->at(i);
-        if (occur)
-          v.push_back(NSBlock(b));
-        else {
-          v.back().S.include(b.S);
-          v.back().u += b.u;
+      NSBlocks v;
+      Position es = pos[0], le = pos[1]; std::cerr << es << ' ' << le << '\n';
+      if (es != Position({0, 0}))
+        v = prefix(2, es);
+      // Crush x[2][es : le] into a single block.
+      if (es != le) {
+        NSBlock b = crush(2, es, le);
+        v.push_back(b);
+        if (occur) {
+          DashedString* px = x[1].pdomain();
+          for (int i = 0; i < px->length(); ++i)
+            v.push_back(NSBlock(px->at(i)));
+          v.push_back(b);
         }
       }
-      // Crush x[2][ee : le] into a single block.
-      NSBlock b = crush(2, pos[2], pos[3]);
-      if (occur)
-        v.push_back(b);
-      else {
-        v.back().S.include(b.S);
-        v.back().u += b.u;
-      }
       // Suffix: x[2][le :]
-      v.extend(suffix(2, pos[3]));      
+      if (le != Position({x[2].pdomain()->length(), 0}))
+        v.extend(suffix(2, le));      
       v.normalize();
       std::cerr << "Equating y' = " << x[3] << " with " << v << "\n";
       GECODE_ME_CHECK(x[3].dom(home, v));
@@ -224,35 +221,30 @@ namespace Gecode { namespace String {
     else {
       rel(home, x[2], STRT_EQ, x[3]);
       return home.ES_SUBSUMED(*this);
-    }
+    }    
     // If x[1] must not occur in x[3], then find(x[0], x[2]) = 0 /\ x[2] = x[3].
     // Otherwise, we use the earliest/latest start/end positions of x[1] in x[3]
     // to possibly refine x[2] via equation.
     if (sweep_replace(*x[1].pdomain(), *x[3].pdomain(), pos)) {
       // Prefix: x[3][: es].
-      NSBlocks v = prefix(3, pos[0]);
-      // Crush x[3][ee : le] into a single block.
-      v.push_back(crush(3, pos[0], pos[1]));  
-      DashedString* px = x[0].pdomain();
-      for (int i = 0; i < px->length(); ++i) {
-        const DSBlock& b = px->at(i);
-        if (occur)
-          v.push_back(NSBlock(b));
-        else {
-          v.back().S.include(b.S);
-          v.back().u += b.u;
+      NSBlocks v;
+      Position es = pos[0], le = pos[1];
+      if (es != Position({0, 0}))
+        v = prefix(3, es);
+      // Crush x[3][es : ls] into a single block.
+      if (es != le) {
+        NSBlock b = crush(3, es, le);
+        v.push_back(b);
+        if (occur) {
+          DashedString* px = x[0].pdomain();
+          for (int i = 0; i < px->length(); ++i)
+            v.push_back(NSBlock(px->at(i)));
+          v.push_back(b);
         }
       }
-      // Crush x[3][ee : le] into a single block.
-      NSBlock b = crush(3, pos[2], pos[3]);
-      if (occur)
-        v.push_back(b);
-      else {
-        v.back().S.include(b.S);
-        v.back().u += b.u;
-      }
       // Suffix: x[3][le :]
-      v.extend(suffix(3, pos[3]));
+      if (le != Position({x[3].pdomain()->length(), 0}))
+        v.extend(suffix(3, le));
       v.normalize();
       std::cerr << "Equating y = " << x[2] << " with " << v << "\n";
       GECODE_ME_CHECK(x[2].dom(home, v));

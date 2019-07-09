@@ -314,6 +314,10 @@ namespace Gecode {
   /// Post propagator for \f$ y1 = replace(x, x1, y) \f$
   GECODE_STRING_EXPORT void
   replace(Home home, StringVar x, StringVar x1, StringVar y, StringVar y1);
+  
+  /// Post propagator for \f$ y1 = replaceAll(x, x1, y) \f$
+  GECODE_STRING_EXPORT void
+  replaceAll(Home home, StringVar x, StringVar x1, StringVar y, StringVar y1);
 
   /// Post propagator for \f$ gcc(x, a, n) \f$
   GECODE_STRING_EXPORT void
