@@ -188,7 +188,10 @@ namespace Gecode { namespace String {
       }
     }
     // x[2] != x[3] => x[0] occur in x[1] /\ x[2] occur in x[4].
-    occur |= !x[2].pdomain()->check_equate(*x[3].pdomain());    
+    if (!occur && !x[2].pdomain()->check_equate(*x[3].pdomain())) {
+      occur = true;
+      // TODO: refine x[0] and x[2].
+    };
     // If x[0] must not occur in x[2], then x[2] = x[3]. Otherwise, we use the 
     // earliest/latest start/end positions of x[0] in x[2] to possibly refine 
     // x[3] via equation.
@@ -254,6 +257,7 @@ namespace Gecode { namespace String {
       rel(home, x[2], STRT_EQ, x[3]);      
       return home.ES_SUBSUMED(*this);
     }
+    // TODO: Refine cardinality.
     std::cerr<<"After replace: "<< x <<"\n";
     return x[0].assigned() && x[2].assigned() ? ES_NOFIX : ES_FIX;
   }
