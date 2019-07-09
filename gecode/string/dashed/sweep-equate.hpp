@@ -472,7 +472,7 @@ namespace Gecode { namespace String {
       Position es = m.esp[i]; // Fwd direction (positive offset).
       Position ls = i ? dual(y, m.lep[i - 1]) : m.esp[0]; // Fwd.
       Position le = m.lep[i]; // Bwd direction (negative offset).
-      Position ee = i + 1 < xlen ? dual(y, m.esp[i + 1]) : m.lep.last(); // Bwd.
+      Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i]; // Bwd.
       // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
       //   <<" ls: "<<ls<<" le: "<<le<<'\n';
       if (!Fwd::le(es, ls, upper(y.at(ls.idx)))) {
@@ -618,7 +618,7 @@ namespace Gecode { namespace String {
       Position es = m.esp[i]; // Fwd direction (positive offset).
       Position ls = i ? dual(y, m.lep[i - 1]) : m.esp[0]; // Fwd.
       Position le = m.lep[i]; // Bwd direction (negative offset).
-      Position ee = i + 1 < xlen ? dual(y, m.esp[i + 1]) : m.lep.last(); // Bwd.
+      Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i]; // Bwd.
       // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
          // <<" ls: "<<ls<<" le: "<<le<<'\n';
       if (!Fwd::le(es, ls, upper(y.at(ls.idx)))) {

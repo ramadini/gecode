@@ -81,6 +81,7 @@ namespace Gecode { namespace String {
   
   forceinline ExecStatus
   Replace::replaceAll(Space& home) {
+    std::cerr << "replaceAll\n";
     string sx = x[0].val(), sy = x[2].val();
     if (x[1].assigned()) {
       string sx1 = x[1].val();
@@ -122,12 +123,13 @@ namespace Gecode { namespace String {
       }
       GECODE_ME_CHECK(x[3].dom(home, y1));
     }
-    return home.ES_SUBSUMED(*this);
+    std::cerr << "After replaceAll: " << x << "\n";
+    return x[1].assigned() ? home.ES_SUBSUMED(*this) : ES_FIX;
   }
 
   forceinline ExecStatus
   Replace::propagate(Space& home, const ModEventDelta&) {
-    // std::cerr<<"\nReplace::propagate: "<< x <<"\n";
+    std::cerr<<"\nReplace::propagate: "<< x <<"\n";
     assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
            x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());
     bool occur = false;
@@ -139,8 +141,11 @@ namespace Gecode { namespace String {
       }
       if (x[2].assigned()) {
         string sy = x[2].val();
-        if (all)
-          return replaceAll(home);
+        if (all) {
+          ExecStatus es = replaceAll(home);
+          if (es < 0)
+            return es;
+        }
         else {
           size_t n = sy.find(sx);
           if (n == string::npos) {
@@ -156,8 +161,8 @@ namespace Gecode { namespace String {
             rel(home, StringVar(home, pref), x[1], STRT_CAT, z);
             rel(home, z, StringVar(home, suff), STRT_CAT, x[3]);
           }
+          return home.ES_SUBSUMED(*this);
         }
-        return home.ES_SUBSUMED(*this);
       }
       // Compute fixed components of x[2] to see if x[0] must occur in it, i.e.,
       // if we actually replace x[0] with x[1] in x[2].
@@ -185,8 +190,8 @@ namespace Gecode { namespace String {
     // earliest/latest start/end positions of x[0] in x[2] to possibly refine 
     // x[3] via equation.
     Position pos[4];
-    // std::cerr << "occur: " << occur << "\n";
-    if (sweep_replace(*x[0].pdomain(), *x[2].pdomain(), pos)) {      
+    std::cerr << "occur: " << occur << "\n";
+    if (sweep_replace(*x[0].pdomain(), *x[2].pdomain(), pos)) {
       // Prefix: x[2][: es]
       NSBlocks v = prefix(2, pos[0]);
       // Crush x[2][ee : le] into a single block.  
@@ -213,7 +218,7 @@ namespace Gecode { namespace String {
       // Suffix: x[2][le :]
       v.extend(suffix(2, pos[3]));      
       v.normalize();
-      // std::cerr << "Equating y' = " << x[3] << " with " << v << "\n";
+      std::cerr << "Equating y' = " << x[3] << " with " << v << "\n";
       GECODE_ME_CHECK(x[3].dom(home, v));
     }
     else {
@@ -249,7 +254,7 @@ namespace Gecode { namespace String {
       // Suffix: x[3][le :]
       v.extend(suffix(3, pos[3]));
       v.normalize();
-      // std::cerr << "Equating y = " << x[2] << " with " << v << "\n";
+      std::cerr << "Equating y = " << x[2] << " with " << v << "\n";
       GECODE_ME_CHECK(x[2].dom(home, v));
     }
     else {
@@ -257,8 +262,8 @@ namespace Gecode { namespace String {
       rel(home, x[2], STRT_EQ, x[3]);      
       return home.ES_SUBSUMED(*this);
     }
-    // std::cerr<<"After replace: "<< x <<"\n";
-    return x[0].assigned() && x[2].assigned() ? ES_NOFIX : ES_FIX;    
+    std::cerr<<"After replace: "<< x <<"\n";
+    return x[0].assigned() && x[2].assigned() ? ES_NOFIX : ES_FIX;
   }
 
 }}

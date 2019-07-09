@@ -156,7 +156,7 @@ namespace Gecode { namespace String {
       if (!mod || xi.known())
         continue;
       Position ls = i ? dual(y, m.lep[i - 1]) : m.esp[0];
-      Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[xlen - 1];
+      Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i];
       if (!Fwd::le(es, ls, upper(y.at(ls.idx)))) {
         if (es.idx == ls.idx) {
           if (es.off - ls.off > upper(y.at(es.idx)) - lower(y.at(es.idx)))
@@ -301,8 +301,9 @@ namespace Gecode { namespace String {
   //   pos[3] = latest end position of x in y
   forceinline bool
   sweep_replace(DashedString& x, DashedString& y, Position* pos) {
+    std::cerr << "sweep_replace " << x << ' ' << y << '\n';
     matching m;
-    DSBlocks& xblocks = x.blocks();
+    DSBlocks& xblocks = x.blocks();    
     DSBlocks& yblocks = y.blocks();
     if (!init_x<DSBlock,DSBlocks,DSBlock,DSBlocks>(xblocks, yblocks, m, 0, 1))
       return false;
@@ -315,9 +316,9 @@ namespace Gecode { namespace String {
       Position es = m.esp[i];
       Position le = m.lep[i];
       Position ls = i ? dual(y, m.lep[i - 1]) : m.esp[0];
-      Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[xlen - 1];
-      // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
-      //  <<" ls: "<<ls<<" le: "<<le<<'\n';
+      Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i];
+      std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
+        <<" ls: "<<ls<<" le: "<<le<<'\n';
       if (!Fwd::le(es, dual(y, le), upper(y.at(le.idx))))
         return false;
       if (!Fwd::le(es, ls, upper(y.at(ls.idx)))) {
@@ -349,6 +350,4 @@ namespace Gecode { namespace String {
     return true;
   }
   
-  
-
 }}
