@@ -78,6 +78,36 @@ namespace Gecode { namespace String {
       suff.push_back(NSBlock(px->at(i)));
     return suff;
   }
+  
+  forceinline ExecStatus
+  Replace::replaceAll(Space& home) {
+    string sx = x[0].val(), sy = x[2].val();
+    if (x[1].assigned()) {
+      string sx1 = x[1].val();
+      if (sx.size() == 0) {
+        string sz = sx1;
+        for (unsigned i = 0; i < sy.size(); ++i)
+          sz += sy[i] + sx1;
+        GECODE_ME_CHECK(x[3].eq(home, sz));
+        return home.ES_SUBSUMED(*this);;
+      };
+      size_t pos = sy.find(sx), n = sx.size(), n1 = sx1.size();
+      while (pos != string::npos) {
+        sy.replace(pos, n, sx1);
+        pos = sy.find(sx, pos + n1);
+      }
+      GECODE_ME_CHECK(x[3].eq(home, sy));
+    }
+    else {
+      if (sx.size()) {
+        //TODO
+      }
+      else {
+        //TODO
+      }
+    }
+    return home.ES_SUBSUMED(*this);
+  }
 
   forceinline ExecStatus
   Replace::propagate(Space& home, const ModEventDelta&) {
@@ -93,9 +123,8 @@ namespace Gecode { namespace String {
       }
       if (x[2].assigned()) {
         string sy = x[2].val();
-        if (all) {
-          //TODO
-        }
+        if (all)
+          return replaceAll(home);
         else {
           size_t n = sy.find(sx);
           if (n == string::npos) {

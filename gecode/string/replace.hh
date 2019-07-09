@@ -8,6 +8,7 @@ namespace Gecode { namespace String {
     NSBlock crush(int, const Position&, const Position&);
     NSBlocks prefix(int, const Position&);
     NSBlocks suffix(int, const Position&);
+    ExecStatus replaceAll(Space&);
     bool all;
   protected:
     using NaryPropagator<StringView, PC_STRING_DOM>::x;
