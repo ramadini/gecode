@@ -257,7 +257,9 @@ namespace Gecode { namespace String {
       rel(home, x[2], STRT_EQ, x[3]);      
       return home.ES_SUBSUMED(*this);
     }
-    // TODO: Refine cardinality.
+    if (occur) {
+      // TODO: Possibly refine cardinalities.
+    }
     std::cerr<<"After replace: "<< x <<"\n";
     return x[0].assigned() && x[2].assigned() ? ES_NOFIX : ES_FIX;
   }
