@@ -84,27 +84,43 @@ namespace Gecode { namespace String {
     string sx = x[0].val(), sy = x[2].val();
     if (x[1].assigned()) {
       string sx1 = x[1].val();
-      if (sx.size() == 0) {
+      if (sx == "") {
         string sz = sx1;
-        for (unsigned i = 0; i < sy.size(); ++i)
-          sz += sy[i] + sx1;
+        for (auto c : sy)
+          sz += c + sx1;
         GECODE_ME_CHECK(x[3].eq(home, sz));
-        return home.ES_SUBSUMED(*this);;
-      };
-      size_t pos = sy.find(sx), n = sx.size(), n1 = sx1.size();
-      while (pos != string::npos) {
-        sy.replace(pos, n, sx1);
-        pos = sy.find(sx, pos + n1);
-      }
-      GECODE_ME_CHECK(x[3].eq(home, sy));
-    }
-    else {
-      if (sx.size()) {
-        //TODO
       }
       else {
-        //TODO
+        size_t pos = sy.find(sx), n = sx.size(), n1 = sx1.size();
+        while (pos != string::npos) {
+          sy.replace(pos, n, sx1);
+          pos = sy.find(sx, pos + n1);
+        }
+        GECODE_ME_CHECK(x[3].eq(home, sy));
       }
+    }
+    else {
+      NSBlocks y1;
+      NSBlocks x1 = NSBlocks(x[1].pdomain()->blocks());
+      if (sx == "") {
+        y1.extend(x1);
+        for (auto c : sy) {
+          y1.push_back(NSBlock(c, 1, 1));
+          y1.extend(x1);
+        }
+      }
+      else {
+        size_t pos = sy.find(sx);
+        y1.extend(NSBlocks(sy.substr(0, pos)));
+        while (pos != string::npos) {
+          y1.extend(x1);
+          size_t pos1 = pos + 1;
+          pos = sy.find(sx, pos1);
+          if (pos > pos1)
+            y1.extend(NSBlocks(sy.substr(pos1, pos - pos1)));
+        }
+      }
+      GECODE_ME_CHECK(x[3].dom(home, y1));
     }
     return home.ES_SUBSUMED(*this);
   }
