@@ -316,8 +316,8 @@ namespace Gecode { namespace String {
       Position le = m.lep[i];
       Position ls = i ? dual(y, m.lep[i - 1]) : m.esp[0];
       Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i];
-      std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
-        <<" ls: "<<ls<<" le: "<<le<<'\n';
+      //std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
+      //  <<" ls: "<<ls<<" le: "<<le<<'\n';
       if (!Fwd::le(es, dual(y, le), upper(y.at(le.idx))))
         return false;
       if (!Fwd::le(es, ls, upper(y.at(ls.idx)))) {

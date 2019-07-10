@@ -84,7 +84,7 @@ namespace Gecode { namespace String {
   
   forceinline ExecStatus
   Replace::replaceAll(Space& home) {
-    std::cerr << "replaceAll\n";
+    // std::cerr << "replaceAll\n";
     string sx = x[0].val(), sy = x[2].val();
     if (x[1].assigned()) {
       string sx1 = x[1].val();
@@ -122,7 +122,7 @@ namespace Gecode { namespace String {
       else {
         size_t pos = sy.find(sx);
         if (pos == string::npos) {
-          rel(home, x[1], STRT_EQ, x[3]);
+          rel(home, x[2], STRT_EQ, x[3]);
           return home.ES_SUBSUMED(*this);
         }
         std::vector<StringVar> vy(1, StringVar(home));
@@ -148,13 +148,13 @@ namespace Gecode { namespace String {
           rel(home, vy.back(), StringVar(home,sy.substr(pos1)), STRT_CAT, x[3]);
       }
     }
-    std::cerr << "After replaceAll: " << x << "\n";
+    // std::cerr << "After replaceAll: " << x << "\n";
     return home.ES_SUBSUMED(*this);
   }
 
   forceinline ExecStatus
   Replace::propagate(Space& home, const ModEventDelta&) {
-    std::cerr<<"\nReplace" << (all ? "All" : "") << "::propagate: "<< x <<"\n";
+    // std::cerr<<"\nReplace" << (all ? "All" : "") << "::propagate: "<< x <<"\n";
     assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
            x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());                     
     bool occur = false;
@@ -220,11 +220,11 @@ namespace Gecode { namespace String {
     // earliest/latest start/end positions of x[0] in x[2] to possibly refine 
     // x[3] via equation.
     Position pos[2];
-    std::cerr << "occur: " << occur << "\n";
+    // std::cerr << "occur: " << occur << "\n";
     if (sweep_replace(*x[0].pdomain(), *x[2].pdomain(), pos)) {
       // Prefix: x[2][: es]
       NSBlocks v;
-      Position es = pos[0], le = pos[1]; std::cerr << es << ' ' << le << '\n';
+      Position es = pos[0], le = pos[1];
       if (es != Position({0, 0}))
         v = prefix(2, es);
       // Crush x[2][es : le] into a single block.
@@ -242,7 +242,7 @@ namespace Gecode { namespace String {
       if (le != Position({x[2].pdomain()->length(), 0}))
         v.extend(suffix(2, le));      
       v.normalize();
-      std::cerr << "Equating y' = " << x[3] << " with " << v << "\n";
+      // std::cerr << "Equating y' = " << x[3] << " with " << v << "\n";
       GECODE_ME_CHECK(x[3].dom(home, v));
     }
     else {
@@ -273,7 +273,7 @@ namespace Gecode { namespace String {
       if (le != Position({x[3].pdomain()->length(), 0}))
         v.extend(suffix(3, le));
       v.normalize();
-      std::cerr << "Equating y = " << x[2] << " with " << v << "\n";
+      // std::cerr << "Equating y = " << x[2] << " with " << v << "\n";
       GECODE_ME_CHECK(x[2].dom(home, v));
     }
     else {
@@ -284,7 +284,7 @@ namespace Gecode { namespace String {
     if (occur) {
       // TODO: Possibly refine cardinalities.
     }
-    std::cerr<<"After replace: "<< x <<"\n";
+    // std::cerr<<"After replace: "<< x <<"\n";
     return x[0].assigned() && x[2].assigned() ? ES_NOFIX : ES_FIX;
   }
 

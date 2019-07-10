@@ -35,7 +35,7 @@ then
     declare -a TESTS=( \
       'str_test1.cpp' 'str_test2.cpp' 'str_ex1.cpp' 'str_ex2.cpp' 'str_ex3.cpp'\      
       'str_ex4.cpp' 'str_ex5.cpp' 'str_ex6.cpp' 'str_ex7.cpp' 'str_ex8.cpp'\
-      'str_ex9.cpp' 'str_ex10.cpp' 'str_ex11.cpp'\
+      'str_ex9.cpp' 'str_ex10.cpp' 'str_ex11.cpp' 'str_ex12.cpp' \
       'palindrome.cpp' 'gray.cpp' 'min_superstr.cpp')
   else
     # Debug mode.
@@ -60,7 +60,7 @@ then
     declare -a TESTS=( \
       'str_test2.cpp' 'str_ex1.cpp' 'str_ex2.cpp' 'str_ex3.cpp'\
       'str_ex4.cpp' 'str_ex5.cpp' 'str_ex6.cpp' 'str_ex7.cpp' 'str_ex8.cpp'\
-      'str_ex9.cpp' 'str_ex10.cpp' 'str_ex11.cpp'\
+      'str_ex9.cpp' 'str_ex10.cpp' 'str_ex11.cpp' 'str_ex12.cpp'\
       'palindrome.cpp' 'gray.cpp' 'min_superstr.cpp')
   fi &&
   for t in "${TESTS[@]}"
