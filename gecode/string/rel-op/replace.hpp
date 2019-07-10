@@ -84,7 +84,7 @@ namespace Gecode { namespace String {
   
   forceinline ExecStatus
   Replace::replaceAll(Space& home) {
-    // std::cerr << "replaceAll\n";
+    std::cerr << "replaceAll\n";
     string sx = x[0].val(), sy = x[2].val();
     if (x[1].assigned()) {
       string sx1 = x[1].val();
@@ -104,30 +104,52 @@ namespace Gecode { namespace String {
       }
     }
     else {
-      NSBlocks y1;
-      NSBlocks x1 = NSBlocks(x[1].pdomain()->blocks());
       if (sx == "") {
-        y1.extend(x1);
-        for (auto c : sy) {
-          y1.push_back(NSBlock(c, 1, 1));
-          y1.extend(x1);
+        if (sy == "") {
+          rel(home, x[1], STRT_EQ, x[3]);
+          return home.ES_SUBSUMED(*this);
         }
+        int n = sy.size();
+        StringVarArray vy(home, n);
+        rel(home, x[1], StringVar(home, string(1, sy[0])), STRT_CAT, vy[0]);
+        for (int i = 1; i < n; ++i) {
+          StringVar z(home);
+          rel(home, x[1], StringVar(home, string(1, sy[i])), STRT_CAT, z);
+          rel(home, vy[i - 1], z, STRT_CAT, vy[i]);
+        }
+        rel(home, vy[n - 1], x[1], STRT_CAT, x[3]);
       }
       else {
         size_t pos = sy.find(sx);
-        y1.extend(NSBlocks(sy.substr(0, pos)));
-        while (pos != string::npos) {
-          y1.extend(x1);
-          size_t pos1 = pos + 1;
-          pos = sy.find(sx, pos1);
-          if (pos > pos1)
-            y1.extend(NSBlocks(sy.substr(pos1, pos - pos1)));
+        if (pos == string::npos) {
+          rel(home, x[1], STRT_EQ, x[3]);
+          return home.ES_SUBSUMED(*this);
         }
+        std::vector<StringVar> vy(1, StringVar(home));
+        rel(home, StringVar(home, sy.substr(0, pos)), x[1], STRT_CAT, vy[0]);
+        size_t pos1 = pos + 1;
+        pos = sy.find(sx, pos1);        
+        while (pos != string::npos) {        
+          StringVar last = vy.back();
+          vy.push_back(StringVar(home));
+          if (pos > pos1) {
+            StringVar z(home);
+            rel(home,
+              StringVar(home, sy.substr(pos1, pos - pos1)), x[1], STRT_CAT, z
+            );
+            rel(home, last, z, STRT_CAT, vy.back());
+          }
+          else
+            rel(home, last, x[1], STRT_CAT, vy.back());
+          pos1 = pos + 1;
+          pos = sy.find(sx, pos1);          
+        }
+        if (pos1 != string::npos)
+          rel(home, vy.back(), StringVar(home,sy.substr(pos1)), STRT_CAT, x[3]);
       }
-      GECODE_ME_CHECK(x[3].dom(home, y1));
     }
-    // std::cerr << "After replaceAll: " << x << "\n";
-    return x[1].assigned() ? home.ES_SUBSUMED(*this) : ES_FIX;
+    std::cerr << "After replaceAll: " << x << "\n";
+    return home.ES_SUBSUMED(*this);
   }
 
   forceinline ExecStatus
@@ -144,11 +166,8 @@ namespace Gecode { namespace String {
       }
       if (x[2].assigned()) {
         string sy = x[2].val();
-        if (all) {
-          ExecStatus es = replaceAll(home);
-          if (es < 0)
-            return es;
-        }
+        if (all)
+          return replaceAll(home);
         else {
           size_t n = sy.find(sx);
           if (n == string::npos) {
