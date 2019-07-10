@@ -132,7 +132,7 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   Replace::propagate(Space& home, const ModEventDelta&) {
-    std::cerr<<"\nReplace::propagate: "<< x <<"\n";
+    std::cerr<<"\nReplace" << (all ? "All" : "") << "::propagate: "<< x <<"\n";
     assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
            x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());                     
     bool occur = false;
@@ -187,10 +187,15 @@ namespace Gecode { namespace String {
           curr = "";
       }
     }
-    // x[2] != x[3] => x[0] occur in x[1] /\ x[2] occur in x[4].
+    // x[2] != x[3] => x[0] occur in x[2] /\ x[1] occur in x[3].
     if (!occur && !x[2].pdomain()->check_equate(*x[3].pdomain())) {
       occur = true;
-      // TODO: refine x[0] and x[2].
+      NSBlocks d0(1, NSBlock(x[2].may_chars(), 0, x[2].max_length()));      
+      NSBlocks d1(1, NSBlock(x[3].may_chars(), 0, x[3].max_length()));
+      GECODE_ME_CHECK(x[0].dom(home, d0));
+      GECODE_ME_CHECK(x[1].dom(home, d1));
+      GECODE_ME_CHECK(x[2].lb(home, x[0].min_length()));
+      GECODE_ME_CHECK(x[3].lb(home, x[1].min_length()));
     };
     // If x[0] must not occur in x[2], then x[2] = x[3]. Otherwise, we use the 
     // earliest/latest start/end positions of x[0] in x[2] to possibly refine 

@@ -1700,7 +1700,7 @@ namespace Gecode { namespace String {
   DashedString::refine_lb(int ly) {
     // std::cerr << "refine_lb: " << *this << ' ' << ly << "\n";
     if (known())
-      return ly == _min_length;
+      return ly <= _min_length;
     int lx = 0;
     long ux = 0;
     for (int i = 0; i < _blocks.length(); ++i) {
@@ -1740,7 +1740,7 @@ namespace Gecode { namespace String {
   DashedString::refine_ub(Space& h, int uy) {
     // std::cerr << "refine_ub: " << *this << ' ' << uy << ' ' << _max_length << "\n";
     if (known())
-      return uy == _max_length;
+      return uy >= _max_length;
     int lx = 0;
     long ux = 0;
     for (int i = 0; i < _blocks.length(); ++i) {
