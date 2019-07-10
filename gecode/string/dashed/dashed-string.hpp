@@ -1139,7 +1139,6 @@ namespace Gecode { namespace String {
   DashedString::refine_card_cat(Space& h, DashedString& x, DashedString& y) {
     long lx = x._min_length, ly = y._min_length, lz = _min_length,
          ux = x._max_length, uy = y._max_length, uz = _max_length;
-    //bool mod_x = x._changed, mod_y = y._changed, mod_z = _changed, again;
     bool again;
     do {
       again = false;
@@ -1165,7 +1164,6 @@ namespace Gecode { namespace String {
   DashedString::refine_card_pow(Space& h, DashedString& x, int n1, int n2) {
     long lx = x._min_length, ly = max(lx * n1, _min_length),
          ux = x._max_length, uy = min(ux * n2, _max_length);
-    //bool mod_x = x._changed, mod_y = _changed, again;
     bool again;
     do {
       again = false;

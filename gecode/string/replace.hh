@@ -4,11 +4,11 @@
 namespace Gecode { namespace String {
 
   class Replace : public NaryPropagator<StringView, PC_STRING_DOM> {
-  private:
-    NSBlock crush(int, const Position&, const Position&);
-    NSBlocks prefix(int, const Position&);
-    NSBlocks suffix(int, const Position&);
-    ExecStatus replaceAll(Space&);
+    NSBlock crush(int, const Position&, const Position&) const;
+    NSBlocks prefix(int, const Position&) const;
+    NSBlocks suffix(int, const Position&) const;
+    ExecStatus replace_all(Space&);
+    ModEvent refine_card(Space&);
     bool all;
   protected:
     using NaryPropagator<StringView, PC_STRING_DOM>::x;

@@ -4,7 +4,7 @@ namespace Gecode { namespace String {
   // with x[1] in the target string x[2].
 
   forceinline ExecStatus
-  Replace::post(Home home, ViewArray<StringView>& x, bool replaceAll) {
+  Replace::post(Home home, ViewArray<StringView>& x, bool replace_all) {
     if (x[0].same(x[1])) {
       rel(home, x[2], STRT_EQ, x[3]);
       return ES_OK;
@@ -15,7 +15,7 @@ namespace Gecode { namespace String {
     }
     else if (x[0].same(x[3]))
       rel(home, x[0], STRT_SUB, x[1]);
-    (void) new (home) Replace(home, x, replaceAll);
+    (void) new (home) Replace(home, x, replace_all);
     return ES_OK;
   }
 
@@ -25,8 +25,8 @@ namespace Gecode { namespace String {
   }
 
   forceinline
-  Replace::Replace(Home home, ViewArray<StringView>& x, bool replaceall)
-  : NaryPropagator<StringView, PC_STRING_DOM>(home, x), all(replaceall) {}
+  Replace::Replace(Home home, ViewArray<StringView>& x, bool replace_all)
+  : NaryPropagator<StringView, PC_STRING_DOM>(home, x), all(replace_all) {}
 
   forceinline
   Replace::Replace(Space& home, Replace& p)
@@ -35,7 +35,7 @@ namespace Gecode { namespace String {
 
   // Crush x[k][p : q] into a single block.
   forceinline NSBlock
-  Replace::crush(int k, const Position& p, const Position& q) {
+  Replace::crush(int k, const Position& p, const Position& q) const {
     NSBlock block;
     if (p == q)
       return block;
@@ -51,7 +51,7 @@ namespace Gecode { namespace String {
 
   // Returns the prefix of x[k] until position p.
   forceinline NSBlocks
-  Replace::prefix(int k, const Position& p) {
+  Replace::prefix(int k, const Position& p) const {
     NSBlocks pref;
     DashedString* px = x[k].pdomain();
     for (int i = 0; i < p.idx; ++i)
@@ -69,7 +69,7 @@ namespace Gecode { namespace String {
   
   // Returns the suffix of x[k] from position p.
   forceinline NSBlocks
-  Replace::suffix(int k, const Position& p) {
+  Replace::suffix(int k, const Position& p) const {
     NSBlocks suff;
     DashedString* px = x[k].pdomain();
     int off = p.off;
@@ -82,9 +82,10 @@ namespace Gecode { namespace String {
     return suff;
   }
   
+  // Decomposes replaceAll into basic constraints.
   forceinline ExecStatus
-  Replace::replaceAll(Space& home) {
-    // std::cerr << "replaceAll\n";
+  Replace::replace_all(Space& home) {
+    // std::cerr << "replace_all\n";
     string sx = x[0].val(), sy = x[2].val();
     if (x[1].assigned()) {
       string sx1 = x[1].val();
@@ -147,11 +148,61 @@ namespace Gecode { namespace String {
         if (pos1 != string::npos)
           rel(home, vy.back(), StringVar(home,sy.substr(pos1)), STRT_CAT, x[3]);
       }
-    }
-    // std::cerr << "After replaceAll: " << x << "\n";
+    }    
+    // std::cerr << "After replace_all: " << x << "\n";
     return home.ES_SUBSUMED(*this);
   }
 
+  // Propagating |y'| = |y| + |x'| - |x|, knowing that x occurs in y.
+  forceinline ModEvent
+  Replace::refine_card(Space& home) {
+    long lx  = x[0].min_length(), ux  = x[0].max_length(),
+         lx1 = x[1].min_length(), ux1 = x[1].max_length(),
+         ly  = x[2].min_length(), uy  = x[2].max_length(),
+         ly1 = x[3].min_length(), uy1 = x[3].max_length();
+    bool again, cx, cx1, cy, cy1;
+    do {
+      again = cx = cx1 = cy = cy1 = false;
+      int llx = ly + lx1 - uy1, uux = uy + ux1 - ly1,
+          llx1 = ly1 + lx - uy, uux1 = uy1 + ux - ly,
+          lly = ly1 + lx - ux1, uuy = uy1 + ux - ux1,
+          lly1 = ly + lx1 - ux, uuy1 = uy + ux1 - lx;
+      if (llx > lx)   { lx  = llx;  cx  = again = true; }
+      if (uux < ux)   { ux  = uux;  cx  = again = true; }
+      if (llx1 > lx1) { lx1 = llx1; cx1 = again = true; }
+      if (uux1 < ux1) { ux1 = uux1; cx1 = again = true; }
+      if (lly > ly)   { ly  = lly;  cy  = again = true; }
+      if (uuy < uy)   { uy  = uuy;  cy  = again = true; }
+      if (lly1 > ly1) { ly1 = lly1; cy1 = again = true; }
+      if (uuy1 < uy1) { uy1 = uuy1; cy1 = again = true; }
+      if (ux < lx || ux1 < lx1 || uy < ly || uy1 < ly1)
+        return ME_STRING_FAILED;
+    } while (again);
+    if ((cx  && !x[0].pdomain()->refine_card(home, lx, ux))   ||
+        (cx1 && !x[1].pdomain()->refine_card(home, lx1, ux1)) ||
+        (cy  && !x[2].pdomain()->refine_card(home, ly, uy))   ||
+        (cy1 && !x[3].pdomain()->refine_card(home, ly1, uy1)))
+      return ME_STRING_FAILED;      
+    StringDelta d(true);
+    if (cx)
+      return x[0].varimp()->notify(
+        home, x[0].assigned() ? ME_STRING_VAL : ME_STRING_DOM, d
+      );
+    if (cx1)
+      return x[1].varimp()->notify(
+        home, x[1].assigned() ? ME_STRING_VAL : ME_STRING_DOM, d
+      );
+    if (cy)
+      return x[2].varimp()->notify(
+        home, x[2].assigned() ? ME_STRING_VAL : ME_STRING_DOM, d
+      );
+    if (cy1)
+      return x[3].varimp()->notify(
+        home, x[3].assigned() ? ME_STRING_VAL : ME_STRING_DOM, d
+      );
+    return ME_STRING_NONE;
+  }
+  
   forceinline ExecStatus
   Replace::propagate(Space& home, const ModEventDelta&) {
     // std::cerr<<"\nReplace" << (all ? "All" : "") << "::propagate: "<< x <<"\n";
@@ -165,15 +216,13 @@ namespace Gecode { namespace String {
         return home.ES_SUBSUMED(*this);
       }
       if (x[2].assigned()) {
-        string sy = x[2].val();
         if (all)
-          return replaceAll(home);
+          return replace_all(home);
+        string sy = x[2].val();
+        size_t n = sy.find(sx);
+        if (n == string::npos)
+          rel(home, x[2], STRT_EQ, x[3]);
         else {
-          size_t n = sy.find(sx);
-          if (n == string::npos) {
-            rel(home, x[2], STRT_EQ, x[3]);
-            return home.ES_SUBSUMED(*this); 
-          }
           string pref = sy.substr(0, n);
           string suff = sy.substr(n + sx.size());
           if (x[1].assigned())
@@ -183,8 +232,8 @@ namespace Gecode { namespace String {
             rel(home, StringVar(home, pref), x[1], STRT_CAT, z);
             rel(home, z, StringVar(home, suff), STRT_CAT, x[3]);
           }
-          return home.ES_SUBSUMED(*this);
         }
+        return home.ES_SUBSUMED(*this);
       }
       // Compute fixed components of x[2] to see if x[0] must occur in it, i.e.,
       // if we actually replace x[0] with x[1] in x[2].
@@ -278,12 +327,11 @@ namespace Gecode { namespace String {
     }
     else {
       find(home, x[0], x[2], IntVar(home, 0, 0));
-      rel(home, x[2], STRT_EQ, x[3]);      
+      rel(home, x[2], STRT_EQ, x[3]);
       return home.ES_SUBSUMED(*this);
     }
-    if (occur) {
-      // TODO: Possibly refine cardinalities.
-    }
+    //if (occur && !all)
+      //GECODE_ME_CHECK(refine_card(home));
     // std::cerr<<"After replace: "<< x <<"\n";
     return x[0].assigned() && x[2].assigned() ? ES_NOFIX : ES_FIX;
   }
