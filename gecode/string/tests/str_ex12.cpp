@@ -35,9 +35,11 @@ public:
     StringVar x1(*this);
     StringVar y(*this, "Hello world!!!");
     StringVar y1(*this);
+    StringVar z(*this);
+    StringVar z1(*this);
 
     StringVarArgs sva;
-    sva << x << x1 << y << y1;
+    sva << x << x1 << y << y1 << z << z1;
     string_vars = StringVarArray(*this, sva);
 
     IntVar lx(*this, 0, 2);
@@ -47,6 +49,10 @@ public:
     int_vars = IntVarArray(*this, iva);
 
     replace_all(*this, x, x1, y, y1);
+    replace_last(*this, StringVar(*this, "o"),  StringVar(*this, "O"), y1, z);
+    replace_last(
+      *this, z1, StringVar(*this, "*"), z, StringVar(*this, "H*o wOrd!!!")
+    );
     length(*this, x, lx);
     length(*this, y1, ly1);
     
@@ -59,15 +65,19 @@ public:
     string x  = string_vars[0].val(),
            x1 = string_vars[1].val(),
            y  = string_vars[2].val(),
-           y1 = string_vars[3].val();
+           y1 = string_vars[3].val(),
+           z  = string_vars[4].val(),
+           z1 = string_vars[5].val();
     os << "x  = \"" << x  << "\"\n"
        << "x1 = \"" << x1 << "\"\n"
        << "y  = \"" << y  << "\"\n"
        << "y1 = \"" << y1 << "\"\n"
+       << "z  = \"" << z  << "\"\n"
+       << "z1 = \"" << z1 << "\"\n"
        << "|x| = " << int_vars[0].val() << "\n"
        << "|y1| = " << int_vars[1].val() << "\n"
        << "----------\n";
-    assert (y.find(x) != string::npos && x1 == "");
+    assert (y.find(x) != string::npos && x1 == "" && z1 == "e");
     n_sol++;
   }
 
@@ -77,6 +87,6 @@ int main() {
   StringOptions opt("*** Ex12 ***");
   opt.solutions(0);
   Script::run<Ex12, DFS, StringOptions>(opt);
-  assert (n_sol == 2);
+  assert (n_sol == 1);
   return 0;
 }

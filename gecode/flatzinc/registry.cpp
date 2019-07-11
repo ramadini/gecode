@@ -2134,6 +2134,10 @@ namespace Gecode { namespace FlatZinc {
   void p_str_replace_all(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
     p_str_op3(s, STRT_REPALL, ce);
   }
+  
+  void p_str_replace_last(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+    p_str_op3(s, STRT_REPLST, ce);
+  }
 
   void p_str_contains(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
     contains(s, s.arg2StringVar(ce[0]), s.arg2StringVar(ce[1]));
@@ -2277,7 +2281,8 @@ namespace Gecode { namespace FlatZinc {
     	  registry().add("str_find", &p_str_find);
     	  registry().add("str_rfind", &p_str_rfind);
     	  registry().add("str_replace", &p_str_replace);
-    	  registry().add("str_replace", &p_str_replace_all);
+    	  registry().add("str_replace_all", &p_str_replace_all);
+    	  registry().add("str_replace_last", &p_str_replace_last);
     	  registry().add("str_concat", &p_str_concat);
     	  registry().add("str_concat_c", &p_str_concat);
     	  registry().add("str_gconcat", &p_str_gconcat);
