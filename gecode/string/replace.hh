@@ -4,7 +4,7 @@
 namespace Gecode { namespace String {
 
   class Replace : public NaryPropagator<StringView, PC_STRING_DOM> {
-    NSBlock crush(int, const Position&, const Position&) const;
+    int ub_card(int, const Position&, const Position&) const;
     NSBlocks prefix(int, const Position&) const;
     NSBlocks suffix(int, const Position&) const;
     ExecStatus replace_all(Space&);

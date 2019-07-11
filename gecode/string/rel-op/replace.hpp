@@ -32,21 +32,19 @@ namespace Gecode { namespace String {
   Replace::Replace(Space& home, Replace& p)
   : NaryPropagator<StringView, PC_STRING_DOM>(home, p), all(p.all) {}
 
-
-  // Crush x[k][p : q] into a single block.
-  forceinline NSBlock
-  Replace::crush(int k, const Position& p, const Position& q) const {
-    NSBlock block;
+  // Upper bound on the cardinality of matching region x[k][p : q].
+  forceinline int
+  Replace::ub_card(int k, const Position& p, const Position& q) const {    
     if (p == q)
-      return block;
+      return 0;
+    long u = 0;
     assert (Fwd::lt(p, q));
-    DashedString* px = x[k].pdomain();
     for (int i = p.idx; i <= q.idx; ++i) {
-      const DSBlock& b = px->at(i);
-      block.S.include(b.S);
-      block.u += b.u;
+      u += x[k].pdomain()->at(i).u;
+      if (u > DashedString::_MAX_STR_LENGTH)
+        return DashedString::_MAX_STR_LENGTH;
     }
-    return block;
+    return u;
   }
 
   // Returns the prefix of x[k] until position p.
@@ -290,8 +288,8 @@ namespace Gecode { namespace String {
         v = prefix(2, es);
       // Crush x[2][es : le], possibly adding x[1].
       if (es != le) {
-        NSBlock b = crush(2, es, le);
-        b.S.include(x[3].may_chars());
+        NSBlock b = NSBlock::top();
+        b.u = max(0, ub_card(2, es, le) - min_occur * x[1].min_length());
         v.push_back(b);
         for (int i = 0; i < min_occur; ++i) {
           DashedString* px = x[1].pdomain();
@@ -322,8 +320,8 @@ namespace Gecode { namespace String {
         v = prefix(3, es);
       // Crush x[3][es : ls], possibly adding x[0].
       if (es != le) {
-        NSBlock b = crush(3, es, le);
-        b.S.include(x[2].may_chars());
+        NSBlock b = NSBlock::top();
+        b.u = max(0, ub_card(3, es, le) - min_occur * x[0].min_length());
         v.push_back(b);
         for (int i = 0; i < min_occur; ++i) {
           DashedString* px = x[0].pdomain();
