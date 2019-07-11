@@ -145,6 +145,7 @@ namespace Gecode {
     STRT_REV,    ///< Reverse
     STRT_REP,    ///< Replace
     STRT_REPALL, ///< Replace all
+    STRT_REPLST, ///< Replace last
 	  STRT_LCASE,  ///< Lower case
 	  STRT_UCASE,  ///< Upper case
   };
@@ -317,7 +318,11 @@ namespace Gecode {
   
   /// Post propagator for \f$ y1 = replaceAll(x, x1, y) \f$
   GECODE_STRING_EXPORT void
-  replaceAll(Home home, StringVar x, StringVar x1, StringVar y, StringVar y1);
+  replace_all(Home home, StringVar x, StringVar x1, StringVar y, StringVar y1);
+  
+  /// Post propagator for \f$ y1 = replaceLast(x, x1, y) \f$
+  GECODE_STRING_EXPORT void
+  replace_last(Home home, StringVar x, StringVar x1, StringVar y, StringVar y1);
 
   /// Post propagator for \f$ gcc(x, a, n) \f$
   GECODE_STRING_EXPORT void

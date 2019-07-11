@@ -10,19 +10,24 @@ namespace Gecode { namespace String {
     ExecStatus replace_all(Space&);
     ModEvent refine_card(Space&);
     bool all;
+    bool last;
   protected:
     using NaryPropagator<StringView, PC_STRING_DOM>::x;
     /// Constructor for cloning \a p
     Replace(Space& home, Replace& p);
     /// Constructor for posting
-    Replace(Home home, ViewArray<StringView>& x, bool all = false);
+    Replace(
+      Home home, ViewArray<StringView>& x, bool all = false, bool last = false
+    );
   public:
     /// Copy propagator during cloning
     virtual Actor* copy(Space& home);
     /// Perform propagation
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator string replace
-    static  ExecStatus post(Home, ViewArray<StringView>&, bool all = false);
+    static  ExecStatus post(
+      Home, ViewArray<StringView>&, bool all = false, bool last = false
+    );
   };
 
 }}

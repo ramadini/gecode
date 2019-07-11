@@ -46,7 +46,7 @@ public:
     iva << lx << ly1;
     int_vars = IntVarArray(*this, iva);
 
-    replaceAll(*this, x, x1, y, y1);
+    replace_all(*this, x, x1, y, y1);
     length(*this, x, lx);
     length(*this, y1, ly1);
     

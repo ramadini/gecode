@@ -66,7 +66,7 @@ public:
     length(*this, z1, l);
     replace(*this, x, x1, y, y1);
     replace(*this, x, x1, z, z1);
-    replaceAll(*this, x, t1, t, s);
+    replace_all(*this, x, t1, t, s);
     sizemin_llul(*this, string_vars);
   }
 
