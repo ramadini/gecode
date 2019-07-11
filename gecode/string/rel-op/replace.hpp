@@ -127,10 +127,14 @@ namespace Gecode { namespace String {
           return home.ES_SUBSUMED(*this);
         }
         std::vector<StringVar> vy(1, StringVar(home));
-        rel(home, StringVar(home, sy.substr(0, pos)), x[1], STRT_CAT, vy[0]);
-        size_t pos1 = pos + 1;
-        pos = sy.find(sx, pos1);        
-        while (pos != string::npos) {        
+        string s = sy.substr(0, pos);
+        if (s == "")
+          rel(home, x[1], STRT_EQ, vy[0]);
+        else
+          rel(home, StringVar(home, s), x[1], STRT_CAT, vy[0]);
+        size_t nx = sx.size(), pos1 = pos + nx;
+        pos = sy.find(sx, pos1);
+        while (pos != string::npos) {
           StringVar last = vy.back();
           vy.push_back(StringVar(home));
           if (pos > pos1) {
@@ -142,13 +146,15 @@ namespace Gecode { namespace String {
           }
           else
             rel(home, last, x[1], STRT_CAT, vy.back());
-          pos1 = pos + 1;
+          pos1 = pos + nx;
           pos = sy.find(sx, pos1);          
         }
-        if (pos1 != string::npos)
+        if (pos1 < sy.size())
           rel(home, vy.back(), StringVar(home,sy.substr(pos1)), STRT_CAT, x[3]);
+        else
+          rel(home, vy.back(), STRT_EQ, x[3]);
       }
-    }    
+    }
     // std::cerr << "After replace_all: " << x << "\n";
     return home.ES_SUBSUMED(*this);
   }
@@ -208,7 +214,7 @@ namespace Gecode { namespace String {
     // std::cerr<<"\nReplace" << (all ? "All" : "") << "::propagate: "<< x <<"\n";
     assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
            x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());                     
-    bool occur = false;
+    int min_occur = 0;
     if (x[0].assigned()) {
       string sx = x[0].val();
       if (sx == "" && !all) {
@@ -244,11 +250,17 @@ namespace Gecode { namespace String {
         if (b.S.size() == 1) {
           string w(b.l, b.S.min());
           curr += w;
-          if (curr.find(sx) != string::npos) {
-            occur = true;
-            break;
+          size_t i = curr.find(sx);
+          while (i != string::npos) {
+            min_occur++;
+            if (!all)
+              break;
+            curr = curr.substr(i + sx.size());
+            i = curr.find(sx);
           }
-          if (b.u > b.l)
+          if (min_occur && !all)
+            break;
+          if (b.l < b.u)
             curr = w;
         }
         else
@@ -256,8 +268,8 @@ namespace Gecode { namespace String {
       }
     }
     // x[2] != x[3] => x[0] occur in x[2] /\ x[1] occur in x[3].
-    if (!occur && !x[2].pdomain()->check_equate(*x[3].pdomain())) {
-      occur = true;
+    if (min_occur == 0 && !x[2].pdomain()->check_equate(*x[3].pdomain())) {
+      min_occur = 1;
       NSBlocks d0(1, NSBlock(x[2].may_chars(), 0, x[2].max_length()));      
       NSBlocks d1(1, NSBlock(x[3].may_chars(), 0, x[3].max_length()));
       GECODE_ME_CHECK(x[0].dom(home, d0));
@@ -269,21 +281,22 @@ namespace Gecode { namespace String {
     // earliest/latest start/end positions of x[0] in x[2] to possibly refine 
     // x[3] via equation.
     Position pos[2];
-    // std::cerr << "occur: " << occur << "\n";
+    // std::cerr << "min_occur: " << min_occur << "\n";
     if (sweep_replace(*x[0].pdomain(), *x[2].pdomain(), pos)) {
       // Prefix: x[2][: es]
       NSBlocks v;
       Position es = pos[0], le = pos[1];
       if (es != Position({0, 0}))
         v = prefix(2, es);
-      // Crush x[2][es : le] into a single block.
+      // Crush x[2][es : le], possibly adding x[1].
       if (es != le) {
         NSBlock b = crush(2, es, le);
+        b.S.include(x[3].may_chars());
         v.push_back(b);
-        if (occur) {
+        for (int i = 0; i < min_occur; ++i) {
           DashedString* px = x[1].pdomain();
-          for (int i = 0; i < px->length(); ++i)
-            v.push_back(NSBlock(px->at(i)));
+          for (int j = 0; j < px->length(); ++j)
+            v.push_back(NSBlock(px->at(j)));
           v.push_back(b);
         }
       }
@@ -307,14 +320,15 @@ namespace Gecode { namespace String {
       Position es = pos[0], le = pos[1];
       if (es != Position({0, 0}))
         v = prefix(3, es);
-      // Crush x[3][es : ls] into a single block.
+      // Crush x[3][es : ls], possibly adding x[0].
       if (es != le) {
         NSBlock b = crush(3, es, le);
+        b.S.include(x[2].may_chars());
         v.push_back(b);
-        if (occur) {
+        for (int i = 0; i < min_occur; ++i) {
           DashedString* px = x[0].pdomain();
-          for (int i = 0; i < px->length(); ++i)
-            v.push_back(NSBlock(px->at(i)));
+          for (int j = 0; j < px->length(); ++j)
+            v.push_back(NSBlock(px->at(j)));
           v.push_back(b);
         }
       }
@@ -330,8 +344,6 @@ namespace Gecode { namespace String {
       rel(home, x[2], STRT_EQ, x[3]);
       return home.ES_SUBSUMED(*this);
     }
-    //if (occur && !all)
-      //GECODE_ME_CHECK(refine_card(home));
     // std::cerr<<"After replace: "<< x <<"\n";
     return x[0].assigned() && x[2].assigned() ? ES_NOFIX : ES_FIX;
   }

@@ -41,15 +41,22 @@ public:
       NSBlock(NSIntSet('b'), 1, DashedString::_MAX_STR_LENGTH),
       NSBlock::top()
     });
+    NSBlocks v2({
+      NSBlock(NSIntSet('a'), 5, 8),
+      NSBlock(NSIntSet('a', 'b'), 1, 1)
+    });
     StringVar x(*this, "aa");
     StringVar x1(*this, "bb");
     StringVar y(*this, v, 0, 100);
     StringVar y1(*this, v1, 0, 100);
     StringVar z(*this, v, 0, 100);
     StringVar z1(*this, v, 0, 100);
+    StringVar s(*this, "xyxxyxxyx");
+    StringVar t(*this, v2, 0, 100);
+    StringVar t1(*this);    
 
     StringVarArgs sva;
-    sva << x << x1 << y << y1 << z << z1;
+    sva << x << x1 << y << y1 << z << z1 << s << t << t1;
     string_vars = StringVarArray(*this, sva);
 
     IntVar l(*this, 2, 3);
@@ -59,6 +66,7 @@ public:
     length(*this, z1, l);
     replace(*this, x, x1, y, y1);
     replace(*this, x, x1, z, z1);
+    replaceAll(*this, x, t1, t, s);
     sizemin_llul(*this, string_vars);
   }
 
@@ -69,17 +77,23 @@ public:
            y  = string_vars[2].val(),
            y1 = string_vars[3].val(),
            z  = string_vars[4].val(),
-           z1 = string_vars[5].val();
+           z1 = string_vars[5].val(),
+           s  = string_vars[6].val(),
+           t  = string_vars[7].val(),
+           t1 = string_vars[8].val();
     os << "x  = \"" << x  << "\"\n"
        << "x1 = \"" << x1 << "\"\n"
        << "y  = \"" << y  << "\"\n"
        << "y1 = \"" << y1 << "\"\n"
-       << "z  = \"" << z  << "\"\n"
+       << "z  = \"" << z  << "\"\n"       
        << "z1 = \"" << z1 << "\"\n"
+       << "s = \"" << s << "\"\n"
+       << "t  = \"" << t << "\"\n"
+       << "t1 = \"" << t1 << "\"\n"       
        << "----------\n";
     assert (y.find(x) != string::npos && y1.find(x1) != string::npos &&
-      z.find(x) == string::npos && z1.find(x1) == string::npos &&
-      z == z1);
+      z.find(x) == string::npos && z1.find(x1) == string::npos && 
+      z == z1 && t1 == "xyx");
     sat = true;
   }
 
