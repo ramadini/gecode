@@ -162,6 +162,16 @@ namespace Gecode { namespace String {
     return home.ES_SUBSUMED(*this);
   }
 
+  // Checking if |y'| = |y| + |x'| - |x| is consistent.
+  forceinline bool
+  Replace::check_card() const {
+   int lx  = x[0].min_length(), ux  = x[0].max_length(),
+       lx1 = x[1].min_length(), ux1 = x[1].max_length(),
+       ly  = x[2].min_length(), uy  = x[2].max_length(),
+       ly1 = x[3].min_length(), uy1 = x[3].max_length();
+     return ly1 <= uy + ux1 - lx && uy1 >= ly + lx1 - ux;
+  }
+
   // Propagating |y'| = |y| + |x'| - |x|, knowing that x occurs in y.
   forceinline ModEvent
   Replace::refine_card(Space& home) {
@@ -216,9 +226,13 @@ namespace Gecode { namespace String {
   Replace::propagate(Space& home, const ModEventDelta&) {
     // std::cerr<<"\nReplace" << (all ? "All" : "") << "::propagate: "<< x <<"\n";
     assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
-           x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());                     
+           x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());
+    if (!all && !check_card()) {
+      rel(home, x[2], STRT_EQ, x[3]);
+      return home.ES_SUBSUMED(*this);
+    }
     int min_occur = 0;
-    if (x[0].assigned()) {  
+    if (x[0].assigned()) {
       string sx = x[0].val();
       if (x[1].assigned() && sx == x[1].val()) {
         rel(home, x[2], STRT_EQ, x[3]);
@@ -297,16 +311,18 @@ namespace Gecode { namespace String {
       if (es != Position({0, 0}))
         v = prefix(2, es);
       // Crush x[2][es : le], possibly adding x[1].
-      if (es != le) {
-        NSBlock b = NSBlock::top();
-        b.u = max(0, ub_card(2, es, le) - min_occur * x[1].min_length());
+      NSBlock b;
+      b.S.include(x[1].may_chars());
+      b.S.include(x[2].may_chars());
+      b.u = max(0, 
+        ub_card(2, es, le) + x[1].max_length() - min_occur * x[0].min_length()
+      );
+      v.push_back(b);
+      for (int i = 0; i < min_occur; ++i) {
+        DashedString* px = x[1].pdomain();
+        for (int j = 0; j < px->length(); ++j)
+          v.push_back(NSBlock(px->at(j)));
         v.push_back(b);
-        for (int i = 0; i < min_occur; ++i) {
-          DashedString* px = x[1].pdomain();
-          for (int j = 0; j < px->length(); ++j)
-            v.push_back(NSBlock(px->at(j)));
-          v.push_back(b);
-        }
       }
       // Suffix: x[2][le :]
       if (le != Position({x[2].pdomain()->length(), 0}))
@@ -329,16 +345,18 @@ namespace Gecode { namespace String {
       if (es != Position({0, 0}))
         v = prefix(3, es);
       // Crush x[3][es : ls], possibly adding x[0].
-      if (es != le) {
-        NSBlock b = NSBlock::top();
-        b.u = max(0, ub_card(3, es, le) - min_occur * x[0].min_length());
+      NSBlock b;
+      b.S.include(x[0].may_chars());
+      b.S.include(x[2].may_chars());
+      b.u = max(0, 
+        ub_card(3, es, le) + x[0].max_length() - min_occur * x[0].min_length()
+      );
+      v.push_back(b);
+      for (int i = 0; i < min_occur; ++i) {
+        DashedString* px = x[0].pdomain();
+        for (int j = 0; j < px->length(); ++j)
+          v.push_back(NSBlock(px->at(j)));
         v.push_back(b);
-        for (int i = 0; i < min_occur; ++i) {
-          DashedString* px = x[0].pdomain();
-          for (int j = 0; j < px->length(); ++j)
-            v.push_back(NSBlock(px->at(j)));
-          v.push_back(b);
-        }
       }
       // Suffix: x[3][le :]
       if (le != Position({x[3].pdomain()->length(), 0}))
@@ -352,8 +370,22 @@ namespace Gecode { namespace String {
       rel(home, x[2], STRT_EQ, x[3]);
       return home.ES_SUBSUMED(*this);
     }
+    if (!all && !check_card()) {
+      rel(home, x[2], STRT_EQ, x[3]);
+      return home.ES_SUBSUMED(*this);
+    }
     // std::cerr<<"After replace: "<< x <<"\n";
-    return x[0].assigned() && x[2].assigned() ? ES_NOFIX : ES_FIX;
+    switch (
+      x[0].assigned() + x[1].assigned() + x[2].assigned() + x[3].assigned()
+    ) {
+      case 4:
+      case 3:
+        return ES_NOFIX;
+      case 2:
+        return x[0].assigned() && x[2].assigned() ? ES_NOFIX : ES_FIX;
+      default:
+        return ES_FIX;
+    }
   }
 
 }}

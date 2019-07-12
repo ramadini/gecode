@@ -9,6 +9,7 @@ namespace Gecode { namespace String {
     NSBlocks suffix(int, const Position&) const;
     ExecStatus replace_all(Space&);
     ModEvent refine_card(Space&);
+    bool check_card() const;
     bool all;
     bool last;
   protected:
