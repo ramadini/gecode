@@ -1014,46 +1014,39 @@ namespace Gecode { namespace FlatZinc {
 #ifdef GECODE_HAS_STRING_VARS
   void
   FlatZincSpace::newStringVar(StringVarSpec* vs) {
-  	if (vs->alias)
-  	  tv[stringVarCount++] = tv[vs->i];
-  	else {
-  	  if (vs->domain()) {
-  	  	int l = vs->domain.some()->l;
-  	  	Gecode::FlatZinc::AST::CharSetLit* c = vs->domain.some()->c;
-  	  	if (c) {
-  	  		Gecode::String::NSBlock b;
-  	  		if (l == -1)
-  	  			b.u = Gecode::String::DashedString::_MAX_STR_LENGTH;
-  	  		else {
-  	  			if (l > Gecode::String::DashedString::_MAX_STR_LENGTH) {
-							fail();
-							return;
-						}
-  	  			b.u = l;
-  	  		}
-  	  		b.S = c->s;
-  	  		Gecode::String::NSBlocks v(1, b);
-  	  		tv[stringVarCount++] = StringVar(*this, v, b.l, b.u);
-  	  	}
-  	  	else {
-					if (l == -1)
-						tv[stringVarCount++] = StringVar(*this, vs->domain.some()->s);
-					else {
-						if (l > Gecode::String::DashedString::_MAX_STR_LENGTH) {
-							fail();
-							return;
-						}
-						tv[stringVarCount++] = StringVar(*this, 0, l);
-					}
-  	  	}
-  	  }
-  	  else {
-  	  	tv[stringVarCount++] = StringVar(*this);
-  	  }
-  	}
-		tv_introduced[2*(stringVarCount-1)] = vs->introduced;
-		tv_introduced[2*(stringVarCount-1)+1] = vs->funcDep;
-	}
+    if (vs->alias)
+      tv[stringVarCount++] = tv[vs->i];
+    else {
+      if (vs->domain()) {
+        int u = vs->domain.some()->u;
+        Gecode::FlatZinc::AST::CharSetLit* c = vs->domain.some()->c;
+        if (c) {
+          Gecode::String::NSBlock b;
+          if (u == -1 || u > Gecode::String::DashedString::_MAX_STR_LENGTH)
+            b.u = Gecode::String::DashedString::_MAX_STR_LENGTH;
+          else
+            b.u = u;
+          b.S = c->s;
+          std::cerr << "Domain: " << b << '\n';
+          Gecode::String::NSBlocks v(1, b);
+          tv[stringVarCount++] = StringVar(*this, v, b.l, b.u);
+        }
+        else {
+          if (u == -1)
+            tv[stringVarCount++] = StringVar(*this, vs->domain.some()->s);
+          else {
+            if (u > Gecode::String::DashedString::_MAX_STR_LENGTH)
+              u = Gecode::String::DashedString::_MAX_STR_LENGTH;
+            tv[stringVarCount++] = StringVar(*this, 0, u);
+          }
+        }
+      }
+      else
+        tv[stringVarCount++] = StringVar(*this);
+    }
+    tv_introduced[2*(stringVarCount-1)] = vs->introduced;
+    tv_introduced[2*(stringVarCount-1)+1] = vs->funcDep;
+  }
 #else
   void
   FlatZincSpace::newStringVar(StringVarSpec*) {
@@ -2358,11 +2351,11 @@ namespace Gecode { namespace FlatZinc {
         x0 = StringVar(*this, t);
       }
       else if (n->isStringDom()) { 
-      	AST::StringDom* sl = n->getStringDom();
-      	if (sl->l != -1)
-      	  x0 = StringVar(*this, Gecode::String::NSIntSet::top(), 0, sl->l);
-      	else if (sl->c == NULL) {
-      	  string s = sl->s, t = "";
+        AST::StringDom* sl = n->getStringDom();
+        if (sl->u != -1)
+          x0 = StringVar(*this, Gecode::String::NSIntSet::top(), 0, sl->u);
+        else if (sl->c == NULL) {
+          string s = sl->s, t = "";
           int n = s.size();
           for (int i = 0; i < n; ++i) {
             t += s[i];
@@ -2377,12 +2370,12 @@ namespace Gecode { namespace FlatZinc {
               }
             }
           }
-      	  x0 = StringVar(*this, t);
-      	}
-      	else
-      	  x0 = StringVar(
-      	    *this, sl->c->s, 0, Gecode::String::DashedString::_MAX_STR_LENGTH
-		      );
+          x0 = StringVar(*this, t);
+        }
+        else
+          x0 = StringVar(
+            *this, sl->c->s, 0, Gecode::String::DashedString::_MAX_STR_LENGTH
+          );
       }
       else
         GECODE_NEVER;
@@ -2394,30 +2387,30 @@ namespace Gecode { namespace FlatZinc {
   }
   StringVarArgs
   FlatZincSpace::arg2stringvarargs(AST::Node* arg, int offset) {
-  	AST::Array* a = arg->getArray();
-  	if (a->a.size() == 0) {
-  	  StringVarArgs emptySa(0);
-  	  return emptySa;
-  	}
-  	StringVarArgs ta(a->a.size()+offset);
-		for (int i=offset; i--;)
-			ta[i] = StringVar(*this);
-		for (int i=a->a.size(); i--;) {
-			if (a->a[i]->isStringVar()) {
-				ta[i+offset] = tv[a->a[i]->getStringVar()];
-			}
-			else if (a->a[i]->isStringDom()) {
-				string value = a->a[i]->getStringDom()->s;
-				StringVar tv(*this, value);
-				ta[i+offset] = tv;
-			}
-			else if (a->a[i]->isString()) {
-				string value = a->a[i]->getString();
-				StringVar tv(*this, value);
-				ta[i+offset] = tv;
-			}
-		}
-  	return ta;
+    AST::Array* a = arg->getArray();
+    if (a->a.size() == 0) {
+      StringVarArgs emptySa(0);
+      return emptySa;
+    }
+    StringVarArgs ta(a->a.size()+offset);
+    for (int i=offset; i--;)
+      ta[i] = StringVar(*this);
+    for (int i=a->a.size(); i--;) {
+      if (a->a[i]->isStringVar()) {
+        ta[i+offset] = tv[a->a[i]->getStringVar()];
+      }
+      else if (a->a[i]->isStringDom()) {
+        string value = a->a[i]->getStringDom()->s;
+        StringVar tv(*this, value);
+        ta[i+offset] = tv;
+      }
+      else if (a->a[i]->isString()) {
+        string value = a->a[i]->getString();
+        StringVar tv(*this, value);
+        ta[i+offset] = tv;
+      }
+    }
+    return ta;
   }
 #endif
   IntSetArgs
@@ -2707,10 +2700,10 @@ namespace Gecode { namespace FlatZinc {
 #endif
 #ifdef GECODE_HAS_STRING_VARS
     } else if (ai->isStringVar()) {
-			if (tv[ai->getStringVar()].assigned())
-				out << tv[ai->getStringVar()].val();
-			else
-				out << tv[ai->getStringVar()];
+      if (tv[ai->getStringVar()].assigned())
+        out << tv[ai->getStringVar()].val();
+      else
+        out << tv[ai->getStringVar()];
 #endif
     } else if (ai->isBool()) {
       out << (ai->getBool() ? "true" : "false");
@@ -3005,7 +2998,7 @@ namespace Gecode { namespace FlatZinc {
   Printer::shrinkElement(AST::Node* node,
                          std::map<int,int>& iv, std::map<int,int>& bv,
                          std::map<int,int>& sv, std::map<int,int>& fv,
-												 std::map<int,int>& tv) {
+                         std::map<int,int>& tv) {
     if (node->isIntVar()) {
       AST::IntVar* x = static_cast<AST::IntVar*>(node);
       if (iv.find(x->i) == iv.end()) {

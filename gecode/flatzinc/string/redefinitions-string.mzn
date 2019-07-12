@@ -154,6 +154,12 @@ function int: str_ub(var string: x) = ub(str_len(x));
 function var string:
 str_replace(var string: x, var string: x1, var string: y);
 
+function var string:
+str_replace_all(var string: x, var string: x1, var string: y);
+
+function var string:
+str_replace_last(var string: x, var string: x1, var string: y);
+
 predicate
 str_sub(var string: x, var string: y) = str_find(x, y) > 0;
 

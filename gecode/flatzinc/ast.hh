@@ -198,7 +198,14 @@ namespace Gecode { namespace FlatZinc { namespace AST {
       return ( (interval && min>max) || (!interval && s.size() == 0));
     }
     virtual void print(std::ostream& os) {
-      os << "s()";
+      if (interval)
+        os << char(min) << ".." << char(max);
+      else {
+        os << "{";
+        for (auto i : s)
+          os << char(i) << ", ";
+        os << "}";
+      }
     }
   };
   /// Charset node
@@ -218,19 +225,29 @@ namespace Gecode { namespace FlatZinc { namespace AST {
   /// String domain node
   class GECODE_VTABLE_EXPORT StringDom : public Node {
   public:
-  	int l;
+  	int u;
     std::string s;
     CharSetLit* c;
-    StringDom() : l(Gecode::String::DashedString::_MAX_STR_LENGTH), s(), c(NULL) {}
-    StringDom(int l0) : l(l0), s(), c(NULL) {}
-    StringDom(const std::string&  s0) : l(-1), s(s0), c(NULL) {}
-    StringDom(CharSetLit* c0) : l(-1), s(), c(c0) {}
-    StringDom(const Gecode::String::NSIntSet& s0) : l(-1), s(),
+    StringDom() : u(Gecode::String::DashedString::_MAX_STR_LENGTH), s(), c(NULL) {}
+    StringDom(int u0) : u(u0), s(), c(NULL) {}
+    StringDom(const std::string&  s0) : u(-1), s(s0), c(NULL) {}
+    StringDom(CharSetLit* c0) : u(-1), s(), c(c0) {}
+    StringDom(const Gecode::String::NSIntSet& s0) : u(-1), s(),
       c(new CharSetLit(s0)) {}
-    StringDom(int l0, CharSetLit* c0) : l(l0), s(), c(c0) {}
-    explicit StringDom(StringDom* s0) : l(s0->l), s(s0->s), c(s0->c) {}
+    StringDom(int u0, CharSetLit* c0) : u(u0), s(), c(c0) {}
+    explicit StringDom(StringDom* s0) : u(s0->u), s(s0->s), c(s0->c) {}
     virtual void print(std::ostream& os) {
-      os << "t(string)";
+      if (c) {
+        if (u < 0)
+          os << c->s << "^(0," << Gecode::String::DashedString::_MAX_STR_LENGTH 
+             << ")";
+        else
+          os << c->s << "^(0," << u << ")";
+      }
+      else if (u >= 0)
+        os << Gecode::String::NSIntSet::top() << "^(0," << u << ")";
+      else
+        os << s;
     }
   };
   /// DFA node

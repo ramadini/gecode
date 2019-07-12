@@ -2087,7 +2087,7 @@ namespace Gecode { namespace FlatZinc {
 	    if (sl->c)
           b.S = sl->c->s;
 	    else
-	      b.u = sl->l;
+	      b.u = sl->u;
     }
     else
       b.S = ce[1]->getCharSet()->s;

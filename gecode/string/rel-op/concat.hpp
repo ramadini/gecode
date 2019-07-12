@@ -2,9 +2,7 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   Concat::post(Home home, StringView x0, StringView x1, StringView x2) {
-    if (x0.same(x1))
-      rel(home, x2, STRT_EQ, StringVar(home, ""));
-    else if (x0.same(x2))
+    if (x0.same(x2))
       rel(home, x1, STRT_EQ, StringVar(home, ""));
     else if (x1.same(x2))
       rel(home, x0, STRT_EQ, StringVar(home, ""));

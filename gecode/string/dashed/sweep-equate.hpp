@@ -532,13 +532,17 @@ namespace Gecode { namespace String {
         continue;
       }
       if (p_l == 0 || p_l < xi.l || u > xi.u) {
-        if (xi.l <= p_l && xlen == 1 && p_reg.logdim() < x.at(0).logdim()) {
-          // Special case where x is a single block: the soundness of the
-          // propagation is preserved by constraining the min/max string length.
-          p_reg.normalize();
-          up.push(std::make_pair(0, p_reg));
-          // std::cerr << "1) x'_i: " << p_reg << "\n";
-          return true;
+        if (xi.l <= p_l && xlen == 1) {
+          for (unsigned i = 0; i < p_reg.size(); ++i)
+            p_reg[i].S.intersect(xi.S);
+          if (p_reg.logdim() < x.at(0).logdim()) {
+            // Special case where x is a single block: the soundness of the
+            // propagation is preserved by constraining the min/max length.
+            p_reg.normalize();
+            up.push(std::make_pair(0, p_reg));
+            // std::cerr << "1) x'_i: " << p_reg << "\n";
+            return true;
+          }
         }
         // Possibly crushing the matching region into a single block.
         int n = xi.S.size();

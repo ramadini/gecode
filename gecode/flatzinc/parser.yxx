@@ -245,7 +245,7 @@ void addDomainConstraint(ParserState* pp, AST::Node* var,
                          Option<AST::StringDom*> dom) {
   if (!dom())
     return;
-  if (dom.some()->l != -1) {
+  if (dom.some()->u != -1) {
     AST::Array* args = new AST::Array(2);
     args->a[0] = var;
     args->a[1] = dom.some();

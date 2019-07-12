@@ -14,7 +14,7 @@ namespace Gecode { namespace String {
       return ES_OK;
     }
     else if (x[0].same(x[3]))
-      rel(home, x[0], STRT_SUB, x[1]);
+      rel(home, x[0], STRT_SUB, x[1]); 
     (void) new (home) Replace(home, x, a, l);
     return ES_OK;
   }
@@ -35,7 +35,7 @@ namespace Gecode { namespace String {
 
   // Upper bound on the cardinality of matching region x[k][p : q].
   forceinline int
-  Replace::ub_card(int k, const Position& p, const Position& q) const {    
+  Replace::ub_card(int k, const Position& p, const Position& q) const {  
     if (p == q)
       return 0;
     long u = 0;
@@ -89,6 +89,10 @@ namespace Gecode { namespace String {
     if (x[1].assigned()) {
       string sx1 = x[1].val();
       if (sx == "") {
+        if (sx1 == "") {
+          rel(home, x[1], STRT_EQ, x[3]);
+          return home.ES_SUBSUMED(*this);
+        }
         string sz = sx1;
         for (auto c : sy)
           sz += c + sx1;
@@ -158,64 +162,68 @@ namespace Gecode { namespace String {
     return home.ES_SUBSUMED(*this);
   }
 
-//  // Propagating |y'| = |y| + |x'| - |x|, knowing that x occurs in y.
-//  forceinline ModEvent
-//  Replace::refine_card(Space& home) {
-//    long lx  = x[0].min_length(), ux  = x[0].max_length(),
-//         lx1 = x[1].min_length(), ux1 = x[1].max_length(),
-//         ly  = x[2].min_length(), uy  = x[2].max_length(),
-//         ly1 = x[3].min_length(), uy1 = x[3].max_length();
-//    bool again, cx, cx1, cy, cy1;
-//    do {
-//      again = cx = cx1 = cy = cy1 = false;
-//      int llx = ly + lx1 - uy1, uux = uy + ux1 - ly1,
-//          llx1 = ly1 + lx - uy, uux1 = uy1 + ux - ly,
-//          lly = ly1 + lx - ux1, uuy = uy1 + ux - ux1,
-//          lly1 = ly + lx1 - ux, uuy1 = uy + ux1 - lx;
-//      if (llx > lx)   { lx  = llx;  cx  = again = true; }
-//      if (uux < ux)   { ux  = uux;  cx  = again = true; }
-//      if (llx1 > lx1) { lx1 = llx1; cx1 = again = true; }
-//      if (uux1 < ux1) { ux1 = uux1; cx1 = again = true; }
-//      if (lly > ly)   { ly  = lly;  cy  = again = true; }
-//      if (uuy < uy)   { uy  = uuy;  cy  = again = true; }
-//      if (lly1 > ly1) { ly1 = lly1; cy1 = again = true; }
-//      if (uuy1 < uy1) { uy1 = uuy1; cy1 = again = true; }
-//      if (ux < lx || ux1 < lx1 || uy < ly || uy1 < ly1)
-//        return ME_STRING_FAILED;
-//    } while (again);
-//    if ((cx  && !x[0].pdomain()->refine_card(home, lx, ux))   ||
-//        (cx1 && !x[1].pdomain()->refine_card(home, lx1, ux1)) ||
-//        (cy  && !x[2].pdomain()->refine_card(home, ly, uy))   ||
-//        (cy1 && !x[3].pdomain()->refine_card(home, ly1, uy1)))
-//      return ME_STRING_FAILED;      
-//    StringDelta d(true);
-//    if (cx)
-//      return x[0].varimp()->notify(
-//        home, x[0].assigned() ? ME_STRING_VAL : ME_STRING_DOM, d
-//      );
-//    if (cx1)
-//      return x[1].varimp()->notify(
-//        home, x[1].assigned() ? ME_STRING_VAL : ME_STRING_DOM, d
-//      );
-//    if (cy)
-//      return x[2].varimp()->notify(
-//        home, x[2].assigned() ? ME_STRING_VAL : ME_STRING_DOM, d
-//      );
-//    if (cy1)
-//      return x[3].varimp()->notify(
-//        home, x[3].assigned() ? ME_STRING_VAL : ME_STRING_DOM, d
-//      );
-//    return ME_STRING_NONE;
-//  }
+  // Propagating |y'| = |y| + |x'| - |x|, knowing that x occurs in y.
+  forceinline ModEvent
+  Replace::refine_card(Space& home) {
+    long lx  = x[0].min_length(), ux  = x[0].max_length(),
+         lx1 = x[1].min_length(), ux1 = x[1].max_length(),
+         ly  = x[2].min_length(), uy  = x[2].max_length(),
+         ly1 = x[3].min_length(), uy1 = x[3].max_length();
+    bool again, cx, cx1, cy, cy1;
+    do {
+      again = cx = cx1 = cy = cy1 = false;
+      int llx = ly + lx1 - uy1, uux = uy + ux1 - ly1,
+          llx1 = ly1 + lx - uy, uux1 = uy1 + ux - ly,
+          lly = ly1 + lx - ux1, uuy = uy1 + ux - ux1,
+          lly1 = ly + lx1 - ux, uuy1 = uy + ux1 - lx;
+      if (llx > lx)   { lx  = llx;  cx  = again = true; }
+      if (uux < ux)   { ux  = uux;  cx  = again = true; }
+      if (llx1 > lx1) { lx1 = llx1; cx1 = again = true; }
+      if (uux1 < ux1) { ux1 = uux1; cx1 = again = true; }
+      if (lly > ly)   { ly  = lly;  cy  = again = true; }
+      if (uuy < uy)   { uy  = uuy;  cy  = again = true; }
+      if (lly1 > ly1) { ly1 = lly1; cy1 = again = true; }
+      if (uuy1 < uy1) { uy1 = uuy1; cy1 = again = true; }
+      if (ux < lx || ux1 < lx1 || uy < ly || uy1 < ly1)
+        return ME_STRING_FAILED;
+    } while (again);
+    if ((cx  && !x[0].pdomain()->refine_card(home, lx, ux))   ||
+        (cx1 && !x[1].pdomain()->refine_card(home, lx1, ux1)) ||
+        (cy  && !x[2].pdomain()->refine_card(home, ly, uy))   ||
+        (cy1 && !x[3].pdomain()->refine_card(home, ly1, uy1)))
+      return ME_STRING_FAILED;      
+    StringDelta d(true);
+    if (cx)
+      return x[0].varimp()->notify(
+        home, x[0].assigned() ? ME_STRING_VAL : ME_STRING_DOM, d
+      );
+    if (cx1)
+      return x[1].varimp()->notify(
+        home, x[1].assigned() ? ME_STRING_VAL : ME_STRING_DOM, d
+      );
+    if (cy)
+      return x[2].varimp()->notify(
+        home, x[2].assigned() ? ME_STRING_VAL : ME_STRING_DOM, d
+      );
+    if (cy1)
+      return x[3].varimp()->notify(
+        home, x[3].assigned() ? ME_STRING_VAL : ME_STRING_DOM, d
+      );
+    return ME_STRING_NONE;
+  }
   
   forceinline ExecStatus
   Replace::propagate(Space& home, const ModEventDelta&) {
-    // std::cerr<<"\nReplace" << (all ? "All" : "") << "::propagate: "<< x <<"\n";
+    if (all) std::cerr<<"\nReplace" << (all ? "All" : "") << "::propagate: "<< x <<"\n";
     assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
            x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());                     
     int min_occur = 0;
-    if (x[0].assigned()) {
+    if (x[0].assigned()) {  
       string sx = x[0].val();
+      if (x[1].assigned() && sx == x[1].val()) {
+        rel(home, x[2], STRT_EQ, x[3]);
+        return home.ES_SUBSUMED(*this);
+      }
       if (sx == "" && !all) {
         last ? rel(home, x[2], x[1], STRT_CAT, x[3])
              : rel(home, x[1], x[2], STRT_CAT, x[3]);
@@ -281,7 +289,7 @@ namespace Gecode { namespace String {
     // earliest/latest start/end positions of x[0] in x[2] to possibly refine 
     // x[3] via equation.
     Position pos[2];
-    // std::cerr << "min_occur: " << min_occur << "\n";
+    std::cerr << "min_occur: " << min_occur << "\n";
     if (sweep_replace(*x[0].pdomain(), *x[2].pdomain(), pos)) {
       // Prefix: x[2][: es]
       NSBlocks v;
@@ -304,7 +312,7 @@ namespace Gecode { namespace String {
       if (le != Position({x[2].pdomain()->length(), 0}))
         v.extend(suffix(2, le));      
       v.normalize();
-      // std::cerr << "Equating y' = " << x[3] << " with " << v << "\n";
+      std::cerr << "Equating y' = " << x[3] << " with " << v << "\n";
       GECODE_ME_CHECK(x[3].dom(home, v));
     }
     else {
@@ -336,7 +344,7 @@ namespace Gecode { namespace String {
       if (le != Position({x[3].pdomain()->length(), 0}))
         v.extend(suffix(3, le));
       v.normalize();
-      // std::cerr << "Equating y = " << x[2] << " with " << v << "\n";
+      std::cerr << "Equating y = " << x[2] << " with " << v << "\n";
       GECODE_ME_CHECK(x[2].dom(home, v));
     }
     else {
@@ -344,7 +352,7 @@ namespace Gecode { namespace String {
       rel(home, x[2], STRT_EQ, x[3]);
       return home.ES_SUBSUMED(*this);
     }
-    // std::cerr<<"After replace: "<< x <<"\n";
+    if (all) std::cerr<<"After replace: "<< x <<"\n";
     return x[0].assigned() && x[2].assigned() ? ES_NOFIX : ES_FIX;
   }
 
