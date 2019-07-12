@@ -1027,7 +1027,6 @@ namespace Gecode { namespace FlatZinc {
           else
             b.u = u;
           b.S = c->s;
-          std::cerr << "Domain: " << b << '\n';
           Gecode::String::NSBlocks v(1, b);
           tv[stringVarCount++] = StringVar(*this, v, b.l, b.u);
         }

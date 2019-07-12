@@ -8,7 +8,7 @@ var string: x1;
 var string: x2;
 var string: r;
 var string: s;
-var string of {"B", "G", "D"}: d;
+var string: d;
 var string: z1;
 var string: z2;
 var string: z3;
@@ -75,6 +75,7 @@ constraint str_reg(r4, "(\"\"|\")") /\ r4 = "\"";
 constraint str_reg(r5, "(\(|\[)(\*)(\**)(\\|\])\"");
 constraint str_find("\\", r5) > 0;
 constraint z4 = str_replace_all(d ++ d, d, z1);
-constraint str_replace("BB", z5, z4) != z4;
+constraint z5 = str_replace("BB", let { var string: tmp; } in tmp, z4);
+constraint z1 != z4 /\ z4 != z5;
 
 solve maximize str_len(t);
