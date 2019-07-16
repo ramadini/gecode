@@ -23,12 +23,13 @@ namespace Gecode { namespace String { namespace Branch {
     forceinline Choice*
     BlockMin_LLLL::choice(Space& home) {
       DashedString* p = x[start].pdomain();
-      int k = p->first_na_block();
-      double c = p->at(k).logdim();
-      int l = p->min_length();
-      int pos = start;
-      int d = 0;
-      // std::cerr << x[start] << " (pos. " << start << ")\n";
+      const DSBlock& b = p->at(p->first_na_block());
+      double s = b.logdim();
+      int l = b.u - b.l;
+      int m = p->min_length();
+      int e = x[start].ext_list().size();
+      int pos = start;      
+      // std::cerr << x[start] << " (pos. " << start << ", logdim " << p->logdim() << ")\n";
       for (int i = start + 1; i < x.size(); ++i) {
         if (!x[i].assigned()) {
           int di = x[i].degree();
@@ -37,32 +38,31 @@ namespace Gecode { namespace String { namespace Branch {
             x[i].pdomain()->update(home, "");
             continue;
           }
-          //std::cerr << x[i] << " ext list = ["; for (auto e : x[i].ext_list())
-          //std::cerr<<"\""<< e << "\", "; std::cerr<< "] (pos. " << i << ")\n";
-          const DSBlock& b = p->at(k);
-          DashedString* q = x[i].pdomain();
-          double ki = q->first_na_block();
-          int li = q->min_length();
-          const DSBlock& bi = q->at(ki);
-          int s = x[i].ext_list().size();
-          double bil = bi.logdim();
-          double ci = s > 0 ? min((double) s, bil) : bil;
-          if ((ci < c)
-          || (ci == c && bi.l > b.l)
-        	|| (ci == c && bi.l == b.l && li < l)
-        	|| (ci == c && bi.l == b.l && li < l && di > d)) {
-              l = li;
-              c = ci;
-              k = ki;
-              d = di;
-              pos = i;
-              p = q;
+          p = x[i].pdomain();
+          int ei = x[i].ext_list().size();
+          // std::cerr << x[i] << " (pos. " << i << ", logdim " << p->logdim() << ")\n";
+          // std::cerr << " ext list = ["; for (auto e : x[i].ext_list())
+          // std::cerr<<"\""<< e << "\", "; std::cerr << "]\n";          
+          if (ei > 0 && ei < p->logdim() && (e == 0 || ei < e)) {
+            e = ei;
+            pos = i;
+            continue;
+          }
+          const DSBlock& bi = p->at(p->first_na_block());
+          double si = bi.logdim();
+          int li = b.u - bi.l;
+          int mi = p->min_length();
+          if (si < s || (si == s && li < l) || (si == s && li == l && mi < m)) {
+            s = si;   
+            l = li;
+            m = mi;
+            pos = i;
           }
         }
       }
-      //std::cerr << "Chosen var. " << x[pos] << " (pos. " << pos << ")\n";
+      // std::cerr << "Chosen var. " << x[pos] << " (pos. " << pos << ")\n";
       // abort();
-      return val_llll(pos, p);
+      return val_llll(pos, x[pos].pdomain());
     }
 
     forceinline ExecStatus
