@@ -902,7 +902,7 @@ ifeq "@enable_string_vars@" "yes"
 FZNSTR = fzn-gstrings
 MZNSTR = mzn-gstrings
 MZNFZNSTR = mzn2fzn-gstrings
-MZNFZNSTREXE = tools/flatzinc/mzn2fzn-str
+MZNFZNSTREXE = mzn2fzn-str
 MZNFZNSTRTGZ = tools/flatzinc/mzn2fzn-str.tar.gz
 endif
 ifeq "@need_soname@" "yes"
@@ -1149,7 +1149,7 @@ endif
 ifeq "@enable_string_vars@" "yes"
 EXETARGETS = $(FLATZINCEXE) tools/flatzinc/mzn-gecode@BATCHFILE@ \
   tools/flatzinc/$(FZNSTR) tools/flatzinc/$(MZNSTR) tools/flatzinc/$(MZNFZNSTR)\
-  $(MZNFZNSTREXE)
+  tools/flatzinc/$(MZNFZNSTREXE)
 else
 EXETARGETS = $(FLATZINCEXE) tools/flatzinc/mzn-gecode@BATCHFILE@ 
 endif
@@ -2147,7 +2147,7 @@ installlibstr: compilelib
 	$(MAKE) installsubdirs
 
 domznfznstr:
-	tar xvf $(MZNFZNSTRTGZ) && mv mzn2fzn-str tools/flatzinc
+	tar xvf $(MZNFZNSTRTGZ) && mv mzn2fzn-str $(DESTDIR)$(bindir)
 
 installexamples: compileexamples
 	mkdir -p $(DESTDIR)$(bindir); \
