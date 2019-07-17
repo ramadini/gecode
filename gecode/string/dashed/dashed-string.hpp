@@ -1028,8 +1028,8 @@ namespace Gecode { namespace String {
   DashedString::commit(
     Space& h, Branch::Level l, Branch::Value v, Branch::Block b, unsigned a
   ) {
-    //std::cerr<<"\nDashedString::commit "<< *this <<" ["<<_min_length<< ", "
-    //<< _max_length << "] -- " << l <<' '<< v << ' ' << b << ' '<< a <<'\n';
+    // std::cerr<<"\nDashedString::commit "<< *this <<" ["<<_min_length<< ", "
+    // << _max_length << "] -- " << l <<' '<< v << ' ' << b << ' '<< a <<'\n';
     int i;
     switch (b) {
       case Branch::FIRST:
@@ -1049,10 +1049,12 @@ namespace Gecode { namespace String {
   
   forceinline bool
   DashedString::is_normalized() const {
-    // std::cerr << *this << "\n";
+    // std::cerr << *this << ' ' << _min_length << ' ' << _max_length << "\n";
     if (_min_length > _max_length)
       return false;
     int n = length();
+    if (n == 1 && (_min_length != at(0).l || _max_length != at(0).u))
+      return false;
     for (int i = 1; i < n; ++i) {
       const DSBlock& b = at(i);
       if (b.l > b.u || b.S.empty() || b.S == at(i - 1).S)
@@ -1893,6 +1895,15 @@ namespace Gecode { namespace String {
     }
     if (!sweep_equate(h, *this, that))
       return false;
+    int l = 0;
+    long u = 0;
+    for (unsigned i = 0; i < that.size(); ++i) {
+      const NSBlock& b = that[i];
+      l += b.l;
+      u += b.u;
+    }
+    if (!refine_card(h, l, u))
+      return false;
     // std::cerr<<"equated: "<<*this<<' '<<_changed<<std::endl;
     return true;
   }
@@ -1934,6 +1945,12 @@ namespace Gecode { namespace String {
     _blocks.normalize(h, l, u);
     _min_length = max(_min_length, l);
     _max_length = min(_max_length, u);
+    if (length() == 1) {
+      if (at(0).l < _min_length)
+        at(0).l = _min_length;
+      if (at(0).u > _max_length)
+        at(0).u = _max_length;
+    } 
   }
 
   forceinline void

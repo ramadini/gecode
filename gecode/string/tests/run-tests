@@ -100,7 +100,7 @@ fi &&
 for m in `ls $TEST_DIR/appscan/*.mzn`
 do  
   if
-    [ `mzn-gstrings $m 2>/dev/null | grep "\----------"` ]
+    [ `timeout 10 mzn-gstrings $m 2>/dev/null | grep "\----------"` ]
   then
     echo "Solved $m"
   else

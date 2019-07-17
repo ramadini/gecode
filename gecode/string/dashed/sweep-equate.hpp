@@ -515,11 +515,13 @@ namespace Gecode { namespace String {
         if (xi.l <= p_l && xlen == 1) {
           // Special case where x is a single block: the soundness of the
           // propagation is preserved by constraining the min/max length.
-          for (unsigned i = 0; i < p_reg.size(); ++i)
+          for (unsigned i = 0; i < p_reg.size(); ++i) {
             p_reg[i].S.intersect(xi.S);
+            p_reg[i].u = min(p_reg[i].u, xi.u);
+          }
           p_reg.normalize();
-          if (p_reg.known_pref() != "" || p_reg.known_suff() != "" 
-          ||  p_reg.logdim() < x.at(0).logdim()) {            
+          if (p_reg.known_pref() != "" || p_reg.known_suff() != "" ||
+              p_reg.logdim() < x.at(0).logdim()) {
             up.push(std::make_pair(0, p_reg));
             return true;
           }
