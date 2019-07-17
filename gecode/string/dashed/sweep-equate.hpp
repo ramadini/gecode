@@ -307,61 +307,42 @@ namespace Gecode { namespace String {
     v.push_back(b);
   }
 
+  // Extends v with the mandatory region of x between p and q.
+  // Position p has positive offset, while position q negative offset.
   // Returns the minimum length of the mandatory region.
   template <class Block, class Blocks>
   forceinline int
-  lb_man(const Blocks& x, const Position& p, const Position& q) {
-    if (p.idx > q.idx)
-      return 0;
-    if (p.idx == q.idx) {
-      const Block& xi = x.at(p.idx);
-      if (p.off >= xi.l - q.off)
-        return 0;
-      return xi.l - q.off - p.off;
-    }
-    int k = 0;
-    const Block& b1 = x.at(p.idx);    
-    if (p.off < b1.l) 
-      k += b1.l - p.off;
-    for (int j = p.idx + 1; j < q.idx; ++j)
-      k += lower(x.at(j));
-    const Block& b2 = x.at(q.idx);
-    if (q.off < b2.l)
-      k += b2.l - q.off;
-    return k;
-  }
-
-  // Extends v with the mandatory region of x between p and q.
-  // Position p has positive offset, while position q negative offset.
-  template <class Block, class Blocks>
-  forceinline void
   man_region(
     const Blocks& x, const Position& p, const Position& q, NSBlocks& v
   ) {
+    int l = 0;
     if (p.idx > q.idx)
-      return;
+      return l;
     if (p.idx == q.idx) {
       const Block& xi = x.at(p.idx);
       if (p.off >= xi.u - q.off)
-        return;
-      int l = max(0, xi.l - q.off - p.off), u = xi.u - p.off - q.off;
-      v.push_back(NSBlock(xi.S, l, u));
-      return;
+        return l;
+      l = max(0, xi.l - q.off - p.off);
+      v.push_back(NSBlock(xi.S, l, xi.u - p.off - q.off));
+      return l;
     }
     const Block& b1 = x.at(p.idx);
     if (p.off < b1.u) {
-      int l = max(0, b1.l - p.off), u = b1.u - p.off;
-      v.push_back(NSBlock(b1.S, l, u));
+      l = max(0, b1.l - p.off);
+      v.push_back(NSBlock(b1.S, l, b1.u - p.off));
     }
     for (int j = p.idx + 1; j < q.idx; ++j) {
       const Block& bj = x.at(j);
       v.push_back(NSBlock(bj));
+      l += bj.l;
     }
     const Block& b2 = x.at(q.idx);
     if (q.off < b2.u) {
-      int l = max(0, b2.l - q.off), u = b2.u - q.off;
-      v.push_back(NSBlock(b2.S, l, u));
+      int ll = max(0, b2.l - q.off);
+      v.push_back(NSBlock(b2.S, ll, b2.u - q.off));
+      l += ll;
     }
+    return l;
   }
 
   // Set up latest/earliest start/end positions for x-blocks in y. The find
@@ -504,11 +485,10 @@ namespace Gecode { namespace String {
         // Current matching region is different from the previous one.
         p_reg.clear(); p_set.clear();
         p_es = es, p_ls = ls, p_ee = ee, p_le = le;
-        p_l = lb_man<Block2, Blocks2>(y, ls, ee);
-        assert (p_l >= 0);
         if (es != ls)
           opt_region<Block2, Blocks2>(y, es, dual(y, ls), p_reg);
-        man_region<Block2, Blocks2>(y, ls, ee, p_reg);
+        p_l = man_region<Block2, Blocks2>(y, ls, ee, p_reg);
+        assert (p_l >= 0);
         if (ee != le)
           opt_region<Block2, Blocks2>(y, dual(y, ee), le, p_reg);
         for (unsigned i = 0; i < p_reg.size(); ++i)
