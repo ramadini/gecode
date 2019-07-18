@@ -29,7 +29,7 @@ namespace Gecode { namespace String { namespace Branch {
       int m = p->min_length();
       int e = x[start].ext_list().size();
       int pos = start;      
-      // std::cerr << x[start] << " (pos. " << start << ", logdim " << p->logdim() << ")\n";
+      // std::cerr<<x[start]<<" (pos. "<<start<<", deg. "<<x[start].degree()<<", dim. "<<p->logdim()<<")\n";
       for (int i = start + 1; i < x.size(); ++i) {
         if (!x[i].assigned()) {
           int di = x[i].degree();
@@ -40,7 +40,7 @@ namespace Gecode { namespace String { namespace Branch {
           }
           p = x[i].pdomain();
           int ei = x[i].ext_list().size();
-          // std::cerr << x[i] << " (pos. " << i << ", logdim " << p->logdim() << ")\n";
+          // std::cerr<<x[i]<<" (pos. "<<i<<", deg. "<<di<<", dim. "<<p->logdim()<<")\n";
           // std::cerr << " ext list = ["; for (auto e : x[i].ext_list())
           // std::cerr<<"\""<< e << "\", "; std::cerr << "]\n";          
           if (ei > 0 && ei < p->logdim() && (e == 0 || ei < e)) {

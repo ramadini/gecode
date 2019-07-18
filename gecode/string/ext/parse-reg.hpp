@@ -106,7 +106,7 @@ namespace Gecode { namespace String {
       else
         return true;
     }
-    bool intro_vars() const { return lhs->intro_vars() || rhs->intro_vars();}
+    bool intro_vars() const { return lhs->intro_vars() || rhs->intro_vars(); }
     string get_string() const { return lhs->get_string() + rhs->get_string(); }
     NSIntSet
     get_chars() const {

@@ -1642,11 +1642,11 @@ namespace Gecode { namespace FlatZinc {
   std::cerr << "Branching on all string variables with blockmin_llll strategy.\n";
   //  StringVarArgs btv;
   //  for (int i = 0; i < stringVarCount; ++i)
-//    if (!tv_introduced[2*i])
-//      btv << tv[i];
-//  std::cout << btv << "\n";
-// Using a default search strategy on all the string variables.
-//  std::cerr << tv << " -- size: " << tv.size() << '\n';
+  //    if (!tv_introduced[2*i])
+  //      btv << tv[i];
+  //  std::cout << btv << "\n";
+  // Using a default search strategy on all the string variables.
+  //  std::cerr << tv << " -- size: " << tv.size() << '\n';
   blockmin_llll(*this, tv);
 #endif
     if (_method == MIN) {
