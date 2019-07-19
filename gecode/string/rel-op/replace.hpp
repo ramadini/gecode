@@ -224,7 +224,7 @@ namespace Gecode { namespace String {
   
   forceinline ExecStatus
   Replace::propagate(Space& home, const ModEventDelta&) {
-    std::cerr<<"\nReplace" << (all ? "All" : "") << "::propagate: "<< x <<"\n";
+    // std::cerr<<"\nReplace" << (all ? "All" : "") << "::propagate: "<< x <<"\n";
     assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
            x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());
     if (!all && !check_card()) {
@@ -374,7 +374,7 @@ namespace Gecode { namespace String {
       rel(home, x[2], STRT_EQ, x[3]);
       return home.ES_SUBSUMED(*this);
     }
-    std::cerr<<"After replace: "<< x <<"\n";
+    // std::cerr<<"After replace: "<< x <<"\n";
     switch (
       x[0].assigned() + x[1].assigned() + x[2].assigned() + x[3].assigned()
     ) {
