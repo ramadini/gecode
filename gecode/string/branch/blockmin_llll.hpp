@@ -22,6 +22,7 @@ namespace Gecode { namespace String { namespace Branch {
 
     forceinline Choice*
     BlockMin_LLLL::choice(Space& home) {
+      // std::cerr << "\nVar. choice\n";
       DashedString* p = x[start].pdomain();
       const DSBlock& b = p->at(p->first_na_block());
       double s = b.logdim();
@@ -29,7 +30,9 @@ namespace Gecode { namespace String { namespace Branch {
       int m = p->min_length();
       int e = x[start].ext_list().size();
       int pos = start;      
-      // std::cerr<<x[start]<<" (pos. "<<start<<", deg. "<<x[start].degree()<<", dim. "<<p->logdim()<<")\n";
+      // std::cerr<<x[start]<<" (pos. "<<start<<", dim. "<<s<<")\n";
+      // if (e) { std::cerr << " ext list = ["; for (auto e : x[start].ext_list())        
+      //  std::cerr<<"\""<< e << "\", "; std::cerr << "]\n"; }
       for (int i = start + 1; i < x.size(); ++i) {
         if (!x[i].assigned()) {
           int di = x[i].degree();
@@ -39,11 +42,11 @@ namespace Gecode { namespace String { namespace Branch {
             continue;
           }
           p = x[i].pdomain();
-          int ei = x[i].ext_list().size();
-          // std::cerr<<x[i]<<" (pos. "<<i<<", deg. "<<di<<", dim. "<<p->logdim()<<")\n";
-          // std::cerr << " ext list = ["; for (auto e : x[i].ext_list())
-          // std::cerr<<"\""<< e << "\", "; std::cerr << "]\n";          
+          int ei = x[i].ext_list().size();                    
           if (ei > 0 && ei < p->logdim() && (e == 0 || ei < e)) {
+            // std::cerr<<x[i]<<" (pos. "<<i<<", deg. "<<di<<") ";
+            // std::cerr << " ext list = ["; for (auto ei : x[i].ext_list())
+            // std::cerr<<"\""<< ei << "\", "; std::cerr << "]\n";
             e = ei;
             pos = i;
             continue;
@@ -52,6 +55,7 @@ namespace Gecode { namespace String { namespace Branch {
           double si = bi.logdim();
           int li = b.u - bi.l;
           int mi = p->min_length();
+          // std::cerr<<x[i]<<" (pos. "<<i<<", deg. "<<di<<", dim. "<<si<<")\n";
           if (si < s || (si == s && li < l) || (si == s && li == l && mi < m)) {
             s = si;   
             l = li;
@@ -99,6 +103,5 @@ namespace Gecode { namespace String { namespace Branch {
       }
       return ES_OK;
     }
-
 
 }}}
