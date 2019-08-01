@@ -1919,6 +1919,7 @@ namespace Gecode { namespace String {
     _blocks.update(h, that._blocks);
     _min_length = that._min_length;
     _max_length = that._max_length;
+    _changed = that._changed;
   }
 
   forceinline void
