@@ -188,6 +188,7 @@ str_char_at(var string: x, var int: i) = str_sub(x, i, i);
 function var string: nat2str(var int: n);
 function var int: str2nat(var string: x);
 
+% Only decomposes if both x and x1 are fixed strings.
 predicate
 str_replace(string: x, string: x1, var string: y, var string: y1) 
 = let {
