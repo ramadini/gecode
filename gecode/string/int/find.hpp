@@ -155,6 +155,7 @@ namespace Gecode { namespace String {
         int i = max(0, x1.min_length() - x0.max_length() - u + 1);
         v.push_back(NSBlock(ychars, i, j));
       }
+      v.normalize();
       GECODE_ME_CHECK(x1.dom(home, v));
     }
     else {

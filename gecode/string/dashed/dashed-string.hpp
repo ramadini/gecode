@@ -1066,11 +1066,13 @@ namespace Gecode { namespace String {
 
   forceinline bool
   DashedString::find(Space& h, DashedString& x, int& lb, int& ub, bool mod) {
-    // std::cerr << "DashedString::find: " << x << " in " << *this << " from [" << lb << ", " << ub << "]\n";
+    // std::cerr << "\nDashedString::find: " << x << " in " << *this <<
+    // " from [" << lb << ", " << ub << "]\n";
     assert (0 <= lb && lb <= ub);
     _changed = x._changed = false;
     if (!sweep_find(h, x, *this, lb, ub, mod))
       return false;
+    // std::cerr << "After find: " << x << " in " << *this << "\n";
     if (mod) {
       bool again;
       do {

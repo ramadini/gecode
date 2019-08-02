@@ -174,8 +174,8 @@ namespace Gecode { namespace String {
         else
           return false;
       }
-      //std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
-        //<<" ls: "<<ls<<" le: "<<le<<'\n';
+      // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
+      //  <<" ls: "<<ls<<" le: "<<le<<'\n';
       if (es != p_es || ls != p_ls || ee != p_ee || le != p_le) {
         // Current matching region is different from the previous one.
         p_reg.clear(); p_set.clear();
@@ -183,7 +183,7 @@ namespace Gecode { namespace String {
         assert (p_l >= 0);
         if (es != ls)
           opt_region<DSBlock, DSBlocks>(y, es, dual(y, ls), p_reg);
-        man_region<DSBlock, DSBlocks>(y, ls, ee, p_reg);
+        p_l = man_region<DSBlock, DSBlocks>(y, ls, ee, p_reg);
         if (ee != le)
           opt_region<DSBlock, DSBlocks>(y, dual(y, ee), le, p_reg);
         for (unsigned i = 0; i < p_reg.size(); ++i)
@@ -285,7 +285,7 @@ namespace Gecode { namespace String {
           assert (x.at(i).l == 0);
           x.at(i).u = 0;
           modx = true;
-        }
+        }      
       if (modx)
         refine_eq(h, x, upx);
       if (mody && upy.size() > 0)
