@@ -494,6 +494,10 @@ namespace Gecode {
   StringValBranch STRING_VAL_LLLL(void);
   StringValBranch STRING_VAL_LLUL(void);
   StringValBranch STRING_VAL_LLLM(void);
+  
+  GECODE_STRING_EXPORT void
+  branch(Home home, const StringVarArgs& x,
+         StringVarBranch vars, StringValBranch vals);
 
 }
 

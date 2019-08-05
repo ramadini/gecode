@@ -130,9 +130,8 @@ namespace Gecode { namespace String {
             b.S.remove(home, c);
             if (b.l > 0 && b.S.empty())
               return ES_FAILED;
-            else
-              norm = b.S.empty() || (i > 0 && pdom->at(i-1).S == b.S) || 
-                     (i < pdom->length()-1 && pdom->at(i+1).S == b.S);
+            norm |= b.S.empty() || (i > 0 && pdom->at(i-1).S == b.S) || 
+                    (i < pdom->length()-1 && pdom->at(i+1).S == b.S);
           }
         }
         if (norm)

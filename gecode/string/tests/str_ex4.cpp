@@ -45,7 +45,7 @@ public:
     substr(*this, x, IntVar(*this, 2, 2), j, y);
     rel(*this, y, STRT_REV, y);
     // Branching.
-    blockmin_llll(*this, string_vars);
+    blockmin_lllm(*this, string_vars);
     branch(*this, int_vars, INT_VAR_NONE(), INT_VAL_MIN());
   }
 

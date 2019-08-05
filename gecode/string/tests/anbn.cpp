@@ -72,7 +72,7 @@ public:
     //rel(*this, l >= 0);
     //rel(*this, l * 2 == l + 2);
     // Branching.
-    blockmin_llll(*this, str_vars);
+    blockmin_lllm(*this, str_vars);
   }
 
   virtual void

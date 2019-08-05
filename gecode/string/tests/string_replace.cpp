@@ -96,7 +96,7 @@ public:
     rel(*this, var_5, STRT_DOM, u, 0, so.N);
 
     // Branching.
-    blockmin_llll(*this, str_vars);
+    blockmin_lllm(*this, str_vars);
   }
 
   virtual void

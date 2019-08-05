@@ -41,7 +41,7 @@ public:
     IntVarArgs iva;
     iva << n;
     int_vars = IntVarArray(*this, iva);
-    blockmin_llll(*this, string_vars);
+    blockmin_lllm(*this, string_vars);
   }
 
   virtual void

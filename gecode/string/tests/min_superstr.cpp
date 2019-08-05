@@ -74,7 +74,7 @@ public:
       branch_vars << l;
       branch(*this, branch_vars, INT_VAR_SIZE_MIN(), INT_VAL_MIN());
     }
-    blockmin_llll(*this, sva);
+    blockmin_lllm(*this, sva);
   }
 
   virtual IntVar cost(void) const {

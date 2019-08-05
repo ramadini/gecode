@@ -56,7 +56,7 @@ public:
     length(*this, x, lx);
     length(*this, y1, ly1);
     
-    blockmin_llll(*this, string_vars);
+    blockmin_lllm(*this, string_vars);
     branch(*this, int_vars, INT_VAR_SIZE_MIN(), INT_VAL_SPLIT_MIN());
   }
 

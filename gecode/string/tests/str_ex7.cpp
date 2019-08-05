@@ -55,7 +55,7 @@ public:
     find(*this, x1, y1, n1);
     find(*this, x2, y2, n2);
     // Branching.
-    blockmin_llll(*this, string_vars);
+    blockmin_lllm(*this, string_vars);
   }
 
   virtual void

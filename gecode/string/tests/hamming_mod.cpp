@@ -118,7 +118,7 @@ public:
     rel(*this, expr_3, StringVar(*this, "a"), STRT_CAT, var_5z6);
 
     // Branching.
-    blockmin_llll(*this, str_vars);
+    blockmin_lllm(*this, str_vars);
   }
 
   virtual void

@@ -39,7 +39,7 @@ public:
     StringVarArgs sva;
     sva << x << y;
     string_vars = StringVarArray(*this, sva);
-    blockmin_llll(*this, string_vars);
+    blockmin_lllm(*this, string_vars);
 
   }
 

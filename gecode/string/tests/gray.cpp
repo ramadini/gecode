@@ -72,7 +72,7 @@ public:
     string_vars = StringVarArray(*this, sva);
     int_vars = IntVarArray(*this, iva);
     // Branching.
-    blockmin_llll(*this, string_vars);
+    blockmin_lllm(*this, string_vars);
   }
 
   virtual void

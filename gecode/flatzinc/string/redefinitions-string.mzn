@@ -226,4 +226,17 @@ let {
   endif;
 } in B;
 
-annotation string_default_search(array[int] of var string: x);
+annotation none;
+annotation lenmin;
+annotation lenmax;
+annotation sizemin;
+annotation blockmin;
+
+annotation llll;
+annotation llul;
+annotation lllm;
+
+annotation string_search(
+  array[int] of var string: vars, ann: hvar, ann: hval, ann: comp
+);
+annotation string_default_search(array[int] of var string: vars);

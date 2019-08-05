@@ -66,7 +66,7 @@ public:
     std::vector<string> d({"aabbccd", "abcdabc", "dcbaabc", "abcdcba"});
     extensional(*this, x, d);
     // Branching.
-    blockmin_llll(*this, string_vars);
+    blockmin_lllm(*this, string_vars);
   }
 
   virtual IntVar cost(void) const {

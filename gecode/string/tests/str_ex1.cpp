@@ -53,7 +53,7 @@ public:
     rel(*this, y, STRT_EQ, StringVar(*this, "Hello world!"));    
     rel(*this, x, STRT_EQ, y, Reify(b));
     // Branching.
-    blockmin_llll(*this, string_vars);
+    blockmin_lllm(*this, string_vars);
   }
 
   virtual void
@@ -84,6 +84,6 @@ int main() {
   StringOptions opt("*** Ex1 ***");
   opt.solutions(2);
   Script::run<Ex1, DFS, StringOptions>(opt);
-  assert(Ex1::S1 == "a" && Ex1::S2 == "b");
+  assert(Ex1::S1 == "d" && Ex1::S2 == "e");
    return 0;
 }

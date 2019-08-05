@@ -115,5 +115,38 @@ namespace Gecode {
     ViewArray<String::StringView> z(home, y);
     String::Branch::BlockMin_LLLM::post(home, z);
   }
+  
+  void
+  branch(Home home, const StringVarArgs& x,
+         StringVarBranch vars, StringValBranch vals) {
+    switch (vars.select()) {
+      case StringVarBranch::Select::STRING_VAR_NONE:
+        if (vals.select() == StringValBranch::Select::STRING_VAL_LLLL)
+          none_llll(home, x);
+        return;
+      case StringVarBranch::Select::STRING_VAR_SIZEMIN:
+        if (vals.select() == StringValBranch::Select::STRING_VAL_LLUL)
+          sizemin_llul(home, x);
+        return;        
+      case StringVarBranch::Select::STRING_VAR_LENMIN:
+        if (vals.select() == StringValBranch::Select::STRING_VAL_LLLL)
+          lenmin_llll(home, x);
+        return;
+      case StringVarBranch::Select::STRING_VAR_LENMAX:
+        if (vals.select() == StringValBranch::Select::STRING_VAL_LLLL)
+          lenmax_llll(home, x);
+        return;
+      case StringVarBranch::Select::STRING_VAR_BLOCKMIN:
+        if (vals.select() == StringValBranch::Select::STRING_VAL_LLLL)
+          blockmin_llll(home, x);
+        else if (vals.select() == StringValBranch::Select::STRING_VAL_LLLM)
+          blockmin_lllm(home, x);
+        return;
+      default:
+        GECODE_NEVER;
+    }
+    std::cerr << "Undefined search heuristics. Using blockmin_lllm.";
+    blockmin_lllm(home, x);
+  };
 
 }

@@ -1871,6 +1871,7 @@ constraint_item :
             //std::cerr << "Reg.: " << r->reg() << '\n';
             //std::cerr << "Dec: " << r->decomp() << '\n';
             //std::cerr << "_DEC:" << Gecode::String::DashedString::_DECOMP_REGEX << '\n';
+            //std::cerr << r->intro_vars() << "\n";
             if (r->intro_vars()) {
               AST::StringVar* x = dynamic_cast<AST::StringVar*>($4->a[0]);
               REGEX.push_back(pair<AST::StringVar*, RegEx*>(x, r));

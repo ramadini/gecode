@@ -113,6 +113,11 @@ namespace Gecode { namespace FlatZinc {
                    SetVarBranch set_varsel0,
                    SetValBranch set_valsel0
 #endif
+#ifdef GECODE_HAS_STRING_VARS
+                   ,
+                   StringVarBranch string_varsel0,
+                   StringValBranch string_valsel0
+#endif
 #ifdef GECODE_HAS_FLOAT_VARS
                    ,
                    TieBreak<FloatVarBranch> float_varsel0,
@@ -124,6 +129,9 @@ namespace Gecode { namespace FlatZinc {
         bool_varsel(bool_varsel0), bool_valsel(bool_valsel0)
 #ifdef GECODE_HAS_SET_VARS
         , set_varsel(set_varsel0), set_valsel(set_valsel0)
+#endif
+#ifdef GECODE_HAS_STRING_VARS
+        , string_varsel(string_varsel0), string_valsel(string_valsel0)
 #endif
 #ifdef GECODE_HAS_FLOAT_VARS
         , float_varsel(float_varsel0), float_valsel(float_valsel0)
@@ -160,6 +168,10 @@ namespace Gecode { namespace FlatZinc {
     SetVarBranch set_varsel;
     SetValBranch set_valsel;
 #endif
+#ifdef GECODE_HAS_SET_VARS
+    StringVarBranch string_varsel;
+    StringValBranch string_valsel;
+#endif
 #ifdef GECODE_HAS_FLOAT_VARS
     TieBreak<FloatVarBranch> float_varsel;
     FloatValBranch float_valsel;
@@ -194,6 +206,9 @@ namespace Gecode { namespace FlatZinc {
       branch(fzs,fzs.bv_aux,bool_varsel,bool_valsel);
 #ifdef GECODE_HAS_SET_VARS
       branch(fzs,fzs.sv_aux,set_varsel,set_valsel);
+#endif
+#ifdef GECODE_HAS_STRING_VARS
+      branch(fzs,fzs.tv_aux,string_varsel,string_valsel);
 #endif
 #ifdef GECODE_HAS_FLOAT_VARS
       branch(fzs,fzs.fv_aux,float_varsel,float_valsel);
@@ -239,6 +254,11 @@ namespace Gecode { namespace FlatZinc {
                      SetVarBranch set_varsel,
                      SetValBranch set_valsel
 #endif
+#ifdef GECODE_HAS_STRING_VARS
+                     ,
+                     StringVarBranch string_varsel,
+                     StringValBranch string_valsel
+#endif
 #ifdef GECODE_HAS_FLOAT_VARS
                      ,
                      TieBreak<FloatVarBranch> float_varsel,
@@ -249,6 +269,9 @@ namespace Gecode { namespace FlatZinc {
                                        bool_varsel, bool_valsel
 #ifdef GECODE_HAS_SET_VARS
                                        , set_varsel, set_valsel
+#endif
+#ifdef GECODE_HAS_STRING_VARS
+                                       , string_varsel, string_valsel
 #endif
 #ifdef GECODE_HAS_FLOAT_VARS
                                        , float_varsel, float_valsel
@@ -683,6 +706,46 @@ namespace Gecode { namespace FlatZinc {
     r0 = "in"; r1 = "not in";
     return SET_VAL_MIN_INC();
   }
+#endif
+
+
+#ifdef GECODE_HAS_STRING_VARS
+  StringVarBranch ann2tvarsel(AST::Node* ann) {
+    if (AST::Atom* s = dynamic_cast<AST::Atom*>(ann)) {
+      if (s->id == "input_order")
+        return STRING_VAR_NONE();
+      if (s->id == "sizemin")
+        return STRING_VAR_SIZEMIN();
+      if (s->id == "blockmin")
+        return STRING_VAR_BLOCKMIN();
+      if (s->id == "lenmin")
+        return STRING_VAR_LENMIN();
+      if (s->id == "lenmax")
+        return STRING_VAR_LENMAX();
+    }
+    std::cerr << "Warning, ignored search annotation: ";
+    ann->print(std::cerr);
+    std::cerr << std::endl;
+    std::cerr << "Using blockmin\n";
+    return STRING_VAR_BLOCKMIN();
+  }
+  
+  StringValBranch ann2tvalsel(AST::Node* ann) {
+    if (AST::Atom* s = dynamic_cast<AST::Atom*>(ann)) {
+      if (s->id == "llll")
+        return STRING_VAL_LLLL();
+      if (s->id == "llul")
+        return STRING_VAL_LLUL();
+      if (s->id == "lllm")
+        return STRING_VAL_LLLM();
+    }
+    std::cerr << "Warning, ignored search annotation: ";
+    ann->print(std::cerr);
+    std::cerr << std::endl;
+    std::cerr << "Using lllm\n";
+    return STRING_VAL_LLLM();
+  }
+  
 #endif
 
 #ifdef GECODE_HAS_FLOAT_VARS
@@ -1122,7 +1185,12 @@ namespace Gecode { namespace FlatZinc {
     std::string def_float_rel_left = "<=";
     std::string def_float_rel_right = ">";
 #endif
-
+#ifdef GECODE_HAS_STRING_VARS
+    StringVarBranch def_string_varsel = STRING_VAR_BLOCKMIN();
+    StringValBranch def_string_valsel = STRING_VAL_LLLL();
+    std::string def_string_rel_left = "<=";
+    std::string def_string_rel_right = ">";
+#endif
     std::vector<bool> iv_searched(iv.size());
     for (unsigned int i=iv.size(); i--;)
       iv_searched[i] = false;
@@ -1363,16 +1431,9 @@ namespace Gecode { namespace FlatZinc {
         } else if (flatAnn[i]->isCall("string_default_search")) {
 #ifdef GECODE_HAS_STRING_VARS
         AST::Call *call = flatAnn[i]->getCall("string_default_search");
-        AST::Array *vars = call->args->getArray();
-        StringVarArgs sva;
-        if (vars->a.empty())
-          sva = tv;
-        else
-          for (unsigned i = 0; i < vars->a.size(); ++i)
-            sva << tv[vars->a[i]->getStringVar()];
-        std::cerr << "Using default string search on " << sva << "\n";
-        blockmin_llll(*this, sva);
-        return;
+        AST::Array *args = call->getArgs(2);
+        def_string_varsel = ann2tvarsel(args->a[0]);
+        def_string_valsel = ann2tvalsel(args->a[1]);
 #else
           if (!ignoreUnknown) {
             err << "Warning, ignored search annotation: ";
@@ -1380,6 +1441,48 @@ namespace Gecode { namespace FlatZinc {
             err << std::endl;
           }
 #endif
+        } else if (flatAnn[i]->isCall("string_search")) {
+#ifdef GECODE_HAS_STRING_VARS
+          AST::Call *call = flatAnn[i]->getCall("string_search");
+          AST::Array *args = call->getArgs(4);
+          AST::Array *vars = args->a[0]->getArray();
+          int k=vars->a.size();
+          if (k > 0) {
+            for (int i=vars->a.size(); i--;)
+              if (vars->a[i]->isString())
+                k--;
+            StringVarArgs va(k);
+            k=0;
+            std::vector<std::string> names;
+            for (unsigned int i=0; i<vars->a.size(); i++) {
+              if (vars->a[i]->isString())
+                continue;
+              va[k++] = tv[vars->a[i]->getStringVar()];
+              tv_searched[vars->a[i]->getStringVar()] = true;
+              names.push_back(vars->a[i]->getVarName());
+            }
+            BrancherGroup bg;
+            branch(bg(*this), va,
+                   ann2tvarsel(args->a[1]),
+                   ann2tvalsel(args->a[2]));
+            branchInfo.add(bg,"","",names);
+          }
+          else {
+            std::vector<std::string> names(tv.size());
+            BrancherGroup bg;
+            branch(bg(*this), tv,
+                   ann2tvarsel(args->a[1]),
+                   ann2tvalsel(args->a[2]));
+            branchInfo.add(bg,"","",names);
+          }
+#else
+          if (!ignoreUnknown) {
+            err << "Warning, ignored search annotation: ";
+            flatAnn[i]->print(err);
+            err << std::endl;
+          }
+#endif
+
         } else if (flatAnn[i]->isCall("float_search")) {
 #ifdef GECODE_HAS_FLOAT_VARS
           AST::Call *call = flatAnn[i]->getCall("float_search");
@@ -1583,6 +1686,45 @@ namespace Gecode { namespace FlatZinc {
       
     }
 #endif
+#ifdef GECODE_HAS_STRING_VARS
+    introduced = 0;
+    funcdep = 0;
+    searched = 0;
+    for (int i=tv.size(); i--;) {
+      if (tv_searched[i]) {
+        searched++;
+      } else if (tv_introduced[2*i]) {
+        if (tv_introduced[2*i+1]) {
+          funcdep++;
+        } else {
+          introduced++;
+        }
+      }
+    }
+    std::vector<std::string> tv_sol_names(tv.size()-(introduced+funcdep+searched));
+    StringVarArgs tv_sol(tv.size()-(introduced+funcdep+searched));
+    StringVarArgs tv_tmp(introduced);
+    std::vector<std::string> tv_tmp_names(introduced);
+    for (int i=tv.size(), j=0, k=0; i--;) {
+      if (tv_searched[i])
+        continue;
+      if (tv_introduced[2*i]) {
+        if (!tv_introduced[2*i+1]) {
+          tv_tmp_names[j] = p.stringVarName(i);
+          tv_tmp[j++] = tv[i];
+        }
+      } else {
+        tv_sol_names[k] = p.stringVarName(i);
+        tv_sol[k++] = tv[i];
+      }
+    }
+
+    if (tv_sol.size() > 0) {
+      BrancherGroup bg;
+      branch(bg(*this), tv_sol, def_string_varsel, def_string_valsel);
+      branchInfo.add(bg,def_string_rel_left,def_string_rel_right,tv_sol_names);
+    }
+#endif
     iv_aux = IntVarArray(*this, iv_tmp);
     bv_aux = BoolVarArray(*this, bv_tmp);
     int n_aux = iv_aux.size() + bv_aux.size();
@@ -1594,6 +1736,10 @@ namespace Gecode { namespace FlatZinc {
     fv_aux = FloatVarArray(*this, fv_tmp);
     n_aux += fv_aux.size();
 #endif
+#ifdef GECODE_HAS_STRING_VARS
+    tv_aux = StringVarArray(*this, tv_tmp);
+    n_aux += tv_aux.size();
+#endif
 
     if (n_aux > 0) {
       if (_method == SAT) {
@@ -1604,6 +1750,9 @@ namespace Gecode { namespace FlatZinc {
 #endif
 #ifdef GECODE_HAS_FLOAT_VARS
                              , def_float_varsel, def_float_valsel
+#endif
+#ifdef GECODE_HAS_STRING_VARS
+                             , def_string_varsel, def_string_valsel
 #endif
                              );
       } else {
@@ -1637,18 +1786,14 @@ namespace Gecode { namespace FlatZinc {
   #endif
       }
     }
-#ifdef GECODE_HAS_STRING_VARS
-  // FIXME: Workaround: search annotations not yet defined for strings.
-  std::cerr << "Branching on all string variables with blockmin_llll strategy.\n";
-  //  StringVarArgs btv;
-  //  for (int i = 0; i < stringVarCount; ++i)
-  //    if (!tv_introduced[2*i])
-  //      btv << tv[i];
-  //  std::cout << btv << "\n";
-  // Using a default search strategy on all the string variables.
-  //  std::cerr << tv << " -- size: " << tv.size() << '\n';
-  blockmin_llll(*this, tv);
-#endif
+  #ifdef GECODE_HAS_STRING_VARS
+        {
+          BrancherGroup bg;
+          branch(bg(*this),tv_aux,def_string_varsel,def_string_valsel);
+          branchInfo.add(bg,def_string_rel_left,def_string_rel_right,tv_tmp_names);
+        }
+  
+  #endif
     if (_method == MIN) {
       if (_optVarIsInt) {
         std::vector<std::string> names(1);
@@ -2192,6 +2337,15 @@ namespace Gecode { namespace FlatZinc {
       ss << "fv[" << i << "]";
       std::string result(Gecode::Gist::Comparator::compare(ss.str(), fv[i],
                                                            fs.fv[i]));
+      if (result.length() > 0) out << result << std::endl;
+    }
+#endif
+#ifdef GECODE_HAS_STRING_VARS
+    for (int i = 0; i < tv.size(); ++i) {
+      std::stringstream ss;
+      ss << "tv[" << i << "]";
+      std::string result(Gecode::Gist::Comparator::compare(ss.str(), tv[i],
+                                                           fs.tv[i]));
       if (result.length() > 0) out << result << std::endl;
     }
 #endif
