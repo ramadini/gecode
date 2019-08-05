@@ -926,6 +926,24 @@ namespace Gecode { namespace String {
           case Branch::MAX:
             s.init(h, S.max());
             break;
+          case Branch::MUSTMIN:
+            if (_MUST_CHARS.disjoint(S))
+              s.init(h, S.min());
+            else {
+              NSIntSet t(_MUST_CHARS);
+              t.intersect(S);
+              s.init(h, t.min());
+            }
+            break;
+          case Branch::MUSTMAX:
+            if (_MUST_CHARS.disjoint(S))
+              s.init(h, S.max());
+            else {
+              NSIntSet t(_MUST_CHARS);
+              t.intersect(S);
+              s.init(h, t.max());
+            }
+            break;
           default:
             GECODE_NEVER;
         }
@@ -1000,6 +1018,30 @@ namespace Gecode { namespace String {
           }
           case Branch::MAX: {
             int m = S1.max();
+            S1.exclude(h, m, m, d);
+            break;
+          }
+          case Branch::MUSTMIN: {
+            int m;
+            if (_MUST_CHARS.disjoint(S1))
+              m = S1.min();
+            else {
+              NSIntSet t(_MUST_CHARS);
+              t.intersect(S1);
+              m = t.min();
+            }
+            S1.exclude(h, m, m, d);
+            break;
+          }
+          case Branch::MUSTMAX: {
+            int m;
+            if (_MUST_CHARS.disjoint(S1))
+              m = S1.max();
+            else {
+              NSIntSet t(_MUST_CHARS);
+              t.intersect(S1);
+              m = t.max();
+            }
             S1.exclude(h, m, m, d);
             break;
           }

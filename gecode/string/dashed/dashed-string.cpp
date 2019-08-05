@@ -121,6 +121,8 @@ namespace Gecode { namespace String {
   bool DashedString::_REVERSE_REGEX = true;
   // Use quadratic version of sweep algorithm.
   bool DashedString::_QUAD_SWEEP = false;
+  // Characters that must appear in each solution.
+  NSIntSet DashedString::_MUST_CHARS = NSIntSet();
 
   DashedString::DashedString(Space& h)
   : _changed(false), _blocks(h), _min_length(0), _max_length(0) {}

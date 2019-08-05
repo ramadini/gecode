@@ -51,7 +51,7 @@ namespace Gecode { namespace String { namespace Branch {
       else
         return new PosLevVal(*this, pos, Level::BASE, Value::MIN);
     }
-
+        
     Choice*
     val_llul(int pos, const Gecode::String::DashedString* p) {
       if (p->min_length() < p->max_length())
@@ -74,7 +74,19 @@ namespace Gecode { namespace String { namespace Branch {
         return new PosLevVal(*this, pos, Level::CARD, Value::MAX);
       else
         return new PosLevVal(*this, pos, Level::BASE, Value::MIN);
-  }
+    }
+        
+    Choice*
+    val_lllm(int pos, Gecode::String::DashedString* p) {
+      if (p->min_length() < p->max_length())
+        return new PosLevVal(*this, pos, Level::LENGTH, Value::MIN);
+      int i = p->first_na_block();
+      const DSBlock& b = p->at(i);
+      if (b.l < b.u)
+        return new PosLevVal(*this, pos, Level::CARD, Value::MIN);
+      else
+        return new PosLevVal(*this, pos, Level::BASE, Value::MUSTMIN);
+    }
 
   public:
 
@@ -212,13 +224,34 @@ namespace Gecode { namespace String { namespace Branch {
 
     ExecStatus commit(Space& home, const Choice& c, unsigned a);
 
-  private:
-
-    double dim(int s, int l) const;
-
   };
 
 }}}
 #include <gecode/string/branch/blockmin_llll.hpp>
+
+namespace Gecode { namespace String { namespace Branch {
+
+  struct BlockMin_LLLM: public StringBrancher {
+
+    BlockMin_LLLM(Home home, ViewArray<String::StringView>& x0);
+
+    BlockMin_LLLM(Home home, BlockMin_LLLM& b);
+
+    Actor* copy(Space& home);
+
+    static void post(Home home, ViewArray<String::StringView>& x);
+
+    Choice* choice(Space&);
+
+    ExecStatus commit(Space& home, const Choice& c, unsigned a);
+    
+    static bool _FIRST;
+
+  };
+  
+  bool BlockMin_LLLM::_FIRST = true;
+
+}}}
+#include <gecode/string/branch/blockmin_lllm.hpp>
 
 #endif

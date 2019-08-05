@@ -425,7 +425,8 @@ namespace Gecode {
     /// Which variable selection
     enum Select {
       STRING_VAL_LLLL,
-      STRING_VAL_LLUL
+      STRING_VAL_LLUL,
+      STRING_VAL_LLLM
     };
 
   protected:
@@ -477,6 +478,12 @@ namespace Gecode {
 
   GECODE_STRING_EXPORT void
   blockmin_llll(Home home, const StringVarArgs& x);
+  
+  GECODE_STRING_EXPORT void
+  blockmin_lllm(Home home, const StringVarArray& x);
+
+  GECODE_STRING_EXPORT void
+  blockmin_lllm(Home home, const StringVarArgs& x);
 
   StringVarBranch STRING_VAR_NONE(void);
   StringVarBranch STRING_VAR_SIZEMIN(void);
@@ -486,6 +493,7 @@ namespace Gecode {
 
   StringValBranch STRING_VAL_LLLL(void);
   StringValBranch STRING_VAL_LLUL(void);
+  StringValBranch STRING_VAL_LLLM(void);
 
 }
 

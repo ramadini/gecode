@@ -20,5 +20,10 @@ namespace Gecode {
   STRING_VAL_LLUL(void) {
     return StringValBranch(StringValBranch::STRING_VAL_LLUL);
   }
+  
+  forceinline StringValBranch
+  STRING_VAL_LLLM(void) {
+    return StringValBranch(StringValBranch::STRING_VAL_LLLM);
+  }
 
 }

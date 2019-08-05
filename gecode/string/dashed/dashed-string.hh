@@ -266,7 +266,9 @@ namespace Gecode { namespace String { namespace Branch {
 
   enum Value {
     MIN,
-    MAX
+    MAX,
+    MUSTMIN,
+    MUSTMAX
   };
 
   enum Block {
@@ -297,6 +299,7 @@ namespace Gecode { namespace String {
   static bool _QUAD_SWEEP;
   static int  _MAX_STR_LENGTH;
   static int  _MAX_STR_ALPHA;
+  static NSIntSet _MUST_CHARS;
 
   friend std::ostream& operator<<(std::ostream& os, const DashedString& ds);
 
