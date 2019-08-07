@@ -328,8 +328,8 @@ namespace Gecode { namespace String {
       if (le != Position({x[2].pdomain()->length(), 0}))
         v.extend(suffix(2, le));      
       v.normalize();
-      // std::cerr << "Equating y' = " << x[3] << " with " << v << "\n";
       GECODE_ME_CHECK(x[3].dom(home, v));
+      // std::cerr << "Equating y' with " << v << "  =>  " << x[3] << "\n";
     }
     else {
       rel(home, x[2], STRT_EQ, x[3]);
@@ -362,8 +362,8 @@ namespace Gecode { namespace String {
       if (le != Position({x[3].pdomain()->length(), 0}))
         v.extend(suffix(3, le));
       v.normalize();
-      // std::cerr << "Equating y = " << x[2] << " with " << v << "\n";
       GECODE_ME_CHECK(x[2].dom(home, v));
+      // std::cerr << "Equating y with " << v << "  =>  " << x[2] << "\n";
     }
     else {
       find(home, x[0], x[2], IntVar(home, 0, 0));

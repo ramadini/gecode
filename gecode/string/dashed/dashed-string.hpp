@@ -1099,11 +1099,11 @@ namespace Gecode { namespace String {
       return false;
     for (int i = 1; i < n; ++i) {
       const DSBlock& b = at(i);
-      if (b.l > b.u || b.S.empty() || b.S == at(i - 1).S)
+      if (b.null() || b.S == at(i - 1).S)
         return false;
     }
     const DSBlock& b = at(0);
-    return b.S.empty() ? n == 1 && b.l == 0 && b.u == 0 : b.l <= b.u;
+    return b.null() ? n == 1 && b.l == 0 && b.u == 0 : b.l <= b.u;
   }
 
   forceinline bool
@@ -1743,6 +1743,8 @@ namespace Gecode { namespace String {
   forceinline bool
   DashedString::refine_lb(int ly) {
     // std::cerr << "refine_lb: " << *this << ' ' << ly << "\n";
+    if (ly > _max_length)
+      return false;
     if (known())
       return ly <= _min_length;
     int lx = 0;
@@ -1783,26 +1785,31 @@ namespace Gecode { namespace String {
   forceinline bool
   DashedString::refine_ub(Space& h, int uy) {
     // std::cerr << "refine_ub: " << *this << ' ' << uy << ' ' << _max_length << "\n";
+    if (uy < _min_length)
+      return false;
     if (known())
-      return uy >= _max_length;
+      return uy >= _max_length;    
     int lx = 0;
     long ux = 0;
+    bool norm = false;
     for (int i = 0; i < _blocks.length(); ++i) {
       const DSBlock& bi = at(i);
       lx += bi.l;
       ux += bi.u;
+      norm |= bi.null();
     }
     if (ux < uy) {
       if (_max_length > ux) {
         _max_length = ux;
         _changed = true;
       }
+      if (norm)
+        normalize(h);
       return true;      
     }
     if (uy < lx)
       return false;
-    long su = 0;
-    bool norm = true;
+    long su = 0;    
     for (int i = 0; i < _blocks.length(); ++i) {
       DSBlock& bi = at(i);
       int l = bi.l, u = bi.u, uu = u;
@@ -1811,16 +1818,15 @@ namespace Gecode { namespace String {
         bi.u = uu;
       }
       su += uu;
-      if (uu == 0)
-        norm = true;
+      norm |= uu == 0;
     }    
     ux = min(uy, su);
     if (_max_length > ux) {
       _max_length = ux;
-      _changed = true;
-      if (norm)
-        normalize(h);
+      _changed = true;      
     }
+    if (norm)
+      normalize(h);
     // std::cerr << "refined: " << *this << ' ' << _max_length << "\n";
     return true;
   }

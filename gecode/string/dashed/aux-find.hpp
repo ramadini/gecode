@@ -1,6 +1,6 @@
 namespace Gecode { namespace String {  
   
-  // Propagates the earliest start position of x in y for find propagator.
+  // Pushing the earliest start positions of x in y for find propagator.
   forceinline bool
   push_esp_find(
     const DSBlocks& x, const DSBlocks& y, const Position& start,
@@ -55,7 +55,7 @@ namespace Gecode { namespace String {
     return true;
   }
 
-  // Propagates the earliest start position of x in y for replace propagator.
+  // Pushing the earliest start positions of x in y for replace propagator.
   forceinline bool
   push_esp_repl(const DSBlocks& x, const DSBlocks& y, matching& m) {
     bool gap = false;
@@ -89,39 +89,10 @@ namespace Gecode { namespace String {
     } while (gap);
     return true;
   }
-
-  // Propagates the latest end position of x in y for find propagator.
-  forceinline bool
-  push_lep_find(
-    const DSBlocks& x, const DSBlocks& y, const Position& start,
-    int& lb, int& ub, matching& m, bool mod
-  ) {
-    int xlen = x.length();
-    // Refining lsp for each x-block by pushing backward.
-    Position dstart = dual(y, start);
-    Position dend({y.length() - 1, 0});
-    for (int i = xlen - 1; i >= 0; --i) {
-      Position pos = i < xlen - 1 ? m.lep[i + 1] : dend;
-      m.lep[i] = push<Bwd, DSBlock, DSBlock, DSBlocks>(y, x.at(i), pos, dstart);
-    }
-    // Possibly refining ub (converting from position to index).
-    long u = dual(y, m.lep[0]).off;
-    for (int i = 0; i < m.lep[0].idx; ++i)
-      u += y.at(i).u;
-    ub = min(ub, u);
-    if (lb > ub) {
-      if (mod)
-        return false;
-      if (ub > 0)
-        ub = 0;
-      return true;
-    }
-    return true;
-  }
   
-  // Propagates the latest end position of x in y for replace propagator.
-  forceinline bool
-  push_lep_repl(const DSBlocks& x, const DSBlocks& y, matching& m) {
+  // Pushing the latest end positions of x in y.
+  forceinline void
+  push_lep(const DSBlocks& x, const DSBlocks& y, matching& m) {
     int xlen = x.length();
     // Refining lsp for each x-block by pushing backward.
     Position dstart = dual(y, Position({0, 0}));
@@ -130,13 +101,13 @@ namespace Gecode { namespace String {
       Position pos = i < xlen - 1 ? m.lep[i + 1] : dend;
       m.lep[i] = push<Bwd, DSBlock, DSBlock, DSBlocks>(y, x.at(i), pos, dstart);
     }
-    return true;
   }
   
   // Checks if x can be a substring of y, and possibly refines.
   forceinline bool
   refine_find(Space& h, DSBlocks& x, DSBlocks& y,
-    matching& m, uvec& upx, uvec& upy, bool mod, bool& modx, bool& mody
+    matching& m, uvec& upx, uvec& upy, bool mod, bool& modx, bool& mody,
+    int& lb, int& ub
   ) {
     NSIntSet p_set;
     NSBlocks p_reg;
@@ -153,7 +124,7 @@ namespace Gecode { namespace String {
       // If the x-block fits all in a single y-block b, we can update b.
       if (mod && es.idx == le.idx && !y.at(es.idx).known())
         ymatch[es.idx].push(i);
-      if (!mod || xi.known())
+      if (!mod)
         continue;
       Position ls = i ? dual(y, m.lep[i - 1]) : m.esp[0];
       Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i];
@@ -174,8 +145,24 @@ namespace Gecode { namespace String {
         else
           return false;
       }
-      // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
+      //std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
       //  <<" ls: "<<ls<<" le: "<<le<<'\n';
+      if (i == 0) {
+        int n = es.off + 1;
+        for (int j = 0; j < es.idx; ++j)
+          n += y.at(j).l;
+        if (n > lb)
+          lb = n;
+        if (xlen > 1) {
+          n = ls.off + 1;
+          for (int j = 0; j < ls.idx; ++j)
+            n += y.at(j).u;
+          if (n < ub)
+            ub = n;
+        }
+      }
+      if (xi.known())
+        continue;
       if (es != p_es || ls != p_ls || ee != p_ee || le != p_le) {
         // Current matching region is different from the previous one.
         p_reg.clear(); p_set.clear();
@@ -264,18 +251,17 @@ namespace Gecode { namespace String {
       p -= y.at(b).u;
       b++;
     }
-    Position start({b, p});    
+    Position start({b, p});
     bool modx = false, mody = false;
     if (!push_esp_find(
       xblocks, yblocks, start, lb, ub, m, x.min_length(), y.max_length(), mod
     ))
       return false;
-    if (!push_lep_find(xblocks, yblocks, start, lb, ub, m, mod))
-      return false;
+    push_lep(xblocks, yblocks, m);
     uvec upx, upy;
     if (mod) {
       if (!refine_find(
-        h, x.blocks(), y.blocks(), m, upx, upy, mod, modx, mody
+        h, x.blocks(), y.blocks(), m, upx, upy, mod, modx, mody, lb, ub
       ))
         return false;
       NSIntSet ychars = y.may_chars();
@@ -308,8 +294,7 @@ namespace Gecode { namespace String {
       return false;
     if (!push_esp_repl(xblocks, yblocks, m))
       return false;
-    if (!push_lep_repl(xblocks, yblocks, m))
-      return false;
+    push_lep(xblocks, yblocks, m);
     int xlen = x.length();
     for (int i = 0; i < xlen; ++i) {
       Position es = m.esp[i];

@@ -1342,6 +1342,7 @@ namespace Gecode { namespace String {
 
     forceinline void
     normalize() {
+      // std::cerr << *this << "\n";
       int n = size(), i = 0;
       long M = DashedString::_MAX_STR_LENGTH;
       while (i < n) {
@@ -1351,7 +1352,7 @@ namespace Gecode { namespace String {
           n--;
           continue;
         }
-        while (i < n - 1 && (at(i + 1).S.empty() || at(i).S == at(i + 1).S)) {
+        while (i < n - 1 && (at(i + 1).null() || at(i).S == at(i + 1).S)) {
           if (!at(i + 1).S.empty()) {
             at(i).l = std::min(long(at(i).l) + at(i + 1).l, M);
             at(i).u = std::min(long(at(i).u) + at(i + 1).u, M);
@@ -1363,6 +1364,20 @@ namespace Gecode { namespace String {
       }
       if (empty())
         *this = NSBlocks(1, NSBlock());
+      // std::cerr << *this << "\n";
+      assert (is_normalized());
+    }
+    
+    forceinline bool
+    is_normalized() const {      
+      int n = size();
+      for (int i = 1; i < n; ++i) {
+        const NSBlock& b = at(i);
+        if (b.null() || b.S == at(i - 1).S)
+          return false;
+      }
+      const NSBlock& b = at(0);
+      return b.null() ? n == 1 && b.l == 0 && b.u == 0 : b.l <= b.u;
     }
 
     forceinline NSBlocks
