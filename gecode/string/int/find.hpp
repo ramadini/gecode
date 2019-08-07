@@ -80,6 +80,8 @@ namespace Gecode { namespace String {
           int k = curr.find(s);
           if (k != (int) string::npos) {
             GECODE_ME_CHECK(x2.gq(home, 1));
+            if (l == 0)
+              l = 1;
             int ub = start.off + k + 1;
             for (int j = 0; j < start.idx && ub < u; ++j)
               ub += p1->at(j).u;
