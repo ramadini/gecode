@@ -194,6 +194,10 @@ namespace Gecode { namespace FlatZinc {
       for (int i=0; i<home.fv_aux.size(); i++)
         if (!home.fv_aux[i].assigned()) return true;
 #endif
+#ifdef GECODE_HAS_STRING_VARS
+      for (int i=0; i<home.tv_aux.size(); i++)
+        if (!home.tv_aux[i].assigned()) return true;
+#endif
       // No non-assigned variables left
       return false;
     }
@@ -1187,7 +1191,7 @@ namespace Gecode { namespace FlatZinc {
 #endif
 #ifdef GECODE_HAS_STRING_VARS
     StringVarBranch def_string_varsel = STRING_VAR_BLOCKMIN();
-    StringValBranch def_string_valsel = STRING_VAL_LLLL();
+    StringValBranch def_string_valsel = STRING_VAL_LLLM();
     std::string def_string_rel_left = "<=";
     std::string def_string_rel_right = ">";
 #endif
@@ -2532,6 +2536,7 @@ namespace Gecode { namespace FlatZinc {
       }
       else
         GECODE_NEVER;
+      Gecode::String::DashedString::_MUST_CHARS.include(x0.must_chars());
     }
     else
       x0 = tv[n->getStringVar()];
@@ -2556,11 +2561,13 @@ namespace Gecode { namespace FlatZinc {
         string value = a->a[i]->getStringDom()->s;
         StringVar tv(*this, value);
         ta[i+offset] = tv;
+        Gecode::String::DashedString::_MUST_CHARS.include(tv.must_chars());
       }
       else if (a->a[i]->isString()) {
         string value = a->a[i]->getString();
         StringVar tv(*this, value);
         ta[i+offset] = tv;
+        Gecode::String::DashedString::_MUST_CHARS.include(tv.must_chars());
       }
     }
     return ta;

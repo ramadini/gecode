@@ -2,7 +2,7 @@ namespace Gecode {
 
   forceinline
   StringVarBranch::StringVarBranch(void)
-  : VarBranch<StringVar>(), s(STRING_VAR_NONE) {}
+  : VarBranch<StringVar>(), s(STRING_VAR_BLOCKMIN) {}
 
   forceinline
   StringVarBranch::StringVarBranch(Select s0)

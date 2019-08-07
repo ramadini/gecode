@@ -1,7 +1,7 @@
 namespace Gecode {
 
   forceinline
-  StringValBranch::StringValBranch(): s(STRING_VAL_LLLL) {}
+  StringValBranch::StringValBranch(): s(STRING_VAL_LLLM) {}
 
   forceinline
   StringValBranch::StringValBranch(Select s0): s(s0) {}

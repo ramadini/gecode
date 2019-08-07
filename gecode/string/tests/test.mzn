@@ -1,3 +1,4 @@
+%include "replace.mzn";
 var string: x;
 var string(5): y;
 var string of {"a", "b", "e"}: z;
@@ -79,7 +80,4 @@ constraint z4 = str_replace_all(d ++ d, d, "ABBABB1211DDGGD") /\ z1 != z4;
 constraint z5 = str_replace("BB", z6, z4) /\ z4 < z5;
 constraint str_replace_last("G", z6, z1) > z1; 
 
-solve
-::string_search([x,y,z,t,u,v], blockmin, llll, complete)
-%::string_default_search([]) %string_search("blockmin_llll") 
-maximize str_len(t);
+solve maximize str_len(t);
