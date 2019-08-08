@@ -90,24 +90,10 @@ namespace Gecode { namespace String {
     return true;
   }
   
-  // Pushing the latest end positions of x in y.
-  forceinline void
-  push_lep(const DSBlocks& x, const DSBlocks& y, matching& m) {
-    int xlen = x.length();
-    // Refining lsp for each x-block by pushing backward.
-    Position dstart = dual(y, Position({0, 0}));
-    Position dend({y.length() - 1, 0});
-    for (int i = xlen - 1; i >= 0; --i) {
-      Position pos = i < xlen - 1 ? m.lep[i + 1] : dend;
-      m.lep[i] = push<Bwd, DSBlock, DSBlock, DSBlocks>(y, x.at(i), pos, dstart);
-    }
-  }
-  
   // Checks if x can be a substring of y, and possibly refines.
   forceinline bool
   refine_find(Space& h, DSBlocks& x, DSBlocks& y,
-    matching& m, uvec& upx, uvec& upy, bool mod, bool& modx, bool& mody,
-    int& lb, int& ub
+    matching& m, uvec& upx, uvec& upy, bool mod, bool& modx, bool& mody
   ) {
     NSIntSet p_set;
     NSBlocks p_reg;
@@ -147,20 +133,6 @@ namespace Gecode { namespace String {
       }
       //std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
       //  <<" ls: "<<ls<<" le: "<<le<<'\n';
-      if (i == 0) {
-        int n = es.off + 1;
-        for (int j = 0; j < es.idx; ++j)
-          n += y.at(j).l;
-        if (n > lb)
-          lb = n;
-        if (xlen > 1) {
-          n = ls.off + 1;
-          for (int j = 0; j < ls.idx; ++j)
-            n += y.at(j).u;
-          if (n < ub)
-            ub = n;
-        }
-      }
       if (xi.known())
         continue;
       if (es != p_es || ls != p_ls || ee != p_ee || le != p_le) {
@@ -257,11 +229,10 @@ namespace Gecode { namespace String {
       xblocks, yblocks, start, lb, ub, m, x.min_length(), y.max_length(), mod
     ))
       return false;
-    push_lep(xblocks, yblocks, m);
     uvec upx, upy;
     if (mod) {
       if (!refine_find(
-        h, x.blocks(), y.blocks(), m, upx, upy, mod, modx, mody, lb, ub
+        h, x.blocks(), y.blocks(), m, upx, upy, mod, modx, mody
       ))
         return false;
       NSIntSet ychars = y.may_chars();
@@ -290,12 +261,10 @@ namespace Gecode { namespace String {
     matching m;
     DSBlocks& xblocks = x.blocks();
     DSBlocks& yblocks = y.blocks();
-    if (!init_x<DSBlock,DSBlocks,DSBlock,DSBlocks>(xblocks, yblocks, m, 0, 1))
+    if (!init_x<DSBlock,DSBlocks,DSBlock,DSBlocks>(xblocks, yblocks, m, 1))
       return false;
     if (!push_esp_repl(xblocks, yblocks, m))
       return false;
-    push_lep(xblocks, yblocks, m);
-    int xlen = x.length();
     for (int i = 0; i < xlen; ++i) {
       Position es = m.esp[i];
       Position le = m.lep[i];

@@ -350,9 +350,7 @@ namespace Gecode { namespace String {
   // by the replace propagator.
   template <class Block1, class Blocks1, class Block2, class Blocks2>
   forceinline bool
-  init_x(const Blocks1& x, const Blocks2& y, matching& m, 
-         bool find = false, bool repl = false) {
-    assert (!find || !repl);
+  init_x(const Blocks1& x, const Blocks2& y, matching& m, bool find = false) {
     Position firstf {0, 0};
     int xlen = x.length(), ylen = y.length();
     if (xlen == 0) {
@@ -360,7 +358,7 @@ namespace Gecode { namespace String {
         return true;
       Position firstb(first_bwd(y));
       for (int i = 0; i < ylen; ++i) {
-        if (!find && !repl && lower(y.at(i)) > 0)
+        if (!find && lower(y.at(i)) > 0)
             return false;
         m.lep.push(firstf);
         m.esp.push(firstb);
@@ -370,7 +368,7 @@ namespace Gecode { namespace String {
     if (ylen == 0) {
       Position firstb(first_bwd(y));
       for (int i = 0; i < xlen; ++i) {
-        if (!find && !repl && lower(x.at(i)) > 0)
+        if (!find && lower(x.at(i)) > 0)
           return false;
         m.lep.push(firstf);
         m.esp.push(firstb);
@@ -390,9 +388,9 @@ namespace Gecode { namespace String {
         m.lep[i] = dual(y, curr);
         // std::cerr << i << ": LEP(" << x.at(i) << ") = " << m.lep[i] << "\n";
       }
+      if (Bwd::lt(firstb, m.lep.last()))
+        return false;
     }
-    if (!find && !repl && Bwd::lt(firstb, m.lep.last()))
-      return false;
     // Stretching backward for earliest start positions.
     Position curr = firstb;
     for (int i = xlen - 1; i >= 0; --i) {
@@ -400,7 +398,7 @@ namespace Gecode { namespace String {
       m.esp[i] = dual(y, curr);
       // std::cerr << i << ": ESP(" << x.at(i) << ") = " << m.esp[i] << "\n";
     }
-    return !find || !repl || !Fwd::lt(firstf, m.esp[0]);
+    return !find || !Fwd::lt(firstf, m.esp[0]);
   }
 
   // Matches each x-block against the blocks of y, and records into up parameter
