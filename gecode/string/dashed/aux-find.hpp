@@ -88,7 +88,7 @@ namespace Gecode { namespace String {
       }
     } while (gap);
     return true;
-  }
+  }  
   
   // Checks if x can be a substring of y, and possibly refines.
   forceinline bool
@@ -265,6 +265,7 @@ namespace Gecode { namespace String {
       return false;
     if (!push_esp_repl(xblocks, yblocks, m))
       return false;
+    int xlen = x.length();
     for (int i = 0; i < xlen; ++i) {
       Position es = m.esp[i];
       Position le = m.lep[i];
