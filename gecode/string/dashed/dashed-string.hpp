@@ -1427,8 +1427,8 @@ namespace Gecode { namespace String {
 
   forceinline bool
   DashedString::lex(Space& h, DashedString& that, bool lt) {
-    //lt ? std::cerr << *this << " < "  << that << "\n"
-    //   : std::cerr << *this << " <= " << that << "\n";
+    // lt ? std::cerr << *this << " < "  << that << "\n"
+    //    : std::cerr << *this << " <= " << that << "\n";
     if (_min_length == 0)
       return (!lt || that.max_length() > 0);
     if (that.max_length() == 0)
@@ -1455,14 +1455,18 @@ namespace Gecode { namespace String {
           if (pos.idx < 0) {
               xj.l--;
             xj.u--;
-            NSIntSet s(x_succ[j], xj.S.max());
-            s.intersect(xj.S);
-            if (j > 1 && s == at(j-1).S) {
-              at(j).l++;
-              at(j).u++;
+            if (xj.u == 0)
+              _changed = true;
+            else {
+              NSIntSet s(x_succ[j], xj.S.max());
+              s.intersect(xj.S);
+              if (j > 1 && s == at(j - 1).S) {
+                at(j).l++;
+                at(j).u++;
+              }
+              else
+                blocks().insert(h, j, DSBlock(h, DSIntSet(h, s), 1, 1));
             }
-            else
-              blocks().insert(h, j, DSBlock(h, DSIntSet(h, s), 1, 1));
             break;
           }
           break;
@@ -1493,21 +1497,22 @@ namespace Gecode { namespace String {
       for (int j = 0; j < that.length(); ++j) {
         DSBlock& yj = that.at(j);
         if (!lex_step_yx(yj, y_succ[j], x_min, pos, sub))
-          return false;
+          return false;        
         if (sub) {
           if (pos.idx < 0) {
             if (yj.l > 0)
               yj.l--;
             yj.u--;
+            if (yj.u == 0)
+              that._changed = true;
             NSIntSet s(y_succ[j], yj.S.max());
             s.intersect(yj.S);
-            if (j > 1 && s == that.at(j-1).S) {
+            if (j > 1 && s == that.at(j - 1).S) {
               that.at(j).l++;
               that.at(j).u++;
             }
-            else {
+            else
               that.blocks().insert(h, j, DSBlock(h, DSIntSet(h, s), 1, 1));
-            }
             if (that._changed)
               that.normalize(h);
             return true;
@@ -1523,14 +1528,14 @@ namespace Gecode { namespace String {
         return false;
       if (that._changed)
         that.normalize(h);
-      //std::cerr << "After lex: y = " << that << '\n';
+      // std::cerr << "After lex: y = " << that << '\n';
     }
     return true;
   }
 
   forceinline bool
   DashedString::check_lex(const DashedString& that, bool lt) const {
-//    std::cout << "check_lex " << *this << " " << that << "\n";
+    // std::cout << "check_lex " << *this << " " << that << "\n";
     if (_min_length == 0)
       return (!lt || that.max_length() > 0);
     if (that.max_length() == 0)
