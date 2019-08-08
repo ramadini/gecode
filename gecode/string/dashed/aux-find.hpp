@@ -129,10 +129,14 @@ namespace Gecode { namespace String {
         // p_reg[i].u - p.reg[i].l + p_l <= xi.u.
         u += p_reg[i].u;
       }
-      // std::cerr << p_l << ' ' << u << '\n';
+      // std::cerr << p_reg << ' ' << p_l << '\n';
       if (xi.l > u)
         return false;
       modx = true;
+      if (u == 0) {
+        upx.push(std::make_pair(i, NSBlocks(1)));
+        continue;
+      }
       if (xi.l == p_l && u <= xi.u)
         upx.push(std::make_pair(i, p_reg));
       else {
