@@ -345,12 +345,10 @@ namespace Gecode { namespace String {
     return l;
   }
 
-  // Set up latest/earliest start/end positions for x-blocks in y. The find
-  // parameter is set to 1 by the find propagator, the rep parameter is set to 1
-  // by the replace propagator.
+  // Set up latest/earliest start/end positions for x-blocks in y.
   template <class Block1, class Blocks1, class Block2, class Blocks2>
   forceinline bool
-  init_x(const Blocks1& x, const Blocks2& y, matching& m, bool find = false) {
+  init_x(const Blocks1& x, const Blocks2& y, matching& m) {
     Position firstf {0, 0};
     int xlen = x.length(), ylen = y.length();
     if (xlen == 0) {
@@ -358,8 +356,8 @@ namespace Gecode { namespace String {
         return true;
       Position firstb(first_bwd(y));
       for (int i = 0; i < ylen; ++i) {
-        if (!find && lower(y.at(i)) > 0)
-            return false;
+        if (lower(y.at(i)) > 0)
+          return false;
         m.lep.push(firstf);
         m.esp.push(firstb);
       }
@@ -368,7 +366,7 @@ namespace Gecode { namespace String {
     if (ylen == 0) {
       Position firstb(first_bwd(y));
       for (int i = 0; i < xlen; ++i) {
-        if (!find && lower(x.at(i)) > 0)
+        if (lower(x.at(i)) > 0)
           return false;
         m.lep.push(firstf);
         m.esp.push(firstb);
@@ -381,24 +379,22 @@ namespace Gecode { namespace String {
       m.lep.push(firstb);
     }
     // Stretching forward for latest end positions.
-    if (!find) {
-      Position curr = firstf;
-      for (int i = 0; i < xlen; ++i) {
-        curr = stretch<Fwd, Block1, Block2, Blocks2>(y, x.at(i), curr, lastf);
-        m.lep[i] = dual(y, curr);
-        // std::cerr << i << ": LEP(" << x.at(i) << ") = " << m.lep[i] << "\n";
-      }
-      if (Bwd::lt(firstb, m.lep.last()))
-        return false;
+    Position curr = firstf;
+    for (int i = 0; i < xlen; ++i) {
+      curr = stretch<Fwd, Block1, Block2, Blocks2>(y, x.at(i), curr, lastf);
+      m.lep[i] = dual(y, curr);
+      // std::cerr << i << ": LEP(" << x.at(i) << ") = " << m.lep[i] << "\n";
     }
+    if (Bwd::lt(firstb, m.lep.last()))
+      return false;
     // Stretching backward for earliest start positions.
-    Position curr = firstb;
+    curr = firstb;
     for (int i = xlen - 1; i >= 0; --i) {
       curr = stretch<Bwd, Block1, Block2, Blocks2>(y, x.at(i), curr, lastb);      
       m.esp[i] = dual(y, curr);
       // std::cerr << i << ": ESP(" << x.at(i) << ") = " << m.esp[i] << "\n";
     }
-    return !find || !Fwd::lt(firstf, m.esp[0]);
+    return !Fwd::lt(firstf, m.esp[0]);
   }
 
   // Matches each x-block against the blocks of y, and records into up parameter

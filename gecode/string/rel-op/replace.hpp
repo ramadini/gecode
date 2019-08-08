@@ -224,7 +224,7 @@ namespace Gecode { namespace String {
   
   forceinline ExecStatus
   Replace::propagate(Space& home, const ModEventDelta&) {
-    // std::cerr<<"\nReplace" << (all ? "All" : "") << "::propagate: "<< x <<"\n";
+    std::cerr<<"\nReplace" << (all ? "All" : "") << "::propagate: "<< x <<"\n";
     assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
            x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());
     if (!all && !check_card()) {
@@ -303,7 +303,7 @@ namespace Gecode { namespace String {
     // earliest/latest start/end positions of x[0] in x[2] to possibly refine 
     // x[3] via equation.
     Position pos[2];
-    // std::cerr << "min_occur: " << min_occur << "\n";
+    std::cerr << "min_occur: " << min_occur << "\n";
     if (sweep_replace(*x[0].pdomain(), *x[2].pdomain(), pos)) {
       // Prefix: x[2][: es]
       NSBlocks v;
@@ -328,8 +328,9 @@ namespace Gecode { namespace String {
       if (le != Position({x[2].pdomain()->length(), 0}))
         v.extend(suffix(2, le));      
       v.normalize();
+      std::cerr << v << "\n";
       GECODE_ME_CHECK(x[3].dom(home, v));
-      // std::cerr << "Equating y' with " << v << "  =>  " << x[3] << "\n";
+      std::cerr << "Equated y' with " << v << "  =>  " << x[3] << "\n";
     }
     else {
       rel(home, x[2], STRT_EQ, x[3]);
@@ -362,8 +363,9 @@ namespace Gecode { namespace String {
       if (le != Position({x[3].pdomain()->length(), 0}))
         v.extend(suffix(3, le));
       v.normalize();
+      std::cerr << v << "\n";
       GECODE_ME_CHECK(x[2].dom(home, v));
-      // std::cerr << "Equating y with " << v << "  =>  " << x[2] << "\n";
+      std::cerr << "Equated y with " << v << "  =>  " << x[2] << "\n";
     }
     else {
       find(home, x[0], x[2], IntVar(home, 0, 0));
@@ -374,7 +376,7 @@ namespace Gecode { namespace String {
       rel(home, x[2], STRT_EQ, x[3]);
       return home.ES_SUBSUMED(*this);
     }
-    // std::cerr<<"After replace: "<< x <<"\n";
+    std::cerr<<"After replace: "<< x <<"\n";
     switch (
       x[0].assigned() + x[1].assigned() + x[2].assigned() + x[3].assigned()
     ) {

@@ -19,6 +19,8 @@ class Ex7 : public Script {
 
 public:
 
+  static bool sat;
+
   Ex7(Ex7& s): Script(s) {
     int_vars.update(*this, s.int_vars);
     string_vars.update(*this, s.string_vars);
@@ -60,6 +62,7 @@ public:
 
   virtual void
   print(std::ostream& os) const {
+    sat = true;
     string x1 = string_vars[0].val(), y1 = string_vars[1].val(),
            x2 = string_vars[2].val(), y2 = string_vars[3].val();
     int n1 = int_vars[0].val(), n2 = int_vars[1].val();
@@ -75,9 +78,12 @@ public:
 
 };
 
+bool Ex7::sat = false;
+
 int main() {
   StringOptions opt("*** Ex7 ***");
   opt.solutions(5);
   Script::run<Ex7, DFS, StringOptions>(opt);
+  assert (Ex7::sat);
   return 0;
 }
