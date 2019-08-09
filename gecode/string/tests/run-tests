@@ -75,7 +75,7 @@ then
     echo "===== Done! ====="
   done
 fi &&
-mzn-gstrings $TEST_DIR/test.mzn > $X;
+mzn-gstrings $TEST_DIR/test.mzn > $X
 Y=$TEST_DIR/output_mzn;
 diff $X $Y > $Z
 if
@@ -87,9 +87,21 @@ then
 fi &&
 cat $X && 
 mzn-gstrings $TEST_DIR/ex_js.mzn > $X;
-x=`grep SVAL_TMP3 "$X" | awk -F" = " '{print $2}'`;
+x=`grep SVAL_TMP3 "$X" | awk -F" = " '{print $2}'`
 if
   [ "$x" == "Hello0;" ]
+then
+  cat $X
+else
+  echo "Error! MZN output not expected!"
+  cat $X
+  exit 1
+fi &&
+mzn-gstrings $TEST_DIR/decode.mzn > $X
+echo "Solving decode.mzn"
+x=`grep "x = array1d" "$X" | awk -F" = " '{print $2}'`
+if
+  [ "$x" == "array1d(1..3, [00011011, 01001011, 0000]);" ]
 then
   cat $X
 else
