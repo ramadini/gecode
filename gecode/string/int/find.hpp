@@ -188,11 +188,8 @@ namespace Gecode { namespace String {
     }
     else {
       // Can't modify x and y.
-      if (u == 0) {
+      if (u == 0)
         GECODE_ME_CHECK(x2.eq(home, 0));
-        // std::cerr << "After find: x2 " << x2 << "\n";
-        return home.ES_SUBSUMED(*this);
-      }
       if (l > 1) {
         IntSet s(1, l - 1);
         IntSetRanges is(s);

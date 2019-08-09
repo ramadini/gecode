@@ -1085,7 +1085,7 @@ namespace Gecode { namespace String {
     }
     a == 0 ? _commit0(h, l, v, i) : _commit1(h, l, v, i);
     _changed = true;
-    //std::cerr<<"Set: "<<*this<<" ["<<_min_length<<", "<< _max_length <<"]\n";   
+    // std::cerr<<"Set: "<<*this<<" ["<<_min_length<<", "<< _max_length <<"]\n";   
     assert (is_normalized());
   }
   
@@ -1142,6 +1142,10 @@ namespace Gecode { namespace String {
         }
       } while (again);
     }
+    if (_changed && !refine_card(h, _min_length, _max_length))
+      return false;
+    if (x._changed && !x.refine_card(h, x._min_length, x._max_length))
+      return false;
     return true;
   }
 
