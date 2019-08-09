@@ -1,7 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Given a fixed strings W_in of n ASCII characters, and and fixed string W_out %
-% of m >= n bits, determine if there exists a prefix-code (possibly having     %
-% variable length) mapping W_in to (a substring of) W_out.                     %                                   %
+% Given a fixed string W_in of n ASCII characters, and a fixed string W_out of %
+% m >= n bits, determine if there is a prefix-code (possibly having variable   %
+% length) mapping W_in to (a substring of) W_out.                              %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % True iff the code is fixed-length.
