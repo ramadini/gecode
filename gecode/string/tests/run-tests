@@ -97,11 +97,11 @@ else
   cat $X
   exit 1
 fi &&
-mzn-gstrings $TEST_DIR/decode.mzn > $X
 echo "Solving decode.mzn"
-x=`grep "x = array1d" "$X" | awk -F" = " '{print $2}'`
+mzn-gstrings $TEST_DIR/decode.mzn > $X
+x=`grep "x = array1d" "$X" | awk -F"[" '{print $2}' | sed "s/]);//g"`
 if
-  [ "$x" == "array1d(1..3, [00011011, 01001011, 0000]);" ]
+  [ "$x" == "0110001101, 1, 00, 01110, 0110111001101100001011001100110111101110, 0100111, 01000110, 0101" ]
 then
   cat $X
 else
