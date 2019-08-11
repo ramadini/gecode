@@ -5,7 +5,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % True iff the code is fixed-length.
-bool: FIXED_LENGTH = false;
+bool: FIXED_LENGTH = true;
 % Input string.
 string: W_in = "cassaforte";
 int: n = string_length(W_in);
@@ -47,7 +47,6 @@ constraint forall (i in 1..d) (
   )
 );
 constraint y[d] = str_gconcat(z);
-constraint y[d] = "01100011011000010111001101110011011000010110011001101111011100100111010001100101";
 constraint idx = str_find(y[d], W_out);
 
 solve satisfy;
