@@ -31,7 +31,7 @@ namespace Gecode { namespace String {
 
   forceinline bool
   GConcat::refine_card(Space& home) {
-    std::cerr << "GConcat<StringView>::refine_card " << y << "\n";
+    // std::cerr << "GConcat<StringView>::refine_card " << y << "\n";
     long lx = 0, ux = 0;
     for (auto xi : x) {
       lx += xi.min_length();
@@ -126,7 +126,7 @@ namespace Gecode { namespace String {
         assert (xi.pdomain()->is_normalized());
       }
     }
-    std::cerr<<"propagated "<<y<<" = gconcat("<<x<<")\n";
+    // std::cerr<<"propagated "<<y<<" = gconcat("<<x<<")\n";
     return x.assigned() ? ES_NOFIX : ES_FIX;
   }
 
