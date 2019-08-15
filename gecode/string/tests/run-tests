@@ -31,12 +31,7 @@ then
     timeout 2 $TEST_CMD $TEST_DIR/sql.cpp 1000  &&
     timeout 2 $TEST_CMD $TEST_DIR/sql.cpp 2500  &&
     timeout 3 $TEST_CMD $TEST_DIR/sql.cpp 5000  &&
-    timeout 2 $TEST_CMD $TEST_DIR/sql.cpp 10000 &&
-    declare -a TESTS=( \
-      'str_test1.cpp' 'str_test2.cpp' 'str_ex1.cpp' 'str_ex2.cpp' 'str_ex3.cpp'\      
-      'str_ex4.cpp' 'str_ex5.cpp' 'str_ex6.cpp' 'str_ex7.cpp' 'str_ex8.cpp'\
-      'str_ex9.cpp' 'str_ex10.cpp' 'str_ex11.cpp' 'str_ex12.cpp' \
-      'palindrome.cpp' 'gray.cpp' 'min_superstr.cpp')
+    timeout 2 $TEST_CMD $TEST_DIR/sql.cpp 10000
   else
     # Debug mode.
     for i in 11 12 100 200 250 300 400 500
@@ -56,13 +51,13 @@ then
       then
         exit 1
       fi
-    done &&
-    declare -a TESTS=( \
-      'str_test2.cpp' 'str_ex1.cpp' 'str_ex2.cpp' 'str_ex3.cpp'\
+    done
+  fi
+  declare -a TESTS=( \
+      'str_test1.cpp' 'str_test2.cpp' 'str_ex1.cpp' 'str_ex2.cpp' 'str_ex3.cpp'\
       'str_ex4.cpp' 'str_ex5.cpp' 'str_ex6.cpp' 'str_ex7.cpp' 'str_ex8.cpp'\
       'str_ex9.cpp' 'str_ex10.cpp' 'str_ex11.cpp' 'str_ex12.cpp'\
       'palindrome.cpp' 'gray.cpp' 'min_superstr.cpp')
-  fi &&
   for t in "${TESTS[@]}"
   do
     echo "===== Testing $t ====="

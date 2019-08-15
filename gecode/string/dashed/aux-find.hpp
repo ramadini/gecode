@@ -217,6 +217,24 @@ namespace Gecode { namespace String {
         h, x.blocks(), y.blocks(), m, upx, upy, modx, mody
       ))
         return false;
+      int k = 0;
+      for (auto u : upx) {
+        const NSBlocks& us = u.second;
+        while (u.first == k && 
+        (us.size() == 0 || (us.size() == 1 && us[0].null()))) {
+          ++k;
+        }
+      }
+      int n = m.esp[k].off + 1;
+      for (int i = 0; i < m.esp[k].idx; ++i)
+        n += y.at(i).l;
+      if (n > lb)
+        lb = n;
+      n = y.at(m.lep[k].idx).u - m.lep[k].off - x.at(k).l + 1;
+      for (int i = 0; i < m.lep[k].idx; ++i)
+        n += y.at(i).u;
+      if (n < ub)
+        ub = n;
       NSIntSet ychars = y.may_chars();
       // Nullify incompatible x-blocks.
       for (int i = 0; i < x.length(); ++i)
@@ -226,9 +244,10 @@ namespace Gecode { namespace String {
           modx = true;
         }
       if (modx)
-        refine_eq(h, x, upx);
+        refine_eq(h, x, upx);      
       if (mody)
         refine_eq(h, y, upy);
+      
     }
     // std::cerr<<"swept: "<<x<<' '<<y<<' '<<"["<<lb<<", "<<ub<<"] "<<mod<<'\n';
     return true;
