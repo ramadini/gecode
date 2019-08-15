@@ -657,25 +657,25 @@ public:
 };
 
 int main() {
-//  (new StrTest())->test01();
-//  (new StrTest())->test02();
-//  (new StrTest())->test03();
-//  (new StrTest())->test04();
-//  (new StrTest())->test05();
-//  (new StrTest())->test06();
-//  (new StrTest())->test07();
-//  (new StrTest())->test08();
-//  (new StrTest())->test09();
-//  (new StrTest())->test10();
-//  (new StrTest())->test11();
-//  (new StrTest())->test12();
-//  (new StrTest())->test13();
+  (new StrTest())->test01();
+  (new StrTest())->test02();
+  (new StrTest())->test03();
+  (new StrTest())->test04();
+  (new StrTest())->test05();
+  (new StrTest())->test06();
+  (new StrTest())->test07();
+  (new StrTest())->test08();
+  (new StrTest())->test09();
+  (new StrTest())->test10();
+  (new StrTest())->test11();
+  (new StrTest())->test12();
+  (new StrTest())->test13();
   (new StrTest())->test14();
-//  (new StrTest())->test15();
-//  (new StrTest())->test16();
-//  (new StrTest())->test17();
-//  (new StrTest())->test18();
-//  (new StrTest())->test19();
-//  (new StrTest())->test20();
+  (new StrTest())->test15();
+  (new StrTest())->test16();
+  (new StrTest())->test17();
+  (new StrTest())->test18();
+  (new StrTest())->test19();
+  (new StrTest())->test20();
   return 0;
 }
