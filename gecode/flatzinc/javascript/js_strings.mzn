@@ -1,17 +1,7 @@
-% FIXME: Just a workaround atm.
 function var string:
 js_split(var string: x, string: sep) ::promise_total = 
-let {
-  var string of {","}: y;
-  constraint str_len(y) = 2 * str_gcc(x, [sep])[1] + 1;
-} in y;
-%let {
-%  array[int] of var string: A = str_split(x, sep, len);
-%  var string: y = str_gconcat([
-%    [A[i] ++ ",", ""][(A[i] = "\\x00") + 1] | i in index_set(A)
-%  ]);
-%} in str_sub(y, 1, str_len(y) - 1);
-
+  str_replace_all(sep, ",", x);
+  
 % Modelling x.slice(i, j).
 function var string:
 js_str_slice(var string: Sx, var string: Ni, var JSType: Tj, var string: Sj) 
