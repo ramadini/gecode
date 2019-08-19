@@ -40,7 +40,7 @@ set_length_builtin(
   if Tx = Str then
     set_prop_at(Ax, "length", Num, nat2str(str_len(Sx)), 0, i)
   elseif Tx = Array then
-    set_prop_at(Ax, "length", Num, nat2str(str_gcc(Sx, ["_"])[1]), 0, i)
+    set_prop_at(Ax, "length", Num, nat2str(str_gcc(Sx, ["~"])[1]), 0, i)
   else
     del_prop_at(i)
   endif;

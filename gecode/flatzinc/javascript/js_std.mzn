@@ -1,8 +1,8 @@
 % Auxiliary methods returning a temporary variable.
 function var string: 
 tmp_str_arr() ::promise_total = let { 
-  var string of {"_", ","}: x;
-  constraint str_reg(x, "(()|(_(,_)*))");
+  var string of {"~", ","}: x;
+  constraint str_reg(x, "(()|(~(,~)*))");
 } in x;
 function var int:
 tmp_int() ::promise_total = let { var int: x } in x;
@@ -36,7 +36,7 @@ js_var(var JSType: Tx, var string: Sx, var 0..N_ADDRS: Ax) =
 %  (is_num(Sx) -> (Tx in {Num, Str} /\ (not(is_norm(Sx)) -> Tx = Str))) /\
   (Tx = Object -> Sx = "[object Object]") /\
 %  (Sx = "[object Object]" -> Tx in {Str, Object}) /\
-  (Tx = Array -> str_reg(Sx, "(()|(_(,_)*))")) /\ % FIXME: Workaround.
+  (Tx = Array -> str_reg(Sx, "(()|(~(,~)*))")) /\ % FIXME: Workaround.
   (Tx = Function -> str_find("function ", Sx) = 1) /\  
   Ax <= N_ADDRS /\ Ax >= is_obj(Tx);
 
