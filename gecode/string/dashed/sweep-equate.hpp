@@ -344,6 +344,28 @@ namespace Gecode { namespace String {
     }
     return l;
   }
+  
+  // Returns true iff region x[p,q] is nullable (considering positive offsets).
+  template <class Blocks>
+  forceinline bool
+  nullable_fwd(const Blocks& x, Position& p, Position& q) {
+    if (Fwd::le(q, p, x.at(p.idx).u))
+      return true;
+    if (p.idx == q.idx) {
+      if (q.off - p.off > upper(x.at(p.idx)) - lower(x.at(p.idx)))
+        return false;      
+    }
+    else {
+      if (p.off < x.at(p.idx).l || min(x.at(q.idx).l, q.off) > 0)
+        return false;
+      for (int i = p.idx + 1; i < q.idx; ++i)
+        if (x.at(i).l > 0)
+          return false;  
+    }
+    assert (!DashedString::_QUAD_SWEEP);
+    q = p;
+    return true;
+  }
 
   // Set up latest/earliest start/end positions for x-blocks in y.
   template <class Block1, class Blocks1, class Block2, class Blocks2>
@@ -450,17 +472,8 @@ namespace Gecode { namespace String {
       Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i]; // Bwd.
       // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
       //   <<" ls: "<<ls<<" le: "<<le<<'\n';
-      if (!Fwd::le(es, ls, upper(y.at(ls.idx)))) {
-        if (es.idx == ls.idx) {
-          if (es.off - ls.off > upper(y.at(es.idx)) - lower(y.at(es.idx)))
-            return false;
-          es = ls;
-        }
-        else {
-          assert (!DashedString::_QUAD_SWEEP);
-          return false;
-        }
-      } 
+      if (!nullable_fwd(y, ls, es))
+        return false;      
       if (!Bwd::le(le, ee, upper(y.at(ee.idx)))) {
         if (ee.idx == le.idx) {
           if (ee.off - le.off > upper(y.at(ee.idx)) - lower(y.at(ee.idx)))

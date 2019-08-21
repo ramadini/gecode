@@ -71,7 +71,7 @@ namespace Gecode { namespace String {
     
     forceinline static bool
     le(const Position& x, const Position& y, int u) {
-      return x == y || (x.idx == y.idx + 1 && x.off == 0 && y.off == u) || 
+      return x == y || (x.idx == y.idx + 1 && (x.off == 0 && y.off == u)) || 
         lt(x, y);
     }
 
