@@ -444,6 +444,33 @@ namespace Gecode { namespace String {
     return !Fwd::lt(firstf, m.esp[0]);
   }
 
+  // Feasibility checks on earliest/latest start/end positions.
+  template <class Blocks>
+  forceinline bool
+  feasible(
+    const Blocks& x, Position& es, Position& ls, Position& ee, Position& le
+  ) {
+    if (!Fwd::le(es, ls, upper(x.at(ls.idx)))) {
+      if (es.idx == ls.idx) {
+        if (es.off - ls.off > upper(x.at(es.idx)) - lower(x.at(es.idx)))
+          return false;
+        es.off = ls.off;
+      }
+      else
+        return false;
+    } 
+    if (!Bwd::le(le, ee, upper(x.at(ee.idx)))) {
+      if (ee.idx == le.idx) {
+        if (ee.off - le.off > upper(x.at(ee.idx)) - lower(x.at(ee.idx)))
+          return false;
+        le.off = ee.off;
+      }
+      else
+        return false;
+    }
+    return true;
+  }
+
   // Matches each x-block against the blocks of y, and records into up parameter
   // all the blocks that must be updated.
   template <class Block1, class Blocks1, class Block2, class Blocks2>
@@ -497,7 +524,7 @@ namespace Gecode { namespace String {
       Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i]; // Bwd.
       // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
       //   <<" ls: "<<ls<<" le: "<<le<<'\n';
-      if (!nullable_fwd(y, ls, es) || !nullable_bwd(y, le, ee))
+      if (!feasible(y, es, ls, ee, le))
         return false;
       Block1& xi = x.at(i);
       if (xi.known())
@@ -628,7 +655,7 @@ namespace Gecode { namespace String {
       Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i]; // Bwd.
       // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
          // <<" ls: "<<ls<<" le: "<<le<<'\n';
-      if (!nullable_fwd(y, ls, es) || !nullable_bwd(y, le, ee))
+      if (!feasible(y, es, ls, ee, le))
         return false;
     }
     return true;
