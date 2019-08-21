@@ -522,6 +522,27 @@ public:
     std::cerr << "y = " << y << std::endl;
     assert (ns_blocks(x) == vx);
   }
+  
+  void test22() {
+    std::cerr << "\n*** Test 22 ***" << std::endl;
+    NSBlocks vx({
+      NSBlock(NSIntSet('a', 'a'), 1, 2),
+      NSBlock(NSIntSet('b', 'b'), 1, 1),
+    });
+    NSBlocks vy({
+      NSBlock(NSIntSet('a', 'a'), 1, 1),
+      NSBlock(NSIntSet('a', 'b'), 2, 3),
+    });
+    DashedString x(*this, vx, min_length(vx), max_length(vx));
+    DashedString y(*this, vy, min_length(vy), max_length(vy));
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "y = " << y << std::endl;
+    assert (sweep_equate(*this, x, y));
+    std::cerr << "===== After Equate =====" << std::endl;
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "y = " << y << std::endl;
+    assert (x.val() == y.val() && y.val() == "aab");
+  }
 
 };
 
@@ -548,5 +569,6 @@ int main() {
   t->test19();
   t->test20();
   t->test21();
+  t->test22();
   return 0;
 }
