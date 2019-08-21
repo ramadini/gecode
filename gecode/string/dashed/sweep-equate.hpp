@@ -349,21 +349,46 @@ namespace Gecode { namespace String {
   template <class Blocks>
   forceinline bool
   nullable_fwd(const Blocks& x, Position& p, Position& q) {
-    if (Fwd::le(q, p, x.at(p.idx).u))
+    if (Fwd::le(q, p, upper(x.at(p.idx))))
       return true;
-    if (p.idx == q.idx) {
-      if (q.off - p.off > upper(x.at(p.idx)) - lower(x.at(p.idx)))
+    int pi = p.idx, qi = q.idx, po = p.off, qo = q.off;
+    if (pi == qi) {
+      if (qo - po > upper(x.at(pi)) - lower(x.at(pi)))
         return false;      
     }
     else {
-      if (p.off < x.at(p.idx).l || min(x.at(q.idx).l, q.off) > 0)
+      if (po < lower(x.at(pi)) || min(lower(x.at(qi)), qo) > 0)
         return false;
-      for (int i = p.idx + 1; i < q.idx; ++i)
-        if (x.at(i).l > 0)
+      for (int i = pi + 1; i < qi; ++i)
+        if (lower(x.at(i)) > 0)
           return false;  
     }
     assert (!DashedString::_QUAD_SWEEP);
     q = p;
+    return true;
+  }
+  
+  // Returns true iff region x[p,q] is nullable (considering negative offsets).
+  template <class Blocks>
+  forceinline bool
+  nullable_bwd(const Blocks& x, Position& p, Position& q) {
+    if (Bwd::le(p, q, upper(x.at(q.idx))))
+      return true;
+    int pi = p.idx, qi = q.idx, po = p.off, qo = q.off;
+    if (pi == qi) {
+      if (qo - po > upper(x.at(pi)) - lower(x.at(pi)))
+        return false;      
+    }
+    else {
+      if (po > upper(x.at(pi)) - lower(x.at(pi)) 
+      ||  min(lower(x.at(qi)), upper(x.at(qi)) - qo) > 0)
+        return false;
+      for (int i = pi + 1; i < qi; ++i)
+        if (lower(x.at(i)) > 0)
+          return false;  
+    }
+    assert (!DashedString::_QUAD_SWEEP);
+    p = q;
     return true;
   }
 
@@ -472,19 +497,8 @@ namespace Gecode { namespace String {
       Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i]; // Bwd.
       // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
       //   <<" ls: "<<ls<<" le: "<<le<<'\n';
-      if (!nullable_fwd(y, ls, es))
-        return false;      
-      if (!Bwd::le(le, ee, upper(y.at(ee.idx)))) {
-        if (ee.idx == le.idx) {
-          if (ee.off - le.off > upper(y.at(ee.idx)) - lower(y.at(ee.idx)))
-            return false;
-          le = ee;
-        }
-        else {
-          assert (!DashedString::_QUAD_SWEEP);
-          return false;
-        }
-      }
+      if (!nullable_fwd(y, ls, es) || !nullable_bwd(y, le, ee))
+        return false;
       Block1& xi = x.at(i);
       if (xi.known())
         continue;
@@ -614,28 +628,8 @@ namespace Gecode { namespace String {
       Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i]; // Bwd.
       // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
          // <<" ls: "<<ls<<" le: "<<le<<'\n';
-      if (!Fwd::le(es, ls, upper(y.at(ls.idx)))) {
-        if (es.idx == ls.idx) {
-          if (es.off - ls.off > upper(y.at(es.idx)) - lower(y.at(es.idx)))
-            return false;
-          ls = es;
-        }
-        else {
-          assert (!DashedString::_QUAD_SWEEP);
-          return false;
-        }
-      } 
-      if (!Bwd::le(le, ee, upper(y.at(ee.idx)))) {
-        if (ee.idx == le.idx) {
-          if (ee.off - le.off > upper(y.at(ee.idx)) - lower(y.at(ee.idx)))
-            return false;
-          ee = le;
-        }
-        else {
-          assert (!DashedString::_QUAD_SWEEP);
-          return false;
-        }
-      }
+      if (!nullable_fwd(y, ls, es) || !nullable_bwd(y, le, ee))
+        return false;
     }
     return true;
   }
