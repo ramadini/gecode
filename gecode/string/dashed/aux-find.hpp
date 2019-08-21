@@ -88,23 +88,8 @@ namespace Gecode { namespace String {
         ymatch[es.idx].push(i);
       Position ls = i ? dual(y, m.lep[i - 1]) : m.esp[0];
       Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i];
-      if (!Fwd::le(es, ls, upper(y.at(ls.idx)))) {
-        if (es.idx == ls.idx) {
-          if (es.off - ls.off > upper(y.at(es.idx)) - lower(y.at(es.idx)))
-            return false;
-          es = ls;
-        }
+      if (!feasible(y, es, ls, ee, le))
         return false;
-      } 
-      if (!Bwd::le(le, ee, upper(y.at(ee.idx)))) {
-        if (ee.idx == le.idx) {
-          if (ee.off - le.off > upper(y.at(ee.idx)) - lower(y.at(ee.idx)))
-            return false;
-          le = ee;
-        }
-        else
-          return false;
-      }
       // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
       //  <<" ls: "<<ls<<" le: "<<le<<'\n';
       if (xi.known())
@@ -326,25 +311,8 @@ namespace Gecode { namespace String {
       Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i];
       // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
       //  <<" ls: "<<ls<<" le: "<<le<<'\n';
-      if (!Fwd::le(es, dual(y, le), upper(y.at(le.idx))))
+      if (!feasible(y, es, ls, ee, le))
         return false;
-      if (!Fwd::le(es, ls, upper(y.at(ls.idx)))) {
-        if (es.idx == ls.idx) {
-          if (es.off - ls.off > upper(y.at(es.idx)) - lower(y.at(es.idx)))
-            return false;
-          es = ls;
-        }
-        return false;
-      } 
-      if (!Bwd::le(le, ee, upper(y.at(ee.idx)))) {
-        if (ee.idx == le.idx) {
-          if (ee.off - le.off > upper(y.at(ee.idx)) - lower(y.at(ee.idx)))
-            return false;
-          le = ee;
-        }
-        else
-          return false;
-      }
       if (i == 0)
         pos[0] = es;
       if (i == xlen - 1)

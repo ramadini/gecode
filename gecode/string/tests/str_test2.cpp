@@ -64,7 +64,7 @@ public:
 
   void test02() {
     std::cerr << "\n*** Test 02 ***" << std::endl;
-    int n = 1000;
+    int n = 10;
     NSBlocks vx({
       NSBlock(NSIntSet('a', 'c'), 0, 30 * n),
       NSBlock(NSIntSet('d', 'd'), 5 * n, 5 * n),
