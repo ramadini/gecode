@@ -653,6 +653,28 @@ public:
     std::cerr << "D(y) :: " << y << '\n';
     std::cerr << "n1 :: " << n1 << '\n';
   }
+  void test21() {
+    std::cerr << "\n*** Test 21 ***" << std::endl;
+    NSIntSet s('B', 'C');
+    s.add(' ');
+    s.add('=');    
+    NSBlocks vx({
+      NSBlock(NSIntSet('A', 'A'), 1, 1),
+      NSBlock(NSIntSet('=', '='), 1, 1),
+      NSBlock(NSIntSet('B', 'B'), 1, 1),
+      NSBlock(s, 0, 5),
+      NSBlock(NSIntSet('C', 'C'), 1, 1),
+      NSBlock(NSIntSet('=', '='), 1, 1),
+      NSBlock(s, 0, 5),
+      NSBlock(NSIntSet('C', 'C'), 1, 1),
+    });
+    DashedString x(*this, vx, 0, 100);
+    DashedString y(*this, "A=B=C = B=C");
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "y = " << y << std::endl;
+    assert (!sweep_equate(*this, x, y));
+    std::cerr << "===== UNSATISFIABLE =====" << std::endl;
+  }
 
 };
 
@@ -677,5 +699,6 @@ int main() {
   (new StrTest())->test18();
   (new StrTest())->test19();
   (new StrTest())->test20();
+  (new StrTest())->test21();
   return 0;
 }
