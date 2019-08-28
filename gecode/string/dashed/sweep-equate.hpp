@@ -468,6 +468,7 @@ namespace Gecode { namespace String {
       else
         return false;
     }
+    assert (Fwd::le(es, dual(x, le), upper(x.at(le.idx))));
     return true;
   }
 
