@@ -553,8 +553,7 @@ namespace Gecode { namespace String {
         u += min(k + p_reg[i].l, p_reg[i].u);
       }
       // std::cerr << p_l << ' ' << u << '\n';
-      if (xi.l > u)
-        return false;      
+      assert (xi.l <= u);
       if (u == 0) {
         up.push(std::make_pair(i, NSBlocks(1)));
         continue;
@@ -581,7 +580,7 @@ namespace Gecode { namespace String {
           NSBlocks b(1, NSBlock(xi.S, max(p_l, xi.l), min(u, xi.u)));
           up.push(std::make_pair(i, b));
           // std::cerr << "2) x'_i: " << b << "\n";
-        }       
+        }
         continue;
       }
       // The matching region _must_ contain at least a character.
