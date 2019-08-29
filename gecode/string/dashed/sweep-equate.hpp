@@ -444,10 +444,10 @@ namespace Gecode { namespace String {
     return !Fwd::lt(firstf, m.esp[0]);
   }
 
-  // Feasibility checks on earliest/latest start/end positions.
+  // Sanity checks on earliest/latest start/end positions.
   template <class Blocks>
   forceinline bool
-  feasible(
+  check_positions(
     const Blocks& x, Position& es, Position& ls, Position& ee, Position& le
   ) {
     if (!Fwd::le(es, ls, upper(x.at(ls.idx)))) {
@@ -525,7 +525,7 @@ namespace Gecode { namespace String {
       Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i]; // Bwd.
       // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
       //   <<" ls: "<<ls<<" le: "<<le<<'\n';
-      if (!feasible(y, es, ls, ee, le))
+      if (!check_positions(y, es, ls, ee, le))
         return false;
       Block1& xi = x.at(i);
       if (xi.known())
@@ -656,7 +656,7 @@ namespace Gecode { namespace String {
       Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i]; // Bwd.
       // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
          // <<" ls: "<<ls<<" le: "<<le<<'\n';
-      if (!feasible(y, es, ls, ee, le))
+      if (!check_positions(y, es, ls, ee, le))
         return false;
     }
     return true;
