@@ -653,6 +653,7 @@ public:
     std::cerr << "D(y) :: " << y << '\n';
     std::cerr << "n1 :: " << n1 << '\n';
   }
+  
   void test21() {
     std::cerr << "\n*** Test 21 ***" << std::endl;
     NSIntSet s('B', 'C');
@@ -670,6 +671,24 @@ public:
     });
     DashedString x(*this, vx, 0, 100);
     DashedString y(*this, "A=B=C = B=C");
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "y = " << y << std::endl;
+    assert (!sweep_equate(*this, x, y));
+    std::cerr << "===== UNSATISFIABLE =====" << std::endl;
+  }
+
+  void test22() {
+    std::cerr << "\n*** Test 22 ***" << std::endl;
+    NSBlocks v("axb");
+    v.extend(NSBlocks({NSBlock(NSIntSet::top(), 1, 1)}));
+    v.extend(NSBlocks("xyz"));
+    
+    NSBlocks w(NSBlocks({NSBlock(NSIntSet::top(), 1, 3)}));
+    w.extend(NSBlocks("xy"));
+    w.extend(NSBlocks({NSBlock(NSIntSet::top(), 0, 3)}));
+    
+    DashedString x(*this, v, 0, 10);
+    DashedString y(*this, w, 0, 10);
     std::cerr << "x = " << x << std::endl;
     std::cerr << "y = " << y << std::endl;
     assert (!sweep_equate(*this, x, y));
@@ -700,5 +719,6 @@ int main() {
   (new StrTest())->test19();
   (new StrTest())->test20();
   (new StrTest())->test21();
+  (new StrTest())->test22();
   return 0;
 }
