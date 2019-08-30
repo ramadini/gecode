@@ -345,53 +345,6 @@ namespace Gecode { namespace String {
     return l;
   }
   
-  // Returns true iff region x[p,q] is nullable (considering positive offsets).
-  template <class Blocks>
-  forceinline bool
-  nullable_fwd(const Blocks& x, Position& p, Position& q) {
-    if (Fwd::le(q, p, upper(x.at(p.idx))))
-      return true;
-    int pi = p.idx, qi = q.idx, po = p.off, qo = q.off;
-    if (pi == qi) {
-      if (qo - po > upper(x.at(pi)) - lower(x.at(pi)))
-        return false;      
-    }
-    else {
-      if (po < lower(x.at(pi)) || min(lower(x.at(qi)), qo) > 0)
-        return false;
-      for (int i = pi + 1; i < qi; ++i)
-        if (lower(x.at(i)) > 0)
-          return false;  
-    }
-    assert (!DashedString::_QUAD_SWEEP);
-    q = p;
-    return true;
-  }
-  
-  // Returns true iff region x[p,q] is nullable (considering negative offsets).
-  template <class Blocks>
-  forceinline bool
-  nullable_bwd(const Blocks& x, Position& p, Position& q) {
-    if (Bwd::le(p, q, upper(x.at(q.idx))))
-      return true;
-    int pi = p.idx, qi = q.idx, po = p.off, qo = q.off;
-    if (pi == qi) {
-      if (qo - po > upper(x.at(pi)) - lower(x.at(pi)))
-        return false;      
-    }
-    else {
-      if (po > upper(x.at(pi)) - lower(x.at(pi)) 
-      ||  min(lower(x.at(qi)), upper(x.at(qi)) - qo) > 0)
-        return false;
-      for (int i = pi + 1; i < qi; ++i)
-        if (lower(x.at(i)) > 0)
-          return false;  
-    }
-    assert (!DashedString::_QUAD_SWEEP);
-    p = q;
-    return true;
-  }
-
   // Set up latest/earliest start/end positions for x-blocks in y.
   template <class Block1, class Blocks1, class Block2, class Blocks2>
   forceinline bool
