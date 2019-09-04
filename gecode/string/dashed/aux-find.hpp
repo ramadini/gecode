@@ -88,7 +88,7 @@ namespace Gecode { namespace String {
         ymatch[es.idx].push(i);
       Position ls = i ? dual(y, m.lep[i - 1]) : m.esp[0];
       Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i];
-      if (!feasible(y, es, ls, ee, le))
+      if (!check_positions(y, es, ls, ee, le))
         return false;
       // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
       //  <<" ls: "<<ls<<" le: "<<le<<'\n';
@@ -311,7 +311,7 @@ namespace Gecode { namespace String {
       Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i];
       // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
       //  <<" ls: "<<ls<<" le: "<<le<<'\n';
-      if (!feasible(y, es, ls, ee, le))
+      if (!check_positions(y, es, ls, ee, le))
         return false;
       if (i == 0)
         pos[0] = es;
