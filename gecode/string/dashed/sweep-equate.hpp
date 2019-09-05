@@ -9,8 +9,8 @@ namespace Gecode { namespace String {
   // Given block b and initial position p, find the earliest start/end for b in 
   // x starting from p (note that push can skip incompatible x-blocks).
   // The position returned is the earliest start of b, while p will be updated 
-  // with its earliest end. If there is no match for b, it returns end (i.e., 
-  // the position of the last x-block).
+  // with its earliest end. If it returns end then there is no match for b in 
+  // x[p, end].
   template <class Succ, class Block1, class Block2, class Blocks2>
   forceinline Position
   push(const Blocks2& x, const Block1& b, Position& p, const Position& end) {
