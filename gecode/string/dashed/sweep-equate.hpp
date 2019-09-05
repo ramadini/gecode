@@ -58,7 +58,7 @@ namespace Gecode { namespace String {
     // std::cerr << "stretch " <<b<< " in " <<x<< " from " <<p<< " to " <<end<< "\n";  
     Position start(p);
     int ub = upper(b);
-    do {
+    while (Succ::lt(p, end)) {
       // End reached: we can stretch b until the end of x.
       if (!Succ::lt(p, end))
         return end;
@@ -79,13 +79,6 @@ namespace Gecode { namespace String {
         ub -= x_lb;
         NEXT(p, end);
       }
-    } while (ub > 0);
-    // Now consume any blocks we can skip.
-    while (Succ::lt(p, end)) {
-      const Block2& xi = x.at(p.idx);
-      if (lower(xi) > p.off)
-        break;
-      NEXT(p, end);
     }
     return p;
   }
