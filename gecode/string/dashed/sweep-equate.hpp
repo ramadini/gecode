@@ -400,8 +400,11 @@ namespace Gecode { namespace String {
   ) {
     if (!Fwd::le(es, ls, upper(x.at(ls.idx)))) {
       if (es.idx == ls.idx) {
-        if (es.off - ls.off > upper(x.at(es.idx)) - lower(x.at(es.idx)))
+        int d = upper(x.at(es.idx)) - lower(x.at(es.idx));
+        if (es.off - ls.off > d)
           return false;
+        assert (upper(x.at(0)) - lower(x.at(0)) >= d ||
+                upper(x.at(x.length()-1)) - lower(x.at(x.length()-1)) >= d);
         es.off = ls.off;
       }
       else
@@ -409,8 +412,11 @@ namespace Gecode { namespace String {
     } 
     if (!Bwd::le(le, ee, upper(x.at(ee.idx)))) {
       if (ee.idx == le.idx) {
-        if (ee.off - le.off > upper(x.at(ee.idx)) - lower(x.at(ee.idx)))
+        int d = upper(x.at(ee.idx)) - lower(x.at(ee.idx));
+        if (ee.off - le.off > d)
           return false;
+        assert (upper(x.at(0)) - lower(x.at(0)) >= d ||
+                upper(x.at(x.length()-1)) - lower(x.at(x.length()-1)) >= d);
         le.off = ee.off;
       }
       else
