@@ -16,29 +16,29 @@ namespace Gecode { namespace String {
   push(const Blocks2& x, const Block1& b, Position& p, const Position& end) {
     // std::cerr << "push " <<b<< " in " <<x<< " from " <<p<< " to " <<end<< "\n";  
     Position start(p); 
-    int lb = lower(b);
-    while (lb > 0) {
+    int k = lower(b);
+    while (k > 0) {
       // End reached: b has no match in x.
       if (!Succ::lt(p, end))
         return end;
       assert (p.idx >= 0 && p.idx < (int) x.length());
-      const Block2& xi = x.at(p.idx);
-      if (disjoint(b, xi)) {
+      const Block2& x_i = x.at(p.idx);
+      if (disjoint(b, x_i)) {
         NEXT(p, end);
-        if (p.off < lower(xi)) {
+        if (p.off < lower(x_i)) {
           // The current block _must_ start after here: we update start.
-          lb = lower(b);
+          k = lower(b);
           start = p;
         }
       }
       else {
         // Fit as much of x into pos.b as we can.
-        if (lb > upper(xi) - p.off) {
-          lb -= upper(xi) - p.off;
+        if (k > upper(x_i) - p.off) {
+          k -= upper(x_i) - p.off;
           NEXT(p, end);
         }
         else {
-          p.off += lb;
+          p.off += k;
           break;
         }
       }
@@ -57,26 +57,28 @@ namespace Gecode { namespace String {
   stretch(const Blocks2& x, const Block1& b, Position& p, const Position& end) {
     // std::cerr << "stretch " <<b<< " in " <<x<< " from " <<p<< " to " <<end<< "\n";  
     Position start(p);
-    int ub = upper(b);
+    int k = upper(b);
     while (Succ::lt(p, end)) {
       // End reached: we can stretch b until the end of x.
       if (!Succ::lt(p, end))
         return end;
-      const Block2& xi = x.at(p.idx);
-      int x_lb = lower(xi) - p.off;
-      if (x_lb <= 0) {
+      const Block2& x_i = x.at(p.idx);
+      int lb = lower(x_i) - p.off;
+      if (lb <= 0) {
         NEXT(p, end);
         continue;
       }
       // Block b is incompatible with x[p.idx].
-      if (disjoint(b, xi))
+      if (disjoint(b, x_i))
         return p;
-      if (ub < x_lb) {
-        p.off += ub;
+      // No more characters.
+      if (k < lb) {
+        p.off += k;
         return p;
       }
+      // Consume lb characters.
       else {
-        ub -= x_lb;
+        k -= lb;
         NEXT(p, end);
       }
     }
