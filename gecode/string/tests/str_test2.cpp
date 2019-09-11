@@ -537,11 +537,11 @@ public:
     DashedString y(*this, vy, min_length(vy), max_length(vy));
     std::cerr << "x = " << x << std::endl;
     std::cerr << "y = " << y << std::endl;
-    assert (sweep_equate(*this, x, y));
+    assert (sweep_equate(*this, x, y) && sweep_equate(*this, y, x));
     std::cerr << "===== After Equate =====" << std::endl;
     std::cerr << "x = " << x << std::endl;
     std::cerr << "y = " << y << std::endl;
-    assert (x.val() == y.val() && y.val() == "aab");
+    assert (x.val() == "aab" && y.min_length() == y.max_length());
   }
 
 };

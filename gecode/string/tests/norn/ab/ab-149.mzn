@@ -2,7 +2,7 @@ var string: var_0;
 var string: var_1;
 var string: var_2;
 var string: var_3;
-var string(100): var_4;
+var string(80): var_4;
 var string: var_5;
 var string: var_6;
 var string: var_7;

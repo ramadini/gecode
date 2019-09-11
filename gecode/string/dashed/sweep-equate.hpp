@@ -63,7 +63,18 @@ namespace Gecode { namespace String {
       if (!Succ::lt(p, end))
         return end;
       const Block2& x_i = x.at(p.idx);
-      int lb = lower(x_i) - p.off;
+      int lb;
+      if (Succ::fwd())
+        lb = lower(x_i) - p.off;
+      else {
+        int d = upper(x_i) - lower(x_i);
+        if (p.off < d) {
+          p.off = d;
+          lb = lower(x_i);
+        }
+        else
+          lb = upper(x_i) - p.off;
+      }
       if (lb <= 0) {
         NEXT(p, end);
         continue;
@@ -72,10 +83,10 @@ namespace Gecode { namespace String {
       if (disjoint(b, x_i))
         return p;
       // No more characters.
-      if (k < lb) {
-        p.off += k;
-        return p;
-      }
+       if (k < lb) {
+         p.off += k;
+         return p;
+       }
       // Consume lb characters.
       else {
         k -= lb;
@@ -343,9 +354,11 @@ namespace Gecode { namespace String {
   // Set up latest/earliest start/end positions for x-blocks in y.
   template <class Block1, class Blocks1, class Block2, class Blocks2>
   forceinline bool
-  init_x(const Blocks1& x, const Blocks2& y, matching& m) {
-    Position firstf {0, 0};
+  init_x(const Blocks1& x, const Blocks2& y, matching& m, 
+  Position start = Position({0, 0})) {
+    Position firstf = start;
     int xlen = x.length(), ylen = y.length();
+    // Checks for concrete strings.
     if (xlen == 0) {
       if (ylen == 0)
         return true;
@@ -398,30 +411,11 @@ namespace Gecode { namespace String {
   check_positions(
     const Blocks& x, Position& es, Position& ls, Position& ee, Position& le
   ) {
-    if (!Fwd::le(es, ls, upper(x.at(ls.idx)))) {
-      if (es.idx == ls.idx) {
-        int d = upper(x.at(es.idx)) - lower(x.at(es.idx));
-        if (es.off - ls.off > d)
-          return false;
-        assert (upper(x.at(0)) - lower(x.at(0)) >= d ||
-                upper(x.at(x.length()-1)) - lower(x.at(x.length()-1)) >= d);
-        es.off = ls.off;
-      }
-      else
-        return false;
-    } 
-    if (!Bwd::le(le, ee, upper(x.at(ee.idx)))) {
-      if (ee.idx == le.idx) {
-        int d = upper(x.at(ee.idx)) - lower(x.at(ee.idx));
-        if (ee.off - le.off > d)
-          return false;
-        assert (upper(x.at(0)) - lower(x.at(0)) >= d ||
-                upper(x.at(x.length()-1)) - lower(x.at(x.length()-1)) >= d);
-        le.off = ee.off;
-      }
-      else
-        return false;
-    }
+    //std::cerr<<"check "<<"  es: "<<es<<" ls: "<<ls<<" ee: "<<ee<<" le: "<<le<<'\n';
+    //std::cerr<<"in "<<x<<'\n';
+    if (!Fwd::le(es, ls, upper(x.at(ls.idx))) || 
+        !Bwd::le(le, ee, upper(x.at(ee.idx))))
+      return false;
     assert (Fwd::le(es, dual(x, le), upper(x.at(le.idx))));
     return true;
   }
@@ -477,8 +471,8 @@ namespace Gecode { namespace String {
       Position ls = i ? dual(y, m.lep[i - 1]) : m.esp[0]; // Fwd.
       Position le = m.lep[i]; // Bwd direction (negative offset).
       Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i]; // Bwd.
-      // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
-      //   <<" ls: "<<ls<<" le: "<<le<<'\n';
+      // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ls: "<<ls
+      //   <<" ee: "<<ee<<" le: "<<le<<'\n';
       if (!check_positions(y, es, ls, ee, le))
         return false;
       Block1& xi = x.at(i);
@@ -607,8 +601,8 @@ namespace Gecode { namespace String {
       Position ls = i ? dual(y, m.lep[i - 1]) : m.esp[0]; // Fwd.
       Position le = m.lep[i]; // Bwd direction (negative offset).
       Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i]; // Bwd.
-      // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
-         // <<" ls: "<<ls<<" le: "<<le<<'\n';
+      // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ls: "<<ls
+      //   <<" ee: "<<ee<<" le: "<<le<<'\n';
       if (!check_positions(y, es, ls, ee, le))
         return false;
     }

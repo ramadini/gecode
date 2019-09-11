@@ -172,14 +172,7 @@ namespace Gecode { namespace String {
     Space& h, DashedString& x, DashedString& y, int& lb, int& ub, bool mod
   ) {
     // std::cerr<<"sweep_find "<<x<<' '<<y<<' '<<"["<<lb<<", "<<ub<<"] "<<mod<<'\n';
-    assert (1 <= lb && lb <= ub);    
-    DSBlocks& xblocks = x.blocks();
-    DSBlocks& yblocks = y.blocks();
-    matching m;
-    for (int i = 0; i < x.length(); ++i) {
-      m.esp.push(Position({0, 0}));
-      m.lep.push(Position({0, 0}));
-    }
+    assert (1 <= lb && lb <= ub);        
     // Looking for the first position in y where x can occur.
     int b = 0, p = lb - 1;
     while (b < y.length() && p >= y.at(b).u) {
@@ -187,6 +180,10 @@ namespace Gecode { namespace String {
       b++;
     }
     Position start({b, p});
+    DSBlocks& xblocks = x.blocks();
+    DSBlocks& yblocks = y.blocks();
+    matching m;
+    init_x<DSBlock, DSBlocks, DSBlock, DSBlocks>(xblocks, yblocks, m, start);
     if (!push_esp_find(
       xblocks, yblocks, start, lb, ub, m, x.min_length(), y.max_length(), mod
     ))
@@ -293,10 +290,7 @@ namespace Gecode { namespace String {
     DSBlocks& xblocks = x.blocks();
     DSBlocks& yblocks = y.blocks();
     matching m;
-    for (int i = 0; i < x.length(); ++i) {
-      m.esp.push(Position({0, 0}));
-      m.lep.push(Position({0, 0}));
-    }
+    init_x<DSBlock, DSBlocks, DSBlock, DSBlocks>(xblocks, yblocks, m);    
     if (!push_esp_repl(xblocks, yblocks, m))
       return false;
     Position end({(int) y.length() - 1, 0}), last({0, y.at(0).u});

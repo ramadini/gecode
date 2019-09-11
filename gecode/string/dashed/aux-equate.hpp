@@ -52,6 +52,16 @@ namespace Gecode { namespace String {
 
   struct Fwd {
 
+    forceinline static bool
+    fwd() {
+      return true;
+    }
+    
+    forceinline static bool
+    bwd() {
+      return false;
+    }
+
     forceinline static int
     prev(int x) {
       return x - 1;
@@ -78,6 +88,16 @@ namespace Gecode { namespace String {
   };
 
   struct Bwd {
+
+    forceinline static bool
+    fwd() {
+      return false;
+    }
+    
+    forceinline static bool
+    bwd() {
+      return true;
+    }
 
     forceinline static int
     prev(int x) {
