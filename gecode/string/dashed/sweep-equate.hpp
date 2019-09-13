@@ -549,6 +549,7 @@ namespace Gecode { namespace String {
       // std::cerr << "3) x'_i: " << w << "\n";
       if (w.size() != 1 || !(w[0] == xi))
         up.push(std::make_pair(i, w));
+      assert (w.logdim() <= xi.logdim());
     }
     assert ((m.esp[0] == Position({0, 0}) || null(y.at(0))) &&
             (m.lep[xlen - 1] == first_bwd(y) || null(y.at(y.length() - 1))));
