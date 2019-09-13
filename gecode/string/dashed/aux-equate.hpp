@@ -4,7 +4,7 @@ namespace Gecode { namespace String {
   
   typedef vec<std::pair<int, NSBlocks>> uvec;
   
-  // Helpers.
+  // Helpers.  
   forceinline int lower(const DSBlock& b) { return b.l; }
   forceinline int lower(const NSBlock& b) { return b.l; }
   forceinline int lower(char) { return 1; }
@@ -28,6 +28,9 @@ namespace Gecode { namespace String {
   forceinline bool disjoint(const NSBlock& b1, const NSBlock& b2) { 
     return b1.S.disjoint(b2.S); 
   }
+  forceinline int null(const DSBlock& b) { return b.null(); }
+  forceinline int null(const NSBlock& b) { return b.null(); }
+  forceinline int null(char) { return false; }
 
   struct Position {
     int idx; // Block
