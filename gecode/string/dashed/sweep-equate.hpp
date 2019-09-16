@@ -474,7 +474,7 @@ namespace Gecode { namespace String {
       // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ls: "<<ls
       //   <<" ee: "<<ee<<" le: "<<le<<'\n';
       if (!check_positions(y, es, ls, ee, le))
-        return false;
+        return false;     
       Block1& xi = x.at(i);
       if (xi.known())
         continue;
@@ -549,7 +549,10 @@ namespace Gecode { namespace String {
       // std::cerr << "3) x'_i: " << w << "\n";
       if (w.size() != 1 || !(w[0] == xi))
         up.push(std::make_pair(i, w));
+      assert (w.logdim() <= xi.logdim());
     }
+    assert ((m.esp[0] == Position({0, 0}) || null(y.at(0))) &&
+            (m.lep[xlen - 1] == first_bwd(y) || null(y.at(y.length() - 1))));
     return true;
   }
 
@@ -562,7 +565,7 @@ namespace Gecode { namespace String {
     matching m;
     if (!init_x<Block1, Blocks1, Block2, Blocks2>(x, y, m))
       return false;
-    if (y.length() == 0)
+    if (x.length() == 0 || y.length() == 0)
       return true;
     int xlen = x.length();
     if (DashedString::_QUAD_SWEEP) {
@@ -596,7 +599,7 @@ namespace Gecode { namespace String {
         if (!push_lep<Block1, Block2, Blocks2>(x.at(i), y, m, i))
           return false;
     }
-    for (int i = 0; i < xlen; ++i) {      
+    for (int i = 0; i < xlen; ++i) {
       Position es = m.esp[i]; // Fwd direction (positive offset).
       Position ls = i ? dual(y, m.lep[i - 1]) : m.esp[0]; // Fwd.
       Position le = m.lep[i]; // Bwd direction (negative offset).
@@ -606,6 +609,9 @@ namespace Gecode { namespace String {
       if (!check_positions(y, es, ls, ee, le))
         return false;
     }
+    // std::cerr << m.esp[0] << ' ' << m.lep[xlen-1] << "\n";
+    assert ((m.esp[0] == Position({0, 0}) || null(y.at(0))) &&
+            (m.lep[xlen - 1] == first_bwd(y) || null(y.at(y.length() - 1))));
     return true;
   }
 
