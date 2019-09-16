@@ -27,6 +27,11 @@ namespace Gecode {
   STRING_VAR_BLOCKMIN(void) {
     return StringVarBranch(StringVarBranch::STRING_VAR_BLOCKMIN);
   }
+  
+  forceinline StringVarBranch
+  STRING_VAR_LENBLOCKMIN(void) {
+    return StringVarBranch(StringVarBranch::STRING_VAR_LENBLOCKMIN);
+  }
 
   forceinline StringVarBranch
   STRING_VAR_LENMIN(void) {
@@ -37,5 +42,6 @@ namespace Gecode {
   STRING_VAR_LENMAX(void) {
     return StringVarBranch(StringVarBranch::STRING_VAR_LENMAX);
   }
+  
 
 }
