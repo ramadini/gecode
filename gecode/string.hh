@@ -393,6 +393,7 @@ namespace Gecode {
     /// Which variable selection
     enum Select {
       STRING_VAR_NONE = 0,    ///< First unassigned
+      STRING_VAR_LENBLOCKMIN,
 	    STRING_VAR_BLOCKMIN,
       STRING_VAR_SIZEMIN,
       STRING_VAR_LENMIN,
@@ -484,10 +485,17 @@ namespace Gecode {
 
   GECODE_STRING_EXPORT void
   blockmin_lllm(Home home, const StringVarArgs& x);
+  
+  GECODE_STRING_EXPORT void
+  lenblockmin_lllm(Home home, const StringVarArray& x);
+
+  GECODE_STRING_EXPORT void
+  lenblockmin_lllm(Home home, const StringVarArgs& x);
 
   StringVarBranch STRING_VAR_NONE(void);
   StringVarBranch STRING_VAR_SIZEMIN(void);
   StringVarBranch STRING_VAR_BLOCKMIN(void);
+  StringVarBranch STRING_VAR_LENBLOCKMIN(void);
   StringVarBranch STRING_VAR_LENMIN(void);
   StringVarBranch STRING_VAR_LENMAX(void);
 

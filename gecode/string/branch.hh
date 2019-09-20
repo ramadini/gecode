@@ -254,4 +254,29 @@ namespace Gecode { namespace String { namespace Branch {
 }}}
 #include <gecode/string/branch/blockmin_lllm.hpp>
 
+namespace Gecode { namespace String { namespace Branch {
+
+  struct LenBlockMin_LLLM: public StringBrancher {
+
+    LenBlockMin_LLLM(Home home, ViewArray<String::StringView>& x0);
+
+    LenBlockMin_LLLM(Home home, LenBlockMin_LLLM& b);
+
+    Actor* copy(Space& home);
+
+    static void post(Home home, ViewArray<String::StringView>& x);
+
+    Choice* choice(Space&);
+
+    ExecStatus commit(Space& home, const Choice& c, unsigned a);
+    
+    static bool _FIRST;
+
+  };
+  
+  bool LenBlockMin_LLLM::_FIRST = true;
+
+}}}
+#include <gecode/string/branch/lenblockmin_lllm.hpp>
+
 #endif
