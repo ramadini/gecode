@@ -277,6 +277,6 @@ namespace Gecode { namespace String { namespace Branch {
   bool LenBlockMin_LLLM::_FIRST = true;
 
 }}}
-#include <gecode/string/branch/lenblockmin_lllm.hpp>
+//FIXME: #include <gecode/string/branch/lenblockmin_lllm.hpp>
 
 #endif
