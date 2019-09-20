@@ -2499,8 +2499,18 @@ namespace Gecode { namespace FlatZinc {
               if (i < n - 1) {
                 if (s[i + 1] == '\\')
                   ++i;
-                else if (s[i + 1] != '"')
-                  throw std::runtime_error("Malformed escape sequence!");
+                else if (s[i + 1] != '"') {
+                  if (s[i + 1] != '0')
+                    throw std::runtime_error("Malformed escape sequence!");
+                  else {
+                    t = '\0';
+                    ++i;
+                    if (i < n)
+                      std::cerr << "Warning! If character \\0 comes before the"
+                        << "end of a string the behaviour is undefined!"
+                        << "Consider to use a regex instead.\n";
+                  }
+                }
               }
             }
           }
@@ -2521,8 +2531,18 @@ namespace Gecode { namespace FlatZinc {
                 if (i < n - 1) {
                   if (s[i + 1] == '\\')
                     ++i;
-                  else if (s[i + 1] != '"')
-                    throw std::runtime_error("Malformed escape sequence!");
+                  else if (s[i + 1] != '"') {
+                    if (s[i + 1] != '0')
+                      throw std::runtime_error("Malformed escape sequence!");
+                    else {
+                      t = '\0';
+                      ++i;
+                      if (i < n)
+                        std::cerr << "Warning! If character \\0 comes before "
+                          << "the end of a string the behaviour is undefined!"
+                          << "Consider to use a regex instead.\n";
+                    }
+                  }
                 }
               }
             }
