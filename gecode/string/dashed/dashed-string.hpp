@@ -127,16 +127,17 @@ namespace Gecode { namespace String {
 
   forceinline void
   DSIntSet::update(Space& h, char c) {
+    int i = char2int(c);
     if (ranges() && ranges()->next() == NULL) {
-      ranges()->min(c);
-      ranges()->max(c);
+      ranges()->min(i);
+      ranges()->max(i);
       _size = 1;
       return;
     }
     //std::cerr << "DSIntSet::update " << *this << " with " << c << '\n';
     if (!empty())
       dispose(h);
-    RangeList* s = new (h) RangeList(c, c);
+    RangeList* s = new (h) RangeList(i, i);
     fst(s);
     lst(s);
     fst()->next(NULL);
@@ -641,7 +642,7 @@ namespace Gecode { namespace String {
   
   forceinline void
   DSBlocks::update(Space& h, const string& s) {
-    // std::cerr<<"DSArray::update string "<< s <<std::endl;
+    // std::cerr<<"DSArray::update " << *this << " with " << s <<std::endl;
     if (s.empty()) {
       for (int i = 0; i < _size; ++i)
         x[i].S.dispose(h);
@@ -649,28 +650,32 @@ namespace Gecode { namespace String {
       x = a.template alloc<DSBlock>(1);
       n = 1;
       _size = 1;
-      // std::cerr<<"Updated: "<<*this<<std::endl;
       return;
     }
-    int m = 0, j = 0, prev_c = -1;
-    for (auto c : s)
-      if (c != prev_c) {
+    int m = 0, j = 0, ns = s.size();
+    unsigned prev_c = s[0] + 1;
+    for (int i = 0; i < ns; ++i) {
+      unsigned s_i = char2int(s[i]);
+      if (s_i != prev_c) {
         m++;
-        prev_c = c;
+        prev_c = s_i;
       }
-    prev_c = -1;
+    }
+    prev_c = s[0] + 1;
     if (m <= _size) {
-      for (auto c : s) {
-        if (c == prev_c) {
+      for (int i = 0; i < ns; ++i) {
+        unsigned s_i = char2int(s[i]);
+        if (s_i == prev_c) {
           x[j - 1].l++;
           x[j - 1].u++;
         }
         else {
-          prev_c = c;
+          prev_c = s_i;
           x[j].S.update(h, prev_c);
           x[j].l = 1;
           x[j].u = 1;
           ++j;
+          // std::cerr << "x_j: " << x[j] << '\n';
         }
       }
       for (int i = m; i < _size; ++i)
@@ -678,20 +683,21 @@ namespace Gecode { namespace String {
       a.free(x + m, _size - m);
       n = m;
       _size = m;
-      // std::cerr<<"Updated: "<<*this<<std::endl;
       return;
     }
     for (int i = 0; i < _size; ++i)
       x[i].S.dispose(h);
     a.free(x, n);
     x = a.template alloc<DSBlock>(m);
-    for (auto c : s) {
-      if (c == prev_c) {
+    prev_c = s[0] + 1;
+    for (int i = 0; i < ns; ++i) {
+      unsigned s_i = char2int(s[i]);
+      if (s_i == prev_c) {
         x[j - 1].l++;
         x[j - 1].u++;
       }
       else {        
-        prev_c = c;
+        prev_c = s_i;
         x[j].S.init(h, prev_c);
         x[j].l = 1;
         x[j].u = 1;
@@ -700,7 +706,6 @@ namespace Gecode { namespace String {
     }
     n = m;
     _size = m;
-    // std::cerr<<"Updated: "<<*this<<std::endl;
   }
 
   forceinline void
@@ -1095,6 +1100,7 @@ namespace Gecode { namespace String {
     if (_min_length > _max_length)
       return false;
     int n = length();
+    // std::cerr << at(0).S << ' ' << at(0).l << ' ' << at(0).u << '\n';
     if (n == 1 && (_min_length != at(0).l || _max_length != at(0).u))
       return false;
     for (int i = 1; i < n; ++i) {
@@ -1786,7 +1792,7 @@ namespace Gecode { namespace String {
     if (_min_length < lx) {
       _min_length = lx;
       _changed = true;
-    }
+    }    
     // std::cerr << "refined: " << *this << ' ' << _changed << ' ' << _min_length << "\n";
     return true;
   }
@@ -1836,7 +1842,8 @@ namespace Gecode { namespace String {
     }
     if (norm)
       normalize(h);
-    // std::cerr << "refined: " << *this << ' ' << _max_length << "\n";
+    // std::cerr << "refined: " << *this << ' ' << _max_length << "\n";      
+    assert (is_normalized());    
     return true;
   }
 
@@ -1971,6 +1978,7 @@ namespace Gecode { namespace String {
   DashedString::update(Space& h, string s) {
     _blocks.update(h, s);
     _min_length = _max_length = s.size();
+    assert (is_normalized());
   }
   
   forceinline void
@@ -1979,6 +1987,7 @@ namespace Gecode { namespace String {
     _min_length = that._min_length;
     _max_length = that._max_length;
     _changed = that._changed;
+    assert (is_normalized());
   }
 
   forceinline void
@@ -1987,6 +1996,14 @@ namespace Gecode { namespace String {
     _blocks.update(h, that, l, u);
     _min_length = l;
     _max_length = u;
+    if (length() == 1) {
+      if (at(0).l < _min_length)
+        at(0).l = _min_length;
+      if (at(0).u > _max_length)
+        at(0).u = _max_length;
+    }
+    // std::cerr << *this << ' ' << l << ' ' << u << '\n';
+    assert (is_normalized());
   }
 
   forceinline void
@@ -1997,6 +2014,13 @@ namespace Gecode { namespace String {
     _blocks.update(h, v, l, u);
     _min_length = l;
     _max_length = u;
+    if (length() == 1) {
+      if (at(0).l < _min_length)
+        at(0).l = _min_length;
+      if (at(0).u > _max_length)
+        at(0).u = _max_length;
+    }
+    assert (is_normalized());
   }
 
   forceinline void
@@ -2010,7 +2034,8 @@ namespace Gecode { namespace String {
         at(0).l = _min_length;
       if (at(0).u > _max_length)
         at(0).u = _max_length;
-    } 
+    }
+    assert (is_normalized());
   }
 
   forceinline void

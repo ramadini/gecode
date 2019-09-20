@@ -124,7 +124,8 @@ public:
     rel(*this, eq, rhs, STRT_CAT, StringVar(*this, so.SQL));
 
     // Branching.
-    lenblockmin_lllm(*this, str_vars);
+    //FIXME lenblockmin_lllm(*this, str_vars);
+    sizemin_llul(*this, str_vars); 
   }
 
   virtual void

@@ -2507,7 +2507,7 @@ namespace Gecode { namespace FlatZinc {
                     ++i;
                     if (i < n)
                       std::cerr << "Warning! If character \\0 comes before the"
-                        << "end of a string the behaviour is undefined!"
+                        << "end of a string the behaviour is undefined! "
                         << "Consider to use a regex instead.\n";
                   }
                 }
@@ -2539,7 +2539,7 @@ namespace Gecode { namespace FlatZinc {
                       ++i;
                       if (i < n)
                         std::cerr << "Warning! If character \\0 comes before "
-                          << "the end of a string the behaviour is undefined!"
+                          << "the end of a string the behaviour is undefined! "
                           << "Consider to use a regex instead.\n";
                     }
                   }
@@ -2561,6 +2561,7 @@ namespace Gecode { namespace FlatZinc {
     else
       x0 = tv[n->getStringVar()];
     // std::cout << "x0: " << x0 << "\n";
+    assert (x0.domain().is_normalized());
     return x0;
   }
   StringVarArgs

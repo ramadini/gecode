@@ -12,10 +12,18 @@ namespace Gecode { namespace String {
   forceinline int upper(const NSBlock& b) { return b.u; }
   forceinline int upper(char) { return 1; }
   forceinline bool disjoint(char c1, char c2) { return c1 != c2; }
-  forceinline bool disjoint(char c, const DSBlock& b) { return !b.S.in(c); }
-  forceinline bool disjoint(const DSBlock& b, char c) { return !b.S.in(c); }
-  forceinline bool disjoint(char c, const NSBlock& b) { return !b.S.in(c); }
-  forceinline bool disjoint(const NSBlock& b, char c) { return !b.S.in(c); }
+  forceinline bool disjoint(char c, const DSBlock& b) { 
+    return !b.S.in(char2int(c)); 
+  }
+  forceinline bool disjoint(const DSBlock& b, char c) { 
+    return !b.S.in(char2int(c)); 
+  }
+  forceinline bool disjoint(char c, const NSBlock& b) { 
+    return !b.S.in(char2int(c)); 
+  }
+  forceinline bool disjoint(const NSBlock& b, char c) { 
+    return !b.S.in(char2int(c)); 
+  }
   forceinline bool disjoint(const DSBlock& b1, const DSBlock& b2) { 
     return b1.S.disjoint(b2.S); 
   }

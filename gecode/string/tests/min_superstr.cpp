@@ -74,7 +74,8 @@ public:
       branch_vars << l;
       branch(*this, branch_vars, INT_VAR_SIZE_MIN(), INT_VAL_MIN());
     }
-    lenblockmin_lllm(*this, sva);
+//FIXME:    lenblockmin_lllm(*this, sva);
+    sizemin_llul(*this, sva); 
   }
 
   virtual IntVar cost(void) const {

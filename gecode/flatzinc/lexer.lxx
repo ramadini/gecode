@@ -86,13 +86,13 @@ unescape(char x, char** p) {
       return '\t';
     case 'v':
       return '\v';
-    case 'x': {
+    case 'x': { 
       char s[3];
       s[0] = *(++(*p));
       s[1] = *(++(*p));
       assert (s[0] != '0' || s[1] != '0');
       s[2] = '\0';
-      return (char) strtol(s, 0, 16);
+      return (unsigned char) strtol(s, 0, 16);
     }
     case '\'':
     case '"':
