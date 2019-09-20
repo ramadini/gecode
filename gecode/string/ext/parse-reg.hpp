@@ -709,7 +709,7 @@ namespace Gecode { namespace String {
               consume('0');
               return new CharEx('\0');
             default:
-              throw std::runtime_error("Unescaped char " + int(top()));
+              throw std::runtime_error("Unescaped char " + char2int(top()));
           }
           break;
         }

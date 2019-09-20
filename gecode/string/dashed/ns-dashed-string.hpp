@@ -177,8 +177,8 @@ namespace Gecode { namespace String {
       NSRange* p = s._fst;
       os << '{';
       while (p != NULL) {
-        char mi = char(p->l);
-        char ma = char(p->u);
+        char mi = unsigned(p->l);
+        char ma = unsigned(p->u);
         if (mi == ma)
           os << mi;
         else
@@ -1261,8 +1261,8 @@ namespace Gecode { namespace String {
         push_back(NSBlock());
         return;
       }
-      char prev_c = -1;
-      for (char c : s) {
+      unsigned prev_c = s[0] + 1;
+      for (unsigned c : s) {
         if (c == prev_c) {
           this->back().u++;
           this->back().l++;
@@ -1301,7 +1301,7 @@ namespace Gecode { namespace String {
       string s;
       for (unsigned i = 0; i < size(); ++i) {
         const NSBlock& b = at(i);
-        s += string(b.l, char(b.S.min()));
+        s += string(b.l, unsigned(b.S.min()));
       }
       return s;
     }
@@ -1428,7 +1428,7 @@ namespace Gecode { namespace String {
         const NSBlock& b = at(i);
         if (b.S.size() > 1)
           return pref;
-        pref += string(b.l, char(b.S.min()));
+        pref += string(b.l, unsigned(b.S.min()));
         if (b.l < b.u)
           return pref;
       }
@@ -1444,7 +1444,7 @@ namespace Gecode { namespace String {
         const NSBlock& b = at(i);
         if (b.S.size() > 1)
           return suff;
-        suff = string(b.l, char(b.S.min())) + suff;
+        suff = string(b.l, unsigned(b.S.min())) + suff;
         if (b.l < b.u)
           return suff;
       }
