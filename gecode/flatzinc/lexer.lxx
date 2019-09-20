@@ -90,6 +90,7 @@ unescape(char x, char** p) {
       char s[3];
       s[0] = *(++(*p));
       s[1] = *(++(*p));
+      assert (s[0] != '0' || s[1] != '0');
       s[2] = '\0';
       return (char) strtol(s, 0, 16);
     }
@@ -182,29 +183,39 @@ _[_]*[A-Za-z][A-Za-z0-9_]* { yylval->sValue = strdup(yytext); return FZ_U_ID; }
   // FIXME: Assuming only single-line string literals.
   char* d = yytext;
   for (char* p = yytext; *p != '\0'; ++p) {
-   if (*p == '\\') {
-     ++p;
-     switch (*p) {
-       case '(':
-       case ')':
-       case '[':
-       case ']':
-       case '&':
-       case '|':
-       case '*':
-       case '\\':
-         *d = '\\'; ++d; *d = *p;
-         break;               
-       default:
-         *d = unescape(*p, &p);
-     }
-   }
-   else
-     *d = *p;
-   ++d;
+    if (*p == '\\') {
+      ++p;
+      switch (*p) {
+        case '(':
+        case ')':
+        case '[':
+        case ']':
+        case '&':
+        case '|':
+        case '*':
+        case '\\':
+          *d = '\\';
+          ++d;
+          *d = *p;
+          break;               
+        default:         
+          if (*p == 'x' && *(p + 1) == '0' && *(p + 2) == '0') {
+            *d = '\\';
+            ++d;
+            *d = '0';
+            ++p;
+            ++p;
+          }
+          else
+            *d = unescape(*p, &p);
+      }
+    }
+    else
+      *d = *p;
+    ++d;
   }
   *d = '\0';
-
+  
   yylval->sValue = strdup(yytext+1);
   yylval->sValue[strlen(yytext)-2] = 0;
   return FZ_STRING_LIT; 

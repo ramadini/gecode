@@ -644,13 +644,24 @@ namespace Gecode { namespace String {
         case '[': {
           consume('[');
           char l = next();
-          if (l == '\\')
+          if (l == '\\') { 
         	  l = next();
+        	  if (l == '0') {
+        	    --_lastI;
+        	    l = '\0';
+        	  }
+        	}
           consume('-');
           char u = next();
-          if (u == '\\')
+          if (u == '\\') {
         	  u = next();
+        	  if (u == '0') {
+        	    --_lastI;
+        	    u = '\0';
+        	  }
+        	}
           char c = next();
+          // std::cerr << c << ' ' << l << ' ' << u << '\n';
           if (c == ']')
             return new RangeEx(l, u);
           else if (c == ',') {
@@ -694,6 +705,9 @@ namespace Gecode { namespace String {
             case '\\':
             case '\'':
               return new CharEx(next(true));
+            case '0':
+              consume('0');
+              return new CharEx('\0');
             default:
               throw std::runtime_error("Unescaped char " + int(top()));
           }
