@@ -553,7 +553,7 @@ STRINGHDR0 = \
   dashed/dashed-string.hh dashed/dashed-string.hpp exception.hpp view/string.hpp \
 	rel/dom.hpp rel/eq.hpp rel/nq.hpp rel/lex.hpp rel/re-lex.hpp rel/inc.hpp rel/re-eq.hpp array-traits.hpp array.hpp \
 	branch/var.hpp branch/val.hpp branch.hh branch/blockmin_llll.hpp \
-	branch/blockmin_lllm.hpp branch/lenmax_llll.hpp \
+	branch/blockmin_lllm.hpp branch/lenblockmin_lllm.hpp branch/lenmax_llll.hpp \
 	branch/lenmin_llll.hpp branch/none_llll.hpp branch/sizemin_llul.hpp \
 	int/length.hpp int/char2code.hpp rel-op/rev.hpp rel-op/concat.hpp rel-op/replace.hpp int/pow.hpp int/find.hpp \
 	rel-op/lcase.hpp rel-op/ucase.hpp gcc.hh global/gcc.hpp gconcat.hh global/gconcat.hpp \
