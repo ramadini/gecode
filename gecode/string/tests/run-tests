@@ -114,7 +114,7 @@ fi &&
 for m in `ls $TEST_DIR/appscan/*.mzn`
 do  
   if
-    [ `timeout 10 mzn-gstrings $m 2>/dev/null | grep "\----------"` ]
+    [ `timeout 10 mzn-gstrings $m | grep "\----------"` ]
   then
     echo "Solved $m"
   else
@@ -124,7 +124,7 @@ do
 done &&
 for m in `ls $TEST_DIR/pisa/*.mzn | sort`
 do
-  timeout 10 mzn-gstrings $m 2>/dev/null > $X
+  timeout 10 mzn-gstrings $m  > $X
   if
     [[ `grep "\----------" $X` ]]
   then
@@ -159,7 +159,7 @@ done &&
 for m in `ls $TEST_DIR/norn/*/*.mzn | sort`
 do
   echo "Solving $m..."
-  timeout 10 mzn-gstrings $m 2>/dev/null > $X
+  timeout 10 mzn-gstrings $m  > $X
   if
     [[ `grep "\----------" $X` ]]
   then
