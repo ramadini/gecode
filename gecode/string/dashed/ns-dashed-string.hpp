@@ -1125,6 +1125,9 @@ namespace Gecode { namespace String {
     NSBlock(): S(), l(0), u(0) {}
 
     forceinline
+    NSBlock(unsigned x): S(x), l(1), u(1) {}
+
+    forceinline
     NSBlock(const NSIntSet& s, int a): S(s) {
       if (a < 0)
         a = 0;
@@ -1215,6 +1218,7 @@ namespace Gecode { namespace String {
 
 }}
 
+
 namespace Gecode { namespace String {
 
   class NSBlocks : public std::vector<NSBlock> {
@@ -1235,6 +1239,15 @@ namespace Gecode { namespace String {
         this->push_back(b);
       }
     }
+    
+    forceinline explicit
+    NSBlocks(const DashedView& dv): std::vector<NSBlock>() {
+      for (int i = 0; i < dv.length(); ++i)
+        push_back(NSBlock(dv.at(i)));
+    }
+    
+    forceinline explicit
+    NSBlocks(const DashedString& ds): NSBlocks(ds.blocks()) {}
 
     forceinline
     NSBlocks(const std::vector<NSBlock>& blocks)

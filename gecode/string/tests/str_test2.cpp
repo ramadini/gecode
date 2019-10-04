@@ -543,6 +543,26 @@ public:
     std::cerr << "y = " << y << std::endl;
     assert (x.val() == "aab" && y.min_length() == y.max_length());
   }
+  
+  void test23() {
+    std::cerr << "\n*** Test 23 ***" << std::endl;
+    NSBlocks vx({NSBlock(NSIntSet::top(), 43, 74)});
+    vx.extend(NSBlocks("bT]?e]qCu|B,LSV!W("));
+    vx.push_back(NSBlock(NSIntSet::top(), 0, 31));
+    NSBlocks vy(":?@NbT;^AZR3IuW3ee:)DpBr%&C]=x=BqcG8[Pe.Uj`");
+    vy.push_back(NSBlock(NSIntSet::top(), 11, 11));
+    vy.extend(NSBlocks("]c4]?e]qCu|B,LSV!W(e:"));
+    vy.push_back(NSBlock(NSIntSet::top(), 0, 17));
+    DashedString x(*this, vx, min_length(vx), max_length(vx));
+    DashedString y(*this, vy, min_length(vy), max_length(vy));
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "y = " << y << std::endl;
+    DashedString::_DEEP_CHECK = true;
+    bool b = check_sweep<DSBlock, DSBlocks, DSBlock, DSBlocks>(
+      x.blocks(), y.blocks()
+    );
+    assert (!b);
+  }
 
 };
 
@@ -570,5 +590,6 @@ int main() {
   t->test20();
   t->test21();
   t->test22();
+  t->test23();
   return 0;
 }

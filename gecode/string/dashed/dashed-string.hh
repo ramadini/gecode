@@ -77,8 +77,6 @@ namespace Gecode { namespace String {
 
 }}
 
-
-
 namespace Gecode { namespace String {
 
   class NSIntSet;
@@ -181,6 +179,15 @@ namespace Gecode { namespace String {
     DSBlock& operator=(const DSBlock& that);
     DSBlock(const DSBlock& that);
 
+  };
+  
+  struct DashedView {
+    virtual const DSBlock& at(int) const = 0;
+    virtual DSBlock& at(int i) = 0;
+    virtual int length() const = 0;
+    int size() const { return length(); }
+    const DSBlock& front() const { return at(0); }
+    const DSBlock& back() const  { return at(length()-1); }
   };
 
 }}
@@ -297,10 +304,11 @@ namespace Gecode { namespace String {
   static bool _DECOMP_REGEX;
   static bool _REVERSE_REGEX;
   static bool _QUAD_SWEEP;
+  static bool _DEEP_CHECK;
   static int  _MAX_STR_LENGTH;
   static int  _MAX_STR_ALPHA;
   static NSIntSet _MUST_CHARS;
-
+  
   friend std::ostream& operator<<(std::ostream& os, const DashedString& ds);
 
   friend DashedString operator+(

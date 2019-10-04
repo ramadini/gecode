@@ -4,7 +4,10 @@ namespace Gecode { namespace String {
   
   typedef vec<std::pair<int, NSBlocks>> uvec;
   
-  // Helpers.  
+  // Helpers.
+  forceinline int known(const DSBlock& b) { return b.known(); }
+  forceinline int known(const NSBlock& b) { return b.known(); }
+  forceinline int known(char) { return true; }
   forceinline int lower(const DSBlock& b) { return b.l; }
   forceinline int lower(const NSBlock& b) { return b.l; }
   forceinline int lower(char) { return 1; }
@@ -192,15 +195,6 @@ namespace Gecode { namespace String {
       return p;
     return Position { p.idx, upper(x.at(p.idx)) - p.off };
   }
-
-  struct DashedView {
-    virtual const DSBlock& at(int) const = 0;
-    virtual DSBlock& at(int i) = 0;
-    virtual int length() const = 0;
-    int size() const { return length(); }
-    const DSBlock& front() const { return at(0); }
-    const DSBlock& back() const  { return at(length()-1); }    
-  };
 
   class ConcatView : public DashedView {
   private:

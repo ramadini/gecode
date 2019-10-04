@@ -681,17 +681,20 @@ public:
     std::cerr << "\n*** Test 22 ***" << std::endl;
     NSBlocks v("axb");
     v.extend(NSBlocks({NSBlock(NSIntSet::top(), 1, 1)}));
-    v.extend(NSBlocks("xyz"));
-    
+    v.extend(NSBlocks("xyz"));    
     NSBlocks w(NSBlocks({NSBlock(NSIntSet::top(), 1, 3)}));
     w.extend(NSBlocks("xy"));
-    w.extend(NSBlocks({NSBlock(NSIntSet::top(), 0, 3)}));
-    
+    w.extend(NSBlocks({NSBlock(NSIntSet::top(), 0, 3)}));    
     DashedString x(*this, v, 0, 10);
     DashedString y(*this, w, 0, 10);
     std::cerr << "x = " << x << std::endl;
     std::cerr << "y = " << y << std::endl;
     assert (!sweep_equate(*this, x, y));
+    DashedString::_DEEP_CHECK = true;
+    bool b = check_sweep<DSBlock, DSBlocks, DSBlock, DSBlocks>(
+      x.blocks(), y.blocks()
+    );
+    assert (!b);
     std::cerr << "===== UNSATISFIABLE =====" << std::endl;
   }
 

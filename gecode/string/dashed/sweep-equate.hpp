@@ -405,6 +405,92 @@ namespace Gecode { namespace String {
     return !Fwd::lt(firstf, m.esp[0]);
   }
 
+  // Use dynamic programming to check the completeness of sweep (debug-only).
+  forceinline bool
+  deep_check_dp(
+    const NSBlocks& x, int i, const NSBlock& x_i, 
+    const NSBlocks& y, int j, const NSBlock& y_j, set6 nogoods
+  ) {
+    // std::cerr << "\tdeep_check_dp: "<<x<<' '<<i<<' '<<x_i<<"  "<<y<<' '<<j<<' '<<y_j<<' '<<'\n';
+    int l_i = lower(x_i), u_i = upper(x_i), l_j = lower(y_j), u_j = upper(y_j);
+    tpl6 ng(i, l_i, u_i, j, l_j, u_j);
+    if (nogoods.find(ng) != nogoods.end())
+      return false;
+    int lx = x.length(), ly = y.length();
+    if (i == lx) {
+      if (l_j > 0)
+        return false;
+      for (int k = j + 1; k < ly; ++k) {
+        if (lower(y.at(k)) > 0) {
+          nogoods.insert(ng);
+          return false;
+        }
+      }
+      throw true;
+    }
+    if (j == ly) {
+      if (l_i > 0)
+        return false;
+      for (int k = i + 1; k < lx; ++k)
+        if (lower(x.at(k)) > 0) {
+          nogoods.insert(ng);
+          return false;
+        }
+      throw true;
+    }
+    bool ndisj = !disjoint(x_i, y_j);
+    if (!ndisj && l_i > 0 && l_j > 0) {
+      nogoods.insert(ng);
+      return false;
+    }
+    bool c_i, c_j;
+    if (l_i == 0 || (ndisj && l_i <= u_j)) {
+      const NSBlock& r_i = i + 1 < lx ? x.at(i + 1) : x.at(i);
+      NSBlock r_j = NSBlock(y_j);
+      if (ndisj) {
+        r_j.l = max(0, l_j - u_i);
+        r_j.u = u_j - l_i;
+      }
+      c_i = deep_check_dp(x, i + 1, r_i, y, j, r_j, nogoods);
+    }
+    else
+      c_i = false;
+    if (l_j == 0 || (ndisj && l_j <= u_i)) {      
+      NSBlock r_i = NSBlock(x_i);
+      if (ndisj) {
+        r_i.l = max(0, l_i - u_j);
+        r_i.u = u_i - l_j;
+      }
+      const NSBlock& r_j = j + 1 < ly ? y.at(j + 1) : y.at(j);    
+      c_j = deep_check_dp(x, i, r_i, y, j + 1, r_j, nogoods);
+    }
+    else
+      c_j = false;
+    if (!(c_i || c_j)) {
+      nogoods.insert(ng);
+      return false;
+    }
+    throw true;
+  }
+  template <class Block1, class Blocks1, class Block2, class Blocks2>
+  forceinline bool
+  deep_check(const Blocks1& x, const Blocks2& y) {
+    // std::cerr << "deep_check " << x << " " << y << "\n";
+    set6 ng;
+    int lx = x.length(), ly = y.length();
+    if (lx == 0 || ly == 0)
+      return lx == ly;
+    bool ok = false;
+    NSBlocks xx(x), yy(y);
+    try {
+      ok = deep_check_dp(xx, 0, xx[0], yy, 0, yy[0], ng);
+    }
+    catch (bool b) {
+      ok = b;
+    }
+    return ok;
+  }  
+
   // Sanity checks on earliest/latest start/end positions.
   template <class Blocks>
   forceinline bool
@@ -419,6 +505,10 @@ namespace Gecode { namespace String {
     assert (Fwd::le(es, dual(x, le), upper(x.at(le.idx))));
     return true;
   }
+  
+  // Fwd declaration for deep check.
+  template <class Block1, class Blocks1, class Block2, class Blocks2>
+  forceinline bool check_sweep(const Blocks1&, const Blocks2&);
 
   // Matches each x-block against the blocks of y, and records into up parameter
   // all the blocks that must be updated.
@@ -553,6 +643,15 @@ namespace Gecode { namespace String {
     }
     assert ((m.esp[0] == Position({0, 0}) || null(y.at(0))) &&
             (m.lep[xlen - 1] == first_bwd(y) || null(y.at(y.length() - 1))));
+    if (DashedString::_DEEP_CHECK) {
+      if (!deep_check<Block1, Blocks1, Block2, Blocks2>(x, y)) {
+        std::cerr << "Deep check failed for " << x << " = " << y << '\n';
+        NSBlocks xx(x), yy(y);
+        bool b = check_sweep<NSBlock, NSBlocks, NSBlock, NSBlocks>(yy, xx);
+        assert (!b);
+        return false;
+      }
+    }
     return true;
   }
 
@@ -612,8 +711,17 @@ namespace Gecode { namespace String {
     // std::cerr << m.esp[0] << ' ' << m.lep[xlen-1] << "\n";
     assert ((m.esp[0] == Position({0, 0}) || null(y.at(0))) &&
             (m.lep[xlen - 1] == first_bwd(y) || null(y.at(y.length() - 1))));
+    if (DashedString::_DEEP_CHECK) {
+      if (!deep_check<Block1, Blocks1, Block2, Blocks2>(x, y)) {
+        std::cerr << "Deep check failed for " << x << " = " << y << '\n';
+        NSBlocks xx(x), yy(y);
+        bool b = check_sweep<NSBlock, NSBlocks, NSBlock, NSBlocks>(yy, xx);
+        assert (!b);
+        return false;
+      }
+    }
     return true;
-  }
+  }  
 
 
 /*******************

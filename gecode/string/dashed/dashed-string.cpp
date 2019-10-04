@@ -123,6 +123,8 @@ namespace Gecode { namespace String {
   bool DashedString::_QUAD_SWEEP = false;
   // Characters that must appear in each solution.
   NSIntSet DashedString::_MUST_CHARS = NSIntSet();
+  // Performs a deep check after sweep (for debug purposes).
+  bool DashedString::_DEEP_CHECK = false;
 
   DashedString::DashedString(Space& h)
   : _changed(false), _blocks(h), _min_length(0), _max_length(0) {}
