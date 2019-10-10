@@ -38,12 +38,9 @@ namespace Gecode { namespace String {
     NSIntSet s;
     int l = DashedString::_MAX_STR_LENGTH, u = 0;
     std::vector<int> remove;
-    std::vector<string> extl;
-    bool ext = true;
     for (IntVarValues i(y); i(); ++i) {
       StringView& vi = x[i.val()];
       // std::cerr << "x["<< i.val() << "] = " << vi << "\n";
-      ext &= vi.assigned();
       if (v.check_equate(vi)) {
         s.include(vi.may_chars());
         int li = vi.min_length(), ui = vi.max_length();
@@ -51,20 +48,10 @@ namespace Gecode { namespace String {
           l = li;
         if (ui > u)
           u = ui;
-        if (ext)
-          extl.push_back(vi.val());
       }
-      else {
+      else
         remove.push_back(i.val());
-        if (vi.assigned()) {
-          string* p = &v.ext_list()[0];
-          std::remove(p, p + v.ext_list().size(), vi.val());
-        }
-      }
     }
-    if (ext && (v.ext_list().empty() || extl.size() < v.ext_list().size()))
-        v.ext_list(extl);
-    // std::cerr<<"ext list = ["; for(auto x:v.ext_list()) std::cerr<<"\""<<x<< "\", "; std::cerr<<"]\n";
     // std::cerr<<"remove = ["; for(auto x:remove) std::cerr<<"\""<<x<< "\", "; std::cerr<<"]\n";
     IntSet is(IntSet(&remove[0], remove.size()));
     IntSetRanges r(is);

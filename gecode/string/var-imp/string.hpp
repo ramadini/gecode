@@ -1,24 +1,5 @@
 namespace Gecode { namespace String {
 
-  forceinline void
-  StringVarImp::ext_remove(int i) {
-    ext.erase(ext.begin() + i);
-  }
-
-  forceinline void
-  StringVarImp::ext_list(const std::vector<string>& e) {
-    ext = e;
-  }
-
-  forceinline std::vector<string>&
-  StringVarImp::ext_list() {
-    return ext;
-  }
-  forceinline const std::vector<string>&
-  StringVarImp::ext_list() const {
-    return ext;
-  }
-
   forceinline bool
   StringVarImp::assigned() const {
     return ds.known();

@@ -41,8 +41,6 @@ namespace Gecode { namespace String {
 
     DashedString ds;
 
-    std::vector<string> ext;
-
     /// Constructor for cloning \a x
     GECODE_STRING_EXPORT StringVarImp(Space& home, StringVarImp& x);
 
@@ -57,13 +55,6 @@ namespace Gecode { namespace String {
     StringVarImp(Space& home, NSBlocks& v, int mil, int mal);
 
     StringVarImp(Space& home, const NSIntSet& s, int a, int b);
-
-    void ext_list(const std::vector<string>&);
-
-    std::vector<string>& ext_list();
-    const std::vector<string>& ext_list() const;
-
-    void ext_remove(int i);
 
     /// Return assigned value (only if assigned)
     string val(void) const;

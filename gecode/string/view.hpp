@@ -16,13 +16,6 @@ namespace Gecode { namespace String {
 
     string val() const;
 
-    std::vector<string>& ext_list();
-    const std::vector<string>& ext_list() const;
-
-    void ext_remove(int i);
-
-    void ext_list(const std::vector<string>& e);
-
     String::DashedString* pdomain(void) const;
 
     bool same(const StringView& that) const;

@@ -11,26 +11,6 @@ namespace Gecode { namespace String {
   StringView::StringView(StringVarImp* y)
   : VarImpView<StringVar>(y) {}
 
-  forceinline void
-  StringView::ext_remove(int i) {
-    x->ext_remove(i);
-  }
-
-  forceinline void
-  StringView::ext_list(const std::vector<string>& e) {
-    x->ext_list(e);
-  }
-
-  forceinline std::vector<string>&
-  StringView::ext_list() {
-    return x->ext_list();
-  }
-
-  forceinline const std::vector<string>&
-  StringView::ext_list() const {
-    return x->ext_list();
-  }
-
   forceinline bool
   StringView::same(const StringView& that) const {
     return this->varimp() == that.varimp();
@@ -145,7 +125,6 @@ namespace Gecode { namespace String {
   StringView::update(Space& home, StringView& y) {
     VarImpView::update(home, y);
     x->ds.update(home, y.x->ds);
-    x->ext_list(y.x->ext);
   }
 
   forceinline bool
