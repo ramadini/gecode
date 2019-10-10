@@ -1250,20 +1250,16 @@ namespace Gecode { namespace String {
     NSBlocks(const DashedString& ds): NSBlocks(ds.blocks()) {}
 
     forceinline
-    NSBlocks(const std::vector<NSBlock>& blocks)
+    NSBlocks(const std::vector<NSBlock>& blocks) 
     : std::vector<NSBlock>(blocks) {}
 
     forceinline
-    NSBlocks(int n): std::vector<NSBlock>(n) {
-      if (n < 0 || n > DashedString::_MAX_STR_LENGTH)
-        throw OutOfLimitsDS("NSBlocks::NSBlocks");
-    }
+    NSBlocks(int n) 
+    : std::vector<NSBlock>(n) {}
 
     forceinline
-    NSBlocks(int n, const NSBlock& b): std::vector<NSBlock>(n, b) {
-      if (n < 0 || n > DashedString::_MAX_STR_LENGTH)
-        throw OutOfLimitsDS("NSBlocks::NSBlocks");
-    }
+    NSBlocks(int n, const NSBlock& b) 
+    : std::vector<NSBlock>(n, b) {}
 
     forceinline explicit
     NSBlocks(const std::string& s): std::vector<NSBlock>() {
@@ -1463,7 +1459,7 @@ namespace Gecode { namespace String {
       }
       return suff;
     }
-
+    
     friend std::ostream& operator<<(std::ostream& os, const NSBlocks& v);
 
   };
