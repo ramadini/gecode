@@ -19,7 +19,7 @@ then
   if
     [[ $1 == "opt" ]]
   then
-    # Optimised mode.
+    # Optimised mode, timeout depends on the target machine!
     timeout 2 $TEST_CMD $TEST_DIR/sql.cpp 11    &&
     timeout 2 $TEST_CMD $TEST_DIR/sql.cpp 12    &&
     timeout 2 $TEST_CMD $TEST_DIR/sql.cpp 100   &&
@@ -111,10 +111,12 @@ else
   cat $X
   exit 1
 fi &&
+# FIXME: Timeout depends on the target machine.
+TOUT=10 
 for m in `ls $TEST_DIR/appscan/*.mzn`
 do  
   if
-    [ `timeout 10 mzn-gstrings $m | grep "\----------"` ]
+    [ `timeout $TOUT mzn-gstrings $m | grep "\----------"` ]
   then
     echo "Solved $m"
   else
@@ -124,7 +126,7 @@ do
 done &&
 for m in `ls $TEST_DIR/pisa/*.mzn | sort`
 do
-  timeout 10 mzn-gstrings $m  > $X
+  timeout $TOUT mzn-gstrings $m  > $X
   if
     [[ `grep "\----------" $X` ]]
   then
@@ -159,7 +161,7 @@ done &&
 for m in `ls $TEST_DIR/norn/*/*.mzn | sort`
 do
   echo "Solving $m..."
-  timeout 10 mzn-gstrings $m  > $X
+  timeout $TOUT mzn-gstrings $m  > $X
   if
     [[ `grep "\----------" $X` ]]
   then

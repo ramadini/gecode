@@ -1434,11 +1434,11 @@ namespace Gecode { namespace String {
 
     forceinline string
     known_pref() const {
-      if (null())
-        return "";
       string pref = "";
       for (unsigned i = 0; i < this->size(); ++i) {
         const NSBlock& b = at(i);
+        if (b.null())
+          continue;
         if (b.S.size() > 1)
           return pref;
         pref += string(b.l, unsigned(b.S.min()));
@@ -1450,11 +1450,11 @@ namespace Gecode { namespace String {
 
     forceinline string
     known_suff() const {
-      if (null())
-        return "";
       string suff = "";
       for (int i = this->size() - 1; i >= 0; --i) {
         const NSBlock& b = at(i);
+        if (b.null())
+          continue;
         if (b.S.size() > 1)
           return suff;
         suff = string(b.l, unsigned(b.S.min())) + suff;

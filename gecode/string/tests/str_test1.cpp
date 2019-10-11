@@ -227,6 +227,8 @@ public:
     std::cerr << "y = " << y << ' ' << y.min_length() << std::endl;
     assert (x.equate(*this, y));
     std::cerr << "===== After Equate =====" << std::endl;
+    std::cerr << "x = " << x << ' ' << x.min_length() << std::endl;
+    std::cerr << "y = " << y << ' ' << y.min_length() << std::endl;
     assert (x.min_length() == y.min_length() && y.min_length() == 2);
   }
 
