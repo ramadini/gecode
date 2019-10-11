@@ -591,13 +591,14 @@ namespace Gecode { namespace String {
         // p_reg[i].u - p.reg[i].l + p_l <= xi.u.
         u += min(k + p_reg[i].l, p_reg[i].u);
       }
-      // std::cerr << p_l << ' ' << u << '\n';
+      // std::cerr << xi << ' ' << p_l << ' ' << u << '\n';
       assert (xi.l <= u);
       if (u == 0) {
         up.push(std::make_pair(i, NSBlocks(1)));
         continue;
       }
       if (p_l == 0 || p_l < xi.l || u > xi.u) {
+        string kpref = p_reg.known_pref(), ksuff = p_reg.known_suff();
         if (xi.l <= p_l && xlen == 1) {
           // Special case where x is a single block: the soundness of the
           // propagation is preserved by constraining the min/max length.
@@ -606,19 +607,33 @@ namespace Gecode { namespace String {
             p_reg[i].u = min(p_reg[i].u, xi.u);
           }
           p_reg.normalize();
-          if (p_reg.known_pref() != "" || p_reg.known_suff() != "" ||
-              p_reg.logdim() < x.at(0).logdim()) {
+          if (kpref != "" || ksuff != "" || p_reg.logdim() < x.at(0).logdim()) {
             up.push(std::make_pair(0, p_reg));
+            // std::cerr << "1) x'_i: " << p_reg << "\n";
             return true;
           }
         }
-        // Possibly crushing the matching region into a single block.
+        // Possibly crushing the matching region.
         int n = xi.S.size();
         xi.S.intersect(h, p_set);
-        if (p_l > xi.l || u < xi.u || (int) xi.S.size() < n) {
-          NSBlocks b(1, NSBlock(xi.S, max(p_l, xi.l), min(u, xi.u)));
-          up.push(std::make_pair(i, b));
-          // std::cerr << "2) x'_i: " << b << "\n";
+        if (p_l > xi.l || u < xi.u || kpref != "" || ksuff != ""
+        || (int) xi.S.size() < n) {
+          NSBlocks v;
+          int ll = max(p_l, xi.l), uu = min(u, xi.u), nn = kpref.size();
+          if (nn > 0) {            
+            v = NSBlocks(kpref);
+            ll -= nn;
+            uu -= nn;
+          }
+          v.push_back(NSBlock(xi.S, ll, uu));
+          nn = ksuff.size();
+          if (nn > 0) {
+            v.back().l -= nn;
+            v.back().u -= nn;
+            v.extend(NSBlocks(ksuff));
+          }
+          up.push(std::make_pair(i, v));
+          // std::cerr << "2) x'_i: " << v << "\n";
         }
         continue;
       }

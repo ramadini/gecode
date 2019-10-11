@@ -5,9 +5,9 @@ var string: var_3;
 var string: var_4;
 var string: var_5;
 var string: var_6;
-var string(100): var_7; %FIXME
-var string(100): var_8; %FIXME
-var string(100): var_9; %FIXME
+var string: var_7;
+var string: var_8;
+var string(10000): var_9; %FIXME
 var string: var_10;
 var string: var_11;
 var string: var_12;
