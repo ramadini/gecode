@@ -31,7 +31,7 @@ constraint y[0] = W_in;
 constraint forall (i in 1..d) (
   str_len(x[i]) > 0 /\ 
   str_find(x[i], W_out) > 0 /\
-  y[i] = str_replace_all(C[i], x[i], y[i - 1]) /\
+  y[i] = str_replace_all(y[i - 1], C[i], x[i]) /\
   if i < d then
     if FIXED_LENGTH then
       str_len(x[i]) = str_len(x[i + 1])

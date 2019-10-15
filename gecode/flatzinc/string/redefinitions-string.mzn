@@ -188,21 +188,6 @@ str_char_at(var string: x, var int: i) = str_sub(x, i, i);
 function var string: nat2str(var int: n);
 function var int: str2nat(var string: x);
 
-% Only decomposes if both x and x1 are fixed strings.
-predicate
-str_replace(string: x, string: x1, var string: y, var string: y1) 
-= let {
-  var string: pref;
-  var string: suff;
-  var string: z;
-  var string: z1;
-  var 1..2: i;
-  var int: n;
-} in
-  y = pref ++ z ++ suff /\ y1 = pref ++ z1 ++ suff /\
-  z = ["", x][i] /\ z1 = ["", x1][i] /\ i = (n > 0) + 1 /\ 
-  n = str_find(x, y) /\ str_len(pref) = max(0, n - 1);
-
 function array[int] of var string:
 str_split(var string: x, int: len) = [x];
 

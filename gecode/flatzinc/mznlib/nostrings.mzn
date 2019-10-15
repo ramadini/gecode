@@ -214,20 +214,20 @@ let {
     (n  > 0 <-> y = y1 ++ x ++ y2 /\ str_nsub(x, y1))
 } in n;
   
-% String replace: returns the replacement of first occurrence of x with x1 in y.
+% String replace: returns the replacement of first occurrence of q with q1 in x.
 function var string:
-str_replace(var string: x, var string: x1, var string: y) = 
+str_replace(var string: x, var string: q, var string: q1) = 
 let {
-  var string: y1;
+  var string: y;
   var string: p;
   var string: s;
   var 0..1: i;
-  var 0..ub(str_len(y)): n;
+  var 0..ub(str_len(x)): n;
   constraint
-    y = p ++ str_pow(x, i) ++ s /\ y1 = p ++ str_pow(x1, i) ++ s
-    /\ i = bool2int(n > 0) /\ n = str_find(x, y) /\ str_len(p) = max(0, n - 1)
-    /\ str_find(x, p) = (str_len(x) = 0)
-} in y1; 
+    x = p ++ str_pow(q, i) ++ s /\ y = p ++ str_pow(q1, i) ++ s
+    /\ i = bool2int(n > 0) /\ n = str_find(q, x) /\ str_len(p) = max(0, n - 1)
+    /\ str_find(q, p) = (str_len(q) = 0)
+} in y;
 
 % String range: each character of x must belong to the range of characters 
 % "a".."b" according to the lexicographic order.

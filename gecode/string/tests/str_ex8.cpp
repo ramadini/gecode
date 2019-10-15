@@ -64,9 +64,9 @@ public:
     iva << l;
 
     length(*this, z1, l);
-    replace(*this, x, x1, y, y1);
-    replace(*this, x, x1, z, z1);
-    replace_all(*this, x, t1, t, s);
+    replace(*this, y, x, x1, y1);
+    replace(*this, z, x, x1, z1);
+    replace_all(*this, t, x, t1, s);
     sizemin_llul(*this, string_vars);
   }
 

@@ -1,25 +1,19 @@
 % Include this file in the MiniZinc model to decompose the replace constraints.
 
+% String replace: returns the replacement of first occurrence of q with q1 in x.
 function var string:
-str_replace(var string: x, var string: x1, var string: y) ::promise_total = 
+str_replace(var string: x, var string: q, var string: q1) = 
 let {
-  var string: y1;
-  constraint str_replace(x, x1, y, y1);
-} in y1;
-
-predicate
-str_replace(var string: x, var string: x1, var string: y, var string: y1) 
-= let {
-  var string: pref;
-  var string: suff;
-  var string: z;
-  var string: z1;
-  var 1..2: i;
-  var int: n;
-} in
-  y = pref ++ z ++ suff /\ y1 = pref ++ z1 ++ suff /\
-  z = ["", x][i] /\ z1 = ["", x1][i] /\ i = (n > 0) + 1 /\ n = str_find(x, y) /\
-  str_len(pref) = max(0, n - 1) /\ str_find(x, pref) = (x = "");
+  var string: y;
+  var string: p;
+  var string: s;
+  var 0..1: i;
+  var 0..ub(str_len(x)): n;
+  constraint
+    x = p ++ str_pow(q, i) ++ s /\ y = p ++ str_pow(q1, i) ++ s
+    /\ i = bool2int(n > 0) /\ n = str_find(q, x) /\ str_len(p) = max(0, n - 1)
+    /\ str_find(q, p) = (str_len(q) = 0)
+} in y;
     
 function var string:
 str_replace_last(var string: x, var string: x1, var string: y) ::promise_total = 
