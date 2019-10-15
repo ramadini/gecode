@@ -14,7 +14,7 @@ namespace Gecode { namespace String {
       return ES_OK;
     }
     else if (x[1].same(x[3]))
-      rel(home, x[1], STRT_SUB, x[2]);
+      rel(home, x[1], STRT_SUB, x[0]);
     (void) new (home) Replace(home, x, a, l);
     return ES_OK;
   }
@@ -178,6 +178,7 @@ namespace Gecode { namespace String {
     assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
            x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());
     if (!all && !check_card()) {
+      find(home, x[1], x[0], IntVar(home, 0, 0));
       rel(home, x[0], STRT_EQ, x[3]);
       return home.ES_SUBSUMED(*this);
     }
