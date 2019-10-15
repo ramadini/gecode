@@ -1,0 +1,57 @@
+var string: sigmaStar_0;
+var string: sigmaStar_3;
+var string: x_8;
+var string: x_4;
+var string: literal_6;
+var string: x_7;
+var string: literal_5;
+var string: x_11;
+var string: sigmaStar_14;
+var string: x_10;
+var string: literal_9;
+var string: x_16;
+var string: x_15;
+var string: literal_13;
+var string: x_18;
+var string: x_17;
+var string: x_20;
+var string: sigmaStar_21;
+var string: literal_22;
+var string: x_23;
+var string: sigmaStar_24;
+var string: literal_25;
+var string: x_26;
+var string: x_27;
+var string: literal_28;
+var string: x_29;
+var string: x_31;
+var string: literal_30;
+constraint
+  (x_4) =
+    (str_replace_all(sigmaStar_0,
+       "\x2f\x5b\x5e\x30\x2d\x39\x61\x2d\x7a\x5c\x5c\x2d\x5f\x2c\x5d\x2b\x2f\x69",
+       ""));
+constraint (literal_6) = ("");
+constraint ((x_8) = (x_4)) \/ ((x_8) = (literal_6));
+constraint (literal_5) = ("");
+constraint ((x_7) = (x_4)) \/ ((x_7) = (literal_5));
+constraint (x_11) = ((x_8) ++ (x_7));
+constraint (literal_9) = ("");
+constraint ((x_10) = (literal_9)) \/ ((x_10) = (x_4));
+constraint (x_16) = ((x_11) ++ (x_10));
+constraint (literal_13) = ("\x65\x6e");
+constraint ((x_15) = (x_4)) \/ ((x_15) = (literal_13));
+constraint (x_18) = ((x_16) ++ (x_15));
+constraint ((x_17) = (sigmaStar_14)) \/ ((x_17) = (x_4));
+constraint (x_20) = ((x_18) ++ (x_17));
+constraint (literal_22) = ("\x2f");
+constraint (x_23) = ((sigmaStar_21) ++ (literal_22));
+constraint (literal_25) = ("\x74\x69\x6e\x79\x6d\x63\x65\x5f");
+constraint (x_26) = ((x_23) ++ (literal_25));
+constraint (x_27) = ((x_26) ++ (sigmaStar_24));
+constraint (literal_28) = ("\x2e\x67\x7a");
+constraint (x_29) = ((x_27) ++ (literal_28));
+constraint (literal_30) = ("");
+constraint ((x_31) = (literal_30)) \/ ((x_31) = (x_29));
+constraint str_reg(x_31, "((.)*)(\x2f\x65\x76\x69\x6c)((.)*)");
+solve satisfy;
