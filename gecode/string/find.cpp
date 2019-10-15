@@ -46,35 +46,35 @@ namespace Gecode {
   }
   
   void
-  replace(Home home, StringVar x, StringVar x1, StringVar y, StringVar y1) {
+  replace(Home home, StringVar x, StringVar q, StringVar q1, StringVar y) {
     GECODE_POST;
     ViewArray<String::StringView> a(home, 4);
     a[0] = x;
-    a[1] = x1;
-    a[2] = y;
-    a[3] = y1;
+    a[1] = q;
+    a[2] = q1;
+    a[3] = y;
     GECODE_ES_FAIL(String::Replace::post(home, a));
   }
   
   void
-  replace_all(Home home, StringVar x, StringVar x1, StringVar y, StringVar y1) {
+  replace_all(Home home, StringVar x, StringVar q, StringVar q1, StringVar y) {
     GECODE_POST;
     ViewArray<String::StringView> a(home, 4);
     a[0] = x;
-    a[1] = x1;
-    a[2] = y;
-    a[3] = y1;
+    a[1] = q;
+    a[2] = q1;
+    a[3] = y;
     GECODE_ES_FAIL(String::Replace::post(home, a, true));
   }
   
   void
-  replace_last(Home home, StringVar x, StringVar x1, StringVar y, StringVar y1) {
+  replace_last(Home home, StringVar x, StringVar q, StringVar q1, StringVar y) {
     GECODE_POST;
     ViewArray<String::StringView> a(home, 4);
     a[0] = x;
-    a[1] = x1;
-    a[2] = y;
-    a[3] = y1;
+    a[1] = q;
+    a[2] = q1;
+    a[3] = y;
     GECODE_ES_FAIL(String::Replace::post(home, a, false, true));
   }
 

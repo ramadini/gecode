@@ -48,10 +48,10 @@ public:
     iva << lx << ly1;
     int_vars = IntVarArray(*this, iva);
 
-    replace_all(*this, x, x1, y, y1);
-    replace_last(*this, StringVar(*this, "o"),  StringVar(*this, "O"), y1, z);
+    replace_all(*this, y, x, x1, y1);
+    replace_last(*this, y1, StringVar(*this, "o"), StringVar(*this, "O"), z);
     replace_last(
-      *this, z1, StringVar(*this, "*"), z, StringVar(*this, "H*o wOrd!!!")
+      *this, z, z1, StringVar(*this, "*"), StringVar(*this, "H*o wOrd!!!")
     );
     length(*this, x, lx);
     length(*this, y1, ly1);

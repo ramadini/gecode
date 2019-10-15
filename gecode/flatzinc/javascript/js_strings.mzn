@@ -1,6 +1,6 @@
 function var string:
 js_split(var string: x, string: sep) ::promise_total = 
-  str_replace_all(sep, ",", x);
+  str_replace_all(x, sep, ",");
   
 % Modelling x.slice(i, j).
 function var string:

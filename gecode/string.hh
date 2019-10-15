@@ -312,17 +312,17 @@ namespace Gecode {
   GECODE_STRING_EXPORT void
   rfind(Home home, StringVar x, StringVar y, IntVar n);
 
-  /// Post propagator for \f$ y1 = replace(x, x1, y) \f$
+  /// Post propagator for \f$ y = replace(x, q, q1) \f$
   GECODE_STRING_EXPORT void
-  replace(Home home, StringVar x, StringVar x1, StringVar y, StringVar y1);
+  replace(Home home, StringVar x, StringVar q, StringVar q1, StringVar y);
   
-  /// Post propagator for \f$ y1 = replaceAll(x, x1, y) \f$
+  /// Post propagator for \f$ y1 = replaceAll(x, q, q1) \f$
   GECODE_STRING_EXPORT void
-  replace_all(Home home, StringVar x, StringVar x1, StringVar y, StringVar y1);
+  replace_all(Home home, StringVar x, StringVar q, StringVar q1, StringVar y);
   
-  /// Post propagator for \f$ y1 = replaceLast(x, x1, y) \f$
+  /// Post propagator for \f$ y1 = replaceLast(x, q, q1) \f$
   GECODE_STRING_EXPORT void
-  replace_last(Home home, StringVar x, StringVar x1, StringVar y, StringVar y1);
+  replace_last(Home home, StringVar x, StringVar q, StringVar q1, StringVar y);
 
   /// Post propagator for \f$ gcc(x, a, n) \f$
   GECODE_STRING_EXPORT void
