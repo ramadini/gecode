@@ -245,9 +245,9 @@ namespace Gecode { namespace String {
       min_occur = 1;
       NSBlocks dx(1, NSBlock(x[0].may_chars(), 0, x[0].max_length()));      
       NSBlocks dy(1, NSBlock(x[3].may_chars(), 0, x[3].max_length()));
+      GECODE_ME_CHECK(x[0].lb(home, x[1].min_length()));
       GECODE_ME_CHECK(x[1].dom(home, dx));
       GECODE_ME_CHECK(x[2].dom(home, dy));
-      GECODE_ME_CHECK(x[0].lb(home, x[1].min_length()));
       GECODE_ME_CHECK(x[3].lb(home, x[2].min_length()));
     };
     // If x[1] must not occur in x[0], then x[0] = x[3]. Otherwise, we use the 
