@@ -205,7 +205,7 @@ namespace Gecode { namespace String {
   
   forceinline ExecStatus
   Replace::propagate(Space& home, const ModEventDelta&) {
-    // std::cerr<<"\nReplace" << (all ? "All" : "") << "::propagate: "<< x <<"\n";
+    //std::cerr<<"\nReplace" << (all ? "All" : "") << "::propagate: "<< x <<"\n";
     assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
            x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());
     if (!all && !check_card()) {
@@ -293,8 +293,9 @@ namespace Gecode { namespace String {
       if (le != Position({px->length(), 0}))
         v.extend(suffix(0, le));      
       v.normalize();
+      // std::cerr << "1) Equating " << x[3] << " with " << v << " => \n";
       GECODE_ME_CHECK(x[3].dom(home, v));
-      // std::cerr << "Equated y' with " << v << "  =>  " << x[3] << "\n";
+      // std::cerr << x[3] << "\n";
     }
     else {
       rel(home, x[0], STRT_EQ, x[3]);
@@ -326,8 +327,9 @@ namespace Gecode { namespace String {
       if (le != Position({py->length(), 0}))
         v.extend(suffix(3, le));
       v.normalize();
+      // std::cerr << "2) Equating " << x[0] << " with " << v << " => \n";
       GECODE_ME_CHECK(x[0].dom(home, v));
-      // std::cerr << "Equated y with " << v << "  =>  " << x[0] << "\n";
+      std::cerr << x[0] << "\n";
     }
     else {
       find(home, x[1], x[0], IntVar(home, 0, 0));

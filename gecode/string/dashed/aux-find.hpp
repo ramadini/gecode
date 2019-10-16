@@ -254,41 +254,81 @@ namespace Gecode { namespace String {
   * Replace propagator *
   *********************/
 
-  // Pushing the earliest start positions of x in y for replace propagator.
+  // Pushing forward the earliest start of x-blocks in y for replace propagator.
   forceinline bool
   push_esp_repl(const DSBlocks& x, const DSBlocks& y, matching& m) {
-    // std::cerr << "push_esp_find " << x << ' ' << y << '\n';
+    // std::cerr << "push_esp_repl " << x << ' ' << y << '\n';
     bool gap = false;
     int xlen = x.length();
     Position end({0, 0});
+    Position last = last_fwd(y);
     // Refining esp for each x-block.
-    do {
-      Position last({(int) y.length() - 1, y.back().u});
+    do {      
       for (int i = 0; i < xlen; ++i) {
         if (gap)
           end = m.esp[i];
         m.esp[i] = push<Fwd, DSBlock, DSBlock, DSBlocks>(y, x.at(i), end, last);
-        // std::cerr << "ESP[" << i << "] = " << m.esp[i] << "; " << end << "\n";
+        //std::cerr << "ESP[" << i << "] = " << m.esp[i] << "; " << end << "\n";
         if (last == m.esp[i] && x.at(i).l > 0)
           // Prefix cannot fit.
           return false;
       }
       gap = false;
       end = dual(y, end);
-      last = Position({0, y.at(0).u});
+      last = last_bwd(y);
       for (int i = xlen - 1; i >= 0; --i) {
         end = dual(y, 
           stretch<Bwd, DSBlock, DSBlock, DSBlocks>(y, x.at(i), end, last)
         );
         if (Fwd::lt(m.esp[i], end)) {
-          // If there is a gap between the earliest start position of block x[i] 
+          // There is a gap between the earliest start position of block x[i] 
           // and the position of the maximum backward stretch for the earliest 
           // end of x[i].
           m.esp[i] = end;
           gap = true;
-          // std::cerr << "ESP[" << i << "] = " << m.esp[i] << " (gap!)\n";
+          // std::cerr << "ESP[" << i << "] = " << m.esp[i] << " (***GAP***)\n";
         }
         end = dual(y, end);        
+      }
+    } while (gap);
+    return true;
+  }
+  
+  // Pushing backward the latest end of x-blocks in y for replace propagator.
+  forceinline bool
+  push_lep_repl(const DSBlocks& x, const DSBlocks& y, matching& m) {
+    // std::cerr << "push_lep_repl " << x << ' ' << y << '\n';
+    bool gap = false;
+    int xlen = x.length();
+    Position end = first_bwd(y);
+    Position last = last_bwd(y);
+    // Refining esp for each x-block.
+    do {      
+      for (int i = xlen - 1; i >= 0; --i) {
+        if (gap)
+          end = m.lep[i];
+        m.lep[i] = push<Bwd, DSBlock, DSBlock, DSBlocks>(y, x.at(i), end, last);
+        //std::cerr << "LEP[" << i << "] = " << m.lep[i] << "; " << end << "\n";
+        if (last == m.lep[i] && x.at(i).l > 0)
+          // Suffix cannot fit.
+          return false;
+      }
+      gap = false;
+      end = dual(y, end);
+      last = last_fwd(y);
+      for (int i = 0; i < xlen - 1; ++i) {
+        end = dual(y, 
+          stretch<Fwd, DSBlock, DSBlock, DSBlocks>(y, x.at(i), end, last)
+        );
+        if (Bwd::lt(m.lep[i], end)) {
+          // There is a gap between the latest end position of block x[i] 
+          // and the position of the maximum forward stretch for the latest 
+          // start of x[i].
+          m.lep[i] = end;
+          gap = true;
+          //std::cerr << "LEP[" << i << "] = " << m.lep[i] << " (***GAP***)\n";
+        }
+        end = dual(y, end);
       }
     } while (gap);
     return true;
@@ -303,14 +343,13 @@ namespace Gecode { namespace String {
     // std::cerr << "sweep_replace " << x << ' ' << y << '\n';
     const DSBlocks& xblocks = x.blocks();
     const DSBlocks& yblocks = y.blocks();
+    Position firstf({0, 0}), firstb(first_bwd(y));
     matching m;
-    init_x<DSBlock, DSBlocks, DSBlock, DSBlocks>(xblocks, yblocks, m);    
+    init_x<DSBlock, DSBlocks, DSBlock, DSBlocks>(xblocks, yblocks, m);
     if (!push_esp_repl(xblocks, yblocks, m))
       return false;
-    Position end({(int) y.length() - 1, 0}), last({0, y.at(0).u});
-    for (int i = x.length() - 1; i >= 0; --i)
-      m.lep[i] = 
-        push<Bwd, DSBlock, DSBlock, DSBlocks>(yblocks, x.at(i), end, last);
+    if (!push_lep_repl(xblocks, yblocks, m))
+      return false;
     int xlen = x.length();
     for (int i = 0; i < xlen; ++i) {
       Position es = m.esp[i];
@@ -324,7 +363,7 @@ namespace Gecode { namespace String {
       if (i == 0)
         pos[0] = es;
       if (i == xlen - 1)
-        pos[1] = dual(y, ee);
+        pos[1] = dual(y, le);
     }
     assert (!Fwd::lt(pos[1], pos[0]));
     return true;
