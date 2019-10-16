@@ -172,6 +172,37 @@ namespace Gecode { namespace String {
      return ly <= ux + uq1 - lq && uy >= lx + lq1 - uq;
   }
   
+  // For replace, it returns 1 if q must occur in x[0], 0 otherwise.
+  // For replace_all, it returns the minimum number of occurrences of q in x[0].
+  forceinline int
+  Replace::occur(string q) const {
+    int min_occur = 0;
+    string curr = "";
+    DashedString* p = x[0].pdomain();
+    for (int i = 0; i < p->length(); ++i) {
+      const DSBlock& b = p->at(i);
+      if (b.S.size() == 1) {
+        string w(b.l, b.S.min());
+        curr += w;
+        size_t i = curr.find(q);
+        while (i != string::npos) {
+          min_occur++;
+          if (!all)
+            return min_occur;
+          curr = curr.substr(i + q.size());
+          i = curr.find(q);
+        }
+        if (min_occur && !all)
+          return 1;
+        if (b.l < b.u)
+          curr = w;
+      }
+      else
+        curr = "";
+    }
+    return min_occur;
+  }
+  
   forceinline ExecStatus
   Replace::propagate(Space& home, const ModEventDelta&) {
     // std::cerr<<"\nReplace" << (all ? "All" : "") << "::propagate: "<< x <<"\n";
@@ -214,31 +245,7 @@ namespace Gecode { namespace String {
         }
         return home.ES_SUBSUMED(*this);
       }
-      // Compute fixed components of x[0] to see if x[1] must occur in it, i.e.,
-      // if we actually replace x[1] with x[2] in x[0].
-      string curr = "";
-      DashedString* p = x[0].pdomain();
-      for (int i = 0; i < p->length(); ++i) {
-        const DSBlock& b = p->at(i);
-        if (b.S.size() == 1) {
-          string w(b.l, b.S.min());
-          curr += w;
-          size_t i = curr.find(sq);
-          while (i != string::npos) {
-            min_occur++;
-            if (!all)
-              break;
-            curr = curr.substr(i + sq.size());
-            i = curr.find(sq);
-          }
-          if (min_occur && !all)
-            break;
-          if (b.l < b.u)
-            curr = w;
-        }
-        else
-          curr = "";
-      }
+      min_occur = occur(sq);      
     }
     // x[0] != x[3] => x[1] occur in x[0] /\ x[2] occur in x[3].
     if (min_occur == 0 && !x[0].pdomain()->check_equate(*x[3].pdomain())) {
