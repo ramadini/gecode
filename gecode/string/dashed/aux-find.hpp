@@ -76,6 +76,7 @@ namespace Gecode { namespace String {
     Position p_es{-1, -1}, p_ls{-1, -1}, p_ee{-1, -1}, p_le{-1, -1};
     int p_l = 0;
     int xlen = x.length();
+    // ymatch[i] = (j, k) if blocks x[j]x[j+1]...x[k] all fit into y[i].
     std::map<int, tpl2> ymatch;
     for (int i = 0; i < xlen; ++i) {
       DSBlock& xi = x.at(i);
@@ -298,10 +299,10 @@ namespace Gecode { namespace String {
   //   pos[1] = latest end position of x in y
   // The offset of both pos[0] and pos[1] is positive.
   forceinline bool
-  sweep_replace(DashedString& x, DashedString& y, Position* pos) {
+  sweep_replace(const DashedString& x, const DashedString& y, Position* pos) {
     // std::cerr << "sweep_replace " << x << ' ' << y << '\n';
-    DSBlocks& xblocks = x.blocks();
-    DSBlocks& yblocks = y.blocks();
+    const DSBlocks& xblocks = x.blocks();
+    const DSBlocks& yblocks = y.blocks();
     matching m;
     init_x<DSBlock, DSBlocks, DSBlock, DSBlocks>(xblocks, yblocks, m);    
     if (!push_esp_repl(xblocks, yblocks, m))
