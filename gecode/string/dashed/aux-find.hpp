@@ -339,8 +339,8 @@ namespace Gecode { namespace String {
   //   pos[1] = latest end position of x in y
   // The offset of both pos[0] and pos[1] is positive.
   forceinline bool
-  sweep_replace(const DashedString& x, const DashedString& y, Position* pos) {
-    // std::cerr << "sweep_replace " << x << ' ' << y << '\n';
+  check_find(const DashedString& x, const DashedString& y, Position* pos) {
+    // std::cerr << "check_find " << x << ' ' << y << '\n';
     const DSBlocks& xblocks = x.blocks();
     const DSBlocks& yblocks = y.blocks();
     Position firstf({0, 0}), firstb(first_bwd(y));

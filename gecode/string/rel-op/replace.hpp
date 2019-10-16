@@ -270,7 +270,7 @@ namespace Gecode { namespace String {
     // x[3] via equation.
     Position pos[2];
     // std::cerr << "min_occur: " << min_occur << "\n";
-    if (sweep_replace(*pq, *px, pos)) {
+    if (check_find(*pq, *px, pos)) {
       // Prefix: x[0][: es]
       NSBlocks v;
       Position es = pos[0], le = pos[1];
@@ -304,7 +304,7 @@ namespace Gecode { namespace String {
     // If x[2] must not occur in x[3], then find(x[1], x[0]) = 0 /\ x[0] = x[3].
     // Otherwise, we use the earliest/latest start/end positions of x[2] in x[3]
     // to possibly refine x[0] via equation.
-    if (sweep_replace(*pq1, *py, pos)) {
+    if (check_find(*pq1, *py, pos)) {
       // Prefix: x[3][: es].
       NSBlocks v;
       Position es = pos[0], le = pos[1];
@@ -329,7 +329,7 @@ namespace Gecode { namespace String {
       v.normalize();
       // std::cerr << "2) Equating " << x[0] << " with " << v << " => \n";
       GECODE_ME_CHECK(x[0].dom(home, v));
-      std::cerr << x[0] << "\n";
+      // std::cerr << x[0] << "\n";
     }
     else {
       find(home, x[1], x[0], IntVar(home, 0, 0));
