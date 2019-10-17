@@ -313,7 +313,7 @@ namespace Gecode { namespace String {
       // Crush x[3][es : ls], possibly adding x[1].
       NSBlock b;
       b.S.include(x[1].may_chars());
-      b.S.include(x[0].may_chars());
+      b.S.include(x[3].may_chars());
       b.u = max(0, 
         ub_card(3, es, le) + x[1].max_length() - min_occur * x[2].min_length()
       );
