@@ -74,7 +74,7 @@ namespace Gecode { namespace String {
           end = m.esp[i];
         m.esp[i] = push<Fwd, DSBlock, DSBlock, DSBlocks>(y, x.at(i), end, last);
         //std::cerr << "ESP[" << i << "] = " << m.esp[i] << "\n";
-        if (last == m.esp[i] && x.at(i).l > 0)
+        if (last == m.esp[i])
           // Prefix cannot fit.
           return false;
       }
@@ -113,7 +113,7 @@ namespace Gecode { namespace String {
           end = m.lep[i];
         m.lep[i] = push<Bwd, DSBlock, DSBlock, DSBlocks>(y, x.at(i), end, last);
         // std::cerr << "LEP[" << i << "] = " << m.lep[i] << "\n";
-        if (last == m.lep[i] && x.at(i).l > 0)
+        if (last == m.lep[i])
           // Suffix cannot fit.
           return false;
       }
