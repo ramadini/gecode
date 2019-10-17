@@ -315,7 +315,7 @@ namespace Gecode { namespace String {
       b.S.include(x[1].may_chars());
       b.S.include(x[0].may_chars());
       b.u = max(0, 
-        ub_card(3, es, le) + x[1].max_length() - min_occur * x[1].min_length()
+        ub_card(3, es, le) + x[1].max_length() - min_occur * x[2].min_length()
       );
       v.push_back(b);
       for (int i = 0; i < min_occur; ++i) {
