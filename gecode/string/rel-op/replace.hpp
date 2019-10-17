@@ -252,19 +252,8 @@ namespace Gecode { namespace String {
     DashedString* pq  = x[1].pdomain();
     DashedString* pq1 = x[2].pdomain();
     DashedString* py  = x[3].pdomain();    
-    if (!px->check_equate(*py)) {
-      int ux = x[0].max_length() - x[1].min_length() + 1;
-      if (ux < 1)
-        return ES_FAILED;
-      int uy = x[3].max_length() - x[2].min_length() + 1;
-      if (uy < 1)
-        return ES_FAILED;
-      int lb = 1;
-      if (!px->find(home, *pq, lb, ux, 1) || !py->find(home, *pq1, lb, uy, 1))
-        return ES_FAILED;
-      if (min_occur == 0)
-        min_occur = 1;
-    };
+    if (min_occur == 0 && !px->check_equate(*py))
+      min_occur = 1;
     // If x[1] must not occur in x[0], then x[0] = x[3]. Otherwise, we use the 
     // earliest/latest start/end positions of x[1] in x[0] to possibly refine 
     // x[3] via equation.
@@ -298,6 +287,8 @@ namespace Gecode { namespace String {
       // std::cerr << x[3] << "\n";
     }
     else {
+      if (min_occur > 0)
+        return ES_FAILED;
       rel(home, x[0], STRT_EQ, x[3]);
       return home.ES_SUBSUMED(*this);
     }    
@@ -332,6 +323,8 @@ namespace Gecode { namespace String {
       // std::cerr << x[0] << "\n";
     }
     else {
+      if (min_occur > 0)
+        return ES_FAILED;
       find(home, x[1], x[0], IntVar(home, 0, 0));
       rel(home, x[0], STRT_EQ, x[3]);
       return home.ES_SUBSUMED(*this);
