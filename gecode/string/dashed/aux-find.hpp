@@ -1,9 +1,5 @@
 namespace Gecode { namespace String {
   
-  /******************
-  * Find propagator *
-  *******************/
-  
   // Pushing the earliest start positions of x in y for find propagator.
   forceinline bool
   push_esp_find(
@@ -12,16 +8,15 @@ namespace Gecode { namespace String {
   ) {
     // std::cerr << "push_esp_find " << x << ' ' << y << '\n';
     bool gap = false;
-    int xlen = x.length();
-    Position end(start);
-    // Refining esp for each x-block.
     do {
-      Position last({(int) y.length() - 1, y.back().u});
+      int xlen = x.length();
+      Position end(start);
+      Position last = last_fwd(y);
       for (int i = 0; i < xlen; ++i) {
         if (gap)
           end = m.esp[i];
         m.esp[i] = push<Fwd, DSBlock, DSBlock, DSBlocks>(y, x.at(i), end, last);
-        // std::cerr << "ESP[" << i << "] = " << m.esp[i] << "; " << end << "\n";
+        // std::cerr << "ESP[" << i << "] = " << m.esp[i] << end << "\n";
         if (last == m.esp[i] && x.at(i).l > 0) {
           // Prefix cannot fit.
           if (mod)
@@ -33,7 +28,7 @@ namespace Gecode { namespace String {
       }
       gap = false;
       end = dual(y, end);
-      last = Position({0, y.at(0).u});
+      last = last_bwd(y);
       for (int i = xlen - 1; i >= 0; --i) {
         end = dual(y, 
           stretch<Bwd, DSBlock, DSBlock, DSBlocks>(y, x.at(i), end, last)
@@ -63,9 +58,122 @@ namespace Gecode { namespace String {
       return true;
     }
     return true;
+  }  
+  
+  // Pushing forward the earliest start of x-blocks in y for replace propagator.
+  forceinline bool
+  push_esp_repl(const DSBlocks& x, const DSBlocks& y, matching& m) {
+    // std::cerr << "push_esp_repl " << x << ' ' << y << '\n';    
+    bool gap = false;
+    do {      
+      int xlen = x.length();
+      Position end({0, 0});
+      Position last = last_fwd(y);
+      for (int i = 0; i < xlen; ++i) {
+        if (gap)
+          end = m.esp[i];
+        m.esp[i] = push<Fwd, DSBlock, DSBlock, DSBlocks>(y, x.at(i), end, last);
+        //std::cerr << "ESP[" << i << "] = " << m.esp[i] << "\n";
+        if (last == m.esp[i])
+          // Prefix cannot fit.
+          return false;
+      }
+      gap = false;
+      end = dual(y, end);
+      last = last_bwd(y);
+      for (int i = xlen - 1; i >= 0; --i) {
+        end = dual(y, 
+          stretch<Bwd, DSBlock, DSBlock, DSBlocks>(y, x.at(i), end, last)
+        );
+        if (Fwd::lt(m.esp[i], end)) {
+          // There is a gap between the earliest start position of block x[i] 
+          // and the position of the maximum backward stretch for the earliest 
+          // end of x[i].
+          m.esp[i] = end;
+          gap = true;
+          // std::cerr << "ESP[" << i << "] = " << m.esp[i] << " (***GAP***)\n";
+        }
+        end = dual(y, end);        
+      }
+    } while (gap);
+    return true;
   }
   
-  // Possibly refines x and y, knowing that find(x, y) > 0.
+  // Pushing backward latest ends of x-blocks in y for find/replace propagators.
+  forceinline bool
+  push_lep(const DSBlocks& x, const DSBlocks& y, matching& m) {
+    // std::cerr << "push_lep " << x << ' ' << y << '\n';
+    bool gap = false;
+    do {      
+      int xlen = x.length();
+      Position end = first_bwd(y);
+      Position last = last_bwd(y);
+      for (int i = xlen - 1; i >= 0; --i) {
+        if (gap)
+          end = m.lep[i];
+        m.lep[i] = push<Bwd, DSBlock, DSBlock, DSBlocks>(y, x.at(i), end, last);
+        // std::cerr << "LEP[" << i << "] = " << m.lep[i] << "\n";
+        if (last == m.lep[i])
+          // Suffix cannot fit.
+          return false;
+      }
+      gap = false;
+      end = dual(y, end);
+      last = last_fwd(y);
+      for (int i = 0; i < xlen; ++i) {
+        end = dual(y, 
+          stretch<Fwd, DSBlock, DSBlock, DSBlocks>(y, x.at(i), end, last)
+        );
+        if (Bwd::lt(m.lep[i], end)) {
+          // There is a gap between the latest end position of block x[i] 
+          // and the position of the maximum forward stretch for the latest 
+          // start of x[i].
+          m.lep[i] = end;
+          gap = true;
+          // std::cerr << "LEP[" << i << "] = " << m.lep[i] << " (***GAP***)\n";
+        }
+        end = dual(y, end);
+      }
+    } while (gap);
+    return true;
+  }
+  
+  // Returns true iff x may be a substring of y, and initializes pos such that:
+  //   pos[0] = earliest start position of x in y
+  //   pos[1] = latest end position of x in y
+  // The offset of both pos[0] and pos[1] is positive.
+  forceinline bool
+  check_find(const DashedString& x, const DashedString& y, Position* pos) {
+    // std::cerr << "check_find " << x << ' ' << y << '\n';
+    const DSBlocks& xblocks = x.blocks();
+    const DSBlocks& yblocks = y.blocks();
+    Position firstf({0, 0}), firstb(first_bwd(y));
+    matching m;
+    init_x<DSBlock, DSBlocks, DSBlock, DSBlocks>(xblocks, yblocks, m);
+    if (!push_esp_repl(xblocks, yblocks, m))
+      return false;
+    if (!push_lep(xblocks, yblocks, m))
+      return false;
+    int xlen = x.length();
+    for (int i = 0; i < xlen; ++i) {
+      Position es = m.esp[i];
+      Position le = m.lep[i];
+      Position ls = i ? dual(y, m.lep[i - 1]) : m.esp[0];
+      Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i];
+      // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
+      //  <<" ls: "<<ls<<" le: "<<le<<'\n';
+      if (!check_positions(y, es, ls, ee, le))
+        return false;
+      if (i == 0)
+        pos[0] = es;
+      if (i == xlen - 1)
+        pos[1] = dual(y, le);
+    }
+    assert (!Fwd::lt(pos[1], pos[0]));
+    return true;
+  }
+  
+  // Possibly refines x and y for find propagator, knowing that x occurs in y.
   forceinline bool
   refine_find(Space& h, DSBlocks& x, DSBlocks& y,
     matching& m, uvec& upx, uvec& upy, bool& modx, bool& mody
@@ -76,7 +184,8 @@ namespace Gecode { namespace String {
     Position p_es{-1, -1}, p_ls{-1, -1}, p_ee{-1, -1}, p_le{-1, -1};
     int p_l = 0;
     int xlen = x.length();
-    std::map<int, sweep_stack> ymatch;
+    // ymatch[i] = (j, k) if blocks x[j]x[j+1]...x[k] all fit in y[i].
+    std::map<int, tpl2> ymatch;
     for (int i = 0; i < xlen; ++i) {
       DSBlock& xi = x.at(i);
       Position es = m.esp[i];
@@ -84,8 +193,13 @@ namespace Gecode { namespace String {
       if (!Fwd::le(es, dual(y, le), upper(y.at(le.idx))))
         return false;
       // If the x-block fits all in a single y-block b, we can update b.
-      if (es.idx == le.idx && !y.at(es.idx).known())
-        ymatch[es.idx].push(i);
+      if (es.idx == le.idx && !y.at(es.idx).known()) {
+        std::map<int, tpl2>::iterator it = ymatch.find(es.idx);
+        if (it == ymatch.end())
+          ymatch[es.idx] = tpl2(i, i);
+        else
+          it->second.second = i;          
+      }
       Position ls = i ? dual(y, m.lep[i - 1]) : m.esp[0];
       Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i];
       if (!check_positions(y, es, ls, ee, le))
@@ -130,32 +244,40 @@ namespace Gecode { namespace String {
         upx.push(std::make_pair(i, v));
       }
     }
-    // Possibly refining y.
-    for (std::map<int, sweep_stack>::iterator it  = ymatch.begin();
-                                              it != ymatch.end(); ++it) {
+    // Possibly refining y-blocks.        
+    for (std::map<int, tpl2>::iterator it  = ymatch.begin(); 
+                                       it != ymatch.end(); ++it) {
       int j = it->first;
-      const DSBlock& yj = y.at(j);
-      const sweep_stack& s = it->second;
+      const DSBlock& y_j = y.at(j);
+      const tpl2& xreg = it->second;      
       int sl = 0;
-      for (int i = 0; i < s.size() && sl <= yj.u; ++i)
-        sl += x.at(s[i]).l;
-      if (yj.u == sl) {
+      for (int i = xreg.first; sl <= y_j.u && i <= xreg.second; ++i)
+        sl += x.at(i).l;
+      if (sl == y_j.u) {
         NSBlocks v;
-        for (int k = 0; k < s.size(); ++k) {
-          int i = s[k];
-          NSBlock b = NSBlock(x.at(i));
-          if (b.l > 0) {
-            b.S.intersect(h, yj.S);
+        for (int i = xreg.first; i <= xreg.second; ++i) {
+          DSBlock& x_i = x.at(i);
+          assert (x_i.known() || modx);
+          if (x_i.l > 0) {
+            NSBlock b = NSBlock(x_i);            
             b.u = b.l;
-            x.at(s[i]).update(h, b);
+            if (x_i.known()) {
+              assert (y_j.S.in(b.S.min()));
+              b.S.intersect(y_j.S);
+            }
+            else {
+              x_i.u = b.l;
+              int n = b.S.size();
+              b.S.intersect(h, y_j.S);
+              if (n > b.S.size())
+                x_i.S.update(h, b.S);
+            }
+            v.push_back(b);
           }
-          else {
-            x.at(s[i]).u = b.u = 0;
-            b.S.clear();
-          }
-          v.push_back(b);
+          else
+            x_i.set_null(h);
         }
-        if (v.logdim() < yj.logdim()) {
+        if (v.logdim() < y_j.logdim()) {
           mody = true;
           upy.push(std::make_pair(j, v));
         }
@@ -189,15 +311,11 @@ namespace Gecode { namespace String {
     ))
       return false;
     if (mod) {
-      Position end({(int) y.length() - 1, 0}), last({0, y.at(0).u});
-      for (int i = x.length() - 1; i >= 0; --i)
-        m.lep[i] = 
-          push<Bwd, DSBlock, DSBlock, DSBlocks>(yblocks, x.at(i), end, last);
+      if (!push_lep(xblocks, yblocks, m))
+        return false;
       uvec upx, upy;
       bool modx = false, mody = false;
-      if (!refine_find(
-        h, x.blocks(), y.blocks(), m, upx, upy, modx, mody
-      ))
+      if (!refine_find(h, xblocks, yblocks, m, upx, upy, modx, mody))
         return false;
       int k = 0;
       for (auto u : upx) {
@@ -229,90 +347,8 @@ namespace Gecode { namespace String {
         refine_eq(h, x, upx);      
       if (mody)
         refine_eq(h, y, upy);
-      
     }
     // std::cerr<<"swept: "<<x<<' '<<y<<' '<<"["<<lb<<", "<<ub<<"] "<<mod<<'\n';
-    return true;
-  }
-
-
-  /*********************
-  * Replace propagator *
-  *********************/
-
-  // Pushing the earliest start positions of x in y for replace propagator.
-  forceinline bool
-  push_esp_repl(const DSBlocks& x, const DSBlocks& y, matching& m) {
-    // std::cerr << "push_esp_find " << x << ' ' << y << '\n';
-    bool gap = false;
-    int xlen = x.length();
-    Position end({0, 0});
-    // Refining esp for each x-block.
-    do {
-      Position last({(int) y.length() - 1, y.back().u});
-      for (int i = 0; i < xlen; ++i) {
-        if (gap)
-          end = m.esp[i];
-        m.esp[i] = push<Fwd, DSBlock, DSBlock, DSBlocks>(y, x.at(i), end, last);
-        // std::cerr << "ESP[" << i << "] = " << m.esp[i] << "; " << end << "\n";
-        if (last == m.esp[i] && x.at(i).l > 0)
-          // Prefix cannot fit.
-          return false;
-      }
-      gap = false;
-      end = dual(y, end);
-      last = Position({0, y.at(0).u});
-      for (int i = xlen - 1; i >= 0; --i) {
-        end = dual(y, 
-          stretch<Bwd, DSBlock, DSBlock, DSBlocks>(y, x.at(i), end, last)
-        );
-        if (Fwd::lt(m.esp[i], end)) {
-          // If there is a gap between the earliest start position of block x[i] 
-          // and the position of the maximum backward stretch for the earliest 
-          // end of x[i].
-          m.esp[i] = end;
-          gap = true;
-          // std::cerr << "ESP[" << i << "] = " << m.esp[i] << " (gap!)\n";
-        }
-        end = dual(y, end);        
-      }
-    } while (gap);
-    return true;
-  }
- 
-  // Returns true iff x may be a substring of y, and initializes pos such that:
-  //   pos[0] = earliest start position of x in y
-  //   pos[1] = latest end position of x in y
-  // The offset of both pos[0] and pos[1] is positive.
-  forceinline bool
-  sweep_replace(DashedString& x, DashedString& y, Position* pos) {
-    // std::cerr << "sweep_replace " << x << ' ' << y << '\n';
-    DSBlocks& xblocks = x.blocks();
-    DSBlocks& yblocks = y.blocks();
-    matching m;
-    init_x<DSBlock, DSBlocks, DSBlock, DSBlocks>(xblocks, yblocks, m);    
-    if (!push_esp_repl(xblocks, yblocks, m))
-      return false;
-    Position end({(int) y.length() - 1, 0}), last({0, y.at(0).u});
-    for (int i = x.length() - 1; i >= 0; --i)
-      m.lep[i] = 
-        push<Bwd, DSBlock, DSBlock, DSBlocks>(yblocks, x.at(i), end, last);
-    int xlen = x.length();
-    for (int i = 0; i < xlen; ++i) {
-      Position es = m.esp[i];
-      Position le = m.lep[i];
-      Position ls = i ? dual(y, m.lep[i - 1]) : m.esp[0];
-      Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i];
-      // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
-      //  <<" ls: "<<ls<<" le: "<<le<<'\n';
-      if (!check_positions(y, es, ls, ee, le))
-        return false;
-      if (i == 0)
-        pos[0] = es;
-      if (i == xlen - 1)
-        pos[1] = dual(y, ee);
-    }
-    assert (!Fwd::lt(pos[1], pos[0]));
     return true;
   }
   

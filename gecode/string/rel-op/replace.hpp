@@ -172,9 +172,38 @@ namespace Gecode { namespace String {
      return ly <= ux + uq1 - lq && uy >= lx + lq1 - uq;
   }
   
+  // For replace, it returns 1 if q must occur in x[0], 0 otherwise.
+  // For replace_all, it returns the minimum number of occurrences of q in x[0].
+  forceinline int
+  Replace::occur(string q) const {
+    int min_occur = 0;
+    string curr = "";
+    DashedString* p = x[0].pdomain();
+    for (int i = 0; i < p->length(); ++i) {
+      const DSBlock& b = p->at(i);
+      if (b.S.size() == 1) {
+        string w(b.l, b.S.min());
+        curr += w;
+        size_t i = curr.find(q);
+        while (i != string::npos) {
+          min_occur++;
+          if (!all)
+            return min_occur;
+          curr = curr.substr(i + q.size());
+          i = curr.find(q);
+        }
+        if (b.l < b.u)
+          curr = w;
+      }
+      else
+        curr = "";
+    }
+    return min_occur;
+  }
+  
   forceinline ExecStatus
   Replace::propagate(Space& home, const ModEventDelta&) {
-    // std::cerr<<"\nReplace" << (all ? "All" : "") << "::propagate: "<< x <<"\n";
+    //std::cerr<<"\nReplace" << (all ? "All" : "") << "::propagate: "<< x <<"\n";
     assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
            x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());
     if (!all && !check_card()) {
@@ -214,48 +243,21 @@ namespace Gecode { namespace String {
         }
         return home.ES_SUBSUMED(*this);
       }
-      // Compute fixed components of x[0] to see if x[1] must occur in it, i.e.,
-      // if we actually replace x[1] with x[2] in x[0].
-      string curr = "";
-      DashedString* p = x[0].pdomain();
-      for (int i = 0; i < p->length(); ++i) {
-        const DSBlock& b = p->at(i);
-        if (b.S.size() == 1) {
-          string w(b.l, b.S.min());
-          curr += w;
-          size_t i = curr.find(sq);
-          while (i != string::npos) {
-            min_occur++;
-            if (!all)
-              break;
-            curr = curr.substr(i + sq.size());
-            i = curr.find(sq);
-          }
-          if (min_occur && !all)
-            break;
-          if (b.l < b.u)
-            curr = w;
-        }
-        else
-          curr = "";
-      }
+      min_occur = occur(sq);      
     }
     // x[0] != x[3] => x[1] occur in x[0] /\ x[2] occur in x[3].
-    if (min_occur == 0 && !x[0].pdomain()->check_equate(*x[3].pdomain())) {
+    DashedString* px  = x[0].pdomain();
+    DashedString* pq  = x[1].pdomain();
+    DashedString* pq1 = x[2].pdomain();
+    DashedString* py  = x[3].pdomain();    
+    if (min_occur == 0 && !px->check_equate(*py))
       min_occur = 1;
-      NSBlocks dx(1, NSBlock(x[0].may_chars(), 0, x[0].max_length()));      
-      NSBlocks dy(1, NSBlock(x[3].may_chars(), 0, x[3].max_length()));
-      GECODE_ME_CHECK(x[0].lb(home, x[1].min_length()));
-      GECODE_ME_CHECK(x[1].dom(home, dx));
-      GECODE_ME_CHECK(x[2].dom(home, dy));
-      GECODE_ME_CHECK(x[3].lb(home, x[2].min_length()));
-    };
     // If x[1] must not occur in x[0], then x[0] = x[3]. Otherwise, we use the 
     // earliest/latest start/end positions of x[1] in x[0] to possibly refine 
     // x[3] via equation.
     Position pos[2];
     // std::cerr << "min_occur: " << min_occur << "\n";
-    if (sweep_replace(*x[1].pdomain(), *x[0].pdomain(), pos)) {
+    if (check_find(*pq, *px, pos)) {
       // Prefix: x[0][: es]
       NSBlocks v;
       Position es = pos[0], le = pos[1];
@@ -270,26 +272,28 @@ namespace Gecode { namespace String {
       );
       v.push_back(b);
       for (int i = 0; i < min_occur; ++i) {
-        DashedString* pq = x[2].pdomain();
-        for (int j = 0; j < pq->length(); ++j)
-          v.push_back(NSBlock(pq->at(j)));
+        for (int j = 0; j < pq1->length(); ++j)
+          v.push_back(NSBlock(pq1->at(j)));
         v.push_back(b);
       }
       // Suffix: x[0][le :]
-      if (le != Position({x[0].pdomain()->length(), 0}))
+      if (le != Position({px->length(), 0}))
         v.extend(suffix(0, le));      
       v.normalize();
+      // std::cerr << "1) Equating " << x[3] << " with " << v << " => \n";
       GECODE_ME_CHECK(x[3].dom(home, v));
-      // std::cerr << "Equated y' with " << v << "  =>  " << x[3] << "\n";
+      // std::cerr << x[3] << "\n";
     }
     else {
+      if (min_occur > 0)
+        return ES_FAILED;
       rel(home, x[0], STRT_EQ, x[3]);
       return home.ES_SUBSUMED(*this);
     }    
     // If x[2] must not occur in x[3], then find(x[1], x[0]) = 0 /\ x[0] = x[3].
     // Otherwise, we use the earliest/latest start/end positions of x[2] in x[3]
     // to possibly refine x[0] via equation.
-    if (sweep_replace(*x[2].pdomain(), *x[3].pdomain(), pos)) {
+    if (check_find(*pq1, *py, pos)) {
       // Prefix: x[3][: es].
       NSBlocks v;
       Position es = pos[0], le = pos[1];
@@ -298,25 +302,27 @@ namespace Gecode { namespace String {
       // Crush x[3][es : ls], possibly adding x[1].
       NSBlock b;
       b.S.include(x[1].may_chars());
-      b.S.include(x[0].may_chars());
+      b.S.include(x[3].may_chars());
       b.u = max(0, 
-        ub_card(3, es, le) + x[1].max_length() - min_occur * x[1].min_length()
+        ub_card(3, es, le) + x[1].max_length() - min_occur * x[2].min_length()
       );
       v.push_back(b);
       for (int i = 0; i < min_occur; ++i) {
-        DashedString* pq = x[1].pdomain();
         for (int j = 0; j < pq->length(); ++j)
           v.push_back(NSBlock(pq->at(j)));
         v.push_back(b);
       }
       // Suffix: x[3][le :]
-      if (le != Position({x[3].pdomain()->length(), 0}))
+      if (le != Position({py->length(), 0}))
         v.extend(suffix(3, le));
       v.normalize();
+      // std::cerr << "2) Equating " << x[0] << " with " << v << " => \n";
       GECODE_ME_CHECK(x[0].dom(home, v));
-      // std::cerr << "Equated y with " << v << "  =>  " << x[0] << "\n";
+      // std::cerr << x[0] << "\n";
     }
     else {
+      if (min_occur > 0)
+        return ES_FAILED;
       find(home, x[1], x[0], IntVar(home, 0, 0));
       rel(home, x[0], STRT_EQ, x[3]);
       return home.ES_SUBSUMED(*this);
@@ -326,6 +332,8 @@ namespace Gecode { namespace String {
       return home.ES_SUBSUMED(*this);
     }
     // std::cerr<<"After replace: "<< x <<"\n";
+    assert (px->is_normalized() && pq->is_normalized() 
+        && pq1->is_normalized() && py->is_normalized());
     switch (
       x[1].assigned() + x[2].assigned() + x[0].assigned() + x[3].assigned()
     ) {

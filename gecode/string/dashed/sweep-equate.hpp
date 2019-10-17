@@ -497,8 +497,8 @@ namespace Gecode { namespace String {
   check_positions(
     const Blocks& x, Position& es, Position& ls, Position& ee, Position& le
   ) {
-    //std::cerr<<"check "<<"  es: "<<es<<" ls: "<<ls<<" ee: "<<ee<<" le: "<<le<<'\n';
-    //std::cerr<<"in "<<x<<'\n';
+    // std::cerr<<"check "<<"  es: "<<es<<" ls: "<<ls<<" ee: "<<ee<<" le: "<<le<<'\n';
+    // std::cerr<<"in "<<x<<'\n';
     if (!Fwd::le(es, ls, upper(x.at(ls.idx))) || 
         !Bwd::le(le, ee, upper(x.at(ee.idx))))
       return false;
