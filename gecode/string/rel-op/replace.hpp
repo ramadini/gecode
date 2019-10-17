@@ -192,8 +192,6 @@ namespace Gecode { namespace String {
           curr = curr.substr(i + q.size());
           i = curr.find(q);
         }
-        if (min_occur && !all)
-          return 1;
         if (b.l < b.u)
           curr = w;
       }
