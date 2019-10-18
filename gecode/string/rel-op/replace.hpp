@@ -81,10 +81,10 @@ namespace Gecode { namespace String {
     return suff;
   }
   
-  // Decomposes replace_All into basic constraints.
+  // Decomposes decomp_all into basic constraints.
   forceinline ExecStatus
-  Replace::replace_all(Space& home) {
-    // std::cerr << "replace_all\n";
+  Replace::decomp_all(Space& home) {
+    // std::cerr << "decomp_all\n";
     string sx = x[0].val(), sq = x[1].val();
     if (x[2].assigned()) {
       string sq1 = x[2].val();
@@ -158,7 +158,7 @@ namespace Gecode { namespace String {
           rel(home, vx.back(), STRT_EQ, x[3]);
       }
     }
-    // std::cerr << "After replace_all: " << x << "\n";
+    // std::cerr << "After decomp_all: " << x << "\n";
     return home.ES_SUBSUMED(*this);
   }
 
@@ -173,7 +173,7 @@ namespace Gecode { namespace String {
   }
   
   // For replace, it returns 1 if q must occur in x[0], 0 otherwise.
-  // For replace_all, it returns the minimum number of occurrences of q in x[0].
+  // For decomp_all, it returns the minimum number of occurrences of q in x[0].
   forceinline int
   Replace::occur(string q) const {
     int min_occur = 0;
@@ -225,7 +225,7 @@ namespace Gecode { namespace String {
       }
       if (x[0].assigned()) {
         if (all)
-          return replace_all(home);
+          return decomp_all(home);
         string sx = x[0].val();
         size_t n = last ? sx.rfind(sq) : sx.find(sq);
         if (n == string::npos)

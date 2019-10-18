@@ -7,7 +7,7 @@ namespace Gecode { namespace String {
     int ub_card(int, const Position&, const Position&) const;
     NSBlocks prefix(int, const Position&) const;
     NSBlocks suffix(int, const Position&) const;
-    ExecStatus replace_all(Space&);
+    ExecStatus decomp_all(Space&);
     ModEvent refine_card(Space&);
     int occur(string q) const;
     bool check_card() const;
