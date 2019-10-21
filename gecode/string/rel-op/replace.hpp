@@ -33,19 +33,19 @@ namespace Gecode { namespace String {
   : NaryPropagator<StringView, PC_STRING_DOM>(home, p), all(p.all), last(p.last) 
   {}
 
-  // Upper bound on the cardinality of matching region x[k][a : b].
   forceinline int
-  Replace::ub_card(int k, const Position& a, const Position& b) const {  
+  Replace::lb_card(int k, const Position& a, const Position& b) const {  
     if (a == b)
       return 0;
-    long u = 0;
+    int l = 0;
     assert (Fwd::lt(a, b));
-    for (int i = a.idx; i <= b.idx; ++i) {
-      u += x[k].pdomain()->at(i).u;
-      if (u > DashedString::_MAX_STR_LENGTH)
-        return DashedString::_MAX_STR_LENGTH;
-    }
-    return u;
+    const DashedString* px = x[k].pdomain();
+    const DSBlock& xa = px->at(a.idx);
+    if (a.off < xa.l)
+      l += xa.l - a.off;    
+    for (int i = a.idx + 1; i < b.idx; ++i)
+      l += px->at(i).l;
+    return l + min(b.off, px->at(b.idx).l);
   }
 
   // Returns the prefix of x[k] until position p.
@@ -203,7 +203,7 @@ namespace Gecode { namespace String {
   
   forceinline ExecStatus
   Replace::propagate(Space& home, const ModEventDelta&) {
-    //std::cerr<<"\nReplace" << (all ? "All" : "") << "::propagate: "<< x <<"\n";
+    // std::cerr<<"\nReplace" << (all ? "All" : "") << "::propagate: "<< x <<"\n";
     assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
            x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());
     if (!all && !check_card()) {
@@ -264,21 +264,27 @@ namespace Gecode { namespace String {
       if (es != Position({0, 0}))
         v = prefix(0, es);
       // Crush x[0][es : le], possibly adding x[2].
-      NSBlock b;
-      b.S.include(x[0].may_chars());
-      b.S.include(x[2].may_chars());      
-      b.u = max(0, 
-        ub_card(0, es, le) + x[2].max_length() - min_occur * x[1].min_length()
-      );
-      v.push_back(b);
-      for (int i = 0; i < min_occur; ++i) {
-        for (int j = 0; j < pq1->length(); ++j)
-          v.push_back(NSBlock(pq1->at(j)));
+      int u = x[3].max_length() - lb_card(0, Position({0, 0}), es)
+                                - lb_card(0, le, last_fwd(px->blocks()));     
+      if (u > 0) {
+        NSBlock b;
+        b.S.include(x[0].may_chars());
+        b.S.include(x[2].may_chars());
+        b.u = u;
         v.push_back(b);
+        for (int i = 0; i < min_occur; ++i) {
+          for (int j = 0; j < pq1->length(); ++j)
+            v.push_back(NSBlock(pq1->at(j)));
+          v.push_back(b);
+        }
       }
+      else
+        for (int i = 0; i < min_occur; ++i)
+          for (int j = 0; j < pq1->length(); ++j)
+            v.push_back(NSBlock(pq1->at(j)));
       // Suffix: x[0][le :]
       if (le != Position({px->length(), 0}))
-        v.extend(suffix(0, le));      
+        v.extend(suffix(0, le));
       v.normalize();
       // std::cerr << "1) Equating " << x[3] << " with " << v << " => \n";
       GECODE_ME_CHECK(x[3].dom(home, v));
@@ -300,17 +306,24 @@ namespace Gecode { namespace String {
       if (es != Position({0, 0}))
         v = prefix(3, es);
       // Crush x[3][es : ls], possibly adding x[1].
-      NSBlock b;
-      b.S.include(x[1].may_chars());
-      b.S.include(x[3].may_chars());
-      b.u = max(0, 
-        ub_card(3, es, le) + x[1].max_length() - min_occur * x[2].min_length()
-      );
-      v.push_back(b);
-      for (int i = 0; i < min_occur; ++i) {
-        for (int j = 0; j < pq->length(); ++j)
-          v.push_back(NSBlock(pq->at(j)));
+      int u = x[0].max_length() - lb_card(3, Position({0, 0}), es) 
+                                - lb_card(3, le, last_fwd(py->blocks()));
+      if (u > 0) {
+        NSBlock b;
+        b.S.include(x[1].may_chars());
+        b.S.include(x[3].may_chars());
+        b.u = u;
         v.push_back(b);
+        for (int i = 0; i < min_occur; ++i) {
+          for (int j = 0; j < pq->length(); ++j)
+            v.push_back(NSBlock(pq->at(j)));
+          v.push_back(b);
+        }
+      }
+      else {
+        for (int i = 0; i < min_occur; ++i)
+          for (int j = 0; j < pq->length(); ++j)
+            v.push_back(NSBlock(pq->at(j)));
       }
       // Suffix: x[3][le :]
       if (le != Position({py->length(), 0}))
@@ -346,55 +359,5 @@ namespace Gecode { namespace String {
         return ES_FIX;
     }
   }
-
-// Propagating |y| = |x| + |q'| - |q|, knowing that q occurs in x.
-//  forceinline ModEvent
-//  Replace::refine_card(Space& home) {
-//    long lx  = x[0].min_length(), ux  = x[0].max_length(),
-//         lq  = x[1].min_length(), uq  = x[1].max_length(),
-//         lq1 = x[2].min_length(), uq1 = x[2].max_length(),         
-//         ly  = x[3].min_length(), uy  = x[3].max_length();
-//    bool again, cq, cq1, cx, cy;
-//    do {
-//      again = cq = cq1 = cx = cy = false;
-//      int llq  = lx + lq1 - uy,  uuq  = ux + uq1 - ly,
-//          llq1 = ly + lq  - ux,  uuq1 = uy + uq  - lx,
-//          llx  = ly + lq  - uq1, uux  = uy + uq  - uq1,
-//          lly  = lx + lq1 - uq,  uuy  = ux + uq1 - lq;
-//      if (llq > lq)   { lq  = llq;  cq  = again = true; }
-//      if (uuq < uq)   { uq  = uuq;  cq  = again = true; }
-//      if (llq1 > lq1) { lq1 = llq1; cq1 = again = true; }
-//      if (uuq1 < uq1) { uq1 = uuq1; cq1 = again = true; }
-//      if (llx > lx)   { lx  = llx;  cx  = again = true; }
-//      if (uux < ux)   { ux  = uux;  cx  = again = true; }
-//      if (lly > ly)   { ly = lly; cy = again = true; }
-//      if (uuy < uy)   { uy = uuy; cy = again = true; }
-//      if (uq < lq || uq1 < lq1 || ux < lx || uy < ly)
-//        return ME_STRING_FAILED;
-//    } while (again);
-//    if ((cq  && !x[1].pdomain()->refine_card(home, lq, uq))   ||
-//        (cq1 && !x[2].pdomain()->refine_card(home, lq1, uq1)) ||
-//        (cx  && !x[0].pdomain()->refine_card(home, lx, ux))   ||
-//        (cy  && !x[3].pdomain()->refine_card(home, ly, uy)))
-//      return ME_STRING_FAILED;      
-//    StringDelta d(true);
-//    if (cx)
-//      return x[0].varimp()->notify(
-//       home, x[0].assigned() ? ME_STRING_VAL : ME_STRING_DOM, d
-//      );
-//    if (cq)
-//      return x[1].varimp()->notify(
-//       home, x[1].assigned() ? ME_STRING_VAL : ME_STRING_DOM, d
-//      );
-//    if (cq1)
-//      return x[2].varimp()->notify(
-//       home, x[2].assigned() ? ME_STRING_VAL : ME_STRING_DOM, d
-//      );    
-//    if (cy)
-//      return x[3].varimp()->notify(
-//       home, x[3].assigned() ? ME_STRING_VAL : ME_STRING_DOM, d
-//      );
-//    return ME_STRING_NONE;
-//  }
 
 }}
