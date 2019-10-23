@@ -85,8 +85,8 @@ namespace Gecode {
   // x startswith y <==> x = y ++ z.
   void
   startswith(Home home, StringVar x, StringVar y) {
-  StringVar z(home);
-  rel(home, y, z, STRT_CAT, x);
+    StringVar z(home);
+    rel(home, y, z, STRT_CAT, x);
   }
 
   // x endswith y <==> x = z ++ y.
