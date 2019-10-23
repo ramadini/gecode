@@ -39,7 +39,7 @@ namespace Gecode { namespace String {
       IntVar lz(home, min(d.min(), 0), max(0, d.max()));
       IntVar i(home, 0, 1);
       channel(home, b, i);
-      Gecode::Int::Arithmetic::MultDom::post(home, i, d, lz);
+      Gecode::Int::Arithmetic::MultBnd::post(home, i, d, lz);
       // ly = lx + lz.
       IntArgs ia1;
       ia1 << 1 << -1 << 1;
