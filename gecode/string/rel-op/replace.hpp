@@ -1,3 +1,5 @@
+#include <gecode/int/arithmetic.hh>
+
 namespace Gecode { namespace String {
 
   // x[3] is the string resulting from x[0] by replacing the first occurrence of 
@@ -15,6 +17,36 @@ namespace Gecode { namespace String {
     }
     else if (x[1].same(x[3]))
       rel(home, x[1], STRT_SUB, x[0]);
+    if (!a) {
+      // Enforcing |y| = |x| + [find(q, x) > 0]*(|q'|-|q|).
+      IntVar lx(home,  x[0].min_length(), x[0].max_length());
+      IntVar lq(home,  x[1].min_length(), x[1].max_length());
+      IntVar lq1(home, x[2].min_length(), x[2].max_length());
+      IntVar ly(home,  x[3].min_length(), x[3].max_length());
+      // b = [find(q, x) > 0].
+      IntVar z(home, 0, lx.max());
+      find(home, x[1], x[0], z);
+      BoolVar b(home, 0, 1);
+      rel(home, z, IRT_GR, 0, b);
+      // d = |q'| - |q|.
+      IntVar d(home, lq1.min() - lq.max(), lq1.max() - lq.min());
+      IntArgs ia;
+      ia << 1 << 1 << -1;
+      IntVarArgs iv;
+      iv << d << lq << lq1;
+      linear(home, ia, iv, IRT_EQ, 0);
+      // lz = int(b) * d.
+      IntVar lz(home, min(d.min(), 0), max(0, d.max()));
+      IntVar i(home, 0, 1);
+      channel(home, b, i);
+      Gecode::Int::Arithmetic::MultDom::post(home, i, d, lz);
+      // ly = lx + lz.
+      IntArgs ia1;
+      ia1 << 1 << -1 << 1;
+      IntVarArgs iv1;
+      iv1 << lx << ly << lz;
+      linear(home, ia1, iv1, IRT_EQ, 0);
+    }
     (void) new (home) Replace(home, x, a, l);
     return ES_OK;
   }
