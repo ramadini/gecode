@@ -181,7 +181,7 @@ namespace Gecode { namespace String {
         if (x2.assigned() && x0.min_length() == x0.max_length()) {
           int n = x2.val(), m = x0.min_length();
           assert (n > 0);
-          GECODE_ME_CHECK(x0.eq(home, x1.val().substr(n, m)));
+          GECODE_ME_CHECK(x0.eq(home, x1.val().substr(n - 1, m)));
           return home.ES_SUBSUMED(*this); 
         }
       }
