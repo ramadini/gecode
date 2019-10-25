@@ -354,9 +354,8 @@ namespace Gecode { namespace String {
   // Set up latest/earliest start/end positions for x-blocks in y.
   template <class Block1, class Blocks1, class Block2, class Blocks2>
   forceinline bool
-  init_x(const Blocks1& x, const Blocks2& y, matching& m, 
-  Position start = Position({0, 0})) {
-    Position firstf = start;
+  init_x(const Blocks1& x, const Blocks2& y, matching& m) {
+    Position firstf({0, 0});
     int xlen = x.length(), ylen = y.length();
     // Checks for concrete strings.
     if (xlen == 0) {

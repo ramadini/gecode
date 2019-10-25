@@ -144,17 +144,19 @@ namespace Gecode { namespace String {
   // The offset of both pos[0] and pos[1] is positive.
   forceinline bool
   check_find(const DashedString& x, const DashedString& y, Position* pos) {
-    // std::cerr << "check_find " << x << ' ' << y << '\n';
     const DSBlocks& xblocks = x.blocks();
     const DSBlocks& yblocks = y.blocks();
     Position firstf({0, 0}), firstb(first_bwd(y));
     matching m;
-    init_x<DSBlock, DSBlocks, DSBlock, DSBlocks>(xblocks, yblocks, m);
+    int xlen = x.length();
+    for (int i = 0; i < xlen; ++i) {
+      m.esp.push(firstf);
+      m.lep.push(firstb);
+    }
     if (!push_esp_repl(xblocks, yblocks, m))
       return false;
     if (!push_lep(xblocks, yblocks, m))
       return false;
-    int xlen = x.length();
     for (int i = 0; i < xlen; ++i) {
       Position es = m.esp[i];
       Position le = m.lep[i];
@@ -169,8 +171,7 @@ namespace Gecode { namespace String {
       if (i == xlen - 1)
         pos[1] = dual(y, le);
     }
-    assert (!Fwd::lt(pos[1], pos[0]));
-    return true;
+    return Fwd::le(pos[0], pos[1], y.at(pos[1].idx).u);
   }
   
   // Possibly refines x and y for find propagator, knowing that x occurs in y.
@@ -305,7 +306,11 @@ namespace Gecode { namespace String {
     DSBlocks& xblocks = x.blocks();
     DSBlocks& yblocks = y.blocks();
     matching m;
-    init_x<DSBlock, DSBlocks, DSBlock, DSBlocks>(xblocks, yblocks, m, start);
+    Position firstf({0, 0}), firstb(first_bwd(y));
+    for (int i = 0; i < x.length(); ++i) {
+      m.esp.push(start);
+      m.lep.push(firstb);
+    }
     if (!push_esp_find(
       xblocks, yblocks, start, lb, ub, m, x.min_length(), y.max_length(), mod
     ))
