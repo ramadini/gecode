@@ -111,6 +111,17 @@ else
   cat $X
   exit 1
 fi &&
+echo "Solving max_pattern.mzn"
+mzn-gstrings $TEST_DIR/max_pattern.mzn > $X
+if
+  [[ `grep "obj = 3" "$X"` ]]
+then
+  cat $X
+else
+  echo "Error! MZN output not expected!"
+  cat $X
+  exit 1
+fi &&
 # FIXME: Timeout depends on the target machine.
 TOUT=10 
 for m in `ls $TEST_DIR/appscan/*.mzn`
