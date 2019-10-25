@@ -114,7 +114,7 @@ fi &&
 echo "Solving max_pattern.mzn"
 mzn-gstrings $TEST_DIR/max_pattern.mzn > $X
 if
-  [[ `grep "obj = 3" "$X"` ]]
+  [[ `grep "obj = 4" "$X"` ]] && [[ `grep "==========" "$X"` ]]
 then
   cat $X
 else
