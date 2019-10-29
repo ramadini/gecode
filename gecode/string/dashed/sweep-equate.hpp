@@ -404,8 +404,9 @@ namespace Gecode { namespace String {
     return !Fwd::lt(firstf, m.esp[0]);
   }
 
+#ifndef NDEBUG
   // Use dynamic programming to check the completeness of sweep (debug-only).
-  forceinline bool
+  bool
   deep_check_dp(
     const NSBlocks& x, int i, const NSBlock& x_i, 
     const NSBlocks& y, int j, const NSBlock& y_j, set6 nogoods
@@ -472,7 +473,7 @@ namespace Gecode { namespace String {
     throw true;
   }
   template <class Block1, class Blocks1, class Block2, class Blocks2>
-  forceinline bool
+  bool
   deep_check(const Blocks1& x, const Blocks2& y) {
     // std::cerr << "deep_check " << x << " " << y << "\n";
     set6 ng;
@@ -488,7 +489,8 @@ namespace Gecode { namespace String {
       ok = b;
     }
     return ok;
-  }  
+  }
+#endif
 
   // Sanity checks on earliest/latest start/end positions.
   template <class Blocks>
@@ -657,15 +659,6 @@ namespace Gecode { namespace String {
     }
     assert ((m.esp[0] == Position({0, 0}) || null(y.at(0))) &&
             (m.lep[xlen - 1] == first_bwd(y) || null(y.at(y.length() - 1))));
-    if (DashedString::_DEEP_CHECK) {
-      if (!deep_check<Block1, Blocks1, Block2, Blocks2>(x, y)) {
-        std::cerr << "Deep check failed for " << x << " = " << y << '\n';
-        NSBlocks xx(x), yy(y);
-        bool b = check_sweep<NSBlock, NSBlocks, NSBlock, NSBlocks>(yy, xx);
-        assert (!b);
-        return false;
-      }
-    }
     return true;
   }
 
@@ -725,15 +718,6 @@ namespace Gecode { namespace String {
     // std::cerr << m.esp[0] << ' ' << m.lep[xlen-1] << "\n";
     assert ((m.esp[0] == Position({0, 0}) || null(y.at(0))) &&
             (m.lep[xlen - 1] == first_bwd(y) || null(y.at(y.length() - 1))));
-    if (DashedString::_DEEP_CHECK) {
-      if (!deep_check<Block1, Blocks1, Block2, Blocks2>(x, y)) {
-        std::cerr << "Deep check failed for " << x << " = " << y << '\n';
-        NSBlocks xx(x), yy(y);
-        bool b = check_sweep<NSBlock, NSBlocks, NSBlock, NSBlocks>(yy, xx);
-        assert (!b);
-        return false;
-      }
-    }
     return true;
   }  
 
