@@ -304,10 +304,16 @@ namespace Gecode { namespace String {
   static bool _DECOMP_REGEX;
   static bool _REVERSE_REGEX;
   static bool _QUAD_SWEEP;
-  static bool _DEEP_CHECK;
   static int  _MAX_STR_LENGTH;
   static int  _MAX_STR_ALPHA;
   static NSIntSet _MUST_CHARS;
+  
+  static bool deep_check_dp(
+    const NSBlocks& x, int i, const NSBlock& x_i, 
+    const NSBlocks& y, int j, const NSBlock& y_j, set6 nogoods
+  );
+  template <typename Blocks1, typename Blocks2>
+  static bool deep_check(const Blocks1& x, const Blocks2& y);
   
   friend std::ostream& operator<<(std::ostream& os, const DashedString& ds);
 

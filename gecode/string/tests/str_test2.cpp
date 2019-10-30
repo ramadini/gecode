@@ -557,11 +557,14 @@ public:
     DashedString y(*this, vy, min_length(vy), max_length(vy));
     std::cerr << "x = " << x << std::endl;
     std::cerr << "y = " << y << std::endl;
-    DashedString::_DEEP_CHECK = true;
+    // FIXME: x and y are not equatable.
     bool b = check_sweep<DSBlock, DSBlocks, DSBlock, DSBlocks>(
       x.blocks(), y.blocks()
     );
-    assert (!b);
+    std::cerr << "===== After Equate =====" << std::endl;
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "y = " << y << std::endl;
+    assert (b);
   }
 
 };

@@ -171,46 +171,46 @@ do
 done &&
 for m in `ls $TEST_DIR/stranger/*.mzn | sort`
 do
+  timeout $TOUT mzn-gstrings $m > $X
   if 
-    [[ `grep replace $m` ]] && [[ `grep ^solve $m` ]]
+    [[ `grep replace_all $m` ]]
+  then  
+    r=`echo $m | sed 's/.all//g'`
+  elif 
+    [[ `grep replace_last $m` ]]
+  then  
+    r=`echo $m | sed 's/.last//g'`
+  else
+    r=$m
+  fi
+  r=`basename $r`
+  if
+    [[ `grep "\----------" $X` ]]
   then
-    timeout $TOUT mzn-gstrings $m > $X
-    if 
-      [[ `grep replace_all $m` ]]
-    then  
-      r=`echo $m | sed 's/.all//g'`
-    else
-      r=$m
-    fi
-    r=`basename $r`
+    res=`grep ^$r $TEST_DIR/stranger/stranger_check.txt | awk '{print $2}'`
     if
-      [[ `grep "\----------" $X` ]]
+      [[ $res == "sat" ]]
     then
-      res=`grep ^$r $TEST_DIR/stranger/stranger_check.txt | awk '{print $2}'`
-      if
-        [[ $res == "sat" ]]
-      then
-        echo "Solved $m!"
-      else
-        echo "Error! $m not sound."
-        exit 1
-      fi
-    elif 
-      [[ `grep "=====UNSATISFIABLE=====" $X` ]]
-    then
-      res=`grep ^$r $TEST_DIR/stranger/stranger_check.txt | awk '{print $2}'`
-      if
-        [[ $res == "uns" ]]
-      then
-        echo "Solved $m!"
-      else
-        echo "Error! $m not sound."
-        exit 1
-      fi
+      echo "Solved $m!"
     else
       echo "Error! $m not sound."
       exit 1
     fi
+  elif 
+    [[ `grep "=====UNSATISFIABLE=====" $X` ]]
+  then
+    res=`grep ^$r $TEST_DIR/stranger/stranger_check.txt | awk '{print $2}'`
+    if
+      [[ $res == "uns" ]]
+    then
+      echo "Solved $m!"
+    else
+      echo "Error! $m not sound."
+      exit 1
+    fi
+  else
+    echo "Error! $m not sound."
+    exit 1
   fi
 done &&
 for m in `ls $TEST_DIR/norn/*/*.mzn | sort`

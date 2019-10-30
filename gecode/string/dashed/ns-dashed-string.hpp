@@ -219,7 +219,7 @@ namespace Gecode { namespace String {
     NSIntSet::NSIntSet(int l) {
       // std::cerr << "NSIntSet::NSIntSet(int l) " << l << "\n";
       if (l < 0)
-        throw OutOfLimitsDS("NSIntSet::NSIntSet");
+        l = unsigned(l);
       NSRange* p = new NSRange(l, l);
       _fst = _lst = p;
       _size = 1;
@@ -230,7 +230,7 @@ namespace Gecode { namespace String {
     NSIntSet::NSIntSet(int l, int u) {
       // std::cerr << "NSIntSet::NSIntSet(int l, int u)" << l << " " << u << "\n";
       if (l < 0)
-        throw OutOfLimitsDS("NSIntSet::NSIntSet");
+        l = unsigned(l);
       if (l > u) {
         _fst  = _lst = NULL;
         _size = _len = 0;
