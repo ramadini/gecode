@@ -139,6 +139,8 @@ namespace Gecode { namespace String {
         if (norm)
           pdom->normalize(home);
         assert (pdom->is_normalized());
+        if (x1.assigned() && x1.val().find(x0.val()))
+          return ES_FAILED;
         return home.ES_SUBSUMED(*this);
       }
       return ES_FIX;
