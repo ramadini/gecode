@@ -122,6 +122,17 @@ else
   cat $X
   exit 1
 fi &&
+echo "Solving mfp.mzn"
+mzn-gstrings $TEST_DIR/mfp.mzn > $X
+if
+  [[ `grep "CENTROCAMPO" "$X"` ]] && [[ `grep "==========" "$X"` ]]
+then
+  cat $X
+else
+  echo "Error! MZN output not expected!"
+  cat $X
+  exit 1
+fi &&
 # FIXME: Timeout depends on the target machine.
 TOUT=10 
 for m in `ls $TEST_DIR/appscan/*.mzn`
