@@ -2115,13 +2115,17 @@ namespace Gecode { namespace String {
     _blocks.normalize(h, l, u);
     _min_length = max(_min_length, l);
     _max_length = min(_max_length, u);
+    if (_min_length > _max_length) {
+      h.fail();
+      return;
+    }
     if (length() == 1) {
       if (at(0).l < _min_length)
         at(0).l = _min_length;
       if (at(0).u > _max_length)
         at(0).u = _max_length;
     }
-    assert (is_normalized());
+    // assert (is_normalized());
   }
 
   forceinline void

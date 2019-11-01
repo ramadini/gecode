@@ -296,12 +296,11 @@ namespace Gecode { namespace String {
       if (es != Position({0, 0}))
         v = prefix(0, es);
       // Crush x[0][es : le], possibly adding x[2].
-      int u = x[3].max_length() - lb_card(0, Position({0, 0}), es)
-                                - lb_card(0, le, last_fwd(px->blocks()));     
+      int u = x[3].max_length();
       if (u > 0) {
         NSBlock b;
-        b.S.include(x[0].may_chars());
-        b.S.include(x[2].may_chars());
+        b.S = x[2].may_chars();
+        b.S.include(x[3].may_chars());
         b.u = u;
         v.push_back(b);
         for (int i = 0; i < min_occur; ++i) {
@@ -318,6 +317,7 @@ namespace Gecode { namespace String {
       if (le != Position({px->length(), 0}))
         v.extend(suffix(0, le));
       v.normalize();
+      // std::cerr << "ES: " << es << ", LE: " << le << "\n";
       // std::cerr << "1) Equating " << x[3] << " with " << v << " => \n";
       GECODE_ME_CHECK(x[3].dom(home, v));
       // std::cerr << x[3] << "\n";
@@ -338,12 +338,11 @@ namespace Gecode { namespace String {
       if (es != Position({0, 0}))
         v = prefix(3, es);
       // Crush x[3][es : ls], possibly adding x[1].
-      int u = x[0].max_length() - lb_card(3, Position({0, 0}), es) 
-                                - lb_card(3, le, last_fwd(py->blocks()));
+      int u = x[0].max_length();
       if (u > 0) {
         NSBlock b;
+        b.S = x[0].may_chars();
         b.S.include(x[1].may_chars());
-        b.S.include(x[3].may_chars());
         b.u = u;
         v.push_back(b);
         for (int i = 0; i < min_occur; ++i) {
@@ -361,6 +360,7 @@ namespace Gecode { namespace String {
       if (le != Position({py->length(), 0}))
         v.extend(suffix(3, le));
       v.normalize();
+      // std::cerr << "ES: " << es << ", LE: " << le << "\n";
       // std::cerr << "2) Equating " << x[0] << " with " << v << " => \n";
       GECODE_ME_CHECK(x[0].dom(home, v));
       // std::cerr << x[0] << "\n";
