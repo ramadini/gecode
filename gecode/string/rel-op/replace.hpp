@@ -329,6 +329,7 @@ namespace Gecode { namespace String {
     DashedString* py  = x[3].pdomain();    
     if (min_occur == 0 && !px->check_equate(*py))
       min_occur = 1;
+    
     // If x[1] must not occur in x[0], then x[0] = x[3]. Otherwise, we use the 
     // earliest/latest start/end positions of x[1] in x[0] to possibly refine 
     // x[3] via equation.
@@ -341,10 +342,10 @@ namespace Gecode { namespace String {
       // std::cerr << "ES: " << es << ", LE: " << le << "\n";
       if (es != Position({0, 0})) {
         v = prefix(0, es);
-        DashedString w(home, v,  0, x[0].max_length());
+        DashedString w(home, v,  0, px->max_length());
         int u = DashedString::_MAX_STR_LENGTH;
-        NSBlocks b(1, NSBlock(x[0].may_chars(), 0, u));
-        b[0].S.include(x[2].may_chars());
+        NSBlocks b(1, NSBlock(px->may_chars(), 0, u));
+        b[0].S.include(pq1->may_chars());
         DashedString t(home, b, 0, u);
         ConcatView pref(w, t); 
         uvec up;
@@ -355,12 +356,12 @@ namespace Gecode { namespace String {
         if (up.size() > 0)
           refine_concat(home, w, t, up);
         if (w.changed()) {
-          NSBlocks b(1, NSBlock(x[1].may_chars(), 0, u));
-          b[0].S.include(x[3].may_chars());
+          NSBlocks b(1, NSBlock(py->may_chars(), 0, u));
+          b[0].S.include(pq->may_chars());
           DashedString t(home, b, 0, DashedString::_MAX_STR_LENGTH);
           ConcatView pref(w, t);
           uvec up;
-          if (!sweep_x <DSBlock, DSBlocks, DSBlock, ConcatView>
+          if (!sweep_x<DSBlock, DSBlocks, DSBlock, ConcatView>
           (home, px->blocks(), pref, up))
             return ES_FAILED;
           if (up.size() > 0)
@@ -393,10 +394,10 @@ namespace Gecode { namespace String {
       // Suffix: x[0][le :]
       if (le != last_fwd(px->blocks())) {
         NSBlocks vv = suffix(0, le);
-        DashedString w(home, vv,  0, x[0].max_length());
+        DashedString w(home, vv,  0, px->max_length());
         int u = DashedString::_MAX_STR_LENGTH;
-        NSBlocks b(1, NSBlock(x[0].may_chars(), 0, u));
-        b[0].S.include(x[2].may_chars());
+        NSBlocks b(1, NSBlock(px->may_chars(), 0, u));
+        b[0].S.include(pq1->may_chars());
         DashedString t(home, b, 0, u);
         ConcatView suff(t, w); 
         uvec up;
@@ -407,12 +408,12 @@ namespace Gecode { namespace String {
         if (up.size() > 0)
           refine_concat(home, t, w, up);
         if (w.changed()) {
-          NSBlocks b(1, NSBlock(x[1].may_chars(), 0, u));
-          b[0].S.include(x[3].may_chars());
+          NSBlocks b(1, NSBlock(py->may_chars(), 0, u));
+          b[0].S.include(pq->may_chars());
           DashedString t(home, b, 0, DashedString::_MAX_STR_LENGTH);
           ConcatView suff(t, w);
           uvec up;
-          if (!sweep_x <DSBlock, DSBlocks, DSBlock, ConcatView>
+          if (!sweep_x<DSBlock, DSBlocks, DSBlock, ConcatView>
           (home, px->blocks(), suff, up))
             return ES_FAILED;
           if (up.size() > 0)
@@ -435,6 +436,7 @@ namespace Gecode { namespace String {
       rel(home, x[0], STRT_EQ, x[3]);
       return home.ES_SUBSUMED(*this);
     }    
+    
     // If x[2] must not occur in x[3], then find(x[1], x[0]) = 0 /\ x[0] = x[3].
     // Otherwise, we use the earliest/latest start/end positions of x[2] in x[3]
     // to possibly refine x[0] via equation.
@@ -442,9 +444,38 @@ namespace Gecode { namespace String {
       // Prefix: x[3][: es].
       NSBlocks v;
       Position es = pos[0], le = pos[1];
-      if (es != Position({0, 0})) {
-        //TODO:
+      if (es != Position({0, 0})) { 
         v = prefix(3, es);
+        DashedString w(home, v,  0, py->max_length());
+        int u = DashedString::_MAX_STR_LENGTH;
+        NSBlocks b(1, NSBlock(py->may_chars(), 0, u));
+        b[0].S.include(pq->may_chars());
+        DashedString t(home, b, 0, u);
+        ConcatView pref(w, t); 
+        uvec up;
+        // Equating x[3][: es] ++ t with x[0] to refine the prefix of x[3].
+        if (!sweep_x<DSBlock, ConcatView, DSBlock, DSBlocks>
+        (home, pref, px->blocks(), up))
+          return ES_FAILED;
+        if (up.size() > 0)
+          refine_concat(home, w, t, up);
+        if (w.changed()) {
+          NSBlocks b(1, NSBlock(px->may_chars(), 0, u));
+          b[0].S.include(pq1->may_chars());
+          DashedString t(home, b, 0, DashedString::_MAX_STR_LENGTH);
+          ConcatView pref(w, t);
+          uvec up;
+          if (!sweep_x<DSBlock, DSBlocks, DSBlock, ConcatView>
+          (home, py->blocks(), pref, up))
+            return ES_FAILED;
+          if (up.size() > 0)
+            refine_eq(home, *py, up);
+          if (py->changed()) {
+            check_find(*pq1, *py, pos);
+            es = pos[0], le = pos[1];
+            v = prefix(3, es);
+          }
+        }
       }
       // Crush x[3][es : ls], possibly adding x[1].
       int u = x[0].max_length();
