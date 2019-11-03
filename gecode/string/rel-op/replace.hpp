@@ -498,7 +498,36 @@ namespace Gecode { namespace String {
       }
       // Suffix: x[3][le :]
       if (le != last_fwd(py->blocks())) {
-        //TODO:
+        NSBlocks vv = suffix(3, le);
+        DashedString w(home, vv,  0, py->max_length());
+        int u = DashedString::_MAX_STR_LENGTH;
+        NSBlocks b(1, NSBlock(py->may_chars(), 0, u));
+        b[0].S.include(pq->may_chars());
+        DashedString t(home, b, 0, u);
+        ConcatView suff(t, w); 
+        uvec up;
+        // Equating t ++ x[3][le :]  with x[0] to refine the suffix of x[3].
+        if (!sweep_x<DSBlock, ConcatView, DSBlock, DSBlocks>
+        (home, suff, px->blocks(), up))
+          return ES_FAILED;
+        if (up.size() > 0)
+          refine_concat(home, t, w, up);
+        if (w.changed()) {
+          NSBlocks b(1, NSBlock(px->may_chars(), 0, u));
+          b[0].S.include(pq1->may_chars());
+          DashedString t(home, b, 0, DashedString::_MAX_STR_LENGTH);
+          ConcatView suff(t, w);
+          uvec up;
+          if (!sweep_x<DSBlock, DSBlocks, DSBlock, ConcatView>
+          (home, py->blocks(), suff, up))
+            return ES_FAILED;
+          if (up.size() > 0)
+            refine_eq(home, *py, up);
+          if (py->changed()) {
+            check_find(*pq1, *py, pos);
+            es = pos[0], le = pos[1];
+          }
+        }
         v.extend(suffix(3, le));
       }
       v.normalize();
