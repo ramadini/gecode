@@ -5,8 +5,11 @@ namespace Gecode { namespace String {
 
   class Replace : public NaryPropagator<StringView, PC_STRING_DOM> {
     int lb_card(int, const Position&, const Position&) const;
+    int ub_card(int, const Position&, const Position&) const;
     NSBlocks prefix(int, const Position&) const;
     NSBlocks suffix(int, const Position&) const;
+    NSBlocks pref(int k, const Position& p) const;
+    NSBlocks suff(int k, const Position& p) const;
     ExecStatus decomp_all(Space&);
     ModEvent refine_card(Space&);
     int occur(string q) const;

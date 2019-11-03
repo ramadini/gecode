@@ -64,15 +64,17 @@ namespace Gecode { namespace String {
   Replace::Replace(Space& home, Replace& p)
   : NaryPropagator<StringView, PC_STRING_DOM>(home, p), all(p.all), last(p.last) 
   {}
-
+/*FIXME
   forceinline int
   Replace::lb_card(int k, const Position& a, const Position& b) const {  
     if (a == b)
       return 0;
-    int l = 0;
     assert (Fwd::lt(a, b));
     const DashedString* px = x[k].pdomain();
     const DSBlock& xa = px->at(a.idx);
+    if (a.idx == b.idx)
+      return max(0, min(b.off, xa.l) - a.off);
+    int l = 0;
     if (a.off < xa.l)
       l += xa.l - a.off;    
     for (int i = a.idx + 1; i < b.idx; ++i)
@@ -80,6 +82,21 @@ namespace Gecode { namespace String {
     return l + min(b.off, px->at(b.idx).l);
   }
 
+  forceinline int
+  Replace::ub_card(int k, const Position& a, const Position& b) const {
+    if (a == b)
+      return 0;
+    assert (Fwd::lt(a, b));
+    if (a.idx == b.idx)
+      return b.off - a.off;
+    const DashedString* px = x[k].pdomain();
+    const DSBlock& xa = px->at(a.idx);
+    int u = xa.u - a.off;
+    for (int i = a.idx + 1; i < b.idx; ++i)
+      u += px->at(i).u;
+    return u + b.off;
+  }
+*/
   // Returns the prefix of x[k] until position p.
   forceinline NSBlocks
   Replace::prefix(int k, const Position& p) const {
@@ -112,6 +129,34 @@ namespace Gecode { namespace String {
       suff.push_back(NSBlock(px->at(i)));
     return suff;
   }
+
+/*FIXME  
+  // Returns x[k][:p] + a possible padding block.
+  forceinline NSBlocks
+  Replace::pref(int k, const Position& p) const {
+    NSBlocks v;
+    DashedString* px = x[k].pdomain();
+    int n = man_region<DSBlock, DSBlocks>(
+      px->blocks(), Position({0, 0}), dual(px->blocks(), p), v
+    );
+    if (n < px->max_length())
+      v.push_back(NSBlock::top());
+    return v;
+  }
+  
+  // Returns a possible padding block + x[k][p:].
+  forceinline NSBlocks
+  Replace::suff(int k, const Position& p) const {
+    NSBlocks v;
+    DashedString* px = x[k].pdomain();
+    int n = man_region<DSBlock, DSBlocks>(
+      px->blocks(), p, first_bwd(px->blocks()), v
+    );
+    if (n < px->max_length())
+      v.push_front(NSBlock::top());
+    return v;
+  }
+*/
   
   // Decomposes decomp_all into basic constraints.
   forceinline ExecStatus
@@ -235,7 +280,7 @@ namespace Gecode { namespace String {
   
   forceinline ExecStatus
   Replace::propagate(Space& home, const ModEventDelta&) {
-    // std::cerr<<"\nReplace" << (all ? "All" : "") << "::propagate: "<< x <<"\n";
+    //std::cerr<<"\nReplace" << (all ? "All" : "") << "::propagate: "<< x <<"\n";
     assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
            x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());
     if (!all && !check_card()) {
@@ -293,14 +338,46 @@ namespace Gecode { namespace String {
       // Prefix: x[0][: es]
       NSBlocks v;
       Position es = pos[0], le = pos[1];
-      if (es != Position({0, 0}))
+      // std::cerr << "ES: " << es << ", LE: " << le << "\n";
+      if (es != Position({0, 0})) {
         v = prefix(0, es);
+        DashedString w(home, v,  0, x[0].max_length());
+        int u = DashedString::_MAX_STR_LENGTH;
+        NSBlocks b(1, NSBlock(x[0].may_chars(), 0, u));
+        b[0].S.include(x[2].may_chars());
+        DashedString t(home, b, 0, u);
+        ConcatView pref(w, t); 
+        uvec up;
+        // Equating x[0][: es] ++ t with x[3] to refine the prefix of x[0].
+        if (!sweep_x<DSBlock, ConcatView, DSBlock, DSBlocks>
+        (home, pref, py->blocks(), up))
+          return ES_FAILED;
+        if (up.size() > 0)
+          refine_concat(home, w, t, up);
+        if (w.changed()) {
+          NSBlocks b(1, NSBlock(x[1].may_chars(), 0, u));
+          b[0].S.include(x[3].may_chars());
+          DashedString t(home, b, 0, DashedString::_MAX_STR_LENGTH);
+          ConcatView pref(w, t);
+          uvec up;
+          if (!sweep_x <DSBlock, DSBlocks, DSBlock, ConcatView>
+          (home, px->blocks(), pref, up))
+            return ES_FAILED;
+          if (up.size() > 0)
+            refine_eq(home, *px, up);
+          if (px->changed()) {
+            check_find(*pq, *px, pos);
+            es = pos[0], le = pos[1];
+            v = prefix(0, es);
+          }
+        }
+      }
       // Crush x[0][es : le], possibly adding x[2].
       int u = x[3].max_length();
       if (u > 0) {
         NSBlock b;
-        b.S = x[2].may_chars();
-        b.S.include(x[3].may_chars());
+        b.S = x[0].may_chars();
+        b.S.include(x[2].may_chars());
         b.u = u;
         v.push_back(b);
         for (int i = 0; i < min_occur; ++i) {
@@ -314,13 +391,43 @@ namespace Gecode { namespace String {
           for (int j = 0; j < pq1->length(); ++j)
             v.push_back(NSBlock(pq1->at(j)));
       // Suffix: x[0][le :]
-      if (le != Position({px->length(), 0}))
+      if (le != last_fwd(px->blocks())) {
+        NSBlocks vv = suffix(0, le);
+        DashedString w(home, vv,  0, x[0].max_length());
+        int u = DashedString::_MAX_STR_LENGTH;
+        NSBlocks b(1, NSBlock(x[0].may_chars(), 0, u));
+        b[0].S.include(x[2].may_chars());
+        DashedString t(home, b, 0, u);
+        ConcatView suff(t, w); 
+        uvec up;
+        // Equating t ++ x[0][le :]  with x[3] to refine the suffix of x[0].
+        if (!sweep_x<DSBlock, ConcatView, DSBlock, DSBlocks>
+        (home, suff, py->blocks(), up))
+          return ES_FAILED;
+        if (up.size() > 0)
+          refine_concat(home, t, w, up);
+        if (w.changed()) {
+          NSBlocks b(1, NSBlock(x[1].may_chars(), 0, u));
+          b[0].S.include(x[3].may_chars());
+          DashedString t(home, b, 0, DashedString::_MAX_STR_LENGTH);
+          ConcatView suff(t, w);
+          uvec up;
+          if (!sweep_x <DSBlock, DSBlocks, DSBlock, ConcatView>
+          (home, px->blocks(), suff, up))
+            return ES_FAILED;
+          if (up.size() > 0)
+            refine_eq(home, *px, up);
+          if (px->changed()) {
+            check_find(*pq, *px, pos);
+            es = pos[0], le = pos[1];
+          }
+        }
         v.extend(suffix(0, le));
+      }
       v.normalize();
-      // std::cerr << "ES: " << es << ", LE: " << le << "\n";
-      // std::cerr << "1) Equating " << x[3] << " with " << v << " => \n";
+      //std::cerr << "1c) Equating " << x[3] << " with " << v << " => \n";
       GECODE_ME_CHECK(x[3].dom(home, v));
-      // std::cerr << x[3] << "\n";
+      //std::cerr << x[3] << "\n";
     }
     else {
       if (min_occur > 0)
@@ -335,14 +442,16 @@ namespace Gecode { namespace String {
       // Prefix: x[3][: es].
       NSBlocks v;
       Position es = pos[0], le = pos[1];
-      if (es != Position({0, 0}))
+      if (es != Position({0, 0})) {
+        //TODO:
         v = prefix(3, es);
+      }
       // Crush x[3][es : ls], possibly adding x[1].
       int u = x[0].max_length();
       if (u > 0) {
         NSBlock b;
-        b.S = x[0].may_chars();
-        b.S.include(x[1].may_chars());
+        b.S = x[1].may_chars();
+        b.S.include(x[3].may_chars());
         b.u = u;
         v.push_back(b);
         for (int i = 0; i < min_occur; ++i) {
@@ -357,13 +466,14 @@ namespace Gecode { namespace String {
             v.push_back(NSBlock(pq->at(j)));
       }
       // Suffix: x[3][le :]
-      if (le != Position({py->length(), 0}))
+      if (le != last_fwd(py->blocks())) {
+        //TODO:
         v.extend(suffix(3, le));
+      }
       v.normalize();
-      // std::cerr << "ES: " << es << ", LE: " << le << "\n";
-      // std::cerr << "2) Equating " << x[0] << " with " << v << " => \n";
+      //std::cerr << "2c) Equating " << x[0] << " with " << v << " => \n";
       GECODE_ME_CHECK(x[0].dom(home, v));
-      // std::cerr << x[0] << "\n";
+      //std::cerr << x[0] << "\n";
     }
     else {
       if (min_occur > 0)
@@ -376,11 +486,11 @@ namespace Gecode { namespace String {
       rel(home, x[0], STRT_EQ, x[3]);
       return home.ES_SUBSUMED(*this);
     }
-    // std::cerr<<"After replace: "<< x <<"\n";
+    //std::cerr<<"After replace: "<< x <<"\n";
     assert (px->is_normalized() && pq->is_normalized() 
         && pq1->is_normalized() && py->is_normalized());
     switch (
-      x[1].assigned() + x[2].assigned() + x[0].assigned() + x[3].assigned()
+      x[0].assigned() + x[1].assigned() + x[2].assigned() + x[3].assigned()
     ) {
       case 4:
       case 3:

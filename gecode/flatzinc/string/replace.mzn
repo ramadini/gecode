@@ -7,12 +7,13 @@ let {
   var string: y;
   var string: p;
   var string: s;
-  var 0..1: i;
-  var 0..ub(str_len(x)): n;
+  %var 0..1: i;
+  %var 0..ub(str_len(x)): n;
   constraint
-    x = p ++ str_pow(q, i) ++ s /\ y = p ++ str_pow(q1, i) ++ s
-    /\ i = bool2int(n > 0) /\ n = str_find(q, x) /\ str_len(p) = max(0, n - 1)
-    /\ str_find(q, p) = (str_len(q) = 0)
+    x = p ++ q ++ s /\ y = p ++ q1 ++ s /\ str_find(q, p) = 0 %FIXME:
+    %x = p ++ str_pow(q, i) ++ s /\ y = p ++ str_pow(q1, i) ++ s
+    %/\ i = bool2int(n > 0) /\ n = str_find(q, x) /\ str_len(p) = max(0, n - 1)
+    %/\ str_find(q, p) = (str_len(q) = 0)
 } in y;
     
 function var string:

@@ -23,7 +23,7 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   Length::propagate(Space& home, const ModEventDelta&) {
-    // std::cerr<<"\nLength::propagate "<<x0<<" "<<x1<<'\n';
+    //std::cerr<<"\nLength::propagate "<<x0<<" "<<x1<<'\n';
     int lx0 = x0.min_length(), lx1 = x1.min();
     if (lx0 < lx1)
       GECODE_ME_CHECK(x0.lb(home, lx1));
