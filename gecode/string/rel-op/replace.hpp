@@ -335,7 +335,10 @@ namespace Gecode { namespace String {
       rel(home, z, suff, STRT_CAT, x[0]);
       rel(home, pref, x[2], STRT_CAT, z1);
       rel(home, z1, suff, STRT_CAT, x[3]);
-      find(home, x[1], pref, IntVar(home, 0, 0));
+      if (last)
+        rfind(home, x[1], suff, IntVar(home, 0, 0));
+      else
+        find(home, x[1], pref, IntVar(home, 0, 0));
       return home.ES_SUBSUMED(*this);
     }
     // std::cerr << "min_occur: " << min_occur << "\n";
@@ -564,7 +567,8 @@ namespace Gecode { namespace String {
       case 4:
       case 3:
         // Force the re-execution of the propagation.
-        return propagate(home, m);
+        std::cerr << "After replace: "<< x <<"\n";
+        return x[0].assigned() ? propagate(home, m) : ES_FIX;
       case 2:
         return x[1].assigned() && x[0].assigned() ? propagate(home, m) : ES_FIX;
       default:
