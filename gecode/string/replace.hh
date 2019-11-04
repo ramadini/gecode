@@ -11,6 +11,8 @@ namespace Gecode { namespace String {
     NSBlocks pref(int k, const Position& p) const;
     NSBlocks suff(int k, const Position& p) const;
     ExecStatus decomp_all(Space&);
+    ExecStatus replace_q_x(Space&, int);
+    ExecStatus replace_q1_y(Space&, int);
     ModEvent refine_card(Space&);
     int occur(string q) const;
     bool check_card() const;

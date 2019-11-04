@@ -278,71 +278,15 @@ namespace Gecode { namespace String {
     return min_occur;
   }
   
+  // If x[1] must not occur in x[0], then x[0] = x[3]. Otherwise, we use the 
+  // earliest/latest start/end positions of x[1] in x[0] to possibly refine 
+  // x[3] via equation.
   forceinline ExecStatus
-  Replace::propagate(Space& home, const ModEventDelta& m) {
-    // std::cerr<<"\nReplace" << (all ? "All" : last ? "Last" : "") << "::propagate: "<< x <<"\n";
-    assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
-           x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());
-    if (!all && !check_card()) {
-      find(home, x[1], x[0], IntVar(home, 0, 0));
-      rel(home, x[0], STRT_EQ, x[3]);
-      return home.ES_SUBSUMED(*this);
-    }
-    int min_occur = 0;
-    if (x[1].assigned()) {
-      string sq = x[1].val();
-      if (x[2].assigned() && sq == x[2].val()) {
-        rel(home, x[0], STRT_EQ, x[3]);
-        return home.ES_SUBSUMED(*this);
-      }
-      if (sq == "" && !all) {
-        last ? rel(home, x[0], x[2], STRT_CAT, x[3])
-             : rel(home, x[2], x[0], STRT_CAT, x[3]);
-        return home.ES_SUBSUMED(*this);
-      }
-      if (x[0].assigned()) {
-        if (all)
-          return decomp_all(home);
-        string sx = x[0].val();
-        size_t n = last ? sx.rfind(sq) : sx.find(sq);
-        if (n == string::npos)
-          rel(home, x[0], STRT_EQ, x[3]);
-        else {
-          string pref = sx.substr(0, n);
-          string suff = sx.substr(n + sq.size());
-          if (x[2].assigned())
-            GECODE_ME_CHECK(x[3].eq(home, pref + x[2].val() + suff));
-          else {
-            StringVar z(home);
-            rel(home, StringVar(home, pref), x[2], STRT_CAT, z);
-            rel(home, z, StringVar(home, suff), STRT_CAT, x[3]);
-          }
-        }
-        return home.ES_SUBSUMED(*this);
-      }
-      min_occur = occur(sq);      
-    }
-    // x[0] != x[3] => x[1] occur in x[0] /\ x[2] occur in x[3].
+  Replace::replace_q_x(Space& home, int min_occur) {
     DashedString* px  = x[0].pdomain();
     DashedString* pq  = x[1].pdomain();
     DashedString* pq1 = x[2].pdomain();
-    DashedString* py  = x[3].pdomain();    
-    if (min_occur == 0 && !px->check_equate(*py))
-      min_occur = 1;
-    if (min_occur > 0 && !all) {
-      StringVar z(home), z1(home), pref(home), suff(home);
-      rel(home, pref, x[1], STRT_CAT, z);
-      rel(home, z, suff, STRT_CAT, x[0]);
-      rel(home, pref, x[2], STRT_CAT, z1);
-      rel(home, z1, suff, STRT_CAT, x[3]);
-      find(home, x[1], last ? suff : pref, IntVar(home, 0, 0));
-      return home.ES_SUBSUMED(*this);
-    }
-    // std::cerr << "min_occur: " << min_occur << "\n";
-    
-    // If x[1] must not occur in x[0], then x[0] = x[3]. Otherwise, we use the 
-    // earliest/latest start/end positions of x[1] in x[0] to possibly refine 
-    // x[3] via equation.
+    DashedString* py  = x[3].pdomain();
     Position pos[2];
     if (check_find(*pq, *px, pos)) {
       // Prefix: x[0][: es]
@@ -444,11 +388,20 @@ namespace Gecode { namespace String {
         return ES_FAILED;
       rel(home, x[0], STRT_EQ, x[3]);
       return home.ES_SUBSUMED(*this);
-    }    
-    
-    // If x[2] must not occur in x[3], then find(x[1], x[0]) = 0 /\ x[0] = x[3].
-    // Otherwise, we use the earliest/latest start/end positions of x[2] in x[3]
-    // to possibly refine x[0] via equation.
+    }
+    return ES_OK;
+  }
+  
+  // If x[2] must not occur in x[3], then find(x[1], x[0]) = 0 /\ x[0] = x[3].
+  // Otherwise, we use the earliest/latest start/end positions of x[2] in x[3]
+  // to possibly refine x[0] via equation.
+  forceinline ExecStatus
+  Replace::replace_q1_y(Space& home, int min_occur) {
+    DashedString* px  = x[0].pdomain();
+    DashedString* pq  = x[1].pdomain();
+    DashedString* pq1 = x[2].pdomain();
+    DashedString* py  = x[3].pdomain();
+    Position pos[2];
     if (check_find(*pq1, *py, pos)) {
       // Prefix: x[3][: es].
       NSBlocks v;
@@ -551,10 +504,78 @@ namespace Gecode { namespace String {
       rel(home, x[0], STRT_EQ, x[3]);
       return home.ES_SUBSUMED(*this);
     }
+    return ES_OK;
+  }
+  
+  forceinline ExecStatus
+  Replace::propagate(Space& home, const ModEventDelta& m) {
+    // std::cerr<<"\nReplace" << (all ? "All" : last ? "Last" : "") << "::propagate: "<< x <<"\n";
+    assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
+           x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());
+    if (!all && !check_card()) {
+      find(home, x[1], x[0], IntVar(home, 0, 0));
+      rel(home, x[0], STRT_EQ, x[3]);
+      return home.ES_SUBSUMED(*this);
+    }
+    int min_occur = 0;
+    if (x[1].assigned()) {
+      string sq = x[1].val();
+      if (x[2].assigned() && sq == x[2].val()) {
+        rel(home, x[0], STRT_EQ, x[3]);
+        return home.ES_SUBSUMED(*this);
+      }
+      if (sq == "" && !all) {
+        last ? rel(home, x[0], x[2], STRT_CAT, x[3])
+             : rel(home, x[2], x[0], STRT_CAT, x[3]);
+        return home.ES_SUBSUMED(*this);
+      }
+      if (x[0].assigned()) {
+        if (all)
+          return decomp_all(home);
+        string sx = x[0].val();
+        size_t n = last ? sx.rfind(sq) : sx.find(sq);
+        if (n == string::npos)
+          rel(home, x[0], STRT_EQ, x[3]);
+        else {
+          string pref = sx.substr(0, n);
+          string suff = sx.substr(n + sq.size());
+          if (x[2].assigned())
+            GECODE_ME_CHECK(x[3].eq(home, pref + x[2].val() + suff));
+          else {
+            StringVar z(home);
+            rel(home, StringVar(home, pref), x[2], STRT_CAT, z);
+            rel(home, z, StringVar(home, suff), STRT_CAT, x[3]);
+          }
+        }
+        return home.ES_SUBSUMED(*this);
+      }
+      min_occur = occur(sq);      
+    }
+    // x[0] != x[3] => x[1] occur in x[0] /\ x[2] occur in x[3].
+    DashedString* px  = x[0].pdomain();
+    DashedString* pq  = x[1].pdomain();
+    DashedString* pq1 = x[2].pdomain();
+    DashedString* py  = x[3].pdomain();
+    if (min_occur == 0 && !px->check_equate(*py))
+      min_occur = 1;
+    if (min_occur > 0 && !all) {
+      StringVar z(home), z1(home), pref(home), suff(home);
+      rel(home, pref, x[1], STRT_CAT, z);
+      rel(home, z, suff, STRT_CAT, x[0]);
+      rel(home, pref, x[2], STRT_CAT, z1);
+      rel(home, z1, suff, STRT_CAT, x[3]);
+      find(home, x[1], last ? suff : pref, IntVar(home, 0, 0));
+      return home.ES_SUBSUMED(*this);
+    }
+    // std::cerr << "min_occur: " << min_occur << "\n";
+    replace_q_x(home, min_occur);
+    replace_q1_y(home, min_occur);
     if (!all && !check_card()) {
       rel(home, x[0], STRT_EQ, x[3]);
       return home.ES_SUBSUMED(*this);
     }
+    if (home.failed())
+      return ES_FAILED;
     // std::cerr<<"After replace: "<< x <<"\n";
     assert (px->is_normalized() && pq->is_normalized() 
         && pq1->is_normalized() && py->is_normalized());
