@@ -27,7 +27,7 @@ namespace Gecode { namespace String {
          StringView, PC_STRING_DOM, StringView,PC_STRING_DOM>(home, p) {}
 
   forceinline ExecStatus
-  Concat::propagate(Space& home, const ModEventDelta&) {
+  Concat::propagate(Space& home, const ModEventDelta& m) {
     // std::cerr<<"\nConcat::propagate: "<<x2<<" = "<<x0<<" ++ "<<x1<<std::endl;
     assert (x0.pdomain()->is_normalized() && x1.pdomain()->is_normalized() &&
             x2.pdomain()->is_normalized());
@@ -40,7 +40,7 @@ namespace Gecode { namespace String {
         assert (x2.val() == x0.val() + x1.val());
         return home.ES_SUBSUMED(*this);
       case 2:
-        return ES_NOFIX;
+        return propagate(home, m);
       default:
         return ES_FIX;
     }

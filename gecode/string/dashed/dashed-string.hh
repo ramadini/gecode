@@ -154,6 +154,8 @@ namespace Gecode { namespace String {
     bool isTop() const;
 
     bool known() const;
+    
+    string val() const;
 
     static DSBlock top(Space& h);
 

@@ -85,7 +85,7 @@ namespace Gecode { namespace String {
   }
 
   forceinline ExecStatus
-  GConcat::propagate(Space& home, const ModEventDelta&) {
+  GConcat::propagate(Space& home, const ModEventDelta& m) {
     // std::cerr<<"\nGConcat::propagate " <<y<< " = gconcat(" <<x<< ")\n";
     if (x.assigned()) {
       string val;
@@ -127,7 +127,7 @@ namespace Gecode { namespace String {
       }
     }
     // std::cerr<<"propagated "<<y<<" = gconcat("<<x<<")\n";
-    return x.assigned() ? ES_NOFIX : ES_FIX;
+    return x.assigned() ? propagate(home, m) : ES_FIX;
   }
 
 }}

@@ -279,8 +279,8 @@ namespace Gecode { namespace String {
   }
   
   forceinline ExecStatus
-  Replace::propagate(Space& home, const ModEventDelta&) {
-    //std::cerr<<"\nReplace" << (all ? "All" : "") << "::propagate: "<< x <<"\n";
+  Replace::propagate(Space& home, const ModEventDelta& m) {
+    // std::cerr<<"\nReplace" << (all ? "All" : last ? "Last" : "") << "::propagate: "<< x <<"\n";
     assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
            x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());
     if (!all && !check_card()) {
@@ -329,12 +329,21 @@ namespace Gecode { namespace String {
     DashedString* py  = x[3].pdomain();    
     if (min_occur == 0 && !px->check_equate(*py))
       min_occur = 1;
+    if (min_occur > 0 && !all) {
+      StringVar z(home), z1(home), pref(home), suff(home);
+      rel(home, pref, x[1], STRT_CAT, z);
+      rel(home, z, suff, STRT_CAT, x[0]);
+      rel(home, pref, x[2], STRT_CAT, z1);
+      rel(home, z1, suff, STRT_CAT, x[3]);
+      find(home, x[1], pref, IntVar(home, 0, 0));
+      return home.ES_SUBSUMED(*this);
+    }
+    // std::cerr << "min_occur: " << min_occur << "\n";
     
     // If x[1] must not occur in x[0], then x[0] = x[3]. Otherwise, we use the 
     // earliest/latest start/end positions of x[1] in x[0] to possibly refine 
     // x[3] via equation.
     Position pos[2];
-    // std::cerr << "min_occur: " << min_occur << "\n";
     if (check_find(*pq, *px, pos)) {
       // Prefix: x[0][: es]
       NSBlocks v;
@@ -546,7 +555,7 @@ namespace Gecode { namespace String {
       rel(home, x[0], STRT_EQ, x[3]);
       return home.ES_SUBSUMED(*this);
     }
-    //std::cerr<<"After replace: "<< x <<"\n";
+    // std::cerr<<"After replace: "<< x <<"\n";
     assert (px->is_normalized() && pq->is_normalized() 
         && pq1->is_normalized() && py->is_normalized());
     switch (
@@ -554,9 +563,10 @@ namespace Gecode { namespace String {
     ) {
       case 4:
       case 3:
-        return ES_NOFIX;
+        // Force the re-execution of the propagation.
+        return propagate(home, m);
       case 2:
-        return x[1].assigned() && x[0].assigned() ? ES_NOFIX : ES_FIX;
+        return x[1].assigned() && x[0].assigned() ? propagate(home, m) : ES_FIX;
       default:
         return ES_FIX;
     }

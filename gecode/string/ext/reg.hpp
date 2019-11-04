@@ -501,7 +501,7 @@ namespace Gecode { namespace String {
   }
 
   forceinline ExecStatus
-  Reg::propagate(Space& home, const ModEventDelta&) {
+  Reg::propagate(Space& home, const ModEventDelta& m) {
     // std::cerr<<"\nExtDFA<StringView>::propagate "<<x0<<" in dfa "<<*dfa<<std::endl;
     if (x0.assigned()) {
       // std::cerr << dfa->accepted(x0.val()) << std::endl;
@@ -552,7 +552,7 @@ namespace Gecode { namespace String {
       );
       // std::cerr<<"ExtDFA<StringView>::propagated (changed) "<<x0<<"\n\n";
       assert (x0.pdomain()->is_normalized());
-      return x0.assigned() ? home.ES_SUBSUMED(*this) : ES_NOFIX;
+      return x0.assigned() ? home.ES_SUBSUMED(*this) : propagate(home, m);
     }
     // Reverse run.
     if (DashedString::_REVERSE_REGEX) {
@@ -595,7 +595,7 @@ namespace Gecode { namespace String {
         );
         // std::cerr<<"ExtDFA<StringView>::propagated (changed) "<<x0<<"\n\n";
         assert (x0.pdomain()->is_normalized());
-        return x0.assigned() ? home.ES_SUBSUMED(*this) : ES_NOFIX;
+        return x0.assigned() ? home.ES_SUBSUMED(*this) : propagate(home, m);
       }
     }
     // std::cerr<<"ExtDFA<StringView>::propagated (no change) "<<x0<<"\n\n";

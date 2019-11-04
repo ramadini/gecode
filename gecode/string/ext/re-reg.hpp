@@ -130,7 +130,7 @@ namespace Gecode { namespace String {
 
   template<class CtrlView, ReifyMode rm>
   forceinline ExecStatus
-  ReReg<CtrlView, rm>::propagate(Space& home, const ModEventDelta&) {
+  ReReg<CtrlView, rm>::propagate(Space& home, const ModEventDelta& m) {
     // std::cerr<<"ReDFA::propagate "<<x1<<" <> "<<x0<<" in dfa "<<*dfa<<std::endl;
     if (x0.assigned()) {
       if (dfa->accepted(x0.val())) {
@@ -168,22 +168,22 @@ namespace Gecode { namespace String {
       Fi = F[i].back();
       if (dfa->univ_rejected(Fi)) {
         GECODE_ME_CHECK(b.eq(home, 0));
-        return ES_NOFIX;
+        return propagate(home, m);
       }
       if (dfa->univ_accepted(Fi)) {
         GECODE_ME_CHECK(b.eq(home, 1));
-        return ES_NOFIX;
+        return propagate(home, m);
       }
     }
     NSIntSet E(F.back().back());
     Fi = NSIntSet(dfa->final_fst, dfa->final_lst);
     if (Fi.contains(E)) {
       GECODE_ME_CHECK(b.eq(home, 1));
-      return ES_NOFIX;
+      return propagate(home, m);
     }
     if (Fi.comp().contains(E)) {
       GECODE_ME_CHECK(b.eq(home, 0));
-      return ES_NOFIX;
+      return propagate(home, m);
     }
     if (b.one())
       E.intersect(Fi);
@@ -222,7 +222,7 @@ namespace Gecode { namespace String {
       );
       // std::cerr<<"ExtDFA<View>::propagated (changed) "<<x0<<"\n\n";
       assert (x0.pdomain()->is_normalized());
-      return x0.assigned() ? home.ES_SUBSUMED(*this) : ES_NOFIX;
+      return x0.assigned() ? home.ES_SUBSUMED(*this) : propagate(home, m);
     }
     // std::cerr<<"ExtDFA<View>::propagated (no change) "<<x0<<"\n\n";
     assert (x0.pdomain()->is_normalized());

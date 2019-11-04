@@ -128,7 +128,7 @@ namespace Gecode { namespace String {
   }
 
   forceinline ExecStatus
-  StrToNat::propagate(Space& home, const ModEventDelta&) {
+  StrToNat::propagate(Space& home, const ModEventDelta& m) {
     // std::cerr<<"\nStrToNat::propagate "<<x0<<" => "<<x1<<std::endl;
     if (x0.assigned()) {
       try {
@@ -176,7 +176,7 @@ namespace Gecode { namespace String {
     GECODE_ES_CHECK(refine_int(home));
     // std::cerr<<"\nStrToNat::propagated "<<x0<<" => "<<x1<<std::endl;
     assert (x0.pdomain()->is_normalized());
-    return x0.assigned() || x1.assigned() ? ES_NOFIX : ES_FIX;
+    return x0.assigned() || x1.assigned() ? propagate(home, m) : ES_FIX;
   }
 
 }}

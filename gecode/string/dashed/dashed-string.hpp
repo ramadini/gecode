@@ -434,6 +434,14 @@ namespace Gecode { namespace String {
     return l <= b.l && u >= b.u && S.contains(b.S);
   }
 
+  forceinline string
+  DSBlock::val() const {
+    if (!known())
+      throw UnknownValDS("DashedString::val");
+    if (null())
+      return "";
+    return string(l, int2char(S.min()));
+  }
 
   forceinline bool
   DSBlock::null() const {
@@ -1940,13 +1948,9 @@ namespace Gecode { namespace String {
 
   forceinline string
   DashedString::val() const {
-    if (!known())
-      throw UnknownValDS("DashedString::val");
-    string s;
-    for (int i = 0; i < _blocks.length(); ++i) {
-      const DSBlock& b = at(i);
-      s += string(b.l, int2char(b.S.min()));
-    }
+    string s = "";
+    for (int i = 0; i < _blocks.length(); ++i)
+      s += at(i).val();
     return s;
   }
 

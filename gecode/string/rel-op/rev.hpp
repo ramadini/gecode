@@ -28,7 +28,7 @@ namespace Gecode { namespace String {
     (home, p) {}
 
   forceinline ExecStatus
-  Rev::propagate(Space& home, const ModEventDelta&) {
+  Rev::propagate(Space& home, const ModEventDelta& m) {
     // std::cerr<<"Rev::propagate "<<x1<<" = "<<x0<<"^-1"<<std::endl;
     GECODE_ME_CHECK(x1.rev(home, x0));
     // std::cerr<<"Rev::propagated "<<x1<<" = "<<x0<<"^-1"<<std::endl;
@@ -41,7 +41,7 @@ namespace Gecode { namespace String {
         return home.ES_SUBSUMED(*this);
       }
       case 1:
-        return ES_NOFIX;
+        return propagate(home, m);
       default:
         return ES_FIX;
     }

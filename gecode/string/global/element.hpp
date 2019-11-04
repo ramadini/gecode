@@ -28,7 +28,7 @@ namespace Gecode { namespace String {
   }
 
   forceinline ExecStatus
-  Element::propagate(Space& home, const ModEventDelta&) {
+  Element::propagate(Space& home, const ModEventDelta& m) {
     // std::cerr << "Element::propagate "<<x<<"[" << y << "] = "<<x[0]<< "\n";
     if (y.assigned()) {
       rel(home, x[0], STRT_EQ, x[y.val()]);
@@ -61,7 +61,7 @@ namespace Gecode { namespace String {
     // std::cerr << "Element::propagated " << x << "[" << y << "] = " << x[0] << "\n";
     for (auto v : x)
       assert (v.pdomain()->is_normalized());
-    return y.assigned() ? ES_NOFIX : ES_FIX;
+    return y.assigned() ? propagate(home, m) : ES_FIX;
   }
 
 }}

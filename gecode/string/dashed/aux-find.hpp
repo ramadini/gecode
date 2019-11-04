@@ -162,12 +162,12 @@ namespace Gecode { namespace String {
       Position le = m.lep[i];
       Position ls = i ? dual(y, m.lep[i - 1]) : m.esp[0];
       Position ee = i < xlen - 1 ? dual(y, m.esp[i + 1]) : m.lep[i];
-      // std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
+      //std::cerr<<"Block "<<i<<": "<<x.at(i)<<"  es: "<<es<<" ee: "<<ee
       //  <<" ls: "<<ls<<" le: "<<le<<'\n';
       if (!check_positions(y, es, ls, ee, le))
         return false;
       if (i == 0)
-        pos[0] = es;
+        pos[0] = es;      
       if (i == xlen - 1)
         pos[1] = dual(y, le);
     }

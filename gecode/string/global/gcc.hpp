@@ -34,7 +34,7 @@ namespace Gecode { namespace String {
   }
 
   forceinline ExecStatus
-  GCC::propagate(Space& home, const ModEventDelta&) {
+  GCC::propagate(Space& home, const ModEventDelta& m) {
     //std::cerr<<"\nGCC::propagate GCC("<<y<<", "<<x<<") -- chars = "<<C<<"\n";
     int n = x.size();
     // y is a knwon string.
@@ -165,7 +165,7 @@ namespace Gecode { namespace String {
     }
     //std::cerr<<"\nGCC::propagated GCC("<<y<<", "<<x<<") -- chars = "<<C<<"\n";
     assert (pd->is_normalized());
-    return y.assigned() ? ES_NOFIX : ES_FIX;
+    return y.assigned() ? propagate(home, m) : ES_FIX;
   }
 
 }}

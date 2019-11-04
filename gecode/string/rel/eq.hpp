@@ -23,7 +23,7 @@ namespace Gecode { namespace String {
   }
 
   forceinline ExecStatus
-  Eq::propagate(Space& home, const ModEventDelta&) {
+  Eq::propagate(Space& home, const ModEventDelta& m) {
     // std::cerr<<"\nEq::propagate "<<x0<<" = "<<x1<<std::endl;
     GECODE_ME_CHECK(x0.eq(home, x1));
     // std::cerr<<"propagated: "<<x0<<" = "<<x1<<std::endl;
@@ -33,7 +33,7 @@ namespace Gecode { namespace String {
         assert (x0.val() == x1.val());
         return home.ES_SUBSUMED(*this);
       case 1:
-        return ES_NOFIX;
+        return propagate(home, m);
       default:
         return ES_FIX;
     }

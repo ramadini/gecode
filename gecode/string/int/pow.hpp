@@ -32,8 +32,8 @@ namespace Gecode { namespace String {
   }
 
   ExecStatus
-  Pow::propagate(Space& home, const ModEventDelta&) {
-    //std::cerr << "\nPow::propagate: " << x2 << " = " << x0 << " ** " << x1 << '\n';
+  Pow::propagate(Space& home, const ModEventDelta& m) {
+    // std::cerr << "\nPow::propagate: " << x2 << " = " << x0 << " ** " << x1 << '\n';
     if (x2.min_length() > 0)
       GECODE_ME_CHECK(x1.gq(home, 1));
     else
@@ -43,7 +43,7 @@ namespace Gecode { namespace String {
     GECODE_ME_CHECK(x2.pow(home, x0, l, u));
     GECODE_ME_CHECK(x1.gq(home, l));
     GECODE_ME_CHECK(x1.lq(home, u));
-    //std::cerr << "After pow: " << x2 << " = " << x0 << " ** " << x1 << '\n';    
+    // std::cerr << "After pow: " << x2 << " = " << x0 << " ** " << x1 << '\n';    
     assert (x0.pdomain()->is_normalized() && x2.pdomain()->is_normalized());
     switch (x0.assigned() + x1.assigned() + x2.assigned()) {
       case 3: {
@@ -54,7 +54,7 @@ namespace Gecode { namespace String {
         return home.ES_SUBSUMED(*this);
       }
       case 2:
-        return ES_NOFIX;
+        return x1.assigned() && x1.val() == 0 ? ES_FIX : propagate(home, m);
       default:
         return ES_FIX;
     }
