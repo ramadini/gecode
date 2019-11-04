@@ -14,7 +14,7 @@ var string: x_14;
 var string: sigmaStar_15;
 constraint
   (x_4) =
-    (str_replace_all(sigmaStar_0,
+    (str_replace(sigmaStar_0,
        "\x2f\x5b\x5e\x30\x2d\x39\x61\x2d\x7a\x5c\x5c\x2d\x5f\x2c\x5d\x2b\x2f\x69",
        ""));
 constraint (literal_7) = ("\x74\x68\x65\x6d\x65\x73\x2f");

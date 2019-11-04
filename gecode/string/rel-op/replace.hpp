@@ -564,7 +564,6 @@ namespace Gecode { namespace String {
       case 4:
       case 3:
         // Force the re-execution of the propagation.
-        std::cerr << "After replace: "<< x <<"\n";
         return x[0].assigned() ? propagate(home, m) : ES_FIX;
       case 2:
         return x[1].assigned() && x[0].assigned() ? propagate(home, m) : ES_FIX;
