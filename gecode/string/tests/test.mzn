@@ -78,6 +78,6 @@ constraint str_reg(r5, "(\(|\[)(\*)(\**)(\\|\])\"");
 constraint str_find("\\", r5) > 0;
 constraint z4 = str_replace_all("ABBABB1211DDGGD", d ++ d, d) /\ z1 != z4;
 constraint z5 = str_replace(z4, "BB", z6) /\ z4 < z5;
-constraint str_replace_last(z1, "G", z6) > z1; 
+constraint str_replace_last(z1, "G", z6) > z1;
 
 solve maximize str_len(t);

@@ -335,10 +335,7 @@ namespace Gecode { namespace String {
       rel(home, z, suff, STRT_CAT, x[0]);
       rel(home, pref, x[2], STRT_CAT, z1);
       rel(home, z1, suff, STRT_CAT, x[3]);
-      if (last)
-        rfind(home, x[1], suff, IntVar(home, 0, 0));
-      else
-        find(home, x[1], pref, IntVar(home, 0, 0));
+      find(home, x[1], last ? suff : pref, IntVar(home, 0, 0));
       return home.ES_SUBSUMED(*this);
     }
     // std::cerr << "min_occur: " << min_occur << "\n";
