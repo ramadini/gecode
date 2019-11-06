@@ -54,7 +54,10 @@ namespace Gecode { namespace String {
         return home.ES_SUBSUMED(*this);
       }
       case 2:
-        return x1.assigned() && x1.val() == 0 ? ES_FIX : propagate(home, m);
+        if ((x1.assigned() && x1.val() == 0) || 
+            (x0.max_length() == 0 && x2.max_length() == 0))
+          return ES_FIX;
+        return propagate(home, m);
       default:
         return ES_FIX;
     }
