@@ -15,6 +15,10 @@ namespace Gecode { namespace String {
       rel(home, x[2], STRT_EQ, x[3]);
       return ES_OK;
     }
+    else if (x[0].same(x[3])) {
+      find(home, x[1], x[0], IntVar(home, 0, 0));
+      return ES_OK;
+    }
     else if (x[1].same(x[3]))
       rel(home, x[1], STRT_SUB, x[0]);
     if (!a) {
@@ -64,39 +68,7 @@ namespace Gecode { namespace String {
   Replace::Replace(Space& home, Replace& p)
   : NaryPropagator<StringView, PC_STRING_DOM>(home, p), all(p.all), last(p.last) 
   {}
-/*FIXME
-  forceinline int
-  Replace::lb_card(int k, const Position& a, const Position& b) const {  
-    if (a == b)
-      return 0;
-    assert (Fwd::lt(a, b));
-    const DashedString* px = x[k].pdomain();
-    const DSBlock& xa = px->at(a.idx);
-    if (a.idx == b.idx)
-      return max(0, min(b.off, xa.l) - a.off);
-    int l = 0;
-    if (a.off < xa.l)
-      l += xa.l - a.off;    
-    for (int i = a.idx + 1; i < b.idx; ++i)
-      l += px->at(i).l;
-    return l + min(b.off, px->at(b.idx).l);
-  }
 
-  forceinline int
-  Replace::ub_card(int k, const Position& a, const Position& b) const {
-    if (a == b)
-      return 0;
-    assert (Fwd::lt(a, b));
-    if (a.idx == b.idx)
-      return b.off - a.off;
-    const DashedString* px = x[k].pdomain();
-    const DSBlock& xa = px->at(a.idx);
-    int u = xa.u - a.off;
-    for (int i = a.idx + 1; i < b.idx; ++i)
-      u += px->at(i).u;
-    return u + b.off;
-  }
-*/
   // Returns the prefix of x[k] until position p.
   forceinline NSBlocks
   Replace::prefix(int k, const Position& p) const {
@@ -129,34 +101,6 @@ namespace Gecode { namespace String {
       suff.push_back(NSBlock(px->at(i)));
     return suff;
   }
-
-/*FIXME  
-  // Returns x[k][:p] + a possible padding block.
-  forceinline NSBlocks
-  Replace::pref(int k, const Position& p) const {
-    NSBlocks v;
-    DashedString* px = x[k].pdomain();
-    int n = man_region<DSBlock, DSBlocks>(
-      px->blocks(), Position({0, 0}), dual(px->blocks(), p), v
-    );
-    if (n < px->max_length())
-      v.push_back(NSBlock::top());
-    return v;
-  }
-  
-  // Returns a possible padding block + x[k][p:].
-  forceinline NSBlocks
-  Replace::suff(int k, const Position& p) const {
-    NSBlocks v;
-    DashedString* px = x[k].pdomain();
-    int n = man_region<DSBlock, DSBlocks>(
-      px->blocks(), p, first_bwd(px->blocks()), v
-    );
-    if (n < px->max_length())
-      v.push_front(NSBlock::top());
-    return v;
-  }
-*/
   
   // Decomposes decomp_all into basic constraints.
   forceinline ExecStatus
@@ -425,6 +369,10 @@ namespace Gecode { namespace String {
       }
       min_occur = occur(sq);      
     }
+    if (x[0].assigned() && x[3].assigned() && x[0].val() == x[3].val()) {
+      find(home, x[1], x[0], IntVar(home, 0, 0));
+      return home.ES_SUBSUMED(*this);
+    } 
     // x[0] != x[3] => x[1] occur in x[0] /\ x[2] occur in x[3].
     DashedString* px  = x[0].pdomain();
     DashedString* pq  = x[1].pdomain();
@@ -443,7 +391,9 @@ namespace Gecode { namespace String {
     }
     // std::cerr << "min_occur: " << min_occur << "\n";
     replace_q_x(home, min_occur);
+    // std::cerr<<"After replace_q_x: "<< x <<"\n";
     replace_q1_y(home, min_occur);
+    // std::cerr<<"After replace_q1_y: "<< x <<"\n";
     if (!all && !check_card()) {
       rel(home, x[0], STRT_EQ, x[3]);
       return home.ES_SUBSUMED(*this);
