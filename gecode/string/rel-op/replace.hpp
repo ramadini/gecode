@@ -381,6 +381,7 @@ namespace Gecode { namespace String {
     if (min_occur == 0 && !px->check_equate(*py))
       min_occur = 1;
     if (min_occur > 0 && !all) {
+      // std::<<cerr << "min_occur = "<<min_occur<<": rewriting into concat!\n";
       StringVar z(home), z1(home), pref(home), suff(home);
       rel(home, pref, x[1], STRT_CAT, z);
       rel(home, z, suff, STRT_CAT, x[0]);
