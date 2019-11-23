@@ -367,11 +367,15 @@ namespace Gecode { namespace String {
         }
         return home.ES_SUBSUMED(*this);
       }
-      min_occur = occur(sq);      
+      min_occur = occur(sq);
     }
-    if (x[0].assigned() && x[3].assigned() && x[0].val() == x[3].val()) {
-      find(home, x[1], x[0], IntVar(home, 0, 0));
-      return home.ES_SUBSUMED(*this);
+    if (x[0].assigned() && x[3].assigned()) {
+      if (x[0].val() == x[3].val()) {
+        find(home, x[1], x[0], IntVar(home, 0, 0));
+        return home.ES_SUBSUMED(*this);
+      }
+      if (min_occur == 0)
+        min_occur += 1;
     } 
     // x[0] != x[3] => x[1] occur in x[0] /\ x[2] occur in x[3].
     DashedString* px  = x[0].pdomain();
@@ -381,7 +385,7 @@ namespace Gecode { namespace String {
     if (min_occur == 0 && !px->check_equate(*py))
       min_occur = 1;
     if (min_occur > 0 && !all) {
-      // std::<<cerr << "min_occur = "<<min_occur<<": rewriting into concat!\n";
+      // std::cerr << "min_occur = "<<min_occur<<": rewriting into concat!\n";
       StringVar z(home), z1(home), pref(home), suff(home);
       rel(home, pref, x[1], STRT_CAT, z);
       rel(home, z, suff, STRT_CAT, x[0]);
