@@ -382,11 +382,12 @@ namespace Gecode { namespace String {
       min_occur = 1;
     if (min_occur > 0 && !all) {
       // std::<<cerr << "min_occur = "<<min_occur<<": rewriting into concat!\n";
-      StringVar z(home), z1(home), pref(home), suff(home);
-      rel(home, pref, x[1], STRT_CAT, z);
-      rel(home, z, suff, STRT_CAT, x[0]);
-      rel(home, pref, x[2], STRT_CAT, z1);
-      rel(home, z1, suff, STRT_CAT, x[3]);
+      StringVar pref(home), suff(home);
+      StringVarArgs lhs, rhs;
+      lhs << pref << x[1] << suff;
+      rhs << pref << x[2] << suff;
+      gconcat(home, lhs, x[0]);
+      gconcat(home, rhs, x[3]);
       find(home, x[1], last ? suff : pref, IntVar(home, 0, 0));
       return home.ES_SUBSUMED(*this);
     }

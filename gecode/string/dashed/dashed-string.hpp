@@ -1004,10 +1004,14 @@ namespace Gecode { namespace String {
           case Branch::MIN:
             block.u = block.l;
             refine_card(h, _min_length, _max_length);
+            if (block.u == 0 && known())
+              normalize(h);
             return;
           case Branch::MAX:
             block.l = block.u;
             refine_card(h, _min_length, _max_length);
+            if (block.u == 0 && known())
+              normalize(h);
             return;
           default:
             GECODE_NEVER;
