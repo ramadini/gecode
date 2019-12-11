@@ -260,7 +260,7 @@ namespace Gecode { namespace String {
       if (le != last_fwd(px->blocks()))
         v.extend(suffix(0, le));
       v.normalize();
-      //std::cerr << "1c) Equating " << x[3] << " with " << v << " => \n";
+      // std::cerr << "1c) Equating " << x[3] << " with " << v << " => \n";
       GECODE_ME_CHECK(x[3].dom(home, v));
       //std::cerr << x[3] << "\n";
     }
@@ -286,6 +286,7 @@ namespace Gecode { namespace String {
       // Prefix: x[3][: es].
       NSBlocks v;
       Position es = pos[0], le = pos[1];
+      // std::cerr << "ES: " << es << ", LE: " << le << "\n";
       if (es != Position({0, 0}))
         v = prefix(3, es);
       // Crush x[3][es : ls], possibly adding x[1].
@@ -311,7 +312,7 @@ namespace Gecode { namespace String {
       if (le != last_fwd(py->blocks()))
         v.extend(suffix(3, le));
       v.normalize();
-      //std::cerr << "2) Equating " << x[0] << " with " << v << " => \n";
+      // std::cerr << "2) Equating " << x[0] << " with " << v << " => \n";
       GECODE_ME_CHECK(x[0].dom(home, v));
       //std::cerr << x[0] << "\n";
     }
@@ -385,19 +386,24 @@ namespace Gecode { namespace String {
     if (min_occur == 0 && !px->check_equate(*py))
       min_occur = 1;
     if (min_occur > 0 && !all) {
-      // std::cerr << "min_occur = "<<min_occur<<": rewriting into concat!\n";
-      StringVar z(home), z1(home), pref(home), suff(home);
-      rel(home, pref, x[1], STRT_CAT, z);
-      rel(home, z, suff, STRT_CAT, x[0]);
-      rel(home, pref, x[2], STRT_CAT, z1);
-      rel(home, z1, suff, STRT_CAT, x[3]);
+      // std::<<cerr << "min_occur = "<<min_occur<<": rewriting into concat!\n";
+      StringVar pref(home), suff(home);
+      StringVarArgs lhs, rhs;
+      lhs << pref << x[1] << suff;
+      rhs << pref << x[2] << suff;
+      gconcat(home, lhs, x[0]);
+      gconcat(home, rhs, x[3]);
       find(home, x[1], last ? suff : pref, IntVar(home, 0, 0));
       return home.ES_SUBSUMED(*this);
     }
     // std::cerr << "min_occur: " << min_occur << "\n";
-    replace_q_x(home, min_occur);
+    ExecStatus es = replace_q_x(home, min_occur);
+    if (es != ES_OK)
+      return es;
     // std::cerr<<"After replace_q_x: "<< x <<"\n";
-    replace_q1_y(home, min_occur);
+    es = replace_q1_y(home, min_occur);
+    if (es != ES_OK)
+      return es;
     // std::cerr<<"After replace_q1_y: "<< x <<"\n";
     if (!all && !check_card()) {
       rel(home, x[0], STRT_EQ, x[3]);
