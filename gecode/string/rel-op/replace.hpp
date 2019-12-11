@@ -260,7 +260,7 @@ namespace Gecode { namespace String {
       if (le != last_fwd(px->blocks()))
         v.extend(suffix(0, le));
       v.normalize();
-      //std::cerr << "1c) Equating " << x[3] << " with " << v << " => \n";
+      // std::cerr << "1c) Equating " << x[3] << " with " << v << " => \n";
       GECODE_ME_CHECK(x[3].dom(home, v));
       //std::cerr << x[3] << "\n";
     }
@@ -286,6 +286,7 @@ namespace Gecode { namespace String {
       // Prefix: x[3][: es].
       NSBlocks v;
       Position es = pos[0], le = pos[1];
+      // std::cerr << "ES: " << es << ", LE: " << le << "\n";
       if (es != Position({0, 0}))
         v = prefix(3, es);
       // Crush x[3][es : ls], possibly adding x[1].
@@ -311,7 +312,7 @@ namespace Gecode { namespace String {
       if (le != last_fwd(py->blocks()))
         v.extend(suffix(3, le));
       v.normalize();
-      //std::cerr << "2) Equating " << x[0] << " with " << v << " => \n";
+      // std::cerr << "2) Equating " << x[0] << " with " << v << " => \n";
       GECODE_ME_CHECK(x[0].dom(home, v));
       //std::cerr << x[0] << "\n";
     }
@@ -392,9 +393,13 @@ namespace Gecode { namespace String {
       return home.ES_SUBSUMED(*this);
     }
     // std::cerr << "min_occur: " << min_occur << "\n";
-    replace_q_x(home, min_occur);
+    ExecStatus es = replace_q_x(home, min_occur);
+    if (es != ES_OK)
+      return es;
     // std::cerr<<"After replace_q_x: "<< x <<"\n";
-    replace_q1_y(home, min_occur);
+    es = replace_q1_y(home, min_occur);
+    if (es != ES_OK)
+      return es;
     // std::cerr<<"After replace_q1_y: "<< x <<"\n";
     if (!all && !check_card()) {
       rel(home, x[0], STRT_EQ, x[3]);

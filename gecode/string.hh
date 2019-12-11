@@ -316,8 +316,8 @@ namespace Gecode {
   GECODE_STRING_EXPORT void
   replace(Home home, StringVar x, StringVar q, StringVar q1, StringVar y);
   
-  /// Post propagator for \f$ y1 = replaceAll(x, q, q1) \f$
-  GECODE_STRING_EXPORT void
+  /// Post propagator for \f$ y1 = replaceAll(x,  q, q1) \f$
+  GECODE_STRING_EXPORT void 
   replace_all(Home home, StringVar x, StringVar q, StringVar q1, StringVar y);
   
   /// Post propagator for \f$ y1 = replaceLast(x, q, q1) \f$
