@@ -16,5 +16,5 @@ let {
 } in y;
     
 function var string:
-str_replace_last(var string: x, var string: x1, var string: y) ::promise_total = 
-  str_rev(str_replace(str_rev(x), str_rev(x1), str_rev(y)));
+str_replace_last(var string: x, var string: q, var string: q1) ::promise_total = 
+  str_rev(str_replace(str_rev(x), str_rev(q), str_rev(q1)));

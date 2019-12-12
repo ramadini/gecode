@@ -1697,6 +1697,26 @@ namespace Gecode { namespace String {
   DashedString::rev(Space& h, DashedString& x) {
     //std::cerr<<"DashedString::reverse "<<*this<<" = "<<x<<"^-1"<<std::endl;
     _changed = x._changed = false;
+    if (known()) {
+      string s = val();
+      std::reverse(s.begin(), s.end());
+      if (check_sweep<char, string, DSBlock, DSBlocks>(s, x._blocks)) {
+        x.update(h, s);
+        x._changed = true;
+        return true;
+      }
+      return false;
+    }
+    if (x.known()) {
+      string s = x.val();
+      std::reverse(s.begin(), s.end());
+      if (check_sweep<DSBlock, DSBlocks, char, string>(_blocks, s)) {
+        update(h, s);
+        _changed = true;
+        return true;
+      }
+      return false;
+    }
     if (!refine_card_eq(h, x))
       return false;
     ReverseView xrev(x);
