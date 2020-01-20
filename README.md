@@ -1,4 +1,4 @@
-# G-Strings - Gecode with String Variables
+# G-Strings - Gecode with (dashed) string variables
 
 ![Gecode](images/gecode-logo-100.png "Gecode")
 
