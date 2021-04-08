@@ -135,23 +135,65 @@ namespace Gecode { namespace String {
    * \ingroup TaskActorString
    */
   //@{
-
-
+  /// Domain operation has resulted in failure
   const Gecode::ModEvent ME_STRING_FAILED = Gecode::ME_GEN_FAILED;
-
+  /// Domain operation has not changed domain
   const Gecode::ModEvent ME_STRING_NONE = Gecode::ME_GEN_NONE;
-
+  /// Domain operation has resulted in a value (assigned variable)
   const Gecode::ModEvent ME_STRING_VAL = Gecode::ME_GEN_ASSIGNED;
-
-  const Gecode::ModEvent ME_STRING_DOM = Gecode::ME_GEN_ASSIGNED + 1;
-
-
-
+  /**
+   * \brief Domain operation changed the cardinality of a block, including 
+   * nullified blocks.
+   *
+   * Note that this implies that the domain has not resulted in a value.
+   */
+  const Gecode::ModEvent ME_STRING_CARD = Gecode::ME_GEN_ASSIGNED + 1;
+  /**
+   * \brief Domain operation changed the base of a block, but did not change any 
+   * cardinality and did not nullify any block.
+   *
+   * Note that this implies that the domain has not resulted in a value.
+   */
+  const Gecode::ModEvent ME_STRING_BASE = Gecode::ME_GEN_ASSIGNED + 2;
+  /**
+   * \brief Domain operation changed the cardinality of a block, including 
+   * nullified blocks, and the base of a not nullified block
+   *
+   * Note that this implies that the domain has not resulted in a value.
+   *
+   * If a propagator subscribes to this variable, it will be processed
+   * assuming a ME_STRING_ANY modification event.
+   *
+   */
+  const Gecode::ModEvent ME_STRING_DOM = Gecode::ME_GEN_ASSIGNED + 3;
+  /// Propagation condition to be ignored (convenience)
   const Gecode::PropCond PC_STRING_NONE = Gecode::PC_GEN_NONE;
-
+  /**
+   * \brief Propagate when a view becomes assigned (single value)
+   *
+   * If a propagator \a p depends on a view \a x with propagation
+   * condition PC_STRING_VAL, then \a p is propagated when a domain
+   * update operation on \a x returns the modification event ME_STRING_VAL.
+   */
   const Gecode::PropCond PC_STRING_VAL = Gecode::PC_GEN_ASSIGNED;
-
-  const Gecode::PropCond PC_STRING_DOM = Gecode::PC_GEN_ASSIGNED + 1;
+  /**
+   * \brief Propagate when the cardinality of a block changes (including nullified blocks)
+   *
+   * If a propagator \a p depends on a view \a x with propagation
+   * condition PC_STRING_CARD, then \a p is propagated when a domain
+   * update operation on \a x returns the modification event ME_STRING_VAL or
+   * ME_STRING_CARD.
+   */
+  const Gecode::PropCond PC_STRING_CARD = Gecode::PC_GEN_ASSIGNED + 1;
+  /**
+   * \brief Propagate when any block changes
+   *
+   * If a propagator \a p depends on a view \a x with propagation
+   * condition PC_STRING_ANY, then \a p is propagated when a domain
+   * update operation on \a x returns any modification event but ME_STRING_FAILED
+   * and ME_STRING_NONE.
+   */
+  const Gecode::PropCond PC_STRING_ANY = Gecode::PC_GEN_ASSIGNED + 2;
   //@}
 }}
 #endif
@@ -409,15 +451,15 @@ namespace Gecode { namespace String {
     /// Index for disposal
     static const int idx_d = Gecode::Int::BoolVarImpConf::idx_d;
     /// Maximal propagation condition
-    static const Gecode::PropCond pc_max = PC_STRING_DOM;
+    static const Gecode::PropCond pc_max = PC_STRING_ANY;
     /// Freely available bits
     static const int free_bits = 0;
     /// Start of bits for modification event delta
     static const int med_fst = Gecode::Int::BoolVarImpConf::med_lst;
     /// End of bits for modification event delta
-    static const int med_lst = med_fst + 2;
+    static const int med_lst = med_fst + 3;
     /// Bitmask for modification event delta
-    static const int med_mask = ((1 << 2) - 1) << med_fst;
+    static const int med_mask = ((1 << 3) - 1) << med_fst;
     /// Combine modification events \a me1 and \a me2
     static Gecode::ModEvent me_combine(Gecode::ModEvent me1, Gecode::ModEvent me2);
     /// Update modification even delta \a med by \a me, return true on change
@@ -635,24 +677,44 @@ namespace Gecode { namespace Int {
 namespace Gecode { namespace String {
   forceinline Gecode::ModEvent
   StringVarImpConf::me_combine(Gecode::ModEvent me1, Gecode::ModEvent me2) {
-    static const Gecode::ModEvent me_c = (
-      (
-        (ME_STRING_NONE <<  0) |  // [ME_STRING_NONE][ME_STRING_NONE]
-        (ME_STRING_VAL  <<  2) |  // [ME_STRING_NONE][ME_STRING_VAL ]
-        (ME_STRING_DOM  <<  4)    // [ME_STRING_NONE][ME_STRING_DOM ]
-      ) |
-      (
-        (ME_STRING_VAL  <<  8) |  // [ME_STRING_VAL ][ME_STRING_NONE]
-        (ME_STRING_VAL  << 10) |  // [ME_STRING_VAL ][ME_STRING_VAL ]
-        (ME_STRING_VAL  << 12)    // [ME_STRING_VAL ][ME_STRING_DOM ]
-      ) |
-      (
-        (ME_STRING_DOM  << 16) |  // [ME_STRING_DOM ][ME_STRING_NONE]
-        (ME_STRING_VAL  << 18) |  // [ME_STRING_DOM ][ME_STRING_VAL ]
-        (ME_STRING_DOM  << 20)    // [ME_STRING_DOM ][ME_STRING_DOM ]
-      )
-    );
-    return ((me_c >> (me2 << 3)) >> (me1 << 1)) & 3;
+    static const Gecode::ModEvent me_c[ME_STRING_DOM+1][ME_STRING_DOM+1] = {
+      {
+        ME_STRING_NONE, // [ME_STRING_NONE][ME_STRING_NONE]
+        ME_STRING_VAL , // [ME_STRING_NONE][ME_STRING_VAL ]
+        ME_STRING_CARD, // [ME_STRING_NONE][ME_STRING_CARD]
+        ME_STRING_BASE, // [ME_STRING_NONE][ME_STRING_BASE]
+        ME_STRING_DOM   // [ME_STRING_NONE][ME_STRING_DOM ]
+      },
+      {
+        ME_STRING_VAL , // [ME_STRING_VAL ][ME_STRING_NONE]
+        ME_STRING_VAL , // [ME_STRING_VAL ][ME_STRING_VAL ]
+        ME_STRING_VAL , // [ME_STRING_VAL ][ME_STRING_CARD]
+        ME_STRING_VAL , // [ME_STRING_VAL ][ME_STRING_BASE]
+        ME_STRING_VAL   // [ME_STRING_VAL ][ME_STRING_DOM ]
+      },
+      {
+        ME_STRING_CARD, // [ME_STRING_CARD][ME_STRING_NONE]
+        ME_STRING_VAL , // [ME_STRING_CARD][ME_STRING_VAL ]
+        ME_STRING_CARD, // [ME_STRING_CARD][ME_STRING_CARD]
+        ME_STRING_DOM , // [ME_STRING_CARD][ME_STRING_BASE]
+        ME_STRING_DOM   // [ME_STRING_CARD][ME_STRING_DOM ]
+      },
+      {
+        ME_STRING_BASE, // [ME_STRING_BASE][ME_STRING_NONE]
+        ME_STRING_VAL , // [ME_STRING_BASE][ME_STRING_VAL ]
+        ME_STRING_DOM , // [ME_STRING_BASE][ME_STRING_CARD]
+        ME_STRING_BASE, // [ME_STRING_BASE][ME_STRING_BASE]
+        ME_STRING_DOM   // [ME_STRING_BASE][ME_STRING_DOM ]
+      },
+      {
+        ME_STRING_DOM , // [ME_STRING_DOM ][ME_STRING_NONE]
+        ME_STRING_VAL , // [ME_STRING_DOM ][ME_STRING_VAL ]
+        ME_STRING_DOM , // [ME_STRING_DOM ][ME_STRING_CARD]
+        ME_STRING_DOM , // [ME_STRING_DOM ][ME_STRING_BASE]
+        ME_STRING_DOM   // [ME_STRING_DOM ][ME_STRING_DOM ]
+      }
+    };
+    return me_c[me1][me2];
   }
   forceinline bool
   StringVarImpConf::med_update(Gecode::ModEventDelta& med, Gecode::ModEvent me) {
@@ -668,12 +730,52 @@ namespace Gecode { namespace String {
         med ^= ME_STRING_VAL << med_fst;
         break;
       }
+    case ME_STRING_CARD:
+      {
+        static const Gecode::ModEvent me_c = (
+          ((ME_STRING_NONE ^ ME_STRING_CARD) <<  0) |
+          ((ME_STRING_VAL  ^ ME_STRING_VAL ) <<  4) |
+          ((ME_STRING_CARD ^ ME_STRING_CARD) <<  8) |
+          ((ME_STRING_BASE ^ ME_STRING_DOM ) << 12) |
+          ((ME_STRING_DOM  ^ ME_STRING_DOM ) << 16)
+        );
+        Gecode::ModEvent me_o = (med & med_mask) >> med_fst;
+        Gecode::ModEvent me_n = (me_c >> (me_o << 2)) & (med_mask >> med_fst);
+        if (me_n == 0)
+          return false;
+        med ^= me_n << med_fst;
+        break;
+      }
+    case ME_STRING_BASE:
+      {
+        static const Gecode::ModEvent me_c = (
+          ((ME_STRING_NONE ^ ME_STRING_BASE) <<  0) |
+          ((ME_STRING_VAL  ^ ME_STRING_VAL ) <<  4) |
+          ((ME_STRING_CARD ^ ME_STRING_DOM ) <<  8) |
+          ((ME_STRING_BASE ^ ME_STRING_BASE) << 12) |
+          ((ME_STRING_DOM  ^ ME_STRING_DOM ) << 16)
+        );
+        Gecode::ModEvent me_o = (med & med_mask) >> med_fst;
+        Gecode::ModEvent me_n = (me_c >> (me_o << 2)) & (med_mask >> med_fst);
+        if (me_n == 0)
+          return false;
+        med ^= me_n << med_fst;
+        break;
+      }
     case ME_STRING_DOM:
       {
-        Gecode::ModEventDelta med_string = med & med_mask;
-        if (med_string != 0)
+        static const Gecode::ModEvent me_c = (
+          ((ME_STRING_NONE ^ ME_STRING_DOM ) <<  0) |
+          ((ME_STRING_VAL  ^ ME_STRING_VAL ) <<  4) |
+          ((ME_STRING_CARD ^ ME_STRING_DOM ) <<  8) |
+          ((ME_STRING_BASE ^ ME_STRING_DOM ) << 12) |
+          ((ME_STRING_DOM  ^ ME_STRING_DOM ) << 16)
+        );
+        Gecode::ModEvent me_o = (med & med_mask) >> med_fst;
+        Gecode::ModEvent me_n = (me_c >> (me_o << 2)) & (med_mask >> med_fst);
+        if (me_n == 0)
           return false;
-        med |= ME_STRING_DOM << med_fst;
+        med ^= me_n << med_fst;
         break;
       }
     default: GECODE_NEVER;

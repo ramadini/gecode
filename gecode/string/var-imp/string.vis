@@ -1,0 +1,94 @@
+[General]
+Name:           String
+Namespace:      Gecode::String
+Ifdef:          GECODE_HAS_STRING_VARS
+Bits:           0
+Dispose:        false
+[ModEventHeader]
+  /**
+   * \defgroup TaskActorStringMEPC String modification events and propagation conditions
+   * \ingroup TaskActorString
+   */
+  //@{
+[ModEvent]
+Name:           FAILED=FAILED
+  /// Domain operation has resulted in failure
+[ModEvent]
+Name:           NONE=NONE
+  /// Domain operation has not changed domain
+[ModEvent]
+Name:           VAL=ASSIGNED
+Combine:        VAL=VAL,CARD=VAL,BASE=VAL,DOM=VAL
+  /// Domain operation has resulted in a value (assigned variable)
+[ModEvent]
+Name:           CARD
+Combine:        VAL=VAL,CARD=CARD,BASE=DOM,DOM=DOM
+  /**
+   * \brief Domain operation changed the cardinality of a block, including 
+   * nullified blocks.
+   *
+   * Note that this implies that the domain has not resulted in a value.
+   */
+[ModEvent]
+Name:           BASE
+Combine:        VAL=VAL,CARD=DOM,BASE=BASE,DOM=DOM
+  /**
+   * \brief Domain operation changed the base of a block, but did not change any 
+   * cardinality and did not nullify any block.
+   *
+   * Note that this implies that the domain has not resulted in a value.
+   */
+[ModEventFooter]
+[ModEvent]
+Name:           DOM=SUBSCRIBE
+Combine:        VAL=VAL,CARD=DOM,BASE=DOM,DOM=DOM
+  /**
+   * \brief Domain operation changed the cardinality of a block, including 
+   * nullified blocks, and the base of a not nullified block
+   *
+   * Note that this implies that the domain has not resulted in a value.
+   *
+   * If a propagator subscribes to this variable, it will be processed
+   * assuming a ME_STRING_ANY modification event.
+   *
+   */
+[ModEventFooter]
+[PropCondHeader]
+[PropCond]
+Name:           NONE=NONE
+  /// Propagation condition to be ignored (convenience)
+[PropCond]
+Name:           VAL=ASSIGNED
+ScheduledBy:    VAL
+  /**
+   * \brief Propagate when a view becomes assigned (single value)
+   *
+   * If a propagator \a p depends on a view \a x with propagation
+   * condition PC_STRING_VAL, then \a p is propagated when a domain
+   * update operation on \a x returns the modification event ME_STRING_VAL.
+   */
+[PropCond]
+Name:           CARD
+ScheduledBy:    VAL,CARD
+  /**
+   * \brief Propagate when the cardinality of a block changes (including nullified blocks)
+   *
+   * If a propagator \a p depends on a view \a x with propagation
+   * condition PC_STRING_CARD, then \a p is propagated when a domain
+   * update operation on \a x returns the modification event ME_STRING_VAL or
+   * ME_STRING_CARD.
+   */
+[PropCond]
+Name:           ANY
+ScheduledBy:    VAL,CARD,BASE
+  /**
+   * \brief Propagate when any block changes
+   *
+   * If a propagator \a p depends on a view \a x with propagation
+   * condition PC_STRING_ANY, then \a p is propagated when a domain
+   * update operation on \a x returns any modification event but ME_STRING_FAILED
+   * and ME_STRING_NONE.
+   */
+[PropCondFooter]
+  //@}
+[End]

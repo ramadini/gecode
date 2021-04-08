@@ -543,25 +543,9 @@ FLOATBUILDDIRS	= \
 # STRING COMPONENTS
 #
 
-STRINGSRC0 = \
-	var/string.cpp var-imp/string.cpp dashed/dashed-string.cpp exception.cpp \
-	array.cpp branch.cpp length.cpp char2code.cpp pow.cpp find.cpp rel.cpp rel-op.cpp substr.cpp \
-	gcc.cpp gconcat.cpp extensional.cpp element.cpp channel.cpp
+STRINGSRC0 =
 
-STRINGHDR0 = \
-	var-imp.hpp view.hpp var-imp/string.hpp var-imp/delta.hpp var/string.hpp \
-  dashed/dashed-string.hh dashed/dashed-string.hpp exception.hpp view/string.hpp \
-	rel/dom.hpp rel/eq.hpp rel/nq.hpp rel/lex.hpp rel/re-lex.hpp rel/inc.hpp rel/re-eq.hpp array-traits.hpp array.hpp \
-	branch/var.hpp branch/val.hpp branch.hh branch/blockmin_llll.hpp \
-	branch/blockmin_lllm.hpp branch/lenblockmin_lllm.hpp branch/lenmax_llll.hpp \
-	branch/lenmin_llll.hpp branch/none_llll.hpp branch/sizemin_llul.hpp \
-	int/length.hpp int/char2code.hpp rel-op/rev.hpp rel-op/concat.hpp rel-op/replace.hpp int/pow.hpp int/find.hpp \
-	rel-op/lcase.hpp rel-op/ucase.hpp gcc.hh global/gcc.hpp gconcat.hh global/gconcat.hpp \
-	dashed/sweep-equate.hpp dashed/vec.h dashed/ns-dashed-string.hpp \
-	dashed/aux-equate.hpp dashed/aux-lex.hpp dashed/aux-find.hpp \
-	eq.hh nq.hh re-eq.hh lex.hh re-lex.hh inc.hh dom.hh concat.hh replace.hh rev.hh lcase.hh ucase.hh \
-	length.hh char2code.hh pow.hh find.hh channel.hh int/str2nat.hpp int/nat2str.hpp extensional.hh ext/reg.hpp \
-	ext/re-reg.hpp ext/parse-reg.hpp element.hh global/element.hpp
+STRINGHDR0 =
 
 STRINGSRC	= $(STRINGSRC0:%=gecode/string/%)
 STRINGHDR	= gecode/string.hh $(STRINGHDR0:%=gecode/string/%)
@@ -594,9 +578,7 @@ export STRINGRES		=
 export STRINGRC		=
 endif
 STRINGBUILDDIRS	= \
-	string string/var string/var-imp string/view string/branch string/int \
-	string/rel string/rel-op string/global string/ext string/dashed
-
+	string string/var-imp
 
 #
 # SET COMPONENTS
@@ -899,13 +881,14 @@ export FLATZINCLIB		= $(LIBPREFIX)@FLATZINC@$(LIBSUFFIX)
 export LINKFLATZINC		= $(LINKPREFIX)@FLATZINC@$(LINKSUFFIX)
 export FLATZINCMZNLIB		= gecode/flatzinc/mznlib
 FLATZINCEXE	= tools/flatzinc/fzn-gecode$(EXESUFFIX)
-ifeq "@enable_string_vars@" "yes"
-FZNSTR = fzn-gstrings
-MZNSTR = mzn-gstrings
-MZNFZNSTR = mzn2fzn-gstrings
-MZNFZNSTREXE = mzn2fzn-str
-MZNFZNSTRTGZ = tools/flatzinc/mzn2fzn-str.tar.gz
-endif
+#FIXME:
+#ifeq "@enable_string_vars@" "yes"
+#FZNSTR = fzn-gstrings
+#MZNSTR = mzn-gstrings
+#MZNFZNSTR = mzn2fzn-gstrings
+#MZNFZNSTREXE = mzn2fzn-str
+#MZNFZNSTRTGZ = tools/flatzinc/mzn2fzn-str.tar.gz
+#endif
 ifeq "@need_soname@" "yes"
 export FLATZINCSONAME = @WLSONAME@$(LIBPREFIX)@FLATZINC@$(SOSUFFIX)
 else
@@ -1148,9 +1131,10 @@ PDBTARGETS =
 endif
 
 ifeq "@enable_string_vars@" "yes"
-EXETARGETS = $(FLATZINCEXE) tools/flatzinc/mzn-gecode@BATCHFILE@ \
-  tools/flatzinc/$(FZNSTR) tools/flatzinc/$(MZNSTR) tools/flatzinc/$(MZNFZNSTR)\
-  tools/flatzinc/$(MZNFZNSTREXE)
+EXETARGETS = $(FLATZINCEXE) tools/flatzinc/mzn-gecode@BATCHFILE@
+#FIXME:  
+#  tools/flatzinc/$(FZNSTR) tools/flatzinc/$(MZNSTR) tools/flatzinc/$(MZNFZNSTR)\
+#  tools/flatzinc/$(MZNFZNSTREXE)
 else
 EXETARGETS = $(FLATZINCEXE) tools/flatzinc/mzn-gecode@BATCHFILE@ 
 endif
@@ -1178,7 +1162,7 @@ else
 FLOATTESTOBJ=
 endif
 
-STRINGTESTSRC00 = 
+STRINGTESTSRC00 =
 STRINGTESTSRC0 = test/string.cpp $(STRINGTESTSRC00:%=test/string/%.cpp)
 
 ifeq "@enable_string_vars@" "yes"
@@ -2073,17 +2057,18 @@ ifeq "@BUILD_MACOS_FRAMEWORK@" "yes"
 install: installframework
 else
 
-ifeq "@enable_string_vars@" "yes"
-install: installlibstr
+#FIXME: 
+#ifeq "@enable_string_vars@" "yes"
+#install: installlibstr
+#else
 
-else
 ifeq "@enable_examples@" "yes"
 install: installlib installexamples
 
 else
 install: installlib
 
-endif
+#FIXME: endif
 endif
 endif
 
@@ -2102,10 +2087,11 @@ doinstallheaders: $(ALLHDR:%=$(top_srcdir)/%) $(EXTRA_HEADERS) $(VARIMPHDR)
 	  for f in $$for_mznlib; do \
 		mkdir -p $(DESTDIR)$(datadir)/gecode/mznlib; \
 		cp $(top_srcdir)/$$f/*.mzn \
-		  $(DESTDIR)$(datadir)/gecode/mznlib; done && \
-  cp -R $(top_srcdir)/gecode/flatzinc/javascript $(DESTDIR)$(datadir)/gecode && \
-  cp -R $(top_srcdir)/gecode/flatzinc/string $(DESTDIR)$(datadir)/gecode && \
-  cp -R $(top_srcdir)/gecode/flatzinc/std $(DESTDIR)$(datadir)/gecode
+		  $(DESTDIR)$(datadir)/gecode/mznlib; done
+#FIXME:
+#cp -R $(top_srcdir)/gecode/flatzinc/javascript $(DESTDIR)$(datadir)/gecode && \
+#cp -R $(top_srcdir)/gecode/flatzinc/string $(DESTDIR)$(datadir)/gecode && \
+#cp -R $(top_srcdir)/gecode/flatzinc/std $(DESTDIR)$(datadir)/gecode
   
 
 doinstalllib:
@@ -2141,7 +2127,7 @@ installlib: compilelib
 	$(MAKE) installsubdirs
 	
 installlibstr: compilelib
-	$(MAKE) domznfznstr
+	#FIXME: $(MAKE) domznfznstr
 	$(MAKE) doinstalllib
 	$(MAKE) doinstallheaders
 	$(MAKE) ranliblib
@@ -2211,9 +2197,10 @@ clean: cleannostr
 endif
 
 cleanstr:
-	rm -f $(DESTDIR)$(bindir)/$(FZNSTR) $(DESTDIR)$(bindir)/$(MZNSTR) \
-    $(DESTDIR)$(bindir)/$(MZNFZNSTR) $(DESTDIR)$(bindir)/$(MZNFZNSTREXE) \
-    tools/flatzinc/$(MZNFZNSTREXE)
+#FIXME:
+#rm -f $(DESTDIR)$(bindir)/$(FZNSTR) $(DESTDIR)$(bindir)/$(MZNSTR) \
+#    $(DESTDIR)$(bindir)/$(MZNFZNSTR) $(DESTDIR)$(bindir)/$(MZNFZNSTREXE) \
+#    tools/flatzinc/$(MZNFZNSTREXE)
 
 cleannostr:
 	$(RMF) *.stackdump core gmon.out \

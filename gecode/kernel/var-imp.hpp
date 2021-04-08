@@ -412,15 +412,26 @@ namespace Gecode { namespace String {
   StringVarImpBase::notify(Gecode::Space& home, Gecode::ModEvent me, Gecode::Delta& d) {
     switch (me) {
     case ME_STRING_VAL:
-      // Conditions: VAL, DOM
-      Gecode::VarImp<Gecode::String::StringVarImpConf>::schedule(home,PC_STRING_VAL,PC_STRING_DOM,ME_STRING_VAL);
+      // Conditions: VAL, CARD, ANY
+      Gecode::VarImp<Gecode::String::StringVarImpConf>::schedule(home,PC_STRING_VAL,PC_STRING_ANY,ME_STRING_VAL);
       if (!Gecode::VarImp<Gecode::String::StringVarImpConf>::advise(home,ME_STRING_VAL,d))
         return ME_STRING_FAILED;
       cancel(home);
       break;
+    case ME_STRING_CARD:
+      // Conditions: CARD, ANY
+      Gecode::VarImp<Gecode::String::StringVarImpConf>::schedule(home,PC_STRING_CARD,PC_STRING_ANY,ME_STRING_CARD);
+      if (!Gecode::VarImp<Gecode::String::StringVarImpConf>::advise(home,ME_STRING_CARD,d))
+        return ME_STRING_FAILED;
+      break;
+    case ME_STRING_BASE:
+      // Conditions: ANY
+      Gecode::VarImp<Gecode::String::StringVarImpConf>::schedule(home,PC_STRING_ANY,PC_STRING_ANY,ME_STRING_BASE);
+      if (!Gecode::VarImp<Gecode::String::StringVarImpConf>::advise(home,ME_STRING_BASE,d))
+        return ME_STRING_FAILED;
+      break;
     case ME_STRING_DOM:
-      // Conditions: DOM
-      Gecode::VarImp<Gecode::String::StringVarImpConf>::schedule(home,PC_STRING_DOM,PC_STRING_DOM,ME_STRING_DOM);
+      // Conditions: 
       if (!Gecode::VarImp<Gecode::String::StringVarImpConf>::advise(home,ME_STRING_DOM,d))
         return ME_STRING_FAILED;
       break;
