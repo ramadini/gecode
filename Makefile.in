@@ -2148,7 +2148,7 @@ installlibstr: compilelib
 	$(MAKE) installsubdirs
 
 domznfznstr:
-	tar xvf $(MZNFZNSTRTGZ) && mv mzn2fzn-str $(DESTDIR)$(bindir)
+	tar xvf $(MZNFZNSTRTGZ) -C tools/flatzinc && cp tools/flatzinc/mzn2fzn-str $(DESTDIR)$(bindir)
 
 installexamples: compileexamples
 	mkdir -p $(DESTDIR)$(bindir); \
