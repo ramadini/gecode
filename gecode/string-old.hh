@@ -54,6 +54,8 @@ namespace Gecode {
     class StringView;
   }
 
+  using String::StringVarImp;
+  
   /**
    * \brief String variables
    *
