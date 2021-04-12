@@ -128,25 +128,24 @@ namespace Gecode {
     GECODE_STRING_EXPORT StringVar(Space& home, const IntSet& S, int l, int u);
 
     //@}
-};
-//    /// \name Value access
-//    //@{
-//    /// Return the minimum length for a string in the variable's domain
-//    int lenMin(void) const;
-//    /// Return the maximum length for a string in the variable's domain
-//    int lenMax(void) const;
-//    // TODO: Possible additions: mayChars, mustChars, logDim, ...if needed!
-//    //@}
+    /// \name Value access
+    //@{
+    /// Return the minimum length for a string in the variable's domain
+    int lenMin(void) const;
+    /// Return the maximum length for a string in the variable's domain
+    int lenMax(void) const;
+    // TODO: Possible additions: mayChars, mustChars, logDim, ...if needed!
+    //@}
 
-//    /// \name Domain tests
-//    // FIXME: Do we need these functions?
-//    //@{
-//    /// Test whether the string must contain character \a c
-//    bool contains(int c) const;
-//    /// Test whether the string cannot contain character \a c
-//    bool notContains(int c) const;
-//    //@}
-//  };
+    /// \name Domain tests
+    // FIXME: Do we need these functions?
+    //@{
+    /// Test whether the string must contain character \a c
+    bool contains(int c) const;
+    /// Test whether the string cannot contain character \a c
+    bool notContains(int c) const;
+    //@}
+  };
 
 //  /**
 //   * \defgroup TaskModelStringIter Block iterators for string variables
@@ -184,16 +183,15 @@ namespace Gecode {
 //    int ub(void) const;
 //    //@}
 //  };
-
 //  //@}
 
-//  /**
-//   * \brief Print string variable \a x
-//   * \relates Gecode::StringVar
-//   */
-//  template<class Char, class Traits>
-//  std::basic_ostream<Char,Traits>&
-//  operator <<(std::basic_ostream<Char,Traits>& os, const StringVar& x);
+  /**
+   * \brief Print string variable \a x
+   * \relates Gecode::StringVar
+   */
+  template<class Char, class Traits>
+  std::basic_ostream<Char,Traits>&
+  operator <<(std::basic_ostream<Char,Traits>& os, const StringVar& x);
 
 }
 
