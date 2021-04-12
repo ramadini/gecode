@@ -2,7 +2,6 @@
 #define __GECODE_STRING_HH__
 
 #include <gecode/kernel.hh>
-#include <gecode/int.hh>
 //FIXME: Do we need this import?
 #include <functional>
 
@@ -35,7 +34,6 @@
 #include <gecode/support/auto-link.hpp>
 #endif
 
-
 /**
  * \namespace Gecode::String
  * \brief Bounded-length strings
@@ -48,6 +46,7 @@
  *
  */
 
+#include <gecode/string/dashed/dashed-string.hpp>
 #include <gecode/string/exception.hpp>
 
 namespace Gecode { namespace String {
@@ -59,16 +58,17 @@ namespace Gecode { namespace String {
     /// Upper bound on the alphabet size. It has to be in \f$[0, 2^31]\f$, otherwise the behaviour is undefined.
     /// The alphabet of each string variable is \f$\{0, 1, \dots, MAX\_ALPHABET\_SIZE\}\f$
     const int MAX_ALPHABET_SIZE = 65536;
-    /// Check whether integer \f$ n \in [0, MAX\_STRING\_LENGTH]\f$, otherwise throw overflow exception with information \a l
+    /// Check whether \f$ n \in [0, MAX\_STRING\_LENGTH]\f$, otherwise throw overflow exception with location \a l
     void check_length(int n, const char* l);
-    /// Check whether integer \f$ n \in [0, MAX\_ALPHABET\_SIZE)\f$, otherwise throw overflow exception with information \a l
-    void check_alphabet(unsigned int n, const char* l);
+    /// Check whether \f$ a \in [0, MAX\_ALPHABET\_SIZE)\f$, otherwise throw overflow exception with location \a l
+    void check_alphabet(int a, const char* l);
+    /// Check whether \f$ S \subseteq [0, MAX\_ALPHABET\_SIZE)\f$, otherwise throw overflow exception with location \a l
+    void check_alphabet(const CharSet& S, const char* l);
   }
 
 }}
 
 #include <gecode/string/limits.hpp>
-
 #include <gecode/string/var-imp.hpp>
 
 namespace Gecode {
@@ -94,7 +94,7 @@ namespace Gecode {
     /// Initialize from string variable \a y
     StringVar(const StringVar& y);
     /// Initialize from string view \a y
-    StringVar(const string::StringView& y);
+    StringVar(const String::StringView& y);
 
     /// Initialize variable's domain with block \f${0, 1, \dots, \alpha-1}^{(0, \lambda)}\f$ 
     /// where \f$\alpha = MAX\_ALPHABET\_SIZE, \lambda= MAX\_STRING\_LENGTH\f$
@@ -157,35 +157,35 @@ namespace Gecode {
   
   // FIXME: Do we need block iterators here?
 
-  /// Iterator for the blocks of a string variable
-  class StringVarBlocks {
-  private:
-    string::Blocks<String::StringVarImp*> iter;
-  public:
-    /// \name Constructors and initialization
-    //@{
-    /// Default constructor
-    StringVarBlocks(void);
-    /// Initialize to iterate blocks of variable \a x
-    StringVarBlocks(const StringVar& x);
-    //@}
+//  /// Iterator for the blocks of a string variable
+//  class StringVarBlocks {
+//  private:
+//    String::Blocks<String::StringVarImp*> iter;
+//  public:
+//    /// \name Constructors and initialization
+//    //@{
+//    /// Default constructor
+//    StringVarBlocks(void);
+//    /// Initialize to iterate blocks of variable \a x
+//    StringVarBlocks(const StringVar& x);
+//    //@}
 
-    /// \name Iteration control
-    //@{
-    /// Test whether iterator is still at a block or done
-    bool operator ()(void) const;
-    /// Move iterator to next block (if possible)
-    void operator ++(void);
-    //@}
+//    /// \name Iteration control
+//    //@{
+//    /// Test whether iterator is still at a block or done
+//    bool operator ()(void) const;
+//    /// Move iterator to next block (if possible)
+//    void operator ++(void);
+//    //@}
 
-    /// \name Block access
-    //@{
-    /// Return the lower bound of block
-    int lb(void) const;
-    /// Return the upper bound of block
-    int ub(void) const;
-    //@}
-  };
+//    /// \name Block access
+//    //@{
+//    /// Return the lower bound of block
+//    int lb(void) const;
+//    /// Return the upper bound of block
+//    int ub(void) const;
+//    //@}
+//  };
 
   //@}
 
@@ -256,7 +256,7 @@ namespace Gecode {
 //    StringVarArgs(Space& home,int n,int glbMin,int glbMax,
 //               int lubMin,int lubMax,
 //               unsigned int minCard = 0,
-//               unsigned int maxCard = string::Limits::card);
+//               unsigned int maxCard = String::Limits::card);
     //@}
   };
   //@}
@@ -298,7 +298,7 @@ namespace Gecode {
 //    GECODE_STRING_EXPORT
 //    StringVarArray(Space& home,int n,int glbMin,int glbMax,int lubMin,int lubMax,
 //                unsigned int minCard = 0,
-//                unsigned int maxCard = string::Limits::card);
+//                unsigned int maxCard = String::Limits::card);
     //@}
   };
 
@@ -495,8 +495,7 @@ namespace Gecode {
 //  class StringCHB : public CHB {
 //  public:
 //}
-
-#include <gecode/string/branch/chb.hpp>
+//#include <gecode/string/branch/chb.hpp>
 
 namespace Gecode {
 
