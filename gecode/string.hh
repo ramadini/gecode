@@ -195,22 +195,22 @@ namespace Gecode {
 
 }
 
-//#include <gecode/string/view.hpp>
+#include <gecode/string/view.hpp>
 
-//namespace Gecode {
-//  /**
-//   * \defgroup TaskModelStringArgs Argument arrays
-//   *
-//   * Argument arrays are just good enough for passing arguments
-//   * with automatic memory management.
-//   * \ingroup TaskModelString
-//   */
+namespace Gecode {
+  /**
+   * \defgroup TaskModelStringArgs Argument arrays
+   *
+   * Argument arrays are just good enough for passing arguments
+   * with automatic memory management.
+   * \ingroup TaskModelString
+   */
 
-//  //@{
+  //@{
 
-//}
+}
 
-//#include <gecode/string/array-traits.hpp>
+#include <gecode/string/array-traits.hpp>
 
 //namespace Gecode {
 
@@ -255,51 +255,50 @@ namespace Gecode {
 ////               unsigned int maxCard = String::Limits::card);
 //    //@}
 //  };
-//  //@}
+////  //@}
 
-//  /**
-//   * \defgroup TaskModelStringVarArrays Variable arrays
-//   *
-//   * Variable arrays can store variables. They are typically used
-//   * for storing the variables being part of a solution. However,
-//   * they can also be used for temporary purposes (even though
-//   * memory is not reclaimed until the space it is created for
-//   * is deleted).
-//   * \ingroup TaskModelString
-//   */
+////  /**
+////   * \defgroup TaskModelStringVarArrays Variable arrays
+////   *
+////   * Variable arrays can store variables. They are typically used
+////   * for storing the variables being part of a solution. However,
+////   * they can also be used for temporary purposes (even though
+////   * memory is not reclaimed until the space it is created for
+////   * is deleted).
+////   * \ingroup TaskModelString
+////   */
 
-//  /**
-//   * \brief %String variable array
-//   * \ingroup TaskModelStringVarArrays
-//   */
-//  class StringVarArray : public VarArray<StringVar> {
-//  public:
-//    /// \name Creation and initialization
-//    //@{
-//    /// Default constructor (array of size 0)
-//    StringVarArray(void);
-//    /// Initialize from string variable array \a a (share elements)
-//    StringVarArray(const StringVarArray&);
-//    /// Initialize from string variable argument array \a a (copy elements)
-//    StringVarArray(Space& home, const StringVarArgs&);
-//    /// Allocate array for \a n string variables (variables are uninitialized)
-//    GECODE_STRING_EXPORT StringVarArray(Space& home, int n);
-//    // TODO: Same as above.
-////    /**
-////     * \brief Create an array of size \a n.
-////     *
-////     * Each variable is initialized with the bounds and cardinality as
-////     * given by the arguments.
-////     */
-////    GECODE_STRING_EXPORT
-////    StringVarArray(Space& home,int n,int glbMin,int glbMax,int lubMin,int lubMax,
-////                unsigned int minCard = 0,
-////                unsigned int maxCard = String::Limits::card);
-//    //@}
-//  };
+////  /**
+////   * \brief %String variable array
+////   * \ingroup TaskModelStringVarArrays
+////   */
+////  class StringVarArray : public VarArray<StringVar> {
+////  public:
+////    /// \name Creation and initialization
+////    //@{
+////    /// Default constructor (array of size 0)
+////    StringVarArray(void);
+////    /// Initialize from string variable array \a a (share elements)
+////    StringVarArray(const StringVarArray&);
+////    /// Initialize from string variable argument array \a a (copy elements)
+////    StringVarArray(Space& home, const StringVarArgs&);
+////    /// Allocate array for \a n string variables (variables are uninitialized)
+////    GECODE_STRING_EXPORT StringVarArray(Space& home, int n);
+////    // TODO: Same as above.
+//////    /**
+//////     * \brief Create an array of size \a n.
+//////     *
+//////     * Each variable is initialized with the bounds and cardinality as
+//////     * given by the arguments.
+//////     */
+//////    GECODE_STRING_EXPORT
+//////    StringVarArray(Space& home,int n,int glbMin,int glbMax,int lubMin,int lubMax,
+//////                unsigned int minCard = 0,
+//////                unsigned int maxCard = String::Limits::card);
+////    //@}
+////  };
 
 //}
-
 //#include <gecode/string/array.hpp>
 
 //namespace Gecode {
