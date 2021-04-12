@@ -209,82 +209,83 @@ namespace Gecode {
   //@{
 
 }
-
 #include <gecode/string/array-traits.hpp>
 
-//namespace Gecode {
+namespace Gecode {
 
-//  /** \brief Passing string variables
-//   *
-//   * We could have used a simple typedef instead, but doxygen cannot
-//   * resolve some overloading then, leading to unusable documentation for
-//   * important parts of the library. As long as there is no fix for this,
-//   * we will keep this workaround.
-//   *
-//   */
-//  class StringVarArgs : public VarArgArray<StringVar> {
-//  public:
-//    /// \name Constructors and initialization
-//    //@{
-//    /// Allocate empty array
-//    StringVarArgs(void);
-//    /// Allocate array with \a n elements
-//    explicit StringVarArgs(int n);
-//    /// Initialize from variable argument array \a a (copy elements)
-//    StringVarArgs(const StringVarArgs& a);
-//    /// Initialize from variable array \a a (copy elements)
-//    StringVarArgs(const VarArray<StringVar>& a);
-//    /// Initialize from vector \a a
-//    StringVarArgs(const std::vector<StringVar>& a);
-//    /// Initialize from list \a a
-//    StringVarArgs(std::initializer_list<StringVar> a);
-//    /// Initialize from InputIterator \a first and \a last
-//    template<class InputIterator>
-//    StringVarArgs(InputIterator first, InputIterator last);
-//    // TODO: Copy-paste from StringVar constructors here.
-////    /**
-////     * \brief Create an array of size \a n.
-////     *
-////     * Each variable is initialized with the bounds and cardinality as
-////     * given by the arguments.
-////     */
-////    GECODE_STRING_EXPORT
-////    StringVarArgs(Space& home,int n,int glbMin,int glbMax,
-////               int lubMin,int lubMax,
-////               unsigned int minCard = 0,
-////               unsigned int maxCard = String::Limits::card);
+  /** \brief Passing string variables
+   *
+   * We could have used a simple typedef instead, but doxygen cannot
+   * resolve some overloading then, leading to unusable documentation for
+   * important parts of the library. As long as there is no fix for this,
+   * we will keep this workaround.
+   *
+   */
+  class StringVarArgs : public VarArgArray<StringVar> {
+  public:
+    /// \name Constructors and initialization
+    //@{
+    /// Allocate empty array
+    StringVarArgs(void);
+    /// Allocate array with \a n elements
+    explicit StringVarArgs(int n);
+    /// Initialize from variable argument array \a a (copy elements)
+    StringVarArgs(const StringVarArgs& a);
+    /// Initialize from variable array \a a (copy elements)
+    StringVarArgs(const VarArray<StringVar>& a);
+    /// Initialize from vector \a a
+    StringVarArgs(const std::vector<StringVar>& a);
+    /// Initialize from list \a a
+    StringVarArgs(std::initializer_list<StringVar> a);
+    /// Initialize from InputIterator \a first and \a last
+    template<class InputIterator>
+    StringVarArgs(InputIterator first, InputIterator last);
+////    // TODO: Copy-paste from StringVar constructors here.
+//////    /**
+//////     * \brief Create an array of size \a n.
+//////     *
+//////     * Each variable is initialized with the bounds and cardinality as
+//////     * given by the arguments.
+//////     */
+//    GECODE_STRING_EXPORT
+//    StringVarArgs(Space& home,int n,int glbMin,int glbMax,
+//               int lubMin,int lubMax,
+//               unsigned int minCard = 0,
+//               unsigned int maxCard = String::Limits::card);
 //    //@}
-//  };
-////  //@}
+  };
+}
 
-////  /**
-////   * \defgroup TaskModelStringVarArrays Variable arrays
-////   *
-////   * Variable arrays can store variables. They are typically used
-////   * for storing the variables being part of a solution. However,
-////   * they can also be used for temporary purposes (even though
-////   * memory is not reclaimed until the space it is created for
-////   * is deleted).
-////   * \ingroup TaskModelString
-////   */
 
-////  /**
-////   * \brief %String variable array
-////   * \ingroup TaskModelStringVarArrays
-////   */
-////  class StringVarArray : public VarArray<StringVar> {
-////  public:
-////    /// \name Creation and initialization
-////    //@{
-////    /// Default constructor (array of size 0)
-////    StringVarArray(void);
-////    /// Initialize from string variable array \a a (share elements)
-////    StringVarArray(const StringVarArray&);
-////    /// Initialize from string variable argument array \a a (copy elements)
-////    StringVarArray(Space& home, const StringVarArgs&);
-////    /// Allocate array for \a n string variables (variables are uninitialized)
-////    GECODE_STRING_EXPORT StringVarArray(Space& home, int n);
-////    // TODO: Same as above.
+namespace Gecode {
+  /**
+   * \defgroup TaskModelStringVarArrays Variable arrays
+   *
+   * Variable arrays can store variables. They are typically used
+   * for storing the variables being part of a solution. However,
+   * they can also be used for temporary purposes (even though
+   * memory is not reclaimed until the space it is created for
+   * is deleted).
+   * \ingroup TaskModelString
+   */
+
+  /**
+   * \brief %String variable array
+   * \ingroup TaskModelStringVarArrays
+   */
+  class StringVarArray : public VarArray<StringVar> {
+  public:
+    /// \name Creation and initialization
+    //@{
+    /// Default constructor (array of size 0)
+    StringVarArray(void);
+    /// Initialize from string variable array \a a (share elements)
+    StringVarArray(const StringVarArray&);
+    /// Initialize from string variable argument array \a a (copy elements)
+    StringVarArray(Space& home, const StringVarArgs&);
+    /// Allocate array for \a n string variables (variables are uninitialized)
+    GECODE_STRING_EXPORT StringVarArray(Space& home, int n);
+    // TODO: Same as above.
 //////    /**
 //////     * \brief Create an array of size \a n.
 //////     *
@@ -295,158 +296,154 @@ namespace Gecode {
 //////    StringVarArray(Space& home,int n,int glbMin,int glbMax,int lubMin,int lubMax,
 //////                unsigned int minCard = 0,
 //////                unsigned int maxCard = String::Limits::card);
-////    //@}
-////  };
+    //@}s
+  };
 
-//}
-//#include <gecode/string/array.hpp>
+}
+#include <gecode/string/array.hpp>
 
-//namespace Gecode {
+namespace Gecode {
 
-//  /**
-//   * \brief Common relation types for strings
-//   *
-//   *
-//   * \ingroup TaskModelString
-//   */
-//  enum stringRelType {
-//    STRT_EQ,    ///< Equality
-//    STRT_NQ,    ///< Disequality
-//    STRT_LEXLE, ///< Lexicographic less
-//    STRT_LEXLQ, ///< Lexicographic less or equal
-//    STRT_LEXGE, ///< Lexicographic greater
-//    STRT_LEXGQ, ///< Lexicographic greater or equal
-//  };
+  /**
+   * \brief Common relation types for strings
+   *
+   *
+   * \ingroup TaskModelString
+   */
+  enum stringRelType {
+    STRT_EQ,    ///< Equality
+    STRT_NQ,    ///< Disequality
+    STRT_LEXLE, ///< Lexicographic less
+    STRT_LEXLQ, ///< Lexicographic less or equal
+    STRT_LEXGE, ///< Lexicographic greater
+    STRT_LEXGQ, ///< Lexicographic greater or equal
+  };
 
-//  /**
-//   * \defgroup TaskModelStringRel Relation constraints
-//   * \ingroup TaskModelString
-//   *
-//   */
-//  //@{
-//  /// Post propagator for \f$ x \sim_r y\f$
-//  GECODE_STRING_EXPORT void
-//  rel(Home home, StringVar x, stringRelType r, StringVar y);
-//  /// Post propagator for \f$ (x \sim_{rt} y) \equiv r\f$
-//  GECODE_STRING_EXPORT void
-//  rel(Home home, StringVar x, stringRelType rt, StringVar y, Reify r);
-//  //@}
+  /**
+   * \defgroup TaskModelStringRel Relation constraints
+   * \ingroup TaskModelString
+   *
+   */
+  //@{
+  /// Post propagator for \f$ x \sim_r y\f$
+  GECODE_STRING_EXPORT void
+  rel(Home home, StringVar x, stringRelType r, StringVar y);
+  /// Post propagator for \f$ (x \sim_{rt} y) \equiv r\f$
+  GECODE_STRING_EXPORT void
+  rel(Home home, StringVar x, stringRelType rt, StringVar y, Reify r);
+  //@}
 
-//}
+}
 
-//namespace Gecode {
+namespace Gecode {
 
-//// TODO: Add string constraints here:
+// TODO: Add string constraints here:
 
-////  /**
-////   * \defgroup TaskModelStringElement TBD constraints
-////   * \ingroup TaskModelString
-////   *
-////   * An element constraint selects zero, one or more elements out of a
-////   * sequence. We write \f$ \langle x_0,\dots, x_{n-1} \rangle \f$ for the
-////   * sequence, and \f$ [y] \f$ for the index variable.
-////   *
-////   * string element constraints are closely related to the ::element constraint
-////   * on integer variables.
-////   */
-////  //@{
-////  /**
-////   * \brief Post propagator for \f$ z=\diamond_{\mathit{op}}\langle x_0,\dots,x_{n-1}\rangle[y] \f$
-////   *
-////   * If \a y is the empty string, the usual conventions for string operations apply:
-////   * an empty union is empty, while an empty intersection is the universe,
-////   * which can be given as the optional parameter \a u.
-////   *
-////   * The indices for \a y start at 0.
-////   */
-////  GECODE_STRING_EXPORT void
-////  element(Home home, stringOpType op, const StringVarArgs& x, StringVar y, StringVar z,
-////    const IntString& u = IntString(String::Limits::min,String::Limits::max));
-
-//  //@}
+  /**
+   * \defgroup TaskModelStringElement
+   * \ingroup TaskModelString
+   *
+   * An element constraint selects zero, one or more elements out of a
+   * sequence. We write \f$ \langle x_0,\dots, x_{n-1} \rangle \f$ for the
+   * sequence, and \f$ [y] \f$ for the index variable.
+   *
+   * string element constraints are closely related to the ::element constraint
+   * on integer variables.
+   */
+  //@{
+  /**
+   * \brief Post propagator for \f$ z=\diamond_{\mathit{op}}\langle x_0,\dots,x_{n-1}\rangle[y] \f$
+   *
+   * If \a y is the empty string, the usual conventions for string operations apply:
+   * an empty union is empty, while an empty intersection is the universe,
+   * which can be given as the optional parameter \a u.
+   *
+   * The indices for \a y start at 0.
+   */
+  
+  //@}
 
 
-//// FIXME: Do we need wait/when functions?
-////  /**
-////   * \defgroup TaskModelStringExec Synchronized execution
-////   * \ingroup TaskModelString
-////   *
-////   * Synchronized execution executes a function or a static member function
-////   * when a certain event happends.
-////   *
-////   * \ingroup TaskModelString
-////   */
-////  //@{
-////  /// Execute \a c when \a x becomes assigned
-////  GECODE_STRING_EXPORT void
-////  wait(Home home, StringVar x, std::function<void(Space& home)> c);
-////  /// Execute \a c when all variables in \a x become assigned
-////  GECODE_STRING_EXPORT void
-////  wait(Home home, const StringVarArgs& x, std::function<void(Space& home)> c);
-////  //@}
+// FIXME: Do we need wait/when functions?
+  /**
+   * \defgroup TaskModelStringExec Synchronized execution
+   * \ingroup TaskModelString
+   *
+   * Synchronized execution executes a function or a static member function
+   * when a certain event happends.
+   *
+   * \ingroup TaskModelString
+   */
+  //@{
+  // Execute \a c when \a x becomes assigned
+  GECODE_STRING_EXPORT void
+  wait(Home home, StringVar x, std::function<void(Space& home)> c);
+  // Execute \a c when all variables in \a x become assigned
+  GECODE_STRING_EXPORT void
+  wait(Home home, const StringVarArgs& x, std::function<void(Space& home)> c);
+  //@}
+}
 
-//}
 
+namespace Gecode {
 
-//namespace Gecode {
+  /**
+   * \defgroup TaskModelStringBranch Branching
+   * \ingroup TaskModelString
+   */
+// FIXME: Do we need these functions?
+  /**
+   * \brief Branch filter function type for string variables
+   *
+   * The variable \a x is considered for selection and \a i refers to the
+   * variable's position in the original array passed to the brancher.
+   *
+   * \ingroup TaskModelStringBranch
+   */
+  typedef std::function<bool(const Space& home, StringVar x, int i)>
+    stringBranchFilter;
+  /**
+   * \brief Branch merit function type for string variables
+   *
+   * The function must return a merit value for the variable
+   * \a x.
+   * The value \a i refers to the variable's position in the original array
+   * passed to the brancher.
+   *
+   * \ingroup TaskModelStringBranch
+   */
+  typedef std::function<double(const Space& home, StringVar x, int i)>
+    stringBranchMerit;
 
-//  /**
-//   * \defgroup TaskModelStringBranch Branching
-//   * \ingroup TaskModelString
-//   */
-//// FIXME: Do we need these functions?
-////  /**
-////   * \brief Branch filter function type for string variables
-////   *
-////   * The variable \a x is considered for selection and \a i refers to the
-////   * variable's position in the original array passed to the brancher.
-////   *
-////   * \ingroup TaskModelStringBranch
-////   */
-////  typedef std::function<bool(const Space& home, StringVar x, int i)>
-////    stringBranchFilter;
-////  /**
-////   * \brief Branch merit function type for string variables
-////   *
-////   * The function must return a merit value for the variable
-////   * \a x.
-////   * The value \a i refers to the variable's position in the original array
-////   * passed to the brancher.
-////   *
-////   * \ingroup TaskModelStringBranch
-////   */
-////  typedef std::function<double(const Space& home, StringVar x, int i)>
-////    stringBranchMerit;
+  /**
+   * \brief Branch value function type for string variables
+   *
+   * Returns a value for the variable \a x that is to be used in the
+   * corresponding branch commit function. The integer \a i refers
+   * to the variable's position in the original array passed to the
+   * brancher.
+   *
+   * \ingroup TaskModelStringBranch
+   */
+  typedef std::function<int(const Space& home, StringVar x, int i)>
+    stringBranchVal;
 
-////  /**
-////   * \brief Branch value function type for string variables
-////   *
-////   * Returns a value for the variable \a x that is to be used in the
-////   * corresponding branch commit function. The integer \a i refers
-////   * to the variable's position in the original array passed to the
-////   * brancher.
-////   *
-////   * \ingroup TaskModelStringBranch
-////   */
-////  typedef std::function<int(const Space& home, StringVar x, int i)>
-////    stringBranchVal;
+  /**
+   * \brief Branch commit function type for string variables
+   *
+   * The function must post a constraint on the variable \a x which
+   * corresponds to the alternative \a a. The integer \a i refers
+   * to the variable's position in the original array passed to the
+   * brancher. The value \a n is the value
+   * computed by the corresponding branch value function.
+   *
+   * \ingroup TaskModelStringBranch
+   */
+  typedef std::function<void(Space& home, unsigned int a,
+                             StringVar x, int i, int n)>
+    stringBranchCommit;
 
-////  /**
-////   * \brief Branch commit function type for string variables
-////   *
-////   * The function must post a constraint on the variable \a x which
-////   * corresponds to the alternative \a a. The integer \a i refers
-////   * to the variable's position in the original array passed to the
-////   * brancher. The value \a n is the value
-////   * computed by the corresponding branch value function.
-////   *
-////   * \ingroup TaskModelStringBranch
-////   */
-////  typedef std::function<void(Space& home, unsigned int a,
-////                             StringVar x, int i, int n)>
-////    stringBranchCommit;
-
-//}
+}
 
 
 ////namespace Gecode {
@@ -492,16 +489,16 @@ namespace Gecode {
 ////}
 ////#include <gecode/string/branch/chb.hpp>
 
-//namespace Gecode {
+namespace Gecode {
 
-//  /// Function type for printing branching alternatives for string variables
-//  typedef std::function<void(const Space &home, const Brancher& b,
-//                             unsigned int a,
-//                             StringVar x, int i, const int& n,
-//                             std::ostream& o)>
-//    StringVarValPrint;
+  /// Function type for printing branching alternatives for string variables
+  typedef std::function<void(const Space &home, const Brancher& b,
+                             unsigned int a,
+                             StringVar x, int i, const int& n,
+                             std::ostream& o)>
+    StringVarValPrint;
 
-//}
+}
 
 //namespace Gecode {
 
