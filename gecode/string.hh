@@ -46,32 +46,32 @@
  *
  */
 
-//#include <gecode/string/dashed/dashed-string.hpp>
+#include <gecode/string/dashed/dashed-string.hpp>
 #include <gecode/string/exception.hpp>
 
-//namespace Gecode { namespace String {
+namespace Gecode { namespace String {
 
-//  /// Numerical limits for string variables
-//  namespace Limits {
-//    /// Upper bound on the string length. It has to be in \f$[0, 2^31)\f$, otherwise the behaviour is undefined.
-//    const int MAX_STRING_LENGTH = 10000;
-//    /// Upper bound on the alphabet size. It has to be in \f$[0, 2^31]\f$, otherwise the behaviour is undefined.
-//    /// The alphabet of each string variable is \f$\{0, 1, \dots, MAX\_ALPHABET\_SIZE\}\f$
-//    const int MAX_ALPHABET_SIZE = 65536;
-//    /// Check whether \f$ n \in [0, MAX\_STRING\_LENGTH]\f$, otherwise throw overflow exception with location \a l
-//    void check_length(int n, const char* l);
-//    /// Check whether \f$ a \in [0, MAX\_ALPHABET\_SIZE)\f$, otherwise throw overflow exception with location \a l
-//    void check_alphabet(int a, const char* l);
-//    /// Check whether \f$ S \subseteq [0, MAX\_ALPHABET\_SIZE)\f$, otherwise throw overflow exception with location \a l
-//    void check_alphabet(const CharSet& S, const char* l);
-//  }
+  /// Numerical limits for string variables
+  namespace Limits {
+    /// Upper bound on the string length. It has to be in \f$[0, 2^31)\f$, otherwise the behaviour is undefined.
+    const int MAX_STRING_LENGTH = 10000;
+    /// Upper bound on the alphabet size. It has to be in \f$[0, 2^31]\f$, otherwise the behaviour is undefined.
+    /// The alphabet of each string variable is \f$\{0, 1, \dots, MAX\_ALPHABET\_SIZE\}\f$
+    const int MAX_ALPHABET_SIZE = 65536;
+    /// Check whether \f$ n \in [0, MAX\_STRING\_LENGTH]\f$, otherwise throw overflow exception with location \a l
+    void check_length(int n, const char* l);
+    /// Check whether \f$ a \in [0, MAX\_ALPHABET\_SIZE)\f$, otherwise throw overflow exception with location \a l
+    void check_alphabet(int a, const char* l);
+    /// Check whether \f$ S \subseteq [0, MAX\_ALPHABET\_SIZE)\f$, otherwise throw overflow exception with location \a l
+    void check_alphabet(const CharSet& S, const char* l);
+  }
 
-//}}
+}}
 
-//#include <gecode/string/limits.hpp>
+#include <gecode/string/limits.hpp>
 //#include <gecode/string/var-imp.hpp>
 
-//namespace Gecode {
+namespace Gecode {
 
 //  namespace String {
 //    class StringView;
@@ -195,7 +195,7 @@
 //  std::basic_ostream<Char,Traits>&
 //  operator <<(std::basic_ostream<Char,Traits>& os, const StringVar& x);
 
-//}
+}
 
 //#include <gecode/string/view.hpp>
 
