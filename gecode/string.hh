@@ -69,66 +69,66 @@ namespace Gecode { namespace String {
 }}
 
 #include <gecode/string/limits.hpp>
-//#include <gecode/string/var-imp.hpp>
+#include <gecode/string/var-imp.hpp>
 
 namespace Gecode {
 
-//  namespace String {
-//    class StringView;
-//  }
+  namespace String {
+    class StringView;
+  }
 
-//  /**
-//   * \brief %String variables
-//   *
-//   * \ingroup TaskModelStringVars
-//   */
-//  class StringVar : public VarImpVar<Gecode::String::StringVarImp> {
-//    friend class StringVarArray;
-//    friend class StringVarArgs;
-//    using VarImpVar<String::StringVarImp>::x;
-//  public:
-//    /// \name Constructors and initialization
-//    //@{
-//    /// Default constructor
-//    StringVar(void);
-//    /// Initialize from string variable \a y
-//    StringVar(const StringVar& y);
-//    /// Initialize from string view \a y
-//    StringVar(const String::StringView& y);
+  /**
+   * \brief %String variables
+   *
+   * \ingroup TaskModelStringVars
+   */
+  class StringVar : public VarImpVar<Gecode::String::StringVarImp> {
+    friend class StringVarArray;
+    friend class StringVarArgs;
+    using VarImpVar<String::StringVarImp>::x;
+  public:
+    /// \name Constructors and initialization
+    //@{
+    /// Default constructor
+    StringVar(void);
+    /// Initialize from string variable \a y
+    StringVar(const StringVar& y);
+    /// Initialize from string view \a y
+    StringVar(const String::StringView& y);
 
-//    /// Initialize variable's domain with block \f${0, 1, \dots, \alpha-1}^{(0, \lambda)}\f$ 
-//    /// where \f$\alpha = MAX\_ALPHABET\_SIZE, \lambda= MAX\_STRING\_LENGTH\f$
-//    GECODE_STRING_EXPORT StringVar(Space& home);
-//    /**
-//     * \brief Initialize variable's domain with block \f$ S^{(0, \lambda)} \f$ 
-//     * where \f$\lambda= MAX\_STRING\_LENGTH\f$
-//     *
-//     * The Gecode::String::OutOfLimits exception is thrown if S is not contained
-//     * in [0, MAX\_ALPHABET\_SIZE).
-//     */
-//    GECODE_STRING_EXPORT StringVar(Space& home, const IntSet& S);
-//    
-//    /**
-//     * \brief Initialize variable's domain with block \f$ \Sigma^{(l,u)} \f$ 
-//     * where \f$\Sigma= [0, MAX\_ALPHABET\_SIZE)\f$
-//     *
-//     * The following exceptions might be thrown:
-//     *  - Gecode::String::VariableEmptyDomain, if l > u.
-//     *  - Gecode::String::OutOfLimits, if \f$l < 0 \vee u > MAX\_STRING\_LENGTH\f$
-//     */
-//    GECODE_STRING_EXPORT StringVar(Space& home, int l, int u);
-//    
-//    /**
-//     * \brief Initialize variable's domain with block \f$ S^{(l,u)} \f$
-//     *
-//     * The following exceptions might be thrown:
-//     *  - Gecode::String::VariableEmptyDomain, if l > u.
-//     *  - Gecode::String::OutOfLimits, if \f$ S \not\subseteq [0, MAX\_ALPHABET\_SIZE) \vee  l < 0 \vee u > MAX\_STRING\_LENGTH\f$
-//     */
-//    GECODE_STRING_EXPORT StringVar(Space& home, const IntSet& S, int l, int u);
+    /// Initialize variable's domain with block \f${0, 1, \dots, \alpha-1}^{(0, \lambda)}\f$ 
+    /// where \f$\alpha = MAX\_ALPHABET\_SIZE, \lambda= MAX\_STRING\_LENGTH\f$
+    GECODE_STRING_EXPORT StringVar(Space& home);
+    /**
+     * \brief Initialize variable's domain with block \f$ S^{(0, \lambda)} \f$ 
+     * where \f$\lambda= MAX\_STRING\_LENGTH\f$
+     *
+     * The Gecode::String::OutOfLimits exception is thrown if S is not contained
+     * in [0, MAX\_ALPHABET\_SIZE).
+     */
+    GECODE_STRING_EXPORT StringVar(Space& home, const IntSet& S);
+    
+    /**
+     * \brief Initialize variable's domain with block \f$ \Sigma^{(l,u)} \f$ 
+     * where \f$\Sigma= [0, MAX\_ALPHABET\_SIZE)\f$
+     *
+     * The following exceptions might be thrown:
+     *  - Gecode::String::VariableEmptyDomain, if l > u.
+     *  - Gecode::String::OutOfLimits, if \f$l < 0 \vee u > MAX\_STRING\_LENGTH\f$
+     */
+    GECODE_STRING_EXPORT StringVar(Space& home, int l, int u);
+    
+    /**
+     * \brief Initialize variable's domain with block \f$ S^{(l,u)} \f$
+     *
+     * The following exceptions might be thrown:
+     *  - Gecode::String::VariableEmptyDomain, if l > u.
+     *  - Gecode::String::OutOfLimits, if \f$ S \not\subseteq [0, MAX\_ALPHABET\_SIZE) \vee  l < 0 \vee u > MAX\_STRING\_LENGTH\f$
+     */
+    GECODE_STRING_EXPORT StringVar(Space& home, const IntSet& S, int l, int u);
 
-//    //@}
-
+    //@}
+};
 //    /// \name Value access
 //    //@{
 //    /// Return the minimum length for a string in the variable's domain
