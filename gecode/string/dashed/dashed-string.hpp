@@ -1,5 +1,4 @@
 #include <memory>
-#include <gecode/set.hh>
 
 /*** Declarations ***/
 
@@ -260,11 +259,29 @@ namespace Gecode { namespace String {
 
 namespace Gecode { namespace String {
 
+  using namespace Limits;
+
+  forceinline
+  CharSet::CharSet(Space& home) {
+    Set::LUBndSet(home, 0, MAX_ALPHABET_SIZE-1);
+  }
+
+  forceinline
+  CharSet::CharSet(Space& home, int a) {
+    Limits::check_alphabet(a, "CharSet::CharSet");
+    Set::LUBndSet(home, a, a);
+  }
+
   forceinline
   CharSet::CharSet(Space& home, int a, int b) {
-//    if (a > b)
-//      throw ...
+    Limits::check_alphabet(a, b, "CharSet::CharSet");
     Set::LUBndSet(home, a, b);
+  }
+
+  forceinline
+  CharSet::CharSet(Space& home, const IntSet& S) {
+    Limits::check_alphabet(S, "CharSet::CharSet");
+    Set::LUBndSet(home, S);
   }
 
   forceinline std::ostream&

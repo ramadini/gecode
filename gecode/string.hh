@@ -2,6 +2,7 @@
 #define __GECODE_STRING_HH__
 
 #include <gecode/kernel.hh>
+#include <gecode/set.hh>
 //FIXME: Do we need this import?
 #include <functional>
 
@@ -69,17 +70,24 @@ namespace Gecode { namespace String {
     const int MAX_ALPHABET_SIZE = 65536;
     /// Check whether \f$ n \in [0, MAX\_STRING\_LENGTH]\f$, otherwise throw overflow exception with location \a l
     void check_length(int n, const char* l);
+    /// Check whether \f$ [n,m] \subseteq [0, MAX\_STRING\_LENGTH]\f$. The following exceptions might be thrown:
+    /// - VariableEmptyDomain, if n > m.
+    /// - OutOfLimits, if \f$ [n,m] \not\subseteq [0, MAX\_STRING\_LENGTH] \f$
+    void check_length(int n, int m, const char* l);
     /// Check whether \f$ a \in [0, MAX\_ALPHABET\_SIZE)\f$, otherwise throw overflow exception with location \a l
     void check_alphabet(int a, const char* l);
+    /// Check whether \f$ [a,b] \subseteq \in [0, MAX\_ALPHABET\_SIZE)\f$. The following exceptions might be thrown:
+    /// - VariableEmptyDomain, if a > b.
+    /// - OutOfLimits, if \f$ [a,b] \not\subseteq [0, MAX\_ALPHABET\_SIZE)\f$
+    void check_alphabet(int a, int b, const char* l);
     /// Check whether \f$ S \subseteq [0, MAX\_ALPHABET\_SIZE)\f$, otherwise throw overflow exception with location \a l
-    void check_alphabet(const CharSet& S, const char* l);
+    void check_alphabet(const IntSet& S, const char* l);
   }
 
 }}
-
 #include <gecode/string/exception.hpp>
-#include <gecode/string/dashed/dashed-string.hpp>
 #include <gecode/string/limits.hpp>
+#include <gecode/string/dashed/dashed-string.hpp>
 #include <gecode/string/var-imp.hpp>
 
 namespace Gecode {
