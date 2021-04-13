@@ -34,7 +34,7 @@ namespace Gecode { namespace String {
     // Pointer to the base.
     CharSet* S;
     // FIXME: To save space, fixed blocks of the form {a}^(n,n) are encoded with
-    // S = NULL; l = S = {} ? 0 : a ; u = n.
+    // S = NULL; l = a ; u = n.
     
   public:
     /// \name Constructors and initialization
@@ -54,8 +54,8 @@ namespace Gecode { namespace String {
     Block(Space& home, int a, int n);    
     /// Creates block \f$ S^{l,u} \$
     /// The following exceptions might be thrown:
-    /// - Gecode::String::VariableEmptyDomain, if l > u.
-    /// - Gecode::String::OutOfLimits, if \f$ S \not\subseteq [0, MAX\_ALPHABET\_SIZE) \vee  l < 0 \vee u > MAX\_STRING\_LENGTH\f$
+    /// - VariableEmptyDomain, if l > u.
+    /// - OutOfLimits, if \f$ S \not\subseteq [0, MAX\_ALPHABET\_SIZE) \vee  l < 0 \vee u > MAX\_STRING\_LENGTH\f$
     Block(Space& home, CharSet S, int l, int u);
     //@}
     
@@ -86,11 +86,24 @@ namespace Gecode { namespace String {
     
     /// \name Update operations
     //@{
-//    lb(l)
-//    ub(u)
-//    exclude
-//    intersect
-    
+    /// Updates the current lower bound with l. If lb (resp. ub) is the current 
+    /// lower (resp. upper) bound, the following exceptions might be thrown:
+    /// - IllegalOperation, if l < lb
+    /// - VariableEmptyDomain, if l > ub.
+    void lb(int l);
+    /// Updates the current upper bound with u. If lb (resp. ub) is the current 
+    /// lower (resp. upper) bound, the following exceptions might be thrown:
+    /// - IllegalOperation, if u > ub
+    /// - VariableEmptyDomain, if u < lb.
+    void ub(int u);
+    /// Exclude all elements not in the set represented by \a i from the base
+    /// A VariableEmptyDomain exception is raised if the base becomes empty but 
+    /// the lower bound is greater than zero.
+    template<class I> bool inters(Space& home, I& i);
+    /// Exclude all elements in the set represented by \a i from the base
+    /// A VariableEmptyDomain exception is raised if the base becomes empty but 
+    /// the lower bound is greater than zero.
+    template<class I> bool exclude(Space& home, I& i);
     //@}
     
     /// \name Cloning

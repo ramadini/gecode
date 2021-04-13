@@ -19,6 +19,13 @@ namespace Gecode { namespace String {
     /// Initialize with location \a l
     VariableEmptyDomain(const char* l);
   };
+  
+  /// %Exception: Illegal operation passed as argument
+  class GECODE_STRING_EXPORT IllegalOperation : public Exception  {
+  public:
+    /// Initialize with location \a l
+    IllegalOperation(const char* l);
+  };
 
   //TODO: Check if we really need all the following classes.
 
@@ -55,13 +62,6 @@ namespace Gecode { namespace String {
   public:
     /// Initialize with location \a l
     UnknownOperation(const char* l);
-  };
-
-  /// %Exception: Illegal operation passed as argument
-  class GECODE_STRING_EXPORT IllegalOperation : public Exception  {
-  public:
-    /// Initialize with location \a l
-    IllegalOperation(const char* l);
   };
 
   //@}
