@@ -44,7 +44,7 @@ namespace Gecode { namespace String {
     /// Creates block \f$ {0, \dots, {MAX\_ALPHABET\_SIZE}-1}^{(0,{MAX\_STRING\_LENGTH})} \$
     Block(Space& home);
     /// Creates block \f$ S^{(0,{MAX\_STRING\_LENGTH})} \$
-    Block(Space& home, CharSet S);
+    Block(Space& home, const CharSet& S);
     /// Creates fixed block \f$ {a}^{1,1} \$
     /// Throws OutOfLimits exception if \f$a < 0 \vee a \geq MAX\_ALPHABET\_LENGTH\f$
     Block(Space& home, int a);
@@ -56,7 +56,7 @@ namespace Gecode { namespace String {
     /// The following exceptions might be thrown:
     /// - VariableEmptyDomain, if l > u.
     /// - OutOfLimits, if \f$ S \not\subseteq [0, MAX\_ALPHABET\_SIZE) \vee  l < 0 \vee u > MAX\_STRING\_LENGTH\f$
-    Block(Space& home, CharSet S, int l, int u);
+    Block(Space& home, const CharSet& S, int l, int u);
     //@}
     
     /// \name Block access
@@ -81,7 +81,9 @@ namespace Gecode { namespace String {
     bool disj(const Block& b) const;
     /// Test whether the base of this block is disjoint with \a s
     bool disj(const CharSet& s) const;
-    /// Test whther 
+    /// Test whether this block contains block \a b, i.e. base() contains b.base() 
+    /// and lb() is less or equal than b.lb() and ub() is greater or equal than b.ub()
+    bool contains(const Block& b) const;
     //@}
     
     /// \name Update operations
@@ -108,18 +110,16 @@ namespace Gecode { namespace String {
     
     /// \name Cloning
     //@{
-    /// Update this block to be the null block. 
-    /// NOTE: no consistency checks are performed on this block.
+    /// Update this block to be the null block
     void nullify();
     /// Update this block to be a clone of \a b
-    /// NOTE: no consistency checks are performed on this block.
     void update(Space& home, const Block& b);
     //@}
     
     /// Check whether the block is normalized and internal invariants hold
     bool isOK(void) const;
-    /// Prints the block
-    friend std::ostream& operator<<(std::ostream& os, const CharSet& set);
+    /// Prints the block \a b
+    friend std::ostream& operator<<(std::ostream& os, const Block& b);
     
   private:
     Block(const Block&);
@@ -131,14 +131,78 @@ namespace Gecode { namespace String {
 
 namespace Gecode { namespace String {
   
+  /**
+   * \brief Dashed string modelling the domain of a string variable.
+   *
+   * \ingroup TaskModelStringBranch
+   */  
   class GECODE_STRING_EXPORT DashedString : 
   public Gecode::Support::DynamicArray<Block, Space> {
   
+  private:
+    // Sum of the lower bounds of each block of the dashed string
+    int lb;
+    // Sum of the upper bounds of each block of the dashed string
+    int ub;
+  
+  public:
+    /// \name Constructors and initialization
+    //@{
+    /// Creates a dashed string consisting of one block \f$ {0, \dots, {MAX\_ALPHABET\_SIZE}-1}^{(0,{MAX\_STRING\_LENGTH})} \$
+    DashedString(Space& home);
+    /// Creates a dashed string consisting of one \a block \$
+    DashedString(Space& home, const Block& block);
+    /// Creates a normalized dashed string from \a blocks
+    DashedString(Space& home, const Block blocks[]);
+    //FIXME: std::initializer_list?
+    
+    /// \name Dashed string access
+    //@{
+    /// Returns the minimum length for a concrete string denoted by the dashed string
+    int min_length(void) const;
+    /// Returns the maximum length for a concrete string denoted by the dashed string
+    int max_length(void) const;
+    /// Returns the number of blocks of the dashed string
+    int size(void) const;
+    /// Returns the natural logarithm of the dimension of this dashed string
+    double logdim(void) const;
+    //@}
+  
+    /// \name Dashed string tests
+    //@{
+    /// Test whether the dashed string is null
+    bool isNull(void) const;
+    /// Test whether the dashed string is fixed
+    bool isFixed(void) const;
+    /// Test whether the i-th block of this dashed string contains the i-th block of \d x 
+    /// for \f$ i=1,\dots, size()\$ and the j-th block of this dashed string is null
+    /// for \f$ j=b.size()+1,\dots, size()\$
+    bool contains(void) const;
+    //@}
+    
+    /// \name Cloning
+    //@{
+    /// Update this dashed string to be the null block.
+    void nullify();
+    /// Update this dashed string to be a clone of \a x
+    void update(Space& home, const Block& x);
+    //@}
+    
+    /// Normalize the dashed string
+    bool normalize(void) const;
+    /// Check whether the dashed string is normalized and internal invariants hold
+    bool isOK(void) const;
+    /// Prints the dashed string \a x
+    friend std::ostream& operator<<(std::ostream& os, const DashedString& x);
+    
   };
 
 }}
 
+
+
 /*** Definitions ***/
+
 
 namespace Gecode { namespace String {
 
@@ -191,5 +255,19 @@ namespace Gecode { namespace String {
     return os << "}";
   }
 
+}}
+
+
+namespace Gecode { namespace String {
 
 }}
+
+
+namespace Gecode { namespace String {
+
+}}
+
+
+
+
+
