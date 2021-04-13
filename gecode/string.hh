@@ -544,107 +544,109 @@ namespace Gecode {
 }
 #include <gecode/string/branch/var.hpp>
 
-//namespace Gecode {
+namespace Gecode {
 
+  /**
+   * \brief Which values to select for ...?
+   *
+   * \ingroup TaskModelStringBranch
+   */
+  class StringValBranch : public ValBranch<StringVar> {
+  public:
+    /// Which value selection
+    enum Select {
+      STRING_VAL_LLLL,
+      STRING_VAL_LLUL,
+      STRING_VAL_LLLM
+      // TODO: Add heuristics
+    };
+  protected:
+    /// Which value to select
+    Select s;
+  public:
+    StringValBranch(void);
+    /// Initialize with selection strategy \a s
+    StringValBranch(Select s);
+    /// Return selection strategy
+    Select select(void) const;
+  };
+
+  /**
+   * \defgroup TaskModelStringBranchVal Value selection for string variables
+   * \ingroup TaskModelStringBranch
+   */
+  //@{
+  // TODO: Add functions.
+
+  //@}
+
+}
+#include <gecode/string/branch/val.hpp>
+
+// FIXME: A class for each type of selection? which var, which len, which block, which card, which char?
+//namespace Gecode {
 //  /**
-//   * \brief Which values to select for ...?
+//   * \brief Which value to select for assignment
 //   *
 //   * \ingroup TaskModelStringBranch
 //   */
-//  class StringValBranch : public ValBranch<StringVar> {
+//  class StringAssign : public ValBranch<StringVar> {
 //  public:
 //    /// Which value selection
 //    enum Select {
-//      STRING_VAL_LLLL,
-//      STRING_VAL_LLUL,
-//      STRING_VAL_LLLM
-//      // TODO: Add heuristics
+//      SEL_MIN_INC,   ///< Include smallest element
+//      SEL_MIN_EXC,   ///< Exclude smallest element
+//      SEL_MED_INC,   ///< Include median element (rounding downwards)
 //    };
-//  protected:
-//    /// Which value to select
-//    Select s;
-//  public:
-//    StringValBranch(void);
-//    /// Initialize with selection strategy \a s
-//    StringValBranch(Select s);
-//    /// Return selection strategy
-//    Select select(void) const;
-//  };
+//  }
+//};
+//#include <gecode/string/branch/assign.hpp>
 
+// TODO: Add branch function(s?)
+//namespace Gecode {
 //  /**
-//   * \defgroup TaskModelStringBranchVal Value selection for string variables
+//   * \brief Branch over \a x with variable selection \a vars and value selection \a vals
+//   *
 //   * \ingroup TaskModelStringBranch
 //   */
-//  //@{
-//  // TODO: Add functions.
-
-//  //@}
-
+//  GECODE_STRING_EXPORT void
+//  branch(Home home, const StringVarArgs& x,
+//         StringVarBranch vars, stringValBranch vals,
+//         StringBranchFilter bf=nullptr,
+//         StringVarValPrint vvp=nullptr);
+//  /**
+//   * \brief Branch over \a x with tie-breaking variable selection \a vars and value selection \a vals
+//   *
+//   * \ingroup TaskModelStringBranch
+//   */
+//  GECODE_STRING_EXPORT void
+//  branch(Home home, const StringVarArgs& x,
+//         TieBreak<StringVarBranch> vars, stringValBranch vals,
+//         StringBranchFilter bf=nullptr,
+//         StringVarValPrint vvp=nullptr);
 //}
-
-//#include <gecode/string/branch/val.hpp>
-
-//// FIXME: A class for each type of selection? which var, which len, which block, which card, which char?
-////namespace Gecode {
-////  /**
-////   * \brief Which value to select for assignment
-////   *
-////   * \ingroup TaskModelStringBranch
-////   */
-////  class StringAssign : public ValBranch<StringVar> {
-////  public:
-////    /// Which value selection
-////    enum Select {
-////      SEL_MIN_INC,   ///< Include smallest element
-////      SEL_MIN_EXC,   ///< Exclude smallest element
-////      SEL_MED_INC,   ///< Include median element (rounding downwards)
-////#include <gecode/string/branch/assign.hpp>
-
-//// TODO: Add branch function(s?)
-////namespace Gecode {
-////  /**
-////   * \brief Branch over \a x with variable selection \a vars and value selection \a vals
-////   *
-////   * \ingroup TaskModelStringBranch
-////   */
-////  GECODE_STRING_EXPORT void
-////  branch(Home home, const StringVarArgs& x,
-////         StringVarBranch vars, stringValBranch vals,
-////         StringBranchFilter bf=nullptr,
-////         StringVarValPrint vvp=nullptr);
-////  /**
-////   * \brief Branch over \a x with tie-breaking variable selection \a vars and value selection \a vals
-////   *
-////   * \ingroup TaskModelStringBranch
-////   */
-////  GECODE_STRING_EXPORT void
-////  branch(Home home, const StringVarArgs& x,
-////         TieBreak<StringVarBranch> vars, stringValBranch vals,
-////         StringBranchFilter bf=nullptr,
-////         StringVarValPrint vvp=nullptr);
-////}
-////namespace Gecode {
-////  /**
-////   * \brief Branch over \a x with value selection \a vals
-////   *
-////   * \ingroup TaskModelStringBranch
-////   */
-////  void
-////  branch(Home home, const StringVarArgs& x,
-////         stringValBranch vals,
-////         StringBranchFilter bf=nullptr,
-////         StringVarValPrint vvp=nullptr);
-////  /**
-////   * \brief Assign all \a x with value selection \a vals
-////   *
-////   * \ingroup TaskModelStringBranch
-////   */
-////  void
-////  assign(Home home, const StringVarArgs& x,
-////         stringAssign vals,
-////         StringBranchFilter bf=nullptr,
-////         StringVarValPrint vvp=nullptr);
-////}
+//namespace Gecode {
+//  /**
+//   * \brief Branch over \a x with value selection \a vals
+//   *
+//   * \ingroup TaskModelStringBranch
+//   */
+//  void
+//  branch(Home home, const StringVarArgs& x,
+//         stringValBranch vals,
+//         StringBranchFilter bf=nullptr,
+//         StringVarValPrint vvp=nullptr);
+//  /**
+//   * \brief Assign all \a x with value selection \a vals
+//   *
+//   * \ingroup TaskModelStringBranch
+//   */
+//  void
+//  assign(Home home, const StringVarArgs& x,
+//         stringAssign vals,
+//         StringBranchFilter bf=nullptr,
+//         StringVarValPrint vvp=nullptr);
+//}
 //#include <gecode/string/branch.hpp>
 
 // TODO: Add support for Dynamic Symmetry Breaking?
