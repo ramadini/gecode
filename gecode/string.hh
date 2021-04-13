@@ -46,10 +46,19 @@
  *
  */
 
-#include <gecode/string/dashed/dashed-string.hpp>
-#include <gecode/string/exception.hpp>
-
 namespace Gecode { namespace String {
+  
+  /// Character encodings for string variables 
+  enum CharEncoding {
+    UNSPEC,
+    ASCII,
+    EASCII,
+    UTF_8,
+    UTF_16,
+    UTF_32
+  };
+  
+  class CharSet;
 
   /// Numerical limits for string variables
   namespace Limits {
@@ -68,6 +77,8 @@ namespace Gecode { namespace String {
 
 }}
 
+#include <gecode/string/exception.hpp>
+#include <gecode/string/dashed/dashed-string.hpp>
 #include <gecode/string/limits.hpp>
 #include <gecode/string/var-imp.hpp>
 
