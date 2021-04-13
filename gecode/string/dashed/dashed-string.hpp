@@ -27,6 +27,9 @@ namespace Gecode { namespace String {
     /// - OutOfLimits, if \f$ S \not\subseteq [0, String::Limits::MAX_ALPHABET_SIZE) \f$
     CharSet(Space& home, const IntSet& S);
   
+    /// Test whether the set is disjoint with \a S
+    bool disj(const CharSet& S) const;
+  
     /// Prints set according to Limits::CHAR_ENCODING
     friend std::ostream& operator<<(std::ostream& os, const CharSet& set);
     
@@ -94,8 +97,6 @@ namespace Gecode { namespace String {
     bool isFixed(void) const;
     /// Test whether the base of this block is disjoint with the base of \a b
     bool disj(const Block& b) const;
-    /// Test whether the base of this block is disjoint with \a s
-    bool disj(const CharSet& s) const;
     /// Test whether this block contains block \a b, i.e. base() contains b.base() 
     /// and lb() is less or equal than b.lb() and ub() is greater or equal than b.ub()
     bool contains(const Block& b) const;
@@ -283,6 +284,26 @@ namespace Gecode { namespace String {
     Limits::check_alphabet(S, "CharSet::CharSet");
     Set::LUBndSet(home, S);
   }
+  
+  forceinline bool
+  CharSet::disj(const CharSet& x) const {
+    if (empty() || x.empty() ||  max() < x.min() || min() > x.max())
+      return true;
+    Gecode::Set::BndSetRanges i1(*this);
+    Gecode::Set::BndSetRanges i2(x);
+    while (i1() && i2()) {
+      if ((i1.min() <= i2.min() && i2.min() <= i1.max())
+      ||  (i1.min() <= i2.max() && i2.max() <= i1.max())
+      ||  (i2.min() <= i1.min() && i1.min() <= i2.max())
+      ||  (i2.min() <= i1.max() && i1.max() <= i2.max()))
+        return false;
+      if (i1.max() > i2.max())
+        ++i2;
+      else
+        ++i1;
+    }
+    return true;
+  }
 
   forceinline std::ostream&
   operator<<(std::ostream& os, const CharSet& set) {
@@ -349,14 +370,15 @@ namespace Gecode { namespace String {
     return u * log(s) + log(1.0 - std::pow(s, l-u-1)) - log(1 - 1/s);
   }
   
+  forceinline bool
+  Block::disj(const Block& b) const {
+    return S->disj(b.base());
+  }
+  
+  
   
 // TODO:
 
-//    bool isFixed(void) const;
-//    /// Test whether the base of this block is disjoint with the base of \a b
-//    bool disj(const Block& b) const;
-//    /// Test whether the base of this block is disjoint with \a s
-//    bool disj(const CharSet& s) const;
 //    /// Test whether this block contains block \a b, i.e. base() contains b.base() 
 //    /// and lb() is less or equal than b.lb() and ub() is greater or equal than b.ub()
 //    bool contains(const Block& b) const;
