@@ -332,24 +332,26 @@ namespace Gecode { namespace String {
     S->update(home, s);
   }
 
-//    
-//    /// \name Block access
-//    //@{
-//    /// Returns the lower bound of the block
-//    int lb(void) const;
-//    /// Returns the upper bound of the block
-//    int ub(void) const;
-//    /// Returns the base of the block
-//    const CharSet& base(void) const;
-//    /// Returns the natural logarithm of the dimension of the block.
-//    double logdim(void) const;
-//    //@}
-//    
-//    /// \name Block tests
-//    //@{
-//    /// Test whether the block is null
-//    bool isNull(void) const;
-//    /// Test whether the block is fixed
+  forceinline int Block::lb() const { return l; }
+  forceinline int Block::ub() const { return u; }
+  forceinline const CharSet& Block::base() const { return *S; };
+  
+  forceinline bool Block::isNull()  const { return u == 0; }
+  forceinline bool Block::isFixed() const { return S == NULL; }
+  
+  forceinline double
+  Block::logdim() const {
+    if (isFixed())
+      return 0;
+    if (S->size() == 1)
+      return log(u - l + 1);
+    double s = S->size();
+    return u * log(s) + log(1.0 - std::pow(s, l-u-1)) - log(1 - 1/s);
+  }
+  
+  
+// TODO:
+
 //    bool isFixed(void) const;
 //    /// Test whether the base of this block is disjoint with the base of \a b
 //    bool disj(const Block& b) const;
