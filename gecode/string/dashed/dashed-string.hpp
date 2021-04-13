@@ -312,23 +312,26 @@ namespace Gecode { namespace String {
   
   forceinline Block::Block(Space& home) 
   : l(0), u(MAX_STRING_LENGTH), S(new CharSet(home, 0, MAX_ALPHABET_SIZE-1)) {};
-//  
-//  forceinline Block::Block(Space& home, const CharSet& s)
-//  : l(0), u(MAX_STRING_LENGTH), S(new CharSet(s)) {};
   
-//    /// Creates fixed block \f$ {a}^{1,1} \$
-//    /// Throws OutOfLimits exception if \f$a < 0 \vee a \geq MAX\_ALPHABET\_LENGTH\f$
-//    Block(Space& home, int a);
-//    /// Creates fixed block \f$ {a}^{n,n} \$
-//    /// Throws OutOfLimits exception if 
-//    /// \f$a < 0 \vee a \geq MAX\_ALPHABET\_LENGTH \vee n < 0 \vee n > MAX\_STRING\_LENGTH \f$
-//    Block(Space& home, int a, int n);    
-//    /// Creates block \f$ S^{l,u} \$
-//    /// The following exceptions might be thrown:
-//    /// - VariableEmptyDomain, if l > u.
-//    /// - OutOfLimits, if \f$ S \not\subseteq [0, MAX\_ALPHABET\_SIZE) \vee  l < 0 \vee u > MAX\_STRING\_LENGTH\f$
-//    Block(Space& home, const CharSet& S, int l, int u);
-//    //@}
+  forceinline Block::Block(Space& home, const CharSet& s)
+  : l(0), u(MAX_STRING_LENGTH), S() {
+    S->update(home, s);
+  };
+  
+  forceinline Block::Block(Space& home, int a)
+  : l(1), u(1), S(new CharSet(home, a)) {}
+  
+  forceinline Block::Block(Space& home, int a, int n)
+  : l(1), u(1), S(new CharSet(home, a)) {
+    Limits::check_length(n, "Block::Block");
+  }
+  
+  forceinline Block::Block(Space& home, const CharSet& s, int a, int b)
+  : l(a), u(b), S() {
+    check_length(a, b, "Block::Block");
+    S->update(home, s);
+  }
+
 //    
 //    /// \name Block access
 //    //@{
