@@ -11,9 +11,15 @@ namespace Gecode { namespace String {
    * \ingroup TaskModelStringBranch
    */
   class GECODE_STRING_EXPORT CharSet : public Gecode::Set::LUBndSet {
+  
+  // FIXME: One may define a subclass of CharSet for small, fixed-size charsets 
+  // relying on bit-vectors representation.
+  
   public:
     /// \name Constructors and initialization
     //@{
+    /// Creates the empty CharSet
+    CharSet(void);
     /// Creates the CharSet [0, String::Limits::MAX_ALPHABET_SIZE)
     CharSet(Space& home);
     /// Creates the CharSet {a}. Throws OutOfLimits if \f$ a < 0 \vee a \geq MAX\_ALPHABET\_SIZE \f$
@@ -31,7 +37,7 @@ namespace Gecode { namespace String {
     /// \name CharSet tests
     //@{
     /// Test whether the set is disjoint with \a S
-    bool disj(const CharSet& S) const;
+    bool disjoint(const CharSet& S) const;
     /// Test whether the set contains \a S
     bool contains(const CharSet& S) const;
     //@}
@@ -51,6 +57,9 @@ namespace Gecode { namespace String {
    * \ingroup TaskModelStringBranch
    */
   class GECODE_STRING_EXPORT Block {
+  
+  // FIXME: Each non-const operation on Block must leave it in a consistent and
+  // normalized state.
   
   private:
     // Cardinality bounds.
@@ -78,7 +87,7 @@ namespace Gecode { namespace String {
     Block(Space& home, int a, int n);    
     /// Creates block \f$ S^{l,u} \$
     /// The following exceptions might be thrown:
-    /// - VariableEmptyDomain, if l > u.
+    /// - VariableEmptyDomain, if l > u or S = {} and l > 0.
     /// - OutOfLimits, if \f$ S \not\subseteq [0, MAX\_ALPHABET\_SIZE) \vee  l < 0 \vee u > MAX\_STRING\_LENGTH\f$
     Block(Space& home, const CharSet& S, int l, int u);
     //@}
@@ -89,8 +98,6 @@ namespace Gecode { namespace String {
     int lb(void) const;
     /// Returns the upper bound of the block
     int ub(void) const;
-    /// Returns the base of the block
-    const CharSet& base(void) const;
     /// Returns the natural logarithm of the dimension of the block.
     double logdim(void) const;
     //@}
@@ -102,7 +109,7 @@ namespace Gecode { namespace String {
     /// Test whether the block is fixed
     bool isFixed(void) const;
     /// Test whether the base of this block is disjoint with the base of \a b
-    bool disj(const Block& b) const;
+    bool baseDisjoint(const Block& b) const;
     /// Test whether this block contains block \a b, i.e. base() contains b.base() 
     /// and lb() <= b.lb() and ub() >= b.ub()
     bool contains(const Block& b) const;
@@ -120,20 +127,20 @@ namespace Gecode { namespace String {
     /// - IllegalOperation, if u > ub
     /// - VariableEmptyDomain, if u < lb.
     void ub(int u);
-    /// Exclude all elements not in the set represented by \a i from the base
+    /// Exclude all elements not in \a S from the base
     /// A VariableEmptyDomain exception is raised if the base becomes empty but 
     /// the lower bound is greater than zero.
-    template<class I> bool inters(Space& home, I& i);
-    /// Exclude all elements in the set represented by \a i from the base
+    void baseIntersect(Space& home, const Gecode::Set::BndSet& S);
+    /// Exclude all elements of \a S from the base
     /// A VariableEmptyDomain exception is raised if the base becomes empty but 
     /// the lower bound is greater than zero.
-    template<class I> bool exclude(Space& home, I& i);
+    void baseExclude(Space& home, const Gecode::Set::BndSet& S);
     //@}
     
     /// \name Cloning
     //@{
     /// Update this block to be the null block
-    void nullify();
+    void nullify(Space& home);
     /// Update this block to be a clone of \a b
     void update(Space& home, const Block& b);
     //@}
@@ -205,7 +212,7 @@ namespace Gecode { namespace String {
     /// \name Cloning
     //@{
     /// Update this dashed string to be the null block.
-    void nullify();
+    void nullify(Space& home);
     /// Update this dashed string to be a clone of \a x
     void update(Space& home, const Block& x);
     //@}
@@ -269,6 +276,11 @@ namespace Gecode { namespace String {
   using namespace Limits;
 
   forceinline
+  CharSet::CharSet() {
+    Set::LUBndSet();
+  }
+
+  forceinline
   CharSet::CharSet(Space& home) {
     Set::LUBndSet(home, 0, MAX_ALPHABET_SIZE-1);
   }
@@ -292,7 +304,7 @@ namespace Gecode { namespace String {
   }
   
   forceinline bool
-  CharSet::disj(const CharSet& x) const {
+  CharSet::disjoint(const CharSet& x) const {
     if (empty() || x.empty() ||  max() < x.min() || min() > x.max())
       return true;
     Gecode::Set::BndSetRanges i1(*this), i2(x);
@@ -354,28 +366,43 @@ namespace Gecode { namespace String {
   forceinline Block::Block(Space& home) 
   : l(0), u(MAX_STRING_LENGTH), S(new CharSet(home, 0, MAX_ALPHABET_SIZE-1)) {};
   
-  forceinline Block::Block(Space& home, const CharSet& s)
-  : l(0), u(MAX_STRING_LENGTH), S() {
-    S->update(home, s);
-  };
+  forceinline Block::Block(Space& home, const CharSet& s) 
+  : l(0), u(MAX_STRING_LENGTH), S(new CharSet()) { S->update(home, s); };
   
   forceinline Block::Block(Space& home, int a)
-  : l(1), u(1), S(new CharSet(home, a)) {}
+  : l(a), u(1), S()  { Limits::check_alphabet(a, "Block::Block"); };
   
   forceinline Block::Block(Space& home, int a, int n)
-  : l(1), u(1), S(new CharSet(home, a)) {
-    Limits::check_length(n, "Block::Block");
-  }
+  : l(a), u(n), S() { Limits::check_length(n, "Block::Block"); };
   
-  forceinline Block::Block(Space& home, const CharSet& s, int a, int b)
-  : l(a), u(b), S() {
-    check_length(a, b, "Block::Block");
-    S->update(home, s);
+  forceinline Block::Block(Space& home, const CharSet& s, int lb, int ub) {
+    check_length(lb, ub, "Block::Block");
+    switch (s.size()) {
+      case 0:
+        if (lb > 0)
+          throw VariableEmptyDomain("Block::Block");
+        // Null block.
+        l = u = 0;
+        S = NULL;
+        return;
+      case 1:
+        u = ub;
+        if (lb == ub) {
+          // Fixed block s^n with n=lb=ub.
+          l = s.min();
+          S = NULL;
+          return;  
+        }
+      default:
+        // General case.
+        l = lb;
+        S = std::unique_ptr<CharSet>();
+        S->update(home, s);
+    }
   }
 
-  forceinline int Block::lb() const { return l; }
+  forceinline int Block::lb() const { return S == NULL ? u : l; }
   forceinline int Block::ub() const { return u; }
-  forceinline const CharSet& Block::base() const { return *S; };
   
   forceinline bool Block::isNull()  const { return u == 0; }
   forceinline bool Block::isFixed() const { return S == NULL; }
@@ -391,21 +418,29 @@ namespace Gecode { namespace String {
   }
   
   forceinline bool
-  Block::disj(const Block& b) const {
-    return S->disj(b.base());
+  Block::baseDisjoint(const Block& b) const {
+    if (isFixed())
+      return b.isFixed() ? l != b.l : !b.S->in(l);
+    if (b.isFixed());
+      return !S->in(b.l);
+    return S->disjoint(*b.S);
   }
   
   forceinline bool
   Block::contains(const Block& b) const {
-    return l <= b.l && u >= b.u && S->contains(*b.S);
+    if (l > b.l || u < b.u)
+      return false;
+    if (isFixed())
+      return b.isFixed() && l == b.l && u == b.u;
+    return b.isFixed() ? S->in(b.l) : S->contains(*b.S);
   }
   
   forceinline void
   Block::lb(int x) {
-    if (x < l)
-      throw IllegalOperation("Block::lb");
     if (x > u)
       throw VariableEmptyDomain("Block::lb");
+    if ((isFixed() && x < u) || (!isFixed() && x < l))
+      throw IllegalOperation("Block::lb");
     l = x;
   }
   
@@ -413,47 +448,91 @@ namespace Gecode { namespace String {
   Block::ub(int x) {
     if (x > u)
       throw IllegalOperation("Block::ub");
-    if (x < l)
+    if ((isFixed() && x < u) || (!isFixed() && x < l))
       throw VariableEmptyDomain("Block::ub");
     u = x;
   }
   
+  forceinline void
+  Block::baseIntersect(Space& home, const Gecode::Set::BndSet& s) {
+    if (isNull())
+      return;
+    if (isFixed()) {
+      if (!s.in(l))
+        throw VariableEmptyDomain("Block::inters"); 
+      return;
+    }
+    Gecode::Set::BndSetRanges i(s);
+    S->intersectI(home, i);
+    if (l > 0 && S->empty())
+      throw VariableEmptyDomain("Block::inters");
+  }
   
-// TODO:
-//    /// \name Update operations
-//    //@{
-//    /// Updates the current lower bound with l. If lb (resp. ub) is the current 
-//    /// lower (resp. upper) bound, the following exceptions might be thrown:
-//    /// - IllegalOperation, if l < lb
-//    /// - VariableEmptyDomain, if l > ub.
-//    void lb(int l);
-//    /// Updates the current upper bound with u. If lb (resp. ub) is the current 
-//    /// lower (resp. upper) bound, the following exceptions might be thrown:
-//    /// - IllegalOperation, if u > ub
-//    /// - VariableEmptyDomain, if u < lb.
-//    void ub(int u);
-//    /// Exclude all elements not in the set represented by \a i from the base
-//    /// A VariableEmptyDomain exception is raised if the base becomes empty but 
-//    /// the lower bound is greater than zero.
-//    template<class I> bool inters(Space& home, I& i);
-//    /// Exclude all elements in the set represented by \a i from the base
-//    /// A VariableEmptyDomain exception is raised if the base becomes empty but 
-//    /// the lower bound is greater than zero.
-//    template<class I> bool exclude(Space& home, I& i);
-//    //@}
-//    
-//    /// \name Cloning
-//    //@{
-//    /// Update this block to be the null block
-//    void nullify();
-//    /// Update this block to be a clone of \a b
-//    void update(Space& home, const Block& b);
-//    //@}
-//    
-//    /// Check whether the block is normalized and internal invariants hold
-//    bool isOK(void) const;
-//    /// Prints the block \a b
-//    friend std::ostream& operator<<(std::ostream& os, const Block& b);
+  forceinline void
+  Block::baseExclude(Space& home, const Gecode::Set::BndSet& s) {
+    if (isNull())
+      return;
+    if (isFixed()) {
+      if (s.in(l))
+        throw VariableEmptyDomain("Block::inters"); 
+      return;
+    }
+    Gecode::Set::BndSetRanges i(s);
+    S->excludeI(home, i);
+    if (S->empty() && l > 0)
+      throw VariableEmptyDomain("Block::exclude");
+  }
+  
+  forceinline void
+  Block::nullify(Space& home) {
+    if (S != NULL) {
+      S->excludeAll(home);
+      S = NULL;
+    }
+    l = u = 0;
+  }
+  
+  forceinline void
+  Block::update(Space& home, const Block& b) {
+    l = b.l;
+    u = b.u;
+    if (S == b.S)
+      return;
+    if (b.S == NULL) {
+      S->excludeAll(home);
+      S = NULL;
+      return;
+    }
+    if (S == NULL)
+      S = std::unique_ptr<CharSet>();
+    S->update(home, *b.S);
+  }
+  
+  forceinline bool
+  Block::isOK(void) const {
+    if (S == NULL) {
+      check_alphabet(l, "Block::isOK");
+      check_length(u, "Block::isOK");
+      return true;
+    }
+    check_length(l, u, "");
+    check_alphabet(S->min(), S->max(), "");
+    return u > 0;
+  }
+
+  forceinline std::ostream&
+  operator<<(std::ostream& os, const Block& b) {
+    os << "{";
+    if (b.S == NULL) {  
+      if (b.u > 0)
+        os << int2str(b.l);
+      os << "}^(" << b.u << ",";
+    }
+    else
+      os << *b.S << "}^(" << b.l << ",";
+    os << b.u << ")";
+    return os;
+  }
 
 }}
 

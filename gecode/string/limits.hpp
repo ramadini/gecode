@@ -9,7 +9,7 @@ namespace Gecode { namespace String {
     forceinline void
     Limits::check_length(int n, int m, const char* l) {
       if (n > m)
-        throw VariableEmptyDomain("CharSet::CharSet");
+        throw VariableEmptyDomain(l);
       if (n < 0 || m >= MAX_ALPHABET_SIZE)
         throw OutOfLimits(l);
     }
@@ -23,7 +23,7 @@ namespace Gecode { namespace String {
     forceinline void
     Limits::check_alphabet(int a, int b, const char* l) {
       if (a > b)
-        throw VariableEmptyDomain("CharSet::CharSet");
+        throw VariableEmptyDomain(l);
       if (a < 0 || b >= MAX_ALPHABET_SIZE)
         throw OutOfLimits(l);
     }
