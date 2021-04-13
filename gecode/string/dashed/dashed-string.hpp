@@ -1,3 +1,4 @@
+#include <memory>
 #include <gecode/set.hh>
 
 /*** Declarations ***/
@@ -11,7 +12,22 @@ namespace Gecode { namespace String {
    * \ingroup TaskModelStringBranch
    */
   class GECODE_STRING_EXPORT CharSet : public Gecode::Set::LUBndSet {
-  public:    
+  public:
+    /// \name Constructors and initialization
+    //@{
+    /// Creates the CharSet [0, String::Limits::MAX_ALPHABET_SIZE)
+    CharSet(Space& home);
+    /// Creates the CharSet {a}. Throws OutOfLimits if \f$ a < 0 \vee a \geq MAX\_ALPHABET\_SIZE \f$
+    CharSet(Space& home, int a);
+    /// Creates the CharSet [a, b]. The following exceptions might be thrown:
+    /// - VariableEmptyDomain, if a > b.
+    /// - OutOfLimits, if \f$ a < 0 \vee b \geq MAX\_ALPHABET\_SIZE \f$
+    CharSet(Space& home, int a, int b);
+    /// Creates the CharSet corresponding to set S. The following exceptions might be thrown:
+    /// - VariableEmptyDomain, if S is empty.
+    /// - OutOfLimits, if \f$ S \not\subseteq [0, String::Limits::MAX_ALPHABET_SIZE) \f$
+    CharSet(Space& home, const IntSet& S);
+  
     /// Prints set according to Limits::CHAR_ENCODING
     friend std::ostream& operator<<(std::ostream& os, const CharSet& set);
     
@@ -32,7 +48,7 @@ namespace Gecode { namespace String {
     // Cardinality bounds.
     int l, u;
     // Pointer to the base.
-    CharSet* S;
+    std::unique_ptr<CharSet> S;
     // FIXME: To save space, fixed blocks of the form {a}^(n,n) are encoded with
     // S = NULL; l = a ; u = n.
     
@@ -239,6 +255,18 @@ namespace Gecode { namespace String {
     GECODE_NEVER;
   }
 
+}}
+
+
+namespace Gecode { namespace String {
+
+  forceinline
+  CharSet::CharSet(Space& home, int a, int b) {
+//    if (a > b)
+//      throw ...
+    Set::LUBndSet(home, a, b);
+  }
+
   forceinline std::ostream&
   operator<<(std::ostream& os, const CharSet& set) {
     Gecode::Set::BndSetRanges i(set);
@@ -259,6 +287,93 @@ namespace Gecode { namespace String {
 
 
 namespace Gecode { namespace String {
+
+  using namespace Limits;
+
+  forceinline Block::Block() 
+  : l(0), u(0), S() {};
+  
+  forceinline Block::Block(Space& home) 
+  : l(0), u(MAX_STRING_LENGTH), S(new CharSet(home, 0, MAX_ALPHABET_SIZE-1)) {};
+//  
+//  forceinline Block::Block(Space& home, const CharSet& s)
+//  : l(0), u(MAX_STRING_LENGTH), S(new CharSet(s)) {};
+  
+//    /// Creates fixed block \f$ {a}^{1,1} \$
+//    /// Throws OutOfLimits exception if \f$a < 0 \vee a \geq MAX\_ALPHABET\_LENGTH\f$
+//    Block(Space& home, int a);
+//    /// Creates fixed block \f$ {a}^{n,n} \$
+//    /// Throws OutOfLimits exception if 
+//    /// \f$a < 0 \vee a \geq MAX\_ALPHABET\_LENGTH \vee n < 0 \vee n > MAX\_STRING\_LENGTH \f$
+//    Block(Space& home, int a, int n);    
+//    /// Creates block \f$ S^{l,u} \$
+//    /// The following exceptions might be thrown:
+//    /// - VariableEmptyDomain, if l > u.
+//    /// - OutOfLimits, if \f$ S \not\subseteq [0, MAX\_ALPHABET\_SIZE) \vee  l < 0 \vee u > MAX\_STRING\_LENGTH\f$
+//    Block(Space& home, const CharSet& S, int l, int u);
+//    //@}
+//    
+//    /// \name Block access
+//    //@{
+//    /// Returns the lower bound of the block
+//    int lb(void) const;
+//    /// Returns the upper bound of the block
+//    int ub(void) const;
+//    /// Returns the base of the block
+//    const CharSet& base(void) const;
+//    /// Returns the natural logarithm of the dimension of the block.
+//    double logdim(void) const;
+//    //@}
+//    
+//    /// \name Block tests
+//    //@{
+//    /// Test whether the block is null
+//    bool isNull(void) const;
+//    /// Test whether the block is fixed
+//    bool isFixed(void) const;
+//    /// Test whether the base of this block is disjoint with the base of \a b
+//    bool disj(const Block& b) const;
+//    /// Test whether the base of this block is disjoint with \a s
+//    bool disj(const CharSet& s) const;
+//    /// Test whether this block contains block \a b, i.e. base() contains b.base() 
+//    /// and lb() is less or equal than b.lb() and ub() is greater or equal than b.ub()
+//    bool contains(const Block& b) const;
+//    //@}
+//    
+//    /// \name Update operations
+//    //@{
+//    /// Updates the current lower bound with l. If lb (resp. ub) is the current 
+//    /// lower (resp. upper) bound, the following exceptions might be thrown:
+//    /// - IllegalOperation, if l < lb
+//    /// - VariableEmptyDomain, if l > ub.
+//    void lb(int l);
+//    /// Updates the current upper bound with u. If lb (resp. ub) is the current 
+//    /// lower (resp. upper) bound, the following exceptions might be thrown:
+//    /// - IllegalOperation, if u > ub
+//    /// - VariableEmptyDomain, if u < lb.
+//    void ub(int u);
+//    /// Exclude all elements not in the set represented by \a i from the base
+//    /// A VariableEmptyDomain exception is raised if the base becomes empty but 
+//    /// the lower bound is greater than zero.
+//    template<class I> bool inters(Space& home, I& i);
+//    /// Exclude all elements in the set represented by \a i from the base
+//    /// A VariableEmptyDomain exception is raised if the base becomes empty but 
+//    /// the lower bound is greater than zero.
+//    template<class I> bool exclude(Space& home, I& i);
+//    //@}
+//    
+//    /// \name Cloning
+//    //@{
+//    /// Update this block to be the null block
+//    void nullify();
+//    /// Update this block to be a clone of \a b
+//    void update(Space& home, const Block& b);
+//    //@}
+//    
+//    /// Check whether the block is normalized and internal invariants hold
+//    bool isOK(void) const;
+//    /// Prints the block \a b
+//    friend std::ostream& operator<<(std::ostream& os, const Block& b);
 
 }}
 
