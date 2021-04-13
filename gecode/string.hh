@@ -401,7 +401,7 @@ namespace Gecode {
    * \ingroup TaskModelStringBranch
    */
   typedef std::function<bool(const Space& home, StringVar x, int i)>
-    stringBranchFilter;
+    StringBranchFilter;
   /**
    * \brief Branch merit function type for string variables
    *
@@ -413,7 +413,7 @@ namespace Gecode {
    * \ingroup TaskModelStringBranch
    */
   typedef std::function<double(const Space& home, StringVar x, int i)>
-    stringBranchMerit;
+    StringBranchMerit;
 
   /**
    * \brief Branch value function type for string variables
@@ -426,7 +426,7 @@ namespace Gecode {
    * \ingroup TaskModelStringBranch
    */
   typedef std::function<int(const Space& home, StringVar x, int i)>
-    stringBranchVal;
+    StringBranchVal;
 
   /**
    * \brief Branch commit function type for string variables
@@ -441,10 +441,10 @@ namespace Gecode {
    */
   typedef std::function<void(Space& home, unsigned int a,
                              StringVar x, int i, int n)>
-    stringBranchCommit;
+    StringBranchCommit;
 
 }
-
+#include <gecode/string/branch/traits.hpp>
 
 ////namespace Gecode {
 
@@ -500,21 +500,21 @@ namespace Gecode {
 
 }
 
-//namespace Gecode {
+namespace Gecode {
 
-//  /**
-//   * \brief Which variable to select for branching
-//   *
-//   * \ingroup TaskModelStringBranch
-//   */
-//  class StringVarBranch : public VarBranch<StringVar> {
-//  public:
-//    /// Which variable selection
-//    enum Select {
-//      STR_NONE = 0,        ///< First unassigned
-//      STR_RND,             ///< Random (uniform, for tie breaking)
-//      // TODO: Add search heuristics
-//    };
+  /**
+   * \brief Which variable to select for branching
+   *
+   * \ingroup TaskModelStringBranch
+   */
+  class StringVarBranch : public VarBranch<StringVar> {
+  public:
+    /// Which variable selection
+    enum Select {
+      STR_NONE = 0,        ///< First unassigned
+      STR_RND,             ///< Random (uniform, for tie breaking)
+      // TODO: Add search heuristics
+    };
 //  protected:
 //    /// Which variable to select
 //    Select s;
@@ -540,10 +540,9 @@ namespace Gecode {
 ////  /// Select random variable (uniform distribution, for tie breaking)
 ////  StringVarBranch string_VAR_RND(Rnd r);
 //  //@}
-
-//}
-
-//#include <gecode/string/branch/var.hpp>
+  };
+}
+#include <gecode/string/branch/var.hpp>
 
 //namespace Gecode {
 
@@ -611,7 +610,7 @@ namespace Gecode {
 ////  GECODE_STRING_EXPORT void
 ////  branch(Home home, const StringVarArgs& x,
 ////         StringVarBranch vars, stringValBranch vals,
-////         stringBranchFilter bf=nullptr,
+////         StringBranchFilter bf=nullptr,
 ////         StringVarValPrint vvp=nullptr);
 ////  /**
 ////   * \brief Branch over \a x with tie-breaking variable selection \a vars and value selection \a vals
@@ -621,7 +620,7 @@ namespace Gecode {
 ////  GECODE_STRING_EXPORT void
 ////  branch(Home home, const StringVarArgs& x,
 ////         TieBreak<StringVarBranch> vars, stringValBranch vals,
-////         stringBranchFilter bf=nullptr,
+////         StringBranchFilter bf=nullptr,
 ////         StringVarValPrint vvp=nullptr);
 ////}
 ////namespace Gecode {
@@ -633,7 +632,7 @@ namespace Gecode {
 ////  void
 ////  branch(Home home, const StringVarArgs& x,
 ////         stringValBranch vals,
-////         stringBranchFilter bf=nullptr,
+////         StringBranchFilter bf=nullptr,
 ////         StringVarValPrint vvp=nullptr);
 ////  /**
 ////   * \brief Assign all \a x with value selection \a vals
@@ -643,7 +642,7 @@ namespace Gecode {
 ////  void
 ////  assign(Home home, const StringVarArgs& x,
 ////         stringAssign vals,
-////         stringBranchFilter bf=nullptr,
+////         StringBranchFilter bf=nullptr,
 ////         StringVarValPrint vvp=nullptr);
 ////}
 //#include <gecode/string/branch.hpp>
