@@ -400,6 +400,23 @@ namespace Gecode { namespace String {
     return l <= b.l && u >= b.u && S->contains(*b.S);
   }
   
+  forceinline void
+  Block::lb(int x) {
+    if (x < l)
+      throw IllegalOperation("Block::lb");
+    if (x > u)
+      throw VariableEmptyDomain("Block::lb");
+    l = x;
+  }
+  
+  forceinline void
+  Block::ub(int x) {
+    if (x > u)
+      throw IllegalOperation("Block::ub");
+    if (x < l)
+      throw VariableEmptyDomain("Block::ub");
+    u = x;
+  }
   
   
 // TODO:
