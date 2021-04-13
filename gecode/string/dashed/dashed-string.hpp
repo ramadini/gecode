@@ -26,10 +26,16 @@ namespace Gecode { namespace String {
     /// - VariableEmptyDomain, if S is empty.
     /// - OutOfLimits, if \f$ S \not\subseteq [0, String::Limits::MAX_ALPHABET_SIZE) \f$
     CharSet(Space& home, const IntSet& S);
-  
+    //@}
+    
+    /// \name CharSet tests
+    //@{
     /// Test whether the set is disjoint with \a S
     bool disj(const CharSet& S) const;
-  
+    /// Test whether the set contains \a S
+    bool contains(const CharSet& S) const;
+    //@}
+    
     /// Prints set according to Limits::CHAR_ENCODING
     friend std::ostream& operator<<(std::ostream& os, const CharSet& set);
     
@@ -98,7 +104,7 @@ namespace Gecode { namespace String {
     /// Test whether the base of this block is disjoint with the base of \a b
     bool disj(const Block& b) const;
     /// Test whether this block contains block \a b, i.e. base() contains b.base() 
-    /// and lb() is less or equal than b.lb() and ub() is greater or equal than b.ub()
+    /// and lb() <= b.lb() and ub() >= b.ub()
     bool contains(const Block& b) const;
     //@}
     
@@ -289,8 +295,7 @@ namespace Gecode { namespace String {
   CharSet::disj(const CharSet& x) const {
     if (empty() || x.empty() ||  max() < x.min() || min() > x.max())
       return true;
-    Gecode::Set::BndSetRanges i1(*this);
-    Gecode::Set::BndSetRanges i2(x);
+    Gecode::Set::BndSetRanges i1(*this), i2(x);
     while (i1() && i2()) {
       if ((i1.min() <= i2.min() && i2.min() <= i1.max())
       ||  (i1.min() <= i2.max() && i2.max() <= i1.max())
@@ -303,6 +308,21 @@ namespace Gecode { namespace String {
         ++i1;
     }
     return true;
+  }
+  
+  forceinline bool
+  CharSet::contains(const CharSet& x) const {
+    if (x.empty())
+      return true;
+    if (_size < x._size)
+      return false;
+    Gecode::Set::BndSetRanges i1(*this), i2(x);
+    while (i1() && i2())
+      if (i1.min() > i2.min() || i1.max() < i2.max())
+        ++i1;
+      else
+        ++i2;
+    return !i2();
   }
 
   forceinline std::ostream&
@@ -375,15 +395,14 @@ namespace Gecode { namespace String {
     return S->disj(b.base());
   }
   
+  forceinline bool
+  Block::contains(const Block& b) const {
+    return l <= b.l && u >= b.u && S->contains(*b.S);
+  }
+  
   
   
 // TODO:
-
-//    /// Test whether this block contains block \a b, i.e. base() contains b.base() 
-//    /// and lb() is less or equal than b.lb() and ub() is greater or equal than b.ub()
-//    bool contains(const Block& b) const;
-//    //@}
-//    
 //    /// \name Update operations
 //    //@{
 //    /// Updates the current lower bound with l. If lb (resp. ub) is the current 
