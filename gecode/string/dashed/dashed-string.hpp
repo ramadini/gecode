@@ -174,7 +174,8 @@ namespace Gecode { namespace String {
   private:
     // Sum of the lower bounds of each block of the dashed string
     int lb;
-    // Sum of the upper bounds of each block of the dashed string
+    // Minimum between MAX_STRING_LENGTH and the sum of the upper bounds of 
+    // each block of the dashed string
     int ub;
   
   public:
@@ -610,15 +611,21 @@ namespace Gecode { namespace String {
   : DynamicArray(home, blocks.size()) {
     for (int i = 0; i < size(); ++i) {
       x[i].update(home, blocks[i]);
-      lb += x[i].lb();
-      if (lb > MAX_STRING_LENGTH) {
+      // NOTE: The sum of the blocks' bounds might overflow.
+      if (lb > MAX_STRING_LENGTH || lb + x[i].lb() < lb) {
         // FIXME: Not sure if we need CharSet disposal.
         for (int j = 0; j <= i; ++j)
           x[j].S->dispose(home);
         a.free(x, n);
         throw VariableEmptyDomain("DashedString::DashedString");
       }
-      ub += x[i].ub();
+      lb += x[i].lb();
+      if (ub < MAX_STRING_LENGTH) {
+        if (ub + x[i].ub() >= ub)
+          ub += x[i].ub();
+        else
+          ub = MAX_STRING_LENGTH;
+      }
     }
     normalize();
   }
@@ -673,7 +680,10 @@ namespace Gecode { namespace String {
 
   forceinline void
   DashedString::normalize() {
-  
+    for (int i = 0; i < size(); ++i) {
+      assert(x[i].isOK());
+      
+    }
   }
 
 }}
