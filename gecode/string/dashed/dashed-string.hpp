@@ -36,6 +36,8 @@ namespace Gecode { namespace String {
     
     /// \name CharSet tests
     //@{
+    /// Test whether the set is [0, MAX_ALPHABET_SIZE)
+    bool isUniverse(void) const;
     /// Test whether the set is disjoint with \a S
     bool disjoint(const CharSet& S) const;
     /// Test whether the set contains \a S
@@ -103,6 +105,9 @@ namespace Gecode { namespace String {
     int ub(void) const;
     /// Returns the natural logarithm of the dimension of the block.
     double logdim(void) const;
+    /// Returns the concrete string denoted by the block, if the block is fixed.
+    /// Otherwise, an IllegalOperation exception is thrown.
+    template<size_t N> std::array<Block,N> val(void) const;
     //@}
     
     /// \name Block tests
@@ -111,6 +116,8 @@ namespace Gecode { namespace String {
     bool isNull(void) const;
     /// Test whether the block is fixed
     bool isFixed(void) const;
+    /// Test whether the block is {0, \dots, {MAX\_ALPHABET\_SIZE}-1}^{(0,{MAX\_STRING\_LENGTH})
+    bool isUniverse(void) const;
     /// Test whether the base of this block is disjoint with the base of \a b
     bool baseDisjoint(const Block& b) const;
     /// Test whether the base of this block is equal to the base of \a b
@@ -209,6 +216,9 @@ namespace Gecode { namespace String {
     int size(void) const;
     /// Returns the natural logarithm of the dimension of this dashed string
     double logdim(void) const;
+    /// Returns the concrete string denoted by the dashed string, if it is fixed.
+    /// Otherwise, an IllegalOperation exception is thrown.
+    template<size_t N> std::array<Block,N> val(void) const;
     //@}
   
     /// \name Dashed string tests
@@ -217,10 +227,12 @@ namespace Gecode { namespace String {
     bool isNull(void) const;
     /// Test whether the dashed string is fixed
     bool isFixed(void) const;
+    /// Test whether the dashed string is a single block {0, \dots, {MAX\_ALPHABET\_SIZE}-1}^{(0,{MAX\_STRING\_LENGTH})
+    bool isUniverse(void) const;
     /// Test whether the i-th block of this dashed string contains the i-th block of \d x 
     /// for \f$ i=1,\dots, size()\$ and the j-th block of this dashed string is null
     /// for \f$ j=b.size()+1,\dots, size()\$
-    bool contains(void) const;
+    bool contains(const DashedString& x) const;
     //@}
     
     /// \name Cloning
@@ -341,6 +353,11 @@ namespace Gecode { namespace String {
   }
   
   forceinline bool
+  CharSet::isUniverse() const {
+    return fst() == lst() && min() == 0 && max() == MAX_ALPHABET_SIZE-1;
+  }
+  
+  forceinline bool
   CharSet::contains(const CharSet& x) const {
     if (x.empty() || fst() == x.fst())
       return true;
@@ -444,6 +461,10 @@ namespace Gecode { namespace String {
   
   forceinline bool Block::isNull()  const { return u == 0; }
   forceinline bool Block::isFixed() const { return S == NULL; }
+  
+  forceinline bool Block::isUniverse() const {
+    return l == 0 && u == MAX_STRING_LENGTH && S->isUniverse();
+  }
   
   forceinline double
   Block::logdim() const {
@@ -677,18 +698,41 @@ namespace Gecode { namespace String {
     return d;
   }
   
-//    /// Returns the number of blocks of the dashed string
-//    int size(void) const;
-//    /// Returns the natural logarithm of the dimension of this dashed string
-//    double logdim(void) const;
-//    //@}
-//  
-//    /// \name Dashed string tests
-//    //@{
-//    /// Test whether the dashed string is null
-//    bool isNull(void) const;
-//    /// Test whether the dashed string is fixed
-//    bool isFixed(void) const;
+  forceinline bool
+  DashedString::isNull() const {
+    return n == 1 && x[0].isNull();
+  }
+  
+  forceinline bool
+  DashedString::isUniverse() const {
+    return n == 1 && x[0].isUniverse();
+  }
+  
+  forceinline bool
+  DashedString::isFixed() const {
+    if (lb != ub)
+      return false;
+    for (int i = 0; i < n; ++i)
+      if (!x[i].isFixed())
+        return false;
+    return true;
+  }
+  
+  forceinline bool
+  DashedString::contains(const DashedString& d) const {
+    if (lb > d.lb || ub < d.ub || n < d.n)
+      return false;
+    if (isUniverse() || (d.isNull() && lb == 0))
+      return true;
+    for (int i = 0; i < d.n; ++i)
+      if (!x[i].contains(d.x[i]))
+        return false;
+    for (int i = d.n; i < n; ++i)
+      if (x[i].lb() > 0)
+        return false;
+    return true;
+  }
+  
 //    /// Test whether the i-th block of this dashed string contains the i-th block of \d x 
 //    /// for \f$ i=1,\dots, size()\$ and the j-th block of this dashed string is null
 //    /// for \f$ j=b.size()+1,\dots, size()\$
