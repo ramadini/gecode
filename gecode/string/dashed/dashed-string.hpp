@@ -40,6 +40,8 @@ namespace Gecode { namespace String {
     bool disjoint(const CharSet& S) const;
     /// Test whether the set contains \a S
     bool contains(const CharSet& S) const;
+    /// Test whether the set is equal to \a S
+    bool equals(const CharSet& S) const;
     //@}
     
     /// Prints set according to Limits::CHAR_ENCODING
@@ -111,6 +113,8 @@ namespace Gecode { namespace String {
     bool isFixed(void) const;
     /// Test whether the base of this block is disjoint with the base of \a b
     bool baseDisjoint(const Block& b) const;
+    /// Test whether the base of this block is equal to the base of \a b
+    bool baseEquals(const Block& b) const;
     /// Test whether this block contains block \a b, i.e. base() contains b.base() 
     /// and lb() <= b.lb() and ub() >= b.ub()
     bool contains(const Block& b) const;
@@ -228,7 +232,7 @@ namespace Gecode { namespace String {
     //@}
     
     /// Normalize the dashed string
-    void normalize(void);
+    void normalize(Space& home);
     /// Check whether the dashed string is normalized and internal invariants hold
     bool isOK(void) const;
     /// Prints the dashed string \a x
@@ -319,6 +323,8 @@ namespace Gecode { namespace String {
   CharSet::disjoint(const CharSet& x) const {
     if (empty() || x.empty() ||  max() < x.min() || min() > x.max())
       return true;
+    if (min() == x.min() || max() == x.max())
+      return false;
     Gecode::Set::BndSetRanges i1(*this), i2(x);
     while (i1() && i2()) {
       if ((i1.min() <= i2.min() && i2.min() <= i1.max())
@@ -336,7 +342,7 @@ namespace Gecode { namespace String {
   
   forceinline bool
   CharSet::contains(const CharSet& x) const {
-    if (x.empty())
+    if (x.empty() || fst() == x.fst())
       return true;
     if (_size < x._size)
       return false;
@@ -347,6 +353,25 @@ namespace Gecode { namespace String {
       else
         ++i2;
     return !i2();
+  }
+  
+  forceinline bool
+  CharSet::equals(const CharSet& x) const {
+    if (_size != x._size)
+      return false;
+    if (_size == 0 || fst() == x.fst())
+      return true;
+    if (min() != x.min() || max() != x.max())
+      return false;
+    Gecode::Set::BndSetRanges i1(*this);
+    Gecode::Set::BndSetRanges i2(x);    
+    while (i1() && i2()) {
+      if (i1.min() != i2.min() || i1.max() != i2.max())
+        return false;
+      ++i1;
+      ++i2;
+    }
+    return !i1() && !i2();
   }
 
   forceinline std::ostream&
@@ -436,6 +461,15 @@ namespace Gecode { namespace String {
       return b.isFixed() ? l != b.l : !b.S->in(l);
     if (b.isFixed())
       return !S->in(b.l);
+    return S->disjoint(*b.S);
+  }
+  
+  forceinline bool
+  Block::baseEquals(const Block& b) const {
+    if (isFixed())
+      return b.isFixed() ? l == b.l : b.S->size() == 1 && b.S->min() == l;
+    if (b.isFixed())
+      return S->size() == 1 && S->min() == b.l;
     return S->disjoint(*b.S);
   }
   
@@ -621,13 +655,11 @@ namespace Gecode { namespace String {
       }
       lb += x[i].lb();
       if (ub < MAX_STRING_LENGTH) {
-        if (ub + x[i].ub() >= ub)
-          ub += x[i].ub();
-        else
-          ub = MAX_STRING_LENGTH;
+        int u = ub + x[i].ub();
+        ub = u < ub ? MAX_STRING_LENGTH : u;
       }
     }
-    normalize();
+    normalize(home);
   }
 
   forceinline int DashedString::min_length() const { return lb; }
@@ -679,11 +711,41 @@ namespace Gecode { namespace String {
 //    friend std::ostream& operator<<(std::ostream& os, const DashedString& x);
 
   forceinline void
-  DashedString::normalize() {
-    for (int i = 0; i < size(); ++i) {
+  DashedString::normalize(Space& home) {
+    int newSize = size();
+    // First pass: determine the new size, and settle adjacent blocks with same base
+    for (int i = 0; i < size(); ) {
       assert(x[i].isOK());
-      
+      if (x[i].isNull()) {
+        --newSize;
+        ++i;
+        continue;
+      }
+      int j = i + 1;  
+      while (j < size() && (x[j].isNull() || x[i].baseEquals(x[j]))) {
+        if (!x[j].isNull()) {
+          x[i].lb(home, x[i].lb() + x[j].lb());
+          int u = x[i].ub() + x[j].ub();
+          if (u < MAX_STRING_LENGTH && u < x[i].ub())
+            x[i].ub(home, u);
+          else
+            x[i].ub(home, MAX_STRING_LENGTH);
+          x[j].nullify(home);
+        }
+        --newSize;
+        ++j;
+      }
+      i = j;
     }
+    
+    
+    assert(isOK());
+  }
+  
+  forceinline bool
+  DashedString::isOK() const {
+    //TODO:
+    return true;
   }
 
 }}
