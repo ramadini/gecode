@@ -643,7 +643,7 @@ namespace Gecode { namespace String {
   forceinline
   DashedString::DashedString(Space& home, std::array<Block,N> const& blocks)
   : DynamicArray(home, blocks.size()) {
-    for (int i = 0; i < size(); ++i) {
+    for (int i = 0; i < n; ++i) {
       x[i].update(home, blocks[i]);
       // NOTE: The sum of the blocks' bounds might overflow.
       if (lb > MAX_STRING_LENGTH || lb + x[i].lb() < lb) {
@@ -664,12 +664,12 @@ namespace Gecode { namespace String {
 
   forceinline int DashedString::min_length() const { return lb; }
   forceinline int DashedString::max_length() const { return ub; }
-  forceinline int DashedString::size() const { return DynamicArray::n; }
+  forceinline int DashedString::size() const { return n; }
   
   forceinline double
   DashedString::logdim() const {
     double d = 0.0;
-    for (int i = 0; i < size(); ++i) {
+    for (int i = 0; i < n; ++i) {
       d += x[i].logdim();
       if (std::isinf(d))
         return d;
@@ -712,9 +712,9 @@ namespace Gecode { namespace String {
 
   forceinline void
   DashedString::normalize(Space& home) {
-    int newSize = size();
-    // First pass: determine the new size, and settle adjacent blocks with same base
-    for (int i = 0; i < size(); ) {
+    int newSize = n;
+    // 1st pass: determine new size, settle adjacent blocks with same base
+    for (int i = 0; i < n; ) {
       assert(x[i].isOK());
       if (x[i].isNull()) {
         --newSize;
@@ -722,7 +722,7 @@ namespace Gecode { namespace String {
         continue;
       }
       int j = i + 1;  
-      while (j < size() && (x[j].isNull() || x[i].baseEquals(x[j]))) {
+      while (j < n && (x[j].isNull() || x[i].baseEquals(x[j]))) {
         if (!x[j].isNull()) {
           x[i].lb(home, x[i].lb() + x[j].lb());
           int u = x[i].ub() + x[j].ub();
@@ -737,8 +737,39 @@ namespace Gecode { namespace String {
       }
       i = j;
     }
-    
-    
+    // 2nd pass: possibly downsize the dynamic array due to nullification.    
+    if (newSize < n) {
+      if (newSize == 0) {
+        a.free(x, n);
+        n = 1;     
+        x = home.alloc<Block>(1);
+        lb = ub = 0;
+        return;
+      }
+      for (int i = 0; i < n; ++i) {
+        if (x[i].isNull()) {
+          int j = i + 1;
+          while (j < n && x[j].isNull())
+            j++;          
+          if (j == n)
+            break;
+          // Here x[i] = x[i+1] = ... = x[j-1] = {}^(0,0) != x[j].
+          if (i > 0 && x[i-1].baseEquals(x[j])) {
+            // Merging x[i-1] with x[j].
+            x[i-1].lb(home, x[i-1].lb() + x[j].lb());
+            x[i-1].ub(home, x[i-1].ub() + x[j].ub());
+            --newSize;
+          }
+          else
+            x[i].update(home, x[j]);
+          x[j].nullify(home);
+          // Here x[i] != {}^(0,0) = x[i+1] = ... x[j-1] = x[j].
+        }
+      }
+      // Shrinking the array.
+      a.free(x + newSize, n - newSize);
+      n = newSize;
+    }    
     assert(isOK());
   }
   
