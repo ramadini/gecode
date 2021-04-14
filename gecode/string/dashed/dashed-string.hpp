@@ -61,7 +61,7 @@ namespace Gecode { namespace String {
   private:
     // Cardinality bounds.
     int l, u;
-    // Smart pointer to the base.
+    // Smart pointer to the base. FIXME: Do we need to dispose the CharSet?
     std::unique_ptr<CharSet> S;
    
     // FIXME: To save space, each fixed blocks {a}^(n,n) must be encoded with
@@ -586,19 +586,42 @@ namespace Gecode { namespace String {
 
 namespace Gecode { namespace String {
 
-//TODO:
-//DashedString(Space& home);
-//    /// Creates a dashed string consisting of one \a block \$
-//    DashedString(Space& home, const Block& block);
-//    /// Creates a normalized dashed string from \a blocks. 
-//    /// The following exceptions might be thrown:
-//    /// - IllegalOperation, if blocks is empty
-//    /// - VariableEmptyDomain, if the sum of lower bounds of blocks is bigger 
-//    ///                        than MAX_STRING_LENGTH
-//    template<size_t N>
-//    DashedString(Space& home, std::array<Block,N> const& blocks);
-//    
-//    
+  using namespace Limits;
+  
+  forceinline
+  DashedString::DashedString(Space& home) 
+  : DynamicArray(home, 1) {
+    x[0].update(home, Block(home));
+    lb = 0;
+    ub = MAX_STRING_LENGTH;
+  }
+  
+  forceinline
+  DashedString::DashedString(Space& home, const Block& block) 
+  : DynamicArray(home, 1) {
+    x[0].update(home, block);
+    lb = block.lb();
+    ub = block.ub();
+  }
+  
+  template<size_t N>
+  forceinline
+  DashedString::DashedString(Space& home, std::array<Block,N> const& blocks)
+  : DynamicArray(home, blocks.size()) {
+    for (int i = 0; i < _size; ++i) {
+      x[i].update(home, blocks[i]);
+      lb += x[i].lb();
+      if (lb > MAX_STRING_LENGTH) {
+        // FIXME: Not sure if we need CharSet disposal.
+        for (int j = 0; j <= i; ++j)
+          x[j].S.dispose(h);
+        a.free(x, n);
+        throw VariableEmptyDomain("DashedString::DashedString");
+      }
+      ub += x[i].ub();
+    }
+  }
+
 //    /// \name Dashed string access
 //    //@{
 //    /// Returns the minimum length for a concrete string denoted by the dashed string
