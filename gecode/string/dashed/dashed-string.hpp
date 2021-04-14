@@ -775,8 +775,28 @@ namespace Gecode { namespace String {
   
   forceinline bool
   DashedString::isOK() const {
-    //TODO:
-    return true;
+    if (n <= 0 || lb < 0 || ub > MAX_STRING_LENGTH || lb > ub)
+      return false;
+    if (x[0].isNull())
+      return lb == 0 && ub == 0 && n == 1;
+    int l = 0, u = 0, i = 0;
+    for (; i < n-1; i++) {
+      if (!x[i].isOK() || x[i].isNull() || x[i].baseEquals(x[i+1]))
+        return false;
+      l += x[i].lb();
+      if (u < MAX_STRING_LENGTH) {
+        int uu = u + x[i].ub();
+        u = uu < u ? MAX_STRING_LENGTH : uu;
+      }
+    }
+    l += x[i].lb();
+    if (l != lb || x[i].isNull() || !x[i].isOK())
+      return false;    
+    if (u < MAX_STRING_LENGTH) {
+      int uu = u + x[i].ub();
+      u = uu < u ? MAX_STRING_LENGTH : uu;
+    }
+    return u == ub;
   }
 
 }}
