@@ -295,6 +295,7 @@ namespace Gecode { namespace String {
   int2str(int x) {
     switch (CHAR_ENCODING) {
       case UNSPEC:
+        return int2str_unspec(x);
       // TODO:
       case ASCII:
       case EASCII:
@@ -717,6 +718,7 @@ namespace Gecode { namespace String {
   forceinline
   DashedString::DashedString(Space& home, std::array<Block,N> const& blocks)
   : DynamicArray(home, blocks.size()) {
+    bool norm = false;
     for (int i = 0; i < n; ++i) {
       x[i].update(home, blocks[i]);
       // NOTE: The sum of the blocks' bounds might overflow.
@@ -724,15 +726,19 @@ namespace Gecode { namespace String {
         for (int j = 0; j <= i; ++j)
           x[j].nullify(home);
         a.free(x, n);
-        throw VariableEmptyDomain("DashedString::DashedString");
+        throw OutOfLimits("DashedString::DashedString");
       }
       lb += x[i].lb();
       if (ub < MAX_STRING_LENGTH) {
         int u = ub + x[i].ub();
         ub = u < ub ? MAX_STRING_LENGTH : u;
       }
+      norm |= i > 0 && (x[i].isNull() || x[i].baseEquals(x[i-1]));
     }
-    normalize(home);
+    if (norm)
+      normalize(home);
+    else
+      assert(isOK());
   }
 
   forceinline int DashedString::min_length() const { return lb; }
@@ -810,6 +816,7 @@ namespace Gecode { namespace String {
       n = 1;
     }
     lb = ub = 0;
+    assert(isOK());
   }
   
   forceinline void 
