@@ -108,7 +108,7 @@ namespace Gecode { namespace String {
     double logdim(void) const;
     /// Returns the concrete string denoted by the block, if the block is fixed.
     /// Otherwise, an IllegalOperation exception is thrown.
-    template<size_t N> std::array<int,N> val(void) const;
+    std::vector<int> val(void) const;
     //@}
     
     /// \name Block tests
@@ -228,7 +228,7 @@ namespace Gecode { namespace String {
     double logdim(void) const;
     /// Returns the concrete string denoted by the dashed string, if it is fixed.
     /// Otherwise, an IllegalOperation exception is thrown.
-    template<size_t N> std::array<int,N> val(void) const;
+    std::vector<int> val(void) const;
     //@}
   
     /// \name Dashed string tests
@@ -515,12 +515,11 @@ namespace Gecode { namespace String {
     return b.isFixed() ? S->in(b.l) : S->contains(*b.S);
   }
   
-  template<size_t N>
-  forceinline std::array<int, N>
+  forceinline std::vector<int>
   Block::val() const {
     if (!isFixed())
       throw IllegalOperation("DashedString::val");
-    int v[l];
+    std::vector<int> v(l);
     for (int i = 0, a = S->min(); i < l; ++i)
       v[i] = a;
     return v;
@@ -710,7 +709,7 @@ namespace Gecode { namespace String {
       // NOTE: The sum of the blocks' bounds might overflow.
       if (lb > MAX_STRING_LENGTH || lb + x[i].lb() < lb) {
         for (int j = 0; j <= i; ++j)
-          x[j].S->dispose(home);
+          x[j].nullify(home);
         a.free(x, n);
         throw VariableEmptyDomain("DashedString::DashedString");
       }
@@ -773,15 +772,15 @@ namespace Gecode { namespace String {
     return true;
   }
   
-  template<size_t N>
-  forceinline std::array<int, N>
+  forceinline std::vector<int>
   DashedString::val() const {
     if (!isFixed())
       throw IllegalOperation("DashedString::val");
-    int v[lb];
+    std::vector<int> v(lb);
     for (int i = 0; i < n; ++i) {
-      int l = x[i].lb(), val_i[l];
-      for (int j = 0; j < l; j++)
+      int l = x[i].lb();
+      std::vector<int> val_i = x[i].val();
+      for (int j = 0; j < val_i.size(); j++)
         v[i*n + j] = val_i[j];
     }
     return v;
@@ -802,42 +801,27 @@ namespace Gecode { namespace String {
   
   forceinline void 
   DashedString::update(Space& home, const DashedString& d) {
-  
+    if (d.n <= n) {
+      for (int i = 0; i < d.n; ++i)
+        x[i].update(home, d[i]);
+      if (d.n < n) {
+        for (int i = d.n; i < n; ++i)
+          x[i].nullify(home);
+        a.free(x + d.n, n - d.n);
+      }
+      n = d.n;
+      return;
+    }
+    for (int i = 0; i < n; ++i)
+      x[i].nullify(home);
+    a.free(x, n);
+    x = a.template alloc<Block>(d.n);
+    for (int i = 0; i < d.n; ++i)
+      x[i].update(home, d[i]);
+    n = d.n;
+    assert(isOK());
   }
   
-//  // std::cerr<<"DSArray::update DSBlocks"<<std::endl;
-//    if (*this == d)
-//      return;
-//    int m = d._size;
-//    if (m <= _size) {
-//      for (int i = 0; i < m; ++i)
-//        x[i].update(h, d.at(i));
-//      if (m < _size) {
-//        for (int i = m; i < _size; ++i)
-//          x[i].S.dispose(h);
-//        a.free(x + m, _size - m);
-//      }
-//      n = m;
-//      _size = m;
-//      // std::cerr<<"Updated: "<<*this<<std::endl;
-//      return;
-//    }
-//    for (int i = 0; i < _size; ++i)
-//      x[i].S.dispose(h);
-//    a.free(x, n);
-//    x = a.template alloc<DSBlock>(m);
-//    for (int i = 0; i < m; ++i)
-//      x[i].init(h, d.at(i));
-//    n = m;
-//    _size = m;
-//    // std::cerr<<"Updated: "<<*this<<std::endl;
-  
-// TODO:
-//    /// Update this dashed string to be a clone of \a x
-//    void update(Space& home, const Block& x);
-//    //@}
-//
-
   forceinline void
   DashedString::normalize(Space& home) {
     int newSize = n;
@@ -933,6 +917,24 @@ namespace Gecode { namespace String {
     }
     return u == ub;
   }
+  
+//  forceinline std::ostream&
+//  operator<<(std::ostream& os, const DashedString& d) {
+//    if (d.isFixed()) {
+//      os << "\"";
+//      auto v = d.val<int,d.min_length()>();
+//      for (int i = 0; i < v.size(); ++i)
+//        os << int2str(v[i]);
+//      os << "\"";
+//    }
+//    else {
+//      int n = d.size();
+//      for (int i = 0; i < n - 1; ++i)
+//        os << d[i] << " + ";
+//      os << d[n-1];
+//    }
+//    return os;
+//  }
 
 }}
 
