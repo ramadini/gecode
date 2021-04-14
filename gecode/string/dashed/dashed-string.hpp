@@ -536,7 +536,7 @@ namespace Gecode { namespace String {
   Block::lb(Space& home, int x) {
     if (isFixed()) {
       if (x != u)
-        throw IllegalOperation("Block::lb");
+        throw VariableEmptyDomain("Block::ub");
       return;
     }
     if (x > u)
@@ -554,7 +554,7 @@ namespace Gecode { namespace String {
   Block::ub(Space& home, int x) {
     if (isFixed()) {
       if (x != u)
-        throw IllegalOperation("Block::ub");
+        throw VariableEmptyDomain("Block::ub");
       return;
     }
     if (x > u)
@@ -636,16 +636,28 @@ namespace Gecode { namespace String {
   
   forceinline void
   Block::updateCard(Space& home, int lb, int ub) {
+    if (l == lb || u == ub)
+      return;
     if (lb < 0 || ub > MAX_STRING_LENGTH)
       throw OutOfLimits("Block::updateCard");
     if (lb > ub || (lb > 0 && S->empty()))
       throw VariableEmptyDomain("Block::updateCard");
     if (u == 0)
+      // Block already null and lb == 0: nothing to update.
       return;
-    if (lb == ub)
-      nullifySet(home);
-    else
+    if (lb == ub) {
+      if (l < u && S->size() == 1) {
+        // Block become fixed.
+        l = S->min();
+        nullifySet(home);
+      }
+    }
+    else {
+      if (isFixed())
+        // Block become unfixed.
+        S = std::unique_ptr<CharSet>(home, l);
       l = lb;
+    }
     u = ub;
     assert(isOK());
   }
