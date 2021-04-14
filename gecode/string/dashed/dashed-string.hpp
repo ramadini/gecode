@@ -65,14 +65,15 @@ namespace Gecode { namespace String {
   private:
     // Cardinality bounds.
     int l, u;
-    // Smart pointer to the base. FIXME: Do we need to dispose the CharSet?
+    // Smart pointer to the base.
     std::unique_ptr<CharSet> S;
    
     // FIXME: To save space, each fixed blocks {a}^(n,n) must be encoded with
     // (S=NULL,l=a,u=n). The null block is (S=NULL,l=0,u=0). For each block b
     // the invariant b.isFixed() <=> b.S == NULL must hold.
     // Each non-const operation on a block must leave it in a consistent and
-    // normalized state. 
+    // normalized state.
+    // Once constructed, a Block can only shrink unless updated.
     
   public:
     /// \name Constructors and initialization
@@ -155,6 +156,10 @@ namespace Gecode { namespace String {
     void nullify(Space& home);
     /// Update this block to be a clone of \a b
     void update(Space& home, const Block& b);
+    /// Update the lower/upper bounds of the block. It throws:
+    /// - OutOfLimits, if lb < 0 or ub > MAX_STRING_LENGTH
+    /// - VariableEmptyDomain, if lb > ub or lb > 0 and the base is empty
+    void updateCard(Space& home, int lb, int ub);
     //@}
     
     /// Check whether the block is normalized and internal invariants hold
@@ -167,6 +172,8 @@ namespace Gecode { namespace String {
     const Block& operator=(const Block&);
     /// From fixed block S={a},l=u to consistent encoding with S=NULL and l=a
     void fix(Space& home);
+    /// Dispose S and set it to NULL
+    void nullifySet(Space& home);
     
   };
 
@@ -188,6 +195,9 @@ namespace Gecode { namespace String {
     // Minimum between MAX_STRING_LENGTH and the sum of the upper bounds of 
     // each block of the dashed string
     int ub;
+  
+    // FIXME: Each non-const operation on dashed strings leave it in a 
+    // normalized and consistent state.
   
   public:
     /// \name Constructors and initialization
@@ -240,16 +250,18 @@ namespace Gecode { namespace String {
     /// Update this dashed string to be the null block.
     void nullify(Space& home);
     /// Update this dashed string to be a clone of \a x
-    void update(Space& home, const Block& x);
+    void update(Space& home, const DashedString& x);
     //@}
     
-    /// Normalize the dashed string
-    void normalize(Space& home);
     /// Check whether the dashed string is normalized and internal invariants hold
     bool isOK(void) const;
     /// Prints the dashed string \a x
     friend std::ostream& operator<<(std::ostream& os, const DashedString& x);
     
+    private:
+      /// Normalize the dashed string, assuming each block already consistent 
+      /// and 0 <= lb <= ub <= MAX_STRING_LENGTH.
+      void normalize(Space& home);
   };
 
 }}
@@ -518,9 +530,7 @@ namespace Gecode { namespace String {
   Block::fix(Space& home) {
     assert(l == u && S->size() <= 1);
     l = S->empty() ? 0 : S->min();
-    S->excludeAll(home);
-    S = NULL;
-    assert(isOK());
+    nullifySet(home);
   }
   
   forceinline void
@@ -595,13 +605,18 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  Block::nullify(Space& home) {
+  Block::nullifySet(Space& home) {
     if (S != NULL) {
-      S->excludeAll(home);
+      S->dispose(home);
       S = NULL;
     }
-    l = u = 0;
     assert(isOK());
+  }
+  
+  forceinline void
+  Block::nullify(Space& home) {    
+    l = u = 0;
+    nullifySet(home);
   }
   
   forceinline void
@@ -611,13 +626,28 @@ namespace Gecode { namespace String {
     if (S == b.S)
       return;
     if (b.isFixed()) {
-      S->excludeAll(home);
-      S = NULL;
+      nullifySet(home);
       return;
     }
     if (isFixed())
       S = std::unique_ptr<CharSet>();
     S->update(home, *b.S);
+    assert(isOK());
+  }
+  
+  forceinline void
+  Block::updateCard(Space& home, int lb, int ub) {
+    if (lb < 0 || ub > MAX_STRING_LENGTH)
+      throw OutOfLimits("Block::updateCard");
+    if (lb > ub || (lb > 0 && S->empty()))
+      throw VariableEmptyDomain("Block::updateCard");
+    if (u == 0)
+      return;
+    if (lb == ub)
+      nullifySet(home);
+    else
+      l = lb;
+    u = ub;
     assert(isOK());
   }
   
@@ -679,7 +709,6 @@ namespace Gecode { namespace String {
       x[i].update(home, blocks[i]);
       // NOTE: The sum of the blocks' bounds might overflow.
       if (lb > MAX_STRING_LENGTH || lb + x[i].lb() < lb) {
-        // FIXME: Not sure if we need CharSet disposal.
         for (int j = 0; j <= i; ++j)
           x[j].S->dispose(home);
         a.free(x, n);
@@ -771,6 +800,11 @@ namespace Gecode { namespace String {
     lb = ub = 0;
   }
   
+  forceinline void 
+  DashedString::update(Space& home, const DashedString& d) {
+  
+  }
+  
 //  // std::cerr<<"DSArray::update DSBlocks"<<std::endl;
 //    if (*this == d)
 //      return;
@@ -809,7 +843,6 @@ namespace Gecode { namespace String {
     int newSize = n;
     // 1st pass: determine new size, settle adjacent blocks with same base
     for (int i = 0; i < n; ) {
-      assert(x[i].isOK());
       if (x[i].isNull()) {
         --newSize;
         ++i;
@@ -818,12 +851,11 @@ namespace Gecode { namespace String {
       int j = i + 1;  
       while (j < n && (x[j].isNull() || x[i].baseEquals(x[j]))) {
         if (!x[j].isNull()) {
-          x[i].lb(home, x[i].lb() + x[j].lb());
+          // This sum may overflow.
           int u = x[i].ub() + x[j].ub();
-          if (u < MAX_STRING_LENGTH && u < x[i].ub())
-            x[i].ub(home, u);
-          else
-            x[i].ub(home, MAX_STRING_LENGTH);
+          if (u > MAX_STRING_LENGTH || u < x[i].ub())
+            u = MAX_STRING_LENGTH;
+          x[i].updateCard(home, x[i].lb() + x[j].lb(), u);
           x[j].nullify(home);
         }
         --newSize;
@@ -834,12 +866,16 @@ namespace Gecode { namespace String {
     // 2nd pass: possibly downsize the dynamic array due to nullification.    
     if (newSize < n) {
       if (newSize == 0) {
-        a.free(x, n);
-        n = 1;     
-        x = home.alloc<Block>(1);
-        lb = ub = 0;
+        // All the blocks in x are null.
+        if (n > 1) {
+          a.free(x+1, n-1);
+          n = 1;
+        }
+        assert(isOK());
         return;
       }
+      // k is the index of the last encountered non-null block.
+      int k = -1;
       for (int i = 0; i < n; ++i) {
         if (x[i].isNull()) {
           int j = i + 1;
@@ -848,17 +884,22 @@ namespace Gecode { namespace String {
           if (j == n)
             break;
           // Here x[i] = x[i+1] = ... = x[j-1] = {}^(0,0) != x[j].
-          if (i > 0 && x[i-1].baseEquals(x[j])) {
-            // Merging x[i-1] with x[j].
-            x[i-1].lb(home, x[i-1].lb() + x[j].lb());
-            x[i-1].ub(home, x[i-1].ub() + x[j].ub());
+          if (k > -1 && x[k].baseEquals(x[j])) {
+            // Merge x[k] with x[j] if they have the same base.
+            int u = x[k].ub() + x[j].ub();
+            if (u > MAX_STRING_LENGTH || u < x[k].ub())
+              u = MAX_STRING_LENGTH;
+            x[k].updateCard(home, x[k].lb() + x[j].lb(), u);
             --newSize;
           }
           else
             x[i].update(home, x[j]);
           x[j].nullify(home);
-          // Here x[i] != {}^(0,0) = x[i+1] = ... x[j-1] = x[j].
+          // Now, x[i] != {}^(0,0) = x[i+1] = ... x[j-1] = x[j].
+          i = j;
         }
+        else
+          k = i;
       }
       // Shrinking the array.
       a.free(x + newSize, n - newSize);
