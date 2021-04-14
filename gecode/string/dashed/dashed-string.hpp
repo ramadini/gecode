@@ -107,7 +107,7 @@ namespace Gecode { namespace String {
     double logdim(void) const;
     /// Returns the concrete string denoted by the block, if the block is fixed.
     /// Otherwise, an IllegalOperation exception is thrown.
-    template<size_t N> std::array<Block,N> val(void) const;
+    template<size_t N> std::array<int,N> val(void) const;
     //@}
     
     /// \name Block tests
@@ -218,7 +218,7 @@ namespace Gecode { namespace String {
     double logdim(void) const;
     /// Returns the concrete string denoted by the dashed string, if it is fixed.
     /// Otherwise, an IllegalOperation exception is thrown.
-    template<size_t N> std::array<Block,N> val(void) const;
+    template<size_t N> std::array<int,N> val(void) const;
     //@}
   
     /// \name Dashed string tests
@@ -503,6 +503,17 @@ namespace Gecode { namespace String {
     return b.isFixed() ? S->in(b.l) : S->contains(*b.S);
   }
   
+  template<size_t N>
+  forceinline std::array<int, N>
+  Block::val() const {
+    if (!isFixed())
+      throw IllegalOperation("DashedString::val");
+    int v[l];
+    for (int i = 0, a = S->min(); i < l; ++i)
+      v[i] = a;
+    return v;
+  }
+  
   forceinline void
   Block::fix(Space& home) {
     assert(l == u && S->size() <= 1);
@@ -733,12 +744,21 @@ namespace Gecode { namespace String {
     return true;
   }
   
-//    /// Test whether the i-th block of this dashed string contains the i-th block of \d x 
-//    /// for \f$ i=1,\dots, size()\$ and the j-th block of this dashed string is null
-//    /// for \f$ j=b.size()+1,\dots, size()\$
-//    bool contains(void) const;
-//    //@}
-//    
+  template<size_t N>
+  forceinline std::array<int, N>
+  DashedString::val() const {
+    if (!isFixed())
+      throw IllegalOperation("DashedString::val");
+    int v[lb];
+    for (int i = 0; i < n; ++i) {
+      int l = x[i].lb(), val_i[l];
+      for (int j = 0; j < l; j++)
+        v[i*n + j] = val_i[j];
+    }
+    return v;
+  }
+  
+// TODO:
 //    /// \name Cloning
 //    //@{
 //    /// Update this dashed string to be the null block.
@@ -746,13 +766,7 @@ namespace Gecode { namespace String {
 //    /// Update this dashed string to be a clone of \a x
 //    void update(Space& home, const Block& x);
 //    //@}
-//    
-//    /// Normalize the dashed string
-//    bool normalize(void)
-//    /// Check whether the dashed string is normalized and internal invariants hold
-//    bool isOK(void) const;
-//    /// Prints the dashed string \a x
-//    friend std::ostream& operator<<(std::ostream& os, const DashedString& x);
+//
 
   forceinline void
   DashedString::normalize(Space& home) {
