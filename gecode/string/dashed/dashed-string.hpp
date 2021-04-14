@@ -46,7 +46,7 @@ namespace Gecode { namespace String {
     bool equals(const CharSet& S) const;
     //@}
     
-    /// Prints set according to Limits::CHAR_ENCODING
+    /// Prints \a set according to Limits::CHAR_ENCODING
     friend std::ostream& operator<<(std::ostream& os, const CharSet& set);
     
   };
@@ -73,7 +73,8 @@ namespace Gecode { namespace String {
     // the invariant b.isFixed() <=> b.S == NULL must hold.
     // Each non-const operation on a block must leave it in a consistent and
     // normalized state.
-    // Once constructed, a Block can only shrink unless updated.
+    // Once constructed, a Block can only shrink unless updated with cloning 
+    // methods nullify, update or updateCard.
     
   public:
     /// \name Constructors and initialization
@@ -115,7 +116,7 @@ namespace Gecode { namespace String {
     //@{
     /// Test whether the block is null
     bool isNull(void) const;
-    /// Test whether the block is fixed
+    /// Test whether the block is fixed (i.e., it denotes a single string)
     bool isFixed(void) const;
     /// Test whether the block is {0, \dots, {MAX\_ALPHABET\_SIZE}-1}^{(0,{MAX\_STRING\_LENGTH})
     bool isUniverse(void) const;
@@ -209,9 +210,9 @@ namespace Gecode { namespace String {
     DashedString(Space& home, const Block& block);
     /// Creates a normalized dashed string from \a blocks. 
     /// The following exceptions might be thrown:
-    /// - IllegalOperation, if blocks is empty
-    /// - VariableEmptyDomain, if the sum of lower bounds of blocks is bigger 
-    ///                        than MAX_STRING_LENGTH
+    /// - IllegalOperation, if \a blocks is empty
+    /// - OutOfLimits, if the sum of lower bounds of blocks is bigger than
+    ///                MAX_STRING_LENGTH
     template<size_t N>
     DashedString(Space& home, std::array<Block,N> const& blocks);
     
@@ -233,7 +234,7 @@ namespace Gecode { namespace String {
   
     /// \name Dashed string tests
     //@{
-    /// Test whether the dashed string is null
+    /// Test whether the dashed string is a null block
     bool isNull(void) const;
     /// Test whether the dashed string is fixed
     bool isFixed(void) const;
@@ -258,10 +259,10 @@ namespace Gecode { namespace String {
     /// Prints the dashed string \a x
     friend std::ostream& operator<<(std::ostream& os, const DashedString& x);
     
-    private:
-      /// Normalize the dashed string, assuming each block already consistent 
-      /// and 0 <= lb <= ub <= MAX_STRING_LENGTH.
-      void normalize(Space& home);
+  private:
+    /// Normalize the dashed string, assuming each block already consistent 
+    /// and 0 <= lb <= ub <= MAX_STRING_LENGTH.
+    void normalize(Space& home);
   };
 
 }}
