@@ -918,23 +918,22 @@ namespace Gecode { namespace String {
     return u == ub;
   }
   
-//  forceinline std::ostream&
-//  operator<<(std::ostream& os, const DashedString& d) {
-//    if (d.isFixed()) {
-//      os << "\"";
-//      auto v = d.val<int,d.min_length()>();
-//      for (int i = 0; i < v.size(); ++i)
-//        os << int2str(v[i]);
-//      os << "\"";
-//    }
-//    else {
-//      int n = d.size();
-//      for (int i = 0; i < n - 1; ++i)
-//        os << d[i] << " + ";
-//      os << d[n-1];
-//    }
-//    return os;
-//  }
+  forceinline std::ostream&
+  operator<<(std::ostream& os, const DashedString& d) {
+    if (d.isFixed()) {
+      os << "\"";
+      for (int x : d.val())
+        os << int2str(x);
+      os << "\"";
+    }
+    else {
+      int n = d.size();
+      for (int i = 0; i < n - 1; ++i)
+        os << d[i] << " + ";
+      os << d[n-1];
+    }
+    return os;
+  }
 
 }}
 
