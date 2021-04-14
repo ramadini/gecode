@@ -12,7 +12,7 @@ namespace Gecode { namespace String {
    */
   class GECODE_STRING_EXPORT CharSet : public Gecode::Set::LUBndSet {
   
-  // FIXME: One may define a subclass of CharSet for small, fixed-size charsets 
+  // FIXME: One may define subclasses of CharSet for fixed-size charsets 
   // relying on bit-vectors representation.
   
   public:
@@ -58,16 +58,17 @@ namespace Gecode { namespace String {
    */
   class GECODE_STRING_EXPORT Block {
   
-  // FIXME: Each non-const operation on Block must leave it in a consistent and
-  // normalized state.
-  
   private:
     // Cardinality bounds.
     int l, u;
-    // Pointer to the base.
+    // Smart pointer to the base.
     std::unique_ptr<CharSet> S;
-    // FIXME: To save space, fixed blocks of the form {a}^(n,n) are encoded with
-    // S = NULL; l = a ; u = n.
+   
+    // FIXME: To save space, each fixed blocks {a}^(n,n) must be encoded with
+    // (S=NULL,l=a,u=n). The null block is (S=NULL,l=0,u=0). For each block b
+    // the invariant b.isFixed() <=> b.S == NULL must hold.
+    // Each non-const operation on a block must leave it in a consistent and
+    // normalized state. 
     
   public:
     /// \name Constructors and initialization
@@ -121,12 +122,12 @@ namespace Gecode { namespace String {
     /// lower (resp. upper) bound, the following exceptions might be thrown:
     /// - IllegalOperation, if l < lb
     /// - VariableEmptyDomain, if l > ub.
-    void lb(int l);
+    void lb(Space& home, int l);
     /// Updates the current upper bound with u. If lb (resp. ub) is the current 
     /// lower (resp. upper) bound, the following exceptions might be thrown:
     /// - IllegalOperation, if u > ub
     /// - VariableEmptyDomain, if u < lb.
-    void ub(int u);
+    void ub(Space& home, int u);
     /// Exclude all elements not in \a S from the base
     /// A VariableEmptyDomain exception is raised if the base becomes empty but 
     /// the lower bound is greater than zero.
@@ -153,6 +154,8 @@ namespace Gecode { namespace String {
   private:
     Block(const Block&);
     const Block& operator=(const Block&);
+    /// From fixed block S={a},l=u to consistent encoding with S=NULL and l=a
+    void fix(Space& home);
     
   };
 
@@ -177,13 +180,19 @@ namespace Gecode { namespace String {
   public:
     /// \name Constructors and initialization
     //@{
-    /// Creates a dashed string consisting of one block \f$ {0, \dots, {MAX\_ALPHABET\_SIZE}-1}^{(0,{MAX\_STRING\_LENGTH})} \$
+    /// Creates a dashed string consisting of one block 
+    /// \f$ {0, \dots, {MAX\_ALPHABET\_SIZE}-1}^{(0,{MAX\_STRING\_LENGTH})} \$
     DashedString(Space& home);
     /// Creates a dashed string consisting of one \a block \$
     DashedString(Space& home, const Block& block);
-    /// Creates a normalized dashed string from \a blocks
-    DashedString(Space& home, const Block blocks[]);
-    //FIXME: std::initializer_list?
+    /// Creates a normalized dashed string from \a blocks. 
+    /// The following exceptions might be thrown:
+    /// - IllegalOperation, if blocks is empty
+    /// - VariableEmptyDomain, if the sum of lower bounds of blocks is bigger 
+    ///                        than MAX_STRING_LENGTH
+    template<size_t N>
+    DashedString(Space& home, std::array<Block,N> const& blocks);
+    
     
     /// \name Dashed string access
     //@{
@@ -271,6 +280,8 @@ namespace Gecode { namespace String {
 }}
 
 
+/*** CharSet ***/
+
 namespace Gecode { namespace String {
 
   using namespace Limits;
@@ -355,6 +366,7 @@ namespace Gecode { namespace String {
 
 }}
 
+/*** Block ***/
 
 namespace Gecode { namespace String {
 
@@ -436,21 +448,47 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  Block::lb(int x) {
-    if (x > u)
-      throw VariableEmptyDomain("Block::lb");
-    if ((isFixed() && x < u) || (!isFixed() && x < l))
-      throw IllegalOperation("Block::lb");
-    l = x;
+  Block::fix(Space& home) {
+    assert(l == u && S->size() <= 1);
+    l = S->empty() ? 0 : S->min();
+    S->excludeAll(home);
+    S = NULL;
+    assert(isOK());
   }
   
   forceinline void
-  Block::ub(int x) {
+  Block::lb(Space& home, int x) {
+    if (isFixed()) {
+      if (x != u)
+        throw IllegalOperation("Block::lb");
+      return;
+    }
+    if (x > u)
+      throw VariableEmptyDomain("Block::lb");
+    if (x < l)
+      throw IllegalOperation("Block::lb");
+    if (x == u && S->size() == 1)
+      fix(home);
+    else
+      l = x;
+    assert(isOK());
+  }
+  
+  forceinline void
+  Block::ub(Space& home, int x) {
+    if (isFixed()) {
+      if (x != u)
+        throw IllegalOperation("Block::ub");
+      return;
+    }
     if (x > u)
       throw IllegalOperation("Block::ub");
-    if ((isFixed() && x < u) || (!isFixed() && x < l))
+    if (x < l)
       throw VariableEmptyDomain("Block::ub");
     u = x;
+    if (x == l && S->size() <= 1)
+      fix(home);
+    assert(isOK());
   }
   
   forceinline void
@@ -466,6 +504,9 @@ namespace Gecode { namespace String {
     S->intersectI(home, i);
     if (l > 0 && S->empty())
       throw VariableEmptyDomain("Block::inters");
+    if (l == u && S->size() == 1)
+      fix(home);
+    assert(isOK());
   }
   
   forceinline void
@@ -481,6 +522,9 @@ namespace Gecode { namespace String {
     S->excludeI(home, i);
     if (S->empty() && l > 0)
       throw VariableEmptyDomain("Block::exclude");
+    if (l == u && S->size() == 1)
+      fix(home);
+    assert(isOK());
   }
   
   forceinline void
@@ -490,6 +534,7 @@ namespace Gecode { namespace String {
       S = NULL;
     }
     l = u = 0;
+    assert(isOK());
   }
   
   forceinline void
@@ -498,32 +543,33 @@ namespace Gecode { namespace String {
     u = b.u;
     if (S == b.S)
       return;
-    if (b.S == NULL) {
+    if (b.isFixed()) {
       S->excludeAll(home);
       S = NULL;
       return;
     }
-    if (S == NULL)
+    if (isFixed())
       S = std::unique_ptr<CharSet>();
     S->update(home, *b.S);
+    assert(isOK());
   }
   
   forceinline bool
   Block::isOK(void) const {
-    if (S == NULL) {
+    if (isFixed()) {
       check_alphabet(l, "Block::isOK");
       check_length(u, "Block::isOK");
       return true;
     }
-    check_length(l, u, "");
-    check_alphabet(S->min(), S->max(), "");
-    return u > 0;
+    check_length(l, u, "Block::isOK");
+    check_alphabet(S->min(), S->max(), "Block::isOK");
+    return u > 0 && (S->size() > 1 || (S->size() == 1 && l < u));
   }
 
   forceinline std::ostream&
   operator<<(std::ostream& os, const Block& b) {
     os << "{";
-    if (b.S == NULL) {  
+    if (b.isFixed()) {  
       if (b.u > 0)
         os << int2str(b.l);
       os << "}^(" << b.u << ",";
@@ -536,8 +582,61 @@ namespace Gecode { namespace String {
 
 }}
 
+/*** DashedString ***/
 
 namespace Gecode { namespace String {
+
+//TODO:
+//DashedString(Space& home);
+//    /// Creates a dashed string consisting of one \a block \$
+//    DashedString(Space& home, const Block& block);
+//    /// Creates a normalized dashed string from \a blocks. 
+//    /// The following exceptions might be thrown:
+//    /// - IllegalOperation, if blocks is empty
+//    /// - VariableEmptyDomain, if the sum of lower bounds of blocks is bigger 
+//    ///                        than MAX_STRING_LENGTH
+//    template<size_t N>
+//    DashedString(Space& home, std::array<Block,N> const& blocks);
+//    
+//    
+//    /// \name Dashed string access
+//    //@{
+//    /// Returns the minimum length for a concrete string denoted by the dashed string
+//    int min_length(void) const;
+//    /// Returns the maximum length for a concrete string denoted by the dashed string
+//    int max_length(void) const;
+//    /// Returns the number of blocks of the dashed string
+//    int size(void) const;
+//    /// Returns the natural logarithm of the dimension of this dashed string
+//    double logdim(void) const;
+//    //@}
+//  
+//    /// \name Dashed string tests
+//    //@{
+//    /// Test whether the dashed string is null
+//    bool isNull(void) const;
+//    /// Test whether the dashed string is fixed
+//    bool isFixed(void) const;
+//    /// Test whether the i-th block of this dashed string contains the i-th block of \d x 
+//    /// for \f$ i=1,\dots, size()\$ and the j-th block of this dashed string is null
+//    /// for \f$ j=b.size()+1,\dots, size()\$
+//    bool contains(void) const;
+//    //@}
+//    
+//    /// \name Cloning
+//    //@{
+//    /// Update this dashed string to be the null block.
+//    void nullify(Space& home);
+//    /// Update this dashed string to be a clone of \a x
+//    void update(Space& home, const Block& x);
+//    //@}
+//    
+//    /// Normalize the dashed string
+//    bool normalize(void) const;
+//    /// Check whether the dashed string is normalized and internal invariants hold
+//    bool isOK(void) const;
+//    /// Prints the dashed string \a x
+//    friend std::ostream& operator<<(std::ostream& os, const DashedString& x);
 
 }}
 
