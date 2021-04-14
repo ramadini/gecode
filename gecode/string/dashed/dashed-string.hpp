@@ -75,17 +75,17 @@ namespace Gecode { namespace String {
     //@{
     /// Creates the null block \f$ \{\}^(0,0) \$
     Block(void);
-    /// Creates block \f$ {0, \dots, {MAX\_ALPHABET\_SIZE}-1}^{(0,{MAX\_STRING\_LENGTH})} \$
-    Block(Space& home);
-    /// Creates block \f$ S^{(0,{MAX\_STRING\_LENGTH})} \$
-    Block(Space& home, const CharSet& S);
     /// Creates fixed block \f$ {a}^{1,1} \$
     /// Throws OutOfLimits exception if \f$a < 0 \vee a \geq MAX\_ALPHABET\_LENGTH\f$
-    Block(Space& home, int a);
+    Block(int a);
     /// Creates fixed block \f$ {a}^{n,n} \$
     /// Throws OutOfLimits exception if 
     /// \f$a < 0 \vee a \geq MAX\_ALPHABET\_LENGTH \vee n < 0 \vee n > MAX\_STRING\_LENGTH \f$
-    Block(Space& home, int a, int n);    
+    Block(int a, int n);
+    /// Creates block \f$ {0, \dots, {MAX\_ALPHABET\_SIZE}-1}^{(0,{MAX\_STRING\_LENGTH})} \$
+    Block(Space& home);
+    /// Creates block \f$ S^{(0,{MAX\_STRING\_LENGTH})} \$
+    Block(Space& home, const CharSet& S);    
     /// Creates block \f$ S^{l,u} \$
     /// The following exceptions might be thrown:
     /// - VariableEmptyDomain, if l > u or S = {} and l > 0.
@@ -227,7 +227,7 @@ namespace Gecode { namespace String {
     //@}
     
     /// Normalize the dashed string
-    bool normalize(void) const;
+    void normalize(void);
     /// Check whether the dashed string is normalized and internal invariants hold
     bool isOK(void) const;
     /// Prints the dashed string \a x
@@ -375,17 +375,17 @@ namespace Gecode { namespace String {
   forceinline Block::Block() 
   : l(0), u(0), S() {};
   
+  forceinline Block::Block(int a)
+  : l(a), u(1), S()  { Limits::check_alphabet(a, "Block::Block"); };
+  
+  forceinline Block::Block(int a, int n)
+  : l(a), u(n), S() { Limits::check_length(n, "Block::Block"); };
+  
   forceinline Block::Block(Space& home) 
   : l(0), u(MAX_STRING_LENGTH), S(new CharSet(home, 0, MAX_ALPHABET_SIZE-1)) {};
   
   forceinline Block::Block(Space& home, const CharSet& s) 
   : l(0), u(MAX_STRING_LENGTH), S(new CharSet()) { S->update(home, s); };
-  
-  forceinline Block::Block(Space& home, int a)
-  : l(a), u(1), S()  { Limits::check_alphabet(a, "Block::Block"); };
-  
-  forceinline Block::Block(Space& home, int a, int n)
-  : l(a), u(n), S() { Limits::check_length(n, "Block::Block"); };
   
   forceinline Block::Block(Space& home, const CharSet& s, int lb, int ub) {
     check_length(lb, ub, "Block::Block");
@@ -433,7 +433,7 @@ namespace Gecode { namespace String {
   Block::baseDisjoint(const Block& b) const {
     if (isFixed())
       return b.isFixed() ? l != b.l : !b.S->in(l);
-    if (b.isFixed());
+    if (b.isFixed())
       return !S->in(b.l);
     return S->disjoint(*b.S);
   }
@@ -608,26 +608,36 @@ namespace Gecode { namespace String {
   forceinline
   DashedString::DashedString(Space& home, std::array<Block,N> const& blocks)
   : DynamicArray(home, blocks.size()) {
-    for (int i = 0; i < _size; ++i) {
+    for (int i = 0; i < size(); ++i) {
       x[i].update(home, blocks[i]);
       lb += x[i].lb();
       if (lb > MAX_STRING_LENGTH) {
         // FIXME: Not sure if we need CharSet disposal.
         for (int j = 0; j <= i; ++j)
-          x[j].S.dispose(h);
+          x[j].S->dispose(home);
         a.free(x, n);
         throw VariableEmptyDomain("DashedString::DashedString");
       }
       ub += x[i].ub();
     }
+    normalize();
   }
 
-//    /// \name Dashed string access
-//    //@{
-//    /// Returns the minimum length for a concrete string denoted by the dashed string
-//    int min_length(void) const;
-//    /// Returns the maximum length for a concrete string denoted by the dashed string
-//    int max_length(void) const;
+  forceinline int DashedString::min_length() const { return lb; }
+  forceinline int DashedString::max_length() const { return ub; }
+  forceinline int DashedString::size() const { return DynamicArray::n; }
+  
+  forceinline double
+  DashedString::logdim() const {
+    double d = 0.0;
+    for (int i = 0; i < size(); ++i) {
+      d += x[i].logdim();
+      if (std::isinf(d))
+        return d;
+    }
+    return d;
+  }
+  
 //    /// Returns the number of blocks of the dashed string
 //    int size(void) const;
 //    /// Returns the natural logarithm of the dimension of this dashed string
@@ -655,11 +665,16 @@ namespace Gecode { namespace String {
 //    //@}
 //    
 //    /// Normalize the dashed string
-//    bool normalize(void) const;
+//    bool normalize(void)
 //    /// Check whether the dashed string is normalized and internal invariants hold
 //    bool isOK(void) const;
 //    /// Prints the dashed string \a x
 //    friend std::ostream& operator<<(std::ostream& os, const DashedString& x);
+
+  forceinline void
+  DashedString::normalize() {
+  
+  }
 
 }}
 
