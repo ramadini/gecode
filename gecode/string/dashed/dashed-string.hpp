@@ -758,11 +758,47 @@ namespace Gecode { namespace String {
     return v;
   }
   
+  forceinline void
+  DashedString::nullify(Space& home) {
+    if (isNull())
+      return;
+    for (int i = 0; i < n; ++i)
+      x[i].nullify(home);
+    if (n > 1) {
+      a.free(x+1, n-1);
+      n = 1;
+    }
+    lb = ub = 0;
+  }
+  
+//  // std::cerr<<"DSArray::update DSBlocks"<<std::endl;
+//    if (*this == d)
+//      return;
+//    int m = d._size;
+//    if (m <= _size) {
+//      for (int i = 0; i < m; ++i)
+//        x[i].update(h, d.at(i));
+//      if (m < _size) {
+//        for (int i = m; i < _size; ++i)
+//          x[i].S.dispose(h);
+//        a.free(x + m, _size - m);
+//      }
+//      n = m;
+//      _size = m;
+//      // std::cerr<<"Updated: "<<*this<<std::endl;
+//      return;
+//    }
+//    for (int i = 0; i < _size; ++i)
+//      x[i].S.dispose(h);
+//    a.free(x, n);
+//    x = a.template alloc<DSBlock>(m);
+//    for (int i = 0; i < m; ++i)
+//      x[i].init(h, d.at(i));
+//    n = m;
+//    _size = m;
+//    // std::cerr<<"Updated: "<<*this<<std::endl;
+  
 // TODO:
-//    /// \name Cloning
-//    //@{
-//    /// Update this dashed string to be the null block.
-//    void nullify(Space& home);
 //    /// Update this dashed string to be a clone of \a x
 //    void update(Space& home, const Block& x);
 //    //@}
