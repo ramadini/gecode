@@ -949,7 +949,3 @@ namespace Gecode { namespace String {
 
 }}
 
-
-
-
-
