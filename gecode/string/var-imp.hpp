@@ -15,8 +15,8 @@ namespace Gecode { namespace String {
   };
 
 }}
-#include <gecode/string/var-imp/delta.hpp>
 
+#include <gecode/string/var-imp/delta.hpp>
 #include <gecode/string/var-imp/dashed-string.hpp>
 
 namespace Gecode { namespace String {
@@ -35,6 +35,7 @@ namespace Gecode { namespace String {
   protected:
     /// Constructor for cloning \a x
     StringVarImp(Space& home, StringVarImp& x);
+  
   public:
     /// \name Constructors and initialization
     //@{
@@ -92,6 +93,29 @@ namespace Gecode { namespace String {
     /// 
     //@}
     
+    /// \name Domain update by equation
+    //@{
+    /// Equates the domain with string \a w.
+    ModEvent check_equate(Space& home, const std::vector<int>& w) const;
+    /// Equates the domain with block \a b.
+    ModEvent check_equate(Space& home, const Block& b) const;
+    /// Equates with dashed string \a x.
+    ModEvent check_equate(Space& home, const DashedString& x) const;
+    //@}
+    
+    /// \name Domain update by cardinality refinement
+    //@{
+    /// Possibly update the lower bound of the blocks, knowing that the minimum 
+    /// length for any string in the domain is \a l
+    ModEvent lengthMin(Space& home, int l) const;
+    /// Possibly update the upper bound of the blocks, knowing that the maximum 
+    /// length for any string in the domain is \a u
+    ModEvent lengthMax(Space& home, int u) const;
+    /// Possibly update the cardinality of the blocks, knowing that the length 
+    /// for any string in the domain is between \a l and \a u
+    ModEvent lengthIn(Space& home, int l, int u) const;
+    //@}
+    
     /// \name Dependencies
     //@{
     /**
@@ -128,5 +152,5 @@ namespace Gecode { namespace String {
 }}
 #include <gecode/string/var-imp/string.hpp>
 
-// STATISTICS: set-var
+// STATISTICS: string-var
 
