@@ -85,9 +85,9 @@ namespace Gecode { namespace String {
   }
 
 }}
+
 #include <gecode/string/exception.hpp>
 #include <gecode/string/limits.hpp>
-#include <gecode/string/dashed/dashed-string.hpp>
 #include <gecode/string/var-imp.hpp>
 
 namespace Gecode {

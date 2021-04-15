@@ -657,7 +657,7 @@ namespace Gecode { namespace String {
     else {
       if (isFixed())
         // Block become unfixed.
-        S = std::unique_ptr<CharSet>(home, l);
+        S = std::unique_ptr<CharSet>(new CharSet(home, l));
       l = lb;
     }
     u = ub;
