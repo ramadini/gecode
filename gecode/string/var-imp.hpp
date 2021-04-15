@@ -96,24 +96,24 @@ namespace Gecode { namespace String {
     /// \name Domain update by equation
     //@{
     /// Equates the domain with string \a w.
-    ModEvent check_equate(Space& home, const std::vector<int>& w) const;
+    ModEvent equate(Space& home, const std::vector<int>& w);
     /// Equates the domain with block \a b.
-    ModEvent check_equate(Space& home, const Block& b) const;
+    ModEvent equate(Space& home, const Block& b);
     /// Equates with dashed string \a x.
-    ModEvent check_equate(Space& home, const DashedString& x) const;
+    ModEvent equate(Space& home, const DashedString& x);
     //@}
     
     /// \name Domain update by cardinality refinement
     //@{
     /// Possibly update the lower bound of the blocks, knowing that the minimum 
     /// length for any string in the domain is \a l
-    ModEvent lengthMin(Space& home, int l) const;
+    ModEvent lengthMin(Space& home, int l);
     /// Possibly update the upper bound of the blocks, knowing that the maximum 
     /// length for any string in the domain is \a u
-    ModEvent lengthMax(Space& home, int u) const;
+    ModEvent lengthMax(Space& home, int u);
     /// Possibly update the cardinality of the blocks, knowing that the length 
     /// for any string in the domain is between \a l and \a u
-    ModEvent lengthIn(Space& home, int l, int u) const;
+    ModEvent lengthIn(Space& home, int l, int u);
     //@}
     
     /// \name Dependencies

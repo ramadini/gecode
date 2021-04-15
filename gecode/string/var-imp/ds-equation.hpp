@@ -1,9 +1,11 @@
 namespace Gecode { namespace String {
  
-   forceinline ModEvent
-   equate_x(DashedString& x, const StringView& y) {
+    // FIXME: Maybe define a namespace for equate-based functions?
+    
+    forceinline ModEvent
+    equate_x(Space& home, DashedString& x, const DashedString& y) {
      
-     return ME_STRING_NONE;
-   }
+      return ME_STRING_NONE;
+    }
 
 }}

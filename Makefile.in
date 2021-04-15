@@ -544,7 +544,7 @@ FLOATBUILDDIRS	= \
 #
 
 STRINGSRC0 = \
-  exception.cpp 
+  dummy_test.cpp exception.cpp
 
 STRINGHDR0 = \
   limits.hpp exception.hpp array-traits.hpp array.hpp var-imp.hpp view.hpp \

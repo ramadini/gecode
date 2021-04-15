@@ -797,10 +797,8 @@ namespace Gecode { namespace String {
       throw IllegalOperation("DashedString::val");
     std::vector<int> v(lb);
     for (int i = 0; i < n; ++i) {
-      int l = x[i].lb();
       std::vector<int> val_i = x[i].val();
-      for (int j = 0; j < val_i.size(); j++)
-        v[i*n + j] = val_i[j];
+      v.insert(v.end(), val_i.begin(), val_i.end());
     }
     return v;
   }
