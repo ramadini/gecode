@@ -91,10 +91,42 @@ namespace Gecode { namespace String {
     bool check_equate(const DashedString& x) const;
     /// 
     //@}
-
-    class StringView;
+    
+    /// \name Dependencies
+    //@{
+    /**
+     * \brief Subscribe propagator \a p with propagation condition \a pc to variable
+     *
+     * In case \a schedule is false, the propagator is just subscribed but
+     * not scheduled for execution (this must be used when creating
+     * subscriptions during propagation).
+     */
+    GECODE_STRING_EXPORT void subscribe(Space& home, Propagator& p, PropCond pc, bool schedule=true);
+    /// Re-schedule propagator \a p with propagation condition \a pc
+    GECODE_STRING_EXPORT void reschedule(Space& home, Propagator& p, PropCond pc);
+    /** \brief Subscribe advisor \a a to variable
+     *
+     * The advisor \a a is only subscribed if \a assigned is false.
+     *
+     * If \a fail is true, the advisor \a a is also run when a variable
+     * operation triggers failure. This feature is undocumented.
+     *
+     */
+    GECODE_STRING_EXPORT void subscribe(Space& home, Advisor& a, bool fail);
+    //@}
+    
+    /// \name Cloning
+    //@{
+    /// Return copy of this variable
+    StringVarImp* copy(Space& home);
+    //@}
   
   };
   
+  class StringView;
+  
 }}
 #include <gecode/string/var-imp/string.hpp>
+
+// STATISTICS: set-var
+
