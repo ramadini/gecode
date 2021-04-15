@@ -646,6 +646,8 @@ AC_DEFUN([AC_GECODE_GCC_GENERAL_SWITCHES],
  [AC_GECODE_CHECK_COMPILERFLAG([-fPIC])
   AC_GECODE_CHECK_COMPILERFLAG([-Wextra])
   AC_GECODE_CHECK_COMPILERFLAG([-Wall])
+  #FIXME: To silence warnings on implicitly-declared operator= and copy constructors
+  AC_GECODE_CHECK_COMPILERFLAG([-Wno-deprecated-copy])
   AC_GECODE_CHECK_COMPILERFLAG([-pipe])
 
   AC_ARG_ENABLE([cpp11],

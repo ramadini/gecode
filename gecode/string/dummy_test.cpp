@@ -1,1 +1,0 @@
-#include <gecode/string.hh>

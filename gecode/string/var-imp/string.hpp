@@ -10,10 +10,10 @@ namespace Gecode { namespace String {
   //TODO:
   
   
-//  ModEvent
-//  StringVarImp::equate(Space& home, const DashedString& x) {
-//    return equate_x(home, ds, x);
-//  }
+  ModEvent
+  StringVarImp::equate(Space& home, const DashedString& x) {
+    return equate_x(home, ds, x);
+  }
  
    
    

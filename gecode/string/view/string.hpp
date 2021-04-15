@@ -20,5 +20,5 @@ namespace Gecode { namespace String {
   StringView::equate(const DashedString& d) {
     return x->equate(d);
   }
-    
+     
 }}
