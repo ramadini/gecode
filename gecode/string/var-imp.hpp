@@ -1,6 +1,6 @@
 namespace Gecode { namespace String {
 
-/**
+  /**
    * \brief String delta information for advisors.
    */
   class StringDelta : public Delta {
