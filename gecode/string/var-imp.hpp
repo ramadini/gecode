@@ -1,3 +1,22 @@
+namespace Gecode { namespace String {
+
+/**
+   * \brief String delta information for advisors.
+   */
+  class StringDelta : public Delta {
+    
+    friend class StringVarImp;
+
+    // FIXME: At the moment, a StringDelta is not really needed.
+
+  public:
+    /// Create string delta as providing no information
+    StringDelta(void);
+  };
+
+}}
+#include <gecode/string/var-imp/delta.hpp>
+
 #include <gecode/string/var-imp/dashed-string.hpp>
 
 namespace Gecode { namespace String {
@@ -64,6 +83,13 @@ namespace Gecode { namespace String {
     //@{
     /// Test whether variable is assigned
     bool assigned(void) const;
+    /// Test whether the domain is equatable with string \a w.
+    bool check_equate(const std::vector<int>& w) const;
+    /// Test whether the domain is equatable with block \a b.
+    bool check_equate(const Block& b) const;
+    /// Test whether the domain is equatable with dashed string \a x.
+    bool check_equate(const DashedString& x) const;
+    /// 
     //@}
 
     class StringView;
