@@ -227,6 +227,12 @@ namespace Gecode { namespace String {
     int size(void) const;
     /// Returns the natural logarithm of the dimension of this dashed string
     double logdim(void) const;
+    /// Returns the i-th block of the dashed string. Throws OutOfLimits if \a i < 0 or 
+    /// \a i >= n, where n is the dashed string size
+    Block& operator[](int i);
+    /// Returns the i-th block of the dashed string. Throws OutOfLimits if \a i < 0 or 
+    /// \a i >= n, where n is the dashed string size
+    const Block& operator[](int i) const;
     /// Returns the concrete string denoted by the dashed string, if it is fixed.
     /// Otherwise, an IllegalOperation exception is thrown.
     std::vector<int> val(void) const;
@@ -745,6 +751,18 @@ namespace Gecode { namespace String {
   forceinline int DashedString::max_length() const { return ub; }
   forceinline int DashedString::size() const { return n; }
   
+  forceinline Block&
+  DashedString::operator[](int i) {
+    if (i < 0 || i >= n)
+      throw OutOfLimits("DashedString::operator[]");
+    return *(x + i);
+  }
+  forceinline const Block&
+  DashedString::operator[](int i) const {
+    if (i < 0 || i >= n)
+      throw OutOfLimits("DashedString::operator[]");
+    return *(x + i);
+  }
   forceinline double
   DashedString::logdim() const {
     double d = 0.0;

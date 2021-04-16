@@ -78,6 +78,7 @@ namespace Gecode { namespace String {
     int lenMin(void) const;
     /// Return the maximum length for a string in the variable's domain
     int lenMax(void) const;
+    /// 
     //@}
 
     /// \name Domain tests
@@ -90,7 +91,10 @@ namespace Gecode { namespace String {
     bool check_equate(const Block& b) const;
     /// Test whether the domain is equatable with dashed string \a x.
     bool check_equate(const DashedString& x) const;
-    /// 
+    /// Returns the i-th block of the domain
+    Block& operator[](int i);
+    /// Returns the i-th block of the domain
+    const Block& operator[](int i) const;
     //@}
     
     /// \name Domain update by equation
@@ -144,7 +148,7 @@ namespace Gecode { namespace String {
     /// Return copy of this variable
     StringVarImp* copy(Space& home);
     //@}
-  
+    
   };
   
   class StringView;
