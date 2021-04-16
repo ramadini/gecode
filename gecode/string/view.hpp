@@ -76,6 +76,10 @@ namespace Gecode { namespace String {
     /// for any string in the domain is between \a l and \a u
     ModEvent lengthIn(Space& home, int l, int u);
     //@}
+    
+    /// Domain update by given matchings.
+    ModEvent refine(Space& home, Matchings x);
+    
   };
   /**
    * \brief Print string variable view
