@@ -52,15 +52,15 @@ or in two steps:
     $ fzn-gstrings M.fzn
 
 In particular, (2) converts ```M.mzn``` into a FlatZinc instance ```M.fzn``` 
-(this is the _F^{str}_ conversion described in [1]). If you wish to decompose 
+(this is the _F^{str}_ conversion described in [2]). If you wish to decompose 
 ```M.mzn``` into a FlatZinc instance _not_ containing string variables, use:
 
     $ mzn2fzn-str --stdlib-dir gecode/flatzinc M.mzn [D.dzn]
   
 and then solve the corresponding FlatZinc instance, where string variables and 
 constraints are translated into corresponding integer variables and constraints.
-Note that this translation (i.e., the _F^{int}_ conversion of [1]) can take a 
-long time and, although supporting all the constraints of [1], does not handle 
+Note that this translation (i.e., the _F^{int}_ conversion of [2]) can take a 
+long time and, although supporting all the constraints of [2], does not handle 
 all the string constraints supported by Dashed. This translation is defined 
 in ```gecode/flatzinc/std/nostrings.mzn``` library.
 
@@ -92,10 +92,10 @@ Gecode is licensed under the
 
 ## References
 
-2. R. Amadini, P. Flener, J. Pearson, J.D. Scott, P.J. Stuckey, G. Tack.
+1. R. Amadini, P. Flener, J. Pearson, J.D. Scott, P.J. Stuckey, G. Tack.
    MiniZinc with Strings. In LOPSTR 2016, Edinburgh, Scotland, UK.
 
-1. R. Amadini, G. Gange, P.J. Stuckey, G. Tack. Dashed strings for string 
+2. R. Amadini, G. Gange, P.J. Stuckey, G. Tack. Dashed strings for string 
    constraint Solving. In Artificial Intelligence, Volume 289:103368 (2020)
    
    
