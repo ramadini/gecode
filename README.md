@@ -1,4 +1,4 @@
-# G-Strings - Gecode with (dashed) string variables
+# Dashed - Gecode with dashed string variables
 
 ![Gecode](images/gecode-logo-100.png "Gecode")
 
@@ -14,13 +14,14 @@ modular and extensible.
 [![Build Status develop](https://api.travis-ci.org/Gecode/gecode.svg?branch=develop)](https://travis-ci.org/Gecode/gecode)
 
 
-This repository contains __G-Strings__ solver, an extension of Gecode enabling 
+This repository contains __Dashed__ solver, an extension of Gecode enabling 
 string variables and constraints based on the _dashed string_ representation.
 We refer to [1,2,3,4,5,6] for more details.
+Dashed Solver is a re-ingeneering of former _G-String_ solver.
 
 ## Installation
 
-To install G-Strings:
+To install Dashed:
 
 1. move into ```gecode``` folder
 
@@ -35,7 +36,7 @@ variables run the script ```run-tests``` in ```gecode/string/tests``` folder.
 
 ## MiniZinc support
 
-G-Strings can solve problems encoded in [MiniZinc](http://www.minizinc.org/) 
+Dashed can solve problems encoded in [MiniZinc](http://www.minizinc.org/) 
 language. The support for string variables in MiniZinc is still in progress and 
 not part of the official release (for more information about MiniZinc with 
 strings, please see [1]).
@@ -48,7 +49,7 @@ data ```D.dzn```) in one step:
 or in two steps:
    
     $ mzn2fzn-gstrings M.mzn [D.dzn]   (2)
-    $ fzn-gstrings M.fzn              
+    $ fzn-gstrings M.fzn
 
 In particular, (2) converts ```M.mzn``` into a FlatZinc instance ```M.fzn``` 
 (this is the _F^{str}_ conversion described in [1]). If you wish to decompose 
@@ -60,7 +61,7 @@ and then solve the corresponding FlatZinc instance, where string variables and
 constraints are translated into corresponding integer variables and constraints.
 Note that this translation (i.e., the _F^{int}_ conversion of [1]) can take a 
 long time and, although supporting all the constraints of [1], does not handle 
-all the string constraints supported by G-Strings. This translation is defined 
+all the string constraints supported by Dashed. This translation is defined 
 in ```gecode/flatzinc/std/nostrings.mzn``` library.
 
 ## Getting All the Info You Need...
