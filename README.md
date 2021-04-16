@@ -14,9 +14,9 @@ modular and extensible.
 [![Build Status develop](https://api.travis-ci.org/Gecode/gecode.svg?branch=develop)](https://travis-ci.org/Gecode/gecode)
 
 
-This repository contains __Dashed__ solver, an extension of Gecode enabling 
+This repository contains the __Dashed__ solver, an extension of Gecode enabling 
 string variables and constraints based on the _dashed string_ representation.
-We refer to [1,2,3,4,5,6] for more details.
+We refer to [1] for more details.
 Dashed Solver is a re-ingeneering of former _G-String_ solver.
 
 ## Installation
@@ -39,7 +39,7 @@ variables run the script ```run-tests``` in ```gecode/string/tests``` folder.
 Dashed can solve problems encoded in [MiniZinc](http://www.minizinc.org/) 
 language. The support for string variables in MiniZinc is still in progress and 
 not part of the official release (for more information about MiniZinc with 
-strings, please see [1]).
+strings, please see [2]).
 
 You can solve a MiniZinc model with strings ```M.mzn``` (together with optional 
 data ```D.dzn```) in one step:
@@ -92,23 +92,10 @@ Gecode is licensed under the
 
 ## References
 
-1. R. Amadini, P. Flener, J. Pearson, J.D. Scott, P.J. Stuckey, G. Tack.
+2. R. Amadini, P. Flener, J. Pearson, J.D. Scott, P.J. Stuckey, G. Tack.
    MiniZinc with Strings. In LOPSTR 2016, Edinburgh, Scotland, UK.
 
-2. R. Amadini, G. Gange, P.J. Stuckey, G. Tack. A Novel Approach to String 
-   Constraint Solving. In CP 2017, Melbourne, Victoria, Australia.
-
-3. R. Amadini, G. Gange, P.J. Stuckey. Sweep-based Propagation for String 
-   Constraint Solving. In AAAI 2018, New Orleans, Lousiana, USA.
-
-4. R. Amadini, G. Gange, P.J. Stuckey. Propagating lex, find and replace with
-   dashed strings. In CPAIOR 2018, Delft, The Netherlands.
-
-5. R. Amadini, G. Gange, P.J. Stuckey. Propagating regular membership with 
-   dashed strings. In CP 2018, Lille, France.
-   
-6. R. Amadini, M. Andrlon, G. Gange, P. Schachte, H. Søndergaard, P. J. Stuckey. 
-   Constraint Programming for Dynamic Symbolic Execution of JavaScript. In 
-   CPAIOR 2019, Thessaloniki, Greece.   
+1. R. Amadini, G. Gange, P.J. Stuckey, G. Tack. Dashed strings for string 
+   constraint Solving. In Artificial Intelligence, Volume 289:103368 (2020)
    
    
