@@ -92,10 +92,10 @@ Gecode is licensed under the
 
 ## References
 
-1. R. Amadini, P. Flener, J. Pearson, J.D. Scott, P.J. Stuckey, G. Tack.
-   MiniZinc with Strings. In LOPSTR 2016, Edinburgh, Scotland, UK.
-
-2. R. Amadini, G. Gange, P.J. Stuckey, G. Tack. Dashed strings for string 
+1. R. Amadini, G. Gange, P.J. Stuckey, G. Tack. Dashed strings for string 
    constraint Solving. In Artificial Intelligence, Volume 289:103368 (2020)
+
+2. R. Amadini, P. Flener, J. Pearson, J.D. Scott, P.J. Stuckey, G. Tack.
+   MiniZinc with Strings. In LOPSTR 2016, Edinburgh, Scotland, UK.
    
    
