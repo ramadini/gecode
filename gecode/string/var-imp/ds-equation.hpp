@@ -39,11 +39,27 @@ namespace Gecode { namespace String {
     Position LEP;  
   };
   
+  /// Struct to unfold the i-th block of a dashed string with the n>1 blocks 
+  /// defined in b.
+  struct BlockUnfold {
+    int i;
+    int n;
+    Block* b;
+    Region r;
+  };
+  typedef Gecode::Support::DynamicArray<BlockUnfold,Space> BlockUnfoldings;
+  
 }}
 
 namespace Gecode { namespace String {
  
     // FIXME: Maybe define a namespace for equate-based functions?
+    
+    // Unfold m blocks of x according to the unfoldings array.
+    template <class ViewX>
+    void unfold(ViewX x, BlockUnfoldings unfoldings, int m) {
+      unfoldings[m-1].r.free();
+    }
     
     
     /// Possibly refines x[i] according to its matching region m[i] in y. 
@@ -51,6 +67,26 @@ namespace Gecode { namespace String {
     template <class ViewX, class ViewY>
     bool refine_x(Space& home, ViewX& x, const ViewY& y, Matching m[]) {
       //TODO:
+      { 
+        // FIXME: Just playing around.
+        BlockUnfoldings unfoldings;
+        int m = 0;
+        for (int i = 0; i < x.size(); ++i) {
+          if (1) {
+            BlockUnfold bu;
+            Region r;
+            bu.r = r;
+            bu.b = r.alloc<Block>(5);
+            bu.b[0].update(home, x[2]);
+            bu.n = 5;
+            bu.i = i;
+            m++;
+          }
+        }
+        if (m > 0)
+          unfold(x, unfoldings, m);
+      }
+      x.normalize(home);
       return true;
     } 
     
