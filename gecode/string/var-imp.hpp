@@ -120,9 +120,6 @@ namespace Gecode { namespace String {
     ModEvent lengthIn(Space& home, int l, int u);
     //@}
     
-    /// Domain update by given matchings.
-    ModEvent refine(Space& home, Matchings x);
-    
     /// \name Dependencies
     //@{
     /**
