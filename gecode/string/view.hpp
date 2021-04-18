@@ -73,7 +73,7 @@ namespace Gecode { namespace String {
     /// \name Constructors and initialization
     //@{
     /// Default constructor
-    StringView(void) {};
+    StringView(void);
     /// Initialize from set variable \a y
     StringView(const StringVar& y);
     /// Initialize from set variable implementation \a y
@@ -157,3 +157,6 @@ namespace Gecode { namespace String {
   };
 
 }}
+
+#include <gecode/string/var/string.hpp>
+#include <gecode/string/view/string.hpp>

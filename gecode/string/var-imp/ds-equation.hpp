@@ -7,7 +7,8 @@ namespace Gecode { namespace String {
     int idx;
     /// Offset of the position
     int off;
-    /// Constructor
+    /// Constructors
+    forceinline Position(void): idx(0), off(0) {};
     forceinline Position(int i, int j): idx(i), off(j) {};
     /// Position equality.
     forceinline bool 
