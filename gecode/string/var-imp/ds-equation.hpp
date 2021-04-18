@@ -7,31 +7,33 @@ namespace Gecode { namespace String {
     int idx;
     /// Offset of the position
     int off;
+    /// Constructor
+    forceinline Position(int i, int j): idx(i), off(j) {};
     /// Position equality.
-    forceinline bool
-    operator ==(const Position& p) {
+    forceinline bool 
+    operator ==(const Position& p) const {
       return idx == p.idx && off == p.off;
     }
     /// Position inequality.
     forceinline bool
-    operator !=(const Position& p) {
+    operator !=(const Position& p) const {
       return idx != p.idx || off != p.off;
     }
     /// Position lexicographic ordering.
     forceinline bool
-    operator <(const Position& p) {
+    operator <(const Position& p) const {
       return idx < p.idx || (idx == p.idx && off < p.off); 
     }    
     forceinline bool
-    operator >(const Position& p) {
+    operator >(const Position& p) const {
       return idx > p.idx || (idx == p.idx && off > p.off); 
     }
     forceinline bool
-    operator <=(const Position& p) {
+    operator <=(const Position& p) const {
       return idx < p.idx || (idx == p.idx && off <= p.off);
     }
     forceinline bool
-    operator >=(const Position& p) {
+    operator >=(const Position& p) const {
       return idx > p.idx || (idx == p.idx && off >= p.off);
     }
   };

@@ -15,6 +15,11 @@ namespace Gecode { namespace String {
 //    return equate_x(home, ds, x);
 //  }
 
+  forceinline int 
+  StringVarImp::size() const {
+    return ds.size();
+  }
+
   forceinline Block&
   StringVarImp::operator[](int i) {
     return ds[i];

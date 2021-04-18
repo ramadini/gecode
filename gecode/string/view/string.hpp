@@ -13,15 +13,42 @@ namespace Gecode { namespace String {
   forceinline
   StringView::StringView(StringVarImp* y)
     : VarImpView<StringVar>(y) {}
+}}
 
-  //TODO:
+namespace Gecode { namespace String {
+
+  StringView::FwdPosIterator::FwdPosIterator(const StringView& x) 
+  : pos({0,0}), sv(x) {};
+  
+  forceinline bool
+  StringView::FwdPosIterator::operator ()(void) const {
+    return Position(0,0) <= pos && pos < Position(sv.size(),0);
+  };
+  
+  forceinline void
+  StringView::FwdPosIterator::operator ++(void) {
+    if (pos.idx >= sv.size())
+      return;
+    pos.idx++;
+    pos.off = 0;
+  };
+  
+  forceinline Position& 
+  StringView::FwdPosIterator::operator *(void) {
+    return pos;
+  }
+  
+  forceinline int 
+  StringView::size() const {
+    return x->size();
+  }
   
   forceinline Block&
-  StringVarImp::operator[](int i) {
+  StringView::operator[](int i) {
     return x->[i];
   }
   forceinline const Block&
-  StringVarImp::operator[](int i) const {
+  StringView::operator[](int i) const {
     return x->[i];
   }
   

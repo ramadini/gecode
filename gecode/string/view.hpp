@@ -23,23 +23,18 @@ namespace Gecode { namespace String {
     class FwdPosIterator {
     private:
       Position pos;
+      const StringView& sv;
     public:
-      FwdPosIterator(void) : pos({0,0}) {};
+      FwdPosIterator(const StringView& x);
       /// \name Iteration control
       //@{
       /// Test whether iterator is still within the dashed string or done
-      bool operator ()(void) const { return true;/* TODO: (0,0) <= pos < (n,0) */ };
+      forceinline bool operator ()(void) const;
       /// Move iterator to next block (if possible)
-      void operator ++(void) { //TODO: move to string.hpp
-        if (pos.idx >= 0 /*FIXME: size()*/)
-          return;
-        pos.idx++;
-        pos.off = 0;
-      };
+      forceinline void operator ++(void);
       /// Return the current position
-      Position& operator *(void) { return pos; }
+      Position& operator *(void);
       //@}
-
     };
     
   public:
@@ -60,6 +55,8 @@ namespace Gecode { namespace String {
     int lenMin(void) const;
     /// Return the maximum length for a string in the variable's domain
     int lenMax(void) const;
+    /// Returns the number of blocks of the domain
+    int size(void) const;
     /// Returns the i-th block of the domain
     Block& operator[](int i);
     /// Returns the i-th block of the domain
@@ -103,7 +100,7 @@ namespace Gecode { namespace String {
     //@}
     
     //TODO:
-    FwdPosIterator begin(void) { return FwdPosIterator(); }
+    FwdPosIterator begin(void) { return FwdPosIterator(*this); }
     
   };
   /**

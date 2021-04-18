@@ -78,7 +78,8 @@ namespace Gecode { namespace String {
     int lenMin(void) const;
     /// Return the maximum length for a string in the variable's domain
     int lenMax(void) const;
-    /// 
+    /// Returns the number of blocks of the domain
+    int size(void) const;
     //@}
 
     /// \name Domain tests
