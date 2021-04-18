@@ -22,7 +22,7 @@ namespace Gecode { namespace String {
   
   forceinline bool
   StringView::FwdPosIterator::operator ()(void) const {
-    return Position(0,0) <= pos && pos < Position(sv.size(),0);
+    return pos.idx < sv.size();
   };
   
   forceinline void
@@ -37,6 +37,38 @@ namespace Gecode { namespace String {
   StringView::FwdPosIterator::operator *(void) {
     return pos;
   }
+  
+//  StringView::BwdPushIterator::BwdPushIterator(const StringView& x) 
+//  : pos({sv.size(),0}), sv(x) {}; FIXME???
+//  
+//  forceinline bool
+//  StringView::BwdPushIterator::operator ()(void) const {
+//    return pos.i < 0 FIXME???
+//  };
+//  
+//  forceinline void
+//  StringView::BwdPushIterator::operator --(void) {
+//    if (pos.idx >= 0) FIXME???
+//      return;
+//    pos.idx--;
+//    pos.off = 0;
+//  };
+  
+//  StringView::BwdStretchIterator::BwdStretchIterator(const StringView& x) 
+//  : pos({sv.size(),0}), sv(x) {}; FIXME???
+//  
+//  forceinline bool
+//  StringView::BwdStretchIterator::operator ()(void) const {
+//    return pos.i < 0 FIXME???
+//  };
+//  
+//  forceinline void
+//  StringView::BwdStretchIterator::operator --(void) {
+//    if (pos.idx >= 0) FIXME???
+//      return;
+//    pos.idx--;
+//    pos.off = 0;
+//  };
   
   forceinline int 
   StringView::size() const {
