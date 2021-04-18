@@ -15,13 +15,38 @@ namespace Gecode { namespace String {
    */
 
   class StringView : public VarImpView<StringVar> {
+  
   protected:
     using VarImpView<StringVar>::x;
+    
+  public:
+    class FwdPosIterator {
+    private:
+      Position pos;
+    public:
+      FwdPosIterator(void) : pos({0,0}) {};
+      /// \name Iteration control
+      //@{
+      /// Test whether iterator is still within the dashed string or done
+      bool operator ()(void) const { return true;/* TODO: (0,0) <= pos < (n,0) */ };
+      /// Move iterator to next block (if possible)
+      void operator ++(void) { //TODO: move to string.hpp
+        if (pos.idx >= 0 /*FIXME: size()*/)
+          return;
+        pos.idx++;
+        pos.off = 0;
+      };
+      /// Return the current position
+      Position& operator *(void) { return pos; }
+      //@}
+
+    };
+    
   public:
     /// \name Constructors and initialization
     //@{
     /// Default constructor
-    StringView(void);
+    StringView(void) {};
     /// Initialize from set variable \a y
     StringView(const StringVar& y);
     /// Initialize from set variable implementation \a y
@@ -76,6 +101,9 @@ namespace Gecode { namespace String {
     /// for any string in the domain is between \a l and \a u
     ModEvent lengthIn(Space& home, int l, int u);
     //@}
+    
+    //TODO:
+    FwdPosIterator begin(void) { return FwdPosIterator(); }
     
   };
   /**

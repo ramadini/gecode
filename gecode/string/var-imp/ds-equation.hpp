@@ -1,30 +1,39 @@
 namespace Gecode { namespace String {
 
-  /// Immutable struct abstracting a position in a dashed string. For a dashed 
+  /// Struct abstracting a position in a dashed string. For a dashed 
   /// string X, a valid position (i,j)
   struct Position {
     /// Index of the position
-    const int idx;
+    int idx;
     /// Offset of the position
-    const int off;
-    /// Constructors
-    Position(): idx(0), off(0) {};
-    Position(int i): idx(i), off(0) {};
-    Position(int i, int o): idx(i), off(o) {};
-    /// Check if the position is within dashed string \a x. If |x|=n, the valid
-    /// positions within x are {(i,j) | 0 <= i < n, 0 <= j < x[i]} U {(n,0)}
-    forceinline bool 
-    in(const DashedString& x) {
-      int n = x.size();
-      return idx >= 0 && off >= 0 && 
-            ((idx < n && off < x[idx].ub()) || (idx == n && off == 0));
-    }
+    int off;
     /// Position equality.
     forceinline bool
-    operator==(const Position& p) { return idx == p.idx && off == p.off; }
+    operator ==(const Position& p) {
+      return idx == p.idx && off == p.off;
+    }
     /// Position inequality.
     forceinline bool
-    operator!=(const Position& p) { return !(*this == p); }
+    operator !=(const Position& p) {
+      return idx != p.idx || off != p.off;
+    }
+    /// Position lexicographic ordering.
+    forceinline bool
+    operator <(const Position& p) {
+      return idx < p.idx || (idx == p.idx && off < p.off); 
+    }    
+    forceinline bool
+    operator >(const Position& p) {
+      return idx > p.idx || (idx == p.idx && off > p.off); 
+    }
+    forceinline bool
+    operator <=(const Position& p) {
+      return idx < p.idx || (idx == p.idx && off <= p.off);
+    }
+    forceinline bool
+    operator >=(const Position& p) {
+      return idx > p.idx || (idx == p.idx && off >= p.off);
+    }
   };
   
   /// Struct defining a matching region.
@@ -40,12 +49,11 @@ namespace Gecode { namespace String {
   };
   
   /// Struct to unfold the i-th block of a dashed string with the n>1 blocks 
-  /// defined in b.
+  /// defined in array b.
   struct BlockUnfold {
     int i;
     int n;
     Block* b;
-    Region r;
   };
   typedef Gecode::Support::DynamicArray<BlockUnfold,Space> BlockUnfoldings;
   
@@ -55,10 +63,10 @@ namespace Gecode { namespace String {
  
     // FIXME: Maybe define a namespace for equate-based functions?
     
-    // Unfold m blocks of x according to the unfoldings array.
+    // Add m blocks to x, according to the unfoldings array.
     template <class ViewX>
     void unfold(ViewX x, BlockUnfoldings unfoldings, int m) {
-      unfoldings[m-1].r.free();
+      //
     }
     
     
@@ -74,9 +82,7 @@ namespace Gecode { namespace String {
         for (int i = 0; i < x.size(); ++i) {
           if (1) {
             BlockUnfold bu;
-            Region r;
-            bu.r = r;
-            bu.b = r.alloc<Block>(5);
+            bu.b = {Block(), Block(home), Block(home, 1, 2)};
             bu.b[0].update(home, x[2]);
             bu.n = 5;
             bu.i = i;
@@ -102,15 +108,11 @@ namespace Gecode { namespace String {
     forceinline ModEvent
     equate_x(Space& home, ViewX& x, const ViewY& y) {
       int lb = x.min_length(), ub = x.max_length();
-      Region r;
-      { 
-        Matching* m = r.alloc<Matching>(x.size());
-        if (!sweep_x(home, x, y, m))
-          return ME_STRING_FAILED;
-        if (!refine_x(home, x, y, m))
-          return ME_STRING_NONE;
-        r.free();
-      }
+      Matching m[x.size()];
+      if (!sweep_x(home, x, y, m))
+        return ME_STRING_FAILED;
+      if (!refine_x(home, x, y, m))
+        return ME_STRING_NONE;
       if (x.assigned())
         return ME_STRING_VAL;
       else if (x.min_length() > lb || x.max_length() < ub)
