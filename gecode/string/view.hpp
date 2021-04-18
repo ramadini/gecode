@@ -30,8 +30,40 @@ namespace Gecode { namespace String {
       //@{
       /// Test whether iterator is still within the dashed string or done
       forceinline bool operator ()(void) const;
-      /// Move iterator to next block (if possible)
+      /// Move iterator to the beginning of the next block (if possible)
       forceinline void operator ++(void);
+      /// Return the current position
+      Position& operator *(void);
+      //@}
+    };
+    class BwdPushIterator {
+    private:
+      Position pos;
+      const StringView& sv;
+    public:
+      BwdPushIterator(const StringView& x);
+      /// \name Iteration control
+      //@{
+      /// Test whether iterator is still within the dashed string or done
+      forceinline bool operator ()(void) const;
+      /// Move iterator to the beginning of previous block (if possible)
+      forceinline void operator --(void);
+      /// Return the current position
+      Position& operator *(void);
+      //@}
+    };
+    class BwdStretchIterator {
+    private:
+      Position pos;
+      const StringView& sv;
+    public:
+      BwdStretchIterator(const StringView& x);
+      /// \name Iteration control
+      //@{
+      /// Test whether iterator is still within the dashed string or done
+      forceinline bool operator ()(void) const;
+      /// Move iterator to the lower bound of previous block (if possible)
+      forceinline void operator --(void);
       /// Return the current position
       Position& operator *(void);
       //@}
