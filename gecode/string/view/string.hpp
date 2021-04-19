@@ -20,17 +20,17 @@ namespace Gecode { namespace String {
   StringView::SweepFwdIterator::SweepFwdIterator(const StringView& x) 
   : pos(0,0), sv(x) {};
   
-  forceinline bool
-  StringView::SweepFwdIterator::operator ()(void) const {
-    return pos.idx < sv.size();
-  };
-  
   forceinline void
-  StringView::SweepFwdIterator::operator ++(void) {
+  StringView::SweepFwdIterator::next(void) {
     if (pos.idx >= sv.size())
       return;
     pos.idx++;
     pos.off = 0;
+  };
+  
+  forceinline bool
+  StringView::SweepFwdIterator::operator ()(void) const {
+    return pos.idx < sv.size();
   };
   
   forceinline Position& 
@@ -45,17 +45,17 @@ namespace Gecode { namespace String {
     pos.off = sv[n].ub();
   };
   
-  forceinline bool
-  StringView::PushBwdIterator::operator ()(void) const {
-    return pos.idx >= 0;
-  };
-  
   forceinline void
-  StringView::PushBwdIterator::operator --(void) {
+  StringView::PushBwdIterator::next(void) {
     if (pos.idx <= 0)
       return;
     pos.idx--;
     pos.off = pos.idx >= 0 ? sv[pos.idx].ub() : -1;
+  };
+  
+  forceinline bool
+  StringView::PushBwdIterator::operator ()(void) const {
+    return pos.idx >= 0;
   };
   
   forceinline Position& 
@@ -69,17 +69,17 @@ namespace Gecode { namespace String {
     pos = Position(n, sv[n].lb());
   };
   
-  forceinline bool
-  StringView::StretchBwdIterator::operator ()(void) const {
-    return pos.idx >= 0;
-  };
-  
   forceinline void
-  StringView::StretchBwdIterator::operator --(void) {
+  StringView::StretchBwdIterator::next(void) {
     if (pos.idx <= 0)
       return;
     pos.idx--;
     pos.off = pos.idx >= 0 ? sv[pos.idx].lb() : -1;
+  };
+  
+  forceinline bool
+  StringView::StretchBwdIterator::operator ()(void) const {
+    return pos.idx >= 0;
   };
   
   forceinline Position& 

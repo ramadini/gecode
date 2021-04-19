@@ -97,7 +97,7 @@ namespace Gecode { namespace String {
       }
       x.normalize(home);
       return true;
-    } 
+    }
     
     /// TODO:
     template <class ViewY>
@@ -111,7 +111,7 @@ namespace Gecode { namespace String {
           return *it;
         const Block& by;
         if (bx.baseDisjoint(by)) {
-          it++;
+          it.next();
           if (by.lb() > 0) {
             p = *it;
             k = by.lb();
@@ -121,7 +121,34 @@ namespace Gecode { namespace String {
           return p;
         else {
           k -= by.ub() - it->off;
-          it++;
+          it.next();
+        }
+      }
+      return p;
+    };
+    /// TODO:
+    template <class ViewY>
+    forceinline Position
+    push_bwd(const Block& bx, const ViewY& y,
+             typename ViewY::PushBwdIterator& it) {
+      Position p = *it;
+      int k = it->lb();
+      while (k > 0) {
+        if (!it())
+          return *it;
+        const Block& by;
+        if (bx.baseDisjoint(by)) {
+          it.next();
+          if (by.lb() > 0) {
+            p = *it;
+            k = by.lb();
+          }
+        }
+        else if (k <= by.ub() - it->off)
+          return p;
+        else {
+          k -= by.ub() - it->off;
+          it.next();
         }
       }
       return p;
@@ -136,7 +163,7 @@ namespace Gecode { namespace String {
         const Block& by = y[it->idx];
         int l = by.lb() - it->off;
         if (l <= 0)
-          it++;
+          it.next();
         else if (bx.baseDisjoint(by))
           return;
         else if (k < l) {
@@ -145,7 +172,7 @@ namespace Gecode { namespace String {
         }
         else {
           k -= l;
-          it++;
+          it.next();
         }
       }
     };
@@ -159,7 +186,7 @@ namespace Gecode { namespace String {
         const Block& by = y[it->idx];
         int l = by.lb();
         if (l == 0)
-          it--;
+          it.next();
         else if (bx.baseDisjoint(by))
           return;
         else if (k < l) {
@@ -168,7 +195,7 @@ namespace Gecode { namespace String {
         }
         else {
           k -= l;
-          it--;
+          it.next();
         } 
       }
     };

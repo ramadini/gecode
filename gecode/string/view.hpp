@@ -28,10 +28,10 @@ namespace Gecode { namespace String {
       SweepFwdIterator(const StringView& x);
       /// \name Iteration control
       //@{
+      /// Move iterator to the beginning of the next block (if possible)
+      forceinline void next(void);
       /// Test whether iterator is still within the dashed string or done
       forceinline bool operator ()(void) const;
-      /// Move iterator to the beginning of the next block (if possible)
-      forceinline void operator ++(void);
       /// Return the current position
       Position& operator *(void);
       //@}
@@ -44,10 +44,10 @@ namespace Gecode { namespace String {
       PushBwdIterator(const StringView& x);
       /// \name Iteration control
       //@{
+      /// Move iterator to the beginning of previous block (if possible)
+      forceinline void next(void);
       /// Test whether iterator is still within the dashed string or done
       forceinline bool operator ()(void) const;
-      /// Move iterator to the beginning of previous block (if possible)
-      forceinline void operator --(void);
       /// Return the current position
       Position& operator *(void);
       //@}
@@ -60,10 +60,10 @@ namespace Gecode { namespace String {
       StretchBwdIterator(const StringView& x);
       /// \name Iteration control
       //@{
-      /// Test whether iterator is still within the dashed string or done
-      forceinline bool operator ()(void) const;
       /// Move iterator to the lower bound of previous block (if possible)
-      forceinline void operator --(void);
+      forceinline void next(void);
+      /// Test whether iterator is still within the dashed string or done
+      forceinline bool operator ()(void) const;      
       /// Return the current position
       Position& operator *(void);
       //@}
