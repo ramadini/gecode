@@ -156,6 +156,18 @@ namespace Gecode { namespace String {
   class ConstStringView : public ConstView<StringView> {
     // TODO:
   };
+  
+  class ReverseView : public StringView {
+    
+    class SweepFwdIterator   : public StringView::SweepFwdIterator {};
+    class PushBwdIterator    : public StringView::PushBwdIterator {};
+    class StretchBwdIterator : public StringView::StretchBwdIterator {};
+    
+    SweepFwdIterator sweep_fwd_iterator(void);
+    PushBwdIterator push_bwd_iterator(void);
+    StretchBwdIterator stretch_bwd_iterator(void);
+    
+  };
 
 }}
 

@@ -99,14 +99,47 @@ namespace Gecode { namespace String {
       return true;
     } 
     
+    /// TODO:
+    template <class ViewY>
+    forceinline void
+    stretch_fwd(const Block& bx, const ViewY& y, typename ViewY::SweepFwdIterator it) {};
+    template <class ViewY>
+    forceinline void
+    stretch_bwd(const Block& bx, const ViewY& y, typename ViewY::StretchBwdIterator it) {};
+    
+    
+    /// TODO:
+    template <class ViewX, class ViewY>
+    forceinline bool
+    init_x(Space& home, ViewX& x, const ViewY& y, Matching m[]) {
+      typename ViewY::SweepFwdIterator fwd_it = x.sweep_fwd_iterator();
+      int n = x.size();
+      for (int i = 0; i < n; ++i) {
+        fwd_it = stretch_fwd(x[i], y, fwd_it);
+        m[i].LEP = *fwd_it;
+      }
+      if (m[n-1].LEP < Position(n,0))
+        return false;
+      typename ViewY::StretchBwdIterator bwd_it = x.stretch_bwd_iterator();
+      for (int i = n-1; i >= 0; --i) {
+        bwd_it = stretch_bwd(x[i], y, bwd_it);
+        m[i].ESP = *bwd_it;
+      }
+      return m[0].ESP >= Position(0,0);
+    }
+    
+    /// TODO:
     template <class ViewX, class ViewY>
     forceinline bool
     sweep_x(Space& home, ViewX& x, const ViewY& y, Matching m[]) {
+      if (!init_x(home, x, y))
+        return false;
       //TODO:
       refine_x(home, x, y, m);
       return true;
     }
-     
+    
+    /// TODO: 
     template <class ViewX, class ViewY>
     forceinline ModEvent
     equate_x(Space& home, ViewX& x, const ViewY& y) {

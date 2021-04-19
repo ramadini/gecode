@@ -55,7 +55,7 @@ namespace Gecode { namespace String {
     if (pos.idx <= 0)
       return;
     pos.idx--;
-    pos.off = pos.idx >= 0 ? sv[pos.idx].ub() : 0;
+    pos.off = pos.idx >= 0 ? sv[pos.idx].ub() : -1;
   };
   
   forceinline Position& 
@@ -79,7 +79,7 @@ namespace Gecode { namespace String {
     if (pos.idx <= 0)
       return;
     pos.idx--;
-    pos.off = pos.idx >= 0 ? sv[pos.idx].lb() : 0;
+    pos.off = pos.idx >= 0 ? sv[pos.idx].lb() : -1;
   };
   
   forceinline Position& 
