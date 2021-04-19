@@ -104,32 +104,48 @@ namespace Gecode { namespace String {
     forceinline typename ViewY::SweepFwdIterator
     stretch_fwd(const Block& bx, const ViewY& y,
                 typename ViewY::SweepFwdIterator it) {
-      int k = bx.ub(), n = y.size();
+      int k = bx.ub();
       while (it()) {
         const Block& by = y[it->idx];
-        int m = by.lb() - it->off; // We must consume at least m chars.
-        if (m <= 0)
+        int l = by.lb() - it->off;
+        if (l <= 0)
           it++;
         else if (bx.baseDisjoint(by))
           break;
-        else if (k < m) {
+        else if (k < l) {
           it->off += k;
           break;
         }
         else {
-          k -= m;
+          k -= l;
           it++;
         }
       }
       return it;
     };
-    
-    
+    /// TODO:
     template <class ViewY>
     forceinline typename ViewY::StretchBwdIterator
     stretch_bwd(const Block& bx, const ViewY& y,
                 typename ViewY::StretchBwdIterator it) {
-      //
+      int k = bx.ub();
+      while (it()) {
+        const Block& by = y[it->idx];
+        int l = by.lb();
+        if (l == 0)
+          it--;
+        else if (bx.baseDisjoint(by))
+          break;
+        else if (k < l) {
+          it->off -= k;
+          break;
+        }
+        else {
+          k -= l;
+          it--;
+        } 
+      }
+      return it;
     };
     
     
