@@ -64,142 +64,91 @@ namespace Gecode { namespace String {
 
 namespace Gecode { namespace String {
  
-    // FIXME: Maybe define a namespace for equate-based functions?
-    
-    // Add m blocks to x, according to the unfoldings array.
-    template <class ViewX>
-    void unfold(ViewX x, BlockUnfoldings unfoldings, int m) {
-      //
+  // FIXME: Maybe define a namespace for equate-based functions?
+  
+  // Add m blocks to x, according to the unfoldings array.
+  template <class ViewX>
+  void unfold(ViewX x, BlockUnfoldings unfoldings, int m) {
+    //
+  }
+  
+  
+  /// Possibly refines x[i] according to its matching region m[i] in y. 
+  /// It returns true iff at least a block has been refined.
+  template <class ViewX, class ViewY>
+  bool refine_x(Space& home, ViewX& x, const ViewY& y, Matching m[]) {
+    //TODO:
+    { 
+      // FIXME: Just playing around.
+      BlockUnfoldings unfoldings;
+      int m = 0;
+      for (int i = 0; i < x.size(); ++i) {
+        if (1) {
+          BlockUnfold bu;
+          bu.b = {Block(), Block(home), Block(home, 1, 2)};
+          bu.b[0].update(home, x[2]);
+          bu.n = 5;
+          bu.i = i;
+          m++;
+        }
+      }
+      if (m > 0)
+        unfold(x, unfoldings, m);
     }
-    
-    
-    /// Possibly refines x[i] according to its matching region m[i] in y. 
-    /// It returns true iff at least a block has been refined.
-    template <class ViewX, class ViewY>
-    bool refine_x(Space& home, ViewX& x, const ViewY& y, Matching m[]) {
-      //TODO:
-      { 
-        // FIXME: Just playing around.
-        BlockUnfoldings unfoldings;
-        int m = 0;
-        for (int i = 0; i < x.size(); ++i) {
-          if (1) {
-            BlockUnfold bu;
-            bu.b = {Block(), Block(home), Block(home, 1, 2)};
-            bu.b[0].update(home, x[2]);
-            bu.n = 5;
-            bu.i = i;
-            m++;
-          }
+    x.normalize(home);
+    return true;
+  }
+  
+  /// TODO:
+  template <class IterY>
+  forceinline Position
+  push(const Block& bx, IterY& it) {
+    Position p = *it;
+    int k = it->lb();
+    while (k > 0) {
+      if (!it())
+        return *it;
+      const Block& by;
+      if (bx.baseDisjoint(by)) {
+        it.next();
+        if (by.lb() > 0) {
+          p = *it;
+          k = by.lb();
         }
-        if (m > 0)
-          unfold(x, unfoldings, m);
       }
-      x.normalize(home);
-      return true;
+      else if (k <= by.ub() - it->off)
+        return p;
+      else {
+        k -= by.ub() - it->off;
+        it.next();
+      }
     }
-    
-    /// TODO:
-    template <class ViewY>
-    forceinline Position
-    push_fwd(const Block& bx, const ViewY& y,
-             typename ViewY::SweepFwdIterator& it) {
-      Position p = *it;
-      int k = it->lb();
-      while (k > 0) {
-        if (!it())
-          return *it;
-        const Block& by;
-        if (bx.baseDisjoint(by)) {
-          it.next();
-          if (by.lb() > 0) {
-            p = *it;
-            k = by.lb();
-          }
-        }
-        else if (k <= by.ub() - it->off)
-          return p;
-        else {
-          k -= by.ub() - it->off;
-          it.next();
-        }
+    return p;
+  };
+  
+  /// TODO:
+  template <bool fwd, class IterY>
+  forceinline void
+  stretch(const Block& bx, IterY& it) {
+    int k = bx.ub();
+    while (it()) {
+      const Block& by = *it;
+      int l = by.lb();
+      if (l == 0)
+        it.next();
+      else if (bx.baseDisjoint(by))
+        return;
+      else if (k < l) {
+        fwd ? it->off += k : it->off -= k;
+        return;
       }
-      return p;
-    };
-    /// TODO:
-    template <class ViewY>
-    forceinline Position
-    push_bwd(const Block& bx, const ViewY& y,
-             typename ViewY::PushBwdIterator& it) {
-      Position p = *it;
-      int k = it->lb();
-      while (k > 0) {
-        if (!it())
-          return *it;
-        const Block& by;
-        if (bx.baseDisjoint(by)) {
-          it.next();
-          if (by.lb() > 0) {
-            p = *it;
-            k = by.lb();
-          }
-        }
-        else if (k <= by.ub() - it->off)
-          return p;
-        else {
-          k -= by.ub() - it->off;
-          it.next();
-        }
-      }
-      return p;
-    };
-    /// TODO:
-    template <class ViewY>
-    forceinline void
-    stretch_fwd(const Block& bx, const ViewY& y,
-                typename ViewY::SweepFwdIterator& it) {
-      int k = bx.ub();
-      while (it()) {
-        const Block& by = y[it->idx];
-        int l = by.lb() - it->off;
-        if (l <= 0)
-          it.next();
-        else if (bx.baseDisjoint(by))
-          return;
-        else if (k < l) {
-          it->off += k;
-          return;
-        }
-        else {
-          k -= l;
-          it.next();
-        }
-      }
-    };
-    /// TODO:
-    template <class ViewY>
-    forceinline void
-    stretch_bwd(const Block& bx, const ViewY& y,
-                typename ViewY::StretchBwdIterator& it) {
-      int k = bx.ub();
-      while (it()) {
-        const Block& by = y[it->idx];
-        int l = by.lb();
-        if (l == 0)
-          it.next();
-        else if (bx.baseDisjoint(by))
-          return;
-        else if (k < l) {
-          it->off -= k;
-          return;
-        }
-        else {
-          k -= l;
-          it.next();
-        } 
-      }
-    };
-    
+      else {
+        k -= l;
+        it.next();
+      } 
+    }
+  };
+  
 //    /// TODO:
 //    template <class ViewX, class ViewY>
 //    pushESP(const ViewX& x, const ViewY& y, int i, Matching m[]) {
@@ -225,14 +174,14 @@ namespace Gecode { namespace String {
       typename ViewY::SweepFwdIterator fwd_it = x.sweep_fwd_iterator();
       int n = x.size();
       for (int i = 0; i < n; ++i) {
-        stretch_fwd(x[i], y, fwd_it);
+        stretch<true,ViewY::SweepFwdIterator>(x[i], fwd_it);
         m[i].LEP = *fwd_it;
       }
       if (m[n-1].LEP < Position(n,0))
         return false;
       typename ViewY::StretchBwdIterator bwd_it = x.stretch_bwd_iterator();
       for (int i = n-1; i >= 0; --i) {
-        stretch_bwd(x[i], y, bwd_it);
+        stretch<false,ViewY::StretchBwdIterator>(x[i], bwd_it);
         m[i].ESP = *bwd_it;
       }
       return m[0].ESP >= Position(0,0);
