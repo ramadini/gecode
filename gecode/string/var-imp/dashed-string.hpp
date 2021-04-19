@@ -328,26 +328,21 @@ namespace Gecode { namespace String {
   }
 
   forceinline
-  CharSet::CharSet(Space& home) {
-    Set::LUBndSet(home, 0, MAX_ALPHABET_SIZE-1);
-  }
+  CharSet::CharSet(Space& home) : Set::LUBndSet(home, 0, MAX_ALPHABET_SIZE-1) {}
 
   forceinline
-  CharSet::CharSet(Space& home, int a) {
+  CharSet::CharSet(Space& home, int a) : Set::LUBndSet(home, a, a) {
     Limits::check_alphabet(a, "CharSet::CharSet");
-    Set::LUBndSet(home, a, a);
   }
 
   forceinline
-  CharSet::CharSet(Space& home, int a, int b) {
-    Limits::check_alphabet(a, b, "CharSet::CharSet");
-    Set::LUBndSet(home, a, b);
+  CharSet::CharSet(Space& home, int a, int b) : Set::LUBndSet(home, a, b) {
+    Limits::check_alphabet(a, b, "CharSet::CharSet");    
   }
 
   forceinline
-  CharSet::CharSet(Space& home, const IntSet& S) {
+  CharSet::CharSet(Space& home, const IntSet& S) : Set::LUBndSet(home, S) {
     Limits::check_alphabet(S, "CharSet::CharSet");
-    Set::LUBndSet(home, S);
   }
   
   forceinline bool
@@ -415,10 +410,9 @@ namespace Gecode { namespace String {
     Gecode::Set::BndSetRanges i(set);
     os << "{";
     while (i()) {
-      std::string lb = int2str(i.min()), ub = int2str(i.max());
-      os << lb;
-      if (lb < ub)
-        os << ".." << ub;
+      os << int2str(i.min());
+      if (i.min() < i.max())
+        os << ".." << int2str(i.max());
       ++i;
       if (i())
         os << ",";
