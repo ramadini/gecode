@@ -20,12 +20,12 @@ namespace Gecode { namespace String {
     using VarImpView<StringVar>::x;
     
   public:
-    class FwdPosIterator {
+    class SweepFwdIterator {
     private:
       Position pos;
       const StringView& sv;
     public:
-      FwdPosIterator(const StringView& x);
+      SweepFwdIterator(const StringView& x);
       /// \name Iteration control
       //@{
       /// Test whether iterator is still within the dashed string or done
@@ -36,12 +36,12 @@ namespace Gecode { namespace String {
       Position& operator *(void);
       //@}
     };
-    class BwdPushIterator {
+    class PushBwdIterator {
     private:
       Position pos;
       const StringView& sv;
     public:
-      BwdPushIterator(const StringView& x);
+      PushBwdIterator(const StringView& x);
       /// \name Iteration control
       //@{
       /// Test whether iterator is still within the dashed string or done
@@ -52,12 +52,12 @@ namespace Gecode { namespace String {
       Position& operator *(void);
       //@}
     };
-    class BwdStretchIterator {
+    class StretchBwdIterator {
     private:
       Position pos;
       const StringView& sv;
     public:
-      BwdStretchIterator(const StringView& x);
+      StretchBwdIterator(const StringView& x);
       /// \name Iteration control
       //@{
       /// Test whether iterator is still within the dashed string or done
@@ -131,8 +131,9 @@ namespace Gecode { namespace String {
     ModEvent lengthIn(Space& home, int l, int u);
     //@}
     
-    //TODO:
-    FwdPosIterator begin(void) { return FwdPosIterator(*this); }
+    SweepFwdIterator sweep_fwd_iterator(void);
+    PushBwdIterator push_bwd_iterator(void);
+    StretchBwdIterator stretch_bwd_iterator(void);
     
   };
   /**

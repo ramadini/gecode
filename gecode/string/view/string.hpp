@@ -17,16 +17,16 @@ namespace Gecode { namespace String {
 
 namespace Gecode { namespace String {
 
-  StringView::FwdPosIterator::FwdPosIterator(const StringView& x) 
+  StringView::SweepFwdIterator::SweepFwdIterator(const StringView& x) 
   : pos(0,0), sv(x) {};
   
   forceinline bool
-  StringView::FwdPosIterator::operator ()(void) const {
+  StringView::SweepFwdIterator::operator ()(void) const {
     return pos.idx < sv.size();
   };
   
   forceinline void
-  StringView::FwdPosIterator::operator ++(void) {
+  StringView::SweepFwdIterator::operator ++(void) {
     if (pos.idx >= sv.size())
       return;
     pos.idx++;
@@ -34,11 +34,11 @@ namespace Gecode { namespace String {
   };
   
   forceinline Position& 
-  StringView::FwdPosIterator::operator *(void) {
+  StringView::SweepFwdIterator::operator *(void) {
     return pos;
   }
   
-  StringView::BwdPushIterator::BwdPushIterator(const StringView& x) 
+  StringView::PushBwdIterator::PushBwdIterator(const StringView& x) 
   : sv(x) {
     int n = sv.size() - 1;
     pos.idx = n;
@@ -46,12 +46,12 @@ namespace Gecode { namespace String {
   };
   
   forceinline bool
-  StringView::BwdPushIterator::operator ()(void) const {
+  StringView::PushBwdIterator::operator ()(void) const {
     return pos.idx >= 0;
   };
   
   forceinline void
-  StringView::BwdPushIterator::operator --(void) {
+  StringView::PushBwdIterator::operator --(void) {
     if (pos.idx <= 0)
       return;
     pos.idx--;
@@ -59,23 +59,23 @@ namespace Gecode { namespace String {
   };
   
   forceinline Position& 
-  StringView::BwdPushIterator::operator *(void) { 
+  StringView::PushBwdIterator::operator *(void) { 
     return pos;
   }
   
-  StringView::BwdStretchIterator::BwdStretchIterator(const StringView& x) 
+  StringView::StretchBwdIterator::StretchBwdIterator(const StringView& x) 
   : sv(x) {
     int n = sv.size() - 1;
     pos = Position(n, sv[n].lb());
   };
   
   forceinline bool
-  StringView::BwdStretchIterator::operator ()(void) const {
+  StringView::StretchBwdIterator::operator ()(void) const {
     return pos.idx >= 0;
   };
   
   forceinline void
-  StringView::BwdStretchIterator::operator --(void) {
+  StringView::StretchBwdIterator::operator --(void) {
     if (pos.idx <= 0)
       return;
     pos.idx--;
@@ -83,7 +83,7 @@ namespace Gecode { namespace String {
   };
   
   forceinline Position& 
-  StringView::BwdStretchIterator::operator *(void) {
+  StringView::StretchBwdIterator::operator *(void) {
     return pos;
   }
   
@@ -101,7 +101,20 @@ namespace Gecode { namespace String {
     return x->operator[](i);
   }
   
-//  TODO: ModEvent
+  forceinline StringView::SweepFwdIterator
+  StringView::sweep_fwd_iterator(void) {
+    return SweepFwdIterator(*this);
+  }
+  forceinline StringView::PushBwdIterator
+  StringView::push_bwd_iterator(void) {
+    return PushBwdIterator(*this);
+  }
+  forceinline StringView::StretchBwdIterator
+  StringView::stretch_bwd_iterator(void) {
+    return StretchBwdIterator(*this);
+  }
+  
+//  TODO? ModEvent
 //  StringView::equate(const DashedString& d) {
 //    return x->equate(d);
 //  }
