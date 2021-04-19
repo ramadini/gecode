@@ -101,11 +101,36 @@ namespace Gecode { namespace String {
     
     /// TODO:
     template <class ViewY>
-    forceinline void
-    stretch_fwd(const Block& bx, const ViewY& y, typename ViewY::SweepFwdIterator it) {};
+    forceinline typename ViewY::SweepFwdIterator
+    stretch_fwd(const Block& bx, const ViewY& y,
+                typename ViewY::SweepFwdIterator it) {
+      int k = bx.ub(), n = y.size();
+      while (it()) {
+        const Block& by = y[it->idx];
+        int m = by.lb() - it->off; // We must consume at least m chars.
+        if (m <= 0)
+          it++;
+        else if (bx.baseDisjoint(by))
+          break;
+        else if (k < m) {
+          it->off += k;
+          break;
+        }
+        else {
+          k -= m;
+          it++;
+        }
+      }
+      return it;
+    };
+    
+    
     template <class ViewY>
-    forceinline void
-    stretch_bwd(const Block& bx, const ViewY& y, typename ViewY::StretchBwdIterator it) {};
+    forceinline typename ViewY::StretchBwdIterator
+    stretch_bwd(const Block& bx, const ViewY& y,
+                typename ViewY::StretchBwdIterator it) {
+      //
+    };
     
     
     /// TODO:
