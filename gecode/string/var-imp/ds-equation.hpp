@@ -101,7 +101,7 @@ namespace Gecode { namespace String {
     
     /// TODO:
     template <class ViewY>
-    forceinline typename ViewY::SweepFwdIterator
+    forceinline void
     stretch_fwd(const Block& bx, const ViewY& y,
                 typename ViewY::SweepFwdIterator it) {
       int k = bx.ub();
@@ -111,21 +111,20 @@ namespace Gecode { namespace String {
         if (l <= 0)
           it++;
         else if (bx.baseDisjoint(by))
-          break;
+          return;
         else if (k < l) {
           it->off += k;
-          break;
+          return;
         }
         else {
           k -= l;
           it++;
         }
       }
-      return it;
     };
     /// TODO:
     template <class ViewY>
-    forceinline typename ViewY::StretchBwdIterator
+    forceinline void
     stretch_bwd(const Block& bx, const ViewY& y,
                 typename ViewY::StretchBwdIterator it) {
       int k = bx.ub();
@@ -135,19 +134,35 @@ namespace Gecode { namespace String {
         if (l == 0)
           it--;
         else if (bx.baseDisjoint(by))
-          break;
+          return;
         else if (k < l) {
           it->off -= k;
-          break;
+          return;
         }
         else {
           k -= l;
           it--;
         } 
       }
-      return it;
     };
     
+//    /// TODO:
+//    template <class ViewX, class ViewY>
+//    pushESP(const ViewX& x, const ViewY& y, int i, Matching m[]) {
+//      if (x[i].lb() == 0) {
+//        if (i < n-1 && m.ESP[i+1] < m.ESP[i])
+//          m.ESP[i+1] = m.ESP[i];
+//        return;
+//      }
+//      .... es = push_fwd(x[i], y, m.ESP[i]);
+//      ls = m.ESP[i]
+//      if (!es())
+//        _|_
+//      if (i < n && m.ESP[i+1] < ls)
+//        m.ESP[i+1] = le;
+//      if (...
+//        
+//    }
     
     /// TODO:
     template <class ViewX, class ViewY>
@@ -156,14 +171,14 @@ namespace Gecode { namespace String {
       typename ViewY::SweepFwdIterator fwd_it = x.sweep_fwd_iterator();
       int n = x.size();
       for (int i = 0; i < n; ++i) {
-        fwd_it = stretch_fwd(x[i], y, fwd_it);
+        stretch_fwd(x[i], y, fwd_it);
         m[i].LEP = *fwd_it;
       }
       if (m[n-1].LEP < Position(n,0))
         return false;
       typename ViewY::StretchBwdIterator bwd_it = x.stretch_bwd_iterator();
       for (int i = n-1; i >= 0; --i) {
-        bwd_it = stretch_bwd(x[i], y, bwd_it);
+        stretch_bwd(x[i], y, bwd_it);
         m[i].ESP = *bwd_it;
       }
       return m[0].ESP >= Position(0,0);
@@ -175,7 +190,7 @@ namespace Gecode { namespace String {
     sweep_x(Space& home, ViewX& x, const ViewY& y, Matching m[]) {
       if (!init_x(home, x, y))
         return false;
-      //TODO:
+      //TODO: pushESP/pushLEP
       refine_x(home, x, y, m);
       return true;
     }
