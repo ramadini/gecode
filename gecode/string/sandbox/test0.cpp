@@ -62,13 +62,18 @@ public:
           b6(*this, CharSet(*this, 'G', 'H'), 2, 5);
     cerr << "log(||" << b0 << "||) = " << b0.logdim() << "\n";
     cerr << "log(||" << b1 << "||) = " << b1.logdim() << "\n";
-//    assert (s0.empty() && s1.size() == MAX_ALPHABET_SIZE);
+    assert (b0.isNull() && b1.isFixed());
     cerr << "log(||" << b2 << "||) = " << b2.logdim() << "\n";
     cerr << "log(||" << b3 << "||) = " << b3.logdim() << "\n";
-//    assert (s2.size() == 8 && s3.size() == 5);
+    assert (b2.isFixed() && b3.isUniverse());
     cerr << "log(||" << b4 << "||) = " << b4.logdim() << "\n";
     cerr << "log(||" << b5 << "||) = " << b5.logdim() << "\n";
     cerr << "log(||" << b6 << "||) = " << b6.logdim() << "\n";
+    assert (b5.baseEquals(b0) && b4.contains(b1));
+    b0.update(*this, b2);
+    assert (b0.lb() == 32 && b5.isNull() && b4.baseDisjoint(b6));
+    // TODO: contains, val, fix, lb, ub, baseIntersect, baseExclude, nullify,
+    // updateCard
   }
   
   
