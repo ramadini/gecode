@@ -636,14 +636,14 @@ namespace Gecode { namespace String {
   Block::update(Space& home, const Block& b) {
     l = b.l;
     u = b.u;
-    if (S == b.S)
+    if (&S == &b.S)
       return;
-    if (b.isFixed()) {
+    if (b.isFixed()) { 
       nullifySet(home);
       return;
     }
     if (isFixed())
-      S = std::unique_ptr<CharSet>();
+      S = std::unique_ptr<CharSet>(new CharSet());
     S->update(home, *b.S);
     assert(isOK());
   }
@@ -814,7 +814,7 @@ namespace Gecode { namespace String {
   DashedString::val() const {
     if (!isFixed())
       throw IllegalOperation("DashedString::val");
-    std::vector<int> v(lb);
+    std::vector<int> v;
     for (int i = 0; i < n; ++i) {
       std::vector<int> val_i = x[i].val();
       v.insert(v.end(), val_i.begin(), val_i.end());

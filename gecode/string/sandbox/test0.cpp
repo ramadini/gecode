@@ -102,6 +102,14 @@ public:
     }
   }
   
+  void test03() {
+    cerr << "\n*** Test 03 ***" << endl;
+    DashedString d0(*this), d1(*this, Block('r', 3));
+    cerr << "log(||" << d0 << "||) = " << d0.logdim() << "\n";
+    cerr << "log(||" << d1 << "||) = " << d1.logdim() << "\n";
+    assert (d0.isUniverse() && d0[0].isUniverse() && d1.isFixed());
+  }
+  
   
   
 };
@@ -110,5 +118,9 @@ int main() {
   StrTest* home = new StrTest();
   home->test01();
   home->test02();
+  home->test03();
   return 0;
 }
+
+
+
