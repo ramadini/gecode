@@ -83,9 +83,23 @@ public:
       b4.lb(*this, 5);
       b4.ub(*this, 5);
       assert (b4.val() == std::vector<int>({'a', 'a', 'a', 'a', 'a'}));
+      Gecode::Set::SetDelta d;
+      ps->include(*this, 'H', 'H', d);
+      b6.baseExclude(*this, *ps);
+      bool ok = false;
+      try {
+        b6.lb(*this, 1);
+      }
+      catch (const IllegalOperation& e) {
+        cerr << e.what() << '\n';
+        ok = true;
+        b6.updateCard(*this, 3, 4);
+      }
+      assert (ok);
+      b3.nullify(*this);
+      cerr << b3 << ' ' << b4 << ' ' << b6 << endl;
       r.free();
     }
-    // TODO: baseIntersect, baseExclude, nullify, updateCard
   }
   
   

@@ -689,11 +689,8 @@ namespace Gecode { namespace String {
 
   forceinline std::ostream&
   operator<<(std::ostream& os, const Block& b) {
-    if (b.isFixed()) {  
-      if (b.u > 0)
-        os << int2str(b.l);
-      os << "^(" << b.u << ",";
-    }
+    if (b.isFixed())
+      os << "{" + (b.u > 0 ? int2str(b.l) : "") + "}" << "^(" << b.u << ",";
     else
       os << *b.S << "^(" << b.l << ",";
     os << b.u << ")";
