@@ -110,14 +110,23 @@ public:
     assert (d0.isUniverse() && d0[0].isUniverse() && d1.isFixed());
     Region r;
     {
-      std::vector<Block> b(4);
-      b[0].update(*this, Block(*this, CharSet(*this, IntSet({'B','b'})), 1 ,1));
-      b[1].update(*this, Block(*this, CharSet(*this, IntSet({'o'})), 2, 4));
-      b[2].update(*this, Block('m'));
-      b[3].update(*this, Block(*this, CharSet(*this, IntSet({'!'})), 0, 3));
-      // TODO: Fix this.
+      int n = 8, i = 0;
+      std::vector<Block> b(n);
+      b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'B','b'})), 1 ,1));
+      b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'o'})), 1, 3));
+      b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'o'})), 1, 1));
+      b[i++].update(*this, Block());
+      b[i++].update(*this, Block('m'));
+      b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'!'})), 0, 1));
+      b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'!'})), 0, 0));
+      b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'!'})), 0, 2));
       DashedString d2(*this, b);
+      r.free();
+      cerr << d2 << '\n';
+      assert (d2.min_length() == 4 && d2.size() == 4 && d2.max_length() == 9);
+      assert (d2.logdim() - log(24) < DBL_EPSILON);
     }
+    
   }
   
   

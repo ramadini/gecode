@@ -457,13 +457,14 @@ namespace Gecode { namespace String {
         S = nullptr;
         return;
       case 1:
-        u = ub;
         if (lb == ub) {
           // Fixed block s^n with n=lb=ub.
           l = s.min();
           S = nullptr;
-          return;  
         }
+        else
+          S->update(home, s);
+        return;
       default:
         // General case.        
         if (ub > 0)
@@ -508,7 +509,7 @@ namespace Gecode { namespace String {
       return b.isFixed() ? l == b.l : b.S->size() == 1 && b.S->min() == l;
     if (b.isFixed())
       return S->size() == 1 && S->min() == b.l;
-    return S->disjoint(*b.S);
+    return S->equals(*b.S);
   }
   
   forceinline bool
@@ -649,7 +650,7 @@ namespace Gecode { namespace String {
   
   forceinline void
   Block::updateCard(Space& home, int lb, int ub) {
-    if (l == lb || u == ub)
+    if (l == lb && u == ub)
       return;
     check_length(lb, ub, "Block::updateCard");
     if (lb > ub || (lb > 0 && S->empty()))
@@ -706,23 +707,19 @@ namespace Gecode { namespace String {
   
   forceinline
   DashedString::DashedString(Space& home) 
-  : DynamicArray(home, 1) {
+  : DynamicArray(home, 1), lb(0), ub(MAX_STRING_LENGTH) {
     x[0].update(home, Block(home));
-    lb = 0;
-    ub = MAX_STRING_LENGTH;
   }
   
   forceinline
   DashedString::DashedString(Space& home, const Block& block) 
-  : DynamicArray(home, 1) {
+  : DynamicArray(home, 1), lb(block.lb()), ub(block.ub()) {
     x[0].update(home, block);
-    lb = block.lb();
-    ub = block.ub();
   }
   
   forceinline
   DashedString::DashedString(Space& home, const std::vector<Block>& blocks)
-  : DynamicArray(home, (int) blocks.size()) {
+  : DynamicArray(home, (int) blocks.size()), lb(0), ub(0) {
     bool norm = false;
     for (int i = 0; i < n; ++i) {
       x[i].update(home, blocks[i]);
@@ -740,10 +737,7 @@ namespace Gecode { namespace String {
       }
       norm |= i > 0 && (x[i].isNull() || x[i].baseEquals(x[i-1]));
     }
-    if (norm)
-      normalize(home);
-    else
-      assert(isOK());
+    norm ? normalize(home) : assert(isOK());
   }
 
   forceinline int DashedString::min_length() const { return lb; }
@@ -860,27 +854,30 @@ namespace Gecode { namespace String {
   forceinline void
   DashedString::normalize(Space& home) {
     int newSize = n;
+    int j = -1;
     // 1st pass: determine new size, settle adjacent blocks with same base
-    for (int i = 0; i < n; ) {
+    for (int i = 0; i < n; ++i) {
       if (x[i].isNull()) {
         --newSize;
-        ++i;
         continue;
       }
-      int j = i + 1;  
-      while (j < n && (x[j].isNull() || x[i].baseEquals(x[j]))) {
-        if (!x[j].isNull()) {
-          // This sum may overflow.
-          int u = x[i].ub() + x[j].ub();
-          if (u > MAX_STRING_LENGTH || u < x[i].ub())
-            u = MAX_STRING_LENGTH;
-          x[i].updateCard(home, x[i].lb() + x[j].lb(), u);
-          x[j].nullify(home);
-        }
+      // j is the index of the last encountered non-null block.
+      if (j != -1 && x[i].baseEquals(x[j])) {
+        int u = x[i].ub() + x[j].ub();
+        if (u > MAX_STRING_LENGTH || u < x[i].ub())
+          u = MAX_STRING_LENGTH;
+        x[j].updateCard(home, x[i].lb() + x[j].lb(), u);
+        x[i].nullify(home);
         --newSize;
-        ++j;
       }
-      i = j;
+      else if (j < i - 1) {
+        // x[i] and x[j] have different base, and there is at least a null block
+        // x[k] with j < k < i: 
+        x[++j].update(home, x[i]);
+        x[i].nullify(home);
+      }
+      else
+        j = i;
     }
     // 2nd pass: possibly downsize the dynamic array due to nullification.    
     if (newSize < n) {
@@ -890,40 +887,13 @@ namespace Gecode { namespace String {
           a.free(x+1, n-1);
           n = 1;
         }
-        assert(isOK());
-        return;
       }
-      // k is the index of the last encountered non-null block.
-      int k = -1;
-      for (int i = 0; i < n; ++i) {
-        if (x[i].isNull()) {
-          int j = i + 1;
-          while (j < n && x[j].isNull())
-            j++;          
-          if (j == n)
-            break;
-          // Here x[i] = x[i+1] = ... = x[j-1] = {}^(0,0) != x[j].
-          if (k > -1 && x[k].baseEquals(x[j])) {
-            // Merge x[k] with x[j] if they have the same base.
-            int u = x[k].ub() + x[j].ub();
-            if (u > MAX_STRING_LENGTH || u < x[k].ub())
-              u = MAX_STRING_LENGTH;
-            x[k].updateCard(home, x[k].lb() + x[j].lb(), u);
-            --newSize;
-          }
-          else
-            x[i].update(home, x[j]);
-          x[j].nullify(home);
-          // Now, x[i] != {}^(0,0) = x[i+1] = ... x[j-1] = x[j].
-          i = j;
-        }
-        else
-          k = i;
+      else {
+        // Shrinking the array.
+        a.free(x + newSize, n - newSize);
+        n = newSize;
       }
-      // Shrinking the array.
-      a.free(x + newSize, n - newSize);
-      n = newSize;
-    }    
+    }
     assert(isOK());
   }
   
