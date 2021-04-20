@@ -6,6 +6,14 @@ namespace Gecode { namespace String {
    * Creation of new variable implementations
    *
    */
+
+  forceinline
+  StringVarImp::StringVarImp(Space& home)
+  : StringVarImpBase(home), ds(home) {}
+
+  forceinline
+  StringVarImp::StringVarImp(Space& home, StringVarImp& x)
+  : StringVarImpBase(home, x), ds(home, x.ds) {}
   
   //TODO:
   

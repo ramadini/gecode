@@ -211,6 +211,8 @@ namespace Gecode { namespace String {
     DashedString(Space& home);
     /// Creates a dashed string consisting of one \a block \$
     DashedString(Space& home, const Block& block);
+    /// Creates a dashed string consisting of a copy of \a x \$
+    DashedString(Space& home, const DashedString& x);
     /// Creates a normalized dashed string from \a blocks. 
     /// The following exceptions might be thrown:
     /// - IllegalOperation, if \a blocks is empty
@@ -704,7 +706,7 @@ namespace Gecode { namespace String {
 namespace Gecode { namespace String {
 
   using namespace Limits;
-  
+
   forceinline
   DashedString::DashedString(Space& home) 
   : DynamicArray(home, 1), lb(0), ub(MAX_STRING_LENGTH) {
@@ -715,6 +717,12 @@ namespace Gecode { namespace String {
   DashedString::DashedString(Space& home, const Block& block) 
   : DynamicArray(home, 1), lb(block.lb()), ub(block.ub()) {
     x[0].update(home, block);
+  }
+  
+  forceinline
+  DashedString::DashedString(Space& home, const DashedString& d) 
+  : DynamicArray(home, d.size()) {
+    update(home, d);
   }
   
   forceinline

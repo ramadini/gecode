@@ -133,7 +133,10 @@ public:
     assert (d1.isNull() && d1.val() == std::vector<int>(0));
   }
   
-  
+  void test04() {
+    StringView x(*this);
+    cerr << "\n*** Test 04 ***" << endl;
+  }
   
 };
 
@@ -142,6 +145,7 @@ int main() {
   home->test01();
   home->test02();
   home->test03();
+  home->test04();
   return 0;
 }
 
