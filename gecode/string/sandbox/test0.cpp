@@ -56,7 +56,19 @@ public:
   
   void test02() {
     cerr << "\n*** Test 02 ***" << endl;
-  
+    Block b0, b1('a'), b2(32, ' '), b3(*this),
+          b4(*this, CharSet(*this, IntSet({'a', 'e', 'i', 'o', 'u', 'y'}))),
+          b5(*this, CharSet(*this, 32, 60), 0, 0),
+          b6(*this, CharSet(*this, 'G', 'H'), 2, 5);
+    cerr << "log(||" << b0 << "||) = " << b0.logdim() << "\n";
+    cerr << "log(||" << b1 << "||) = " << b1.logdim() << "\n";
+//    assert (s0.empty() && s1.size() == MAX_ALPHABET_SIZE);
+    cerr << "log(||" << b2 << "||) = " << b2.logdim() << "\n";
+    cerr << "log(||" << b3 << "||) = " << b3.logdim() << "\n";
+//    assert (s2.size() == 8 && s3.size() == 5);
+    cerr << "log(||" << b4 << "||) = " << b4.logdim() << "\n";
+    cerr << "log(||" << b5 << "||) = " << b5.logdim() << "\n";
+    cerr << "log(||" << b6 << "||) = " << b6.logdim() << "\n";
   }
   
   

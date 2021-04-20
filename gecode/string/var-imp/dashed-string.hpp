@@ -70,7 +70,7 @@ namespace Gecode { namespace String {
    
     // FIXME: To save space, each fixed blocks {a}^(n,n) must be encoded with
     // (S=NULL,l=a,u=n). The null block is (S=NULL,l=0,u=0). For each block b
-    // the invariant b.isFixed() <=> b.S == NULL must hold.
+    // the invariant b.isFixed() <=> b.S == nullptr must hold.
     // Each non-const operation on a block must leave it in a consistent and
     // normalized state.
     // Once constructed, a Block can only shrink unless updated with cloning 
@@ -286,14 +286,14 @@ namespace Gecode { namespace String {
   /** 
    * Convert \a x to its string representation according to the character
    * encoding. By default, CHAR_ENCODING=UNSPEC, i.e.:  //FIXME: Change this?
-   * int2str(x) = char(x), if \f$32 \leq x \leq 126\f$ (printable character);
+   * int2str(x) = char(x), if \f$32 \leq x \leq 126\f$ (non-whitespace, printable characters);
    * otherwise, int2str(x) = "<" + std::to_string(x) + ">" 
    */
   std::string int2str(int x);
 
   forceinline std::string 
   int2str_unspec(int x) {
-    return x > 31 && x < 127 ? std::string(1, char(x)) 
+    return x > 32 && x < 127 ? std::string(1, char(x)) 
                              : "<" + std::to_string(x) + ">";
   }
 
@@ -443,7 +443,8 @@ namespace Gecode { namespace String {
   forceinline Block::Block(Space& home, const CharSet& s) 
   : l(0), u(MAX_STRING_LENGTH), S(new CharSet()) { S->update(home, s); };
   
-  forceinline Block::Block(Space& home, const CharSet& s, int lb, int ub) {
+  forceinline Block::Block(Space& home, const CharSet& s, int lb, int ub)
+  : l(lb), u(ub), S(new CharSet()) { 
     check_length(lb, ub, "Block::Block");
     switch (s.size()) {
       case 0:
@@ -451,29 +452,30 @@ namespace Gecode { namespace String {
           throw VariableEmptyDomain("Block::Block");
         // Null block.
         l = u = 0;
-        S = NULL;
+        S = nullptr;
         return;
       case 1:
         u = ub;
         if (lb == ub) {
           // Fixed block s^n with n=lb=ub.
           l = s.min();
-          S = NULL;
+          S = nullptr;
           return;  
         }
       default:
-        // General case.
-        l = lb;
-        S = std::unique_ptr<CharSet>();
-        S->update(home, s);
+        // General case.        
+        if (ub > 0)
+          S->update(home, s);
+        else
+          S = nullptr;
     }
   }
 
-  forceinline int Block::lb() const { return S == NULL ? u : l; }
+  forceinline int Block::lb() const { return S == nullptr ? u : l; }
   forceinline int Block::ub() const { return u; }
   
   forceinline bool Block::isNull()  const { return u == 0; }
-  forceinline bool Block::isFixed() const { return S == NULL; }
+  forceinline bool Block::isFixed() const { return S == nullptr; }
   
   forceinline bool Block::isUniverse() const {
     return l == 0 && u == MAX_STRING_LENGTH && S->isUniverse();
@@ -608,7 +610,7 @@ namespace Gecode { namespace String {
   Block::nullifySet(Space& home) {
     if (S != NULL) {
       S->dispose(home);
-      S = NULL;
+      S = nullptr;
     }
     assert(isOK());
   }
@@ -676,14 +678,13 @@ namespace Gecode { namespace String {
 
   forceinline std::ostream&
   operator<<(std::ostream& os, const Block& b) {
-    os << "{";
     if (b.isFixed()) {  
       if (b.u > 0)
         os << int2str(b.l);
-      os << "}^(" << b.u << ",";
+      os << "^(" << b.u << ",";
     }
     else
-      os << *b.S << "}^(" << b.l << ",";
+      os << *b.S << "^(" << b.l << ",";
     os << b.u << ")";
     return os;
   }
