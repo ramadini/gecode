@@ -129,8 +129,8 @@ public:
     d0.update(*this, DashedString(*this, b));
     assert (d0.contains(d1));
     cerr << d0 << '\n';
-    d0.nullify(*this);
-    assert (d0.isNull() && d0.val() == std::vector<int>(0));
+    d1.nullify(*this);
+    assert (d1.isNull() && d1.val() == std::vector<int>(0));
   }
   
   
