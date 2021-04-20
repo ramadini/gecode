@@ -108,25 +108,29 @@ public:
     cerr << "log(||" << d0 << "||) = " << d0.logdim() << "\n";
     cerr << "log(||" << d1 << "||) = " << d1.logdim() << "\n";
     assert (d0.isUniverse() && d0[0].isUniverse() && d1.isFixed());
-    Region r;
-    {
-      int n = 8, i = 0;
-      std::vector<Block> b(n);
-      b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'B','b'})), 1 ,1));
-      b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'o'})), 1, 3));
-      b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'o'})), 1, 1));
-      b[i++].update(*this, Block());
-      b[i++].update(*this, Block('m'));
-      b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'!'})), 0, 1));
-      b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'!'})), 0, 0));
-      b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'!'})), 0, 2));
-      DashedString d2(*this, b);
-      r.free();
-      cerr << d2 << '\n';
-      assert (d2.min_length() == 4 && d2.size() == 4 && d2.max_length() == 9);
-      assert (d2.logdim() - log(24) < DBL_EPSILON);
-    }
-    
+    assert (d1.val() == std::vector<int>({'r', 'r', 'r'}));
+    int n = 8, i = 0;
+    std::vector<Block> b(n);
+    b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'B','b'})), 1 ,1));
+    b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'o'})), 1, 3));
+    b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'o'})), 1, 1));
+    b[i++].update(*this, Block());
+    b[i++].update(*this, Block('m'));
+    b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'!'})), 0, 1));
+    b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'!'})), 0, 0));
+    b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'!'})), 0, 2));
+    DashedString d2(*this, b);
+    cerr << d2 << '\n';
+    assert (d2.min_length() == 4 && d2.size() == 4 && d2.max_length() == 9);
+    assert (d2.logdim() - log(24) < DBL_EPSILON);
+    b = std::vector<Block>(2);
+    b[0].update(*this, Block(*this, CharSet(*this, 'r','t'), 1 ,3));
+    b[1].update(*this, Block(*this, CharSet(*this, IntSet({'a','d'})), 0 ,2));
+    d0.update(*this, DashedString(*this, b));
+    assert (d0.contains(d1));
+    cerr << d0 << '\n';
+    d0.nullify(*this);
+    assert (d0.isNull() && d0.val() == std::vector<int>(0));
   }
   
   

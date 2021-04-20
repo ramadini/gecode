@@ -830,6 +830,8 @@ namespace Gecode { namespace String {
   
   forceinline void 
   DashedString::update(Space& home, const DashedString& d) {
+    lb = d.lb;
+    ub = d.ub;
     if (d.n <= n) {
       for (int i = 0; i < d.n; ++i)
         x[i].update(home, d[i]);
