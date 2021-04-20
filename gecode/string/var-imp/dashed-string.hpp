@@ -639,8 +639,7 @@ namespace Gecode { namespace String {
   Block::updateCard(Space& home, int lb, int ub) {
     if (l == lb || u == ub)
       return;
-    if (lb < 0 || ub > MAX_STRING_LENGTH)
-      throw OutOfLimits("Block::updateCard");
+    check_length(lb, ub, "Block::updateCard");
     if (lb > ub || (lb > 0 && S->empty()))
       throw VariableEmptyDomain("Block::updateCard");
     if (u == 0)

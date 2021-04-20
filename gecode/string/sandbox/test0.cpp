@@ -34,10 +34,38 @@ public:
     assert ((s4.size() - 1) / 25 == s5.size());
     assert (s1.isUniverse() && s1.contains(s4) && !s4.contains(s3));
     assert (s3.equals(CharSet(*this, 97, 101)) && s3.disjoint(s5));
+    try {
+      CharSet s(*this, IntSet({2, 8, -3, 90}));
+    }
+    catch (const OutOfLimits& e) {
+      cerr << e.what() << '\n';
+      try {
+        CharSet s(*this, IntSet({2, MAX_ALPHABET_SIZE, 3, 90}));
+      }
+      catch (const OutOfLimits& e) {
+        cerr << e.what() << '\n';
+      }
+      catch (...) {
+        assert (0);
+      }
+    }
+    catch (...) {
+      assert (0);
+    }
   }
+  
+  void test02() {
+    cerr << "\n*** Test 02 ***" << endl;
+  
+  }
+  
+  
+  
 };
 
 int main() {
-  (new StrTest())->test01();
+  StrTest* home = new StrTest();
+  home->test01();
+  home->test02();
   return 0;
 }
