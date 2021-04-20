@@ -56,23 +56,24 @@ public:
   
   void test02() {
     cerr << "\n*** Test 02 ***" << endl;
-    Block b0, b1('a'), b2(32, ' '), b3(*this),
+    Block b0, b1('a'), b2(' ', 10), b3(*this),
           b4(*this, CharSet(*this, IntSet({'a', 'e', 'i', 'o', 'u', 'y'}))),
           b5(*this, CharSet(*this, 32, 60), 0, 0),
           b6(*this, CharSet(*this, 'G', 'H'), 2, 5);
     cerr << "log(||" << b0 << "||) = " << b0.logdim() << "\n";
     cerr << "log(||" << b1 << "||) = " << b1.logdim() << "\n";
-    assert (b0.isNull() && b1.isFixed());
+    assert (b0.isNull() && b1.isFixed() && b1.ub() == 1);
     cerr << "log(||" << b2 << "||) = " << b2.logdim() << "\n";
     cerr << "log(||" << b3 << "||) = " << b3.logdim() << "\n";
     assert (b2.isFixed() && b3.isUniverse());
+    for (int v : b2.val()) assert (v == ' ');
     cerr << "log(||" << b4 << "||) = " << b4.logdim() << "\n";
     cerr << "log(||" << b5 << "||) = " << b5.logdim() << "\n";
     cerr << "log(||" << b6 << "||) = " << b6.logdim() << "\n";
     assert (b5.baseEquals(b0) && b4.contains(b1));
     b0.update(*this, b2);
-    assert (b0.lb() == 32 && b5.isNull() && b4.baseDisjoint(b6));
-    // TODO: contains, val, fix, lb, ub, baseIntersect, baseExclude, nullify,
+    assert (b0.lb() == 10 && b5.isNull() && b4.baseDisjoint(b6));
+    // TODO: val, fix, lb, ub, baseIntersect, baseExclude, nullify,
     // updateCard
   }
   

@@ -522,10 +522,7 @@ namespace Gecode { namespace String {
   Block::val() const {
     if (!isFixed())
       throw IllegalOperation("DashedString::val");
-    std::vector<int> v(l);
-    for (int i = 0, a = S->min(); i < l; ++i)
-      v[i] = a;
-    return v;
+    return std::vector<int>(u, l);
   }
   
   forceinline void
