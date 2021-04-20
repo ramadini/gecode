@@ -43,43 +43,24 @@ namespace Gecode { namespace String {
     /// where \f$\alpha = MAX\_ALPHABET\_SIZE, \lambda= MAX\_STRING\_LENGTH\f$
     StringVarImp(Space& home);
     /**
-     * \brief Initialize with block \f$ S^{(0, \lambda)} \f$ 
-     * where \f$\lambda= MAX\_STRING\_LENGTH\f$
-     *
-     * The Gecode::String::OutOfLimits exception is thrown if S is not contained
-     * in [0, MAX\_ALPHABET\_SIZE).
+     * \brief Initialize with block b
      */
-    StringVarImp(Space& home, const IntSet& S);
-    
+    StringVarImp(Space& home, const Block& b);
     /**
-     * \brief Initialize with block \f$ \Sigma^{(l,u)} \f$ 
-     * where \f$\Sigma= [0, MAX\_ALPHABET\_SIZE)\f$
-     *
-     * The following exceptions might be thrown:
-     *  - Gecode::String::VariableEmptyDomain, if l > u.
-     *  - Gecode::String::OutOfLimits, if \f$l < 0 \vee u > MAX\_STRING\_LENGTH\f$
+     * \brief Initialize with dashed string d
      */
-    StringVarImp(Space& home, int l, int u);
-    
-    /**
-     * \brief Initialize with block \f$ S^{(l,u)} \f$
-     *
-     * The following exceptions might be thrown:
-     *  - Gecode::String::VariableEmptyDomain, if l > u.
-     *  - Gecode::String::OutOfLimits, if \f$ S \not\subseteq [0, MAX\_ALPHABET\_SIZE) 
-     *                                 \vee  l < 0 \vee u > MAX\_STRING\_LENGTH\f$
-     */
-    StringVarImp(Space& home, const IntSet& S, int l, int u);
+    StringVarImp(Space& home, const DashedString& d);
     
     //@}
     /// \name Value access
     //@{
     /// Return the minimum length for a string in the variable's domain
-    int lenMin(void) const;
+    int min_length(void) const;
     /// Return the maximum length for a string in the variable's domain
-    int lenMax(void) const;
+    int max_length(void) const;
     /// Returns the number of blocks of the domain
     int size(void) const;
+    
     //@}
 
     /// \name Domain tests

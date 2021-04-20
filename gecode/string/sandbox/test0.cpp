@@ -134,8 +134,10 @@ public:
   }
   
   void test04() {
-    StringView x(*this);
     cerr << "\n*** Test 04 ***" << endl;
+    Block b(*this, CharSet(*this, IntSet({'a', 'e', 'i', 'o', 'u', 'y'})));
+    StringVar x(*this), y(*this, b);
+    equate_x<StringView,StringView>(*this, x, y);
   }
   
 };

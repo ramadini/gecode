@@ -76,26 +76,8 @@ namespace Gecode { namespace String {
   /// Possibly refines x[i] according to its matching region m[i] in y. 
   /// It returns true iff at least a block has been refined.
   template <class ViewX, class ViewY>
-  bool refine_x(Space& home, ViewX& x, const ViewY& y, Matching m[]) {
-    //TODO:
-    { 
-      // FIXME: Just playing around.
-      BlockUnfoldings unfoldings;
-      int m = 0;
-      for (int i = 0; i < x.size(); ++i) {
-        if (1) {
-          BlockUnfold bu;
-          bu.b = {Block(), Block(home), Block(home, 1, 2)};
-          bu.b[0].update(home, x[2]);
-          bu.n = 5;
-          bu.i = i;
-          m++;
-        }
-      }
-      if (m > 0)
-        unfold(x, unfoldings, m);
-    }
-    x.normalize(home);
+  bool refine_x(Space& home, ViewX x, const ViewY& y, Matching m[]) {
+
     return true;
   }
   
@@ -132,7 +114,7 @@ namespace Gecode { namespace String {
   stretch(const Block& bx, IterY& it) {
     int k = bx.ub();
     while (it()) {
-      const Block& by = *it;
+      const Block& by(*it);
       int l = by.lb();
       if (l == 0)
         it.next();
@@ -170,18 +152,18 @@ namespace Gecode { namespace String {
     /// TODO:
     template <class ViewX, class ViewY>
     forceinline bool
-    init_x(Space& home, ViewX& x, const ViewY& y, Matching m[]) {
+    init_x(Space& home, ViewX x, const ViewY& y, Matching m[]) {
       typename ViewY::SweepFwdIterator fwd_it = x.sweep_fwd_iterator();
       int n = x.size();
       for (int i = 0; i < n; ++i) {
-        stretch<true,ViewY::SweepFwdIterator>(x[i], fwd_it);
+        stretch<true, typename ViewY::SweepFwdIterator>(x[i], fwd_it);
         m[i].LEP = *fwd_it;
       }
       if (m[n-1].LEP < Position(n,0))
         return false;
       typename ViewY::StretchBwdIterator bwd_it = x.stretch_bwd_iterator();
       for (int i = n-1; i >= 0; --i) {
-        stretch<false,ViewY::StretchBwdIterator>(x[i], bwd_it);
+        stretch<false, typename ViewY::StretchBwdIterator>(x[i], bwd_it);
         m[i].ESP = *bwd_it;
       }
       return m[0].ESP >= Position(0,0);
@@ -190,8 +172,8 @@ namespace Gecode { namespace String {
     /// TODO:
     template <class ViewX, class ViewY>
     forceinline bool
-    sweep_x(Space& home, ViewX& x, const ViewY& y, Matching m[]) {
-      if (!init_x(home, x, y))
+    sweep_x(Space& home, ViewX x, const ViewY& y, Matching m[]) {
+      if (!init_x(home, x, y, m))
         return false;
       //TODO: pushESP/pushLEP
       refine_x(home, x, y, m);
@@ -201,7 +183,7 @@ namespace Gecode { namespace String {
     /// TODO: 
     template <class ViewX, class ViewY>
     forceinline ModEvent
-    equate_x(Space& home, ViewX& x, const ViewY& y) {
+    equate_x(Space& home, ViewX x, const ViewY& y) {
       int lb = x.min_length(), ub = x.max_length();
       Matching m[x.size()];
       if (!sweep_x(home, x, y, m))

@@ -84,9 +84,9 @@ namespace Gecode { namespace String {
     /// \name Value access
     //@{
     /// Return the minimum length for a string in the variable's domain
-    int lenMin(void) const;
+    int min_length(void) const;
     /// Return the maximum length for a string in the variable's domain
-    int lenMax(void) const;
+    int max_length(void) const;
     /// Returns the number of blocks of the domain
     int size(void) const;
     /// Returns the i-th block of the domain

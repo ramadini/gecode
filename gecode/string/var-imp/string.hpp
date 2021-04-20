@@ -15,6 +15,15 @@ namespace Gecode { namespace String {
   StringVarImp::StringVarImp(Space& home, StringVarImp& x)
   : StringVarImpBase(home, x), ds(home, x.ds) {}
   
+  forceinline
+  StringVarImp::StringVarImp(Space& home, const Block& b)
+  : StringVarImpBase(home), ds(home, b) {}
+  
+  forceinline
+  StringVarImp::StringVarImp(Space& home, const DashedString& d)
+  : StringVarImpBase(home), ds(home, d) {}
+  
+  
   //TODO:
   
   

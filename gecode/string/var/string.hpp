@@ -15,5 +15,11 @@ namespace Gecode {
     
   StringVar::StringVar(Space& home)
     : VarImpVar<String::StringVarImp>(new (home) String::StringVarImp(home)) {}
+    
+  StringVar::StringVar(Space& home, const String::Block& b)
+    : VarImpVar<String::StringVarImp>(new (home) String::StringVarImp(home, b)) {}
+    
+  StringVar::StringVar(Space& home, const String::DashedString& d)
+    : VarImpVar<String::StringVarImp>(new (home) String::StringVarImp(home, d)) {}
 
 }
