@@ -163,6 +163,9 @@ namespace Gecode { namespace String {
     void updateCard(Space& home, int lb, int ub);
     //@}
     
+    /// Includes the base into set s.
+    void includeBaseIn(Space& home, Gecode::Set::GLBndSet& s) const;
+    
     /// Check whether the block is normalized and internal invariants hold
     bool isOK(void) const;
     /// Prints the block \a b
@@ -610,6 +613,17 @@ namespace Gecode { namespace String {
       S = nullptr;
     }
     assert(isOK());
+  }
+  
+  forceinline void
+  Block::includeBaseIn(Space& home, Gecode::Set::GLBndSet& s) const {
+    Gecode::Set::SetDelta d;
+    if (S == NULL)
+      s.include(home, l, l, d);
+    else {
+      Gecode::Set::BndSetRanges i(*S);
+      s.includeI(home, i);
+    }
   }
   
   forceinline void

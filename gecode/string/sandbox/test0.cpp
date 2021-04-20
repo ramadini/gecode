@@ -73,8 +73,19 @@ public:
     assert (b5.baseEquals(b0) && b4.contains(b1));
     b0.update(*this, b2);
     assert (b0.lb() == 10 && b5.isNull() && b4.baseDisjoint(b6));
-    // TODO: val, fix, lb, ub, baseIntersect, baseExclude, nullify,
-    // updateCard
+    Region r;
+    {
+      Gecode::Set::GLBndSet* ps = r.alloc<Gecode::Set::GLBndSet>(1);
+      ps->init(*this);
+      b1.includeBaseIn(*this, *ps);
+      b2.includeBaseIn(*this, *ps);
+      b4.baseIntersect(*this, *ps);
+      b4.lb(*this, 5);
+      b4.ub(*this, 5);
+      assert (b4.val() == std::vector<int>({'a', 'a', 'a', 'a', 'a'}));
+      r.free();
+    }
+    // TODO: baseIntersect, baseExclude, nullify, updateCard
   }
   
   
