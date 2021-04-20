@@ -108,6 +108,16 @@ public:
     cerr << "log(||" << d0 << "||) = " << d0.logdim() << "\n";
     cerr << "log(||" << d1 << "||) = " << d1.logdim() << "\n";
     assert (d0.isUniverse() && d0[0].isUniverse() && d1.isFixed());
+    Region r;
+    {
+      std::vector<Block> b(4);
+      b[0].update(*this, Block(*this, CharSet(*this, IntSet({'B','b'})), 1 ,1));
+      b[1].update(*this, Block(*this, CharSet(*this, IntSet({'o'})), 2, 4));
+      b[2].update(*this, Block('m'));
+      b[3].update(*this, Block(*this, CharSet(*this, IntSet({'!'})), 0, 3));
+      // TODO: Fix this.
+      DashedString d2(*this, b);
+    }
   }
   
   

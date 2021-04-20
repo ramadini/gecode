@@ -216,8 +216,7 @@ namespace Gecode { namespace String {
     /// - IllegalOperation, if \a blocks is empty
     /// - OutOfLimits, if the sum of lower bounds of blocks is bigger than
     ///                MAX_STRING_LENGTH
-    template<size_t N>
-    DashedString(Space& home, std::array<Block,N> const& blocks);
+    DashedString(Space& home, const std::vector<Block>& blocks);
     
     
     /// \name Dashed string access
@@ -721,10 +720,9 @@ namespace Gecode { namespace String {
     ub = block.ub();
   }
   
-  template<size_t N>
   forceinline
-  DashedString::DashedString(Space& home, std::array<Block,N> const& blocks)
-  : DynamicArray(home, blocks.size()) {
+  DashedString::DashedString(Space& home, const std::vector<Block>& blocks)
+  : DynamicArray(home, (int) blocks.size()) {
     bool norm = false;
     for (int i = 0; i < n; ++i) {
       x[i].update(home, blocks[i]);
