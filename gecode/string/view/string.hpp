@@ -43,52 +43,39 @@ namespace Gecode { namespace String {
     return pos.idx < sv.size();
   }
 
-}}
-
-namespace Gecode { namespace String {  
   
-//  StringView::PushBwdIterator::PushBwdIterator(const StringView& x) 
-//  : sv(x) {
-//    int n = sv.size() - 1;
-//    pos.idx = n;
-//    pos.off = sv[n].ub();
-//  };
-//  
-//  forceinline void
-//  StringView::PushBwdIterator::next(void) {
-//    if (pos.idx <= 0)
-//      return;
-//    pos.idx--;
-//    pos.off = pos.idx >= 0 ? sv[pos.idx].ub() : -1;
-//  };
-//  
-//  forceinline bool
-//  StringView::PushBwdIterator::operator ()(void) const {
-//    return pos.idx >= 0;
-//  };
+  StringView::PushBwdIterator::PushBwdIterator(const StringView& x) 
+  : SweepIterator(x, Position(x.size()-1, x[x.size()-1].ub())) {};
+  
+  forceinline void
+  StringView::PushBwdIterator::next(void) {
+    if (pos.idx <= 0)
+      return;
+    pos.idx--;
+    pos.off = pos.idx >= 0 ? sv[pos.idx].ub() : -1;
+  };
+  
+  forceinline bool
+  StringView::PushBwdIterator::operator ()(void) const {
+    return pos.idx >= 0;
+  };
 
-}}
 
-namespace Gecode { namespace String {  
-//  
-//  StringView::StretchBwdIterator::StretchBwdIterator(const StringView& x) 
-//  : sv(x) {
-//    int n = sv.size() - 1;
-//    pos = Position(n, sv[n].lb());
-//  };
-//  
-//  forceinline void
-//  StringView::StretchBwdIterator::next(void) {
-//    if (pos.idx <= 0)
-//      return;
-//    pos.idx--;
-//    pos.off = pos.idx >= 0 ? sv[pos.idx].lb() : -1;
-//  };
-//  
-//  forceinline bool
-//  StringView::StretchBwdIterator::operator ()(void) const {
-//    return pos.idx >= 0;
-//  };
+  StringView::StretchBwdIterator::StretchBwdIterator(const StringView& x) 
+  : SweepIterator(x, Position(x.size()-1, x[x.size()-1].lb())) {};
+  
+  forceinline void
+  StringView::StretchBwdIterator::next(void) {
+    if (pos.idx <= 0)
+      return;
+    pos.idx--;
+    pos.off = pos.idx >= 0 ? sv[pos.idx].lb() : -1;
+  };
+  
+  forceinline bool
+  StringView::StretchBwdIterator::operator ()(void) const {
+    return pos.idx >= 0;
+  };
 
 }}
 
