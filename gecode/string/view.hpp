@@ -31,37 +31,45 @@ namespace Gecode { namespace String {
       Position pos;
     public:
       /// Constructor
-      SweepIterator(const StringView& x, Position p);
+      SweepIterator(const StringView& x, const Position& p);
       /// Move iterator to the beginning of the next block (if possible)
       virtual void next(void) = 0;
       /// Test whether iterator is still within the dashed string or done
       virtual bool operator ()(void) const = 0;
-      /// Return the current position
-      Position& operator *(void);
+      /// Returns const reference to the current position
+      const Position& operator *(void);
       /// Return the lower bound of the current block
       int lb(void) const;
       /// Return the upper bound of the current block
       int ub(void) const;
       /// Check if the base of the current block is disjoint with that of \a b
       bool disj(const Block& b) const;
+      /// Consume \a k characters from current position
+      void consume(int k);
     };
     /// Iterator for pushing/stretching forwards
     struct SweepFwdIterator : public SweepIterator {
-      SweepFwdIterator(const StringView& x);   
+      SweepFwdIterator(const StringView& x);
+      SweepFwdIterator(const StringView& x, const Position& p);
       void next(void);
       bool operator ()(void) const;
+      void consume(int k);
     };
     /// Iterator for pushing backwards
     struct PushBwdIterator : public SweepIterator {
       PushBwdIterator(const StringView& x);
+      PushBwdIterator(const StringView& x, const Position& p);
       void next(void);
       bool operator ()(void) const;
+      void consume(int k);
     };
     /// Iterator for stretching backwards
     struct StretchBwdIterator : public SweepIterator {
       StretchBwdIterator(const StringView& x);
+      StretchBwdIterator(const StringView& x, const Position& p);
       void next(void);
       bool operator ()(void) const;
+      void consume(int k);
     };
     
   public:
