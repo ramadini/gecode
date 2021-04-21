@@ -107,7 +107,7 @@ namespace Gecode { namespace String {
         }
       }
       else {
-        // No. of consumable chars
+        // Max. no. of consumable chars
         int m = fwd ? it.ub() - (*it).off : (*it).off; 
         if (k <= m) {
           fwd ? (*it).off += k : (*it).off -= k;
