@@ -35,9 +35,8 @@ namespace Gecode { namespace String {
   StringView::
   SweepFwdIterator::SweepFwdIterator(const StringView& x, const Position& p)
   : SweepIterator(x, p) {
-    if (p.idx < 0 || p.idx > x.size() || (p.idx == x.size() && p.off != 0))
-      throw OutOfLimits("StringView::SweepFwdIterator::SweepFwdIterator");
-    if (p.off < sv[p.idx].lb() || p.off > sv[p.idx].ub())
+    if (p.idx < 0 || p.idx > x.size() || p.off < 0
+    || (p.idx == x.size() && p.off != 0) || p.off > sv[p.idx].ub())
       throw OutOfLimits("StringView::SweepFwdIterator::SweepFwdIterator");
     if (p.off == sv[p.idx].ub()) {
       pos.idx++;
