@@ -145,9 +145,12 @@ public:
     StringVar y(*this, DashedString(*this, bv));
     StringView vy(y);
     StringView::SweepFwdIterator fwd_it = vy.sweep_fwd_iterator();
+    *fwd_it = Position(0, 1);
     Block b(*this, CharSet(*this, 'a', 'b'), 3 ,4);
-    cerr << "Pushing " << b << " in " << y << endl;
-    push(b, fwd_it);
+    cerr << "Pushing " << b << " in " << y << " from " << *fwd_it << endl;
+    Position p = push<true,StringView::SweepFwdIterator>(b, fwd_it);
+    cerr << "ESP = " << p << ", EEP = " << *fwd_it << endl;
+    assert (p == Position(2,0) && *fwd_it == Position(4,2));
   }
   
 };

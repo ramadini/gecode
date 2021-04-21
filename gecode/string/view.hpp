@@ -1,12 +1,5 @@
 namespace Gecode { namespace String {
 
-
-
-}}
-
-
-namespace Gecode { namespace String {
-
   /**
    * \defgroup TaskActorStringView String views
    *

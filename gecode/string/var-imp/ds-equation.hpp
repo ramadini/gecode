@@ -87,12 +87,12 @@ namespace Gecode { namespace String {
   }
   
   /// TODO:
-  template <class IterY>
+  template <bool fwd, class IterY>
   forceinline Position
   push(const Block& bx, IterY& it) {
 //    std::cerr << "Pushing " << bx << " from " << *it << '\n';
     Position p = *it;
-    int k = it.lb();
+    int k = bx.lb();
     while (k > 0) {
       if (!it())
         return *it;
@@ -104,8 +104,10 @@ namespace Gecode { namespace String {
           k = bx.lb();
         }
       }
-      else if (k <= it.ub() - (*it).off)
+      else if (k <= it.ub() - (*it).off) {
+        fwd ? (*it).off += k : (*it).off -= k;
         return p;
+      }
       else {
         k -= it.ub() - (*it).off;
         it.next();
