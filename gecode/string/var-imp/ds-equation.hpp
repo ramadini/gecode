@@ -90,27 +90,27 @@ namespace Gecode { namespace String {
   template <class IterY>
   forceinline Position
   push(const Block& bx, IterY& it) {
-//    Position p = *it;
-//    int k = it->lb();
-//    while (k > 0) {
-//      if (!it())
-//        return *it;
-//      const Block& by;
-//      if (bx.baseDisjoint(by)) {
-//        it.next();
-//        if (by.lb() > 0) {
-//          p = *it;
-//          k = by.lb();
-//        }
-//      }
-//      else if (k <= by.ub() - it->off)
-//        return p;
-//      else {
-//        k -= by.ub() - it->off;
-//        it.next();
-//      }
-//    }
-//    return p;
+    Position p = *it;
+    int k = it->lb();
+    while (k > 0) {
+      if (!it())
+        return *it;
+      int l = it.lb();
+      if (it.disj(bx)) {
+        it.next();
+        if (l > 0) {
+          p = *it;
+          k = bx.lb();
+        }
+      }
+      else if (k <= it.ub() - it->off)
+        return p;
+      else {
+        k -= it.ub() - it->off;
+        it.next();
+      }
+    }
+    return p;
   };
   
   /// TODO:
