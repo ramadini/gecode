@@ -92,7 +92,7 @@ namespace Gecode { namespace String {
   push(const Block& bx, IterY& it) {
     std::cerr << "Pushing " << (fwd ? "fwd " : "bwd ") << bx << " from " << *it << '\n';
     Position p = *it;
-    int k = bx.lb();
+    int k = bx.lb(); // Chars. to be consumed.
     while (k > 0) {
       std::cerr << "k=" << k << ", it=" << *it << std::endl;
       if (!it())
@@ -105,13 +105,16 @@ namespace Gecode { namespace String {
           k = bx.lb();
         }
       }
-      else if (k <= (fwd ? it.ub() - (*it).off : (*it).off)) {
-        fwd ? (*it).off += k : (*it).off -= k;
-        return p;
-      }
       else {
-        k -= it.ub() - (*it).off;
-        it.next();
+        int m = fwd ? it.ub() - (*it).off : (*it).off; // Consumable chars.
+        if (k <= m) {
+          fwd ? (*it).off += k : (*it).off -= k;
+          return p;
+        }
+        else {
+          k -= m;
+          it.next();
+        }
       }
     }
     return p;
