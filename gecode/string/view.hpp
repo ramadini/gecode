@@ -82,6 +82,14 @@ namespace Gecode { namespace String {
     StringView(StringVarImp* y);
     //@}
 
+
+    /// \name Sweep iterators
+    //@{
+    SweepFwdIterator sweep_fwd_iterator(void);
+    PushBwdIterator push_bwd_iterator(void);
+    StretchBwdIterator stretch_bwd_iterator(void);
+    //@}
+
     //@}
     /// \name Value access
     //@{
@@ -132,10 +140,6 @@ namespace Gecode { namespace String {
     /// for any string in the domain is between \a l and \a u
     ModEvent lengthIn(Space& home, int l, int u);
     //@}
-    
-//    SweepFwdIterator sweep_fwd_iterator(void);
-//    PushBwdIterator push_bwd_iterator(void);
-//    StretchBwdIterator stretch_bwd_iterator(void);
     
   };
   /**
