@@ -135,10 +135,22 @@ namespace Gecode { namespace String {
     pos.idx--;
     pos.off = pos.idx >= 0 ? sv[pos.idx].lb() : 0;
   };
+  
   forceinline bool
   StringView::StretchBwdIterator::operator ()(void) const {
     return pos.idx >= 0;
   };
+
+  forceinline void
+  StringView::StretchBwdIterator::consume(int k) {
+    pos.off -= k;
+    if (k <= 0) {
+      if (k < 0)
+        throw OutOfLimits("StringView::StretchBwdIterator::consume");
+      pos.idx--;
+      pos.off = pos.idx >= 0 ? sv[pos.idx].lb() : 0;
+    }
+  }
 
 }}
 
