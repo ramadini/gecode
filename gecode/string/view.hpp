@@ -36,6 +36,8 @@ namespace Gecode { namespace String {
       virtual void next(void) = 0;
       /// Test whether iterator is still within the dashed string or done
       virtual bool operator ()(void) const = 0;
+      /// Consume \a k characters from current position
+      virtual void consume(int k) = 0;
       /// Returns const reference to the current position
       const Position& operator *(void);
       /// Return the lower bound of the current block
@@ -44,8 +46,6 @@ namespace Gecode { namespace String {
       int ub(void) const;
       /// Check if the base of the current block is disjoint with that of \a b
       bool disj(const Block& b) const;
-      /// Consume \a k characters from current position
-      void consume(int k);
     };
     /// Iterator for pushing/stretching forwards
     struct SweepFwdIterator : public SweepIterator {
@@ -54,6 +54,8 @@ namespace Gecode { namespace String {
       void next(void);
       bool operator ()(void) const;
       void consume(int k);
+      /// Max. consumable characters from current position within current block
+      int consumable(void) const;
     };
     /// Iterator for pushing backwards
     struct PushBwdIterator : public SweepIterator {
@@ -62,6 +64,8 @@ namespace Gecode { namespace String {
       void next(void);
       bool operator ()(void) const;
       void consume(int k);
+      /// Max. consumable characters from current position within current block
+      int consumable(void) const;
     };
     /// Iterator for stretching backwards
     struct StretchBwdIterator : public SweepIterator {

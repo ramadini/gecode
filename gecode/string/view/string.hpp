@@ -57,6 +57,11 @@ namespace Gecode { namespace String {
     return pos.idx < sv.size();
   }
   
+  forceinline int
+  StringView::SweepFwdIterator::consumable() const {
+    return ub() - pos.off;
+  }
+  
   forceinline void
   StringView::SweepFwdIterator::consume(int k) {
     pos.off += k;
@@ -68,6 +73,9 @@ namespace Gecode { namespace String {
     }
   }
 
+}}
+
+namespace Gecode { namespace String {
   
   StringView::PushBwdIterator::PushBwdIterator(const StringView& x) 
   : SweepIterator(x, Position(x.size()-1,0)) {
@@ -99,6 +107,11 @@ namespace Gecode { namespace String {
     return pos.idx >= 0;
   };
   
+  forceinline int
+  StringView::PushBwdIterator::consumable() const {
+    return pos.off;
+  }
+  
   forceinline void
   StringView::PushBwdIterator::consume(int k) {
     pos.off -= k;
@@ -110,6 +123,9 @@ namespace Gecode { namespace String {
     }
   }
 
+}}
+
+namespace Gecode { namespace String {
 
   StringView::StretchBwdIterator::StretchBwdIterator(const StringView& x) 
   : SweepIterator(x, Position(x.size()-1,0)) {

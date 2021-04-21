@@ -87,7 +87,7 @@ namespace Gecode { namespace String {
   }
   
   /// TODO:
-  template <bool fwd, class IterY>
+  template <class IterY>
   forceinline Position
   push(const Block& bx, IterY& it) {
 //    std::cerr << "Pushing " << (fwd ? "fwd " : "bwd ") << bx << " from " << *it << '\n';
@@ -108,7 +108,7 @@ namespace Gecode { namespace String {
       }
       else {
         // Max. no. of consumable chars
-        int m = fwd ? it.ub() - (*it).off : (*it).off; 
+        int m = it.consumable(); 
         if (k <= m) {
           it.consume(k);
           return p;
