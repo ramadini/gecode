@@ -135,15 +135,19 @@ public:
   
   void test04() {
     cerr << "\n*** Test 04 ***" << endl;
-    Block b(*this, CharSet(*this, IntSet({'a', 'e', 'i', 'o', 'u', 'y'})));
-    StringVar x(*this), y(*this, b);
-    cerr << "Equating X = " << x << "  vs  Y = " << y << '\n';
-    bool eq = equate_x<StringView,StringView>(*this, x, y);
-//    cerr << "After equate: X = " << x << ", Y = " << y << '\n';
-    assert(eq);
-    eq = equate_x<StringView,StringView>(*this, y, x);
-//    cerr << "After equate: X = " << x << ", Y = " << y << '\n';
-    assert(eq);
+    Matching m;
+    std::vector<Block> bv(5);
+    bv[0].update(*this, Block(*this, CharSet(*this, 'a'), 2 ,3));
+    bv[1].update(*this, Block(*this, CharSet(*this, 'c'), 1 ,2));
+    bv[2].update(*this, Block('b'));
+    bv[3].update(*this, Block(*this, CharSet(*this, 'c'), 0 ,2));
+    bv[4].update(*this, Block(*this, CharSet(*this, 'a'), 3, 4));
+    StringVar y(*this, DashedString(*this, bv));
+    StringView vy(y);
+    StringView::SweepFwdIterator fwd_it = vy.sweep_fwd_iterator();
+    Block b(*this, CharSet(*this, 'a', 'b'), 3 ,4);
+    cerr << "Pushing " << b << " in " << y << endl;
+    push(b, fwd_it);
   }
   
 };
