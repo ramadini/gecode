@@ -135,7 +135,6 @@ public:
   
   void test04() {
     cerr << "\n*** Test 04 ***" << endl;
-    Matching m;
     std::vector<Block> bv(5);
     bv[0].update(*this, Block(*this, CharSet(*this, 'a'), 2 ,3));
     bv[1].update(*this, Block(*this, CharSet(*this, 'c'), 1 ,2));
@@ -176,6 +175,49 @@ public:
     
   }
   
+   void test05() {
+    cerr << "\n*** Test 05 ***" << endl;
+    std::vector<Block> bv(5);
+    bv[0].update(*this, Block(*this, CharSet(*this, 'a'), 2 ,3));
+    bv[1].update(*this, Block(*this, CharSet(*this, 'c'), 1 ,2));
+    bv[2].update(*this, Block('b'));
+    bv[3].update(*this, Block(*this, CharSet(*this, 'c'), 0 ,2));
+    bv[4].update(*this, Block(*this, CharSet(*this, 'a'), 3, 4));
+    StringVar y(*this, DashedString(*this, bv));
+    StringView vy(y);
+    StringView::SweepFwdIterator fwd_it0 =
+      StringView::SweepFwdIterator(vy, Position(0,1));
+    Block b(*this, CharSet(*this, 'a', 'b'), 3 ,4);
+    cerr << "Streching forward " << b << " in " << y << " from " << *fwd_it0;
+    stretch<StringView::SweepFwdIterator>(b, fwd_it0);
+    cerr << "\n...to " << *fwd_it0 << endl;
+    assert (*fwd_it0 == Position(1,0));
+
+    StringView::SweepFwdIterator fwd_it1 =
+      StringView::SweepFwdIterator(vy, Position(1,1));
+    cerr << "Streching forward " << b << " in " << y << " from " << *fwd_it1;
+    stretch<StringView::SweepFwdIterator>(b, fwd_it1);
+    cerr << "\n...to " << *fwd_it1 << endl;
+    assert (*fwd_it1 == Position(5,0));
+
+//    
+//    b.update(*this, Block(*this, CharSet(*this, 'c', 'd'), 1 ,2));
+//    StringView::PushBwdIterator bwd_it0 = vy.push_bwd_iterator();
+//    cerr << "Pushing backward " << b << " in " << y << " from " << *bwd_it0;
+//    p = push<StringView::PushBwdIterator>(b, bwd_it0);
+//    cerr << "\n...LSP = " << *bwd_it0 << ", LEP = " << p << endl;
+//    assert (*bwd_it0 == Position(3,1) && p == Position(3,2));
+//    
+//    b.update(*this, Block('b' ,2));
+//    StringView::PushBwdIterator bwd_it1 =
+//      StringView::PushBwdIterator(vy, Position(4,4));
+//    cerr << "Pushing backward " << b << " in " << y << " from " << *bwd_it1;
+//    p = push<StringView::PushBwdIterator>(b, bwd_it1);
+//    cerr << "\n...LSP = " << *bwd_it1 << ", LEP = " << p << endl;
+//    assert (p == *bwd_it1 && p == Position(-1, 0));
+    
+  }
+  
 };
 
 int main() {
@@ -184,6 +226,7 @@ int main() {
   home->test02();
   home->test03();
   home->test04();
+  home->test05();
   return 0;
 }
 

@@ -54,8 +54,10 @@ namespace Gecode { namespace String {
       void next(void);
       bool operator ()(void) const;
       void consume(int k);
-      /// Max. consumable characters from current position within current block
-      int consumable(void) const;
+      /// Min. no. of chars that must be consumed from current position within current block
+      int must_consume(void) const;
+      /// Max. no. of chars that may be consumed from current position within current block
+      int may_consume(void) const;
     };
     /// Iterator for pushing backwards
     struct PushBwdIterator : public SweepIterator {
@@ -65,7 +67,7 @@ namespace Gecode { namespace String {
       bool operator ()(void) const;
       void consume(int k);
       /// Max. consumable characters from current position within current block
-      int consumable(void) const;
+      int may_consume(void) const;
     };
     /// Iterator for stretching backwards
     struct StretchBwdIterator : public SweepIterator {
@@ -73,6 +75,8 @@ namespace Gecode { namespace String {
       StretchBwdIterator(const StringView& x, const Position& p);
       void next(void);
       bool operator ()(void) const;
+      /// Min. no. of chars that must be consumed from current position within current block
+      int must_consume(void) const;
       void consume(int k);
     };
     

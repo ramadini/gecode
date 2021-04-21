@@ -58,7 +58,12 @@ namespace Gecode { namespace String {
   }
   
   forceinline int
-  StringView::SweepFwdIterator::consumable() const {
+  StringView::SweepFwdIterator::must_consume() const {
+    return lb() - pos.off;
+  }
+  
+  forceinline int
+  StringView::SweepFwdIterator::may_consume() const {
     return ub() - pos.off;
   }
   
@@ -108,7 +113,7 @@ namespace Gecode { namespace String {
   };
   
   forceinline int
-  StringView::PushBwdIterator::consumable() const {
+  StringView::PushBwdIterator::may_consume() const {
     return pos.off;
   }
   
@@ -156,6 +161,11 @@ namespace Gecode { namespace String {
   StringView::StretchBwdIterator::operator ()(void) const {
     return pos.idx >= 0;
   };
+
+  forceinline int
+  StringView::StretchBwdIterator::must_consume() const {
+    return pos.off;
+  }
 
   forceinline void
   StringView::StretchBwdIterator::consume(int k) {

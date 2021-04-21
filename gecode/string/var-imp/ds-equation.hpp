@@ -90,7 +90,7 @@ namespace Gecode { namespace String {
   template <class IterY>
   forceinline Position
   push(const Block& bx, IterY& it) {
-//    std::cerr << "Pushing " << (fwd ? "fwd " : "bwd ") << bx << " from " << *it << '\n';
+//    std::cerr << "Pushing " << bx << " from " << *it << '\n';
     Position p = *it;
     // No. of chars. that must be consumed
     int k = bx.lb(); 
@@ -107,8 +107,8 @@ namespace Gecode { namespace String {
         }
       }
       else {
-        // Max. no. of consumable chars
-        int m = it.consumable(); 
+        // Max. no. of chars that may be consumed.
+        int m = it.may_consume(); 
         if (k <= m) {
           it.consume(k);
           return p;
@@ -126,20 +126,22 @@ namespace Gecode { namespace String {
   template <class IterY>
   forceinline void
   stretch(const Block& bx, IterY& it) {
-//    std::cerr << "Streching " << (fwd ? "fwd " : "bwd ") << bx << " from " << *it << '\n';
+//    std::cerr << "Streching " << bx << " from " << *it << '\n';
     int k = bx.ub();
     while (it()) {
-      int l = it.lb();
-      if (l == 0)
+//      std::cerr << "k=" << k << ", it=" << *it << std::endl;
+      // Min. no. of chars that must be consumed.
+      int m = it.must_consume();
+      if (m == 0)
         it.next();
       else if (it.disj(bx))
         return;
-      else if (k < l) {
+      else if (k < m) {
         it.consume(k);
         return;
       }
       else {
-        k -= l;
+        k -= m;
         it.next();
       } 
     }
