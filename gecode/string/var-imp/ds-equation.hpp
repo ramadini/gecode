@@ -123,7 +123,7 @@ namespace Gecode { namespace String {
   };
   
   /// TODO:
-  template <bool fwd, class IterY>
+  template <class IterY>
   forceinline void
   stretch(const Block& bx, IterY& it) {
 //    std::cerr << "Streching " << (fwd ? "fwd " : "bwd ") << bx << " from " << *it << '\n';
@@ -135,7 +135,7 @@ namespace Gecode { namespace String {
       else if (it.disj(bx))
         return;
       else if (k < l) {
-        fwd ? (*it).off += k : (*it).off -= k;
+        it.consume(k);
         return;
       }
       else {
@@ -170,7 +170,7 @@ namespace Gecode { namespace String {
       typename ViewY::SweepFwdIterator fwd_it = x.sweep_fwd_iterator();
       int n = x.size();
       for (int i = 0; i < n; ++i) {
-        stretch<true, typename ViewY::SweepFwdIterator>(x[i], fwd_it);
+        stretch<typename ViewY::SweepFwdIterator>(x[i], fwd_it);
         m[i].LEP = *fwd_it;
         std::cerr << i << ": " << x[i] << " LEP: " << m[i].LEP << '\n';
       }
@@ -178,7 +178,7 @@ namespace Gecode { namespace String {
         return false;
       typename ViewY::StretchBwdIterator bwd_it = x.stretch_bwd_iterator();
       for (int i = n-1; i >= 0; --i) {
-        stretch<false, typename ViewY::StretchBwdIterator>(x[i], bwd_it);
+        stretch<typename ViewY::StretchBwdIterator>(x[i], bwd_it);
         m[i].ESP = *bwd_it;
         std::cerr << i << ": " << x[i] << " ESP: " << m[i].ESP << '\n';
       }
