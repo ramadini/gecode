@@ -109,18 +109,35 @@ namespace Gecode { namespace String {
     return x->operator[](i);
   }
   
-//  forceinline StringView::SweepFwdIterator
-//  StringView::sweep_fwd_iterator(void) {
-//    return SweepFwdIterator(*this);
-//  }
-//  forceinline StringView::PushBwdIterator
-//  StringView::push_bwd_iterator(void) {
-//    return PushBwdIterator(*this);
-//  }
-//  forceinline StringView::StretchBwdIterator
-//  StringView::stretch_bwd_iterator(void) {
-//    return StretchBwdIterator(*this);
-//  }
+  forceinline int
+  StringView::max_length() const {
+    return x->max_length();
+  }
+  
+  forceinline int
+  StringView::min_length() const {
+    return x->min_length();
+  }
+  
+  forceinline bool
+  StringView::assigned() const {
+    return x->assigned();
+  }
+  
+  forceinline StringView::SweepFwdIterator
+  StringView::sweep_fwd_iterator(void) {
+    return SweepFwdIterator(*this);
+  }
+  
+  forceinline StringView::PushBwdIterator
+  StringView::push_bwd_iterator(void) {
+    return PushBwdIterator(*this);
+  }
+  
+  forceinline StringView::StretchBwdIterator
+  StringView::stretch_bwd_iterator(void) {
+    return StretchBwdIterator(*this);
+  }
   
 //  TODO? ModEvent
 //  StringView::equate(const DashedString& d) {

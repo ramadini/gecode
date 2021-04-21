@@ -118,10 +118,10 @@ namespace Gecode { namespace String {
       int l = it.lb();
       if (l == 0)
         it.next();
-      else if (it.baseDisjoint(bx))
+      else if (it.disj(bx))
         return;
       else if (k < l) {
-        fwd ? it->off += k : it->off -= k;
+        fwd ? (*it).off += k : (*it).off -= k;
         return;
       }
       else {

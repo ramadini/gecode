@@ -28,7 +28,7 @@ namespace Gecode { namespace String {
     
   public:
   
-    /// Class for sweeping string views, used for push/stretch blocks in 
+    /// Abstract class for sweeping string views, used to push/stretch blocks in 
     /// dashed string equation
     class SweepIterator {
     protected:
@@ -40,9 +40,9 @@ namespace Gecode { namespace String {
       /// Constructor
       SweepIterator(const StringView& x, Position p);
       /// Move iterator to the beginning of the next block (if possible)
-      virtual void next(void);
+      virtual void next(void) = 0;
       /// Test whether iterator is still within the dashed string or done
-      virtual bool operator ()(void) const;
+      virtual bool operator ()(void) const = 0;
       /// Return the current position
       Position& operator *(void);
       /// Return the lower bound of the current block

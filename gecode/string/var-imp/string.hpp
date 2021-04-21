@@ -21,17 +21,10 @@ namespace Gecode { namespace String {
   
   forceinline
   StringVarImp::StringVarImp(Space& home, const DashedString& d)
-  : StringVarImpBase(home), ds(home, d) {}
-  
+  : StringVarImpBase(home), ds(home, d) {}  
   
   //TODO:
   
-  
-//  forceinline ModEvent
-//  StringVarImp::equate(Space& home, const DashedString& x) {
-//    return equate_x(home, ds, x);
-//  }
-
   forceinline int 
   StringVarImp::size() const {
     return ds.size();
@@ -41,9 +34,25 @@ namespace Gecode { namespace String {
   StringVarImp::operator[](int i) {
     return ds[i];
   }
+  
   forceinline const Block&
   StringVarImp::operator[](int i) const {
     return ds[i];
+  }
+  
+  forceinline int
+  StringVarImp::max_length() const {
+    return ds.max_length();
+  }
+  
+  forceinline int
+  StringVarImp::min_length() const {
+    return ds.min_length();
+  }
+  
+  forceinline bool
+  StringVarImp::assigned() const {
+    return ds.isFixed();
   }
    
    
