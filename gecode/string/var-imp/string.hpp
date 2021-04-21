@@ -55,5 +55,9 @@ namespace Gecode { namespace String {
     return ds.isFixed();
   }
    
+  forceinline const DashedString&
+  StringVarImp::dom() const {
+    return ds;  
+  }
    
 }}

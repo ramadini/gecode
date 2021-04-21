@@ -60,7 +60,8 @@ namespace Gecode { namespace String {
     int max_length(void) const;
     /// Returns the number of blocks of the domain
     int size(void) const;
-    
+    /// Returns a const reference to the domain
+    const DashedString& dom(void) const;
     //@}
 
     /// \name Domain tests
@@ -130,7 +131,6 @@ namespace Gecode { namespace String {
     /// Return copy of this variable
     StringVarImp* copy(Space& home);
     //@}
-    
   };
   
   class StringView;

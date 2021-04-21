@@ -21,5 +21,22 @@ namespace Gecode {
     
   StringVar::StringVar(Space& home, const String::DashedString& d)
     : VarImpVar<String::StringVarImp>(new (home) String::StringVarImp(home, d)) {}
+  
+  forceinline int
+  StringVar::min_length() const {
+    return x->min_length();
+  }
+
+  forceinline int
+  StringVar::max_length() const {
+    return x->max_length();
+  }
+  
+  template<class Char, class Traits>
+  std::basic_ostream<Char,Traits>&
+  operator <<(std::basic_ostream<Char,Traits>& os, const StringVar& v) {
+    os << "Var. " << v.varimp() << " [ " << v.varimp()->dom() << " ]";
+    return os;
+  }   
 
 }

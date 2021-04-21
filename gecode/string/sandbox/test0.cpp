@@ -137,7 +137,13 @@ public:
     cerr << "\n*** Test 04 ***" << endl;
     Block b(*this, CharSet(*this, IntSet({'a', 'e', 'i', 'o', 'u', 'y'})));
     StringVar x(*this), y(*this, b);
-    // FIXME: Fix this: equate_x<StringView,StringView>(*this, x, y);
+    cerr << "Equating X = " << x << "  vs  Y = " << y << '\n';
+    bool eq = equate_x<StringView,StringView>(*this, x, y);
+//    cerr << "After equate: X = " << x << ", Y = " << y << '\n';
+    assert(eq);
+    eq = equate_x<StringView,StringView>(*this, y, x);
+//    cerr << "After equate: X = " << x << ", Y = " << y << '\n';
+    assert(eq);
   }
   
 };

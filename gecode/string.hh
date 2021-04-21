@@ -158,44 +158,6 @@ namespace Gecode {
     //@}
   };
 
-//  /**
-//   * \defgroup TaskModelStringIter Block iterators for string variables
-//   * \ingroup TaskModelString
-//   */
-//  //@{
-//  
-// FIXME: Do we need block iterators here?
-//  /// Iterator for the blocks of a string variable
-//  class StringVarBlocks {
-//  private:
-//    String::Blocks<String::StringVarImp*> iter;
-//  public:
-//    /// \name Constructors and initialization
-//    //@{
-//    /// Default constructor
-//    StringVarBlocks(void);
-//    /// Initialize to iterate blocks of variable \a x
-//    StringVarBlocks(const StringVar& x);
-//    //@}
-
-//    /// \name Iteration control
-//    //@{
-//    /// Test whether iterator is still at a block or done
-//    bool operator ()(void) const;
-//    /// Move iterator to next block (if possible)
-//    void operator ++(void);
-//    //@}
-
-//    /// \name Block access
-//    //@{
-//    /// Return the lower bound of block
-//    int lb(void) const;
-//    /// Return the upper bound of block
-//    int ub(void) const;
-//    //@}
-//  };
-//  //@}
-
   /**
    * \brief Print string variable \a x
    * \relates Gecode::StringVar

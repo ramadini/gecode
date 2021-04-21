@@ -37,7 +37,6 @@ namespace Gecode { namespace String {
     pos.idx++;
     pos.off = 0;
   }
-
   forceinline bool
   StringView::SweepFwdIterator::operator ()() const {
     return pos.idx < sv.size();
@@ -49,12 +48,11 @@ namespace Gecode { namespace String {
   
   forceinline void
   StringView::PushBwdIterator::next(void) {
-    if (pos.idx <= 0)
+    if (pos.idx < 0)
       return;
     pos.idx--;
-    pos.off = pos.idx >= 0 ? sv[pos.idx].ub() : -1;
+    pos.off = pos.idx >= 0 ? sv[pos.idx].ub() : 0;
   };
-  
   forceinline bool
   StringView::PushBwdIterator::operator ()(void) const {
     return pos.idx >= 0;
@@ -66,12 +64,11 @@ namespace Gecode { namespace String {
   
   forceinline void
   StringView::StretchBwdIterator::next(void) {
-    if (pos.idx <= 0)
+    if (pos.idx < 0)
       return;
     pos.idx--;
-    pos.off = pos.idx >= 0 ? sv[pos.idx].lb() : -1;
+    pos.off = pos.idx >= 0 ? sv[pos.idx].lb() : 0;
   };
-  
   forceinline bool
   StringView::StretchBwdIterator::operator ()(void) const {
     return pos.idx >= 0;
