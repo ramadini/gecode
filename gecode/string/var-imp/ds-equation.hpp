@@ -85,27 +85,27 @@ namespace Gecode { namespace String {
   template <class IterY>
   forceinline Position
   push(const Block& bx, IterY& it) {
-    Position p = *it;
-    int k = it->lb();
-    while (k > 0) {
-      if (!it())
-        return *it;
-      const Block& by;
-      if (bx.baseDisjoint(by)) {
-        it.next();
-        if (by.lb() > 0) {
-          p = *it;
-          k = by.lb();
-        }
-      }
-      else if (k <= by.ub() - it->off)
-        return p;
-      else {
-        k -= by.ub() - it->off;
-        it.next();
-      }
-    }
-    return p;
+//    Position p = *it;
+//    int k = it->lb();
+//    while (k > 0) {
+//      if (!it())
+//        return *it;
+//      const Block& by;
+//      if (bx.baseDisjoint(by)) {
+//        it.next();
+//        if (by.lb() > 0) {
+//          p = *it;
+//          k = by.lb();
+//        }
+//      }
+//      else if (k <= by.ub() - it->off)
+//        return p;
+//      else {
+//        k -= by.ub() - it->off;
+//        it.next();
+//      }
+//    }
+//    return p;
   };
   
   /// TODO:
@@ -114,11 +114,11 @@ namespace Gecode { namespace String {
   stretch(const Block& bx, IterY& it) {
     int k = bx.ub();
     while (it()) {
-      const Block& by(*it);
-      int l = by.lb();
+      //const Block& by = *it;
+      int l = it.lb();
       if (l == 0)
         it.next();
-      else if (bx.baseDisjoint(by))
+      else if (it.baseDisjoint(bx))
         return;
       else if (k < l) {
         fwd ? it->off += k : it->off -= k;

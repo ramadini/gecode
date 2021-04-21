@@ -1,5 +1,12 @@
 namespace Gecode { namespace String {
 
+
+
+}}
+
+
+namespace Gecode { namespace String {
+
   /**
    * \defgroup TaskActorStringView String views
    *
@@ -20,54 +27,51 @@ namespace Gecode { namespace String {
     using VarImpView<StringVar>::x;
     
   public:
-    class SweepFwdIterator {
-    private:
-      Position pos;
+  
+    /// Class for sweeping string views, used for push/stretch blocks in 
+    /// dashed string equation
+    class SweepIterator {
+    protected:
+      /// The views on which we iterate
       const StringView& sv;
+      /// The current position on the view
+      Position pos;
     public:
-      SweepFwdIterator(const StringView& x);
-      /// \name Iteration control
-      //@{
+      /// Constructor
+      SweepIterator(const StringView& x, Position p);
       /// Move iterator to the beginning of the next block (if possible)
-      forceinline void next(void);
+      virtual void next(void);
       /// Test whether iterator is still within the dashed string or done
-      forceinline bool operator ()(void) const;
+      virtual bool operator ()(void) const;
       /// Return the current position
       Position& operator *(void);
-      //@}
+      /// Return the lower bound of the current block
+      int lb(void) const;
+      /// Return the upper bound of the current block
+      int ub(void) const;
+      /// Check if the base of the current block is disjoint with that of \a b
+      bool disj(const Block& b) const;
     };
-    class PushBwdIterator {
-    private:
-      Position pos;
-      const StringView& sv;
-    public:
-      PushBwdIterator(const StringView& x);
-      /// \name Iteration control
-      //@{
-      /// Move iterator to the beginning of previous block (if possible)
-      forceinline void next(void);
-      /// Test whether iterator is still within the dashed string or done
-      forceinline bool operator ()(void) const;
-      /// Return the current position
-      Position& operator *(void);
-      //@}
+  
+    struct SweepFwdIterator : public SweepIterator {
+      SweepFwdIterator(const StringView& x);   
+      void next(void);
+      bool operator ()(void) const;
     };
-    class StretchBwdIterator {
-    private:
-      Position pos;
-      const StringView& sv;
-    public:
-      StretchBwdIterator(const StringView& x);
-      /// \name Iteration control
-      //@{
-      /// Move iterator to the lower bound of previous block (if possible)
-      forceinline void next(void);
-      /// Test whether iterator is still within the dashed string or done
-      forceinline bool operator ()(void) const;      
-      /// Return the current position
-      Position& operator *(void);
-      //@}
-    };
+//    class PushBwdIterator : public SweepIterator {
+//    private:
+//      Position pos;
+//      const StringView& sv;
+//    public:
+//      PushBwdIterator(const StringView& x);
+//    };
+//    class StretchBwdIterator : public SweepIterator {
+//    private:
+//      Position pos;
+//      const StringView& sv;
+//    public:
+//      StretchBwdIterator(const StringView& x);
+//    };
     
   public:
     /// \name Constructors and initialization
@@ -131,9 +135,9 @@ namespace Gecode { namespace String {
     ModEvent lengthIn(Space& home, int l, int u);
     //@}
     
-    SweepFwdIterator sweep_fwd_iterator(void);
-    PushBwdIterator push_bwd_iterator(void);
-    StretchBwdIterator stretch_bwd_iterator(void);
+//    SweepFwdIterator sweep_fwd_iterator(void);
+//    PushBwdIterator push_bwd_iterator(void);
+//    StretchBwdIterator stretch_bwd_iterator(void);
     
   };
   /**
@@ -159,13 +163,13 @@ namespace Gecode { namespace String {
   
   class ReverseView : public StringView {
     
-    class SweepFwdIterator   : public StringView::SweepFwdIterator {};
-    class PushBwdIterator    : public StringView::PushBwdIterator {};
-    class StretchBwdIterator : public StringView::StretchBwdIterator {};
+//    class SweepFwdIterator   : public StringView::SweepFwdIterator {};
+//    class PushBwdIterator    : public StringView::PushBwdIterator {};
+//    class StretchBwdIterator : public StringView::StretchBwdIterator {};
     
-    SweepFwdIterator sweep_fwd_iterator(void);
-    PushBwdIterator push_bwd_iterator(void);
-    StretchBwdIterator stretch_bwd_iterator(void);
+//    SweepFwdIterator sweep_fwd_iterator(void);
+//    PushBwdIterator push_bwd_iterator(void);
+//    StretchBwdIterator stretch_bwd_iterator(void);
     
   };
 
