@@ -52,26 +52,24 @@ namespace Gecode { namespace String {
       /// Check if the base of the current block is disjoint with that of \a b
       bool disj(const Block& b) const;
     };
-  
+    /// Iterator for pushing/stretching forwards
     struct SweepFwdIterator : public SweepIterator {
       SweepFwdIterator(const StringView& x);   
       void next(void);
       bool operator ()(void) const;
     };
-//    class PushBwdIterator : public SweepIterator {
-//    private:
-//      Position pos;
-//      const StringView& sv;
-//    public:
-//      PushBwdIterator(const StringView& x);
-//    };
-//    class StretchBwdIterator : public SweepIterator {
-//    private:
-//      Position pos;
-//      const StringView& sv;
-//    public:
-//      StretchBwdIterator(const StringView& x);
-//    };
+    /// Iterator for pushing backwards
+    struct PushBwdIterator : public SweepIterator {
+      PushBwdIterator(const StringView& x);
+      void next(void);
+      bool operator ()(void) const;
+    };
+    /// Iterator for stretching backwards
+    struct StretchBwdIterator : public SweepIterator {
+      StretchBwdIterator(const StringView& x);
+      void next(void);
+      bool operator ()(void) const;
+    };
     
   public:
     /// \name Constructors and initialization
