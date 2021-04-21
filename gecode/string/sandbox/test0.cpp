@@ -149,14 +149,30 @@ public:
     Block b(*this, CharSet(*this, 'a', 'b'), 3 ,4);
     cerr << "Pushing forward " << b << " in " << y << " from " << *fwd_it;
     Position p = push<true,StringView::SweepFwdIterator>(b, fwd_it);
-    cerr << "... ESP = " << p << ", EEP = " << *fwd_it << endl;
+    cerr << "\n...ESP = " << p << ", EEP = " << *fwd_it << endl;
     assert (p == Position(2,0) && *fwd_it == Position(4,2));
+    
+    b.update(*this, Block(*this, CharSet(*this, 'c', 'z'), 3 ,4));
+    *fwd_it = Position(0,0);
+    cerr << "Pushing forward " << b << " in " << y << " from " << *fwd_it;
+    p = push<true,StringView::SweepFwdIterator>(b, fwd_it);
+    cerr << "\n...ESP = " << p << ", EEP = " << *fwd_it << endl;
+    assert (p == *fwd_it && p == Position(y.varimp()->size(), 0));
+    
     b.update(*this, Block(*this, CharSet(*this, 'c', 'd'), 1 ,2));
     StringView::PushBwdIterator bwd_it = vy.push_bwd_iterator();
     cerr << "Pushing backward " << b << " in " << y << " from " << *bwd_it;
     p = push<false,StringView::PushBwdIterator>(b, bwd_it);
-    cerr << "... LSP = " << *bwd_it << ", LEP = " << p << endl;
+    cerr << "\n...LSP = " << *bwd_it << ", LEP = " << p << endl;
     assert (*bwd_it == Position(3,1) && p == Position(3,2));
+    
+    b.update(*this, Block('b' ,2));
+    *bwd_it = Position(4,4);
+    cerr << "Pushing backward " << b << " in " << y << " from " << *bwd_it;
+    p = push<false,StringView::PushBwdIterator>(b, bwd_it);
+    cerr << "\n...LSP = " << *bwd_it << ", LEP = " << p << endl;
+    assert (p == *bwd_it && p == Position(-1, 0));
+    
   }
   
 };

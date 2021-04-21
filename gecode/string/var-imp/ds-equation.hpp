@@ -90,11 +90,12 @@ namespace Gecode { namespace String {
   template <bool fwd, class IterY>
   forceinline Position
   push(const Block& bx, IterY& it) {
-    std::cerr << "Pushing " << (fwd ? "fwd " : "bwd ") << bx << " from " << *it << '\n';
+//    std::cerr << "Pushing " << (fwd ? "fwd " : "bwd ") << bx << " from " << *it << '\n';
     Position p = *it;
-    int k = bx.lb(); // Chars. to be consumed.
+    // No. of chars. that must be consumed
+    int k = bx.lb(); 
     while (k > 0) {
-      std::cerr << "k=" << k << ", it=" << *it << std::endl;
+//      std::cerr << "k=" << k << ", it=" << *it << std::endl;
       if (!it())
         return *it;
       int l = it.lb();
@@ -106,7 +107,8 @@ namespace Gecode { namespace String {
         }
       }
       else {
-        int m = fwd ? it.ub() - (*it).off : (*it).off; // Consumable chars.
+        // No. of consumable chars
+        int m = fwd ? it.ub() - (*it).off : (*it).off; 
         if (k <= m) {
           fwd ? (*it).off += k : (*it).off -= k;
           return p;
