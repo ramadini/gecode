@@ -13,12 +13,22 @@ namespace Gecode { namespace String {
     /// Position equality.
     forceinline bool 
     operator ==(const Position& p) const {
-      return idx == p.idx && off == p.off;
+      return (idx == p.idx && off == p.off);
+    }
+    forceinline bool
+    equiv(const Position& p, int u) const {
+      return *this == p ||
+        (off == 0 && idx == p.idx+1 && u == p.off) ||
+        (p.off == 0 && p.idx == idx+1 && u == off);        
     }
     /// Position inequality.
     forceinline bool
     operator !=(const Position& p) const {
       return idx != p.idx || off != p.off;
+    }
+    forceinline bool
+    nequiv(const Position& p, int u) const {
+      return !equiv(p, u);
     }
     /// Position lexicographic ordering.
     forceinline bool

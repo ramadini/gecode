@@ -239,6 +239,27 @@ public:
     cerr << "\n...ESP = " << p << ", EEP = " << *fwd_it1 << endl;
     assert (p == *fwd_it1 && p == Position(4,0));
     
+    b.update(*this, Block(*this, CharSet(*this, IntSet({'o','m','g'})), 1, 8));
+    StringView::SweepFwdIterator fwd_it2 =
+      StringView::SweepFwdIterator(vy, Position(1,1));
+    cerr << "Streching forward " << b << " in " << y << " from " << *fwd_it2;
+    stretch<StringView::SweepFwdIterator>(b, fwd_it2);
+    cerr << "\n...to " << *fwd_it2 << endl;
+    assert (Position(3,3).equiv(*fwd_it2, vy[(*fwd_it2).idx-1].ub()));
+    
+    StringView::StretchBwdIterator bwd_it0 =
+      StringView::StretchBwdIterator(vy, Position(1,1));
+    cerr << "Streching backward " << b << " in " << y << " from " << *bwd_it0;
+    stretch<StringView::StretchBwdIterator>(b, bwd_it0);
+    cerr << "\n...to " << *bwd_it0 << endl;
+    assert (*bwd_it0 == Position(0,1));
+    
+    StringView::PushBwdIterator bwd_it1 =
+      StringView::PushBwdIterator(vy, *bwd_it0);
+    cerr << "Pushing backward " << b << " in " << y << " from " << *bwd_it1;
+    p = push<StringView::PushBwdIterator>(b, bwd_it1);
+    cerr << "\n...LSP = " << *bwd_it1 << ", LEP = " << p << endl;
+    assert (*bwd_it1 == p && p < Position(0,0));
   }
   
 };
@@ -251,6 +272,7 @@ int main() {
   home->test04();
   home->test05();
   home->test06();
+  cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }
 

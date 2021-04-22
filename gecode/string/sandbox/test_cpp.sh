@@ -23,9 +23,9 @@ echo 'Executing'
 if
   [[ "${@: -1}" == "val" ]] 
 then
-  time valgrind --gen-suppressions=yes --leak-check=full ./$1.out $2 $3
+  valgrind --gen-suppressions=yes --leak-check=full ./$1.out $2 $3
 else
-  time ./$1.out $2 $3
+  ./$1.out $2 $3
 fi
 if
   [ $? -ne 0 ]

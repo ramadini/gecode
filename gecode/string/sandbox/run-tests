@@ -20,5 +20,5 @@ do
   then
     exit 1
   fi
-  echo "===== Done! ====="
+  echo "===== All tests pass! ====="
 done
