@@ -51,7 +51,7 @@ namespace Gecode { namespace String {
   : SweepIterator(x, Position(0,0)) {};
   
   forceinline void
-  StringView::SweepFwdIterator::nextBlock() {
+  StringView::SweepFwdIterator::moveNext() {
     if (pos.idx >= sv.size())
       return;
     pos.idx++;
@@ -60,7 +60,7 @@ namespace Gecode { namespace String {
   }
   
   forceinline bool
-  StringView::SweepFwdIterator::operator()(void) const {
+  StringView::SweepFwdIterator::hasNext(void) const {
     return pos.idx < sv.size();
   }
   
@@ -94,7 +94,7 @@ namespace Gecode { namespace String {
   : SweepIterator(x, Position(x.size(),0)) {};
   
   forceinline void
-  StringView::PushBwdIterator::nextBlock() {
+  StringView::PushBwdIterator::moveNext() {
     if (pos.idx == 0)
       return;
     pos.idx--;
@@ -103,18 +103,21 @@ namespace Gecode { namespace String {
   };
   
   forceinline bool
-  StringView::PushBwdIterator::operator()(void) const {
+  StringView::PushBwdIterator::hasNext(void) const {
     return pos.idx > 0;
   };
   
   forceinline int
   StringView::PushBwdIterator::may_consume() const {
-    return pos.off > 0 ? pos.off : (pos.idx > 0 ? sv[pos.idx-1].ub() : 0);
+    return (pos.idx > 0 && pos.off == 0) ? sv[pos.idx-1].ub() : pos.off;
   }
   
   forceinline void
   StringView::PushBwdIterator::consume(int k) {
-    pos.off -= k;
+    if (pos.idx > 0 && pos.off == 0)
+      pos.off = sv[pos.idx-1].ub() - k;
+    else
+      pos.off -= k;
     if (pos.off < 0)
       throw OutOfLimits("StringView::PushBwdIterator::consume");
     assert (isOK());
@@ -135,7 +138,7 @@ namespace Gecode { namespace String {
   };
   
   forceinline void
-  StringView::StretchBwdIterator::next(void) {
+  StringView::StretchBwdIterator::moveNext() {
     if (pos.idx == 0)
       return;
     const Block& b(sv[pos.idx]);
@@ -143,12 +146,14 @@ namespace Gecode { namespace String {
       pos.idx--;
       pos.off = b.lb();
     }
+    else
+      pos.off = 0;
     assert (isOK());
   };
   
   forceinline bool
-  StringView::StretchBwdIterator::operator ()(void) const {
-    return pos.idx >= 0;
+  StringView::StretchBwdIterator::hasNext(void) const {
+    return pos.idx > 0 || pos.off > 0;
   };
 
   forceinline int
@@ -158,7 +163,7 @@ namespace Gecode { namespace String {
 
   forceinline void
   StringView::StretchBwdIterator::consume(int k) {
-    pos.off -= k;
+    pos.off = std::min(pos.off, sv[pos.idx].lb()) - k;
     if (pos.off <= 0) {
       if (pos.off < 0)
         throw OutOfLimits("StringView::StretchBwdIterator::consume");
