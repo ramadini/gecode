@@ -38,8 +38,14 @@ namespace Gecode { namespace String {
       virtual void moveNext(void) = 0;
       /// Test whether iterator is still within the dashed string or done
       virtual bool hasNext(void) const = 0;
+      /// Min. no. of chars that must be consumed from current position within current block
+      int must_consume(void) const = 0;
+      /// Max. no. of chars that may be consumed from current position within current block
+      int may_consume(void) const = 0;
       /// Consume \a k characters from current position within current block
       virtual void consume(int k) = 0;
+      /// Consume \a k mandatory characters from current position within current block
+      virtual void consumeMand(int k) = 0;
       /// Returns const reference to the current position
       const Position& operator *(void);
       /// Return the lower bound of the current block
@@ -58,28 +64,19 @@ namespace Gecode { namespace String {
       void moveNext(void);
       bool hasNext(void) const;
       void consume(int k);
-      /// Min. no. of chars that must be consumed from current position within current block
+      void consumeMand(int k);
       int must_consume(void) const;
-      /// Max. no. of chars that may be consumed from current position within current block
       int may_consume(void) const;
     };
-    /// Iterator for pushing backwards
-    struct PushBwdIterator : public SweepIterator {
-      PushBwdIterator(const StringView& x);
+    /// Iterator for pushing/stretching backwards
+    struct SweepBwdIterator : public SweepIterator {
+      SweepBwdIterator(const StringView& x);
       void moveNext(void);
       bool hasNext(void) const;
       void consume(int k);
-      /// Max. consumable characters from current position within current block
-      int may_consume(void) const;
-    };
-    /// Iterator for stretching backwards
-    struct StretchBwdIterator : public SweepIterator {
-      StretchBwdIterator(const StringView& x);
-      void moveNext(void);
-      bool hasNext(void) const;
-      /// Min. no. of chars that must be consumed from current position within current block
+      void consumeMand(int k);
       int must_consume(void) const;
-      void consume(int k);
+      int may_consume(void) const;
     };
     
   public:

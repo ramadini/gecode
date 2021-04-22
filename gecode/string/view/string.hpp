@@ -79,97 +79,71 @@ namespace Gecode { namespace String {
     pos.off += k;
     if (pos.off >= sv[pos.idx].ub()) {
       if (pos.off > sv[pos.idx].ub())
-        throw OutOfLimits("StringView::PushBwdIterator::consume");
+        throw OutOfLimits("StringView::SweepBwdIterator::consume");
       pos.idx++;
       pos.off = 0;
     }
     assert (isOK());
   }
+  
+  forceinline void
+  StringView::SweepFwdIterator::consumeMand(int k) {
+    pos.off += k; 
+    if (pos.off > sv[pos.idx].lb())
+      throw OutOfLimits("StringView::SweepBwdIterator::consume");
+    if (pos.off == sv[pos.idx].ub()) {
+      pos.idx++;
+      pos.off = 0;
+    }     
+    assert (isOK());
+  }
 
 }}
 
 namespace Gecode { namespace String {
   
-  StringView::PushBwdIterator::PushBwdIterator(const StringView& x) 
-  : SweepIterator(x, Position(x.size(),0)) {};
+  StringView::SweepBwdIterator::SweepBwdIterator(const StringView& x) 
+  : SweepIterator(x, Position(x.size(), 0)) {};
   
   forceinline void
-  StringView::PushBwdIterator::moveNext() {
+  StringView::SweepBwdIterator::moveNext() {
     if (pos.idx == 0)
       return;
-    pos.idx--;
+    if (pos.off > 0)
+      pos.idx--;
     pos.off = 0;
     assert (isOK());
   };
   
   forceinline bool
-  StringView::PushBwdIterator::hasNext(void) const {
+  StringView::SweepBwdIterator::hasNext(void) const {
     return pos.idx > 0;
   };
   
   forceinline int
-  StringView::PushBwdIterator::may_consume() const {
+  StringView::SweepBwdIterator::may_consume() const {
     return (pos.idx > 0 && pos.off == 0) ? sv[pos.idx-1].ub() : pos.off;
   }
   
-  forceinline void
-  StringView::PushBwdIterator::consume(int k) {
-    if (pos.idx > 0 && pos.off == 0)
-      pos.off = sv[pos.idx-1].ub() - k;
-    else
-      pos.off -= k;
-    if (pos.off < 0)
-      throw OutOfLimits("StringView::PushBwdIterator::consume");
-    assert (isOK());
-  }
-
-}}
-
-namespace Gecode { namespace String {
-
-  StringView::StretchBwdIterator::StretchBwdIterator(const StringView& x) 
-  : SweepIterator(x, Position(x.size(),0)) {
-    const Block& b(sv[x.size()-1]);
-    if (b.lb() < b.ub()) {
-      pos.idx--;
-      pos.off = b.lb();
-    }
-    assert (isOK());
-  };
-  
-  forceinline void
-  StringView::StretchBwdIterator::moveNext() {
-    if (pos.idx == 0)
-      return;
-    const Block& b(sv[pos.idx]);
-    if (b.lb() < b.ub())
-      pos.idx--;
-      pos.off = b.lb();
-    }
-    else
-      pos.off = 0;
-    assert (isOK());
-  };
-  
-  forceinline bool
-  StringView::StretchBwdIterator::hasNext(void) const {
-    return pos.idx > 0 || pos.off > 0;
-  };
-
   forceinline int
-  StringView::StretchBwdIterator::must_consume() const {
-    return std::min(pos.off, sv[pos.idx].lb());
+  StringView::SweepBwdIterator::must_consume() const {
+    return (pos.idx > 0 && pos.off == 0) ? sv[pos.idx-1].lb() 
+                                         : min(pos.off, sv[pos.idx].lb());
   }
-
+  
   forceinline void
-  StringView::StretchBwdIterator::consume(int k) {
-    pos.off = std::min(pos.off, sv[pos.idx].lb()) - k;
-    if (pos.off <= 0) {
-      if (pos.off < 0)
-        throw OutOfLimits("StringView::StretchBwdIterator::consume");
-      pos.idx--;
-      pos.off = pos.idx >= 0 ? sv[pos.idx].lb() : 0;
-    }
+  StringView::SweepBwdIterator::consume(int k) {
+    pos.off -= k;
+    if (pos.off < 0)
+      throw OutOfLimits("StringView::SweepBwdIterator::consume");
+    assert (isOK());
+  }
+  
+  forceinline void
+  StringView::SweepBwdIterator::consumeMand(int k) {
+    pos.off = sv[pos.idx - (pos.idx > 0 && pos.off == 0)].lb() - k;
+    if (pos.off < 0)
+      throw OutOfLimits("StringView::SweepBwdIterator::consume");
     assert (isOK());
   }
 
@@ -225,9 +199,9 @@ namespace Gecode { namespace String {
     return SweepFwdIterator(*this);
   }
   
-  forceinline StringView::PushBwdIterator
+  forceinline StringView::SweepBwdIterator
   StringView::push_bwd_iterator(void) {
-    return PushBwdIterator(*this);
+    return SweepBwdIterator(*this);
   }
   
   forceinline StringView::StretchBwdIterator
