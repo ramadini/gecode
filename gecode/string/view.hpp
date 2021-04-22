@@ -35,10 +35,10 @@ namespace Gecode { namespace String {
       /// Constructor
       SweepIterator(const StringView& x, const Position& p);
       /// Move iterator to the beginning of the next block (if possible)
-      virtual void next(void) = 0;
+      virtual void nextBlock(void) = 0;
       /// Test whether iterator is still within the dashed string or done
       virtual bool operator ()(void) const = 0;
-      /// Consume \a k characters from current position
+      /// Consume \a k characters from current position within current block
       virtual void consume(int k) = 0;
       /// Returns const reference to the current position
       const Position& operator *(void);
@@ -48,12 +48,14 @@ namespace Gecode { namespace String {
       int ub(void) const;
       /// Check if the base of the current block is disjoint with that of \a b
       bool disj(const Block& b) const;
+    private
+      /// Check that the iterator is in a consistent state;
+      bool isOK(void) const;
     };
     /// Iterator for pushing/stretching forwards
     struct SweepFwdIterator : public SweepIterator {
       SweepFwdIterator(const StringView& x);
-      SweepFwdIterator(const StringView& x, const Position& p);
-      void next(void);
+      void nextBlock(void);
       bool operator ()(void) const;
       void consume(int k);
       /// Min. no. of chars that must be consumed from current position within current block
@@ -64,8 +66,7 @@ namespace Gecode { namespace String {
     /// Iterator for pushing backwards
     struct PushBwdIterator : public SweepIterator {
       PushBwdIterator(const StringView& x);
-      PushBwdIterator(const StringView& x, const Position& p);
-      void next(void);
+      void nextBlock(void);
       bool operator ()(void) const;
       void consume(int k);
       /// Max. consumable characters from current position within current block
@@ -74,8 +75,7 @@ namespace Gecode { namespace String {
     /// Iterator for stretching backwards
     struct StretchBwdIterator : public SweepIterator {
       StretchBwdIterator(const StringView& x);
-      StretchBwdIterator(const StringView& x, const Position& p);
-      void next(void);
+      void nextBlock(void);
       bool operator ()(void) const;
       /// Min. no. of chars that must be consumed from current position within current block
       int must_consume(void) const;
