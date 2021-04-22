@@ -178,21 +178,28 @@ namespace Gecode { namespace String {
     /// TODO:
     template <class ViewX, class ViewY>
     forceinline bool
-    init_x(Space& home, ViewX x, const ViewY& y, Matching m[]) {
-      typename ViewY::SweepFwdIterator fwd_it = x.sweep_fwd_iterator();
-      int n = x.size();
-      for (int i = 0; i < n; ++i) {
+    init_x(Space& home, ViewX x, ViewY& y, Matching m[]) {
+      typename ViewY::SweepFwdIterator fwd_it = y.sweep_fwd_iterator();
+      int nx = x.size(), ny = y.size();
+      Position end = Position(ny, 0); 
+      for (int i = 0; i < nx; ++i) {
         stretch<typename ViewY::SweepFwdIterator>(x[i], fwd_it);
         m[i].LEP = *fwd_it;
-//        std::cerr << i << ": " << x[i] << " LEP: " << m[i].LEP << '\n';
+        std::cerr << i << ": " << x[i] << " LEP: " << m[i].LEP << '\n';
+        if (*fwd_it == end) {
+          for (int j = i+1; j < nx; ++j)
+            m[j].LEP = end;
+          break;
+        }
       }
-      if (m[n-1].LEP < Position(n,0))
+      std::cerr << m[nx-1].LEP << ' ' << (m[nx-1].LEP < end) << '\n';
+      if (m[nx-1].LEP < end)
         return false;
-      typename ViewY::StretchBwdIterator bwd_it = x.stretch_bwd_iterator();
-      for (int i = n-1; i >= 0; --i) {
+      typename ViewY::StretchBwdIterator bwd_it = y.stretch_bwd_iterator();
+      for (int i = nx-1; i >= 0; --i) {
         stretch<typename ViewY::StretchBwdIterator>(x[i], bwd_it);
         m[i].ESP = *bwd_it;
-//        std::cerr << i << ": " << x[i] << " ESP: " << m[i].ESP << '\n';
+        std::cerr << i << ": " << x[i] << " ESP: " << m[i].ESP << '\n';
       }
       return m[0].ESP <= Position(0,0);
     }
