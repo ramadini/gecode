@@ -168,7 +168,7 @@ namespace Gecode { namespace String {
     }
   };
   
-  template <class ViewX, class ViewY>
+  template <class ViewX, class ViewY, class IterY>
   bool
   pushESP(ViewX& x, ViewY& y, Matching m[], int i) {
     int n = x.size();
@@ -179,17 +179,16 @@ namespace Gecode { namespace String {
         m[i+1].ESP = m[i].ESP;
       return true;
     }
-    typename ViewY::SweepFwdIterator fwd_it(y, m[i].ESP);
-    Position start = push_fwd(x[i], y, m[i].ESP);
-    if (start == Position(n,0))
+    IterY it1(y, m[i].ESP);
+    IterY it0(y, push<IterY>(x[i], it1));
+    if (!it0.hasNext())
       return false;
-    Position end = m[i].ESP;
-    if (i < n && m[i+1].ESP < end)
+    if (i < n && m[i+1].ESP.prec(*it1, y))
       // x[i+1] cannot start before end
-      m[i+1].ESP = end;
-    if (m[i].ESP < start)
+      m[i+1].ESP = *it1;
+    if (m[i].ESP.prec(*it0, y))
       // Pushing ESP forward.
-      m[i].ESP = start;
+      m[i].ESP = *it0;
     return true;   
   }
   
@@ -240,7 +239,7 @@ namespace Gecode { namespace String {
       return false;
     int n = x.size(); 
     for (int i = 0; i < n; ++i) {
-      if (!pushESP(x, y, m, i))
+      if (!pushESP<ViewX,ViewY,typename ViewY::SweepFwdIterator>(x, y, m, i))
         return false;
     }
     for (int i = n-1; i >= 0; --i) {
