@@ -108,12 +108,12 @@ namespace Gecode { namespace String {
   template <class IterY>
   forceinline Position
   push(const Block& bx, IterY& it) {
-    std::cerr << "Pushing " << bx << " from " << *it << '\n';
+//    std::cerr << "Pushing " << bx << " from " << *it << '\n';
     Position p = *it;
     // No. of chars. that must be consumed
     int k = bx.lb(); 
     while (k > 0) {
-      std::cerr << "p=" << p << ", it=" << *it << ", k=" << k << std::endl;
+//      std::cerr << "p=" << p << ", it=" << *it << ", k=" << k << std::endl;
       if (!it.hasNext())
         return *it;
       if (it.disj(bx)) {
@@ -129,7 +129,7 @@ namespace Gecode { namespace String {
       else {
         // Max. no. of chars that may be consumed.
         int m = it.may_consume();
-        std::cerr << "m=" << m << std::endl;
+//        std::cerr << "m=" << m << std::endl;
         if (k <= m) {
           it.consume(k);
           return p;
@@ -147,12 +147,12 @@ namespace Gecode { namespace String {
   template <class IterY>
   forceinline void
   stretch(const Block& bx, IterY& it) {
-    std::cerr << "Streching " << bx << " from " << *it << '\n';
+//    std::cerr << "Streching " << bx << " from " << *it << '\n';
     int k = bx.ub();
     while (it.hasNext()) {
       // Min. no. of chars that must be consumed.
       int m = it.must_consume();
-      std::cerr << "it=" << *it << "k=" << k << ", m=" << m << std::endl;
+//      std::cerr << "it=" << *it << "k=" << k << ", m=" << m << std::endl;
       if (m == 0)
         it.nextBlock();
       else if (it.disj(bx))
@@ -171,26 +171,33 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   bool
   pushESP(ViewX& x, ViewY& y, Matching m[], int i) {
-//    int n = x.size();
-//    if (x[i].lb() == 0) {
-//      // x[i] nullable, not pushing ESP[i]
-//      if (i < n-1 && m[i+1].ESP < m[i].ESP)
-//        // x[i+1] cannot start before x[i]
-//        m[i+1].ESP = m[i].ESP;
-//      return true;
-//    }
-//    typename ViewY::SweepFwdIterator fwd_it(y, m[i].ESP);
-//    Position start = push_fwd(x[i], y, m[i].ESP);
-//    if (start == Position(n,0))
-//      return false;
-//    Position end = m[i].ESP;
-//    if (i < n && m[i+1].ESP < end)
-//      // x[i+1] cannot start before end
-//      m[i+1].ESP = end;
-//    if (m[i].ESP < start)
-//      // Pushing ESP forward.
-//      m[i].ESP = start;
+    int n = x.size();
+    if (x[i].lb() == 0) {
+      // x[i] nullable, not pushing ESP[i]
+      if (i < n-1 && m[i+1].ESP < m[i].ESP)
+        // x[i+1] cannot start before x[i]
+        m[i+1].ESP = m[i].ESP;
+      return true;
+    }
+    typename ViewY::SweepFwdIterator fwd_it(y, m[i].ESP);
+    Position start = push_fwd(x[i], y, m[i].ESP);
+    if (start == Position(n,0))
+      return false;
+    Position end = m[i].ESP;
+    if (i < n && m[i+1].ESP < end)
+      // x[i+1] cannot start before end
+      m[i+1].ESP = end;
+    if (m[i].ESP < start)
+      // Pushing ESP forward.
+      m[i].ESP = start;
     return true;   
+  }
+  
+  template <class ViewX, class ViewY>
+  bool
+  pushLEP(ViewX& x, ViewY& y, Matching m[], int i) {
+    //TODO:
+    return true;
   }
     
   /// TODO:
@@ -237,8 +244,8 @@ namespace Gecode { namespace String {
         return false;
     }
     for (int i = n-1; i >= 0; --i) {
-//      if (!pushLEP(x, y, m, i))
-//        return false;
+      if (!pushLEP(x, y, m, i))
+        return false;
     }
     m[0].LSP = m[0].ESP;
     for (int i = 1; i < n; ++i) {
