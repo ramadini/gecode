@@ -262,16 +262,43 @@ public:
     assert (*bwd_it1 == p && p < Position(0,0));
   }
   
+  void test07() {
+    cerr << "\n*** Test 07 ***" << endl;
+    std::vector<Block> bv(5);
+    bv[0].update(*this, Block(*this, CharSet(*this, IntSet({'B','b'})), 1, 1));
+    bv[1].update(*this, Block(*this, CharSet(*this, 'o'), 2, 10));
+    bv[2].update(*this, Block('m'));
+    bv[3].update(*this, Block(*this, CharSet(*this, '!'), 3, 10));
+    StringVar x(*this, DashedString(*this, bv));
+    StringVar y(*this, Block(*this, CharSet(*this,IntSet({'b','o','m'})),0,4));    
+    StringView vx(x), vy(y);
+    int n = vx.size();
+    Matching m[n];
+    bool b = init_x<StringView,StringView>(*this, vx, vy, m);
+    assert(b);
+    cerr << "Init. x = " << x << "  vs  y = " << y << "\n";
+    for (int i = 0; i < n; ++i)
+      cerr << "ESP[" << vx[i] << "] = " << m[i].ESP << ", "
+           << "LEP[" << vx[i] << "] = " << m[i].LEP << "\n";
+//    
+//    StringVar z(*this, v, 0, 100);
+//    CharSet t;
+//    t.include('o');
+//    t.include('m');
+//    t.include('!');
+  }
+  
 };
 
 int main() {
   StrTest* home = new StrTest();
-  home->test01();
-  home->test02();
-  home->test03();
-  home->test04();
-  home->test05();
-  home->test06();
+//  home->test01();
+//  home->test02();
+//  home->test03();
+//  home->test04();
+//  home->test05();
+//  home->test06();
+  home->test07();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }

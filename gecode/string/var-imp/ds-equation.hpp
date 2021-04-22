@@ -184,7 +184,7 @@ namespace Gecode { namespace String {
       for (int i = 0; i < n; ++i) {
         stretch<typename ViewY::SweepFwdIterator>(x[i], fwd_it);
         m[i].LEP = *fwd_it;
-        std::cerr << i << ": " << x[i] << " LEP: " << m[i].LEP << '\n';
+//        std::cerr << i << ": " << x[i] << " LEP: " << m[i].LEP << '\n';
       }
       if (m[n-1].LEP < Position(n,0))
         return false;
@@ -192,9 +192,9 @@ namespace Gecode { namespace String {
       for (int i = n-1; i >= 0; --i) {
         stretch<typename ViewY::StretchBwdIterator>(x[i], bwd_it);
         m[i].ESP = *bwd_it;
-        std::cerr << i << ": " << x[i] << " ESP: " << m[i].ESP << '\n';
+//        std::cerr << i << ": " << x[i] << " ESP: " << m[i].ESP << '\n';
       }
-      return m[0].ESP >= Position(0,0);
+      return m[0].ESP <= Position(0,0);
     }
     
     /// TODO:
