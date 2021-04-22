@@ -37,7 +37,7 @@ namespace Gecode { namespace String {
       /// Constructor
       SweepIterator(const StringView& x, const Position& p);
       /// Move iterator to the beginning of the next block (if possible)
-      virtual void moveNext(void) = 0;
+      virtual void nextBlock(void) = 0;
       /// Test whether iterator is still within the dashed string or done
       virtual bool hasNext(void) const = 0;
       /// Min. no. of chars that must be consumed from current position within current block
@@ -60,7 +60,8 @@ namespace Gecode { namespace String {
     /// Iterator for pushing/stretching forwards
     struct SweepFwdIterator : public SweepIterator {
       SweepFwdIterator(const StringView& x);
-      void moveNext(void);
+      SweepFwdIterator(const StringView& x, const Position& p);
+      void nextBlock(void);
       bool hasNext(void) const;
       void consume(int k);
       void consumeMand(int k);
@@ -70,7 +71,8 @@ namespace Gecode { namespace String {
     /// Iterator for pushing/stretching backwards
     struct SweepBwdIterator : public SweepIterator {
       SweepBwdIterator(const StringView& x);
-      void moveNext(void);
+      SweepBwdIterator(const StringView& x, const Position& p);
+      void nextBlock(void);
       bool hasNext(void) const;
       void consume(int k);
       void consumeMand(int k);

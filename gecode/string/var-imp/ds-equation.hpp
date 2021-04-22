@@ -44,10 +44,17 @@ namespace Gecode { namespace String {
           || (idx == n && off == 0);
     }
     /// Test if this position is less than \a p w.r.t. lexicographic ordering.
+    /// NOTE: If position are not normalized, the result might be unexpected.
     forceinline bool
-    operator<(const Position& p) {
+    operator<(const Position& p) const {
       return idx < p.idx || (idx == p.idx && off <= p.off);
-    } 
+    }
+    /// Test if this position is less than \a p w.r.t. lexicographic ordering.
+    /// NOTE: If position are not normalized, the result might be unexpected.
+    forceinline bool
+    operator==(const Position& p) const {
+      return idx == p.idx && idx == p.idx;
+    }
   };
   forceinline std::ostream&
   operator<<(std::ostream& os, const Position& p) {
@@ -107,11 +114,11 @@ namespace Gecode { namespace String {
     int k = bx.lb(); 
     while (k > 0) {
 //      std::cerr << "k=" << k << ", it=" << *it << std::endl;
-      if (!it())
+      if (!it.hasNext())
         return *it;
       if (it.disj(bx)) {
         // Skipping block, possibly resetting k
-        it.next();
+        it.nextBlock();
         if (it.lb() > 0) {
           p = *it;
           k = bx.lb();
@@ -126,7 +133,7 @@ namespace Gecode { namespace String {
         }
         else {
           k -= m;
-          it.next();
+          it.nextBlock();
         }
       }
     }
@@ -139,12 +146,12 @@ namespace Gecode { namespace String {
   stretch(const Block& bx, IterY& it) {
 //    std::cerr << "Streching " << bx << " from " << *it << '\n';
     int k = bx.ub();
-    while (it()) {
+    while (it.hasNext()) {
       // Min. no. of chars that must be consumed.
       int m = it.must_consume();
 //      std::cerr << "k=" << k << ", m=" << m << ", it=" << *it << std::endl;
       if (m == 0)
-        it.next();
+        it.nextBlock();
       else if (it.disj(bx))
         return;
       else if (k < m) {
@@ -153,7 +160,7 @@ namespace Gecode { namespace String {
       }
       else {
         k -= m;
-        it.next();
+        it.nextBlock();
       } 
     }
   };

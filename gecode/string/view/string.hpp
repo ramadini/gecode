@@ -47,8 +47,12 @@ namespace Gecode { namespace String {
   SweepFwdIterator::SweepFwdIterator(const StringView& x) 
   : SweepIterator(x, Position(0,0)) {};
   
+  StringView::
+  SweepFwdIterator::SweepFwdIterator(const StringView& x, const Position& p) 
+  : SweepIterator(x, p) {};
+  
   forceinline void
-  StringView::SweepFwdIterator::moveNext() {
+  StringView::SweepFwdIterator::nextBlock() {
     if (pos.idx >= sv.size())
       return;
     pos.idx++;
@@ -91,7 +95,7 @@ namespace Gecode { namespace String {
     if (pos.off == sv[pos.idx].ub()) {
       pos.idx++;
       pos.off = 0;
-    }     
+    }
     assert (isOK());
   }
 
@@ -102,8 +106,12 @@ namespace Gecode { namespace String {
   StringView::SweepBwdIterator::SweepBwdIterator(const StringView& x) 
   : SweepIterator(x, Position(x.size(), 0)) {};
   
+  StringView::
+  SweepBwdIterator::SweepBwdIterator(const StringView& x, const Position& p) 
+  : SweepIterator(x, p) {};
+  
   forceinline void
-  StringView::SweepBwdIterator::moveNext() {
+  StringView::SweepBwdIterator::nextBlock() {
     if (pos.idx == 0)
       return;
     if (pos.off > 0)
