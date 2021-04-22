@@ -200,13 +200,12 @@ public:
     cerr << "\n...to " << *fwd_it1 << endl;
     assert (*fwd_it1 == Position(5,0));
 
-//    
-//    b.update(*this, Block(*this, CharSet(*this, 'c', 'd'), 1 ,2));
-//    StringView::PushBwdIterator bwd_it0 = vy.push_bwd_iterator();
-//    cerr << "Pushing backward " << b << " in " << y << " from " << *bwd_it0;
-//    p = push<StringView::PushBwdIterator>(b, bwd_it0);
-//    cerr << "\n...LSP = " << *bwd_it0 << ", LEP = " << p << endl;
-//    assert (*bwd_it0 == Position(3,1) && p == Position(3,2));
+    b.update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 3));
+    StringView::StretchBwdIterator bwd_it0 = vy.stretch_bwd_iterator();
+    cerr << "Stretching backward " << b << " in " << y << " from " << *bwd_it0;
+    stretch<StringView::StretchBwdIterator>(b, bwd_it0);
+    cerr << "\n...to " << *bwd_it0 << endl;
+    assert (*bwd_it0 == Position(1,1));
 //    
 //    b.update(*this, Block('b' ,2));
 //    StringView::PushBwdIterator bwd_it1 =
