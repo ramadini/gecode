@@ -43,6 +43,11 @@ namespace Gecode { namespace String {
       return (0 <= idx && idx < n && 0 <= off && off < y[idx].ub())
           || (idx == n && off == 0);
     }
+    /// Test if this position is less than \a p w.r.t. lexicographic ordering.
+    forceinline bool
+    operator<(const Position& p) {
+      return idx < p.idx || (idx == p.idx && off <= p.off);
+    } 
   };
   forceinline std::ostream&
   operator<<(std::ostream& os, const Position& p) {
@@ -104,10 +109,10 @@ namespace Gecode { namespace String {
 //      std::cerr << "k=" << k << ", it=" << *it << std::endl;
       if (!it())
         return *it;
-      int l = it.lb();
       if (it.disj(bx)) {
+        // Skipping block, possibly resetting k
         it.next();
-        if (l > 0) {
+        if (it.lb() > 0) {
           p = *it;
           k = bx.lb();
         }
@@ -143,7 +148,7 @@ namespace Gecode { namespace String {
       else if (it.disj(bx))
         return;
       else if (k < m) {
-        it.consume(k);
+        it.consumeMand(k);
         return;
       }
       else {
@@ -156,25 +161,25 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   bool
   pushESP(ViewX& x, ViewY& y, Matching m[], int i) {
-    int n = x.size();
-    if (x[i].lb() == 0) {
-      // x[i] nullable, not pushing ESP[i]
-      if (i < n-1 && m[i+1].ESP < m[i].ESP)
-        // x[i+1] cannot start before x[i]
-        m[i+1].ESP = m[i].ESP;
-      return true;
-    }
-    typename ViewY::SweepFwdIterator fwd_it(y, m[i].ESP);
-    Position start = push_fwd(x[i], y, m[i].ESP);
-    if (start == Position(n,0))
-      return false;
-    Position end = m[i].ESP;
-    if (i < n && m[i+1].ESP < end)
-      // x[i+1] cannot start before end
-      m[i+1].ESP = end;
-    if (m[i].ESP < start)
-      // Pushing ESP forward.
-      m[i].ESP = start;
+//    int n = x.size();
+//    if (x[i].lb() == 0) {
+//      // x[i] nullable, not pushing ESP[i]
+//      if (i < n-1 && m[i+1].ESP < m[i].ESP)
+//        // x[i+1] cannot start before x[i]
+//        m[i+1].ESP = m[i].ESP;
+//      return true;
+//    }
+//    typename ViewY::SweepFwdIterator fwd_it(y, m[i].ESP);
+//    Position start = push_fwd(x[i], y, m[i].ESP);
+//    if (start == Position(n,0))
+//      return false;
+//    Position end = m[i].ESP;
+//    if (i < n && m[i+1].ESP < end)
+//      // x[i+1] cannot start before end
+//      m[i+1].ESP = end;
+//    if (m[i].ESP < start)
+//      // Pushing ESP forward.
+//      m[i].ESP = start;
     return true;   
   }
     
@@ -182,34 +187,32 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool
   init_x(Space& home, ViewX x, ViewY& y, Matching m[]) {
-    typename ViewY::SweepFwdIterator fwd_it = y.sweep_fwd_iterator();
+    typename ViewY::SweepFwdIterator fwd_it = y.fwd_iterator();
     int nx = x.size(), ny = y.size();
-    Position p = Position(ny, 0); 
     for (int i = 0; i < nx; ++i) {
       stretch<typename ViewY::SweepFwdIterator>(x[i], fwd_it);
       m[i].LEP = *fwd_it;
 //        std::cerr << i << ": " << x[i] << " LEP: " << m[i].LEP << '\n';
-      if (!fwd_it()) {
+      if (!fwd_it.hasNext()) {
         for (int j = i+1; j < nx; ++j)
           m[j].LEP = *fwd_it;
         break;
       }
     }
-    if (fwd_it())
+    if (fwd_it.hasNext())
       return false;
-    typename ViewY::StretchBwdIterator bwd_it = y.stretch_bwd_iterator();
-    p.idx = 0;
+    typename ViewY::SweepBwdIterator bwd_it = y.bwd_iterator();
     for (int i = nx-1; i >= 0; --i) {
-      stretch<typename ViewY::StretchBwdIterator>(x[i], bwd_it);
+      stretch<typename ViewY::SweepBwdIterator>(x[i], bwd_it);
       m[i].ESP = *bwd_it;
 //        std::cerr << i << ": " << x[i] << " ESP: " << m[i].ESP << '\n';
-      if (!bwd_it()) {
+      if (!bwd_it.hasNext()) {
         for (int j = i-1; j >= 0; --j)
           m[j].ESP = *bwd_it;
         break;
       }
     }
-    return m[0].ESP <= p; // Why not bwd_it()?
+    return !bwd_it.hasNext();
   }
   
   /// TODO:

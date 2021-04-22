@@ -14,8 +14,6 @@ namespace Gecode { namespace String {
     assert (isOK());
   };
   
-  }
-  
   forceinline const Position& 
   StringView::SweepIterator::operator *() {
     return pos;
@@ -40,7 +38,6 @@ namespace Gecode { namespace String {
   StringView::SweepIterator::isOK() const {
     return pos.isNorm(sv);
   }
-  
 
 }}
 
@@ -128,7 +125,7 @@ namespace Gecode { namespace String {
   forceinline int
   StringView::SweepBwdIterator::must_consume() const {
     return (pos.idx > 0 && pos.off == 0) ? sv[pos.idx-1].lb() 
-                                         : min(pos.off, sv[pos.idx].lb());
+                                         : std::min(pos.off, sv[pos.idx].lb());
   }
   
   forceinline void
@@ -195,18 +192,13 @@ namespace Gecode { namespace String {
   }
   
   forceinline StringView::SweepFwdIterator
-  StringView::sweep_fwd_iterator(void) {
+  StringView::fwd_iterator(void) {
     return SweepFwdIterator(*this);
   }
   
   forceinline StringView::SweepBwdIterator
-  StringView::push_bwd_iterator(void) {
+  StringView::bwd_iterator(void) {
     return SweepBwdIterator(*this);
-  }
-  
-  forceinline StringView::StretchBwdIterator
-  StringView::stretch_bwd_iterator(void) {
-    return StretchBwdIterator(*this);
   }
   
 //  TODO? ModEvent

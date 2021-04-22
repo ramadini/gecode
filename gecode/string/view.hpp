@@ -31,6 +31,8 @@ namespace Gecode { namespace String {
       const StringView& sv;
       /// The current position on the view, always normalized w.r.t. sv
       Position pos;
+      /// Check if the iterator position is in a consistent state;
+      bool isOK(void) const;
     public:
       /// Constructor
       SweepIterator(const StringView& x, const Position& p);
@@ -39,9 +41,9 @@ namespace Gecode { namespace String {
       /// Test whether iterator is still within the dashed string or done
       virtual bool hasNext(void) const = 0;
       /// Min. no. of chars that must be consumed from current position within current block
-      int must_consume(void) const = 0;
+      virtual int must_consume(void) const = 0;
       /// Max. no. of chars that may be consumed from current position within current block
-      int may_consume(void) const = 0;
+      virtual int may_consume(void) const = 0;
       /// Consume \a k characters from current position within current block
       virtual void consume(int k) = 0;
       /// Consume \a k mandatory characters from current position within current block
@@ -54,9 +56,6 @@ namespace Gecode { namespace String {
       int ub(void) const;
       /// Check if the base of the current block is disjoint with that of \a b
       bool disj(const Block& b) const;
-    private
-      /// Check that the iterator is in a consistent state;
-      bool isOK(void) const;
     };
     /// Iterator for pushing/stretching forwards
     struct SweepFwdIterator : public SweepIterator {
@@ -93,9 +92,8 @@ namespace Gecode { namespace String {
 
     /// \name Sweep iterators
     //@{
-    SweepFwdIterator sweep_fwd_iterator(void);
-    PushBwdIterator push_bwd_iterator(void);
-    StretchBwdIterator stretch_bwd_iterator(void);
+    SweepFwdIterator fwd_iterator(void);
+    SweepBwdIterator bwd_iterator(void);
     //@}
 
     //@}
