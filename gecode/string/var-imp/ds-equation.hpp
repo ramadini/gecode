@@ -157,23 +157,27 @@ namespace Gecode { namespace String {
     }
   };
   
-//    /// TODO:
-//    template <class ViewX, class ViewY>
-//    pushESP(const ViewX& x, const ViewY& y, int i, Matching m[]) {
-//      if (x[i].lb() == 0) {
-//        if (i < n-1 && m.ESP[i+1] < m.ESP[i])
-//          m.ESP[i+1] = m.ESP[i];
-//        return;
-//      }
-//      .... es = push_fwd(x[i], y, m.ESP[i]);
-//      ls = m.ESP[i]
+    template <class ViewX, class ViewY>
+    void
+    pushESP(ViewX& x, ViewY& y, int i, Matching m[]) {
+      int n = x.size();
+      if (x[i].lb() == 0) {
+        // x[i] nullable, not pushing ESP[i]
+        if (i < n-1 && m[i+1].ESP < m[i].ESP)
+          // x[i+1] cannot start before x[i]
+          m[i+1].ESP = m[i].ESP;
+        return;
+      }
+      typename ViewY::SweepFwdIterator fwd_it(y, m[i].ESP);
+//      Position start = push_fwd(x[i], y, m.ESP[i]);
+//      Position end = m.ESP[i];
 //      if (!es())
 //        _|_
 //      if (i < n && m.ESP[i+1] < ls)
 //        m.ESP[i+1] = le;
 //      if (...
 //        
-//    }
+    }
     
     /// TODO:
     template <class ViewX, class ViewY>
