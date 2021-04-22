@@ -21,13 +21,15 @@ namespace Gecode { namespace String {
     
   public:
   
-    /// Abstract class for sweeping string views, used to push/stretch blocks in 
-    /// dashed string equation
+    /// Abstract class for iterating string views, used to push/stretch blocks 
+    /// in dashed string equation.
+    /// FIXME: The current position of the iterator must always be normalized 
+    ///        w.r.t. its view.
     class SweepIterator {
     protected:
       /// The views on which we iterate
       const StringView& sv;
-      /// The current position on the view
+      /// The current position on the view, always normalized w.r.t. sv
       Position pos;
     public:
       /// Constructor

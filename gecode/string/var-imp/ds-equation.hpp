@@ -10,42 +10,38 @@ namespace Gecode { namespace String {
     /// Constructors
     forceinline Position(void): idx(0), off(0) {};
     forceinline Position(int i, int j): idx(i), off(j) {};
-    /// Position equality.
-    forceinline bool 
-    operator ==(const Position& p) const {
-      return (idx == p.idx && off == p.off);
+    /// Test if this and p refer to the same position in y
+    template <class View>
+    forceinline bool
+    same(const Position& p, View& y) const {
+      return (idx == p.idx   && off == p.off)
+          || (idx == p.idx+1 && off == 0 && p.off == y[p.idx].ub())
+          || (idx == p.idx-1 && p.off == 0 && off == y[idx].ub());
     }
+    /// Test if this strictly precedes p in y
+    template <class View>
     forceinline bool
-    equiv(const Position& p, int u) const {
-      return *this == p ||
-        (off == 0 && idx == p.idx+1 && u == p.off) ||
-        (p.off == 0 && p.idx == idx+1 && u == off);        
+    prec(const Position& p, View& y) const {
+      return (idx < p.idx-1)
+          || (idx == p.idx && off < p.off)
+          || (idx == p.idx-1 && (p.off == 0 || off != y[idx].ub()));
     }
-    /// Position inequality.
+    /// Test if this precedes p in y, or they are the same position
+    template <class View>
     forceinline bool
-    operator !=(const Position& p) const {
-      return idx != p.idx || off != p.off;
+    preceq(const Position& p, View& y) const {
+      return (idx < p.idx)
+          || (idx == p.idx && off <= p.off)
+          || (idx == p.idx+1 && off == 0 && p.off == y[p.idx].ub());
     }
+    /// Test if this is normalized w.r.t. to y, i.e., it belongs to the set 
+    /// {(i,j) | 0 <= i < |y|, 0 <= j < ub(y)} U {(|y|,0)}
+    template <class View>
     forceinline bool
-    nequiv(const Position& p, int u) const {
-      return !equiv(p, u);
-    }
-    /// Position lexicographic ordering.
-    forceinline bool
-    operator <(const Position& p) const {
-      return idx < p.idx || (idx == p.idx && off < p.off); 
-    }    
-    forceinline bool
-    operator >(const Position& p) const {
-      return idx > p.idx || (idx == p.idx && off > p.off); 
-    }
-    forceinline bool
-    operator <=(const Position& p) const {
-      return idx < p.idx || (idx == p.idx && off <= p.off);
-    }
-    forceinline bool
-    operator >=(const Position& p) const {
-      return idx > p.idx || (idx == p.idx && off >= p.off);
+    isNorm(View& y) const {
+      int n = y.size();
+      return (0 <= idx && idx < n && 0 <= off && off < y[idx].ub())
+          || (idx == n && off == 0);
     }
   };
   forceinline std::ostream&
@@ -199,7 +195,7 @@ namespace Gecode { namespace String {
         break;
       }
     }
-    if (m[nx-1].LEP < p)
+    if (fwd_it())
       return false;
     typename ViewY::StretchBwdIterator bwd_it = y.stretch_bwd_iterator();
     p.idx = 0;
@@ -209,11 +205,11 @@ namespace Gecode { namespace String {
 //        std::cerr << i << ": " << x[i] << " ESP: " << m[i].ESP << '\n';
       if (!bwd_it()) {
         for (int j = i-1; j >= 0; --j)
-          m[j].ESP = p;
+          m[j].ESP = *bwd_it;
         break;
       }
     }
-    return m[0].ESP <= p;
+    return m[0].ESP <= p; // Why not bwd_it()?
   }
   
   /// TODO:
