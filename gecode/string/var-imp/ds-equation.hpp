@@ -147,12 +147,12 @@ namespace Gecode { namespace String {
   template <class IterY>
   forceinline void
   stretch(const Block& bx, IterY& it) {
-//    std::cerr << "Streching " << bx << " from " << *it << '\n';
+    std::cerr << "Streching " << bx << " from " << *it << '\n';
     int k = bx.ub();
     while (it.hasNext()) {
       // Min. no. of chars that must be consumed.
       int m = it.must_consume();
-//      std::cerr << "k=" << k << ", m=" << m << ", it=" << *it << std::endl;
+      std::cerr << "it=" << *it << "k=" << k << ", m=" << m << std::endl;
       if (m == 0)
         it.nextBlock();
       else if (it.disj(bx))

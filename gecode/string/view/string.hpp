@@ -167,6 +167,8 @@ namespace Gecode { namespace String {
   
   forceinline void
   StringView::SweepBwdIterator::consumeMand(int k) {
+    if (k == 0)
+      return;
     if (pos.idx > 0 && pos.off == 0) {
       pos.off = sv[pos.idx-1].lb() - k;
       pos.idx--;
