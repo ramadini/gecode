@@ -159,7 +159,7 @@ namespace Gecode { namespace String {
   
   template <class ViewX, class ViewY>
   bool
-  pushESP(ViewX& x, ViewY& y, int i, Matching m[]) {
+  pushESP(ViewX& x, ViewY& y, Matching m[], int i) {
     int n = x.size();
     if (x[i].lb() == 0) {
       // x[i] nullable, not pushing ESP[i]
@@ -193,9 +193,9 @@ namespace Gecode { namespace String {
       stretch<typename ViewY::SweepFwdIterator>(x[i], fwd_it);
       m[i].LEP = *fwd_it;
 //        std::cerr << i << ": " << x[i] << " LEP: " << m[i].LEP << '\n';
-      if (*fwd_it == p) {
+      if (!fwd_it()) {
         for (int j = i+1; j < nx; ++j)
-          m[j].LEP = p;
+          m[j].LEP = *fwd_it;
         break;
       }
     }
@@ -207,7 +207,7 @@ namespace Gecode { namespace String {
       stretch<typename ViewY::StretchBwdIterator>(x[i], bwd_it);
       m[i].ESP = *bwd_it;
 //        std::cerr << i << ": " << x[i] << " ESP: " << m[i].ESP << '\n';
-      if (*bwd_it == p) {
+      if (!bwd_it()) {
         for (int j = i-1; j >= 0; --j)
           m[j].ESP = p;
         break;
@@ -222,8 +222,27 @@ namespace Gecode { namespace String {
   sweep_x(Space& home, ViewX x, ViewY& y, Matching m[]) {
     if (!init_x(home, x, y, m))
       return false;
-    //TODO: pushESP/pushLEP
-    refine_x(home, x, y, m);
+    int n = x.size(); 
+    for (int i = 0; i < n; ++i) {
+      if (!pushESP(x, y, m, i))
+        return false;
+    }
+    for (int i = n-1; i >= 0; --i) {
+//      if (!pushLEP(x, y, m, i))
+//        return false;
+    }
+    m[0].LSP = m[0].ESP;
+    for (int i = 1; i < n; ++i) {
+      m[i].LSP = m[i-1].LEP;
+      if (m[i].LSP < m[i].ESP)
+        return false;
+    }
+    m[n-1].EEP = m[n-1].LEP;
+    for (int i = n-2; i >= 0; --i) {
+      m[i].EEP = m[i-1].ESP;
+      if (m[i].LSP < m[i].ESP)
+        return false;
+    }
     return true;
   }
   
