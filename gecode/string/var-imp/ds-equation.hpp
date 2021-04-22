@@ -179,23 +179,39 @@ namespace Gecode { namespace String {
         m[i+1].ESP = m[i].ESP;
       return true;
     }
-    IterY it1(y, m[i].ESP);
-    IterY it0(y, push<IterY>(x[i], it1));
-    if (!it0.hasNext())
+    IterY p(y, m[i].ESP);
+    IterY q(y, push<IterY>(x[i], p));
+    if (!q.hasNext())
       return false;
-    if (i < n && m[i+1].ESP.prec(*it1, y))
-      // x[i+1] cannot start before end
-      m[i+1].ESP = *it1;
-    if (m[i].ESP.prec(*it0, y))
+    if (i < n && m[i+1].ESP.prec(*q, y))
+      // x[i+1] cannot start before *q
+      m[i+1].ESP = *q;
+    if (m[i].ESP.prec(*p, y))
       // Pushing ESP forward.
-      m[i].ESP = *it0;
-    return true;   
+      m[i].ESP = *p;
+    return true;
   }
   
-  template <class ViewX, class ViewY>
+  template <class ViewX, class ViewY, class IterY>
   bool
   pushLEP(ViewX& x, ViewY& y, Matching m[], int i) {
-    //TODO:
+    if (x[i].lb() == 0) {
+      // x[i] nullable, not pushing LEP[i]
+      if (i > 0 && m[i-1].LEP < m[i].LEP)
+        // x[i-1] cannot end after x[i]
+        m[i-1].LEP = m[i].LEP;
+      return true;
+    }
+    IterY p(y, m[i].LEP);
+    IterY q(y, push<IterY>(x[i], p));
+    if (!q.hasNext())
+      return false;
+    if (i > 0 && (*p).prec(m[i-1].LEP, y))
+      // x[i-1] cannot end after *p
+      m[i-1].LEP = *p;
+    if ((*q).prec(m[i].LEP, y))
+      // Pushing LEP backward.
+      m[i].LEP = *q;
     return true;
   }
     
@@ -243,7 +259,7 @@ namespace Gecode { namespace String {
         return false;
     }
     for (int i = n-1; i >= 0; --i) {
-      if (!pushLEP(x, y, m, i))
+      if (!pushLEP<ViewX,ViewY,typename ViewY::SweepBwdIterator>(x, y, m, i))
         return false;
     }
     m[0].LSP = m[0].ESP;

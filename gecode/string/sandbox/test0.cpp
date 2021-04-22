@@ -297,7 +297,9 @@ public:
     StringView vx(x), vy(y);
     int n = vx.size();
     Matching m[n];
-    sweep_x(*this, vx, vy, m);
+    // FIXME:
+    assert(sweep_x(*this, vx, vy, m));
+    assert(sweep_x(*this, vy, vx, m));
   }
   
 };
