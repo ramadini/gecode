@@ -57,7 +57,8 @@ namespace Gecode { namespace String {
       /// Check if the base of the current block is disjoint with that of \a b
       bool disj(const Block& b) const;
     };
-    /// Iterator for pushing/stretching forwards
+    /// Iterator for pushing/stretching forwards. Positions range from (0,0) 
+    /// included to (|x|,0) excluded
     struct SweepFwdIterator : public SweepIterator {
       SweepFwdIterator(const StringView& x);
       SweepFwdIterator(const StringView& x, const Position& p);
@@ -68,10 +69,14 @@ namespace Gecode { namespace String {
       int must_consume(void) const;
       int may_consume(void) const;
     };
-    /// Iterator for pushing/stretching backwards
+    /// Iterator for pushing/stretching backwards. Positions range from (|x|,0)
+    /// included to (0,0) excluded
     struct SweepBwdIterator : public SweepIterator {
       SweepBwdIterator(const StringView& x);
       SweepBwdIterator(const StringView& x, const Position& p);
+      int lb(void) const;
+      int ub(void) const;
+      bool disj(const Block& b) const;
       void nextBlock(void);
       bool hasNext(void) const;
       void consume(int k);

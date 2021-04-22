@@ -162,14 +162,14 @@ public:
     cerr << "Pushing backward " << b << " in " << y << " from " << *bwd_it0;
     p = push<StringView::SweepBwdIterator>(b, bwd_it0);
     cerr << "\n...LSP = " << *bwd_it0 << ", LEP = " << p << endl;
-    assert (*bwd_it0 == Position(3,1) && p == Position(3,2));
+    assert (*bwd_it0 == Position(3,1) && p == Position(4,0));
     
     b.update(*this, Block('b',2));
     StringView::SweepBwdIterator bwd_it1(vy, Position(4,4));
     cerr << "Pushing backward " << b << " in " << y << " from " << *bwd_it1;
     p = push<StringView::SweepBwdIterator>(b, bwd_it1);
     cerr << "\n...LSP = " << *bwd_it1 << ", LEP = " << p << endl;
-    assert (p == *bwd_it1 && p == Position(-1, 0));
+    assert (p == *bwd_it1 && p == Position(0,0));
     
   }
 //  
