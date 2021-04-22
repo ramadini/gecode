@@ -129,9 +129,9 @@ namespace Gecode { namespace String {
 //    std::cerr << "Streching " << bx << " from " << *it << '\n';
     int k = bx.ub();
     while (it()) {
-//      std::cerr << "k=" << k << ", it=" << *it << std::endl;
       // Min. no. of chars that must be consumed.
       int m = it.must_consume();
+//      std::cerr << "k=" << k << ", m=" << m << ", it=" << *it << std::endl;
       if (m == 0)
         it.next();
       else if (it.disj(bx))

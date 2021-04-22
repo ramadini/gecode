@@ -120,8 +120,8 @@ namespace Gecode { namespace String {
   forceinline void
   StringView::PushBwdIterator::consume(int k) {
     pos.off -= k;
-    if (k <= 0) {
-      if (k < 0)
+    if (pos.off <= 0) {
+      if (pos.off < 0)
         throw OutOfLimits("StringView::PushBwdIterator::consume");
       pos.idx--;
       pos.off = pos.idx >= 0 ? sv[pos.idx].ub() : 0;
@@ -164,14 +164,14 @@ namespace Gecode { namespace String {
 
   forceinline int
   StringView::StretchBwdIterator::must_consume() const {
-    return pos.off;
+    return std::min(pos.off, sv[pos.idx].lb());
   }
 
   forceinline void
   StringView::StretchBwdIterator::consume(int k) {
     pos.off -= k;
-    if (k <= 0) {
-      if (k < 0)
+    if (pos.off <= 0) {
+      if (pos.off < 0)
         throw OutOfLimits("StringView::StretchBwdIterator::consume");
       pos.idx--;
       pos.off = pos.idx >= 0 ? sv[pos.idx].lb() : 0;
