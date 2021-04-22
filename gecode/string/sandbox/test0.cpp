@@ -231,6 +231,14 @@ public:
     Position p = push<StringView::SweepFwdIterator>(b, fwd_it0);
     cerr << "\n...ESP = " << p << ", EEP = " << *fwd_it0 << endl;
     assert (p == Position(2,0) && *fwd_it0 == Position(3,0));
+    
+    StringView::SweepFwdIterator fwd_it1 =
+      StringView::SweepFwdIterator(vy, Position(2,1));
+    cerr << "Pushing forward " << b << " in " << y << " from " << *fwd_it1;
+    p = push<StringView::SweepFwdIterator>(b, fwd_it1);
+    cerr << "\n...ESP = " << p << ", EEP = " << *fwd_it1 << endl;
+    assert (p == *fwd_it1 && p == Position(4,0));
+    
   }
   
 };
