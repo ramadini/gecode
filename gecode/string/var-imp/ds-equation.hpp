@@ -181,33 +181,38 @@ namespace Gecode { namespace String {
     init_x(Space& home, ViewX x, ViewY& y, Matching m[]) {
       typename ViewY::SweepFwdIterator fwd_it = y.sweep_fwd_iterator();
       int nx = x.size(), ny = y.size();
-      Position end = Position(ny, 0); 
+      Position p = Position(ny, 0); 
       for (int i = 0; i < nx; ++i) {
         stretch<typename ViewY::SweepFwdIterator>(x[i], fwd_it);
         m[i].LEP = *fwd_it;
-        std::cerr << i << ": " << x[i] << " LEP: " << m[i].LEP << '\n';
-        if (*fwd_it == end) {
+//        std::cerr << i << ": " << x[i] << " LEP: " << m[i].LEP << '\n';
+        if (*fwd_it == p) {
           for (int j = i+1; j < nx; ++j)
-            m[j].LEP = end;
+            m[j].LEP = p;
           break;
         }
       }
-      std::cerr << m[nx-1].LEP << ' ' << (m[nx-1].LEP < end) << '\n';
-      if (m[nx-1].LEP < end)
+      if (m[nx-1].LEP < p)
         return false;
       typename ViewY::StretchBwdIterator bwd_it = y.stretch_bwd_iterator();
+      p.idx = 0;
       for (int i = nx-1; i >= 0; --i) {
         stretch<typename ViewY::StretchBwdIterator>(x[i], bwd_it);
         m[i].ESP = *bwd_it;
-        std::cerr << i << ": " << x[i] << " ESP: " << m[i].ESP << '\n';
+//        std::cerr << i << ": " << x[i] << " ESP: " << m[i].ESP << '\n';
+        if (*bwd_it == p) {
+          for (int j = i-1; j >= 0; --j)
+            m[j].ESP = p;
+          break;
+        }
       }
-      return m[0].ESP <= Position(0,0);
+      return m[0].ESP <= p;
     }
     
     /// TODO:
     template <class ViewX, class ViewY>
     forceinline bool
-    sweep_x(Space& home, ViewX x, const ViewY& y, Matching m[]) {
+    sweep_x(Space& home, ViewX x, ViewY& y, Matching m[]) {
       if (!init_x(home, x, y, m))
         return false;
       //TODO: pushESP/pushLEP
@@ -218,7 +223,7 @@ namespace Gecode { namespace String {
     /// TODO: 
     template <class ViewX, class ViewY>
     forceinline ModEvent
-    equate_x(Space& home, ViewX x, const ViewY& y) {
+    equate_x(Space& home, ViewX x, ViewY& y) {
       int lb = x.min_length(), ub = x.max_length();
       Matching m[x.size()];
       if (!sweep_x(home, x, y, m))
