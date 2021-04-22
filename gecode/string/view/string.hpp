@@ -94,7 +94,7 @@ namespace Gecode { namespace String {
   : SweepIterator(x, Position(x.size(),0)) {};
   
   forceinline void
-  StringView::PushBwdIterator::next(void) {
+  StringView::PushBwdIterator::nextBlock() {
     if (pos.idx == 0)
       return;
     pos.idx--;
@@ -115,12 +115,8 @@ namespace Gecode { namespace String {
   forceinline void
   StringView::PushBwdIterator::consume(int k) {
     pos.off -= k;
-    if (pos.off <= 0) {
-      if (pos.off < 0)
-        throw OutOfLimits("StringView::PushBwdIterator::consume");
-      pos.idx--;
-      pos.off = pos.idx >= 0 ? sv[pos.idx].ub() : 0;
-    }
+    if (pos.off < 0)
+      throw OutOfLimits("StringView::PushBwdIterator::consume");
     assert (isOK());
   }
 
