@@ -108,12 +108,12 @@ namespace Gecode { namespace String {
   template <class IterY>
   forceinline Position
   push(const Block& bx, IterY& it) {
-//    std::cerr << "Pushing " << bx << " from " << *it << '\n';
+    std::cerr << "Pushing " << bx << " from " << *it << '\n';
     Position p = *it;
     // No. of chars. that must be consumed
     int k = bx.lb(); 
     while (k > 0) {
-//      std::cerr << "p=" << p << ", it=" << *it << ", k=" << k << std::endl;
+      std::cerr << "p=" << p << ", it=" << *it << ", k=" << k << std::endl;
       if (!it.hasNext())
         return *it;
       if (it.disj(bx)) {
@@ -129,7 +129,7 @@ namespace Gecode { namespace String {
       else {
         // Max. no. of chars that may be consumed.
         int m = it.may_consume();
-//        std::cerr << "m=" << m << std::endl;
+        std::cerr << "m=" << m << std::endl;
         if (k <= m) {
           it.consume(k);
           return p;
@@ -171,6 +171,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY, class IterY>
   bool
   pushESP(ViewX& x, ViewY& y, Matching m[], int i) {
+    std::cerr << "Pushing ESP of " << x[i] << " from " << m[i].ESP << '\n';
     int n = x.size();
     if (x[i].lb() == 0) {
       // x[i] nullable, not pushing ESP[i]
@@ -179,9 +180,9 @@ namespace Gecode { namespace String {
         m[i+1].ESP = m[i].ESP;
       return true;
     }
-    IterY p(y, m[i].ESP);
-    IterY q(y, push<IterY>(x[i], p));
-    if (!q.hasNext())
+    IterY q(y, m[i].ESP);
+    IterY p(y, push<IterY>(x[i], q));
+    if (!p.hasNext())
       return false;
     if (i < n && m[i+1].ESP.prec(*q, y))
       // x[i+1] cannot start before *q
@@ -195,6 +196,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY, class IterY>
   bool
   pushLEP(ViewX& x, ViewY& y, Matching m[], int i) {
+    std::cerr << "Pushing LEP of " << x[i] << " from " << m[i].LEP << '\n';
     if (x[i].lb() == 0) {
       // x[i] nullable, not pushing LEP[i]
       if (i > 0 && m[i-1].LEP < m[i].LEP)
