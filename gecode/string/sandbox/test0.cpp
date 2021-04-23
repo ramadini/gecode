@@ -268,8 +268,8 @@ public:
     bool b = init_x<StringView,StringView>(*this, vx, vy, m);
     assert(b);    
     for (int i = 0; i < n; ++i)
-      cerr << "ESP[" << vx[i] << "] = " << m[i].ESP << ", "
-           << "LEP[" << vx[i] << "] = " << m[i].LEP << "\n";
+      cerr << "ESP[ " << vx[i] << " ] = " << m[i].ESP << ", "
+           << "LEP[ " << vx[i] << " ] = " << m[i].LEP << "\n";
     cerr << "Init. y = " << y << "  vs  x = " << x << "\n";
     b = init_x<StringView,StringView>(*this, vy, vx, m);
     assert(!b);
@@ -280,8 +280,8 @@ public:
     assert(b);
     n = vy.size();
     for (int i = 0; i < n; ++i)
-      cerr << "ESP[" << vy[i] << "] = " << m[i].ESP << ", "
-           << "LEP[" << vy[i] << "] = " << m[i].LEP << "\n";
+      cerr << "ESP[ " << vy[i] << " ] = " << m[i].ESP << ", "
+           << "LEP[ " << vy[i] << " ] = " << m[i].LEP << "\n";
   }
   
   void test08() {
@@ -296,9 +296,27 @@ public:
     StringView vx(x), vy(y);
     int n = vx.size();
     Matching m[n];
-    // FIXME:
+    cerr << "Sweep x = " << x << "  vs  y = " << y << "\n";
     assert(sweep_x(*this, vx, vy, m));
+    for (int i = 0; i < n; ++i)
+      cerr << "Block " << vx[i] << ":\t"
+           << "ESP: " << m[i].ESP << ", "
+           << "EEP: " << m[i].EEP << ", "
+           << "LSP: " << m[i].LSP << ", "
+           << "LEP: " << m[i].LEP << "\n";
+    assert (m[0].LEP == Position(0,1) && m[1].EEP == Position(0,3));
+    assert (m[2].ESP == Position(0,3) && m[3].LSP == Position(1,0));
+    
+    cerr << "Sweep y = " << y << "  vs  x = " << x << "\n";
     assert(sweep_x(*this, vy, vx, m));
+    n = vy.size();
+    for (int i = 0; i < n; ++i)
+      cerr << "Block " << vy[i] << ":\t"
+           << "ESP: " << m[i].ESP << ", "
+           << "EEP: " << m[i].EEP << ", "
+           << "LSP: " << m[i].LSP << ", "
+           << "LEP: " << m[i].LEP << "\n";
+    assert (m[0].LSP == Position(0,0) && m[0].EEP == Position(4,0));
   }
   
 };
