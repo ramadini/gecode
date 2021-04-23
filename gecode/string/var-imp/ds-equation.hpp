@@ -55,6 +55,12 @@ namespace Gecode { namespace String {
     operator==(const Position& p) const {
       return idx == p.idx && idx == p.idx;
     }
+    /// Test if this position is not equal to \a p w.r.t. lexicographic ordering.
+    /// NOTE: If position are not normalized, the result might be unexpected.
+    forceinline bool
+    operator!=(const Position& p) const {
+      return idx != p.idx || idx != p.idx;
+    }
   };
   forceinline std::ostream&
   operator<<(std::ostream& os, const Position& p) {
@@ -95,12 +101,21 @@ namespace Gecode { namespace String {
     //
   }
   
-  
-  /// Possibly refines x[i] according to its matching region m[i] in y. 
+  /// Possibly refines each x[i] according to its matching region m[i] in y. 
   /// It returns true iff at least a block has been refined.
   template <class ViewX, class ViewY>
   bool refine_x(Space& home, ViewX x, const ViewY& y, Matching m[]) {
-
+    int nx = x.size();
+    Position esp0(-1,0), eep0(-1,0), lsp0(-1,0), lep0(-1,0);
+    for (int i = 0; i < nx; ++i) {
+      Block& b = x[i];
+      if (b.isFixed())
+        continue;
+      Position esp(m[i].ESP), eep(m[i].EEP), lsp(m[i].LSP), lep(m[i].LEP);
+      if (esp != esp0 || eep != eep0 || lsp != lsp0 || lep != lep0) {
+      
+      }
+    }
     return true;
   }
   

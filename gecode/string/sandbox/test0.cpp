@@ -319,6 +319,11 @@ public:
     assert (m[0].LSP == Position(0,0) && m[0].EEP == Position(4,0));
   }
   
+  void test09() {
+    cerr << "\n*** Test 09 ***" << endl;
+    
+  }
+  
 };
 
 int main() {
@@ -331,6 +336,7 @@ int main() {
   home->test06();
   home->test07();
   home->test08();
+  home->test09();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }
