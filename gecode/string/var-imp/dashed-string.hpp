@@ -272,7 +272,7 @@ namespace Gecode { namespace String {
     friend std::ostream& operator<<(std::ostream& os, const DashedString& x);    
   private:    
     /// Check whether each block is consistent and min_len/max_len correspond to
-    /// the minimum/maximum length of the dashed string
+    /// the sum of each lb/ub
     bool isOK(void) const;
   };
 
@@ -746,7 +746,9 @@ namespace Gecode { namespace String {
       }
       norm |= i > 0 && (x[i].isNull() || x[i].baseEquals(x[i-1]));
     }
-    norm ? normalize(home) : assert(isOK());
+    if (norm)
+      normalize(home);
+    assert(isOK() && isNorm());
   }
 
   forceinline int DashedString::min_length() const { return min_len; }
@@ -829,7 +831,7 @@ namespace Gecode { namespace String {
       n = 1;
     }
     min_len = max_len = 0;
-    assert(isOK());
+    assert(isOK() && isNorm());
   }
   
   forceinline void 
@@ -854,7 +856,7 @@ namespace Gecode { namespace String {
     for (int i = 0; i < d.n; ++i)
       x[i].update(home, d[i]);
     n = d.n;
-    assert(isOK());
+    assert(isOK() && isNorm());
   }
   
   forceinline void
@@ -900,7 +902,16 @@ namespace Gecode { namespace String {
         n = newSize;
       }
     }
-    assert(isOK());
+    assert(isOK() && isNorm());
+  }
+  
+  forceinline bool
+  DashedString::isNorm() const {
+    if (x[0].isNull())
+      return n == 1;
+    for (int i = 1; i < n; i++)
+      if (x[i].isNull() || x[i-1].baseEquals(x[i]))
+        return false;
   }
   
   forceinline bool
@@ -909,10 +920,12 @@ namespace Gecode { namespace String {
     || min_len > max_len)
       return false;
     if (x[0].isNull())
-      return min_len == 0 && max_len == 0 && n == 1;
-    int l = 0, u = 0, i = 0;
-    for (; i < n-1; i++) {
-      if (!x[i].isOK() || x[i].isNull() || x[i].baseEquals(x[i+1]))
+      return min_len == 0 && max_len == 0;
+    if (!x[0].isOK())
+      return false;
+    int l =0, u = 0;
+    for (int i = 0; i < n; i++) {
+      if (!x[i].isOK())
         return false;
       l += x[i].lb();
       if (u < MAX_STRING_LENGTH) {
@@ -920,14 +933,7 @@ namespace Gecode { namespace String {
         u = uu < u ? MAX_STRING_LENGTH : uu;
       }
     }
-    l += x[i].lb();
-    if (l != min_len || x[i].isNull() || !x[i].isOK())
-      return false;    
-    if (u < MAX_STRING_LENGTH) {
-      int uu = u + x[i].ub();
-      u = uu < u ? MAX_STRING_LENGTH : uu;
-    }
-    return u == max_len;
+    return l == min_len && u == max_len;
   }
   
   forceinline std::ostream&
