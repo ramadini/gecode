@@ -195,10 +195,10 @@ namespace Gecode { namespace String {
   
   private:
     // Sum of the lower bounds of each block of the dashed string
-    int lb;
+    int min_len;
     // Minimum between MAX_STRING_LENGTH and the sum of the upper bounds of 
     // each block of the dashed string
-    int ub;
+    int max_len;
   
     // FIXME: Each block of the dashed string is always consistent and normalized,
     // but this does not imply that the dashed string is always normalized. 
@@ -265,14 +265,14 @@ namespace Gecode { namespace String {
     /// Check whether the dashed string is normalized
     bool isNorm(void) const;
     /// Normalize the dashed string, assuming each block already consistent 
-    /// and 0 <= lb <= ub <= MAX_STRING_LENGTH.
+    /// and 0 <= min_len <= max_len <= MAX_STRING_LENGTH.
     void normalize(Space& home);
     
     /// Prints the dashed string \a x
     friend std::ostream& operator<<(std::ostream& os, const DashedString& x);    
   private:    
-    /// Check whether each block is consistent and lb/ub correspond to the 
-    /// minimum/maximum length of the dashed string
+    /// Check whether each block is consistent and min_len/max_len correspond to
+    /// the minimum/maximum length of the dashed string
     bool isOK(void) const;
   };
 
@@ -710,13 +710,13 @@ namespace Gecode { namespace String {
 
   forceinline
   DashedString::DashedString(Space& home) 
-  : DynamicArray(home, 1), lb(0), ub(MAX_STRING_LENGTH) {
+  : DynamicArray(home, 1), min_len(0), max_len(MAX_STRING_LENGTH) {
     x[0].update(home, Block(home));
   }
   
   forceinline
   DashedString::DashedString(Space& home, const Block& block) 
-  : DynamicArray(home, 1), lb(block.lb()), ub(block.ub()) {
+  : DynamicArray(home, 1), min_len(block.lb()), max_len(block.ub()) {
     x[0].update(home, block);
   }
   
@@ -728,29 +728,29 @@ namespace Gecode { namespace String {
   
   forceinline
   DashedString::DashedString(Space& home, const std::vector<Block>& blocks)
-  : DynamicArray(home, (int) blocks.size()), lb(0), ub(0) {
+  : DynamicArray(home, (int) blocks.size()), min_len(0), max_len(0) {
     bool norm = false;
     for (int i = 0; i < n; ++i) {
       x[i].update(home, blocks[i]);
       // NOTE: The sum of the blocks' bounds might overflow.
-      if (lb > MAX_STRING_LENGTH || lb + x[i].lb() < lb) {
+      if (min_len > MAX_STRING_LENGTH || min_len + x[i].ub() < min_len) {
         for (int j = 0; j <= i; ++j)
           x[j].nullify(home);
         a.free(x, n);
         throw OutOfLimits("DashedString::DashedString");
       }
-      lb += x[i].lb();
-      if (ub < MAX_STRING_LENGTH) {
-        int u = ub + x[i].ub();
-        ub = u < ub ? MAX_STRING_LENGTH : u;
+      min_len += x[i].lb();
+      if (max_len < MAX_STRING_LENGTH) {
+        int u = max_len + x[i].ub();
+        max_len = u < max_len ? MAX_STRING_LENGTH : u;
       }
       norm |= i > 0 && (x[i].isNull() || x[i].baseEquals(x[i-1]));
     }
     norm ? normalize(home) : assert(isOK());
   }
 
-  forceinline int DashedString::min_length() const { return lb; }
-  forceinline int DashedString::max_length() const { return ub; }
+  forceinline int DashedString::min_length() const { return min_len; }
+  forceinline int DashedString::max_length() const { return max_len; }
   forceinline int DashedString::size() const { return n; }
  
   forceinline const Block&
@@ -783,7 +783,7 @@ namespace Gecode { namespace String {
   
   forceinline bool
   DashedString::isFixed() const {
-    if (lb != ub)
+    if (min_len != max_len)
       return false;
     for (int i = 0; i < n; ++i)
       if (!x[i].isFixed())
@@ -793,9 +793,9 @@ namespace Gecode { namespace String {
   
   forceinline bool
   DashedString::contains(const DashedString& d) const {
-    if (lb > d.lb || ub < d.ub || n < d.n)
+    if (min_len > d.min_len || max_len < d.max_len || n < d.n)
       return false;
-    if (isUniverse() || (d.isNull() && lb == 0))
+    if (isUniverse() || (d.isNull() && min_len == 0))
       return true;
     for (int i = 0; i < d.n; ++i)
       if (!x[i].contains(d.x[i]))
@@ -828,14 +828,14 @@ namespace Gecode { namespace String {
       a.free(x+1, n-1);
       n = 1;
     }
-    lb = ub = 0;
+    min_len = max_len = 0;
     assert(isOK());
   }
   
   forceinline void 
   DashedString::update(Space& home, const DashedString& d) {
-    lb = d.lb;
-    ub = d.ub;
+    min_len = d.min_len;
+    max_len = d.max_len;
     if (d.n <= n) {
       for (int i = 0; i < d.n; ++i)
         x[i].update(home, d[i]);
@@ -905,10 +905,11 @@ namespace Gecode { namespace String {
   
   forceinline bool
   DashedString::isOK() const {
-    if (n <= 0 || lb < 0 || ub > MAX_STRING_LENGTH || lb > ub)
+    if (n <= 0 || min_len < 0 || max_len > MAX_STRING_LENGTH 
+    || min_len > max_len)
       return false;
     if (x[0].isNull())
-      return lb == 0 && ub == 0 && n == 1;
+      return min_len == 0 && max_len == 0 && n == 1;
     int l = 0, u = 0, i = 0;
     for (; i < n-1; i++) {
       if (!x[i].isOK() || x[i].isNull() || x[i].baseEquals(x[i+1]))
@@ -920,13 +921,13 @@ namespace Gecode { namespace String {
       }
     }
     l += x[i].lb();
-    if (l != lb || x[i].isNull() || !x[i].isOK())
+    if (l != min_len || x[i].isNull() || !x[i].isOK())
       return false;    
     if (u < MAX_STRING_LENGTH) {
       int uu = u + x[i].ub();
       u = uu < u ? MAX_STRING_LENGTH : uu;
     }
-    return u == ub;
+    return u == max_len;
   }
   
   forceinline std::ostream&
