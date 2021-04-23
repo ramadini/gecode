@@ -86,14 +86,23 @@ namespace Gecode { namespace String {
       return std::max(bx.lb(), nabla(bx, y[h], k1 - k));
     int s = nabla(bx.lb(), y[h], y[h].lb() - k);
     for (int i = h+1; i < h1; i++) 
-      s += nabla(bx, y[i].lb());
+      s += nabla(bx, y[i], y[i].lb());
     return std::max(bx.lb(), s + nabla(bx, y[k], k1));
   }
-//  
-//  forceinline int 
-//  max_len_opt(const Position& p, const Position& q, ViewY& it) {
-//    return 0;
-//  }
+  
+  template <class ViewY>
+  forceinline int 
+  max_len_opt(const Block& bx, const ViewY& y, const Position& esp, 
+              const Position& lep) {
+    assert(!lep.prec(esp, y));
+    int p = esp.idx, p1 = lep.idx, q = esp.off, q1 = lep.off;
+    if (p == p1)
+      return std::min(bx.ub(), nabla(bx, y[p], q1 - q));
+    int s = nabla(bx, y[p], y[p].ub() - q);
+    for (int i = p+1; i < p1; i++) 
+      s += nabla(bx, y[i], y[i].ub());
+    return std::min(bx.ub(), s + nabla(bx, y[q], q1));
+  }
   
   /// Possibly refines each x[i] according to its matching region m[i] in y. 
   /// It returns true iff at least a block has been refined.
