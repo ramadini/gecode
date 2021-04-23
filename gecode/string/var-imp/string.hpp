@@ -30,10 +30,10 @@ namespace Gecode { namespace String {
     return ds.size();
   }
 
-  forceinline Block&
-  StringVarImp::operator[](int i) {
-    return ds[i];
-  }
+//  forceinline Block&
+//  StringVarImp::operator[](int i) {
+//    return ds[i];
+//  }
   
   forceinline const Block&
   StringVarImp::operator[](int i) const {

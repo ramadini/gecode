@@ -274,9 +274,11 @@ public:
     b = init_x<StringView,StringView>(*this, vy, vx, m);
     assert(!b);
     cerr << "Failed!\n";
-    vx[3].updateCard(*this, 0, 3);
-    b = init_x<StringView,StringView>(*this, vy, vx, m);
-    cerr << "Init. y = " << y << "  vs  x = " << x << "\n";
+    bv[3].update(*this, Block(*this, CharSet(*this, '!'), 0, 3));
+    StringVar z(*this, DashedString(*this, bv));
+    StringView vz(z);
+    b = init_x<StringView,StringView>(*this, vy, vz, m);
+    cerr << "Init. y = " << y << "  vs  z = " << z << "\n";
     assert(b);
     n = vy.size();
     for (int i = 0; i < n; ++i)

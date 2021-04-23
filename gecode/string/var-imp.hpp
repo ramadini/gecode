@@ -75,8 +75,6 @@ namespace Gecode { namespace String {
     /// Test whether the domain is equatable with dashed string \a x.
     bool check_equate(const DashedString& x) const;
     /// Returns the i-th block of the domain
-    Block& operator[](int i);
-    /// Returns the i-th block of the domain
     const Block& operator[](int i) const;
     //@}
     

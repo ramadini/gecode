@@ -200,8 +200,9 @@ namespace Gecode { namespace String {
     // each block of the dashed string
     int ub;
   
-    // FIXME: Each non-const operation on dashed strings leave it in a 
-    // normalized and consistent state.
+    // FIXME: Each block of the dashed string is always consistent and normalized,
+    // but this does not imply that the dashed string is always normalized. 
+    // This is to avoid too many resizing due to eager normalization.
   
   public:
     /// \name Constructors and initialization
@@ -233,9 +234,6 @@ namespace Gecode { namespace String {
     double logdim(void) const;
     /// Returns the i-th block of the dashed string. Throws OutOfLimits if \a i < 0 or 
     /// \a i >= n, where n is the dashed string size
-    Block& operator[](int i);
-    /// Returns the i-th block of the dashed string. Throws OutOfLimits if \a i < 0 or 
-    /// \a i >= n, where n is the dashed string size
     const Block& operator[](int i) const;
     /// Returns the concrete string denoted by the dashed string, if it is fixed.
     /// Otherwise, an IllegalOperation exception is thrown.
@@ -256,7 +254,7 @@ namespace Gecode { namespace String {
     bool contains(const DashedString& x) const;
     //@}
     
-    /// \name Cloning
+    /// \name Cloning and updating
     //@{
     /// Update this dashed string to be the null block.
     void nullify(Space& home);
@@ -264,15 +262,18 @@ namespace Gecode { namespace String {
     void update(Space& home, const DashedString& x);
     //@}
     
-    /// Check whether the dashed string is normalized and internal invariants hold
-    bool isOK(void) const;
-    /// Prints the dashed string \a x
-    friend std::ostream& operator<<(std::ostream& os, const DashedString& x);
-    
-  private:
+    /// Check whether the dashed string is normalized
+    bool isNorm(void) const;
     /// Normalize the dashed string, assuming each block already consistent 
     /// and 0 <= lb <= ub <= MAX_STRING_LENGTH.
     void normalize(Space& home);
+    
+    /// Prints the dashed string \a x
+    friend std::ostream& operator<<(std::ostream& os, const DashedString& x);    
+  private:    
+    /// Check whether each block is consistent and lb/ub correspond to the 
+    /// minimum/maximum length of the dashed string
+    bool isOK(void) const;
   };
 
 }}
@@ -751,19 +752,14 @@ namespace Gecode { namespace String {
   forceinline int DashedString::min_length() const { return lb; }
   forceinline int DashedString::max_length() const { return ub; }
   forceinline int DashedString::size() const { return n; }
-  
-  forceinline Block&
-  DashedString::operator[](int i) {
-    if (i < 0 || i >= n)
-      throw OutOfLimits("DashedString::operator[]");
-    return *(x + i);
-  }
+ 
   forceinline const Block&
   DashedString::operator[](int i) const {
     if (i < 0 || i >= n)
       throw OutOfLimits("DashedString::operator[]");
     return *(x + i);
   }
+  
   forceinline double
   DashedString::logdim() const {
     double d = 0.0;
