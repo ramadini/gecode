@@ -213,13 +213,21 @@ namespace Gecode { namespace String {
     /// Creates a dashed string consisting of one \a block \$
     DashedString(Space& home, const Block& block);
     /// Creates a dashed string consisting of a copy of \a x \$
-    DashedString(Space& home, const DashedString& x);
-    /// Creates a normalized dashed string from \a blocks. 
+    /// Note: if \a x is not normalized, then this won't be normalized.
+    DashedString(Space& home, const DashedString& x);\
+    /// Creates a possibly dashed string consisting of \a n > 0 null blocks
+    /// NOTE: If n > 1, the dashed will be _not_ normalized
+    DashedString(Space& home, int n);
+    /// Creates a dashed string consisting of \a n > 0 copies of b
+    /// NOTE: If n > 1, the dashed will be _not_ normalized
+    DashedString(Space& home, int n, const Block& b);    
+    /// Creates a normalized dashed string from array \a b of \n blocks
     /// The following exceptions might be thrown:
     /// - IllegalOperation, if \a blocks is empty
     /// - OutOfLimits, if the sum of lower bounds of blocks is bigger than
     ///                MAX_STRING_LENGTH
-    DashedString(Space& home, const std::vector<Block>& blocks);
+    DashedString(Space& home, Block b[], int n);
+    
     
     
     /// \name Dashed string access
@@ -718,17 +726,33 @@ namespace Gecode { namespace String {
   DashedString::DashedString(Space& home, const Block& block) 
   : DynamicArray(home, 1), min_len(block.lb()), max_len(block.ub()) {
     x[0].update(home, block);
+    assert (isOK() && isNorm());
   }
   
   forceinline
   DashedString::DashedString(Space& home, const DashedString& d) 
   : DynamicArray(home, d.size()) {
     update(home, d);
+    assert (isOK() && (isNorm() || !d.isNorm()));
   }
   
   forceinline
-  DashedString::DashedString(Space& home, const std::vector<Block>& blocks)
-  : DynamicArray(home, (int) blocks.size()), min_len(0), max_len(0) {
+  DashedString::DashedString(Space& home, int n) 
+  : DynamicArray(home,n), min_len(0), max_len(0) {
+    assert (isOK() && (n == 1 || !isNorm()));
+  }
+  
+  forceinline
+  DashedString::DashedString(Space& home, int n, const Block& b) 
+  : DynamicArray(home,n), min_len(n*b.lb()), max_len(n*b.ub()) {
+    for (int i = 0; i < n; ++i)
+      x[i].update(home, b);
+    assert (isOK() && (n == 1 || !isNorm()));
+  }
+  
+  forceinline
+  DashedString::DashedString(Space& home, Block blocks[], int n)
+  : DynamicArray(home, n), min_len(0), max_len(0) {
     bool norm = false;
     for (int i = 0; i < n; ++i) {
       x[i].update(home, blocks[i]);
@@ -748,7 +772,7 @@ namespace Gecode { namespace String {
     }
     if (norm)
       normalize(home);
-    assert(isOK() && isNorm());
+    assert (isOK() && isNorm());
   }
 
   forceinline int DashedString::min_length() const { return min_len; }
@@ -912,6 +936,7 @@ namespace Gecode { namespace String {
     for (int i = 1; i < n; i++)
       if (x[i].isNull() || x[i-1].baseEquals(x[i]))
         return false;
+    return true;
   }
   
   forceinline bool
