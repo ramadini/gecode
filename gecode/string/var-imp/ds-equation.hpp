@@ -268,16 +268,16 @@ namespace Gecode { namespace String {
     m[0].LSP = m[0].ESP;
     for (int i = 1; i < n; ++i) {
       m[i].LSP = m[i-1].LEP;
-      std::cerr << "ESP of " << x[i] << ": " << m[i].ESP << ", " 
-                << "LSP of " << x[i] << ": " << m[i].LSP << "\n";
+//      std::cerr << "ESP of " << x[i] << ": " << m[i].ESP << ", " 
+//                << "LSP of " << x[i] << ": " << m[i].LSP << "\n";
       if (m[i].LSP < m[i].ESP)
         return false;
     }
     m[n-1].EEP = m[n-1].LEP;
     for (int i = n-2; i >= 0; --i) {
-      m[i].EEP = m[i-1].ESP;
-      std::cerr << "EEP of " << x[i] << ": " << m[i].EEP << ", " 
-                << "LEP of " << x[i] << ": " << m[i].LEP << "\n";
+      m[i].EEP = m[i+1].ESP;
+//      std::cerr << "EEP of " << x[i] << ": " << m[i].EEP << ", " 
+//                << "LEP of " << x[i] << ": " << m[i].LEP << "\n";
       if (m[i].LEP < m[i].EEP)
         return false;
     }
