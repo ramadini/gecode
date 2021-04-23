@@ -110,7 +110,7 @@ public:
     assert (d0.isUniverse() && d0[0].isUniverse() && d1.isFixed());
     assert (d1.val() == std::vector<int>({'r', 'r', 'r'}));
     int n = 8, i = 0;
-    std::vector<Block> b(n);
+    Block b[n];
     b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'B','b'})), 1 ,1));
     b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'o'})), 1, 3));
     b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'o'})), 1, 1));
@@ -119,14 +119,14 @@ public:
     b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'!'})), 0, 1));
     b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'!'})), 0, 0));
     b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'!'})), 0, 2));
-    DashedString d2(*this, b);
+    DashedString d2(*this, b, n);
     cerr << d2 << '\n';
     assert (d2.min_length() == 4 && d2.size() == 4 && d2.max_length() == 9);
     assert (d2.logdim() - log(24) < DBL_EPSILON);
-    b = std::vector<Block>(2);
-    b[0].update(*this, Block(*this, CharSet(*this, 'r','t'), 1 ,3));
-    b[1].update(*this, Block(*this, CharSet(*this, IntSet({'a','d'})), 0 ,2));
-    d0.update(*this, DashedString(*this, b));
+    Block b0[2];
+    b0[0].update(*this, Block(*this, CharSet(*this, 'r','t'), 1 ,3));
+    b0[1].update(*this, Block(*this, CharSet(*this, IntSet({'a','d'})), 0 ,2));
+    d0.update(*this, DashedString(*this, b0, 2));
     assert (d0.contains(d1));
     cerr << d0 << '\n';
     d1.nullify(*this);
@@ -135,13 +135,13 @@ public:
   
   void test04() {
     cerr << "\n*** Test 04 ***" << endl;
-    std::vector<Block> bv(5);
+    Block bv[5];
     bv[0].update(*this, Block(*this, CharSet(*this, 'a'), 2 ,3));
     bv[1].update(*this, Block(*this, CharSet(*this, 'c'), 1 ,2));
     bv[2].update(*this, Block('b'));
     bv[3].update(*this, Block(*this, CharSet(*this, 'c'), 0 ,2));
     bv[4].update(*this, Block(*this, CharSet(*this, 'a'), 3, 4));
-    StringVar y(*this, DashedString(*this, bv));
+    StringVar y(*this, DashedString(*this, bv, 5));
     StringView vy(y);
     StringView::SweepFwdIterator fwd_it0(vy, Position(0,1));
     Block b(*this, CharSet(*this, 'a', 'b'), 3 ,4);
@@ -175,13 +175,13 @@ public:
   
    void test05() {
     cerr << "\n*** Test 05 ***" << endl;
-    std::vector<Block> bv(5);
+    Block bv[5];
     bv[0].update(*this, Block(*this, CharSet(*this, 'a'), 2 ,3));
     bv[1].update(*this, Block(*this, CharSet(*this, 'c'), 1 ,2));
     bv[2].update(*this, Block('b'));
     bv[3].update(*this, Block(*this, CharSet(*this, 'c'), 0 ,2));
     bv[4].update(*this, Block(*this, CharSet(*this, 'a'), 3, 4));
-    StringVar y(*this, DashedString(*this, bv));
+    StringVar y(*this, DashedString(*this, bv, 5));
     StringView vy(y);
     StringView::SweepFwdIterator fwd_it0(vy, Position(0,1));
     Block b(*this, CharSet(*this, 'a', 'b'), 3 ,4);
@@ -212,12 +212,12 @@ public:
   
   void test06() {
     cerr << "\n*** Test 06 ***" << endl;
-    std::vector<Block> bv(5);
+    Block bv[5];
     bv[0].update(*this, Block(*this, CharSet(*this, IntSet({'B','b'})), 1 , 1));
     bv[1].update(*this, Block(*this, CharSet(*this, 'o'), 2 ,4));
     bv[2].update(*this, Block('m'));
     bv[3].update(*this, Block(*this, CharSet(*this, '!'), 0 ,3));
-    StringVar y(*this, DashedString(*this, bv));
+    StringVar y(*this, DashedString(*this, bv, 5));
     StringView vy(y);
     StringView::SweepFwdIterator fwd_it0(vy, Position(2,0));
     Block b(*this, CharSet(*this, 'm'), 1 ,2);
@@ -254,12 +254,12 @@ public:
   
   void test07() {
     cerr << "\n*** Test 07 ***" << endl;
-    std::vector<Block> bv(5);
+    Block bv[4];
     bv[0].update(*this, Block(*this, CharSet(*this, IntSet({'B','b'})), 1, 1));
     bv[1].update(*this, Block(*this, CharSet(*this, 'o'), 2, 10));
     bv[2].update(*this, Block('m'));
     bv[3].update(*this, Block(*this, CharSet(*this, '!'), 3, 10));
-    StringVar x(*this, DashedString(*this, bv));
+    StringVar x(*this, DashedString(*this, bv, 4));
     StringVar y(*this, Block(*this, CharSet(*this,IntSet({'b','o','m'})),0,4));    
     StringView vx(x), vy(y);
     int n = vx.size();
@@ -275,7 +275,7 @@ public:
     assert(!b);
     cerr << "Failed!\n";
     bv[3].update(*this, Block(*this, CharSet(*this, '!'), 0, 3));
-    StringVar z(*this, DashedString(*this, bv));
+    StringVar z(*this, DashedString(*this, bv, 3));
     StringView vz(z);
     b = init_x<StringView,StringView>(*this, vy, vz, m);
     cerr << "Init. y = " << y << "  vs  z = " << z << "\n";
@@ -288,12 +288,12 @@ public:
   
   void test08() {
     cerr << "\n*** Test 08 ***" << endl;
-    std::vector<Block> bv(5);
+    Block bv[4];
     bv[0].update(*this, Block(*this, CharSet(*this, IntSet({'B','b'})), 1, 1));
     bv[1].update(*this, Block(*this, CharSet(*this, 'o'), 2, 4));
     bv[2].update(*this, Block('m'));
     bv[3].update(*this, Block(*this, CharSet(*this, '!'), 0, 3));
-    StringVar x(*this, DashedString(*this, bv));
+    StringVar x(*this, DashedString(*this, bv, 4));
     StringVar y(*this, Block(*this, CharSet(*this,IntSet({'b','o','m'})),0,4));    
     StringView vx(x), vy(y);
     int n = vx.size();
