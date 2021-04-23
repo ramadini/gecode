@@ -70,10 +70,24 @@ namespace Gecode { namespace String {
  
   // FIXME: Maybe define a namespace for equate-based functions?
 
+  forceinline bool
+  nabla(const Block& bx, const Block& by, int x) {
+    return x > 0 && bx.baseDisjoint(by) ? x : 0;
+  }
+
   template <class ViewY>
   forceinline int 
-  min_len_mand(const Position& p, const Position& q, ViewY& it) {
-    return 0;
+  min_len_mand(const Block& bx, const ViewY& y, const Position& lsp, 
+               const Position& eep) {
+    if (eep.prec(lsp, y))
+      return 0;
+    int h = lsp.idx, h1 = eep.idx, k = lsp.off, k1 = eep.off;
+    if (h == h1)
+      return std::max(bx.lb(), nabla(bx, y[h], k1 - k));
+    int s = nabla(bx.lb(), y[h], y[h].lb() - k);
+    for (int i = h+1; i < h1; i++) 
+      s += nabla(bx, y[i].lb());
+    return std::max(bx.lb(), s + nabla(bx, y[k], k1));
   }
 //  
 //  forceinline int 
@@ -95,7 +109,7 @@ namespace Gecode { namespace String {
         continue;
       Position esp(m[i].ESP), eep(m[i].EEP), lsp(m[i].LSP), lep(m[i].LEP);
       if (esp != esp0 || eep != eep0 || lsp != lsp0 || lep != lep0) {
-        lb_mand = min_len_mand(lsp, eep, y);
+        lb_mand = min_len_mand(bx, y, lsp, eep);
         if (bx.ub() < lb_mand)
           return false;
 //        ub_opt = max_len_opt(...);
