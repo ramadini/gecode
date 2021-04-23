@@ -35,13 +35,13 @@ namespace Gecode { namespace String {
           || (idx == p.idx+1 && off == 0 && p.off == y[p.idx].ub());
     }
     /// Test if this is normalized w.r.t. to y, i.e., it belongs to the set 
-    /// {(i,j) | 0 <= i < |y|, 0 <= j < ub(y)} U {(|y|,0)}
+    /// {(i,j) | 0 <= i < |y|, 0 <= j < ub(y)} U {(-1,0), (|y|,0)}
     template <class View>
     forceinline bool
     isNorm(View& y) const {
       int n = y.size();
       return (0 <= idx && idx < n && 0 <= off && off < y[idx].ub())
-          || (idx == n && off == 0);
+          || (off == 0 && (idx == -1 || idx == n));
     }
     /// Test if this position is less than \a p w.r.t. lexicographic ordering.
     /// NOTE: If position are not normalized, the result might be unexpected.
@@ -108,13 +108,13 @@ namespace Gecode { namespace String {
   template <class IterY>
   forceinline Position
   push(const Block& bx, IterY& it) {
-//    std::cerr << "Pushing " << bx << " from " << *it << '\n';
+    std::cerr << "Pushing " << bx << " from " << *it << '\n';
     Position p = *it;
     // No. of chars. that must be consumed
     int k = bx.lb(); 
     while (k > 0) {
-//      std::cerr << "p=" << p << ", it=" << *it << ", k=" << k << std::endl;
-      if (!it.hasNext())
+      std::cerr << "p=" << p << ", it=" << *it << ", k=" << k << std::endl;
+      if (!it())
         return *it;
       if (it.disj(bx)) {
         // Skipping block, possibly resetting k
@@ -129,7 +129,7 @@ namespace Gecode { namespace String {
       else {
         // Max. no. of chars that may be consumed.
         int m = it.may_consume();
-//        std::cerr << "m=" << m << std::endl;
+        std::cerr << "m=" << m << std::endl;
         if (k <= m) {
           it.consume(k);
           return p;
@@ -149,7 +149,7 @@ namespace Gecode { namespace String {
   stretch(const Block& bx, IterY& it) {
 //    std::cerr << "Streching " << bx << " from " << *it << '\n';
     int k = bx.ub();
-    while (it.hasNext()) {
+    while (it()) {
       // Min. no. of chars that must be consumed.
       int m = it.must_consume();
 //      std::cerr << "it=" << *it << "k=" << k << ", m=" << m << std::endl;
@@ -171,17 +171,19 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY, class IterY>
   bool
   pushESP(ViewX& x, ViewY& y, Matching m[], int i) {
+    std::cerr << "Pushing ESP " << x[i] << " from " << m[i].ESP << '\n';
     int n = x.size();
     if (x[i].lb() == 0) {
       // x[i] nullable, not pushing ESP[i]
       if (i < n-1 && m[i+1].ESP < m[i].ESP)
         // x[i+1] cannot start before x[i]
         m[i+1].ESP = m[i].ESP;
+      std::cerr<<"1) ESP of "<<(i<n-1?x[i+1]:x[i])<<": "<<(i<n-1?m[i+1]:m[i]).ESP<<'\n';
       return true;
     }
-    IterY p(y, m[i].ESP);
-    IterY q(y, push<IterY>(x[i], p));
-    if (!q.hasNext())
+    IterY q(y, m[i].ESP);
+    IterY p(y, push<IterY>(x[i], q));
+    if (!p())
       return false;
     if (i < n && m[i+1].ESP.prec(*q, y))
       // x[i+1] cannot start before *q
@@ -189,22 +191,26 @@ namespace Gecode { namespace String {
     if (m[i].ESP.prec(*p, y))
       // Pushing ESP forward.
       m[i].ESP = *p;
+    std::cerr<<"2) ESP of "<<(i<n-1?x[i+1]:x[i])<<": "<<(i<n-1?m[i+1]:m[i]).ESP<<'\n';
     return true;
   }
   
   template <class ViewX, class ViewY, class IterY>
   bool
   pushLEP(ViewX& x, ViewY& y, Matching m[], int i) {
+    std::cerr << "Pushing LEP " << x[i] << " from " << m[i].LEP << '\n';
     if (x[i].lb() == 0) {
       // x[i] nullable, not pushing LEP[i]
       if (i > 0 && m[i-1].LEP < m[i].LEP)
         // x[i-1] cannot end after x[i]
         m[i-1].LEP = m[i].LEP;
+      std::cerr<<"1) LEP of "<<(i>0?x[i-1]:x[i])<<": "<<(i>0?m[i-1]:m[i]).LEP<<'\n';
       return true;
     }
     IterY p(y, m[i].LEP);
     IterY q(y, push<IterY>(x[i], p));
-    if (!q.hasNext())
+    std::cerr << "p: " << *p << ", q: " << *q << "\n";
+    if (!q())
       return false;
     if (i > 0 && (*p).prec(m[i-1].LEP, y))
       // x[i-1] cannot end after *p
@@ -212,6 +218,7 @@ namespace Gecode { namespace String {
     if ((*q).prec(m[i].LEP, y))
       // Pushing LEP backward.
       m[i].LEP = *q;
+    std::cerr<<"2) LEP of "<<(i>0?x[i-1]:x[i])<<": "<<(i>0?m[i-1]:m[i]).LEP<<'\n';
     return true;
   }
     
@@ -225,26 +232,26 @@ namespace Gecode { namespace String {
       stretch<typename ViewY::SweepFwdIterator>(x[i], fwd_it);
       m[i].LEP = *fwd_it;
 //        std::cerr << i << ": " << x[i] << " LEP: " << m[i].LEP << '\n';
-      if (!fwd_it.hasNext()) {
+      if (!fwd_it()) {
         for (int j = i+1; j < nx; ++j)
           m[j].LEP = *fwd_it;
         break;
       }
     }
-    if (fwd_it.hasNext())
+    if (fwd_it())
       return false;
     typename ViewY::SweepBwdIterator bwd_it = y.bwd_iterator();
     for (int i = nx-1; i >= 0; --i) {
       stretch<typename ViewY::SweepBwdIterator>(x[i], bwd_it);
       m[i].ESP = *bwd_it;
 //        std::cerr << i << ": " << x[i] << " ESP: " << m[i].ESP << '\n';
-      if (!bwd_it.hasNext()) {
+      if (!bwd_it()) {
         for (int j = i-1; j >= 0; --j)
           m[j].ESP = *bwd_it;
         break;
       }
     }
-    return !bwd_it.hasNext();
+    return !bwd_it();
   }
   
   /// TODO:

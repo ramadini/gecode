@@ -61,7 +61,7 @@ namespace Gecode { namespace String {
   }
   
   forceinline bool
-  StringView::SweepFwdIterator::hasNext(void) const {
+  StringView::SweepFwdIterator::operator()(void) const {
     return pos.idx < sv.size();
   }
   
@@ -112,22 +112,23 @@ namespace Gecode { namespace String {
   
   forceinline int
   StringView::SweepBwdIterator::lb() const {
-    return sv[pos.off > 0 ? pos.idx : pos.idx-1].lb();
+    return sv[(pos.idx > 0 && pos.off == 0) ? pos.idx-1 : pos.idx].lb();
   }
   
   forceinline int
   StringView::SweepBwdIterator::ub() const {
-    return sv[pos.off > 0 ? pos.idx : pos.idx-1].ub();
+    return sv[(pos.idx > 0 && pos.off == 0) ? pos.idx-1 : pos.idx].ub();
   }
   
   forceinline bool
   StringView::SweepBwdIterator::disj(const Block& b) const {
-    return  sv[pos.off > 0 ? pos.idx : pos.idx-1].baseDisjoint(b);
+    return  sv[(pos.idx > 0 && pos.off == 0) ? pos.idx-1 : pos.idx]
+      .baseDisjoint(b);
   }
   
   forceinline void
   StringView::SweepBwdIterator::nextBlock() {
-    if (pos.idx == 0)
+    if (pos.idx < 0)
       return;
     if (pos.off > 0)
       pos.off = 0;
@@ -137,8 +138,8 @@ namespace Gecode { namespace String {
   };
   
   forceinline bool
-  StringView::SweepBwdIterator::hasNext(void) const {
-    return pos.idx > 0;
+  StringView::SweepBwdIterator::operator()(void) const {
+    return pos.idx >= 0;
   };
   
   forceinline int
