@@ -10,29 +10,13 @@ namespace Gecode { namespace String {
     /// Constructors
     forceinline Position(void): idx(0), off(0) {};
     forceinline Position(int i, int j): idx(i), off(j) {};
-    /// Test if this and p refer to the same position in y
-    template <class View>
+    /// Test if this strictly precedes p according to the direction defined by y
+    template <class IterY>
     forceinline bool
-    same(const Position& p, View& y) const {
-      return (idx == p.idx   && off == p.off)
-          || (idx == p.idx+1 && off == 0 && p.off == y[p.idx].ub())
-          || (idx == p.idx-1 && p.off == 0 && off == y[idx].ub());
-    }
-    /// Test if this strictly precedes p in y
-    template <class View>
-    forceinline bool
-    prec(const Position& p, View& y) const {
+    prec(const Position& p, IterY& y) const {
       return (idx < p.idx-1)
           || (idx == p.idx && off < p.off)
           || (idx == p.idx-1 && (p.off == 0 || off != y[idx].ub()));
-    }
-    /// Test if this precedes p in y, or they are the same position
-    template <class View>
-    forceinline bool
-    preceq(const Position& p, View& y) const {
-      return (idx < p.idx)
-          || (idx == p.idx && off <= p.off)
-          || (idx == p.idx+1 && off == 0 && p.off == y[p.idx].ub());
     }
     /// Test if this is normalized w.r.t. to y, i.e., it belongs to the set 
     /// {(i,j) | 0 <= i < |y|, 0 <= j < ub(y)} U {(|y|,0)}
@@ -80,42 +64,70 @@ namespace Gecode { namespace String {
     Position LEP;  
   };
   
-  /// Struct to unfold the i-th block of a dashed string with the n>1 blocks 
-  /// defined in array b.
-  struct BlockUnfold {
-    int i;
-    int n;
-    Block* b;
-  };
-  typedef Gecode::Support::DynamicArray<BlockUnfold,Space> BlockUnfoldings;
-  
 }}
 
 namespace Gecode { namespace String {
  
   // FIXME: Maybe define a namespace for equate-based functions?
-  
-  // Add m blocks to x, according to the unfoldings array.
-  template <class ViewX>
-  void unfold(ViewX x, BlockUnfoldings unfoldings, int m) {
-    //
+
+  template <class ViewY>
+  forceinline int 
+  min_len_mand(const Position& p, const Position& q, ViewY& it) {
+    return 0;
   }
+//  
+//  forceinline int 
+//  max_len_opt(const Position& p, const Position& q, ViewY& it) {
+//    return 0;
+//  }
   
   /// Possibly refines each x[i] according to its matching region m[i] in y. 
   /// It returns true iff at least a block has been refined.
   template <class ViewX, class ViewY>
-  bool refine_x(Space& home, ViewX x, const ViewY& y, Matching m[]) {
-    int nx = x.size();
+  forceinline bool 
+  refine_x(Space& home, ViewX x, const ViewY& y, Matching m[]) {
+    int nx = x.size(), lb_mand;
+    Block lman, rman;
     Position esp0(-1,0), eep0(-1,0), lsp0(-1,0), lep0(-1,0);
     for (int i = 0; i < nx; ++i) {
-      Block& b = x[i];
-      if (b.isFixed())
+      Block& bx = x[i];
+      if (bx.isFixed())
         continue;
       Position esp(m[i].ESP), eep(m[i].EEP), lsp(m[i].LSP), lep(m[i].LEP);
       if (esp != esp0 || eep != eep0 || lsp != lsp0 || lep != lep0) {
-      
+        lb_mand = min_len_mand(lsp, eep, y);
+        if (bx.ub() < lb_mand)
+          return false;
+//        ub_opt = max_len_opt(...);
+//        if (lb_mand > 0 && lb_mand >= bx.lb() && ub_opt <= bx.ub()) {
+//          left_man = ...
+//          right_man = ....
+//        }
+//        else
+//          base_opt = base_union_opt...
       }
+//      else {
+//        if (bx.ub() < lb_mand)
+//          return false;
+//        ub_opt = max_len_opt(...);        
+//      }
+//      if (lb_mand > 0 && lb_mand >= bx.lb() && ub_opt <= bx.ub()) {
+//        mand_reg = ...
+//        m = mand_reg.size()
+//        assert (m > 0);
+//        if (m > 1)
+//          new_blocks += m - 1;
+//        else
+//          update block ...
+//      }
+//      else {
+//        //crush or special cases
+//        base_union_opt...
+//      }      
     }
+//    if (new_blocks > 0)
+//     update_x(..., new_blocks);
+    x.normalize(home);
     return true;
   }
   
@@ -184,7 +196,7 @@ namespace Gecode { namespace String {
   };
   
   template <class ViewX, class ViewY, class IterY>
-  bool
+  forceinline bool
   pushESP(ViewX& x, ViewY& y, Matching m[], int i) {
 //    std::cerr << "Pushing ESP of " << x[i] << " from " << m[i].ESP << '\n';
     int n = x.size();
@@ -209,7 +221,7 @@ namespace Gecode { namespace String {
   }
   
   template <class ViewX, class ViewY, class IterY>
-  bool
+  forceinline bool
   pushLEP(ViewX& x, ViewY& y, Matching m[], int i) {
 //    std::cerr << "Pushing LEP of " << x[i] << " from " << m[i].LEP << '\n';
     if (x[i].lb() == 0) {
