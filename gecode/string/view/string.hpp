@@ -160,9 +160,14 @@ namespace Gecode { namespace String {
   StringView::SweepBwdIterator::consume(int k) {
     if (k == 0)
       return;
-    if (pos.off == 0 && pos.idx > 0)
-      pos.idx--;
-    pos.off = sv[pos.idx].ub() - k;
+    if (pos.off == 0) {
+      if (pos.idx > 0) {
+        pos.idx--;
+        pos.off = sv[pos.idx].ub() - k;
+      }
+    }
+    else
+      pos.off -= k;
     if (pos.off < 0)
       throw OutOfLimits("StringView::SweepBwdIterator::consume");
     assert (isOK());

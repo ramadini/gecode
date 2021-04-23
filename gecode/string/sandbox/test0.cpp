@@ -249,7 +249,7 @@ public:
     cerr << "Pushing backward " << b << " in " << y << " from " << *bwd_it1;
     p = push<StringView::SweepBwdIterator>(b, bwd_it1);
     cerr << "\n...LSP = " << *bwd_it1 << ", LEP = " << p << endl;
-    assert (*bwd_it1 == p && p < Position(0,0));
+    assert (*bwd_it1 == p && p == Position(0,0));
   }
   
   void test07() {
@@ -282,16 +282,15 @@ public:
     for (int i = 0; i < n; ++i)
       cerr << "ESP[" << vy[i] << "] = " << m[i].ESP << ", "
            << "LEP[" << vy[i] << "] = " << m[i].LEP << "\n";
-    equate_x(*this, vx, vy);
   }
   
   void test08() {
     cerr << "\n*** Test 08 ***" << endl;
     std::vector<Block> bv(5);
     bv[0].update(*this, Block(*this, CharSet(*this, IntSet({'B','b'})), 1, 1));
-    bv[1].update(*this, Block(*this, CharSet(*this, 'o'), 2, 10));
+    bv[1].update(*this, Block(*this, CharSet(*this, 'o'), 2, 4));
     bv[2].update(*this, Block('m'));
-    bv[3].update(*this, Block(*this, CharSet(*this, '!'), 3, 10));
+    bv[3].update(*this, Block(*this, CharSet(*this, '!'), 0, 3));
     StringVar x(*this, DashedString(*this, bv));
     StringVar y(*this, Block(*this, CharSet(*this,IntSet({'b','o','m'})),0,4));    
     StringView vx(x), vy(y);
