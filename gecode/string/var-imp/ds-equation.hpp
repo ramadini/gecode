@@ -11,27 +11,12 @@ namespace Gecode { namespace String {
     forceinline Position(void): idx(0), off(0) {};
     forceinline Position(int i, int j): idx(i), off(j) {};
     /// Test if this strictly precedes p according to the direction defined by y
-    template <class IterY>
-    forceinline bool
-    prec(const Position& p, IterY& y) const {
-      return (idx < p.idx-1)
-          || (idx == p.idx && off < p.off)
-          || (idx == p.idx-1 && (p.off == 0 || off != y[idx].ub()));
-    }
-    /// Test if this is normalized w.r.t. to y, i.e., it belongs to the set 
-    /// {(i,j) | 0 <= i < |y|, 0 <= j < ub(y)} U {(|y|,0)}
     template <class View>
     forceinline bool
     isNorm(View& y) const {
       int n = y.size();
       return (0 <= idx && idx < n && 0 <= off && off < y[idx].ub())
           || (idx == n && off == 0);
-    }
-    /// Test if this position is less than \a p w.r.t. lexicographic ordering.
-    /// NOTE: If position are not normalized, the result might be unexpected.
-    forceinline bool
-    operator<(const Position& p) const {
-      return idx < p.idx || (idx == p.idx && off < p.off);
     }
     /// Test if this position is equal to \a p w.r.t. lexicographic ordering.
     /// NOTE: If position are not normalized, the result might be unexpected.
@@ -45,6 +30,15 @@ namespace Gecode { namespace String {
     operator!=(const Position& p) const {
       return idx != p.idx || idx != p.idx;
     }
+    template <class IterY>
+    forceinline bool
+    prec(const Position& p, IterY& y) const {
+      return (idx < p.idx-1)
+          || (idx == p.idx && off < p.off)
+          || (idx == p.idx-1 && (p.off == 0 || off != y[idx].ub()));
+    }
+    /// Test if this is normalized w.r.t. to y, i.e., it belongs to the set 
+    /// {(i,j) | 0 <= i < |y|, 0 <= j < ub(y)} U {(|y|,0)}
   };
   forceinline std::ostream&
   operator<<(std::ostream& os, const Position& p) {
@@ -77,8 +71,8 @@ namespace Gecode { namespace String {
 
   template <class ViewY>
   forceinline int 
-  min_len_mand(const Block& bx, const ViewY& y, const Position& lsp, 
-               const Position& eep) {
+  min_len_mand(const Block& bx, const ViewY& y,
+               const Position& lsp, const Position& eep) {
     if (eep.prec(lsp, y))
       return 0;
     int h = lsp.idx, h1 = eep.idx, k = lsp.off, k1 = eep.off;
@@ -92,8 +86,8 @@ namespace Gecode { namespace String {
   
   template <class ViewY>
   forceinline int 
-  max_len_opt(const Block& bx, const ViewY& y, const Position& esp, 
-              const Position& lep) {
+  max_len_opt(const Block& bx, const ViewY& y, int lb_mand,
+              const Position& esp, const Position& lep) {
     assert(!lep.prec(esp, y));
     int p = esp.idx, p1 = lep.idx, q = esp.off, q1 = lep.off;
     if (p == p1)
@@ -109,7 +103,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool 
   refine_x(Space& home, ViewX x, const ViewY& y, Matching m[]) {
-    int nx = x.size(), lb_mand;
+    int nx = x.size(), lb_mand, ub_opt;
     Block lman, rman;
     Position esp0(-1,0), eep0(-1,0), lsp0(-1,0), lep0(-1,0);
     for (int i = 0; i < nx; ++i) {
@@ -119,15 +113,20 @@ namespace Gecode { namespace String {
       Position esp(m[i].ESP), eep(m[i].EEP), lsp(m[i].LSP), lep(m[i].LEP);
       if (esp != esp0 || eep != eep0 || lsp != lsp0 || lep != lep0) {
         lb_mand = min_len_mand(bx, y, lsp, eep);
-        if (bx.ub() < lb_mand)
-          return false;
-//        ub_opt = max_len_opt(...);
+//        if (bx.ub() < lb_mand)
+//          return false;
+//        ub_opt = max_len_opt(bx, y, esp, lep);
 //        if (lb_mand > 0 && lb_mand >= bx.lb() && ub_opt <= bx.ub()) {
-//          left_man = ...
-//          right_man = ....
+//          lman = -1;//TODO...
+//          rman = -1;//TODO....
 //        }
-//        else
-//          base_opt = base_union_opt...
+//        else {
+//          int l = std::max(bx.lb(), lb_mand), u = std::min(bx.ub(), ub_opt);
+//          CharSet S; //TODO...
+//          bx.baseIntersect(S);
+//          bx.updateCard(home, l, u);                              
+//        }
+
       }
 //      else {
 //        if (bx.ub() < lb_mand)
@@ -225,7 +224,7 @@ namespace Gecode { namespace String {
     int n = x.size();
     if (x[i].lb() == 0) {
       // x[i] nullable, not pushing ESP[i]
-      if (i < n-1 && m[i+1].ESP < m[i].ESP)
+      if (i < n-1 && m[i+1].ESP.prec(m[i].ESP, y))
         // x[i+1] cannot start before x[i]
         m[i+1].ESP = m[i].ESP;
       return true;
@@ -249,7 +248,7 @@ namespace Gecode { namespace String {
 //    std::cerr << "Pushing LEP of " << x[i] << " from " << m[i].LEP << '\n';
     if (x[i].lb() == 0) {
       // x[i] nullable, not pushing LEP[i]
-      if (i > 0 && m[i-1].LEP < m[i].LEP)
+      if (i > 0 && m[i-1].LEP.prec(m[i].LEP, y))
         // x[i-1] cannot end after x[i]
         m[i-1].LEP = m[i].LEP;
       return true;
@@ -320,7 +319,7 @@ namespace Gecode { namespace String {
       m[i].LSP = m[i-1].LEP;
 //      std::cerr << "ESP of " << x[i] << ": " << m[i].ESP << ", " 
 //                << "LSP of " << x[i] << ": " << m[i].LSP << "\n";
-      if (m[i].LSP < m[i].ESP)
+      if (m[i].LSP.prec(m[i].ESP, y))
         return false;
     }
     m[n-1].EEP = m[n-1].LEP;
@@ -328,7 +327,7 @@ namespace Gecode { namespace String {
       m[i].EEP = m[i+1].ESP;
 //      std::cerr << "EEP of " << x[i] << ": " << m[i].EEP << ", " 
 //                << "LEP of " << x[i] << ": " << m[i].LEP << "\n";
-      if (m[i].LEP < m[i].EEP)
+      if (m[i].LEP.prec(m[i].EEP, y))
         return false;
     }
     return true;
