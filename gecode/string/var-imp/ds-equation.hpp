@@ -74,26 +74,26 @@ namespace Gecode { namespace String {
  
   // FIXME: Maybe define a namespace for equate-based functions?
 
-  forceinline bool
+  forceinline int
   nabla(const Block& bx, const Block& by, int x) {
     return x > 0 && bx.baseDisjoint(by) ? x : 0;
   }
 
-  template <class ViewY>
-  forceinline int 
-  min_len_mand(const Block& bx, const ViewY& y,
-               const Position& lsp, const Position& eep) {
-    if (eep.prec(lsp, y))
-      return 0;
-    int h = lsp.idx, h1 = eep.idx, k = lsp.off, k1 = eep.off;
-    if (h == h1)
-      return std::max(bx.lb(), nabla(bx, y[h], k1 - k));
-    int s = nabla(bx.lb(), y[h], y[h].lb() - k);
-    for (int i = h+1; i < h1; i++) 
-      s += nabla(bx, y[i], y[i].lb());
-    return std::max(bx.lb(), s + nabla(bx, y[k], k1));
-  }
-  
+//  template <class ViewY>
+//  forceinline int 
+//  min_len_mand(const Block& bx, const ViewY& y,
+//               const Position& lsp, const Position& eep) {
+//    if (eep.prec(lsp, y))
+//      return 0;
+//    int h = lsp.idx, h1 = eep.idx, k = lsp.off, k1 = eep.off;
+//    if (h == h1)
+//      return std::max(bx.lb(), nabla(bx, y[h], k1 - k));
+//    int s = nabla(bx.lb(), y[h], y[h].lb() - k);
+//    for (int i = h+1; i < h1; i++) 
+//      s += nabla(bx, y[i], y[i].lb());
+//    return std::max(bx.lb(), s + nabla(bx, y[k], k1));
+//  }
+//  
   template <class ViewY>
   forceinline int 
   max_len_opt(const Block& bx, const ViewY& y, int lb_mand,
@@ -119,6 +119,12 @@ namespace Gecode { namespace String {
       Block& bx = x[i];
       if (bx.isFixed())
         continue;
+      int l= bx.lb(), u = bx.ub(), l1 = y.min_len_mand(bx, m[i].LSP, m[i].ESP);
+      int u1 = y.max_len_opt(bx, m[i].ESP, m[i].LSP, l1);
+      if (l1 == 0 || l1 < l || u1 > u) {
+      
+      }
+      
 //        if (bx.ub() < lb_mand)
 //          return false;
 //        ub_opt = max_len_opt(bx, y, esp, lep);

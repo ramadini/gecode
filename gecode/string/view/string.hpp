@@ -207,14 +207,10 @@ namespace Gecode { namespace String {
   StringView::size() const {
     return x->size();
   }
-  
-//  forceinline Block&
-//  StringView::operator[](int i) {
-//    return x->operator[](i);
-//  }
+
   forceinline const Block&
   StringView::operator[](int i) const {
-    return x->operator[](i);
+    return (*this)[i];
   }
   
   forceinline int
@@ -242,9 +238,33 @@ namespace Gecode { namespace String {
     return SweepBwdIterator(*this);
   }
   
-//  TODO? ModEvent
-//  StringView::equate(const DashedString& d) {
-//    return x->equate(d);
-//  }
+  forceinline int
+  StringView::min_len_mand(const Block& bx, const Position& lsp, 
+                                            const Position& eep) const {
+    // TODO: Check this    
+    if (eep.prec(lsp, *this))
+      return 0;
+    int h = lsp.idx, h1 = eep.idx, k = lsp.off, k1 = eep.off;
+    if (h == h1)
+      return std::max(bx.lb(), nabla(bx, (*this)[h], k1 - k));
+    int s = nabla(bx.lb(), (*this)[h], (*this)[h].lb() - k);
+    for (int i = h+1; i < h1; i++) 
+      s += nabla(bx, (*this)[i], (*this)[i].lb());
+    return std::max(bx.lb(), s + nabla(bx, (*this)[k], k1));
+  }
+  
+  forceinline int
+  StringView::max_len_opt(const Block& bx, const Position& esp, 
+                                           const Position& lep, int l) const {
+    // TODO: Use l
+    assert(!lep.prec(esp, *this));
+    int p = esp.idx, p1 = lep.idx, q = esp.off, q1 = lep.off;
+    if (p == p1)
+      return std::min(bx.ub(), nabla(bx, (*this)[p], q1 - q));
+    int s = nabla(bx, (*this)[p], (*this)[p].ub() - q);
+    for (int i = p+1; i < p1; i++) 
+      s += nabla(bx, (*this)[i], (*this)[i].ub());
+    return std::min(bx.ub(), s + nabla(bx, (*this)[q], q1));
+  }
      
 }}

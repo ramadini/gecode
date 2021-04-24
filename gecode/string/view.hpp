@@ -153,13 +153,11 @@ namespace Gecode { namespace String {
     //@}
     
     /// TODO:
-    int
-    min_len_mand(Space& home, const Block& bx, 
-                 const Position& lsp, const Position& eep);
+    int min_len_mand(const Block& bx, const Position& lsp, 
+                                      const Position& eep) const;
     /// TODO:             
-    int
-    max_len_opt(Space& home, const Block& bx,
-                const Position& esp, const Position& lep);
+    int max_len_opt(const Block& bx, const Position& esp, 
+                                     const Position& lep, int l) const;
     
     /// Possibly refines block \a Bx according to the mandatory region, having 
     /// at least \l characters, defined between \a le and \a ee in this view.
