@@ -78,35 +78,6 @@ namespace Gecode { namespace String {
   nabla(const Block& bx, const Block& by, int x) {
     return x > 0 && bx.baseDisjoint(by) ? x : 0;
   }
-
-//  template <class ViewY>
-//  forceinline int 
-//  min_len_mand(const Block& bx, const ViewY& y,
-//               const Position& lsp, const Position& eep) {
-//    if (eep.prec(lsp, y))
-//      return 0;
-//    int h = lsp.idx, h1 = eep.idx, k = lsp.off, k1 = eep.off;
-//    if (h == h1)
-//      return std::max(bx.lb(), nabla(bx, y[h], k1 - k));
-//    int s = nabla(bx.lb(), y[h], y[h].lb() - k);
-//    for (int i = h+1; i < h1; i++) 
-//      s += nabla(bx, y[i], y[i].lb());
-//    return std::max(bx.lb(), s + nabla(bx, y[k], k1));
-//  }
-//  
-  template <class ViewY>
-  forceinline int 
-  max_len_opt(const Block& bx, const ViewY& y, int lb_mand,
-              const Position& esp, const Position& lep) {
-    assert(!lep.prec(esp, y));
-    int p = esp.idx, p1 = lep.idx, q = esp.off, q1 = lep.off;
-    if (p == p1)
-      return std::min(bx.ub(), nabla(bx, y[p], q1 - q));
-    int s = nabla(bx, y[p], y[p].ub() - q);
-    for (int i = p+1; i < p1; i++) 
-      s += nabla(bx, y[i], y[i].ub());
-    return std::min(bx.ub(), s + nabla(bx, y[q], q1));
-  }
   
   /// Possibly refines each x[i] according to its matching region m[i] in y. 
   /// It returns true iff at least a block has been refined.
@@ -115,25 +86,23 @@ namespace Gecode { namespace String {
   refine_x(Space& home, ViewX x, const ViewY& y, Matching m[]) {
     int nx = x.size();
     bool norm = false;
+    Region r;
+    r.alloc<Block>(3 * y.size()); // FIXME: Change this.
     for (int i = 0; i < nx; ++i) {
-      Block& bx = x[i];
+      const Block& bx = x[i]; // FIXME: Restore non-const operator [] 
       if (bx.isFixed())
         continue;
       int l= bx.lb(), u = bx.ub(), l1 = y.min_len_mand(bx, m[i].LSP, m[i].ESP);
       if (u < l1)
         return false;
       int u1 = y.max_len_opt(bx, m[i].ESP, m[i].LSP, l1);
-      if (l1 == 0 || l1 < l || u1 > u) {
+      if (l1 == 0) {
         // TODO: crush
+        continue;
       }
-      else {
-        // TODO: unfold
-        int n = 5;
-        Region r;
-        r.alloc<Block>(n);        
-        r.free();
-      }
+      // Compute 
     }
+    // Possibly unfold with d.s. in r. if (nx1 > nx) ...
     if (norm)
       x.normalize(home);
     return true;

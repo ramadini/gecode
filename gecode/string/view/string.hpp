@@ -228,6 +228,11 @@ namespace Gecode { namespace String {
     return x->assigned();
   }
   
+  forceinline void
+  StringView::normalize(Space& home) {
+    x->normalize(home);
+  }
+  
   forceinline StringView::SweepFwdIterator
   StringView::fwd_iterator(void) {
     return SweepFwdIterator(*this);
@@ -241,22 +246,25 @@ namespace Gecode { namespace String {
   forceinline int
   StringView::min_len_mand(const Block& bx, const Position& lsp, 
                                             const Position& eep) const {
-    // TODO: Check this    
-    if (eep.prec(lsp, *this))
+    if (eep == lsp || eep.prec(lsp, *this))
       return 0;
-    int h = lsp.idx, h1 = eep.idx, k = lsp.off, k1 = eep.off;
+    int l = bx.lb(), h = lsp.idx, h1 = eep.idx, k = lsp.off, k1 = eep.off;
+//    std::cerr << lsp << ' ' << eep << '\n';
+//    std::cerr << h << ' ' << h1 << ' ' << k << ' ' << k1 << '\n';
     if (h == h1)
-      return std::max(bx.lb(), nabla(bx, (*this)[h], k1 - k));
-    int s = nabla(bx.lb(), (*this)[h], (*this)[h].lb() - k);
+      return std::max(l, nabla(bx, (*this)[h], k1 - k));
+    int s = nabla(l, (*this)[h], (*this)[h].lb() - k);
     for (int i = h+1; i < h1; i++) 
       s += nabla(bx, (*this)[i], (*this)[i].lb());
-    return std::max(bx.lb(), s + nabla(bx, (*this)[k], k1));
+    return std::max(l, s + nabla(bx, (*this)[k], k1));
   }
   
   forceinline int
   StringView::max_len_opt(const Block& bx, const Position& esp, 
                                            const Position& lep, int l) const {
     // TODO: Use l
+    if (esp == lep)
+      return 0;
     assert(!lep.prec(esp, *this));
     int p = esp.idx, p1 = lep.idx, q = esp.off, q1 = lep.off;
     if (p == p1)

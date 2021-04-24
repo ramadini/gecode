@@ -78,6 +78,9 @@ namespace Gecode { namespace String {
     const Block& operator[](int i) const;
     //@}
     
+    /// Normalize the domain
+    void normalize(Space& home);
+    
     /// \name Domain update by equation
     //@{
     /// Equates the domain with string \a w.

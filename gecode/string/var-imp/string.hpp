@@ -30,6 +30,11 @@ namespace Gecode { namespace String {
     return ds.size();
   }
 
+  forceinline void
+  StringVarImp::normalize(Space& home) {
+    ds.normalize(home);
+  }
+
 //  forceinline Block&
 //  StringVarImp::operator[](int i) {
 //    return ds[i];

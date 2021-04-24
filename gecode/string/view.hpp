@@ -158,15 +158,18 @@ namespace Gecode { namespace String {
     /// TODO:             
     int max_len_opt(const Block& bx, const Position& esp, 
                                      const Position& lep, int l) const;
+    /// Normalize this view
+    void normalize(Space& home);
     
-    /// Possibly refines block \a Bx according to the mandatory region, having 
+    
+    /// Possibly refines block \a bx according to matching region \a m, having
     /// at least \l characters, defined between \a le and \a ee in this view.
-    /// If \a bx must be unfolded in k > 1 blocks B1 B2 ... Bk, then Bx is 
-    /// updated with B1, \n will be k-1 and \a r will store B2 ... Bk
-    
+    /// If \a bx must be unfolded in k > 1 blocks b_1 b_2 ... b_k, then bx is 
+    /// updated with b_1, \a n will be set to k-1 and \a r will store the 
+    /// dashed string norm(b_2, ..., b_k)
     BlockEvent
-    refine_mand(Space& home, Block& Bx, const Position& lep, const Position& eep, 
-                int l, int& n, Region r);
+    refine_mand(Space& home, Block& bx, const Matching& m, int l, int& n, 
+                Region r);
     
   };
   /**
