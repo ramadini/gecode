@@ -129,7 +129,7 @@ namespace Gecode { namespace String {
     /// 
     //@}
     
-    /// \name Domain update by equation
+    /// \name Domain update by equation: FIXME: Check if needed
     //@{
     /// Equates the domain with string \a w.
     ModEvent equate(Space& home, const std::vector<int>& w);
@@ -139,7 +139,7 @@ namespace Gecode { namespace String {
     ModEvent equate(Space& home, const DashedString& x);
     //@}
     
-    /// \name Domain update by cardinality refinement
+    /// \name Domain update by cardinality refinement: FIXME: Check if needed
     //@{
     /// Possibly update the lower bound of the blocks, knowing that the minimum 
     /// length for any string in the domain is \a l
@@ -151,6 +151,24 @@ namespace Gecode { namespace String {
     /// for any string in the domain is between \a l and \a u
     ModEvent lengthIn(Space& home, int l, int u);
     //@}
+    
+    /// TODO:
+    int
+    min_len_mand(Space& home, const Block& bx, 
+                 const Position& lsp, const Position& eep);
+    /// TODO:             
+    int
+    max_len_opt(Space& home, const Block& bx,
+                const Position& esp, const Position& lep);
+    
+    /// Possibly refines block \a Bx according to the mandatory region, having 
+    /// at least \l characters, defined between \a le and \a ee in this view.
+    /// If \a bx must be unfolded in k > 1 blocks B1 B2 ... Bk, then Bx is 
+    /// updated with B1, \n will be k-1 and \a r will store B2 ... Bk
+    
+    BlockEvent
+    refine_mand(Space& home, Block& Bx, const Position& lep, const Position& eep, 
+                int l, int& n, Region r);
     
   };
   /**

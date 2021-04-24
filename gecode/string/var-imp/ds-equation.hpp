@@ -58,6 +58,16 @@ namespace Gecode { namespace String {
     Position LEP;  
   };
   
+  /// Possible states after refining a block
+  enum BlockEvent {
+    BE_FAIL = -1,   // Inconsistency detected 
+    BE_NONE,        // No modification
+    BE_UPDATE,      // Block updated, no normalization needed
+    BE_UNFOLD,      // Block to be unfolded in n > 1 blocks
+    BE_UPDATE_NORM, // Block updated, normalization of its dashed string needed
+    BE_UNFOLD_NORM  // Block to be unfolded, and normalization needed
+  };
+  
 }}
 
 namespace Gecode { namespace String {
@@ -103,16 +113,12 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool 
   refine_x(Space& home, ViewX x, const ViewY& y, Matching m[]) {
-    int nx = x.size(), lb_mand, ub_opt;
-    Block lman, rman;
-    Position esp0(-1,0), eep0(-1,0), lsp0(-1,0), lep0(-1,0);
+    int nx = x.size();
+    bool norm = false;
     for (int i = 0; i < nx; ++i) {
       Block& bx = x[i];
       if (bx.isFixed())
         continue;
-      Position esp(m[i].ESP), eep(m[i].EEP), lsp(m[i].LSP), lep(m[i].LEP);
-      if (esp != esp0 || eep != eep0 || lsp != lsp0 || lep != lep0) {
-        lb_mand = min_len_mand(bx, y, lsp, eep);
 //        if (bx.ub() < lb_mand)
 //          return false;
 //        ub_opt = max_len_opt(bx, y, esp, lep);
@@ -127,7 +133,7 @@ namespace Gecode { namespace String {
 //          bx.updateCard(home, l, u);                              
 //        }
 
-      }
+//      }
 //      else {
 //        if (bx.ub() < lb_mand)
 //          return false;
@@ -149,7 +155,8 @@ namespace Gecode { namespace String {
     }
 //    if (new_blocks > 0)
 //     update_x(..., new_blocks);
-    x.normalize(home);
+    if (norm)
+      x.normalize(home);
     return true;
   }
   
