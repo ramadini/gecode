@@ -32,7 +32,7 @@ namespace Gecode { namespace String {
     }
     template <class IterY>
     forceinline bool
-    prec(const Position& p, IterY& y) const {
+    prec(const Position& p, IterY& y) const { //FIXME: Replace this with StringView::prec(pos0, pos1)
       return (idx < p.idx-1)
           || (idx == p.idx && off < p.off)
           || (idx == p.idx-1 && (p.off == 0 || off != y[idx].ub()));
@@ -87,7 +87,7 @@ namespace Gecode { namespace String {
     int nx = x.size();
     bool norm = false;
     Region r;
-    r.alloc<Block>(3 * y.size()); // FIXME: Change this.
+    r.alloc<Block>(3 * y.size()); // FIXME: Change this, compute with StringView::ub_new_blocks(Matching m);
     for (int i = 0; i < nx; ++i) {
       const Block& bx = x[i]; // FIXME: Restore non-const operator [] 
       if (bx.isFixed())
