@@ -120,47 +120,20 @@ namespace Gecode { namespace String {
       if (bx.isFixed())
         continue;
       int l= bx.lb(), u = bx.ub(), l1 = y.min_len_mand(bx, m[i].LSP, m[i].ESP);
+      if (u < l1)
+        return false;
       int u1 = y.max_len_opt(bx, m[i].ESP, m[i].LSP, l1);
       if (l1 == 0 || l1 < l || u1 > u) {
-      
+        // TODO: crush
       }
-      
-//        if (bx.ub() < lb_mand)
-//          return false;
-//        ub_opt = max_len_opt(bx, y, esp, lep);
-//        if (lb_mand > 0 && lb_mand >= bx.lb() && ub_opt <= bx.ub()) {
-//          lman = -1;//TODO...
-//          rman = -1;//TODO....
-//        }
-//        else {
-//          int l = std::max(bx.lb(), lb_mand), u = std::min(bx.ub(), ub_opt);
-//          CharSet S; //TODO...
-//          bx.baseIntersect(S);
-//          bx.updateCard(home, l, u);                              
-//        }
-
-//      }
-//      else {
-//        if (bx.ub() < lb_mand)
-//          return false;
-//        ub_opt = max_len_opt(...);        
-//      }
-//      if (lb_mand > 0 && lb_mand >= bx.lb() && ub_opt <= bx.ub()) {
-//        mand_reg = ...
-//        m = mand_reg.size()
-//        assert (m > 0);
-//        if (m > 1)
-//          new_blocks += m - 1;
-//        else
-//          update block ...
-//      }
-//      else {
-//        //crush or special cases
-//        base_union_opt...
-//      }      
+      else {
+        // TODO: unfold
+        int n = 5;
+        Region r;
+        r.alloc<Block>(n);        
+        r.free();
+      }
     }
-//    if (new_blocks > 0)
-//     update_x(..., new_blocks);
     if (norm)
       x.normalize(home);
     return true;

@@ -210,7 +210,7 @@ namespace Gecode { namespace String {
 
   forceinline const Block&
   StringView::operator[](int i) const {
-    return (*this)[i];
+    return x->operator[](i);
   }
   
   forceinline int
