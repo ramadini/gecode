@@ -318,7 +318,7 @@ public:
            << "EEP: " << m[i].EEP << ", "
            << "LSP: " << m[i].LSP << ", "
            << "LEP: " << m[i].LEP << "\n";
-    assert (m[0].LSP == Position(0,0) && m[0].EEP == Position(4,0));    
+    assert (m[0].LSP == Position(0,0) && m[0].EEP == Position(4,0));
   }
   
   void test09() {

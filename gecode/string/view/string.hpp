@@ -262,17 +262,19 @@ namespace Gecode { namespace String {
   forceinline int
   StringView::max_len_opt(const Block& bx, const Position& esp, 
                                            const Position& lep, int l) const {
-    // TODO: Use l
     if (esp == lep)
       return 0;
     assert(!lep.prec(esp, *this));
-    int p = esp.idx, p1 = lep.idx, q = esp.off, q1 = lep.off;
+    int u = bx.ub(), p = esp.idx, p1 = lep.idx, q = esp.off, q1 = lep.off;
+    int k = u - l;
     if (p == p1)
-      return std::min(bx.ub(), nabla(bx, (*this)[p], q1 - q));
-    int s = nabla(bx, (*this)[p], (*this)[p].ub() - q);
+      return std::min({u, k + (*this)[p].lb(), nabla(bx, (*this)[p], q1-q)});
+    int s = std::min(
+      k + (*this)[p].lb(), nabla(bx, (*this)[p], (*this)[p].ub() - q)
+    );
     for (int i = p+1; i < p1; i++) 
-      s += nabla(bx, (*this)[i], (*this)[i].ub());
-    return std::min(bx.ub(), s + nabla(bx, (*this)[q], q1));
+      s += std::min(k+(*this)[i].lb(), nabla(bx, (*this)[i], (*this)[i].ub()));
+    return std::min(u, s+std::min((*this)[q].lb(), nabla(bx, (*this)[q], q1)));
   }
      
 }}
