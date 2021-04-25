@@ -295,30 +295,30 @@ public:
     bv[3].update(*this, Block(*this, CharSet(*this, '!'), 0, 3));
     StringVar x(*this, DashedString(*this, bv, 4));
     StringVar y(*this, Block(*this, CharSet(*this,IntSet({'b','o','m'})),0,4));    
-    StringView vx(x), vy(y);
-    int n = vx.size();
-    Matching m[n];
+    StringView vx(x), vy(y);    
     cerr << "Sweep x = " << x << "  vs  y = " << y << "\n";
-    assert(sweep_x(*this, vx, vy, m));
+    int n = vx.size(), k = 0;
+    Matching mx[n];
+    assert(sweep_x(*this, vx, vy, mx, k));
     for (int i = 0; i < n; ++i)
       cerr << "Block " << vx[i] << ":\t"
-           << "ESP: " << m[i].ESP << ", "
-           << "EEP: " << m[i].EEP << ", "
-           << "LSP: " << m[i].LSP << ", "
-           << "LEP: " << m[i].LEP << "\n";
-    assert (m[0].LEP == Position(0,1) && m[1].EEP == Position(0,3));
-    assert (m[2].ESP == Position(0,3) && m[3].LSP == Position(1,0));
-    
-    cerr << "Sweep y = " << y << "  vs  x = " << x << "\n";
-    assert(sweep_x(*this, vy, vx, m));
+           << "ESP: " << mx[i].ESP << ", "
+           << "EEP: " << mx[i].EEP << ", "
+           << "LSP: " << mx[i].LSP << ", "
+           << "LEP: " << mx[i].LEP << "\n";
+    assert (mx[0].LEP == Position(0,1) && mx[1].EEP == Position(0,3));
+    assert (mx[2].ESP == Position(0,3) && mx[3].LSP == Position(1,0));
+    cerr << "Sweep y = " << y << "  vs  x = " << x << "\n";    
     n = vy.size();
+    Matching my[n];
+    assert(sweep_x(*this, vy, vx, my, k));
     for (int i = 0; i < n; ++i)
       cerr << "Block " << vy[i] << ":\t"
-           << "ESP: " << m[i].ESP << ", "
-           << "EEP: " << m[i].EEP << ", "
-           << "LSP: " << m[i].LSP << ", "
-           << "LEP: " << m[i].LEP << "\n";
-    assert (m[0].LSP == Position(0,0) && m[0].EEP == Position(4,0));
+           << "ESP: " << my[i].ESP << ", "
+           << "EEP: " << my[i].EEP << ", "
+           << "LSP: " << my[i].LSP << ", "
+           << "LEP: " << my[i].LEP << "\n";
+    assert (my[0].LSP == Position(0,0) && my[0].EEP == Position(4,0));
   }
   
   void test09() {

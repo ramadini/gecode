@@ -243,10 +243,27 @@ namespace Gecode { namespace String {
     return SweepBwdIterator(*this);
   }
   
+  bool
+  StringView::prec(const Position& p, const Position& q) const {
+    return (p.idx < q.idx-1)
+        || (p.idx == q.idx && p.off < q.off)
+        || (p.idx == q.idx-1 && (q.off == 0 || p.off != (*this)[p.idx].ub()));
+  }
+  
+//  forceinline static int
+//  StringView::ub_new_blocks(const Matching& m) {
+//    if (prec(m.LSP[i], m.EEP[i])) {
+//      if (m.EEP[i].idx == m.LSP[i].idx)
+//        return 
+//    }
+//    else
+//      return 0;
+//  }
+  
   forceinline int
   StringView::min_len_mand(const Block& bx, const Position& lsp, 
                                             const Position& eep) const {
-    if (eep == lsp || eep.prec(lsp, *this))
+    if (eep == lsp || prec(eep, lsp))
       return 0;
     int l = bx.lb(), h = lsp.idx, h1 = eep.idx, k = lsp.off, k1 = eep.off;
 //    std::cerr << lsp << ' ' << eep << '\n';
@@ -264,7 +281,7 @@ namespace Gecode { namespace String {
                                            const Position& lep, int l) const {
     if (esp == lep)
       return 0;
-    assert(!lep.prec(esp, *this));
+    assert(!prec(lep, esp));
     int u = bx.ub(), p = esp.idx, p1 = lep.idx, q = esp.off, q1 = lep.off;
     int k = u - l;
     if (p == p1)

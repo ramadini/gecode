@@ -86,6 +86,7 @@ namespace Gecode { namespace String {
     };
     
   public:
+  
     /// \name Constructors and initialization
     //@{
     /// Default constructor
@@ -152,6 +153,8 @@ namespace Gecode { namespace String {
     ModEvent lengthIn(Space& home, int l, int u);
     //@}
     
+    /// Returns true if p precedes q according to this view.
+    bool prec(const Position& p, const Position& q) const;
     /// TODO:
     int min_len_mand(const Block& bx, const Position& lsp, 
                                       const Position& eep) const;

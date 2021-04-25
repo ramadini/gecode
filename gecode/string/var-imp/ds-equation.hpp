@@ -10,7 +10,20 @@ namespace Gecode { namespace String {
     /// Constructors
     forceinline Position(void): idx(0), off(0) {};
     forceinline Position(int i, int j): idx(i), off(j) {};
-    /// Test if this strictly precedes p according to the direction defined by y
+    /// Test if this position is equal to \a p w.r.t. lexicographic ordering.
+    /// NOTE: If position are not normalized, the result might be unexpected.
+    forceinline bool
+    operator==(const Position& p) const {
+      return idx == p.idx && idx == p.idx;
+    }
+    /// Test if this position is not equal to \a p w.r.t. lexicographic ordering
+    /// NOTE: If position are not normalized, the result might be unexpected.
+    forceinline bool
+    operator!=(const Position& p) const {
+      return idx != p.idx || idx != p.idx;
+    }
+    /// Test if this is normalized w.r.t. to y, i.e., it belongs to the set 
+    /// {(i,j) | 0 <= i < |y|, 0 <= j < ub(y)} U {(|y|,0)}
     template <class View>
     forceinline bool
     isNorm(View& y) const {
@@ -18,27 +31,6 @@ namespace Gecode { namespace String {
       return (0 <= idx && idx < n && 0 <= off && off < y[idx].ub())
           || (idx == n && off == 0);
     }
-    /// Test if this position is equal to \a p w.r.t. lexicographic ordering.
-    /// NOTE: If position are not normalized, the result might be unexpected.
-    forceinline bool
-    operator==(const Position& p) const {
-      return idx == p.idx && idx == p.idx;
-    }
-    /// Test if this position is not equal to \a p w.r.t. lexicographic ordering.
-    /// NOTE: If position are not normalized, the result might be unexpected.
-    forceinline bool
-    operator!=(const Position& p) const {
-      return idx != p.idx || idx != p.idx;
-    }
-    template <class IterY>
-    forceinline bool
-    prec(const Position& p, IterY& y) const { //FIXME: Replace this with StringView::prec(pos0, pos1)
-      return (idx < p.idx-1)
-          || (idx == p.idx && off < p.off)
-          || (idx == p.idx-1 && (p.off == 0 || off != y[idx].ub()));
-    }
-    /// Test if this is normalized w.r.t. to y, i.e., it belongs to the set 
-    /// {(i,j) | 0 <= i < |y|, 0 <= j < ub(y)} U {(|y|,0)}
   };
   forceinline std::ostream&
   operator<<(std::ostream& os, const Position& p) {
@@ -83,11 +75,11 @@ namespace Gecode { namespace String {
   /// It returns true iff at least a block has been refined.
   template <class ViewX, class ViewY>
   forceinline bool 
-  refine_x(Space& home, ViewX x, const ViewY& y, Matching m[]) {
+  refine_x(Space& home, ViewX x, const ViewY& y, Matching m[], int n) {
     int nx = x.size();
     bool norm = false;
     Region r;
-    r.alloc<Block>(3 * y.size()); // FIXME: Change this, compute with StringView::ub_new_blocks(Matching m);
+    r.alloc<Block>(n); // FIXME: Change this, compute with StringView::ub_new_blocks(Matching m);
     for (int i = 0; i < nx; ++i) {
       const Block& bx = x[i]; // FIXME: Restore non-const operator [] 
       if (bx.isFixed())
@@ -179,7 +171,7 @@ namespace Gecode { namespace String {
     int n = x.size();
     if (x[i].lb() == 0) {
       // x[i] nullable, not pushing ESP[i]
-      if (i < n-1 && m[i+1].ESP.prec(m[i].ESP, y))
+      if (i < n-1 && y.prec(m[i+1].ESP, m[i].ESP))
         // x[i+1] cannot start before x[i]
         m[i+1].ESP = m[i].ESP;
       return true;
@@ -188,10 +180,10 @@ namespace Gecode { namespace String {
     IterY p(y, push<IterY>(x[i], q));
     if (!p.hasNext())
       return false;
-    if (i < n && m[i+1].ESP.prec(*q, y))
+    if (i < n && y.prec(m[i+1].ESP, *q))
       // x[i+1] cannot start before *q
       m[i+1].ESP = *q;
-    if (m[i].ESP.prec(*p, y))
+    if (y.prec(m[i].ESP, *p))
       // Pushing ESP forward.
       m[i].ESP = *p;
     return true;
@@ -203,7 +195,7 @@ namespace Gecode { namespace String {
 //    std::cerr << "Pushing LEP of " << x[i] << " from " << m[i].LEP << '\n';
     if (x[i].lb() == 0) {
       // x[i] nullable, not pushing LEP[i]
-      if (i > 0 && m[i-1].LEP.prec(m[i].LEP, y))
+      if (i > 0 && y.prec(m[i-1].LEP, m[i].LEP))
         // x[i-1] cannot end after x[i]
         m[i-1].LEP = m[i].LEP;
       return true;
@@ -213,10 +205,10 @@ namespace Gecode { namespace String {
 //    std::cerr << "p = " << *p << ", q = " << *q << "\n";
     if (!q.hasNext())
       return false;
-    if (i > 0 && (*p).prec(m[i-1].LEP, y))
+    if (i > 0 && y.prec(*p, m[i-1].LEP))
       // x[i-1] cannot end after *p
       m[i-1].LEP = *p;
-    if ((*q).prec(m[i].LEP, y))
+    if (y.prec(*q, m[i].LEP))
       // Pushing LEP backward.
       m[i].LEP = *q;
     return true;
@@ -257,34 +249,37 @@ namespace Gecode { namespace String {
   /// TODO:
   template <class ViewX, class ViewY>
   forceinline bool
-  sweep_x(Space& home, ViewX x, ViewY& y, Matching m[]) {
+  sweep_x(Space& home, ViewX x, ViewY& y, Matching m[], int& n) {
     if (!init_x(home, x, y, m))
       return false;
-    int n = x.size(); 
-    for (int i = 0; i < n; ++i) {
+    int nx = x.size(); 
+    for (int i = 0; i < nx; ++i) {
       if (!pushESP<ViewX,ViewY,typename ViewY::SweepFwdIterator>(x, y, m, i))
         return false;
     }
-    for (int i = n-1; i >= 0; --i) {
+    for (int i = nx-1; i >= 0; --i) {
       if (!pushLEP<ViewX,ViewY,typename ViewY::SweepBwdIterator>(x, y, m, i))
         return false;
     }
     m[0].LSP = m[0].ESP;
-    for (int i = 1; i < n; ++i) {
+    for (int i = 1; i < nx; ++i) {
       m[i].LSP = m[i-1].LEP;
 //      std::cerr << "ESP of " << x[i] << ": " << m[i].ESP << ", " 
 //                << "LSP of " << x[i] << ": " << m[i].LSP << "\n";
-      if (m[i].LSP.prec(m[i].ESP, y))
+      if (y.prec(m[i].LSP, m[i].ESP))
         return false;
     }
-    m[n-1].EEP = m[n-1].LEP;
-    for (int i = n-2; i >= 0; --i) {
+    m[nx-1].EEP = m[nx-1].LEP;
+    n = 0;
+    for (int i = nx-2; i >= 0; --i) {
       m[i].EEP = m[i+1].ESP;
 //      std::cerr << "EEP of " << x[i] << ": " << m[i].EEP << ", " 
 //                << "LEP of " << x[i] << ": " << m[i].LEP << "\n";
-      if (m[i].LEP.prec(m[i].EEP, y))
+      if (y.prec(m[i].LEP, m[i].EEP))
         return false;
+      //FIXME: n += y.ub_new_blocks(m[i]);
     }
+    n = 50;//3*y.size(); //FIXME
     return true;
   }
   
@@ -294,9 +289,10 @@ namespace Gecode { namespace String {
   equate_x(Space& home, ViewX x, ViewY& y) {
     int lb = x.min_length(), ub = x.max_length();
     Matching m[x.size()];
-    if (!sweep_x(home, x, y, m))
+    int n;
+    if (!sweep_x(home, x, y, m, n))
       return ME_STRING_FAILED;
-    if (!refine_x(home, x, y, m))
+    if (!refine_x(home, x, y, m, n))
       return ME_STRING_NONE;
     if (x.assigned())
       return ME_STRING_VAL;

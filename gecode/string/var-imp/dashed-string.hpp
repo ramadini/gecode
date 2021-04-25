@@ -738,13 +738,13 @@ namespace Gecode { namespace String {
   
   forceinline
   DashedString::DashedString(Space& home, int n) 
-  : DynamicArray(home,n), min_len(0), max_len(0) {
+  : DynamicArray(home, n), min_len(0), max_len(0) {
     assert (isOK() && (n == 1 || !isNorm()));
   }
   
   forceinline
   DashedString::DashedString(Space& home, int n, const Block& b) 
-  : DynamicArray(home,n), min_len(n*b.lb()), max_len(n*b.ub()) {
+  : DynamicArray(home, n), min_len(n*b.lb()), max_len(n*b.ub()) {
     for (int i = 0; i < n; ++i)
       x[i].update(home, b);
     assert (isOK() && (n == 1 || !isNorm()));
