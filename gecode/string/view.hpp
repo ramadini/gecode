@@ -114,6 +114,7 @@ namespace Gecode { namespace String {
     /// Returns the number of blocks of the domain
     int size(void) const;
     /// Returns the i-th block of the domain
+    Block& operator[](int i);
     const Block& operator[](int i) const;
     //@}
 

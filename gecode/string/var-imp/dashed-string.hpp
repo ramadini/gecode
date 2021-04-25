@@ -228,8 +228,6 @@ namespace Gecode { namespace String {
     ///                MAX_STRING_LENGTH
     DashedString(Space& home, Block b[], int n);
     
-    
-    
     /// \name Dashed string access
     //@{
     /// Returns the minimum length for a concrete string denoted by the dashed string
@@ -242,6 +240,7 @@ namespace Gecode { namespace String {
     double logdim(void) const;
     /// Returns the i-th block of the dashed string. Throws OutOfLimits if \a i < 0 or 
     /// \a i >= n, where n is the dashed string size
+    Block& operator[](int i);
     const Block& operator[](int i) const;
     /// Returns the concrete string denoted by the dashed string, if it is fixed.
     /// Otherwise, an IllegalOperation exception is thrown.
@@ -779,6 +778,13 @@ namespace Gecode { namespace String {
   forceinline int DashedString::max_length() const { return max_len; }
   forceinline int DashedString::size() const { return n; }
  
+ 
+  forceinline Block&
+  DashedString::operator[](int i) {
+    if (i < 0 || i >= n)
+      throw OutOfLimits("DashedString::operator[]");
+    return *(x + i);
+  } 
   forceinline const Block&
   DashedString::operator[](int i) const {
     if (i < 0 || i >= n)

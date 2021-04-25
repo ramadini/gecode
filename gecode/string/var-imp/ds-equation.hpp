@@ -79,9 +79,9 @@ namespace Gecode { namespace String {
     int nx = x.size();
     bool norm = false;
     Region r;
-    r.alloc<Block>(n); // FIXME: Change this, compute with StringView::ub_new_blocks(Matching m);
+    r.alloc<Block>(n);
     for (int i = 0; i < nx; ++i) {
-      const Block& bx = x[i]; // FIXME: Restore non-const operator [] 
+      const Block& bx = x[i];
       if (bx.isFixed())
         continue;
       int l= bx.lb(), u = bx.ub(), l1 = y.min_len_mand(bx, m[i].LSP, m[i].ESP);
@@ -92,9 +92,9 @@ namespace Gecode { namespace String {
         // TODO: crush
         continue;
       }
-      // Compute 
+      // Compute unfolding
     }
-    // Possibly unfold with d.s. in r. if (nx1 > nx) ...
+    // Possibly unfold with d.s. in r if (nx1 > nx) ...
     if (norm)
       x.normalize(home);
     return true;

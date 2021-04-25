@@ -208,6 +208,10 @@ namespace Gecode { namespace String {
     return x->size();
   }
 
+  forceinline Block&
+  StringView::operator[](int i) {
+    return x->operator[](i);
+  }
   forceinline const Block&
   StringView::operator[](int i) const {
     return x->operator[](i);
