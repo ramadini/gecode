@@ -155,6 +155,9 @@ namespace Gecode { namespace String {
     
     /// Returns true if p precedes q according to this view.
     bool prec(const Position& p, const Position& q) const;
+    ///TODO:
+    int ub_new_blocks(const Matching& m) const;
+    
     /// TODO:
     int min_len_mand(const Block& bx, const Position& lsp, 
                                       const Position& eep) const;

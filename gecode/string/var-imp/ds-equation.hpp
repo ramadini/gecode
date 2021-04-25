@@ -277,9 +277,8 @@ namespace Gecode { namespace String {
 //                << "LEP of " << x[i] << ": " << m[i].LEP << "\n";
       if (y.prec(m[i].LEP, m[i].EEP))
         return false;
-      //FIXME: n += y.ub_new_blocks(m[i]);
+      n += y.ub_new_blocks(m[i]);
     }
-    n = 50;//3*y.size(); //FIXME
     return true;
   }
   

@@ -250,15 +250,16 @@ namespace Gecode { namespace String {
         || (p.idx == q.idx-1 && (q.off == 0 || p.off != (*this)[p.idx].ub()));
   }
   
-//  forceinline static int
-//  StringView::ub_new_blocks(const Matching& m) {
-//    if (prec(m.LSP[i], m.EEP[i])) {
-//      if (m.EEP[i].idx == m.LSP[i].idx)
-//        return 
-//    }
-//    else
-//      return 0;
-//  }
+  forceinline int
+  StringView::ub_new_blocks(const Matching& m) const {
+    if (prec(m.LSP, m.EEP)) {
+      int n = m.ESP.idx != m.LSP.idx;
+      n += m.EEP.idx - m.LSP.idx + (m.EEP.off > 0);
+      return n + (prec(m.EEP, m.LEP)) - 1;
+    }
+    else
+      return 0;
+  }
   
   forceinline int
   StringView::min_len_mand(const Block& bx, const Position& lsp, 
