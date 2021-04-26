@@ -97,8 +97,20 @@ namespace Gecode { namespace String {
           newSize--;
           continue;
         }
+        int lcp_len = y.lcp_length(), lcs_len = y.lcs_length();
         if (nx == 1 && l <= l1) {
-        
+          // Special case where x is a single block: the soundness of the
+          // propagation is preserved by constraining the min/max length.
+          Region r;
+          int ny = y.size();
+          Block* ry = r.alloc<Block>(ny);
+          for (int i = 0; i < ny; ++i) {
+            (ry[i]).update(home, y[i]);
+            ry[i].baseIntersect(home, x_i);
+            if (ry[i].ub() > x_i.ub())
+              ry[i].ub(home, x_i.ub());
+          }
+          r.free();
         }
         
         Gecode::Set::GLBndSet s;          

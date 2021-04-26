@@ -155,6 +155,10 @@ namespace Gecode { namespace String {
     /// A VariableEmptyDomain exception is raised if the base becomes empty but 
     /// the lower bound is greater than zero.
     void baseIntersect(Space& home, const Gecode::Set::BndSet& S);
+    /// Exclude all elements not in \a the base of b from this base
+    /// A VariableEmptyDomain exception is raised if the base becomes empty but 
+    /// the lower bound is greater than zero.
+    void baseIntersect(Space& home, const Block& b);
     /// Exclude all elements of \a S from the base
     /// A VariableEmptyDomain exception is raised if the base becomes empty but 
     /// the lower bound is greater than zero.
@@ -619,10 +623,42 @@ namespace Gecode { namespace String {
       return;
     if (isFixed()) {
       if (!s.in(l))
-        throw VariableEmptyDomain("Block::inters"); 
+        throw VariableEmptyDomain("Block::baseIntersect"); 
       return;
     }
     Gecode::Set::BndSetRanges i(s);
+    S->intersectI(home, i);
+    if (l > 0 && S->empty())
+      throw VariableEmptyDomain("Block::baseIntersect");
+    if (l == u && S->size() == 1)
+      fix(home);
+    assert(isOK());
+  }
+  
+  forceinline void
+  Block::baseIntersect(Space& home, const Block& b) {
+    if (isNull())
+      return;
+    if (isFixed()) {
+      if ((b.isFixed() && l != b.l) || (!isFixed() && !b.S->in(l)))
+        throw VariableEmptyDomain("Block::baseIntersect"); 
+      return;
+    }
+    if (b.isFixed()) {
+      if (S->in(b.l)) {
+        nullifySet(home);
+        l = b.l;
+        u = b.u;        
+      }
+      else {
+        if (l > 0)
+          throw VariableEmptyDomain("Block::baseIntersect");
+        nullify(home);
+      }
+      assert(isOK());
+      return;
+    }
+    Gecode::Set::BndSetRanges i(*b.S);
     S->intersectI(home, i);
     if (l > 0 && S->empty())
       throw VariableEmptyDomain("Block::inters");
