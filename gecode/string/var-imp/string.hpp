@@ -66,5 +66,12 @@ namespace Gecode { namespace String {
   StringVarImp::dom() const {
     return ds;  
   }
+  
+  template<class Char, class Traits>
+  forceinline  std::basic_ostream<Char,Traits>&
+  operator <<(std::basic_ostream<Char,Traits>& os, const StringVarImp& x) {
+    os << x.dom();
+    return os;
+  };
    
 }}

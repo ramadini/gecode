@@ -237,6 +237,13 @@ namespace Gecode { namespace String {
     return x->assigned();
   }
   
+  template<class Char, class Traits>
+  forceinline  std::basic_ostream<Char,Traits>&
+  operator <<(std::basic_ostream<Char,Traits>& os, const StringView& v) {
+    os << v.varimp()->dom();
+    return os;
+  };
+  
   forceinline void
   StringView::normalize(Space& home) {
     x->normalize(home);
@@ -279,7 +286,7 @@ namespace Gecode { namespace String {
 //    std::cerr << lsp << ' ' << eep << '\n';
 //    std::cerr << h << ' ' << h1 << ' ' << k << ' ' << k1 << '\n';
     if (h == h1)
-      return std::max(l, nabla(bx, (*this)[h], k1 - k));
+      return nabla(bx, (*this)[h], k1 - k);
     int s = nabla(l, (*this)[h], (*this)[h].lb() - k);
     for (int i = h+1; i < h1; i++) 
       s += nabla(bx, (*this)[i], (*this)[i].lb());
@@ -292,10 +299,9 @@ namespace Gecode { namespace String {
     if (esp == lep)
       return 0;
     assert(!prec(lep, esp));
-    int u = bx.ub(), p = esp.idx, p1 = lep.idx, q = esp.off, q1 = lep.off;
-    int k = u - l;
+    int p = esp.idx, p1 = lep.idx, q = esp.off, q1 = lep.off, k = bx.ub() - l;
     if (p == p1)
-      return std::min({u, k + (*this)[p].lb(), nabla(bx, (*this)[p], q1-q)});
+      return std::min(k + (*this)[p].lb(), nabla(bx, (*this)[p], q1-q));
     int s = std::min(
       k + (*this)[p].lb(), nabla(bx, (*this)[p], (*this)[p].ub() - q)
     );

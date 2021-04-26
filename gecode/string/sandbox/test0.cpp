@@ -334,7 +334,7 @@ public:
     StringVar x(*this, DashedString(*this, bv, 4));
     StringVar y(*this, Block(*this, CharSet(*this,IntSet({'b','o','m'})),0,4));    
     StringView vx(x), vy(y);    
-    cerr << "Sweep x = " << x << "  vs  y = " << y << "\n";
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
     assert(equate_x(*this, vx, vy));
   }
   

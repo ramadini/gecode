@@ -949,6 +949,7 @@ namespace Gecode { namespace String {
   
   forceinline void
   DashedString::normalize(Space& home) {
+    min_len = max_len = 0;
     int newSize = n;
     int j = -1;
     // 1st pass: determine new size, settle adjacent blocks with same base
@@ -957,6 +958,8 @@ namespace Gecode { namespace String {
         --newSize;
         continue;
       }
+      min_len += x[i].lb();
+      max_len += x[i].ub();
       // j is the index of the last encountered non-null block.
       if (j != -1 && x[i].baseEquals(x[j])) {
         int u = x[i].ub() + x[j].ub();

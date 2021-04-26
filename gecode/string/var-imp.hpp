@@ -137,6 +137,14 @@ namespace Gecode { namespace String {
     //@}
   };
   
+  /**
+   * \brief Print string var. imp. \a x
+   * \relates Gecode::StringVar
+   */
+  template<class Char, class Traits>
+  std::basic_ostream<Char,Traits>&
+  operator <<(std::basic_ostream<Char,Traits>& os, const StringVarImp& x);
+  
   class StringView;
   
 }}

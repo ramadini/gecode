@@ -14,7 +14,7 @@ namespace Gecode { namespace String {
     /// NOTE: If position are not normalized, the result might be unexpected.
     forceinline bool
     operator==(const Position& p) const {
-      return idx == p.idx && idx == p.idx;
+      return idx == p.idx && off == p.off;
     }
     /// Test if this position is not equal to \a p w.r.t. lexicographic ordering
     /// NOTE: If position are not normalized, the result might be unexpected.
@@ -68,28 +68,33 @@ namespace Gecode { namespace String {
 
   forceinline int
   nabla(const Block& bx, const Block& by, int x) {
-    return x > 0 && bx.baseDisjoint(by) ? x : 0;
+    return x > 0 && !bx.baseDisjoint(by) ? x : 0;
   }
   
   /// Possibly refines each x[i] according to its matching region m[i] in y. 
   /// It returns true iff at least a block has been refined.
   template <class ViewX, class ViewY>
   forceinline bool 
-  refine_x(Space& home, ViewX x, const ViewY& y, Matching m[], int nBlocks) {
+  refine_x(Space& home, ViewX& x, const ViewY& y, Matching m[], int nBlocks) {
+    std::cerr << "Refining " << x << "\nMax. " << nBlocks << " new blocks needed.\n";
     int nx = x.size();
     int newSize = nx;
     bool changed = false;
     Region r;
     Block* newBlocks = r.alloc<Block>(nBlocks);
     for (int i = 0; i < nx; ++i) {
+      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
+      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].ESP << "\nEEP: " 
+                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n"; 
       Block& x_i = x[i];
       if (x_i.isFixed())
         continue;
       int l = x_i.lb(), u = x_i.ub(), 
-         l1 = y.min_len_mand(x_i, m[i].LSP, m[i].ESP);
+         l1 = y.min_len_mand(x_i, m[i].LSP, m[i].EEP);
       if (u < l1)
         return false;
-      int u1 = y.max_len_opt(x_i, m[i].ESP, m[i].LSP, l1);
+      int u1 = y.max_len_opt(x_i, m[i].ESP, m[i].LEP, l1);
+      std::cerr << "l'=" << l1 << ", u'=" << u1 << "\n";
       if (l1 == 0 || l1 < l || u1 > u) {
         if (u1 == 0) {
           x_i.nullify(home);
