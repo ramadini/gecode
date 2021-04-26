@@ -75,12 +75,12 @@ namespace Gecode { namespace String {
   /// It returns true iff at least a block has been refined.
   template <class ViewX, class ViewY>
   forceinline bool 
-  refine_x(Space& home, ViewX x, const ViewY& y, Matching m[], int n) {
+  refine_x(Space& home, ViewX x, const ViewY& y, Matching m[], int nBlocks) {
     int nx = x.size();
     int newSize = nx;
     bool changed = false;
     Region r;
-    r.alloc<Block>(n);
+    Block* newBlocks = r.alloc<Block>(nBlocks);
     for (int i = 0; i < nx; ++i) {
       Block& x_i = x[i];
       if (x_i.isFixed())
@@ -98,42 +98,30 @@ namespace Gecode { namespace String {
           continue;
         }
         if (nx == 1 && l <= l1) {
-          // Special case where x is a single block: the soundness of the
-          // propagation is preserved by the length constraint on |x|
+          // Special case where x is a single block: the soundness is preserved 
+          // by length constraints, provided that a length constraint is 
+          // defined for each string constraint involving an equation!
           Region r;
           Block* y1 = r.alloc<Block>(y.size());
-          y.expand(home, x_i, y1);
-          DashedString d(home, y1);
+          y.expandBlock(home, x_i, y1);
+          DashedString d(home, y1, y.size());
           r.free();
           if (d[0].baseSize() == 1 || d[d.size()-1].baseSize() == 1
-                                   || d.logdim() < x_i.logdim()) {
+                                   || d.logdim() < x_i.logdim())
             x.update(home, d);
-            changed = true;
-          }
+          return true;
         }
-        Gecode::Set::GLBndSet s;
         int n = x_i.baseSize();
-        for (int j = m[i].ESP.idx; j <= m[i].LEP.idx; ++j) {
-          if (y[j].baseSize() == 1) {
-            int m = y[j].baseMin();
-            Gecode::Set::SetDelta d;
-            s.include(home, m, m, d);              
-          }
-          else {
-            Gecode::Set::BndSetRanges i(x_i.ranges());
-            s.includeI(home, i);
-          }
-        }
-        x_i.baseIntersect(home, s);
-        if (x_i.isNull()) {
-          changed = true;
-          continue;
-        }
-        x_i.updateCard(home, l > l1 ? l : l1, u1);  
-        changed |= l < l1 || u > u1 || n < x_i.baseSize();        
+        x_i.updateCard(home, std::max(l, l1), std::min(u, u1));
+        y.crushBlock(home, x_i, m[i].ESP, m[i].LEP);        
+        if (x_i.isNull())
+          newSize--;
+        changed |= l < l1 || u > u1 || n < x_i.baseSize();
         continue;
       }
       // Compute unfolding
+      assert (nBlocks > 0);
+      //y.unfoldBlock(home, x_i, m[i].ESP, m[i].LSP);
     }
     // Possibly unfold with d.s. in r if (nx1 > nx) ...
     if (changed)

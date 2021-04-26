@@ -23,7 +23,10 @@ namespace Gecode { namespace String {
   StringVarImp::StringVarImp(Space& home, const DashedString& d)
   : StringVarImpBase(home), ds(home, d) {}  
   
-  //TODO:
+  forceinline void
+  StringVarImp::update(Space& home, const DashedString& d) {
+    ds.update(home, d);
+  }
   
   forceinline int 
   StringVarImp::size() const {

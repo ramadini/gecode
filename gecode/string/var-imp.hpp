@@ -81,6 +81,8 @@ namespace Gecode { namespace String {
     
     /// Normalize the domain
     void normalize(Space& home);
+  
+    void update(Space& home, const DashedString& d);
     
     /// \name Domain update by equation
     //@{

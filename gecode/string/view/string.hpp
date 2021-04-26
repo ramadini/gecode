@@ -203,6 +203,11 @@ namespace Gecode { namespace String {
   StringView::StringView(StringVarImp* y)
     : VarImpView<StringVar>(y) {}
 
+  forceinline void
+  StringView::update(Space& home, const DashedString& d) {
+    x->update(home, d);
+  }
+
   forceinline int 
   StringView::size() const {
     return x->size();
@@ -307,6 +312,25 @@ namespace Gecode { namespace String {
       if (y[i].ub() > bx.ub())
         y[i].ub(home, bx.ub());
     }
+  }
+     
+  forceinline void
+  StringView::crushBlock(Space& home, Block& bx, const Position& esp, 
+                                                 const Position& lep) const {
+    Gecode::Set::GLBndSet s;
+    int k = lep.idx - (lep.off == 0);
+    for (int j = esp.idx; j <= k; ++j) {
+      if ((*this)[j].baseSize() == 1) {
+        int m = (*this)[j].baseMin();
+        Gecode::Set::SetDelta d;
+        s.include(home, m, m, d);
+      }
+      else {
+        Gecode::Set::BndSetRanges i(bx.ranges());
+        s.includeI(home, i);
+      }
+    }
+    bx.baseIntersect(home, s);
   }
      
 }}

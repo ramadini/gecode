@@ -131,6 +131,8 @@ namespace Gecode { namespace String {
     /// 
     //@}
     
+    void update(Space& home, const DashedString& d);
+    
     /// \name Domain update by equation: FIXME: Check if needed
     //@{
     /// Equates the domain with string \a w.
@@ -168,6 +170,11 @@ namespace Gecode { namespace String {
                                      
     void
     expandBlock(Space& home, const Block& bx, Block* y) const;
+    
+    void
+    crushBlock(Space& home, Block& bx, const Position& esp, 
+                                       const Position& lep) const;
+    
     /// Normalize this view
     void normalize(Space& home);
     

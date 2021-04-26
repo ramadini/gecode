@@ -321,11 +321,21 @@ public:
            << "LSP: " << my[i].LSP << ", "
            << "LEP: " << my[i].LEP << "\n";
     assert (my[0].LSP == Position(0,0) && my[0].EEP == Position(4,0));
+    
   }
   
   void test09() {
     cerr << "\n*** Test 09 ***" << endl;
-    
+    Block bv[4];
+    bv[0].update(*this, Block(*this, CharSet(*this, IntSet({'B','b'})), 1, 1));
+    bv[1].update(*this, Block(*this, CharSet(*this, 'o'), 2, 4));
+    bv[2].update(*this, Block('m'));
+    bv[3].update(*this, Block(*this, CharSet(*this, '!'), 0, 3));
+    StringVar x(*this, DashedString(*this, bv, 4));
+    StringVar y(*this, Block(*this, CharSet(*this,IntSet({'b','o','m'})),0,4));    
+    StringView vx(x), vy(y);    
+    cerr << "Sweep x = " << x << "  vs  y = " << y << "\n";
+    assert(equate_x(*this, vx, vy));
   }
   
 };
