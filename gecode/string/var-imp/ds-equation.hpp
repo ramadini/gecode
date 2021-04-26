@@ -104,15 +104,20 @@ namespace Gecode { namespace String {
           Region r;
           int ny = y.size();
           Block* ry = r.alloc<Block>(ny);
+          double ld = 0.0;
           for (int i = 0; i < ny; ++i) {
-            (ry[i]).update(home, y[i]);
+            ry[i].update(home, y[i]);
             ry[i].baseIntersect(home, x_i);
             if (ry[i].ub() > x_i.ub())
               ry[i].ub(home, x_i.ub());
+            ld += ry[i].logdim();
           }
-          r.free();
-        }
-        
+          if (lcp_len > 0 || lcs_len > 0 || ld < x_i.logdim()) {
+            x.update(home, DashedString(home, r));
+            changed = true;
+          }
+          r.free();          
+        }        
         Gecode::Set::GLBndSet s;          
         int n = x_i.baseSize();
         for (int j = m[i].ESP.idx; j <= m[i].LEP.idx; ++j) {
