@@ -105,7 +105,17 @@ namespace Gecode { namespace String {
     int lb(void) const;
     /// Returns the upper bound of the block
     int ub(void) const;
-    /// Returns the natural logarithm of the dimension of the block.
+    /// Returns the size of the base of this block
+    int baseSize(void) const;
+    /// Returns the least element of the base of this block. 
+    /// Throws IllegalOperation if the block is null
+    int baseMin(void) const;
+    /// Returns the greatest element of the base of this block.
+    /// Throws IllegalOperation if the block is null
+    int baseMax(void) const;
+    /// Returns a range iterator to the base. Throws IllegalOperation if the block is fixed
+    Gecode::Set::BndSetRanges ranges(void) const;
+    /// Returns the natural logarithm of the dimension of the block.    
     double logdim(void) const;
     /// Returns the concrete string denoted by the block, if the block is fixed.
     /// Otherwise, an IllegalOperation exception is thrown.
@@ -119,7 +129,7 @@ namespace Gecode { namespace String {
     /// Test whether the block is fixed (i.e., it denotes a single string)
     bool isFixed(void) const;
     /// Test whether the block is {0, \dots, {MAX\_ALPHABET\_SIZE}-1}^{(0,{MAX\_STRING\_LENGTH})
-    bool isUniverse(void) const;
+    bool isUniverse(void) const;    
     /// Test whether the base of this block is disjoint with the base of \a b
     bool baseDisjoint(const Block& b) const;
     /// Test whether the base of this block is equal to the base of \a b
@@ -502,6 +512,32 @@ namespace Gecode { namespace String {
       return log(u - l + 1);
     double s = S->size();
     return u * log(s) + log(1.0 - std::pow(s, l-u-1)) - log(1 - 1/s);
+  }
+  
+  forceinline int
+  Block::baseSize(void) const {
+    return isFixed() ? u > 0 : S->size();
+  }
+  
+  forceinline int
+  Block::baseMin(void) const {
+    if (isNull())
+      throw IllegalOperation("Block::baseMin");
+    return isFixed() ? l: S->min();
+  }
+  
+  forceinline int
+  Block::baseMax(void) const {
+    if (isNull())
+      throw IllegalOperation("Block::baseMax");
+    return isFixed() ? l: S->max();
+  }
+  
+  forceinline Gecode::Set::BndSetRanges
+  Block::ranges() const {
+    if (isFixed())
+      throw IllegalOperation("Block::ranges");
+    return Gecode::Set::BndSetRanges(*S);
   }
   
   forceinline bool

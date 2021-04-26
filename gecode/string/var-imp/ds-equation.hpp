@@ -77,25 +77,56 @@ namespace Gecode { namespace String {
   forceinline bool 
   refine_x(Space& home, ViewX x, const ViewY& y, Matching m[], int n) {
     int nx = x.size();
-    bool norm = false;
+    int newSize = nx;
+    bool changed = false;
     Region r;
     r.alloc<Block>(n);
     for (int i = 0; i < nx; ++i) {
-      const Block& bx = x[i];
-      if (bx.isFixed())
+      Block& x_i = x[i];
+      if (x_i.isFixed())
         continue;
-      int l= bx.lb(), u = bx.ub(), l1 = y.min_len_mand(bx, m[i].LSP, m[i].ESP);
+      int l = x_i.lb(), u = x_i.ub(), 
+         l1 = y.min_len_mand(x_i, m[i].LSP, m[i].ESP);
       if (u < l1)
         return false;
-      int u1 = y.max_len_opt(bx, m[i].ESP, m[i].LSP, l1);
+      int u1 = y.max_len_opt(x_i, m[i].ESP, m[i].LSP, l1);
       if (l1 == 0) {
+        assert(l == 0);
         // TODO: crush
+        {
+          if (u1 == 0) {
+            x_i.nullify(home);
+            changed = true;
+            newSize--;
+            continue;
+          }
+          Gecode::Set::GLBndSet s;          
+          int n = x_i.baseSize();
+          for (int j = m[i].ESP.idx; j <= m[i].LEP.idx; ++j) {
+            if (y[j].baseSize() == 1) {
+              int m = y[j].baseMin();
+              Gecode::Set::SetDelta d;
+              s.include(home, m, m, d);              
+            }
+            else {
+              Gecode::Set::BndSetRanges i(x_i.ranges());
+              s.includeI(home, i);
+            }
+          }
+          x_i.baseIntersect(home, s);
+          if (x_i.isNull()) {
+            changed = true;
+            continue;
+          }
+          changed |= l > l1 || u < u1 || n < x_i.baseSize();
+          x_i.ub(home, u1);
+        }
         continue;
       }
       // Compute unfolding
     }
     // Possibly unfold with d.s. in r if (nx1 > nx) ...
-    if (norm)
+    if (changed)
       x.normalize(home);
     return true;
   }
