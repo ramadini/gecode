@@ -255,34 +255,6 @@ namespace Gecode { namespace String {
   }
   
   forceinline int
-  StringView::lcp_length() const {
-    int lcp = 0;
-    for (int i = 0; i < size(); ++i) {
-      const Block& b = (*this)[i];
-      if (b.baseSize() > 1)
-        return lcp;
-      lcp += b.lb();
-      if (b.lb() < b.ub())
-        return lcp;
-    }
-    return lcp;
-  }
-  
-  forceinline int
-  StringView::lcs_length() const {
-    int lcs = 0;
-    for (int i = size()-1; i >= 0; --i) {
-      const Block& b = (*this)[i];
-      if (b.baseSize() > 1)
-        return lcs;
-      lcs += b.lb();
-      if (b.lb() < b.ub())
-        return lcs;
-    }
-    return lcs;
-  }
-  
-  forceinline int
   StringView::ub_new_blocks(const Matching& m) const {
     if (prec(m.LSP, m.EEP)) {
       int n = m.ESP.idx != m.LSP.idx;

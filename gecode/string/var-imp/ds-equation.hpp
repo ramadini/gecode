@@ -96,13 +96,15 @@ namespace Gecode { namespace String {
           changed = true;
           newSize--;
           continue;
-        }
-        int lcp_len = y.lcp_length(), lcs_len = y.lcs_length();
+        }        
+        int ny = y.size();
+        // kc true iff there is at least a known char in the prefix of suffix of y
+        bool kc = (y[0].lb() > 0 && y[0].baseSize() == 1) ||
+               (y[ny-1].lb() > 0 && y[ny-1].baseSize() == 1);
         if (nx == 1 && l <= l1) {
           // Special case where x is a single block: the soundness of the
           // propagation is preserved by constraining the min/max length.
-          Region r;
-          int ny = y.size();
+          Region r;          
           Block* ry = r.alloc<Block>(ny);
           double ld = 0.0;
           for (int i = 0; i < ny; ++i) {
@@ -112,7 +114,8 @@ namespace Gecode { namespace String {
               ry[i].ub(home, x_i.ub());
             ld += ry[i].logdim();
           }
-          if (lcp_len > 0 || lcs_len > 0 || ld < x_i.logdim()) {
+          
+          if (kc || ld < x_i.logdim()) {
             x.update(home, DashedString(home, r));
             changed = true;
           }
@@ -136,8 +139,13 @@ namespace Gecode { namespace String {
           changed = true;
           continue;
         }
-        changed |= l < l1 || u > u1 || n < x_i.baseSize();
-        x_i.updateCard(home, l > l1 ? l : l1, u1);
+        if (kc) {
+          
+          changed = true;
+          continue;
+        }
+        x_i.updateCard(home, l > l1 ? l : l1, u1);  
+        changed |= l < l1 || u > u1 || n < x_i.baseSize();        
         continue;
       }
       // Compute unfolding
