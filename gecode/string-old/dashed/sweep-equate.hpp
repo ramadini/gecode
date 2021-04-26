@@ -533,7 +533,7 @@ namespace Gecode { namespace String {
         || (int) xi.S.size() < n) {
           NSBlocks v;
           int ll = max(p_l, xi.l), uu = min(u, xi.u), nn = kpref.size();
-          if (nn > 0) {            
+          if (nn > 0) {
             v = NSBlocks(kpref);
             ll -= nn;
             uu -= nn;

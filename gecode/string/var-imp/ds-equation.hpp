@@ -90,37 +90,37 @@ namespace Gecode { namespace String {
       if (u < l1)
         return false;
       int u1 = y.max_len_opt(x_i, m[i].ESP, m[i].LSP, l1);
-      if (l1 == 0) {
-        assert(l == 0);
-        // TODO: crush
-        {
-          if (u1 == 0) {
-            x_i.nullify(home);
-            changed = true;
-            newSize--;
-            continue;
-          }
-          Gecode::Set::GLBndSet s;          
-          int n = x_i.baseSize();
-          for (int j = m[i].ESP.idx; j <= m[i].LEP.idx; ++j) {
-            if (y[j].baseSize() == 1) {
-              int m = y[j].baseMin();
-              Gecode::Set::SetDelta d;
-              s.include(home, m, m, d);              
-            }
-            else {
-              Gecode::Set::BndSetRanges i(x_i.ranges());
-              s.includeI(home, i);
-            }
-          }
-          x_i.baseIntersect(home, s);
-          if (x_i.isNull()) {
-            changed = true;
-            continue;
-          }
-          changed |= l > l1 || u < u1 || n < x_i.baseSize();
-          x_i.ub(home, u1);
+      if (l1 == 0 || l1 < l || u1 > u) {
+        if (u1 == 0) {
+          x_i.nullify(home);
+          changed = true;
+          newSize--;
+          continue;
         }
+        if (nx == 1 && l <= l1) {
+        
+        }
+        
+        Gecode::Set::GLBndSet s;          
+        int n = x_i.baseSize();
+        for (int j = m[i].ESP.idx; j <= m[i].LEP.idx; ++j) {
+          if (y[j].baseSize() == 1) {
+            int m = y[j].baseMin();
+            Gecode::Set::SetDelta d;
+            s.include(home, m, m, d);              
+          }
+          else {
+            Gecode::Set::BndSetRanges i(x_i.ranges());
+            s.includeI(home, i);
+          }
+        }
+        x_i.baseIntersect(home, s);
+        if (x_i.isNull()) {
+          changed = true;
+          continue;
+        }
+        changed |= l < l1 || u > u1 || n < x_i.baseSize();
+        x_i.updateCard(home, l > l1 ? l : l1, u1);
         continue;
       }
       // Compute unfolding

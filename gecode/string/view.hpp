@@ -154,6 +154,12 @@ namespace Gecode { namespace String {
     ModEvent lengthIn(Space& home, int l, int u);
     //@}
     
+    /// Returns the length of the longest common prefix for all the strings 
+    /// denoted by this view
+    int lcp_length(void) const;
+    /// Returns the length of the longest common suffix for all the strings 
+    /// denoted by this view
+    int lcs_length(void) const;
     /// Returns true if p precedes q according to this view.
     bool prec(const Position& p, const Position& q) const;
     ///TODO:

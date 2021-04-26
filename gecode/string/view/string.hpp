@@ -247,11 +247,39 @@ namespace Gecode { namespace String {
     return SweepBwdIterator(*this);
   }
   
-  bool
+  forceinline bool
   StringView::prec(const Position& p, const Position& q) const {
     return (p.idx < q.idx-1)
         || (p.idx == q.idx && p.off < q.off)
         || (p.idx == q.idx-1 && (q.off == 0 || p.off != (*this)[p.idx].ub()));
+  }
+  
+  forceinline int
+  StringView::lcp_length() const {
+    int lcp = 0;
+    for (int i = 0; i < size(); ++i) {
+      const Block& b = (*this)[i];
+      if (b.baseSize() > 1)
+        return lcp;
+      lcp += b.lb();
+      if (b.lb() < b.ub())
+        return lcp;
+    }
+    return lcp;
+  }
+  
+  forceinline int
+  StringView::lcs_length() const {
+    int lcs = 0;
+    for (int i = size()-1; i >= 0; --i) {
+      const Block& b = (*this)[i];
+      if (b.baseSize() > 1)
+        return lcs;
+      lcs += b.lb();
+      if (b.lb() < b.ub())
+        return lcs;
+    }
+    return lcs;
   }
   
   forceinline int
@@ -278,7 +306,7 @@ namespace Gecode { namespace String {
     int s = nabla(l, (*this)[h], (*this)[h].lb() - k);
     for (int i = h+1; i < h1; i++) 
       s += nabla(bx, (*this)[i], (*this)[i].lb());
-    return std::max(l, s + nabla(bx, (*this)[k], k1));
+    return s + nabla(bx, (*this)[k], k1);
   }
   
   forceinline int
@@ -296,7 +324,7 @@ namespace Gecode { namespace String {
     );
     for (int i = p+1; i < p1; i++) 
       s += std::min(k+(*this)[i].lb(), nabla(bx, (*this)[i], (*this)[i].ub()));
-    return std::min(u, s+std::min((*this)[q].lb(), nabla(bx, (*this)[q], q1)));
+    return s + std::min((*this)[q].lb(), nabla(bx, (*this)[q], q1));
   }
      
 }}
