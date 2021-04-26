@@ -77,13 +77,15 @@ public:
     {
       Gecode::Set::GLBndSet* ps = r.alloc<Gecode::Set::GLBndSet>(1);
       ps->init(*this);
-      b1.includeBaseIn(*this, *ps);
-      b2.includeBaseIn(*this, *ps);
+      Gecode::Set::SetDelta d;
+      int m = b1.baseMin();
+      ps->include(*this, m, m, d);
+      m = b2.baseMin();
+      ps->include(*this, m, m, d);
       b4.baseIntersect(*this, *ps);
       b4.lb(*this, 5);
       b4.ub(*this, 5);
-      assert (b4.val() == std::vector<int>({'a', 'a', 'a', 'a', 'a'}));
-      Gecode::Set::SetDelta d;
+      assert (b4.val() == std::vector<int>({'a', 'a', 'a', 'a', 'a'}));      
       ps->include(*this, 'H', 'H', d);
       b6.baseExclude(*this, *ps);
       bool ok = false;
