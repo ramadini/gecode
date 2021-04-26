@@ -83,9 +83,9 @@ namespace Gecode { namespace String {
     Region r;
     Block* newBlocks = r.alloc<Block>(nBlocks);
     for (int i = 0; i < nx; ++i) {
-      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
-      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].ESP << "\nEEP: " 
-                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n"; 
+//      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
+//      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].ESP << "\nEEP: " 
+//                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n"; 
       Block& x_i = x[i];
       if (x_i.isFixed())
         continue;
@@ -94,7 +94,6 @@ namespace Gecode { namespace String {
       if (u < l1)
         return false;
       int u1 = y.max_len_opt(x_i, m[i].ESP, m[i].LEP, l1);
-      std::cerr << "l'=" << l1 << ", u'=" << u1 << "\n";
       if (l1 == 0 || l1 < l || u1 > u) {
         if (u1 == 0) {
           x_i.nullify(home);
@@ -125,8 +124,8 @@ namespace Gecode { namespace String {
         continue;
       }
       // Compute unfolding
-      assert (nBlocks > 0);
-      //y.unfoldBlock(home, x_i, m[i].ESP, m[i].LSP);
+      assert (l1 > 0);
+//      y.unfoldBlock(home, x_i, m);
     }
     // Possibly unfold with d.s. in r if (nx1 > nx) ...
     if (changed)

@@ -336,6 +336,7 @@ public:
     StringView vx(x), vy(y);    
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
     assert(equate_x(*this, vx, vy));
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
   }
   
 };
