@@ -165,6 +165,9 @@ namespace Gecode { namespace String {
     /// TODO:             
     int max_len_opt(const Block& bx, const Position& esp, 
                                      const Position& lep, int l) const;
+                                     
+    void
+    expandBlock(Space& home, const Block& bx, Block* y) const;
     /// Normalize this view
     void normalize(Space& home);
     

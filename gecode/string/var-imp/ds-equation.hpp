@@ -96,32 +96,22 @@ namespace Gecode { namespace String {
           changed = true;
           newSize--;
           continue;
-        }        
-        int ny = y.size();
-        // kc true iff there is at least a known char in the prefix of suffix of y
-        bool kc = (y[0].lb() > 0 && y[0].baseSize() == 1) ||
-               (y[ny-1].lb() > 0 && y[ny-1].baseSize() == 1);
+        }
         if (nx == 1 && l <= l1) {
           // Special case where x is a single block: the soundness of the
-          // propagation is preserved by constraining the min/max length.
-          Region r;          
-          Block* ry = r.alloc<Block>(ny);
-          double ld = 0.0;
-          for (int i = 0; i < ny; ++i) {
-            ry[i].update(home, y[i]);
-            ry[i].baseIntersect(home, x_i);
-            if (ry[i].ub() > x_i.ub())
-              ry[i].ub(home, x_i.ub());
-            ld += ry[i].logdim();
-          }
-          
-          if (kc || ld < x_i.logdim()) {
-            x.update(home, DashedString(home, r));
+          // propagation is preserved by the length constraint on |x|
+          Region r;
+          Block* y1 = r.alloc<Block>(y.size());
+          y.expand(home, x_i, y1);
+          DashedString d(home, y1);
+          r.free();
+          if (d[0].baseSize() == 1 || d[d.size()-1].baseSize() == 1
+                                   || d.logdim() < x_i.logdim()) {
+            x.update(home, d);
             changed = true;
           }
-          r.free();          
-        }        
-        Gecode::Set::GLBndSet s;          
+        }
+        Gecode::Set::GLBndSet s;
         int n = x_i.baseSize();
         for (int j = m[i].ESP.idx; j <= m[i].LEP.idx; ++j) {
           if (y[j].baseSize() == 1) {
@@ -136,11 +126,6 @@ namespace Gecode { namespace String {
         }
         x_i.baseIntersect(home, s);
         if (x_i.isNull()) {
-          changed = true;
-          continue;
-        }
-        if (kc) {
-          
           changed = true;
           continue;
         }

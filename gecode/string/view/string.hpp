@@ -298,5 +298,26 @@ namespace Gecode { namespace String {
       s += std::min(k+(*this)[i].lb(), nabla(bx, (*this)[i], (*this)[i].ub()));
     return s + std::min((*this)[q].lb(), nabla(bx, (*this)[q], q1));
   }
+  
+  forceinline void
+  StringView::expandBlock(Space& home, const Block& bx, Block* y) const {
+    for (int i = 0; i < size(); i++) {
+      y[i].update(home, (*this)[i]);
+      y[i].baseIntersect(home, bx);
+      if (y[i].ub() > bx.ub())
+        y[i].ub(home, bx.ub());
+    }
+  }
      
 }}
+
+
+
+
+
+
+
+
+
+
+
