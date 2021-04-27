@@ -84,6 +84,12 @@ namespace Gecode { namespace String {
     void check_alphabet(const IntSet& S, const char* l);
   }
 
+  forceinline int 
+  ub_sum(int x, int y) {
+    int z = x + y;
+    return z < x ? Limits::MAX_STRING_LENGTH : z;
+  }
+
 }}
 
 #include <gecode/string/exception.hpp>

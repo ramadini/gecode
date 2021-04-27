@@ -355,13 +355,16 @@ namespace Gecode { namespace String {
       return;
     }
     int p_i = p.idx, p_o = p.off, 
-        q_i = q.off > 0 ? q.idx : q.idx-1, q_off = (*this)[q_i].ub();
+        q_i = q.off > 0 ? q.idx : q.idx-1, q_o = (*this)[q_i].ub();
     if (p_i == q_i) {
-      //TODO:
+      bnew.update(home, bx);
+      bnew.baseIntersect(home, (*this)[p_i]);
+      if (!bnew.isNull())
+        bnew.updateCard(home, 0, q_o - p_o);
+      return;
     }
     Gecode::Set::GLBndSet s;
-    int u = 0;
-    //TODO: first block
+    int u = (*this)[p_i].ub() - p_o;
     for (int i = p_i+1; i < q_i; ++i) {
       if ((*this)[i].baseSize() == 1) {
         int m = (*this)[i].baseMin();
@@ -372,13 +375,12 @@ namespace Gecode { namespace String {
         Gecode::Set::BndSetRanges r((*this)[i].ranges());
         s.includeI(home, r);
       }
-      u += (*this)[i].ub(); // TODO: Possible overflow!!!
+      u = ub_sum(u, (*this)[i].ub());
     }
-    //TODO: last block
     bnew.update(home, bx);
-    bnew.baseIntersect(home, s);
+    bnew.baseIntersect(home, s);    
     if (!bnew.isNull())
-      bnew.updateCard(home, 0, u);
+      bnew.updateCard(home, 0, ub_sum(u, q_o));
   }
   
   

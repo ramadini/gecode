@@ -821,10 +821,7 @@ namespace Gecode { namespace String {
         throw OutOfLimits("DashedString::DashedString");
       }
       min_len += x[i].lb();
-      if (max_len < MAX_STRING_LENGTH) {
-        int u = max_len + x[i].ub();
-        max_len = u < max_len ? MAX_STRING_LENGTH : u;
-      }
+      max_len = ub_sum(max_len, x[i].ub());
       norm |= i > 0 && (x[i].isNull() || x[i].baseEquals(x[i-1]));
     }
     if (norm)
