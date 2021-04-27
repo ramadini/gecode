@@ -86,15 +86,16 @@ namespace Gecode { namespace String {
     for (int i = 0; i < nx; ++i) {
 //      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
 //      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].ESP << "\nEEP: " 
-//                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n"; 
+//                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
+      Position& esp = m[i].ESP, eep = m[i].EEP, lsp = m[i].LSP, lep = m[i].LEP;
       Block& x_i = x[i];
       if (x_i.isFixed())
         continue;
       int l = x_i.lb(), u = x_i.ub(), 
-         l1 = y.min_len_mand(x_i, m[i].LSP, m[i].EEP);
+         l1 = y.min_len_mand(x_i, lsp, eep);
       if (u < l1)
         return false;
-      int u1 = y.max_len_opt(x_i, m[i].ESP, m[i].LEP, l1);
+      int u1 = y.max_len_opt(x_i, esp, lep, l1);
       if (l1 == 0 || l1 < l || u1 > u) {
         if (u1 == 0) {
           x_i.nullify(home);
@@ -118,7 +119,7 @@ namespace Gecode { namespace String {
         }
         int n = x_i.baseSize();
         x_i.updateCard(home, std::max(l, l1), std::min(u, u1));
-        y.crushBlock(home, x_i, m[i].ESP, m[i].LEP);       
+        y.crushBlock(home, x_i, esp, lep);       
         if (x_i.isNull()) {
           newSize--;
           changed = true;
@@ -127,10 +128,28 @@ namespace Gecode { namespace String {
           changed |= l < l1 || u > u1 || n < x_i.baseSize();
         continue;
       }
-      // Compute unfolding
       assert (l1 > 0);
-      // TODO: build [L, R, M] with opt_region/man_region methods, normalize it
-      // into d and if d.size() > 1 then also update newBlocks, newSize and U 
+      Region r;
+      int n = lep.idx - esp.idx + (lep.off > 0) + 2;
+      Block* mreg = r.alloc<Block>(n);
+      y.opt_region(home, x_i, mreg[0], esp, lsp);
+//      y.man_region(home, x_i, mreg[1], lsp, eep);
+      y.opt_region(home, x_i, mreg[n-1], eep, lep);
+      DashedString d(home, mreg, n);
+      r.free();
+      n = x_i.baseSize();
+      x_i.update(home, d[0]);
+      if (x_i.isNull()) {
+        changed = true;
+        newSize--;        
+      }
+      else if (d.size() == 1)
+        changed |= l < x_i.lb() || u > x_i.ub() || n < x_i.baseSize();
+      else {
+        changed = true;
+        // FIXME: Update U, newBlocks
+        newSize += d.size() - 1;        
+      }
     }
     if (newSize > x.size()) {
      // Resize
