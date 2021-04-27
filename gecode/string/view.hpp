@@ -156,8 +156,11 @@ namespace Gecode { namespace String {
     ModEvent lengthIn(Space& home, int l, int u);
     //@}
     
+    /// Returns true if p and q are the same position in this view.
+    bool equiv(const Position& p, const Position& q) const;
     /// Returns true if p precedes q according to this view.
     bool prec(const Position& p, const Position& q) const;
+    
     ///TODO:
     int ub_new_blocks(const Matching& m) const;
     
@@ -169,11 +172,15 @@ namespace Gecode { namespace String {
                                      const Position& lep, int l) const;
                                      
     void
-    expandBlock(Space& home, const Block& bx, Block* y) const;
+    replaceBlock(Space& home, const Block& bx, Block* y) const;
     
     void
     crushBlock(Space& home, Block& bx, const Position& esp, 
                                        const Position& lep) const;
+                                       
+    void
+    opt_region(Space& home, const Block& bx, Block& bnew, const Position& esp, 
+                                                          const Position& lep) const;
     
     /// Normalize this view
     void normalize(Space& home);

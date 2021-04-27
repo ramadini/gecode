@@ -82,6 +82,7 @@ namespace Gecode { namespace String {
     bool changed = false;
     Region r;
     Block* newBlocks = r.alloc<Block>(nBlocks);
+    int* U = r.alloc<int>(2*nx);
     for (int i = 0; i < nx; ++i) {
 //      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
 //      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].ESP << "\nEEP: " 
@@ -107,7 +108,7 @@ namespace Gecode { namespace String {
           // defined for each string constraint involving an equation!
           Region r;
           Block* y1 = r.alloc<Block>(y.size());
-          y.expandBlock(home, x_i, y1);
+          y.replaceBlock(home, x_i, y1);
           DashedString d(home, y1, y.size());
           r.free();
           if (d[0].baseSize() == 1 || d[d.size()-1].baseSize() == 1
@@ -118,16 +119,22 @@ namespace Gecode { namespace String {
         int n = x_i.baseSize();
         x_i.updateCard(home, std::max(l, l1), std::min(u, u1));
         y.crushBlock(home, x_i, m[i].ESP, m[i].LEP);        
-        if (x_i.isNull())
+        if (x_i.isNull()) {
           newSize--;
-        changed |= l < l1 || u > u1 || n < x_i.baseSize();
+          changed = true;
+        }
+        else
+          changed |= l < l1 || u > u1 || n < x_i.baseSize();
         continue;
       }
       // Compute unfolding
       assert (l1 > 0);
-//      y.unfoldBlock(home, x_i, m);
+      // TODO: build [L, R, M] with opt_region/man_region methods, normalize it
+      // into d and if d.size() > 1 then also update newBlocks, newSize and U 
     }
-    // Possibly unfold with d.s. in r if (nx1 > nx) ...
+    if (newSize > x.size()) {
+     // Resize
+    }
     if (changed)
       x.normalize(home);
     return true;
@@ -295,12 +302,14 @@ namespace Gecode { namespace String {
         return false;
     }
     m[0].LSP = m[0].ESP;
+    assert (m[0].LSP == Position(0,0));
     for (int i = 1; i < nx; ++i) {
       m[i].LSP = m[i-1].LEP;
 //      std::cerr << "ESP of " << x[i] << ": " << m[i].ESP << ", " 
 //                << "LSP of " << x[i] << ": " << m[i].LSP << "\n";
       if (y.prec(m[i].LSP, m[i].ESP))
         return false;
+      assert (m[i].ESP.isNorm(y) && m[i].LSP.isNorm(y));
     }
     m[nx-1].EEP = m[nx-1].LEP;
     n = 0;
@@ -311,7 +320,9 @@ namespace Gecode { namespace String {
       if (y.prec(m[i].LEP, m[i].EEP))
         return false;
       n += y.ub_new_blocks(m[i]);
+      assert (m[i].EEP.isNorm(y) && m[i].LEP.isNorm(y));
     }
+    assert (m[nx-1].EEP == Position(y.size(),0));
     return true;
   }
   

@@ -260,6 +260,12 @@ namespace Gecode { namespace String {
   }
   
   forceinline bool
+  StringView::equiv(const Position& p, const Position& q) const {
+    return p == q 
+       || (q.off == 0 && p.idx == q.idx-1 && p.off == (*this)[p.idx].ub());
+  }
+  
+  forceinline bool
   StringView::prec(const Position& p, const Position& q) const {
     return (p.idx < q.idx-1)
         || (p.idx == q.idx && p.off < q.off)
@@ -280,14 +286,13 @@ namespace Gecode { namespace String {
   forceinline int
   StringView::min_len_mand(const Block& bx, const Position& lsp, 
                                             const Position& eep) const {
-    if (eep == lsp || prec(eep, lsp))
+    if (!prec(lsp, eep))
       return 0;
-    int l = bx.lb(), h = lsp.idx, h1 = eep.idx, k = lsp.off, k1 = eep.off;
-//    std::cerr << lsp << ' ' << eep << '\n';
-//    std::cerr << h << ' ' << h1 << ' ' << k << ' ' << k1 << '\n';
+    int h = lsp.idx, h1 = eep.off > 0 ? eep.idx : eep.idx-1, 
+        k = lsp.off, k1 = eep.off > 0 ? eep.off : (*this)[h1].ub();
     if (h == h1)
       return nabla(bx, (*this)[h], k1 - k);
-    int s = nabla(l, (*this)[h], (*this)[h].lb() - k);
+    int s = nabla(bx, (*this)[h], (*this)[h].lb() - k);
     for (int i = h+1; i < h1; i++) 
       s += nabla(bx, (*this)[i], (*this)[i].lb());
     return s + nabla(bx, (*this)[k], k1);
@@ -296,22 +301,24 @@ namespace Gecode { namespace String {
   forceinline int
   StringView::max_len_opt(const Block& bx, const Position& esp, 
                                            const Position& lep, int l) const {
-    if (esp == lep)
+    if (equiv(esp,lep))
       return 0;
     assert(!prec(lep, esp));
-    int p = esp.idx, p1 = lep.idx, q = esp.off, q1 = lep.off, k = bx.ub() - l;
+    int p = esp.idx, p1 = lep.off > 0 ? lep.idx : lep.idx-1,
+        q = esp.off, q1 = lep.off > 0 ? lep.off : (*this)[p1].ub();
     if (p == p1)
       return nabla(bx, (*this)[p], q1-q);
+    int k = bx.ub()-l;
     int s = std::min(
       k + (*this)[p].lb(), nabla(bx, (*this)[p], (*this)[p].ub() - q)
     );
     for (int i = p+1; i < p1; i++) 
-      s += std::min(k+(*this)[i].lb(), nabla(bx, (*this)[i], (*this)[i].ub()));
-    return s + std::min((*this)[q].lb(), nabla(bx, (*this)[q], q1));
+      s += std::min(k + (*this)[i].lb(), nabla(bx,(*this)[i], (*this)[i].ub()));
+    return s + std::min((*this)[q].lb(), nabla(bx,(*this)[q], q1));
   }
   
   forceinline void
-  StringView::expandBlock(Space& home, const Block& bx, Block* y) const {
+  StringView::replaceBlock(Space& home, const Block& bx, Block* y) const {
     for (int i = 0; i < size(); i++) {
       y[i].update(home, (*this)[i]);
       y[i].baseIntersect(home, bx);
@@ -319,7 +326,7 @@ namespace Gecode { namespace String {
         y[i].ub(home, bx.ub());
     }
   }
-     
+
   forceinline void
   StringView::crushBlock(Space& home, Block& bx, const Position& esp, 
                                                  const Position& lep) const {
@@ -332,12 +339,57 @@ namespace Gecode { namespace String {
         s.include(home, m, m, d);
       }
       else {
-        Gecode::Set::BndSetRanges i(bx.ranges());
+        Gecode::Set::BndSetRanges i((*this)[j].ranges());
         s.includeI(home, i);
       }
     }
     bx.baseIntersect(home, s);
   }
+   
+  forceinline void
+  StringView::opt_region(Space& home, const Block& bx, Block& bnew,
+                          const Position& esp, const Position& lep) const {
+    assert (prec(esp, lep));
+//    if (esp.idx == lep.idx) {
+
+//    }
+    Gecode::Set::GLBndSet s;
+    int k = lep.idx - (lep.off == 0), u = 0;
+    for (int j = esp.idx; j <= k; ++j) {
+      if ((*this)[j].baseSize() == 1) {
+        int m = (*this)[j].baseMin();
+        Gecode::Set::SetDelta d;
+        s.include(home, m, m, d);
+      }
+      else {
+        Gecode::Set::BndSetRanges i((*this)[j].ranges());
+        s.includeI(home, i);
+      }
+      u += (*this)[j].ub(); // Possible overflow!!!
+    }
+    bnew.update(home, bx);
+    bnew.baseIntersect(home, s);
+    if (!bnew.isNull())
+      bnew.updateCard(home, 0, u);
+  }
+  
+  
+   
+//  forceinline void
+//  StringView::unfoldBlock(Space& home, Block& bx, int i, const Matching& m, 
+//                     int l, Block* newBlocks, DynamicArray<Space,int> U) const {
+//    if (prec(m.ESP, m.ESP)) {
+//      //TODO
+//    }
+//    if (prec(m.LSP, m.EEP)) {
+//      int k = bx.ub() - l;
+//      
+//    }
+//    if (prec(m.EEP, m.LEP)) {
+//      //TODO
+//    }
+//  
+//  }
      
 }}
 
