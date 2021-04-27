@@ -332,15 +332,15 @@ namespace Gecode { namespace String {
                                                  const Position& lep) const {
     Gecode::Set::GLBndSet s;
     int k = lep.idx - (lep.off == 0);
-    for (int j = esp.idx; j <= k; ++j) {
-      if ((*this)[j].baseSize() == 1) {
-        int m = (*this)[j].baseMin();
+    for (int i = esp.idx; i <= k; ++i) {
+      if ((*this)[i].baseSize() == 1) {
+        int m = (*this)[i].baseMin();
         Gecode::Set::SetDelta d;
         s.include(home, m, m, d);
       }
       else {
-        Gecode::Set::BndSetRanges i((*this)[j].ranges());
-        s.includeI(home, i);
+        Gecode::Set::BndSetRanges r((*this)[i].ranges());
+        s.includeI(home, r);
       }
     }
     bx.baseIntersect(home, s);
@@ -348,25 +348,33 @@ namespace Gecode { namespace String {
    
   forceinline void
   StringView::opt_region(Space& home, const Block& bx, Block& bnew,
-                          const Position& esp, const Position& lep) const {
-    assert (prec(esp, lep));
-//    if (esp.idx == lep.idx) {
-
-//    }
+                          const Position& p, const Position& q) const {
+    assert (!prec(q, p));
+    if (equiv(p, q)) {
+      bnew.nullify(home);
+      return;
+    }
+    int p_i = p.idx, p_o = p.off, 
+        q_i = q.off > 0 ? q.idx : q.idx-1, q_off = (*this)[q_i].ub();
+    if (p_i == q_i) {
+      //TODO:
+    }
     Gecode::Set::GLBndSet s;
-    int k = lep.idx - (lep.off == 0), u = 0;
-    for (int j = esp.idx; j <= k; ++j) {
-      if ((*this)[j].baseSize() == 1) {
-        int m = (*this)[j].baseMin();
+    int u = 0;
+    //TODO: first block
+    for (int i = p_i+1; i < q_i; ++i) {
+      if ((*this)[i].baseSize() == 1) {
+        int m = (*this)[i].baseMin();
         Gecode::Set::SetDelta d;
         s.include(home, m, m, d);
       }
       else {
-        Gecode::Set::BndSetRanges i((*this)[j].ranges());
-        s.includeI(home, i);
+        Gecode::Set::BndSetRanges r((*this)[i].ranges());
+        s.includeI(home, r);
       }
-      u += (*this)[j].ub(); // Possible overflow!!!
+      u += (*this)[i].ub(); // TODO: Possible overflow!!!
     }
+    //TODO: last block
     bnew.update(home, bx);
     bnew.baseIntersect(home, s);
     if (!bnew.isNull())

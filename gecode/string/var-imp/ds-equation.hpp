@@ -118,7 +118,7 @@ namespace Gecode { namespace String {
         }
         int n = x_i.baseSize();
         x_i.updateCard(home, std::max(l, l1), std::min(u, u1));
-        y.crushBlock(home, x_i, m[i].ESP, m[i].LEP);        
+        y.crushBlock(home, x_i, m[i].ESP, m[i].LEP);       
         if (x_i.isNull()) {
           newSize--;
           changed = true;
