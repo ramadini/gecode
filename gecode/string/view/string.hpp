@@ -318,7 +318,7 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  StringView::replaceBlock(Space& home, const Block& bx, Block* y) const {
+  StringView::unfoldBlock(Space& home, const Block& bx, Block* y) const {
     for (int i = 0; i < size(); i++) {
       y[i].update(home, (*this)[i]);
       y[i].baseIntersect(home, bx);

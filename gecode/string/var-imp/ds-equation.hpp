@@ -104,12 +104,12 @@ namespace Gecode { namespace String {
           continue;
         }
         if (nx == 1 && l <= l1) {
-          // Special case where x is a single block: the soundness is preserved 
-          // by length constraints, provided that a length constraint is 
-          // defined for each string constraint involving an equation!
+          // Special case where x is a single block: if we unfold x into |y| 
+          // blocks the soundness is preserved if the length constraint |x|=|y|
+          // is present
           Region r;
           Block* y1 = r.alloc<Block>(y.size());
-          y.replaceBlock(home, x_i, y1);
+          y.unfoldBlock(home, x_i, y1);
           DashedString d(home, y1, y.size());
           r.free();
           if (d[0].baseSize() == 1 || d[d.size()-1].baseSize() == 1

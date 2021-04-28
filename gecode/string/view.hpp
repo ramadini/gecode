@@ -172,7 +172,7 @@ namespace Gecode { namespace String {
                                      const Position& lep, int l) const;
                                      
     void
-    replaceBlock(Space& home, const Block& bx, Block* y) const;
+    unfoldBlock(Space& home, const Block& bx, Block* y) const;
     
     void
     crushBlock(Space& home, Block& bx, const Position& esp, 
