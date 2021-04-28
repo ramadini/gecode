@@ -62,6 +62,9 @@ namespace Gecode { namespace String {
     int size(void) const;
     /// Returns a const reference to the domain
     const DashedString& dom(void) const;
+    /// Return the value of this string variable, if assigned. Otherwise, an
+    /// IllegalOperation exception is thrown.
+    std::vector<int> val(void) const;
     //@}
 
     /// \name Domain tests

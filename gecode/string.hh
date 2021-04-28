@@ -151,6 +151,10 @@ namespace Gecode {
     int min_length(void) const;
     /// Return the maximum length for a string in the variable's domain
     int max_length(void) const;
+    /// Return the value of this string variable, if assigned. Otherwise, an
+    /// IllegalOperation exception is thrown.
+    std::vector<int> val(void) const;
+    
     // TODO: Possible additions: mayChars, mustChars, logDim, ...if needed!
     //@}
 

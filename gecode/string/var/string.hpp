@@ -32,6 +32,11 @@ namespace Gecode {
     return x->max_length();
   }
   
+  forceinline std::vector<int>
+  StringVar::val() const {
+    return x->val();
+  }
+  
   template<class Char, class Traits>
   std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const StringVar& v) {

@@ -57,6 +57,11 @@ namespace Gecode { namespace String {
     return ds.min_length();
   }
   
+  forceinline std::vector<int>
+  StringVarImp::val() const {
+    return ds.val();
+  }
+  
   forceinline bool
   StringVarImp::assigned() const {
     return ds.isFixed();
