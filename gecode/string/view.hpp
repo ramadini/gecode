@@ -68,6 +68,7 @@ namespace Gecode { namespace String {
       void consumeMand(int k);
       int must_consume(void) const;
       int may_consume(void) const;
+      bool operator()(void) const;
     };
     /// Iterator for pushing/stretching backwards. Positions range from (|x|,0)
     /// included to (0,0) excluded
@@ -83,6 +84,7 @@ namespace Gecode { namespace String {
       void consumeMand(int k);
       int must_consume(void) const;
       int may_consume(void) const;
+      bool operator()(void) const;
     };
     
   public:

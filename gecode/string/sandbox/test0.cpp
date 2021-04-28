@@ -335,11 +335,11 @@ public:
     StringVar y(*this, Block(*this, CharSet(*this,IntSet({'b','o','m'})),0,4));    
     StringView vx(x), vy(y);    
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert(equate_x(*this, vx, vy));
+    assert(equate_x(*this, vx, vy) == ME_STRING_VAL);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     assert(x.val() == std::vector<int>({'b', 'o', 'o', 'm'}));
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert(equate_x(*this, vy, vx));
+    assert(equate_x(*this, vy, vx) == ME_STRING_VAL);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert(x.val() == y.val());
     
@@ -361,13 +361,10 @@ public:
     StringVar y(*this, Block(*this, CharSet(*this, '=')));    
     StringView vx(x), vy(y);    
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert(equate_x(*this, vx, vy));
-    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
-//    assert(x.val() == std::vector<int>({'b', 'o', 'o', 'm'}));
-    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert(equate_x(*this, vy, vx));
-    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
-//    assert(x.val() == y.val());
+    assert(equate_x(*this, vx, vy) == ME_STRING_FAILED);
+    assert(equate_x(*this, vy, vx) == ME_STRING_FAILED);
+    cerr << "Failed!\n";
+    //TODO:
     
   }
   

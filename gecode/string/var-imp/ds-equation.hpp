@@ -228,8 +228,8 @@ namespace Gecode { namespace String {
     }
     IterY q(y, m[i].ESP);
     IterY p(y, push<IterY>(x[i], q));
-    if (!p.hasNextBlock())
-      return false;
+    if (!p())
+      return false;    
     if (i < n && y.prec(m[i+1].ESP, *q))
       // x[i+1] cannot start before *q
       m[i+1].ESP = *q;
@@ -253,7 +253,7 @@ namespace Gecode { namespace String {
     IterY p(y, m[i].LEP);
     IterY q(y, push<IterY>(x[i], p));
 //    std::cerr << "p = " << *p << ", q = " << *q << "\n";
-    if (!q.hasNextBlock())
+    if (!q())
       return false;
     if (i > 0 && y.prec(*p, m[i-1].LEP))
       // x[i-1] cannot end after *p
@@ -273,28 +273,27 @@ namespace Gecode { namespace String {
     for (int i = 0; i < nx; ++i) {
       stretch<typename ViewY::SweepFwdIterator>(x[i], fwd_it);
       m[i].LEP = *fwd_it;
-//        std::cerr << i << ": " << x[i] << " LEP: " << m[i].LEP << '\n';
+//      std::cerr << i << ": " << x[i] << " LEP: " << m[i].LEP << '\n';
       if (!fwd_it.hasNextBlock()) {
         for (int j = i+1; j < nx; ++j)
           m[j].LEP = *fwd_it;
         break;
       }
     }
-    std::cerr << *fwd_it << "\n";
-    if (fwd_it.hasNextBlock())
+    if (fwd_it())
       return false;
     typename ViewY::SweepBwdIterator bwd_it = y.bwd_iterator();
     for (int i = nx-1; i >= 0; --i) {
       stretch<typename ViewY::SweepBwdIterator>(x[i], bwd_it);
       m[i].ESP = *bwd_it;
-//        std::cerr << i << ": " << x[i] << " ESP: " << m[i].ESP << '\n';
+//      std::cerr << i << ": " << x[i] << " ESP: " << m[i].ESP << '\n';
       if (!bwd_it.hasNextBlock()) {
         for (int j = i-1; j >= 0; --j)
           m[j].ESP = *bwd_it;
         break;
       }
     }
-    return !bwd_it.hasNextBlock();
+    return !bwd_it();
   }
   
   /// TODO:
