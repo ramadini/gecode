@@ -414,6 +414,22 @@ namespace Gecode { namespace String {
     if (!bnew[j].isNull())
       bnew[j].updateCard(home, std::min(bq.lb(), q_o), std::min(u, q_o));
   }
+  
+  forceinline void
+  StringView::resize(Space& home, Block newBlocks[], int newSize, int U[], 
+                                                                  int uSize) {
+    DashedString d(home, size()+newSize);
+    int j = 0, h = 0;
+    for (int i = 0; i < uSize/2; ++i) {
+      for (int k = j; k < U[i]; ++k)
+        d[k].update(home, (*this)[k]);
+      j = U[i] + U[i+1];
+      for (int k = U[i]; k < j; ++k, ++h)
+        d[k].update(home, newBlocks[h]);
+    }
+    d.normalize(home);
+    update(home, d);                                                                
+  }
      
 }}
 

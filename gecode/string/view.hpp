@@ -189,6 +189,9 @@ namespace Gecode { namespace String {
     mand_region(Space& home, const Block& bx, Block* bnew, int u,
                              const Position& p, const Position& q) const;                                                   
     
+    void
+    resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize);
+    
     /// Normalize this view
     void normalize(Space& home);
         

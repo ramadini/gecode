@@ -107,7 +107,7 @@ namespace Gecode { namespace String {
             x.update(home, d);
           return true;
         }
-        // Crushing into single block
+        // Crushing into a single block
         int m = x_i.baseSize();
         x_i.updateCard(home, std::max(l, l1), std::min(u, u1));
         y.crushBlock(home, x_i, esp, lep);       
@@ -118,7 +118,7 @@ namespace Gecode { namespace String {
       Region r;
       int n = y.ub_new_blocks(m[i]);
       assert (n > 0);
-      bool no_lopt = esp == lsp;
+      bool no_lopt = esp == lsp; // True iff the left-opt. region is empty.
       if (n == 1 && no_lopt) {
         // No need to unfold x_i.
         n = x_i.baseSize();
@@ -127,6 +127,7 @@ namespace Gecode { namespace String {
 //        std::cerr << "x[" << i << "] ref. into " << x_i << "\n";
         continue;
       }
+      // Unfolding x_i into newBlocks
       Block* mreg = r.alloc<Block>(n);
       if (!no_lopt)
         y.opt_region(home, x_i, mreg[0], esp, lsp);
@@ -142,20 +143,8 @@ namespace Gecode { namespace String {
       U[uSize++] = n;
       newSize += n;
     }
-    if (newSize > 0) {
-      // Resize - FIXME: Move to viewX.
-      DashedString x1(home, nx + newSize);
-      int j = 0, h = 0;
-      for (int i = 0; i < uSize/2; ++i) {
-        for (int k = j; k < U[i]; ++k)
-          x1[k].update(home, x[k]);
-        j = U[i] + U[i+1];
-        for (int k = U[i]; k < j; ++k, ++h)
-          x1[k].update(home, newBlocks[h]);
-      }
-      x1.normalize(home);
-      x.update(home, x1);
-    }
+    if (newSize > 0)
+      x.resize(home, newBlocks, newSize, U, uSize);
     else if (changed)
       x.normalize(home);
     return true;
