@@ -414,22 +414,6 @@ namespace Gecode { namespace String {
     if (!bnew[j].isNull())
       bnew[j].updateCard(home, std::min(bq.lb(), q_o), std::min(u, q_o));
   }
-  
-//  forceinline void
-//  StringView::unfoldBlock(Space& home, Block& bx, int i, const Matching& m, 
-//                     int l, Block* newBlocks, DynamicArray<Space,int> U) const {
-//    if (prec(m.ESP, m.ESP)) {
-//      //TODO
-//    }
-//    if (prec(m.LSP, m.EEP)) {
-//      int k = bx.ub() - l;
-//      
-//    }
-//    if (prec(m.EEP, m.LEP)) {
-//      //TODO
-//    }
-//  
-//  }
      
 }}
 

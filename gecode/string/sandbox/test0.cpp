@@ -341,7 +341,7 @@ public:
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert(equate_x(*this, vy, vx));
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
-//    assert(x.val() == std::vector<int>({'b', 'o', 'o', 'm'}));
+    assert(x.val() == y.val());
     
   }
   
@@ -349,14 +349,14 @@ public:
 
 int main() {
   StrTest* home = new StrTest();
-//  home->test01();
-//  home->test02();
-//  home->test03();
-//  home->test04();
-//  home->test05();
-//  home->test06();
-//  home->test07();
-//  home->test08();
+  home->test01();
+  home->test02();
+  home->test03();
+  home->test04();
+  home->test05();
+  home->test06();
+  home->test07();
+  home->test08();
   home->test09();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;

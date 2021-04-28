@@ -66,7 +66,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool 
   refine_x(Space& home, ViewX& x, const ViewY& y, Matching m[], int nBlocks) {
-    std::cerr << "Refining " << x << "\nMax. " << nBlocks << " new blocks needed.\n";
+//    std::cerr << "Refining " << x << "\nMax. " << nBlocks << " new blocks needed.\n";
     int nx = x.size();    
     bool changed = false;
     Region r;
@@ -74,9 +74,9 @@ namespace Gecode { namespace String {
     int* U = r.alloc<int>(2*nx);
     int newSize = 0, uSize = 0;
     for (int i = 0; i < nx; ++i) {
-      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
-      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].ESP << "\nEEP: " 
-                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
+//      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
+//      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].ESP << "\nEEP: " 
+//                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
       Position& esp = m[i].ESP, eep = m[i].EEP, lsp = m[i].LSP, lep = m[i].LEP;
       Block& x_i = x[i];
       if (x_i.isFixed())
@@ -85,7 +85,7 @@ namespace Gecode { namespace String {
       if (u < l1)
         return false;
       int u1 = y.max_len_opt(x_i, esp, lep, l1);
-      std::cerr << "l'=" << l1 << ", u'=" << u1 << "\n";
+//      std::cerr << "l'=" << l1 << ", u'=" << u1 << "\n";
       if (l1 == 0 || l1 < l || u1 > u) {
         if (u1 == 0) {
           x_i.nullify(home);
@@ -133,38 +133,28 @@ namespace Gecode { namespace String {
       y.mand_region(home, x_i, &mreg[1], u1, lsp, eep);
       if (eep != lep)
         y.opt_region(home, x_i, mreg[n-1], eep, lep);
-      std::cerr << n << ' ' << mreg[2];
       DashedString d(home, &mreg[no_lopt], n);
-      r.free();
-      int m = x_i.baseSize();      
-      if (d.size() > 0) {
-        changed = true;
-        n = d.size();                                                         
-        for (int j = 0, k = newSize; j < n; ++j,++k)
-          newBlocks[k].update(home, d[j]);        
-        U[uSize++] = i;
-        U[uSize++] = n;
-        newSize += n;
-      }
-      else
-        changed |= l < x_i.lb() || u > x_i.ub() || m < x_i.baseSize();
+      r.free();      
+      n = d.size();                                                         
+      for (int j = 0, k = newSize; j < n; ++j,++k)
+        newBlocks[k].update(home, d[j]);        
+      U[uSize++] = i;
+      U[uSize++] = n;
+      newSize += n;
     }
     if (newSize > 0) {
       // Resize - FIXME: Move to viewX.
       DashedString x1(home, nx + newSize);
       int j = 0, h = 0;
       for (int i = 0; i < uSize/2; ++i) {
-        for (int k = j; k <= U[i]; ++k)
+        for (int k = j; k < U[i]; ++k)
           x1[k].update(home, x[k]);
-        std::cerr << newBlocks[0] << "\n";
-        std::cerr << newBlocks[1] << "\n";
-        j = U[i] + U[i+1] + 1;
-        for (int k = U[i]+1; k < j; ++k, ++h)
+        j = U[i] + U[i+1];
+        for (int k = U[i]; k < j; ++k, ++h)
           x1[k].update(home, newBlocks[h]);
       }
-      std::cerr << x1 << "\n";
-      //x1.normalize(home);
-      //x.update(home, x1);
+      x1.normalize(home);
+      x.update(home, x1);
     }
     else if (changed)
       x.normalize(home);
