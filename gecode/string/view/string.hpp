@@ -15,7 +15,7 @@ namespace Gecode { namespace String {
   };
   
   forceinline const Position& 
-  StringView::SweepIterator::operator *() {
+  StringView::SweepIterator::operator*(void) {
     return pos;
   }
 
@@ -61,7 +61,7 @@ namespace Gecode { namespace String {
   }
   
   forceinline bool
-  StringView::SweepFwdIterator::hasNext(void) const {
+  StringView::SweepFwdIterator::hasNextBlock(void) const {
     return pos.idx < sv.size();
   }
   
@@ -141,7 +141,7 @@ namespace Gecode { namespace String {
   };
   
   forceinline bool
-  StringView::SweepBwdIterator::hasNext(void) const {
+  StringView::SweepBwdIterator::hasNextBlock(void) const {
     return pos.idx > 0 || pos.off > 0;
   };
   

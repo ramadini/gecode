@@ -345,6 +345,32 @@ public:
     
   }
   
+  void test10() {
+    cerr << "\n*** Test 10 ***" << endl;
+    Block bv[9];
+    bv[0].update(*this, Block(*this, CharSet(*this, 'B'), 0, 1));
+    bv[1].update(*this, Block(*this, CharSet(*this, '='), 0, 1));
+    bv[2].update(*this, Block(*this, CharSet(*this, 'C'), 0, 1));
+    bv[3].update(*this, Block(*this, CharSet(*this, ' '), 0, 1));
+    bv[4].update(*this, Block(*this, CharSet(*this, '='), 0, 1));
+    bv[5].update(*this, Block(*this, CharSet(*this, ' '), 0, 1));
+    bv[6].update(*this, Block(*this, CharSet(*this, 'B'), 0, 1));
+    bv[7].update(*this, Block(*this, CharSet(*this, '='), 0, 1));
+    bv[8].update(*this, Block(*this, CharSet(*this, 'C'), 1, 1));
+    StringVar x(*this, DashedString(*this, bv, 9));
+    StringVar y(*this, Block(*this, CharSet(*this, '=')));    
+    StringView vx(x), vy(y);    
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert(equate_x(*this, vx, vy));
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+//    assert(x.val() == std::vector<int>({'b', 'o', 'o', 'm'}));
+    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
+    assert(equate_x(*this, vy, vx));
+    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+//    assert(x.val() == y.val());
+    
+  }
+  
 };
 
 int main() {
@@ -358,6 +384,7 @@ int main() {
   home->test07();
   home->test08();
   home->test09();
+  home->test10();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }

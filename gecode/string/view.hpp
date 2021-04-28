@@ -39,7 +39,7 @@ namespace Gecode { namespace String {
       /// Move iterator to the beginning of the next block (if possible)
       virtual void nextBlock(void) = 0;
       /// Test whether iterator is still within the dashed string or done
-      virtual bool hasNext(void) const = 0;
+      virtual bool hasNextBlock(void) const = 0;
       /// Min. no. of chars that must be consumed from current position within current block
       virtual int must_consume(void) const = 0;
       /// Max. no. of chars that may be consumed from current position within current block
@@ -63,7 +63,7 @@ namespace Gecode { namespace String {
       SweepFwdIterator(const StringView& x);
       SweepFwdIterator(const StringView& x, const Position& p);
       void nextBlock(void);
-      bool hasNext(void) const;
+      bool hasNextBlock(void) const;
       void consume(int k);
       void consumeMand(int k);
       int must_consume(void) const;
@@ -78,7 +78,7 @@ namespace Gecode { namespace String {
       int ub(void) const;
       bool disj(const Block& b) const;
       void nextBlock(void);
-      bool hasNext(void) const;
+      bool hasNextBlock(void) const;
       void consume(int k);
       void consumeMand(int k);
       int must_consume(void) const;
