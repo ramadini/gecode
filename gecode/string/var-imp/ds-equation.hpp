@@ -133,10 +133,10 @@ namespace Gecode { namespace String {
       y.mand_region(home, x_i, &mreg[1], u1, lsp, eep);
       if (eep != lep)
         y.opt_region(home, x_i, mreg[n-1], eep, lep);
-      DashedString d(home, &mreg[no_lopt], n - no_lopt);
+      std::cerr << n << ' ' << mreg[2];
+      DashedString d(home, &mreg[no_lopt], n);
       r.free();
-      int m = x_i.baseSize();
-      std::cerr << d << '\n';      
+      int m = x_i.baseSize();      
       if (d.size() > 0) {
         changed = true;
         n = d.size();                                                         
