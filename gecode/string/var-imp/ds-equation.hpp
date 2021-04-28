@@ -134,7 +134,7 @@ namespace Gecode { namespace String {
         }
         else
           changed |= l < x_i.lb() || u > x_i.ub() || n < x_i.baseSize();
-        std::cerr << "x[" << i << "] ref. into " << x_i << "\n";
+//        std::cerr << "x[" << i << "] ref. into " << x_i << "\n";
         continue;
       }
       Block* mreg = r.alloc<Block>(n);
@@ -340,7 +340,7 @@ namespace Gecode { namespace String {
       assert (m[i].ESP.isNorm(y) && m[i].LSP.isNorm(y));
     }
     m[nx-1].EEP = m[nx-1].LEP;
-    n = 0;
+    n = y.ub_new_blocks(m[nx-1]);
     for (int i = nx-2; i >= 0; --i) {
       m[i].EEP = m[i+1].ESP;
 //      std::cerr << "EEP of " << x[i] << ": " << m[i].EEP << ", " 

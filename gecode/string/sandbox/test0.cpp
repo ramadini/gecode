@@ -338,6 +338,10 @@ public:
     assert(equate_x(*this, vx, vy));
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     assert(x.val() == std::vector<int>({'b', 'o', 'o', 'm'}));
+    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
+    assert(equate_x(*this, vy, vx));
+    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+//    assert(x.val() == std::vector<int>({'b', 'o', 'o', 'm'}));
     
   }
   
