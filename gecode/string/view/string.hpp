@@ -275,8 +275,7 @@ namespace Gecode { namespace String {
   forceinline int
   StringView::ub_new_blocks(const Matching& m) const {
     if (prec(m.LSP, m.EEP))
-      return m.EEP.idx - m.LSP.idx + (m.EEP.off > 0) 
-           + prec(m.ESP, m.LSP) + prec(m.EEP, m.LEP) - 1;
+      return m.EEP.idx - m.LSP.idx + (m.EEP.off > 0) + prec(m.EEP, m.LEP);
     else
       return 0;
   }
@@ -415,7 +414,7 @@ namespace Gecode { namespace String {
     if (!bnew[j].isNull())
       bnew[j].updateCard(home, std::min(bq.lb(), q_o), std::min(u, q_o));
   }
-   
+  
 //  forceinline void
 //  StringView::unfoldBlock(Space& home, Block& bx, int i, const Matching& m, 
 //                     int l, Block* newBlocks, DynamicArray<Space,int> U) const {

@@ -108,17 +108,17 @@ namespace Gecode { namespace String {
           return true;
         }
         // Crushing into single block
-        int n = x_i.baseSize();
+        int m = x_i.baseSize();
         x_i.updateCard(home, std::max(l, l1), std::min(u, u1));
         y.crushBlock(home, x_i, esp, lep);       
-        changed |= l < l1 || u > u1 || n < x_i.baseSize();
+        changed |= l < l1 || u > u1 || m < x_i.baseSize();
         continue;
       }
       assert (l1 > 0);
       Region r;
       int n = y.ub_new_blocks(m[i]);
-      assert (n >= 0);
-      if (n == 0) {
+      assert (n > 0);
+      if (n == 1 && esp == lsp) {
         // No need to unfold x_i.
         n = x_i.baseSize();
         ViewY::mand_region(home, x_i, y[lsp.idx], lsp, eep);
@@ -127,33 +127,46 @@ namespace Gecode { namespace String {
         continue;
       }
       Block* mreg = r.alloc<Block>(n);
-      if (esp != lsp) {
+      if (esp != lsp)
         y.opt_region(home, x_i, mreg[0], esp, lsp);
-        y.mand_region(home, x_i, &mreg[1], u1, lsp, eep);
-      }
-      else
-        y.mand_region(home, x_i, mreg, u1, lsp, eep);
+      y.mand_region(home, x_i, &mreg[1], u1, lsp, eep);
       if (eep != lep)
         y.opt_region(home, x_i, mreg[n-1], eep, lep);
+      std::cerr << "Mreg: "<<mreg[0] << ' ' << mreg[1] << '\n';
       DashedString d(home, mreg, n);
       r.free();
-      n = x_i.baseSize();
-      x_i.update(home, d[0]);
-      if (d.size() > 1) {
+      int m = x_i.baseSize();
+      std::cerr << d << '\n';      
+      if (d.size() > 0) {
         changed = true;
-        int m = d.size()-1;
-//        y.saveUnfolding(i, m, newBlocks, newSize);
-        newSize += m;
-        uSize++;
+        n = d.size();                                                         
+        for (int j = 0, k = newSize; j < n; ++j,++k)
+          newBlocks[k].update(home, d[j]);        
+        U[uSize++] = i;
+        U[uSize++] = n;
+        newSize += n;
       }
       else
-        changed |= l < x_i.lb() || u > x_i.ub() || n < x_i.baseSize();
+        changed |= l < x_i.lb() || u > x_i.ub() || m < x_i.baseSize();
     }
     if (newSize > 0) {
-      // Resize
-      
+      // Resize - FIXME: Move to viewX.
+      DashedString x1(home, nx + newSize);
+      int j = 0, h = 0;
+      for (int i = 0; i < uSize/2; ++i) {
+        for (int k = j; k <= U[i]; ++k)
+          x1[k].update(home, x[k]);
+        std::cerr << newBlocks[0] << "\n";
+        std::cerr << newBlocks[1] << "\n";
+        j = U[i] + U[i+1] + 1;
+        for (int k = U[i]+1; k < j; ++k, ++h)
+          x1[k].update(home, newBlocks[h]);
+      }
+      std::cerr << x1 << "\n";
+      //x1.normalize(home);
+      //x.update(home, x1);
     }
-    if (changed)
+    else if (changed)
       x.normalize(home);
     return true;
   }
