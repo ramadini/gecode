@@ -180,25 +180,18 @@ namespace Gecode { namespace String {
                                        
     void
     opt_region(Space& home, const Block& bx, Block& bnew, 
-                            const Position& p, const Position& q) const;
-                                                          
+                            const Position& p, const Position& q) const;                       
+                       
+    static void
+    mand_region(Space& home, Block& bx, const Block& by, const Position& lep, 
+                                                         const Position& eep);
     void
-    man_region(Space& home, Block& bx, Block* bnew,
-                            const Position& p, const Position& q) const;                                                   
+    mand_region(Space& home, const Block& bx, Block* bnew, int u,
+                             const Position& p, const Position& q) const;                                                   
     
     /// Normalize this view
     void normalize(Space& home);
-    
-    
-    /// Possibly refines block \a bx according to matching region \a m, having
-    /// at least \l characters, defined between \a le and \a ee in this view.
-    /// If \a bx must be unfolded in k > 1 blocks b_1 b_2 ... b_k, then bx is 
-    /// updated with b_1, \a n will be set to k-1 and \a r will store the 
-    /// dashed string norm(b_2, ..., b_k)
-    BlockEvent
-    refine_mand(Space& home, Block& bx, const Matching& m, int l, int& n, 
-                Region r);
-    
+        
   };
   /**
    * \brief Print string variable view

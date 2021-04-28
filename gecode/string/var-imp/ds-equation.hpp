@@ -38,7 +38,7 @@ namespace Gecode { namespace String {
     return os;
   }
   
-  /// Struct defining a matching region.
+  /// Immutable struct defining a matching region.
   struct Matching {
     /// Earliest start position.
     Position ESP;
@@ -47,19 +47,9 @@ namespace Gecode { namespace String {
     /// Earliest end position.
     Position EEP;
     /// Latest end position.
-    Position LEP;  
+    Position LEP;
   };
-  
-  /// Possible states after refining a block
-  enum BlockEvent {
-    BE_FAIL = -1,   // Inconsistency detected 
-    BE_NONE,        // No modification
-    BE_UPDATE,      // Block updated, no normalization needed
-    BE_UNFOLD,      // Block to be unfolded in n > 1 blocks
-    BE_UPDATE_NORM, // Block updated, normalization of its dashed string needed
-    BE_UNFOLD_NORM  // Block to be unfolded, and normalization needed
-  };
-  
+
 }}
 
 namespace Gecode { namespace String {
@@ -91,8 +81,7 @@ namespace Gecode { namespace String {
       Block& x_i = x[i];
       if (x_i.isFixed())
         continue;
-      int l = x_i.lb(), u = x_i.ub(), 
-         l1 = y.min_len_mand(x_i, lsp, eep);
+      int l = x_i.lb(), u = x_i.ub(), l1 = y.min_len_mand(x_i, lsp, eep);
       if (u < l1)
         return false;
       int u1 = y.max_len_opt(x_i, esp, lep, l1);
@@ -113,11 +102,13 @@ namespace Gecode { namespace String {
           y.unfoldBlock(home, x_i, y1);
           DashedString d(home, y1, y.size());
           r.free();
+          // If some prefix or suffix fixed, or d actually refines x_i
           if (d[0].baseSize() == 1 || d[d.size()-1].baseSize() == 1
                                    || d.logdim() < x_i.logdim())
             x.update(home, d);
           return true;
         }
+        // Crushing into single block
         int n = x_i.baseSize();
         x_i.updateCard(home, std::max(l, l1), std::min(u, u1));
         y.crushBlock(home, x_i, esp, lep);       
@@ -131,15 +122,28 @@ namespace Gecode { namespace String {
       }
       assert (l1 > 0);
       Region r;
-      int n = lep.idx - esp.idx + (lep.off > 0) + (esp != lsp) + (eep != lep);
+      int n = y.ub_new_blocks(m[i]);
+      assert (n >= 0);
+      if (n == 0) {
+        // No need to unfold x_i.
+        n = x_i.baseSize();
+        ViewY::mand_region(home, x_i, y[lsp.idx], lsp, eep);
+        if (x_i.isNull()) {
+          changed = true;
+          newSize--;
+        }
+        else
+          changed |= l < x_i.lb() || u > x_i.ub() || n < x_i.baseSize();
+        std::cerr << "x[" << i << "] ref. into " << x_i << "\n";
+        continue;
+      }
       Block* mreg = r.alloc<Block>(n);
       if (esp != lsp)
         y.opt_region(home, x_i, mreg[0], esp, lsp);
-      y.man_region(home, x_i, &mreg[1], lsp, eep);
+      y.mand_region(home, x_i, &mreg[1], u1, lsp, eep);
       if (eep != lep)
         y.opt_region(home, x_i, mreg[n-1], eep, lep);
       DashedString d(home, mreg, n);
-      std::cerr << d << '\n';
       r.free();
       n = x_i.baseSize();
       x_i.update(home, d[0]);
@@ -151,12 +155,13 @@ namespace Gecode { namespace String {
         changed |= l < x_i.lb() || u > x_i.ub() || n < x_i.baseSize();
       else {
         changed = true;
-        // FIXME: Update U, newBlocks
+        // FIXME: Update U, newBlocks -> view property!
         newSize += d.size() - 1;        
       }
     }
     if (newSize > x.size()) {
-     // Resize
+      // Resize
+      
     }
     if (changed)
       x.normalize(home);
