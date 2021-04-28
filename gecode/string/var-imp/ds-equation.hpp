@@ -67,12 +67,12 @@ namespace Gecode { namespace String {
   forceinline bool 
   refine_x(Space& home, ViewX& x, const ViewY& y, Matching m[], int nBlocks) {
     std::cerr << "Refining " << x << "\nMax. " << nBlocks << " new blocks needed.\n";
-    int nx = x.size();
-    int newSize = nx;
+    int nx = x.size();    
     bool changed = false;
     Region r;
     Block* newBlocks = r.alloc<Block>(nBlocks);
     int* U = r.alloc<int>(2*nx);
+    int newSize = 0, uSize = 0;
     for (int i = 0; i < nx; ++i) {
       std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
       std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].ESP << "\nEEP: " 
@@ -90,7 +90,6 @@ namespace Gecode { namespace String {
         if (u1 == 0) {
           x_i.nullify(home);
           changed = true;
-          newSize--;
           continue;
         }
         if (nx == 1 && l <= l1) {
@@ -112,12 +111,7 @@ namespace Gecode { namespace String {
         int n = x_i.baseSize();
         x_i.updateCard(home, std::max(l, l1), std::min(u, u1));
         y.crushBlock(home, x_i, esp, lep);       
-        if (x_i.isNull()) {
-          newSize--;
-          changed = true;
-        }
-        else
-          changed |= l < l1 || u > u1 || n < x_i.baseSize();
+        changed |= l < l1 || u > u1 || n < x_i.baseSize();
         continue;
       }
       assert (l1 > 0);
@@ -128,12 +122,7 @@ namespace Gecode { namespace String {
         // No need to unfold x_i.
         n = x_i.baseSize();
         ViewY::mand_region(home, x_i, y[lsp.idx], lsp, eep);
-        if (x_i.isNull()) {
-          changed = true;
-          newSize--;
-        }
-        else
-          changed |= l < x_i.lb() || u > x_i.ub() || n < x_i.baseSize();
+        changed |= l < x_i.lb() || u > x_i.ub() || n < x_i.baseSize();
 //        std::cerr << "x[" << i << "] ref. into " << x_i << "\n";
         continue;
       }
@@ -150,19 +139,17 @@ namespace Gecode { namespace String {
       r.free();
       n = x_i.baseSize();
       x_i.update(home, d[0]);
-      if (x_i.isNull()) {
+      if (d.size() > 1) {
         changed = true;
-        newSize--;        
+        int m = d.size()-1;
+//        y.saveUnfolding(i, m, newBlocks, newSize);
+        newSize += m;
+        uSize++;
       }
-      else if (d.size() == 1)
+      else
         changed |= l < x_i.lb() || u > x_i.ub() || n < x_i.baseSize();
-      else {
-        changed = true;
-        // FIXME: Update U, newBlocks -> view property!
-        newSize += d.size() - 1;        
-      }
     }
-    if (newSize > x.size()) {
+    if (newSize > 0) {
       // Resize
       
     }
