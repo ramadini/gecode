@@ -718,6 +718,11 @@ namespace Gecode { namespace String {
   
   forceinline void
   Block::updateCard(Space& home, int lb, int ub) {
+    if (isFixed()) {
+      if (u == lb && u == ub)
+        return;
+      throw VariableEmptyDomain("Block::updateCard");
+    } 
     if (l == lb && u == ub)
       return;
     check_length(lb, ub, "Block::updateCard");

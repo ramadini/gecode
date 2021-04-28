@@ -389,7 +389,7 @@ namespace Gecode { namespace String {
     if (p_i == q_i) {
       bx.baseIntersect(home, by);std::cerr << bx << '\n';
       if (!bx.isNull())
-        bx.updateCard(home, std::max(bx.lb(), by.lb()-p_o), q_o - p_o);
+        bx.updateCard(home, std::max(bx.lb(), by.lb()-p_o), q_o-p_o);//FIXME: std::min(bx.ub(), q_o - p_o);
       std::cerr << bx << '\n';
       return;
     }
