@@ -395,12 +395,12 @@ namespace Gecode { namespace String {
     int p_i = p.idx, p_o = p.off, q_i = q.off > 0 ? q.idx : q.idx-1, 
                                   q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
     assert (p_i < q_i);
-    const Block& bi = (*this)[p_i];    
-    bnew[0].update(home, bi);
+    const Block& bp = (*this)[p_i];    
+    bnew[0].update(home, bp);
     bnew[0].baseIntersect(home, bx);
     if (!bnew[0].isNull())
-      bnew[0].updateCard(home, std::max(0, bi.lb()-p_o), 
-                               std::min(u, bi.ub()-p_o));
+      bnew[0].updateCard(home, std::max(0, bp.lb()-p_o), 
+                               std::min(u, bp.ub()-p_o));
     int j = 1;
     for (int i = p_i+1; i < q_i; ++i, ++j) {
       Block& bj = bnew[j];
@@ -408,12 +408,12 @@ namespace Gecode { namespace String {
       bj.baseIntersect(home, bx);
       if (!bj.isNull() && bj.ub() > u)
         bj.ub(home, u);
-    }
+    }    
     const Block& bq = (*this)[q_i];
     bnew[j].update(home, bq);
     bnew[j].baseIntersect(home, bx);
     if (!bnew[j].isNull())
-      bnew[j].updateCard(home, std::max(0, bq.lb()-q_o), std::min(u, q_o));
+      bnew[j].updateCard(home, std::min(bq.lb(), q_o), std::min(u, q_o));
   }
    
 //  forceinline void

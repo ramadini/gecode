@@ -138,9 +138,12 @@ namespace Gecode { namespace String {
         continue;
       }
       Block* mreg = r.alloc<Block>(n);
-      if (esp != lsp)
+      if (esp != lsp) {
         y.opt_region(home, x_i, mreg[0], esp, lsp);
-      y.mand_region(home, x_i, &mreg[1], u1, lsp, eep);
+        y.mand_region(home, x_i, &mreg[1], u1, lsp, eep);
+      }
+      else
+        y.mand_region(home, x_i, mreg, u1, lsp, eep);
       if (eep != lep)
         y.opt_region(home, x_i, mreg[n-1], eep, lep);
       DashedString d(home, mreg, n);
