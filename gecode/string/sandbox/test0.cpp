@@ -337,6 +337,9 @@ public:
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
     assert(equate_x(*this, vx, vy));
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+    assert(x.min_length() == x.max_length()); 
+    assert(vx[1].val() == std::vector<int>({'o', 'o'}));
+    
   }
   
 };
