@@ -384,16 +384,16 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  StringView::man_region(Space& home, const Block& bx, Block* bnew,
+  StringView::man_region(Space& home, const Block& bx, Block bnew[],
                               const Position& p, const Position& q) const {
     assert (prec(p, q));
     int p_i = p.idx, p_o = p.off, 
         q_i = q.off > 0 ? q.idx : q.idx-1, q_o = (*this)[q_i].ub();
     const Block& b = (*this)[p_i];
     if (p_i == q_i) {      
-      bnew->update(home, b);
-      bnew->baseIntersect(home, bx);
-      if (!bnew->isNull())
+      bnew[1].update(home, b);
+      bnew[1].baseIntersect(home, bx);
+      if (!bnew[1].isNull())
         bnew->updateCard(home, std::max(0, b.lb()-p_o), q_o - p_o);
       return;
     }
@@ -402,7 +402,7 @@ namespace Gecode { namespace String {
     if (!bnew->isNull())
       bnew->updateCard(home, std::max(0, b.lb()-p_o), b.ub()-p_o);
     bnew->baseIntersect(home, bx);
-    int j = 1;
+    int j = 2;
     for (int i = p_i+1; i < q_i; ++i, ++j) {
       Block& b = bnew[j];
       b.update(home, bx);

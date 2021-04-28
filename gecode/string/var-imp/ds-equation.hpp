@@ -133,7 +133,7 @@ namespace Gecode { namespace String {
       int n = lep.idx - esp.idx + (lep.off > 0) + 2;
       Block* mreg = r.alloc<Block>(n);
       y.opt_region(home, x_i, mreg[0], esp, lsp);
-//      y.man_region(home, x_i, mreg[1], lsp, eep);
+      y.man_region(home, x_i, mreg, lsp, eep);
       y.opt_region(home, x_i, mreg[n-1], eep, lep);
       DashedString d(home, mreg, n);
       r.free();
