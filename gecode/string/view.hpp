@@ -183,7 +183,7 @@ namespace Gecode { namespace String {
                             const Position& p, const Position& q) const;
                                                           
     void
-    man_region(Space& home, const Block& bx, Block* bnew,
+    man_region(Space& home, Block& bx, Block* bnew,
                             const Position& p, const Position& q) const;                                                   
     
     /// Normalize this view

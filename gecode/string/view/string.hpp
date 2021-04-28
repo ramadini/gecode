@@ -349,13 +349,9 @@ namespace Gecode { namespace String {
   forceinline void
   StringView::opt_region(Space& home, const Block& bx, Block& bnew,
                               const Position& p, const Position& q) const {
-    assert (!prec(q, p));
-    if (equiv(p, q)) {
-      bnew.nullify(home);
-      return;
-    }
-    int p_i = p.idx, p_o = p.off, 
-        q_i = q.off > 0 ? q.idx : q.idx-1, q_o = (*this)[q_i].ub();
+    assert (prec(p, q));
+    int p_i = p.idx, p_o = p.off, q_i = q.off > 0 ? q.idx : q.idx-1, 
+                                  q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
     if (p_i == q_i) {
       bnew.update(home, (*this)[p_i]);
       bnew.baseIntersect(home, bx);
@@ -384,31 +380,30 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  StringView::man_region(Space& home, const Block& bx, Block* bnew,
+  StringView::man_region(Space& home, Block& bx, Block* bnew,
                               const Position& p, const Position& q) const {
     assert (prec(p, q));
-    int p_i = p.idx, p_o = p.off, 
-        q_i = q.off > 0 ? q.idx : q.idx-1, q_o = (*this)[q_i].ub();
-    const Block& b = (*this)[p_i];
-    if (p_i == q_i) {      
-      bnew->update(home, b);
-      bnew->baseIntersect(home, bx);
-      if (!bnew->isNull())
-        bnew->updateCard(home, std::max(0, b.lb()-p_o), q_o - p_o);
+    int p_i = p.idx, p_o = p.off, q_i = q.off > 0 ? q.idx : q.idx-1, 
+                                  q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
+    const Block& by = (*this)[p_i];
+    if (p_i == q_i) {
+      bx.baseIntersect(home, by);std::cerr << bx << '\n';
+      if (!bx.isNull())
+        bx.updateCard(home, std::max(bx.lb(), by.lb()-p_o), q_o - p_o);
+      std::cerr << bx << '\n';
       return;
     }
-    bnew->update(home, b);
-    bnew->baseIntersect(home, bx);
-    if (!bnew->isNull())
-      bnew->updateCard(home, std::max(0, b.lb()-p_o), b.ub()-p_o);
-    bnew->baseIntersect(home, bx);
+    bnew[0].update(home, by);
+    bnew[0].baseIntersect(home, bx);
+    if (!bnew[0].isNull())
+      bnew[0].updateCard(home, std::max(0, by.lb()-p_o), by.ub()-p_o);
     int j = 1;
     for (int i = p_i+1; i < q_i; ++i, ++j) {
-      Block& b = bnew[j];
-      b.update(home, bx);
-      b.baseIntersect(home, bx);
+      Block& bj = bnew[j];
+      bj.update(home, (*this)[i]);
+      bj.baseIntersect(home, bx);
     }
-    bnew[j].update(home, bx);
+    bnew[j].update(home, (*this)[q_i]);
     bnew[j].baseIntersect(home, bx);
     if (!bnew[j].isNull())
       bnew[j].updateCard(home, std::max(0, (*this)[q_i].lb()-q_o), q_o);

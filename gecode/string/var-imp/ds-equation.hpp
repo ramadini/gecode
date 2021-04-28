@@ -84,9 +84,9 @@ namespace Gecode { namespace String {
     Block* newBlocks = r.alloc<Block>(nBlocks);
     int* U = r.alloc<int>(2*nx);
     for (int i = 0; i < nx; ++i) {
-//      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
-//      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].ESP << "\nEEP: " 
-//                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
+      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
+      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].ESP << "\nEEP: " 
+                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
       Position& esp = m[i].ESP, eep = m[i].EEP, lsp = m[i].LSP, lep = m[i].LEP;
       Block& x_i = x[i];
       if (x_i.isFixed())
@@ -96,6 +96,7 @@ namespace Gecode { namespace String {
       if (u < l1)
         return false;
       int u1 = y.max_len_opt(x_i, esp, lep, l1);
+      std::cerr << "l'=" << l1 << ", u'=" << u1 << "\n";
       if (l1 == 0 || l1 < l || u1 > u) {
         if (u1 == 0) {
           x_i.nullify(home);
@@ -130,12 +131,15 @@ namespace Gecode { namespace String {
       }
       assert (l1 > 0);
       Region r;
-      int n = lep.idx - esp.idx + (lep.off > 0) + 2;
+      int n = lep.idx - esp.idx + (lep.off > 0) + (esp != lsp) + (eep != lep);
       Block* mreg = r.alloc<Block>(n);
-      y.opt_region(home, x_i, mreg[0], esp, lsp);
+      if (esp != lsp)
+        y.opt_region(home, x_i, mreg[0], esp, lsp);
       y.man_region(home, x_i, &mreg[1], lsp, eep);
-      y.opt_region(home, x_i, mreg[n-1], eep, lep);
+      if (eep != lep)
+        y.opt_region(home, x_i, mreg[n-1], eep, lep);
       DashedString d(home, mreg, n);
+      std::cerr << d << '\n';
       r.free();
       n = x_i.baseSize();
       x_i.update(home, d[0]);
