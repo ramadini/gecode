@@ -363,9 +363,18 @@ public:
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
     assert(equate_x(*this, vx, vy) == ME_STRING_FAILED);
     assert(equate_x(*this, vy, vx) == ME_STRING_FAILED);
-    cerr << "Failed!\n";
-    //TODO:
-    
+    StringVar z(*this, Block(*this, CharSet(*this, ' ', '~')));
+    StringView vz(z);
+    cerr << "Equate y = " << y << "  vs  z = " << z << "\n";
+    assert(equate_x(*this, vy, vz) == ME_STRING_NONE);
+    cerr << "Equate z = " << z << "  vs  y = " << y << "\n";
+    assert(equate_x(*this, vz, vy) == ME_STRING_BASE);
+    cerr << "Equate z = " << z << "  vs  x = " << x << "\n";
+    StringVar t(*this, DashedString(*this, bv, 8));
+    StringView vt(t);
+    cerr << "Equate z = " << z << "  vs  t = " << t << "\n";
+    //TODO: Debug this:
+    assert(equate_x(*this, vz, vt) == ME_STRING_CARD);    
   }
   
 };

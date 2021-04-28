@@ -65,7 +65,7 @@ namespace Gecode { namespace String {
   /// It returns true iff at least a block has been refined.
   template <class ViewX, class ViewY>
   forceinline bool 
-  refine_x(Space& home, ViewX& x, const ViewY& y, Matching m[], int nBlocks) {
+  refine_x(Space& home, ViewX& x, const ViewY& y, Matching m[], int& nBlocks) {
 //    std::cerr << "Refining " << x << "\nMax. " << nBlocks << " new blocks needed.\n";
     int nx = x.size();    
     bool changed = false;
@@ -102,9 +102,12 @@ namespace Gecode { namespace String {
           DashedString d(home, y1, y.size());
           r.free();
           // If some prefix or suffix fixed, or d actually refines x_i
-          if (d[0].baseSize() == 1 || d[d.size()-1].baseSize() == 1
-                                   || d.logdim() < x_i.logdim())
+          if ((d[0].baseSize() == 1 && d[0].lb() > 0) 
+          ||  (d[d.size()-1].baseSize() == 1 && d[d.size()-1].lb() > 0)
+          ||  (d.logdim() < x_i.logdim()))
             x.update(home, d);
+          else
+            nBlocks = -1;
           return true;
         }
         // Crushing into a single block
@@ -147,6 +150,8 @@ namespace Gecode { namespace String {
       x.resize(home, newBlocks, newSize, U, uSize);
     else if (changed)
       x.normalize(home);
+    else
+      nBlocks = -1;
     return true;
   }
   
@@ -343,16 +348,15 @@ namespace Gecode { namespace String {
     int lb = x.min_length(), ub = x.max_length();
     Matching m[x.size()];
     int n;
-    if (!sweep_x(home, x, y, m, n))
+    if (!sweep_x(home, x, y, m, n) || !refine_x(home, x, y, m, n))
       return ME_STRING_FAILED;
-    if (!refine_x(home, x, y, m, n))
+    if (n == -1)
       return ME_STRING_NONE;
     if (x.assigned())
       return ME_STRING_VAL;
-    else if (x.min_length() > lb || x.max_length() < ub)
+    if (x.min_length() > lb || x.max_length() < ub)
       return ME_STRING_CARD;
-    else
-      return ME_STRING_BASE;
+    return ME_STRING_BASE;
   }
 
 }}

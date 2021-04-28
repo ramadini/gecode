@@ -298,7 +298,7 @@ namespace Gecode { namespace String {
     int h = lsp.idx, h1 = eep.off > 0 ? eep.idx : eep.idx-1, 
         k = lsp.off, k1 = eep.off > 0 ? eep.off : (*this)[h1].ub();
     if (h == h1)
-      return nabla(bx, (*this)[h], k1 - k);
+      return nabla(bx, (*this)[h], std::max(0, bx.lb()-h1));
     int s = nabla(bx, (*this)[h], (*this)[h].lb() - k);
     for (int i = h+1; i < h1; i++) 
       s += nabla(bx, (*this)[i], (*this)[i].lb());
