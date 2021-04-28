@@ -316,7 +316,7 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  StringView::unfoldBlock(Space& home, const Block& bx, Block* y) const {
+  StringView::expandBlock(Space& home, const Block& bx, Block* y) const {
     for (int i = 0; i < size(); i++) {
       y[i].update(home, (*this)[i]);
       y[i].baseIntersect(home, bx);
@@ -326,7 +326,7 @@ namespace Gecode { namespace String {
   }
 
   forceinline void
-  StringView::crushBlock(Space& home, Block& bx, const Position& esp, 
+  StringView::crushBase(Space& home, Block& bx, const Position& esp, 
                                                  const Position& lep) const {
     Gecode::Set::GLBndSet s;
     int k = lep.idx - (lep.off == 0);
@@ -350,6 +350,7 @@ namespace Gecode { namespace String {
     assert (prec(p, q));
     int p_i = p.idx, p_o = p.off, q_i = q.off > 0 ? q.idx : q.idx-1, 
                                   q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
+    // Only one block involved
     if (p_i == q_i) {
       bnew.update(home, (*this)[p_i]);
       bnew.baseIntersect(home, bx);
@@ -357,6 +358,7 @@ namespace Gecode { namespace String {
         bnew.updateCard(home, 0, q_o - p_o);
       return;
     }
+    // More than one block involved
     Gecode::Set::GLBndSet s;
     int u = (*this)[p_i].ub() - p_o;
     for (int i = p_i+1; i < q_i; ++i) {
@@ -380,6 +382,7 @@ namespace Gecode { namespace String {
   forceinline void
   StringView::mand_region(Space& home, Block& bx, const Block& by,
                          const Position& lsp, const Position& eep) {
+    // FIXME: When only 1 block involved.                         
     assert (lsp.idx == eep.idx || (lsp.idx == eep.idx-1 && eep.off == 0));
     bx.baseIntersect(home, by);
     if (!bx.isNull())
@@ -393,13 +396,15 @@ namespace Gecode { namespace String {
     assert (prec(p, q));
     int p_i = p.idx, p_o = p.off, q_i = q.off > 0 ? q.idx : q.idx-1, 
                                   q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
-    assert (p_i < q_i);
-    const Block& bp = (*this)[p_i];    
+    assert (p_i < q_i); // FIXME: When at least 2 blocks involved.
+    // Head of the region.
+    const Block& bp = (*this)[p_i];
     bnew[0].update(home, bp);
     bnew[0].baseIntersect(home, bx);
     if (!bnew[0].isNull())
       bnew[0].updateCard(home, std::max(0, bp.lb()-p_o), 
                                std::min(u, bp.ub()-p_o));
+    // Central part of the region.
     int j = 1;
     for (int i = p_i+1; i < q_i; ++i, ++j) {
       Block& bj = bnew[j];
@@ -407,7 +412,8 @@ namespace Gecode { namespace String {
       bj.baseIntersect(home, bx);
       if (!bj.isNull() && bj.ub() > u)
         bj.ub(home, u);
-    }    
+    }
+    // Tail of the region.
     const Block& bq = (*this)[q_i];
     bnew[j].update(home, bq);
     bnew[j].baseIntersect(home, bx);

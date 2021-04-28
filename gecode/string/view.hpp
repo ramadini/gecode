@@ -167,28 +167,32 @@ namespace Gecode { namespace String {
     /// TODO:
     int min_len_mand(const Block& bx, const Position& lsp, 
                                       const Position& eep) const;
-    /// TODO:             
+    /// TODO:
     int max_len_opt(const Block& bx, const Position& esp, 
                                      const Position& lep, int l) const;
-                                     
+    /// TODO:                             
     void
-    unfoldBlock(Space& home, const Block& bx, Block* y) const;
+    expandBlock(Space& home, const Block& bx, Block* y) const;
     
+    /// TODO:
     void
-    crushBlock(Space& home, Block& bx, const Position& esp, 
+    crushBase(Space& home, Block& bx, const Position& esp, 
                                        const Position& lep) const;
-                                       
+    /// TODO:                                   
     void
     opt_region(Space& home, const Block& bx, Block& bnew, 
                             const Position& p, const Position& q) const;                       
-                       
+    
+    /// TODO:                   
     static void
     mand_region(Space& home, Block& bx, const Block& by, const Position& lep, 
                                                          const Position& eep);
+    /// TODO:                                                     
     void
     mand_region(Space& home, const Block& bx, Block* bnew, int u,
                              const Position& p, const Position& q) const;                                                   
     
+    /// TODO:
     void
     resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize);
     

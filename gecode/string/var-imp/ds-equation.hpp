@@ -93,12 +93,12 @@ namespace Gecode { namespace String {
           continue;
         }
         if (nx == 1 && l <= l1) {
-          // Special case where x is a single block: if we unfold x into |y| 
+          // Special case where x is a single block: if we expand x into |y| 
           // blocks the soundness is preserved if the length constraint |x|=|y|
           // is present
           Region r;
           Block* y1 = r.alloc<Block>(y.size());
-          y.unfoldBlock(home, x_i, y1);
+          y.expandBlock(home, x_i, y1);
           DashedString d(home, y1, y.size());
           r.free();
           // If some prefix or suffix fixed, or d actually refines x_i
@@ -110,7 +110,7 @@ namespace Gecode { namespace String {
         // Crushing into a single block
         int m = x_i.baseSize();
         x_i.updateCard(home, std::max(l, l1), std::min(u, u1));
-        y.crushBlock(home, x_i, esp, lep);       
+        y.crushBase(home, x_i, esp, lep);       
         changed |= l < l1 || u > u1 || m < x_i.baseSize();
         continue;
       }
