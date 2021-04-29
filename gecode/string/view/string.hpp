@@ -170,11 +170,9 @@ namespace Gecode { namespace String {
   StringView::SweepBwdIterator::consume(int k) {
     if (k == 0)
       return;
-    if (pos.off == 0) {
-      if (pos.idx > 0) {
-        pos.idx--;
-        pos.off = sv[pos.idx].ub() - k;
-      }
+    if (pos.off == 0 && pos.idx > 0) {
+      pos.idx--;
+      pos.off = sv[pos.idx].ub() - k;
     }
     else
       pos.off -= k;
@@ -187,11 +185,14 @@ namespace Gecode { namespace String {
   StringView::SweepBwdIterator::consumeMand(int k) {
     if (k == 0)
       return;
-    if (pos.off == 0 && pos.idx > 0)
+    if (pos.off == 0 && pos.idx > 0) {
       pos.idx--;
-    pos.off = sv[pos.idx].lb() - k;
+      pos.off = sv[pos.idx].lb() - k;
+    }
+    else
+      pos.off = std::min(pos.off, sv[pos.idx].lb()) - k;
     if (pos.off < 0)
-      throw OutOfLimits("StringView::SweepBwdIterator::consume");
+      throw OutOfLimits("StringView::SweepBwdIterator::consumeMand");
     assert (isOK());
   }
 
@@ -298,7 +299,7 @@ namespace Gecode { namespace String {
       return 0;    
     int h = lsp.idx, h1 = eep.off > 0 ? eep.idx : eep.idx-1, 
         k = lsp.off, k1 = eep.off > 0 ? eep.off : (*this)[h1].ub();
-    std::cerr << "LSP=(" << h << "," << k << "), EEP=(" << h1 << "," << k1 << ")\n";
+//    std::cerr << "LSP=(" << h << "," << k << "), EEP=(" << h1 << "," << k1 << ")\n";
     if (h == h1)
       return nabla(bx, (*this)[h], std::max(0, std::min(k1,(*this)[h].lb())-k));
     int m = nabla(bx, (*this)[h], (*this)[h].lb() - k);
@@ -316,7 +317,7 @@ namespace Gecode { namespace String {
     assert(!prec(lep, esp));
     int p = esp.idx, p1 = lep.off > 0 ? lep.idx : lep.idx-1,
         q = esp.off, q1 = lep.off > 0 ? lep.off : (*this)[p1].ub();
-    std::cerr << "ESP=(" << p << "," << q << "), LEP=(" << p1 << "," << q1 << ")\n";
+//    std::cerr << "ESP=(" << p << "," << q << "), LEP=(" << p1 << "," << q1 << ")\n";
     if (p == p1)
       return nabla(bx, (*this)[p], q1-q);
     int m = nabla(bx, (*this)[p], (*this)[p].ub() - q);
@@ -360,7 +361,7 @@ namespace Gecode { namespace String {
     assert (prec(p, q));
     int p_i = p.idx, p_o = p.off, q_i = q.off > 0 ? q.idx : q.idx-1, 
                                   q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
-//    std::cerr << "ESP=(" << p_i << "," << p_o << "), LEP=(" << q_i << "," << q_o << ")\n";
+//    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
     // Only one block involved
     if (p_i == q_i) {
       bnew.update(home, (*this)[p_i]);
@@ -412,20 +413,21 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  StringView::mand_region(Space& home, const Block& bx, Block* bnew, int u,
+  StringView::mand_region(Space& home, Block& bx, Block* bnew, int u,
                           const Position& p, const Position& q) const {
     assert (prec(p, q));
     int p_i = p.idx, p_o = p.off, q_i = q.off > 0 ? q.idx : q.idx-1, 
                                   q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
-    assert (p_i < q_i); // FIXME: When at least 2 blocks involved.
-//    std::cerr << "LSP=(" << p_i << "," << p_o << "), EEP=(" << q_i << "," << q_o << ")\n";
-    // Head of the region.
+    std::cerr << "LSP=(" << p_i << "," << p_o << "), EEP=(" << q_i << "," << q_o << ")\n";
     const Block& bp = (*this)[p_i];
+    // Head of the region.
     bnew[0].update(home, bp);
     bnew[0].baseIntersect(home, bx);
     if (!bnew[0].isNull())
       bnew[0].updateCard(home, std::max(0, std::min(q_o, bp.lb()) - p_o), 
-                               std::min(u, bp.ub()-p_o));
+                               std::min(u, q_o-p_o));
+    if (p_i == q_i)
+      return;
     // Central part of the region.
     int j = 1;
     for (int i = p_i+1; i < q_i; ++i, ++j) {

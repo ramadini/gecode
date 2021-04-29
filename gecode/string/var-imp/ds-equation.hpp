@@ -20,7 +20,7 @@ namespace Gecode { namespace String {
     /// NOTE: If position are not normalized, the result might be unexpected.
     forceinline bool
     operator!=(const Position& p) const {
-      return idx != p.idx || idx != p.idx;
+      return idx != p.idx || off != p.off;
     }
     /// Test if this is normalized w.r.t. to y, i.e., it belongs to the set 
     /// {(i,j) | 0 <= i < |y|, 0 <= j < ub(y)} U {(|y|,0)}
@@ -138,10 +138,11 @@ namespace Gecode { namespace String {
         y.opt_region(home, x_i, mreg[0], esp, lsp);
         y.mand_region(home, x_i, &mreg[1], u1, lsp, eep);
       }
+      std::cerr << (eep != lep) << '\n';
       if (eep != lep)
         y.opt_region(home, x_i, mreg[n-1], eep, lep);
       DashedString d(home, mreg, n);
-//      std::cerr << "d: " << d << '\n';
+      std::cerr << "d: " << d << '\n';
       r.free();      
       n = d.size();                                                         
       for (int j = 0, k = newSize; j < n; ++j,++k)
@@ -208,7 +209,7 @@ namespace Gecode { namespace String {
     while (it.hasNextBlock()) {
       // Min. no. of chars that must be consumed.
       int m = it.must_consume();
-//      std::cerr << "it=" << *it << "k=" << k << ", m=" << m << ", ndisj=" <<ndisj<< std::endl;      
+//      std::cerr << "it=" << *it << ", k=" << k << ", m=" << m << std::endl;      
       if (m == 0)
         it.nextBlock();
       else if (it.disj(bx))

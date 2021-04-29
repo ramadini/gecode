@@ -191,7 +191,7 @@ namespace Gecode { namespace String {
                    const Position& p, const Position& q) const;
     /// TODO:                                                     
     void
-    mand_region(Space& home, const Block& bx, Block* bnew, int u,
+    mand_region(Space& home, Block& bx, Block* bnew, int u,
                              const Position& p, const Position& q) const;
     
     /// TODO:
