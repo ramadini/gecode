@@ -171,7 +171,7 @@ namespace Gecode { namespace String {
                                       const Position& eep) const;
     /// TODO:
     int max_len_opt(const Block& bx, const Position& esp, 
-                                     const Position& lep, int l) const;
+                                     const Position& lep) const;
     /// TODO:                             
     void
     expandBlock(Space& home, const Block& bx, Block* y) const;

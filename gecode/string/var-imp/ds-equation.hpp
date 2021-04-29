@@ -84,7 +84,7 @@ namespace Gecode { namespace String {
         return false;
       if (x_i.isFixed())
         continue; 
-      int u1 = y.max_len_opt(x_i, esp, lep, l1);
+      int u1 = y.max_len_opt(x_i, esp, lep);
       std::cerr << "l'=" << l1 << ", u'=" << u1 << "\n";
       assert (l1 <= u1);      
       if (l1 == 0 || l1 < l || u1 > u) {

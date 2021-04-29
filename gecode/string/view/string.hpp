@@ -298,9 +298,9 @@ namespace Gecode { namespace String {
       return 0;    
     int h = lsp.idx, h1 = eep.off > 0 ? eep.idx : eep.idx-1, 
         k = lsp.off, k1 = eep.off > 0 ? eep.off : (*this)[h1].ub();
-//    std::cerr << "LSP=(" << h << "," << k << "), EEP=(" << h1 << "," << k1 << ")\n";
+    std::cerr << "LSP=(" << h << "," << k << "), EEP=(" << h1 << "," << k1 << ")\n";
     if (h == h1)
-      return nabla(bx, (*this)[h], std::max(0, bx.lb()-h1));
+      return nabla(bx, (*this)[h], std::max(0, std::min(k1,(*this)[h].lb())-k));
     int m = nabla(bx, (*this)[h], (*this)[h].lb() - k);
     for (int i = h+1; i < h1; i++) 
       m += nabla(bx, (*this)[i], (*this)[i].lb());
@@ -310,7 +310,7 @@ namespace Gecode { namespace String {
 
   forceinline int
   StringView::max_len_opt(const Block& bx, const Position& esp, 
-                                           const Position& lep, int l) const {
+                                           const Position& lep) const {
     if (equiv(esp,lep))
       return 0;
     assert(!prec(lep, esp));
@@ -407,7 +407,7 @@ namespace Gecode { namespace String {
     int q_off = q.off > 0 ? q.off : (*this)[q.idx-1].ub();
     bx.baseIntersect(home, by);
     if (!bx.isNull())
-      bx.updateCard(home, std::max(bx.lb(), by.lb() - p.off),
+      bx.updateCard(home, std::max(0, std::min(q_off, by.lb()) - p.off),
                           std::min(bx.ub(), q_off - p.off));
   }
   
@@ -424,7 +424,7 @@ namespace Gecode { namespace String {
     bnew[0].update(home, bp);
     bnew[0].baseIntersect(home, bx);
     if (!bnew[0].isNull())
-      bnew[0].updateCard(home, std::max(0, bp.lb()-p_o), 
+      bnew[0].updateCard(home, std::max(0, std::min(q_o, bp.lb()) - p_o), 
                                std::min(u, bp.ub()-p_o));
     // Central part of the region.
     int j = 1;

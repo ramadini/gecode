@@ -513,23 +513,28 @@ public:
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
     assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     assert (vx[0].logdim() + vx[1].logdim() == vy[0].logdim() + vy[1].logdim());
     assert (equate_x(*this, vy, vx) == ME_STRING_NONE);
   }
   
   void test16() {
     std::cerr << "\n*** Test 16 ***" << std::endl;
-    int n = 10;
-//    NSBlocks vx({
-//      NSBlock(NSIntSet('a', 'c'), 0, 30 * n),
-//      NSBlock(NSIntSet('d', 'd'), 5 * n, 5 * n),
-//      NSBlock(NSIntSet('c', 'f'), 0, 2 * n)
-//    });
-//    NSBlocks vy({
-//      NSBlock(NSIntSet('b', 'd'), 26 * n, 26 * n),
-//      NSBlock(NSIntSet('f', 'f'), n, n)
-//    });
-  
+    int n = 1;
+    Block bx[3];
+    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0 , 30*n));
+    bx[1].update(*this, Block('d', 5*n));
+    bx[2].update(*this, Block(*this, CharSet(*this, 'c', 'f'), 0 , 2*n));
+    Block by[3];
+    by[0].update(*this, Block(*this, CharSet(*this, 'b', 'd'), 26*n, 26*n));
+    by[1].update(*this, Block('f', n));
+    StringVar x(*this, DashedString(*this, bx, 3));
+    StringVar y(*this, DashedString(*this, by, 2));
+    StringView vx(x), vy(y);
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+
   }
   
 };
