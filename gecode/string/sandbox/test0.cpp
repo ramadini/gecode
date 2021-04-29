@@ -8,6 +8,8 @@ using namespace Gecode;
 using namespace String;
 using std::cerr;
 using std::endl;
+using std::vector;
+using std::string;
 
 class StrTest : public Space {
 
@@ -15,6 +17,12 @@ public:
   StrTest() {};
   virtual Space* copy() {
     return new StrTest();
+  }
+  
+  void
+  str2blocks(const string& w, Block* bv, int l = 1, int u = 1) {
+    for (int i = 0; i < (int) w.size(); ++i)
+      bv[i].update(*this, Block(*this, CharSet(*this, w[i]), l, u));
   }
  
   void test01() {
@@ -85,7 +93,7 @@ public:
       b4.baseIntersect(*this, *ps);
       b4.lb(*this, 5);
       b4.ub(*this, 5);
-      assert (b4.val() == std::vector<int>({'a', 'a', 'a', 'a', 'a'}));      
+      assert (b4.val() == vector<int>({'a', 'a', 'a', 'a', 'a'}));      
       ps->include(*this, 'H', 'H', d);
       b6.baseExclude(*this, *ps);
       bool ok = false;
@@ -110,7 +118,7 @@ public:
     cerr << "log(||" << d0 << "||) = " << d0.logdim() << "\n";
     cerr << "log(||" << d1 << "||) = " << d1.logdim() << "\n";
     assert (d0.isUniverse() && d0[0].isUniverse() && d1.isFixed());
-    assert (d1.val() == std::vector<int>({'r', 'r', 'r'}));
+    assert (d1.val() == vector<int>({'r', 'r', 'r'}));
     int n = 8, i = 0;
     Block b[n];
     b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'B','b'})), 1 ,1));
@@ -132,7 +140,7 @@ public:
     assert (d0.contains(d1));
     cerr << d0 << '\n';
     d1.nullify(*this);
-    assert (d1.isNull() && d1.val() == std::vector<int>(0));
+    assert (d1.isNull() && d1.val() == vector<int>(0));
   }
   
   void test04() {
@@ -337,7 +345,7 @@ public:
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
     assert(equate_x(*this, vx, vy) == ME_STRING_VAL);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
-    assert(x.val() == std::vector<int>({'b', 'o', 'o', 'm'}));
+    assert(x.val() == vector<int>({'b', 'o', 'o', 'm'}));
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert(equate_x(*this, vy, vx) == ME_STRING_VAL);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
@@ -407,6 +415,21 @@ public:
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
   }
   
+  void test12() {
+    cerr << "\n*** Test 12 ***" << endl;
+    DashedString d(*this);
+    string w1 = "A;CW7.MC3ER88MWZPRP.9H@A3?(2-UL3S3-3EG<;MQ@4TW6%*,FKYZ;J3XMF9?<F9>F%I)*HTAX3)7?'/0X*19<D1T)A><#V$V4UL7$@D W$,U5&GPFA(MH;.Z-N7/FBT7H0L5/;(#$S<LFZ6(SY5H6#YY/VD.=CUJG.5<7?O%W1N@PTHD3;A3.A4X%GN3Y(/&FFQ2#MK&/)WM&:>=23WNH;Q72P YHOAM++MROZPIOJ=))4MR7?&D;=N/&RR(6E7ZB,$?<<0GIE51P8%NV:J";
+    string w2 = "K+BW#FY9X=TSG7E/<&#+LG+S&M .8K3UT)-''GXFH2D2D(?<BFE>XH*4G(:>F,;?AH652FX>2+MU)?N ?T'?YO,%(90 Y $1Y/,O 8MS6-A=5<WA 8=";
+    int n1 = w1.size(), n2 = w2.size();
+    Block bv[n1 + n2];
+    str2blocks(w1 + w2, bv, 0, 1);
+    for (int i = 0; i < n1; ++i)
+      bv[i].lb(*this, 1);
+//    StringVar x(*this, d);
+//    StringView vx(x);
+//    std::cerr << x << '\n';
+  }
+  
   
 };
 
@@ -423,6 +446,7 @@ int main() {
   home->test09();
   home->test10();
   home->test11();
+  home->test12();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }

@@ -495,11 +495,11 @@ namespace Gecode { namespace String {
     }
   }
 
-  forceinline int Block::lb() const { return S == nullptr ? u : l; }
+  forceinline int Block::lb() const { return S ? l : u; }
   forceinline int Block::ub() const { return u; }
   
   forceinline bool Block::isNull()  const { return u == 0; }
-  forceinline bool Block::isFixed() const { return S == nullptr; }
+  forceinline bool Block::isFixed() const { return !S; }
   
   forceinline bool Block::isUniverse() const {
     return l == 0 && u == MAX_STRING_LENGTH && S->isUniverse();
@@ -593,10 +593,9 @@ namespace Gecode { namespace String {
       throw VariableEmptyDomain("Block::lb");
     if (x < l)
       throw IllegalOperation("Block::lb");
-    if (x == u && S->size() == 1)
+    l = x;
+    if (l == u && S->size() == 1)
       fix(home);
-    else
-      l = x;
     assert(isOK());
   }
   
@@ -717,7 +716,7 @@ namespace Gecode { namespace String {
       return;
     }
     if (isFixed())
-      S = std::unique_ptr<CharSet>(new CharSet());
+      S = std::unique_ptr<CharSet>(new CharSet());    
     S->update(home, *b.S);
     assert(isOK());
   }
