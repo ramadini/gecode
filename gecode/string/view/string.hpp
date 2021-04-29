@@ -285,7 +285,8 @@ namespace Gecode { namespace String {
   forceinline int
   StringView::ub_new_blocks(const Matching& m) const {
     if (prec(m.LSP, m.EEP))
-      return m.EEP.idx - m.LSP.idx + (m.EEP.off > 0) + prec(m.EEP, m.LEP);
+      return prec(m.ESP, m.LSP) + m.EEP.idx - m.LSP.idx + (m.EEP.off > 0) 
+           + prec(m.EEP, m.LEP);
     else
       return 0;
   }
@@ -408,6 +409,7 @@ namespace Gecode { namespace String {
     int p_i = p.idx, p_o = p.off, q_i = q.off > 0 ? q.idx : q.idx-1, 
                                   q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
     assert (p_i < q_i); // FIXME: When at least 2 blocks involved.
+//    std::cerr << "LSP=(" << p_i << "," << p_o << "), EEP=(" << q_i << "," << q_o << ")\n";
     // Head of the region.
     const Block& bp = (*this)[p_i];
     bnew[0].update(home, bp);

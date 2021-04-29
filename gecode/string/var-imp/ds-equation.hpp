@@ -134,12 +134,16 @@ namespace Gecode { namespace String {
       }
       // Unfolding x_i into newBlocks
       Block* mreg = r.alloc<Block>(n);
-      if (!no_lopt)
+      if (!no_lopt) {
         y.opt_region(home, x_i, mreg[0], esp, lsp);
-      y.mand_region(home, x_i, &mreg[1], u1, lsp, eep);
+        y.mand_region(home, x_i, &mreg[1], u1, lsp, eep);
+      }
+      else
+        y.mand_region(home, x_i, &mreg[0], u1, lsp, eep);
       if (eep != lep)
         y.opt_region(home, x_i, mreg[n-1], eep, lep);
-      DashedString d(home, &mreg[no_lopt], n);
+      DashedString d(home, mreg, n);
+//      std::cerr << "d: " << d << '\n';
       r.free();      
       n = d.size();                                                         
       for (int j = 0, k = newSize; j < n; ++j,++k)
