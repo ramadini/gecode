@@ -418,7 +418,7 @@ namespace Gecode { namespace String {
     assert (prec(p, q));
     int p_i = p.idx, p_o = p.off, q_i = q.off > 0 ? q.idx : q.idx-1, 
                                   q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
-    std::cerr << "LSP=(" << p_i << "," << p_o << "), EEP=(" << q_i << "," << q_o << ")\n";
+//    std::cerr << "LSP=(" << p_i << "," << p_o << "), EEP=(" << q_i << "," << q_o << ")\n";
     const Block& bp = (*this)[p_i];
     // Head of the region.
     bnew[0].update(home, bp);
@@ -450,16 +450,15 @@ namespace Gecode { namespace String {
                                                                   int uSize) {
     DashedString d(home, size()+newSize);
     int j = 0, h = 0;
-    for (int i = 0; i < uSize/2; ++i) {
+    for (int i = 0; i < uSize; i += 2) {
       for (int k = j; k < U[i]; ++k)
         d[k].update(home, (*this)[k]);
       j = U[i] + U[i+1];
       for (int k = U[i]; k < j; ++k, ++h)
         d[k].update(home, newBlocks[h]);
     }
-    for (h = U[uSize/2-1]+1; h < size(); ++j, ++h) {
+    for (h = U[uSize-2]+1; h < size(); ++j, ++h)
       d[j].update(home, (*this)[h]);
-    }
     d.normalize(home);
     update(home, d);                                                                
   }
