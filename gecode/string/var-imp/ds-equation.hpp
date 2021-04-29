@@ -74,9 +74,9 @@ namespace Gecode { namespace String {
     int* U = r.alloc<int>(2*nx);
     int newSize = 0, uSize = 0;
     for (int i = 0; i < nx; ++i) {
-      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
-      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].ESP << "\nEEP: " 
-                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
+//      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
+//      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].ESP << "\nEEP: " 
+//                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
       Position& esp = m[i].ESP, eep = m[i].EEP, lsp = m[i].LSP, lep = m[i].LEP;
       Block& x_i = x[i];
       if (x_i.isFixed()) {

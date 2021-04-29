@@ -417,16 +417,27 @@ public:
   
   void test12() {
     cerr << "\n*** Test 12 ***" << endl;
-    string w1 = "A;CW7.MC3ER88MWZPRP.9H@A3?(2-UL3S3-3EG<;MQ@4TW6%*,FKYZ;J3XMF9?<F9>F%I)*HTAX3)7?'/0X*19<D1T)A><#V$V4UL7$@D W$,U5&GPFA(MH;.Z-N7/FBT7H0L5/;(#$S<LFZ6(SY5H6#YY/VD.=CUJG.5<7?O%W1N@PTHD3;A3.A4X%GN3Y(/&FFQ2#MK&/)WM&:>=23WNH;Q72P YHOAM++MROZPIOJ=))4MR7?&D;=N/&RR(6E7ZB,$?<<0GIE51P8%NV:J";
-    string w2 = "K+BW#FY9X=TSG7E/<&#+LG+S&M .8K3UT)-''GXFH2D2D(?<BFE>XH*4G(:>F,;?AH652FX>2+MU)?N ?T'?YO,%(90 Y $1Y/,O 8MS6-A=5<WA 8=";
+    string w1 = "+C<*@?OB+>9MW?,2U','/YBRO%ZAFAZ;+*";
+    string w2 = "=UOL1%!'Z7*I ";
     int n1 = w1.size(), n2 = w2.size();
-    Block bv[n1 + n2];
-    str2blocks(w1 + w2, bv, 0, 1);
+    Block bx[n1 + n2];
+    str2blocks(w1 + w2, bx, 0, 1);
     for (int i = 0; i < n1; ++i)
-      bv[i].lb(*this, 1);
-    bv[n1+n2-1].lb(*this, 1);
-    StringVar x(*this, DashedString(*this, bv, n1+n2));
+      bx[i].lb(*this, 1);
+    bx[n1+n2-1].lb(*this, 1);
+    StringVar x(*this, DashedString(*this, bx, n1+n2));
     StringView vx(x);
+    Block by[2];
+    by[0].update(*this, Block(*this, CharSet(*this, 0, 1000), 1, 49));
+    by[1].update(*this, Block(*this, CharSet(*this, ' '), 0, 48));
+    StringVar y(*this, DashedString(*this, by, 2));
+    StringView vy(y);
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert (equate_x(*this, vx, vy) == ME_STRING_NONE);
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
+    assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
+    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
   }
   
   
