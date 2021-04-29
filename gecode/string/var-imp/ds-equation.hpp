@@ -74,9 +74,9 @@ namespace Gecode { namespace String {
     int* U = r.alloc<int>(2*nx);
     int newSize = 0, uSize = 0;
     for (int i = 0; i < nx; ++i) {
-//      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
-//      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].ESP << "\nEEP: " 
-//                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
+      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
+      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].ESP << "\nEEP: " 
+                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
       Position& esp = m[i].ESP, eep = m[i].EEP, lsp = m[i].LSP, lep = m[i].LEP;
       Block& x_i = x[i];
       if (x_i.isFixed()) {
@@ -87,7 +87,7 @@ namespace Gecode { namespace String {
       if (u < l1)
         return false;
       int u1 = y.max_len_opt(x_i, esp, lep, l1);
-//      std::cerr << "l'=" << l1 << ", u'=" << u1 << "\n";
+      std::cerr << "l'=" << l1 << ", u'=" << u1 << "\n";
       if (l1 == 0 || l1 < l || u1 > u) {
         if (u1 == 0) {
           x_i.nullify(home);
@@ -147,6 +147,7 @@ namespace Gecode { namespace String {
       U[uSize++] = n;
       newSize += n;
     }
+//    std::cerr << "newSize: " << newSize << ", changed: " << changed << "\n";
     if (newSize > 0)
       x.resize(home, newBlocks, newSize, U, uSize);
     else if (changed)

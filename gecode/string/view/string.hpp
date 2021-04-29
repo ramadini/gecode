@@ -314,15 +314,16 @@ namespace Gecode { namespace String {
     assert(!prec(lep, esp));
     int p = esp.idx, p1 = lep.off > 0 ? lep.idx : lep.idx-1,
         q = esp.off, q1 = lep.off > 0 ? lep.off : (*this)[p1].ub();
+    std::cerr << "ESP=(" << p << "," << q << "), LEP=(" << p1 << "," << q1 << ")\n";
     if (p == p1)
       return nabla(bx, (*this)[p], q1-q);
     int k = bx.ub()-l;
-    int s = std::min(
+    int m = std::min(
       k + (*this)[p].lb(), nabla(bx, (*this)[p], (*this)[p].ub() - q)
     );
     for (int i = p+1; i < p1; i++) 
-      s += std::min(k + (*this)[i].lb(), nabla(bx,(*this)[i], (*this)[i].ub()));
-    return s + std::min((*this)[q].lb(), nabla(bx,(*this)[q], q1));
+      m += std::min(k + (*this)[i].lb(), nabla(bx,(*this)[i], (*this)[i].ub()));
+    return m + std::min(k + (*this)[p1].lb(), nabla(bx,(*this)[p1], q1));
   }
   
   forceinline void
