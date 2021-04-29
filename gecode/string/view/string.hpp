@@ -62,7 +62,7 @@ namespace Gecode { namespace String {
       return;
     pos.idx++;
     pos.off = 0;
-    assert (isOK());
+    assert (isOK() || sv[pos.idx].isNull());
   }
   
   forceinline bool
@@ -147,7 +147,7 @@ namespace Gecode { namespace String {
       pos.off = 0;
     else
       pos.idx--;
-    assert (isOK());
+    assert (isOK() || sv[pos.idx].isNull());
   };
   
   forceinline bool

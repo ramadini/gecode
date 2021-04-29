@@ -628,9 +628,12 @@ namespace Gecode { namespace String {
     }
     Gecode::Set::BndSetRanges i(s);
     S->intersectI(home, i);
-    if (l > 0 && S->empty())
-      throw VariableEmptyDomain("Block::baseIntersect");
-    if (l == u && S->size() == 1)
+    if (S->empty()) {
+      if (l > 0)
+        throw VariableEmptyDomain("Block::baseIntersect");
+      nullify(home);
+    }
+    else if (l == u && S->size() == 1)
       fix(home);
     assert(isOK());
   }
@@ -660,9 +663,12 @@ namespace Gecode { namespace String {
     }
     Gecode::Set::BndSetRanges i(*b.S);
     S->intersectI(home, i);
-    if (l > 0 && S->empty())
-      throw VariableEmptyDomain("Block::inters");
-    if (l == u && S->size() == 1)
+    if (S->empty()) {
+      if (l > 0)
+        throw VariableEmptyDomain("Block::inters");
+      nullify(home);
+    }
+    else if (l == u && S->size() == 1)
       fix(home);
     assert(isOK());
   }

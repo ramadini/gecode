@@ -79,8 +79,10 @@ namespace Gecode { namespace String {
 //                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
       Position& esp = m[i].ESP, eep = m[i].EEP, lsp = m[i].LSP, lep = m[i].LEP;
       Block& x_i = x[i];
-      if (x_i.isFixed())
+      if (x_i.isFixed()) {
+        changed |= nx > 1 && x_i.isNull();
         continue;
+      }
       int l = x_i.lb(), u = x_i.ub(), l1 = y.min_len_mand(x_i, lsp, eep);
       if (u < l1)
         return false;
@@ -93,9 +95,8 @@ namespace Gecode { namespace String {
           continue;
         }
         if (nx == 1 && l <= l1) {
-          // Special case where x is a single block: if we expand x into |y| 
-          // blocks the soundness is preserved if the length constraint |x|=|y|
-          // is propagated.
+          // x is a single block: we can expand x into |y| blocks if the length 
+          // constraint |x|=|y| is propagated.
           Region r;
           Block* y1 = r.alloc<Block>(y.size());
           y.expandBlock(home, x_i, y1);
@@ -196,27 +197,31 @@ namespace Gecode { namespace String {
   
   /// TODO:
   template <class IterY>
-  forceinline void
+  forceinline bool
   stretch(const Block& bx, IterY& it) {
 //    std::cerr << "Streching " << bx << " from " << *it << '\n';
     int k = bx.ub();
+    bool ndisj = false;
     while (it.hasNextBlock()) {
+      bool disj_it = it.disj(bx);
+      ndisj |= !disj_it;
       // Min. no. of chars that must be consumed.
       int m = it.must_consume();
-//      std::cerr << "it=" << *it << "k=" << k << ", m=" << m << std::endl;
+//      std::cerr << "it=" << *it << "k=" << k << ", m=" << m << ", disj=" <<disj<< std::endl;      
       if (m == 0)
         it.nextBlock();
-      else if (it.disj(bx))
-        return;
+      else if (disj_it)
+        return ndisj;
       else if (k < m) {
         it.consumeMand(k);
-        return;
+        return ndisj;
       }
       else {
         k -= m;
         it.nextBlock();
-      } 
+      }
     }
+    return ndisj;
   };
   
   template <class ViewX, class ViewY, class IterY>
@@ -276,7 +281,11 @@ namespace Gecode { namespace String {
     typename ViewY::SweepFwdIterator fwd_it = y.fwd_iterator();
     int nx = x.size(), ny = y.size();
     for (int i = 0; i < nx; ++i) {
-      stretch<typename ViewY::SweepFwdIterator>(x[i], fwd_it);
+      if (!stretch<typename ViewY::SweepFwdIterator>(x[i], fwd_it)) {
+        if (x[i].lb() > 0)
+          return false;
+        x[i].nullify(home);
+      }
       m[i].LEP = *fwd_it;
 //      std::cerr << i << ": " << x[i] << " LEP: " << m[i].LEP << '\n';
       if (!fwd_it.hasNextBlock()) {
@@ -289,7 +298,11 @@ namespace Gecode { namespace String {
       return false;
     typename ViewY::SweepBwdIterator bwd_it = y.bwd_iterator();
     for (int i = nx-1; i >= 0; --i) {
-      stretch<typename ViewY::SweepBwdIterator>(x[i], bwd_it);
+      if (!stretch<typename ViewY::SweepBwdIterator>(x[i], bwd_it)) {
+        if (x[i].lb() > 0)
+          return false;
+        x[i].nullify(home);
+      }
       m[i].ESP = *bwd_it;
 //      std::cerr << i << ": " << x[i] << " ESP: " << m[i].ESP << '\n';
       if (!bwd_it.hasNextBlock()) {

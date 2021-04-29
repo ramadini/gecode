@@ -268,10 +268,10 @@ public:
     Matching m[n];
     cerr << "Init. x = " << x << "  vs  y = " << y << "\n";
     bool b = init_x<StringView,StringView>(*this, vx, vy, m);
-    assert(b);    
-    for (int i = 0; i < n; ++i)
-      cerr << "ESP[ " << vx[i] << " ] = " << m[i].ESP << ", "
-           << "LEP[ " << vx[i] << " ] = " << m[i].LEP << "\n";
+    assert(!b);    
+//    for (int i = 0; i < n; ++i)
+//      cerr << "ESP[ " << vx[i] << " ] = " << m[i].ESP << ", "
+//           << "LEP[ " << vx[i] << " ] = " << m[i].LEP << "\n";
     cerr << "Init. y = " << y << "  vs  x = " << x << "\n";
     b = init_x<StringView,StringView>(*this, vy, vx, m);
     assert(!b);
@@ -363,19 +363,34 @@ public:
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
     assert(equate_x(*this, vx, vy) == ME_STRING_FAILED);
     assert(equate_x(*this, vy, vx) == ME_STRING_FAILED);
+    cerr << "Failed!\n";
+    
     StringVar z(*this, Block(*this, CharSet(*this, ' ', '~')));
     StringView vz(z);
     cerr << "Equate y = " << y << "  vs  z = " << z << "\n";
     assert(equate_x(*this, vy, vz) == ME_STRING_NONE);
+    cerr << "After equate: y = " << y << "  vs  z = " << z << "\n";    
     cerr << "Equate z = " << z << "  vs  y = " << y << "\n";
     assert(equate_x(*this, vz, vy) == ME_STRING_BASE);
-    cerr << "Equate z = " << z << "  vs  x = " << x << "\n";
+    cerr << "After equate: z = " << z << "  vs  y = " << y << "\n";
+    
     StringVar t(*this, DashedString(*this, bv, 8));
     StringView vt(t);
     cerr << "Equate z = " << z << "  vs  t = " << t << "\n";
-    //TODO: Debug this:
-    assert(equate_x(*this, vz, vt) == ME_STRING_CARD);    
+    assert(equate_x(*this, vz, vt) == ME_STRING_CARD);
+    cerr << "After equate: z = " << z << "  vs  t = " << t << "\n";
+    cerr << "Equate t = " << t << "  vs  z = " << z << "\n";
+    assert(equate_x(*this, vt, vz) == ME_STRING_CARD);
+    cerr << "After equate: t = " << t << "  vs  z = " << z << "\n";
+    double lt = t.varimp()->dom().logdim();
+    assert (lt == z.varimp()->dom().logdim() && lt == log(4));
   }
+  
+  void test11() {
+    cerr << "\n*** Test 11 ***" << endl;
+    
+  }
+  
   
 };
 
@@ -391,6 +406,7 @@ int main() {
   home->test08();
   home->test09();
   home->test10();
+  home->test11();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }
