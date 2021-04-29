@@ -316,7 +316,7 @@ namespace Gecode { namespace String {
 
   forceinline std::string 
   int2str_unspec(int x) {
-    return x > 32 && x < 127 ? std::string(1, char(x)) 
+    return x > 31 && x < 127 ? std::string(1, char(x)) 
                              : "<" + std::to_string(x) + ">";
   }
 

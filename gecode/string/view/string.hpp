@@ -295,15 +295,16 @@ namespace Gecode { namespace String {
   StringView::min_len_mand(const Block& bx, const Position& lsp, 
                                             const Position& eep) const {
     if (!prec(lsp, eep))
-      return 0;
+      return 0;    
     int h = lsp.idx, h1 = eep.off > 0 ? eep.idx : eep.idx-1, 
         k = lsp.off, k1 = eep.off > 0 ? eep.off : (*this)[h1].ub();
+    std::cerr << "LSP=(" << h << "," << k << "), EEP=(" << h1 << "," << k1 << ")\n";
     if (h == h1)
       return nabla(bx, (*this)[h], std::max(0, bx.lb()-h1));
-    int s = nabla(bx, (*this)[h], (*this)[h].lb() - k);
+    int m = nabla(bx, (*this)[h], (*this)[h].lb() - k);
     for (int i = h+1; i < h1; i++) 
-      s += nabla(bx, (*this)[i], (*this)[i].lb());
-    return s + nabla(bx, (*this)[k], k1);
+      m += nabla(bx, (*this)[i], (*this)[i].lb());
+    return m + nabla(bx, (*this)[k], k1);
   }
 
 
@@ -445,6 +446,9 @@ namespace Gecode { namespace String {
       j = U[i] + U[i+1];
       for (int k = U[i]; k < j; ++k, ++h)
         d[k].update(home, newBlocks[h]);
+    }
+    for (h = U[uSize/2-1]+1; h < size(); ++j, ++h) {
+      d[j].update(home, (*this)[h]);
     }
     d.normalize(home);
     update(home, d);                                                                

@@ -438,6 +438,8 @@ public:
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+    for (int i = 0; i < n1; ++i)
+      assert(w1[i] == vy[i].val()[0] && w1[i] == vx[i].val()[0]);
   }
   
   
