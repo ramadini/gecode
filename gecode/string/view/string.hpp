@@ -298,7 +298,7 @@ namespace Gecode { namespace String {
       return 0;    
     int h = lsp.idx, h1 = eep.off > 0 ? eep.idx : eep.idx-1, 
         k = lsp.off, k1 = eep.off > 0 ? eep.off : (*this)[h1].ub();
-    std::cerr << "LSP=(" << h << "," << k << "), EEP=(" << h1 << "," << k1 << ")\n";
+//    std::cerr << "LSP=(" << h << "," << k << "), EEP=(" << h1 << "," << k1 << ")\n";
     if (h == h1)
       return nabla(bx, (*this)[h], std::max(0, bx.lb()-h1));
     int m = nabla(bx, (*this)[h], (*this)[h].lb() - k);
@@ -363,6 +363,7 @@ namespace Gecode { namespace String {
     assert (prec(p, q));
     int p_i = p.idx, p_o = p.off, q_i = q.off > 0 ? q.idx : q.idx-1, 
                                   q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
+//    std::cerr << "ESP=(" << p_i << "," << p_o << "), LEP=(" << q_i << "," << q_o << ")\n";
     // Only one block involved
     if (p_i == q_i) {
       bnew.update(home, (*this)[p_i]);
@@ -373,6 +374,15 @@ namespace Gecode { namespace String {
     }
     // More than one block involved
     Gecode::Set::GLBndSet s;
+    if ((*this)[p_i].baseSize() == 1) {
+      int m = (*this)[p_i].baseMin();
+      Gecode::Set::SetDelta d;
+      s.include(home, m, m, d);
+    }
+    else {
+      Gecode::Set::BndSetRanges r((*this)[p_i].ranges());
+      s.includeI(home, r);
+    }
     int u = (*this)[p_i].ub() - p_o;
     for (int i = p_i+1; i < q_i; ++i) {
       if ((*this)[i].baseSize() == 1) {

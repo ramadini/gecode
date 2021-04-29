@@ -417,8 +417,8 @@ public:
   
   void test12() {
     cerr << "\n*** Test 12 ***" << endl;
-    string w1 = "+C<*@?OB+>9MW?,2U','/YBRO%ZAFAZ;+*";
-    string w2 = "=UOL1%!'Z7*I ";
+    string w1 = "+C<*@?OB+>9MW?,2U','/YBRO%ZAFAZ;+*"; // |w1| = 34
+    string w2 = "=UOL1%!'Z7*I "; // |w2| = 13
     int n1 = w1.size(), n2 = w2.size();
     Block bx[n1 + n2];
     str2blocks(w1 + w2, bx, 0, 1);
@@ -440,6 +440,9 @@ public:
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     for (int i = 0; i < n1; ++i)
       assert(w1[i] == vy[i].val()[0] && w1[i] == vx[i].val()[0]);
+    cerr << "Equate again y = " << y << "  vs  x = " << x << "\n";
+    assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
+    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
   }
   
   
@@ -447,17 +450,17 @@ public:
 
 int main() {
   StrTest* home = new StrTest();
-  home->test01();
-  home->test02();
-  home->test03();
-  home->test04();
-  home->test05();
-  home->test06();
-  home->test07();
-  home->test08();
-  home->test09();
-  home->test10();
-  home->test11();
+//  home->test01();
+//  home->test02();
+//  home->test03();
+//  home->test04();
+//  home->test05();
+//  home->test06();
+//  home->test07();
+//  home->test08();
+//  home->test09();
+//  home->test10();
+//  home->test11();
   home->test12();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
