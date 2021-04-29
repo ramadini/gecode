@@ -276,10 +276,10 @@ public:
     Matching m[n];
     cerr << "Init. x = " << x << "  vs  y = " << y << "\n";
     bool b = init_x<StringView,StringView>(*this, vx, vy, m);
-    assert(!b);    
-//    for (int i = 0; i < n; ++i)
-//      cerr << "ESP[ " << vx[i] << " ] = " << m[i].ESP << ", "
-//           << "LEP[ " << vx[i] << " ] = " << m[i].LEP << "\n";
+    assert(b);    
+    for (int i = 0; i < n; ++i)
+      cerr << "ESP[ " << vx[i] << " ] = " << m[i].ESP << ", "
+           << "LEP[ " << vx[i] << " ] = " << m[i].LEP << "\n";
     cerr << "Init. y = " << y << "  vs  x = " << x << "\n";
     b = init_x<StringView,StringView>(*this, vy, vx, m);
     assert(!b);
@@ -450,17 +450,17 @@ public:
 
 int main() {
   StrTest* home = new StrTest();
-//  home->test01();
-//  home->test02();
-//  home->test03();
-//  home->test04();
-//  home->test05();
-//  home->test06();
-//  home->test07();
-//  home->test08();
-//  home->test09();
-//  home->test10();
-//  home->test11();
+  home->test01();
+  home->test02();
+  home->test03();
+  home->test04();
+  home->test05();
+  home->test06();
+  home->test07();
+  home->test08();
+  home->test09();
+  home->test10();
+  home->test11();
   home->test12();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;

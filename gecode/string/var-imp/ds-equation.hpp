@@ -203,31 +203,27 @@ namespace Gecode { namespace String {
   
   /// TODO:
   template <class IterY>
-  forceinline bool
+  forceinline void
   stretch(const Block& bx, IterY& it) {
 //    std::cerr << "Streching " << bx << " from " << *it << '\n';
     int k = bx.ub();
-    bool ndisj = false;
     while (it.hasNextBlock()) {
-      bool disj_it = it.disj(bx);
-      ndisj |= !disj_it;
       // Min. no. of chars that must be consumed.
       int m = it.must_consume();
-//      std::cerr << "it=" << *it << "k=" << k << ", m=" << m << ", disj=" <<disj<< std::endl;      
+//      std::cerr << "it=" << *it << "k=" << k << ", m=" << m << ", ndisj=" <<ndisj<< std::endl;      
       if (m == 0)
         it.nextBlock();
-      else if (disj_it)
-        return ndisj;
+      else if (it.disj(bx))
+        return;
       else if (k < m) {
         it.consumeMand(k);
-        return ndisj;
+        return;
       }
       else {
         k -= m;
         it.nextBlock();
       }
     }
-    return ndisj;
   };
   
   template <class ViewX, class ViewY, class IterY>
@@ -287,11 +283,7 @@ namespace Gecode { namespace String {
     typename ViewY::SweepFwdIterator fwd_it = y.fwd_iterator();
     int nx = x.size(), ny = y.size();
     for (int i = 0; i < nx; ++i) {
-      if (!stretch<typename ViewY::SweepFwdIterator>(x[i], fwd_it)) {
-        if (x[i].lb() > 0)
-          return false;
-        x[i].nullify(home);
-      }
+      stretch<typename ViewY::SweepFwdIterator>(x[i], fwd_it);
       m[i].LEP = *fwd_it;
 //      std::cerr << i << ": " << x[i] << " LEP: " << m[i].LEP << '\n';
       if (!fwd_it.hasNextBlock()) {
@@ -304,11 +296,7 @@ namespace Gecode { namespace String {
       return false;
     typename ViewY::SweepBwdIterator bwd_it = y.bwd_iterator();
     for (int i = nx-1; i >= 0; --i) {
-      if (!stretch<typename ViewY::SweepBwdIterator>(x[i], bwd_it)) {
-        if (x[i].lb() > 0)
-          return false;
-        x[i].nullify(home);
-      }
+      stretch<typename ViewY::SweepBwdIterator>(x[i], bwd_it);
       m[i].ESP = *bwd_it;
 //      std::cerr << i << ": " << x[i] << " ESP: " << m[i].ESP << '\n';
       if (!bwd_it.hasNextBlock()) {
