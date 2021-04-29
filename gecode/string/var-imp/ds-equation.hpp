@@ -122,27 +122,26 @@ namespace Gecode { namespace String {
       Region r;
       int n = y.ub_new_blocks(m[i]);
       assert (n > 0);
-      bool no_lopt = esp == lsp; // True iff the left-opt. region is empty.
-      if (n == 1 && no_lopt) {
+      if (n == 1 && esp == lsp) {
         // No need to unfold x_i.
         n = x_i.baseSize();
-        ViewY::mand_region(home, x_i, y[lsp.idx], lsp, eep);
+        y.mand_region(home, x_i, y[lsp.idx], lsp, eep);
         changed |= l < x_i.lb() || u > x_i.ub() || n < x_i.baseSize();
 //        std::cerr << "x[" << i << "] ref. into " << x_i << "\n";
         continue;
       }
       // Unfolding x_i into newBlocks
       Block* mreg = r.alloc<Block>(n);
-      if (!no_lopt) {
+      if (esp == lsp)
+        y.mand_region(home, x_i, &mreg[0], u1, lsp, eep);
+      else {
         y.opt_region(home, x_i, mreg[0], esp, lsp);
         y.mand_region(home, x_i, &mreg[1], u1, lsp, eep);
       }
-      else
-        y.mand_region(home, x_i, &mreg[0], u1, lsp, eep);
       if (eep != lep)
         y.opt_region(home, x_i, mreg[n-1], eep, lep);
       DashedString d(home, mreg, n);
-      std::cerr << "d: " << d << '\n';
+//      std::cerr << "d: " << d << '\n';
       r.free();      
       n = d.size();                                                         
       for (int j = 0, k = newSize; j < n; ++j,++k)

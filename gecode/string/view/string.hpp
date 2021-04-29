@@ -404,13 +404,14 @@ namespace Gecode { namespace String {
   
   forceinline void
   StringView::mand_region(Space& home, Block& bx, const Block& by,
-                         const Position& lsp, const Position& eep) {
-    // FIXME: When only 1 block involved.                         
-    assert (lsp.idx == eep.idx || (lsp.idx == eep.idx-1 && eep.off == 0));
+                             const Position& p, const Position& q) const {
+    // FIXME: When only 1 block involved.
+    assert (p.idx == q.idx || (p.idx == q.idx-1 && q.off == 0));
+    int q_off = q.off > 0 ? q.off : (*this)[q.idx-1].ub();
     bx.baseIntersect(home, by);
     if (!bx.isNull())
-      bx.updateCard(home, std::max(bx.lb(), by.lb() - lsp.off),
-                          std::min(bx.ub(), eep.off - lsp.off));
+      bx.updateCard(home, std::max(bx.lb(), by.lb() - p.off),
+                          std::min(bx.ub(), q_off - p.off));
   }
   
   forceinline void

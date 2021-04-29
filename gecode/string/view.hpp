@@ -186,13 +186,13 @@ namespace Gecode { namespace String {
                             const Position& p, const Position& q) const;                       
     
     /// TODO:                   
-    static void
-    mand_region(Space& home, Block& bx, const Block& by, const Position& lep, 
-                                                         const Position& eep);
+    void
+    mand_region(Space& home, Block& bx, const Block& by,
+                   const Position& p, const Position& q) const;
     /// TODO:                                                     
     void
     mand_region(Space& home, const Block& bx, Block* bnew, int u,
-                             const Position& p, const Position& q) const;                                                   
+                             const Position& p, const Position& q) const;
     
     /// TODO:
     void

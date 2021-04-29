@@ -472,6 +472,37 @@ public:
     cerr << "Unsat!\n";
   }
   
+  void test14() {
+    cerr << "\n*** Test 14 ***" << endl;
+    string wx = "axb_xyz";
+    string wy = "_..xy...";
+    int nx = wx.size(), ny = wy.size();
+    Block bx[nx], by[ny];
+    str2blocks(wx, bx);
+    str2blocks(wy, by);
+    for (int i = 0; i < nx; ++i)
+      if (wx[i] == '_')
+        bx[i].update(*this, Block(*this, CharSet(*this), 1, 1));
+      else if (wx[i] == '.')
+        bx[i].update(*this, Block(*this, CharSet(*this), 0, 1));
+    StringVar x(*this, DashedString(*this, bx, nx));
+    StringView vx(x);
+    for (int i = 0; i < ny; ++i)
+      if (wy[i] == '_')
+        by[i].update(*this, Block(*this, CharSet(*this), 1, 1));
+      else if (wy[i] == '.')
+        by[i].update(*this, Block(*this, CharSet(*this), 0, 1));
+    StringVar y(*this, DashedString(*this, by, ny));
+    StringView vy(y);
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert (equate_x(*this, vx, vy) == ME_STRING_FAILED);
+    cerr << "Unsat!\n";
+    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
+    assert (equate_x(*this, vy, vx) == ME_STRING_FAILED);
+    cerr << "Unsat!\n";
+    // TODO: Try check_sweep here.
+  }
+  
 };
 
 int main() {
@@ -489,6 +520,7 @@ int main() {
   home->test11();
   home->test12();
   home->test13();
+  home->test14();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }
