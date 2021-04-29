@@ -417,7 +417,6 @@ public:
   
   void test12() {
     cerr << "\n*** Test 12 ***" << endl;
-    DashedString d(*this);
     string w1 = "A;CW7.MC3ER88MWZPRP.9H@A3?(2-UL3S3-3EG<;MQ@4TW6%*,FKYZ;J3XMF9?<F9>F%I)*HTAX3)7?'/0X*19<D1T)A><#V$V4UL7$@D W$,U5&GPFA(MH;.Z-N7/FBT7H0L5/;(#$S<LFZ6(SY5H6#YY/VD.=CUJG.5<7?O%W1N@PTHD3;A3.A4X%GN3Y(/&FFQ2#MK&/)WM&:>=23WNH;Q72P YHOAM++MROZPIOJ=))4MR7?&D;=N/&RR(6E7ZB,$?<<0GIE51P8%NV:J";
     string w2 = "K+BW#FY9X=TSG7E/<&#+LG+S&M .8K3UT)-''GXFH2D2D(?<BFE>XH*4G(:>F,;?AH652FX>2+MU)?N ?T'?YO,%(90 Y $1Y/,O 8MS6-A=5<WA 8=";
     int n1 = w1.size(), n2 = w2.size();
@@ -425,9 +424,9 @@ public:
     str2blocks(w1 + w2, bv, 0, 1);
     for (int i = 0; i < n1; ++i)
       bv[i].lb(*this, 1);
-//    StringVar x(*this, d);
-//    StringView vx(x);
-//    std::cerr << x << '\n';
+    bv[n1+n2-1].lb(*this, 1);
+    StringVar x(*this, DashedString(*this, bv, n1+n2));
+    StringView vx(x);
   }
   
   

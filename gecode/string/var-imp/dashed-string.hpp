@@ -723,32 +723,26 @@ namespace Gecode { namespace String {
   
   forceinline void
   Block::updateCard(Space& home, int lb, int ub) {
-    if (isFixed()) {
-      if (u == lb && u == ub)
-        return;
-      throw VariableEmptyDomain("Block::updateCard");
-    } 
-    if (l == lb && u == ub)
-      return;
     check_length(lb, ub, "Block::updateCard");
-    if (lb > ub || (lb > 0 && S->empty()))
-      throw VariableEmptyDomain("Block::updateCard");
-    if (u == 0)
-      // Block already null and lb == 0: nothing to update.
-      return;
-    if (lb == ub) {
-      if (l < u && S->size() == 1) {
-        // Block become fixed.
-        l = S->min();
-        nullifySet(home);
-      }
-    }
-    else {
-      if (isFixed())
-        // Block become unfixed.
+    if (isFixed()) {
+      if (lb < ub) {
         S = std::unique_ptr<CharSet>(new CharSet(home, l));
-      l = lb;
+        l = lb;
+      }
+      u = ub;
+      return;
     }
+    if (l == lb && u == ub)
+      return;   
+    if (lb > 0 && S->empty())
+      throw VariableEmptyDomain("Block::updateCard");
+    if (lb == ub && l < u && S->size() == 1) {
+      // Block become fixed.
+      l = S->min();
+      nullifySet(home);
+    }
+    else
+      l = lb;
     u = ub;
     assert(isOK());
   }
@@ -831,7 +825,7 @@ namespace Gecode { namespace String {
         throw OutOfLimits("DashedString::DashedString");
       }
       min_len += x[i].lb();
-      max_len = ub_sum(max_len, x[i].ub());
+      max_len = ub_sum(max_len, x[i].ub());      
       norm |= i > 0 && (x[i].isNull() || x[i].baseEquals(x[i-1]));
     }
     if (norm)
