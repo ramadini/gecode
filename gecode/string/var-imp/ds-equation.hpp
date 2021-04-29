@@ -58,7 +58,7 @@ namespace Gecode { namespace String {
 
   forceinline int
   nabla(const Block& bx, const Block& by, int x) {
-    return x > 0 && !bx.baseDisjoint(by) ? x : 0;
+    return x == 0 || bx.baseDisjoint(by) ? 0 : x;
   }
   
   /// Possibly refines each x[i] according to its matching region m[i] in y. 
@@ -66,7 +66,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool 
   refine_x(Space& home, ViewX& x, const ViewY& y, Matching m[], int& nBlocks) {
-//    std::cerr << "Refining " << x << "\nMax. " << nBlocks << " new blocks needed.\n";
+//    std::cerr << "Refining " << x << "  vs  " << y << "\nMax. " << nBlocks << " new blocks needed.\n";
     int nx = x.size();    
     bool changed = false;
     Region r;
@@ -79,15 +79,14 @@ namespace Gecode { namespace String {
 //                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
       Position& esp = m[i].ESP, eep = m[i].EEP, lsp = m[i].LSP, lep = m[i].LEP;
       Block& x_i = x[i];
-      if (x_i.isFixed()) {
-        changed |= nx > 1 && x_i.isNull();
-        continue;
-      }
       int l = x_i.lb(), u = x_i.ub(), l1 = y.min_len_mand(x_i, lsp, eep);
       if (u < l1)
         return false;
+      if (x_i.isFixed())
+        continue; 
       int u1 = y.max_len_opt(x_i, esp, lep, l1);
 //      std::cerr << "l'=" << l1 << ", u'=" << u1 << "\n";
+      assert (l1 <= u1);      
       if (l1 == 0 || l1 < l || u1 > u) {
         if (u1 == 0) {
           x_i.nullify(home);

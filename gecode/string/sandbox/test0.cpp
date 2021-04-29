@@ -283,7 +283,7 @@ public:
     cerr << "Init. y = " << y << "  vs  x = " << x << "\n";
     b = init_x<StringView,StringView>(*this, vy, vx, m);
     assert(!b);
-    cerr << "Failed!\n";
+    cerr << "Unsat!\n";
     bv[3].update(*this, Block(*this, CharSet(*this, '!'), 0, 3));
     StringVar z(*this, DashedString(*this, bv, 3));
     StringView vz(z);
@@ -371,7 +371,7 @@ public:
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
     assert(equate_x(*this, vx, vy) == ME_STRING_FAILED);
     assert(equate_x(*this, vy, vx) == ME_STRING_FAILED);
-    cerr << "Failed!\n";
+    cerr << "Unsat!\n";
     
     StringVar z(*this, Block(*this, CharSet(*this, ' ', '~')));
     StringView vz(z);
@@ -445,6 +445,32 @@ public:
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
   }
   
+  void test13() {
+    cerr << "\n*** Test 13 ***" << endl;
+    IntSet s({'B', 'C', ' ', '='});
+    Block bx[9];
+    bx[0].update(*this, Block('A'));
+    bx[1].update(*this, Block('='));
+    bx[2].update(*this, Block('B'));
+    bx[3].update(*this, Block(*this, CharSet(*this, s), 0, 5));
+    bx[4].update(*this, Block('C'));
+    bx[5].update(*this, Block('='));
+    bx[6].update(*this, Block(*this, CharSet(*this, s), 0, 5));
+    bx[4].update(*this, Block('C'));
+    StringVar x(*this, DashedString(*this, bx, 9));
+    StringView vx(x);
+    string w = "A=B=C = B=C"; 
+    Block by[w.size()];
+    str2blocks(w, by);
+    StringVar y(*this, DashedString(*this, by, w.size()));
+    StringView vy(y);
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert (equate_x(*this, vx, vy) == ME_STRING_FAILED);
+    cerr << "Unsat!\n";
+    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
+    assert (equate_x(*this, vy, vx) == ME_STRING_FAILED);
+    cerr << "Unsat!\n";
+  }
   
 };
 
@@ -462,6 +488,7 @@ int main() {
   home->test10();
   home->test11();
   home->test12();
+  home->test13();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }
