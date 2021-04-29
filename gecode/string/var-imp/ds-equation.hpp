@@ -66,7 +66,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool 
   refine_x(Space& home, ViewX& x, const ViewY& y, Matching m[], int& nBlocks) {
-//    std::cerr << "Refining " << x << "  vs  " << y << "\nMax. " << nBlocks << " new blocks needed.\n";
+    std::cerr << "Refining " << x << "  vs  " << y << "\nMax. " << nBlocks << " new blocks needed.\n";
     int nx = x.size();    
     bool changed = false;
     Region r;
@@ -74,9 +74,9 @@ namespace Gecode { namespace String {
     int* U = r.alloc<int>(2*nx);
     int newSize = 0, uSize = 0;
     for (int i = 0; i < nx; ++i) {
-//      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
-//      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].LSP << "\nEEP: " 
-//                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
+      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
+      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].LSP << "\nEEP: " 
+                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
       Position& esp = m[i].ESP, eep = m[i].EEP, lsp = m[i].LSP, lep = m[i].LEP;
       Block& x_i = x[i];
       int l = x_i.lb(), u = x_i.ub(), l1 = y.min_len_mand(x_i, lsp, eep);
@@ -85,7 +85,7 @@ namespace Gecode { namespace String {
       if (x_i.isFixed())
         continue; 
       int u1 = y.max_len_opt(x_i, esp, lep, l1);
-//      std::cerr << "l'=" << l1 << ", u'=" << u1 << "\n";
+      std::cerr << "l'=" << l1 << ", u'=" << u1 << "\n";
       assert (l1 <= u1);      
       if (l1 == 0 || l1 < l || u1 > u) {
         if (u1 == 0) {
@@ -94,8 +94,8 @@ namespace Gecode { namespace String {
           continue;
         }
         if (nx == 1 && l <= l1) {
-          // x is a single block: we can expand x into |y| blocks if the length 
-          // constraint |x|=|y| is propagated.
+          // x is a single block: we can expand x into |y| blocks if |x|=|y| 
+          // is propagated, otherwise the propagation is unsound!!!
           Region r;
           Block* y1 = r.alloc<Block>(y.size());
           y.expandBlock(home, x_i, y1);

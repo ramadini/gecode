@@ -503,6 +503,35 @@ public:
     // TODO: Try check_sweep here.
   }
   
+  void test15() {
+    cerr << "\n*** Test 15 ***" << endl;
+    StringVar x(*this, Block(*this, CharSet(*this, 'a', 'b'), 0 , 4));
+    Block by[2];
+    by[0].update(*this,  Block(*this, CharSet(*this, 'a', 'b'), 0 , 2));
+    by[1].update(*this,  Block('a', 3));
+    StringVar y(*this, DashedString(*this, by, 2));
+    StringView vx(x), vy(y);
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
+    assert (vx[0].logdim() + vx[1].logdim() == vy[0].logdim() + vy[1].logdim());
+    assert (equate_x(*this, vy, vx) == ME_STRING_NONE);
+  }
+  
+  void test16() {
+    std::cerr << "\n*** Test 16 ***" << std::endl;
+    int n = 10;
+//    NSBlocks vx({
+//      NSBlock(NSIntSet('a', 'c'), 0, 30 * n),
+//      NSBlock(NSIntSet('d', 'd'), 5 * n, 5 * n),
+//      NSBlock(NSIntSet('c', 'f'), 0, 2 * n)
+//    });
+//    NSBlocks vy({
+//      NSBlock(NSIntSet('b', 'd'), 26 * n, 26 * n),
+//      NSBlock(NSIntSet('f', 'f'), n, n)
+//    });
+  
+  }
+  
 };
 
 int main() {
@@ -521,6 +550,8 @@ int main() {
   home->test12();
   home->test13();
   home->test14();
+  home->test15();
+  home->test16();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }
