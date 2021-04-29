@@ -314,7 +314,7 @@ namespace Gecode { namespace String {
     assert(!prec(lep, esp));
     int p = esp.idx, p1 = lep.off > 0 ? lep.idx : lep.idx-1,
         q = esp.off, q1 = lep.off > 0 ? lep.off : (*this)[p1].ub();
-    std::cerr << "ESP=(" << p << "," << q << "), LEP=(" << p1 << "," << q1 << ")\n";
+//    std::cerr << "ESP=(" << p << "," << q << "), LEP=(" << p1 << "," << q1 << ")\n";
     if (p == p1)
       return nabla(bx, (*this)[p], q1-q);
     int k = bx.ub()-l;
