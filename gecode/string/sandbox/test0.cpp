@@ -555,7 +555,22 @@ public:
   
   void test18() {
     std::cerr << "\n*** Test 18 ***" << std::endl;
-    
+    Block bx[3];
+    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1 , 1));
+    bx[1].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1 , 1));
+    bx[2].update(*this, Block(*this, CharSet(*this, 'c', 'd'), 1 , 1));
+    Block by[2];
+    by[0].update(*this, Block(*this, CharSet(*this, 'a', 'a'), 0 , 2));
+    by[1].update(*this, Block(*this, CharSet(*this, 'd', 'd'), 1 , 1));
+    StringVar x(*this, DashedString(*this, bx, 3));
+    StringVar y(*this, DashedString(*this, by, 2));
+    StringView vx(x), vy(y);
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert (equate_x(*this, vx, vy) == ME_STRING_VAL);
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
+    assert (equate_x(*this, vy, vx) == ME_STRING_VAL);
+    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
   }
   
 };

@@ -103,8 +103,10 @@ namespace Gecode { namespace String {
           // If some prefix or suffix fixed, or d actually refines x_i
           if ((d[0].baseSize() == 1 && d[0].lb() > 0) 
           ||  (d[d.size()-1].baseSize() == 1 && d[d.size()-1].lb() > 0)
-          ||  (d.logdim() < x_i.logdim()))
+          ||  (d.logdim() < x_i.logdim())) {
             x.update(home, d);
+            changed = true;
+          }
           else
             nBlocks = -1;
           return true;
@@ -114,7 +116,7 @@ namespace Gecode { namespace String {
         x_i.updateCard(home, std::max(l, l1), std::min(u, u1));
         y.crushBase(home, x_i, esp, lep);
 //        std::cerr << "x[" << i << "] ref. into " << x_i << "\n";
-        changed |= l < l1 || u > u1 || m < x_i.baseSize();
+        changed |= l < l1 || u > u1 || m > x_i.baseSize();
         continue;
       }
       assert (l1 > 0);
@@ -125,7 +127,7 @@ namespace Gecode { namespace String {
         // No need to unfold x_i.
         n = x_i.baseSize();
         y.mand_region(home, x_i, y[lsp.idx], lsp, eep);
-        changed |= l < x_i.lb() || u > x_i.ub() || n < x_i.baseSize();
+        changed |= l < x_i.lb() || u > x_i.ub() || n > x_i.baseSize();
 //        std::cerr << "x[" << i << "] ref. into " << x_i << "\n";
         continue;
       }
@@ -146,7 +148,7 @@ namespace Gecode { namespace String {
       if (n == 1) {
         // No need to unfold x_i.
         x_i.update(home, d[0]);
-        changed |= l < x_i.lb() || u > x_i.ub() || n < x_i.baseSize();
+        changed |= l < x_i.lb() || u > x_i.ub() || n > x_i.baseSize();
 //        std::cerr << "x[" << i << "] ref. into " << x_i << "\n";
         continue;
       }
@@ -156,7 +158,7 @@ namespace Gecode { namespace String {
       U[uSize++] = n;
       newSize += n;
     }
-//    std::cerr << "newSize: " << newSize << ", uSize: " << uSize << ", changed: " << changed << "\n";
+    std::cerr << "newSize: " << newSize << ", uSize: " << uSize << ", changed: " << changed << "\n";
     if (newSize > 0)
       x.resize(home, newBlocks, newSize, U, uSize);
     else if (changed)
