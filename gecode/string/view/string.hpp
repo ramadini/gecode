@@ -273,14 +273,15 @@ namespace Gecode { namespace String {
   forceinline bool
   StringView::equiv(const Position& p, const Position& q) const {
     return p == q 
-       || (q.off == 0 && p.idx == q.idx-1 && p.off == (*this)[p.idx].ub());
+       || (q.off == 0 && p.idx == q.idx-1 && p.off == (*this)[p.idx].ub())
+       || (p.off == 0 && q.idx == p.idx-1 && q.off == (*this)[q.idx].ub());
   }
   
   forceinline bool
   StringView::prec(const Position& p, const Position& q) const {
     return (p.idx < q.idx-1)
         || (p.idx == q.idx && p.off < q.off)
-        || (p.idx == q.idx-1 && (q.off == 0 || p.off != (*this)[p.idx].ub()));
+        || (p.idx == q.idx-1 && (q.off > 0 || p.off < (*this)[p.idx].ub()));
   }
   
   forceinline int
