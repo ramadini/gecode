@@ -298,15 +298,60 @@ namespace Gecode { namespace String {
                                             const Position& eep) const {
     if (!prec(lsp, eep))
       return 0;    
-    int h = lsp.idx, h1 = eep.off > 0 ? eep.idx : eep.idx-1, 
-        k = lsp.off, k1 = eep.off > 0 ? eep.off : (*this)[h1].ub();
-//    std::cerr << "LSP=(" << h << "," << k << "), EEP=(" << h1 << "," << k1 << ")\n";
-    if (h == h1)
-      return nabla(bx, (*this)[h], std::max(0, std::min(k1,(*this)[h].lb())-k));
-    int m = nabla(bx, (*this)[h], (*this)[h].lb() - k);
-    for (int i = h+1; i < h1; i++) 
+    int p_i = lsp.idx, q_i = eep.off > 0 ? eep.idx : eep.idx-1, 
+        p_o = lsp.off, q_o = eep.off > 0 ? eep.off : (*this)[q_i].ub();
+    const Block& bp = (*this)[p_i];
+    if (p_i == q_i)
+      return nabla(bx, bp, std::max(0, std::min(q_o, bp.lb()) - p_o));
+    int m = nabla(bx, bp, bp.lb() - p_o);
+    for (int i = p_i+1; i < q_i; i++) 
       m += nabla(bx, (*this)[i], (*this)[i].lb());
-    return m + nabla(bx, (*this)[k], k1);
+    return m + nabla(bx, (*this)[p_o], q_o);
+  }
+  
+  forceinline void
+  StringView::mand_region(Space& home, Block& bx, const Block& by,
+                             const Position& p, const Position& q) const {
+    // FIXME: When only 1 block involved.
+    assert (p.idx == q.idx || (p.idx == q.idx-1 && q.off == 0));
+    int q_off = q.off > 0 ? q.off : (*this)[q.idx-1].ub();
+    bx.baseIntersect(home, by);
+    if (!bx.isNull())
+      bx.updateCard(home, std::max(0, std::min(q_off, by.lb()) - p.off),
+                          std::min(bx.ub(), q_off - p.off));
+  }
+  
+  forceinline void
+  StringView::mand_region(Space& home, Block& bx, Block* bnew, int u,
+                          const Position& p, const Position& q) const {
+    assert (prec(p, q));
+    int p_i = p.idx, p_o = p.off, q_i = q.off > 0 ? q.idx : q.idx-1, 
+                                  q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
+//    std::cerr << "LSP=(" << p_i << "," << p_o << "), EEP=(" << q_i << "," << q_o << ")\n";
+    const Block& bp = (*this)[p_i];
+    // Head of the region.
+    bnew[0].update(home, bp);
+    bnew[0].baseIntersect(home, bx);
+    if (!bnew[0].isNull())
+      bnew[0].updateCard(home, std::max(0, std::min(q_o, bp.lb()) - p_o), 
+                               std::min(u, q_o-p_o));
+    if (p_i == q_i)
+      return;
+    // Central part of the region.
+    int j = 1;
+    for (int i = p_i+1; i < q_i; ++i, ++j) {
+      Block& bj = bnew[j];
+      bj.update(home, (*this)[i]);
+      bj.baseIntersect(home, bx);
+      if (!bj.isNull() && bj.ub() > u)
+        bj.ub(home, u);
+    }
+    // Tail of the region.
+    const Block& bq = (*this)[q_i];
+    bnew[j].update(home, bq);
+    bnew[j].baseIntersect(home, bx);
+    if (!bnew[j].isNull())
+      bnew[j].updateCard(home, std::min(bq.lb(), q_o), std::min(u, q_o));
   }
 
 
@@ -399,51 +444,6 @@ namespace Gecode { namespace String {
     bnew.baseIntersect(home, s);    
     if (!bnew.isNull())
       bnew.updateCard(home, 0, ub_sum(u, q_o));
-  }
-  
-  forceinline void
-  StringView::mand_region(Space& home, Block& bx, const Block& by,
-                             const Position& p, const Position& q) const {
-    // FIXME: When only 1 block involved.
-    assert (p.idx == q.idx || (p.idx == q.idx-1 && q.off == 0));
-    int q_off = q.off > 0 ? q.off : (*this)[q.idx-1].ub();
-    bx.baseIntersect(home, by);
-    if (!bx.isNull())
-      bx.updateCard(home, std::max(0, std::min(q_off, by.lb()) - p.off),
-                          std::min(bx.ub(), q_off - p.off));
-  }
-  
-  forceinline void
-  StringView::mand_region(Space& home, Block& bx, Block* bnew, int u,
-                          const Position& p, const Position& q) const {
-    assert (prec(p, q));
-    int p_i = p.idx, p_o = p.off, q_i = q.off > 0 ? q.idx : q.idx-1, 
-                                  q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
-//    std::cerr << "LSP=(" << p_i << "," << p_o << "), EEP=(" << q_i << "," << q_o << ")\n";
-    const Block& bp = (*this)[p_i];
-    // Head of the region.
-    bnew[0].update(home, bp);
-    bnew[0].baseIntersect(home, bx);
-    if (!bnew[0].isNull())
-      bnew[0].updateCard(home, std::max(0, std::min(q_o, bp.lb()) - p_o), 
-                               std::min(u, q_o-p_o));
-    if (p_i == q_i)
-      return;
-    // Central part of the region.
-    int j = 1;
-    for (int i = p_i+1; i < q_i; ++i, ++j) {
-      Block& bj = bnew[j];
-      bj.update(home, (*this)[i]);
-      bj.baseIntersect(home, bx);
-      if (!bj.isNull() && bj.ub() > u)
-        bj.ub(home, u);
-    }
-    // Tail of the region.
-    const Block& bq = (*this)[q_i];
-    bnew[j].update(home, bq);
-    bnew[j].baseIntersect(home, bx);
-    if (!bnew[j].isNull())
-      bnew[j].updateCard(home, std::min(bq.lb(), q_o), std::min(u, q_o));
   }
   
   forceinline void
