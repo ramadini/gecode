@@ -191,7 +191,6 @@ namespace Gecode { namespace String {
       else {
         // Max. no. of chars that may be consumed.
         int m = it.may_consume();
-//        std::cerr << "m=" << m << std::endl;
         if (k <= m) {
           it.consume(k);
           return p;
@@ -359,15 +358,18 @@ namespace Gecode { namespace String {
     int lb = x.min_length(), ub = x.max_length();
     Matching m[x.size()];
     int n;
-    if (!sweep_x(home, x, y, m, n) || !refine_x(home, x, y, m, n))
+    if (sweep_x(home, x, y, m, n) && refine_x(home, x, y, m, n)) {
+      if (n == -1)
+        return ME_STRING_NONE;
+      if (x.assigned())
+        return ME_STRING_VAL;
+      if (x.min_length() > lb || x.max_length() < ub)
+        return ME_STRING_CARD;
+      return ME_STRING_BASE;
+    }
+    else
       return ME_STRING_FAILED;
-    if (n == -1)
-      return ME_STRING_NONE;
-    if (x.assigned())
-      return ME_STRING_VAL;
-    if (x.min_length() > lb || x.max_length() < ub)
-      return ME_STRING_CARD;
-    return ME_STRING_BASE;
+    
   }
 
 }}
