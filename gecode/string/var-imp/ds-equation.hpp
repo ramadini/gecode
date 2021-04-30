@@ -57,7 +57,7 @@ namespace Gecode { namespace String {
 
   forceinline int
   nabla(const Block& bx, const Block& by, int x) {
-    return x == 0 || bx.baseDisjoint(by) ? 0 : x;
+    return x <= 0 || bx.baseDisjoint(by) ? 0 : x;
   }
   
   /// Possibly refines each x[i] according to its matching region m[i] in y. 

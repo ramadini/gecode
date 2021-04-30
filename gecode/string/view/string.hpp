@@ -294,42 +294,30 @@ namespace Gecode { namespace String {
   }
 
   forceinline int
-  StringView::min_len_mand(const Block& bx, const Position& lsp, 
-                                            const Position& eep) const {
-    if (!prec(lsp, eep))
+  StringView::min_len_mand(const Block& bx, const Position& p,
+                                            const Position& q) const {
+    if (!prec(p,q))
       return 0;    
-    int p_i = lsp.idx, q_i = eep.off > 0 ? eep.idx : eep.idx-1, 
-        p_o = lsp.off, q_o = eep.off > 0 ? eep.off : (*this)[q_i].ub();
+    int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
+        p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
     const Block& bp = (*this)[p_i];
     if (p_i == q_i)
-      return nabla(bx, bp, std::max(0, std::min(q_o, bp.lb()) - p_o));
-    int m = std::max(0, nabla(bx, bp, bp.lb() - p_o));
+      return nabla(bx, bp, std::min(q_o, bp.lb()) - p_o);
+    int m = nabla(bx, bp, bp.lb() - p_o);
     for (int i = p_i+1; i < q_i; i++) {
       const Block& bi = (*this)[p_i];
       m += nabla(bx, bi, bi.lb());
     }
     const Block& bq = (*this)[q_i];
     return m + nabla(bx, bq, std::min(bq.lb(), q_o));
-  }
-  
-  forceinline void
-  StringView::mand_region(Space& home, Block& bx, const Block& by,
-                             const Position& p, const Position& q) const {
-    // FIXME: When only block by is involved.
-    assert (p.idx == q.idx || (p.idx == q.idx-1 && q.off == 0));
-    int q_off = q.off > 0 ? q.off : (*this)[q.idx-1].ub();
-    bx.baseIntersect(home, by);
-    if (!bx.isNull())
-      bx.updateCard(home, std::max(bx.lb(), std::min(q_off, by.lb()) - p.off),
-                          std::min(bx.ub(), q_off - p.off));
-  }
+  }  
   
   forceinline void
   StringView::mand_region(Space& home, Block& bx, Block* bnew, int u,
-                          const Position& p, const Position& q) const {
+                                const Position& p, const Position& q) const {
     assert (prec(p, q));
-    int p_i = p.idx, p_o = p.off, q_i = q.off > 0 ? q.idx : q.idx-1, 
-                                  q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
+    int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
+        p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
 //    std::cerr << "LSP=(" << p_i << "," << p_o << "), EEP=(" << q_i << "," << q_o << ")\n";
     const Block& bp = (*this)[p_i];
     // Head of the region.
@@ -356,8 +344,19 @@ namespace Gecode { namespace String {
     if (!bnew[j].isNull())
       bnew[j].updateCard(home, std::min(bq.lb(), q_o), std::min(u, q_o));
   }
-
-
+  
+  forceinline void
+  StringView::mand_region(Space& home, Block& bx, const Block& by,
+                             const Position& p, const Position& q) const {
+    // FIXME: When only block by is involved.
+    assert (p.idx == q.idx || (p.idx == q.idx-1 && q.off == 0));
+    int q_off = q.off > 0 ? q.off : (*this)[q.idx-1].ub();
+    bx.baseIntersect(home, by);
+    if (!bx.isNull())
+      bx.updateCard(home, std::max(bx.lb(), std::min(q_off, by.lb()) - p.off),
+                          std::min(bx.ub(), q_off - p.off));
+  }
+  
   forceinline int
   StringView::max_len_opt(const Block& bx, const Position& esp, 
                                            const Position& lep) const {
