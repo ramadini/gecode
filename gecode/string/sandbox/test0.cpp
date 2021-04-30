@@ -223,7 +223,7 @@ public:
   void test06() {
     cerr << "\n*** Test 06 ***" << endl;
     Block bv[5];
-    bv[0].update(*this, Block(*this, CharSet(*this, IntSet({'B','b'})), 1 , 1));
+    bv[0].update(*this, Block(*this, CharSet(*this, IntSet({'B','b'})), 1, 1));
     bv[1].update(*this, Block(*this, CharSet(*this, 'o'), 2 ,4));
     bv[2].update(*this, Block('m'));
     bv[3].update(*this, Block(*this, CharSet(*this, '!'), 0 ,3));
@@ -502,9 +502,9 @@ public:
   
   void test15() {
     cerr << "\n*** Test 15 ***" << endl;
-    StringVar x(*this, Block(*this, CharSet(*this, 'a', 'b'), 0 , 4));
+    StringVar x(*this, Block(*this, CharSet(*this, 'a', 'b'), 0, 4));
     Block by[2];
-    by[0].update(*this,  Block(*this, CharSet(*this, 'a', 'b'), 0 , 2));
+    by[0].update(*this,  Block(*this, CharSet(*this, 'a', 'b'), 0, 2));
     by[1].update(*this,  Block('a', 3));
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vx(x), vy(y);
@@ -519,9 +519,9 @@ public:
     std::cerr << "\n*** Test 16 ***" << std::endl;
     int n = 10;
     Block bx[3];
-    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0 , 30*n));
+    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 30*n));
     bx[1].update(*this, Block('d', 5*n));
-    bx[2].update(*this, Block(*this, CharSet(*this, 'c', 'f'), 0 , 2*n));
+    bx[2].update(*this, Block(*this, CharSet(*this, 'c', 'f'), 0, 2*n));
     Block by[3];
     by[0].update(*this, Block(*this, CharSet(*this, 'b', 'd'), 26*n, 26*n));
     by[1].update(*this, Block('f', n));
@@ -540,11 +540,11 @@ public:
   void test17() {
     std::cerr << "\n*** Test 17 ***" << std::endl;
     Block bx[2];
-    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0 , 300));
-    bx[1].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1 , 1));
+    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 300));
+    bx[1].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 1));
     Block by[2];
-    by[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0 , 300));
-    by[1].update(*this, Block(*this, CharSet(*this, 'b', 'c'), 0 , 200));
+    by[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 300));
+    by[1].update(*this, Block(*this, CharSet(*this, 'b', 'c'), 0, 200));
     StringVar x(*this, DashedString(*this, bx, 2));
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vx(x), vy(y);
@@ -556,12 +556,12 @@ public:
   void test18() {
     std::cerr << "\n*** Test 18 ***" << std::endl;
     Block bx[3];
-    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1 , 1));
-    bx[1].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1 , 1));
-    bx[2].update(*this, Block(*this, CharSet(*this, 'c', 'd'), 1 , 1));
+    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 1));
+    bx[1].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 1));
+    bx[2].update(*this, Block(*this, CharSet(*this, 'c', 'd'), 1, 1));
     Block by[2];
-    by[0].update(*this, Block(*this, CharSet(*this, 'a', 'a'), 0 , 2));
-    by[1].update(*this, Block(*this, CharSet(*this, 'd', 'd'), 1 , 1));
+    by[0].update(*this, Block(*this, CharSet(*this, 'a', 'a'), 0, 2));
+    by[1].update(*this, Block(*this, CharSet(*this, 'd', 'd'), 1, 1));
     StringVar x(*this, DashedString(*this, bx, 3));
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vx(x), vy(y);
@@ -577,22 +577,56 @@ public:
   void test19() {
     std::cerr << "\n*** Test 19 ***" << std::endl;
     Block bx[3];
-    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1 , 1));
-    bx[1].update(*this, Block(*this, CharSet(*this, 'e', 'f'), 1 , 1));
-    bx[2].update(*this, Block(*this, CharSet(*this, 'c', 'd'), 1 , 1));
+    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 1));
+    bx[1].update(*this, Block(*this, CharSet(*this, 'e', 'f'), 1, 1));
+    bx[2].update(*this, Block(*this, CharSet(*this, 'c', 'd'), 1, 1));
     Block by[2];
-    by[0].update(*this, Block(*this, CharSet(*this, 'a', 'd'), 0 , 2));
-    by[1].update(*this, Block(*this, CharSet(*this, 'd', 'd'), 1 , 1));
+    by[0].update(*this, Block(*this, CharSet(*this, 'a', 'd'), 0, 2));
+    by[1].update(*this, Block(*this, CharSet(*this, 'd', 'd'), 1, 1));
     StringVar x(*this, DashedString(*this, bx, 3));
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vx(x), vy(y);
-    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
     assert (equate_x(*this, vx, vy) == ME_STRING_FAILED);
     cerr << "Unsat!\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert (equate_x(*this, vy, vx) == ME_STRING_FAILED);
     cerr << "Unsat!\n";
+  }
+  
+  void test20() {
+//NSBlocks vx({
+//      NSBlock(NSIntSet('x', 'z'), 1, 1),
+//      NSBlock(NSIntSet('a', 'b'), 0, 2),
+//      NSBlock(NSIntSet('y', 'y'), 1, 1),
+//    });
+//    NSBlocks vy({
+//      NSBlock(NSIntSet('x', 'z'), 1, 1),
+//      NSBlock(NSIntSet('a', 'c'), 0, 1),
+//      NSBlock(NSIntSet('b', 'c'), 1, 1),
+//      NSBlock(NSIntSet('x', 'z'), 1, 1)
+//    });
+    std::cerr << "\n*** Test 20 ***" << std::endl;
+    Block bx[3];
+    bx[0].update(*this, Block(*this, CharSet(*this, 'x', 'z'), 1, 1));
+    bx[1].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 0, 2));
+    bx[2].update(*this, Block('y'));
+    Block by[4];
+    by[0].update(*this, Block(*this, CharSet(*this, 'x', 'z'), 1, 1));
+    by[1].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 1));
+    by[2].update(*this, Block(*this, CharSet(*this, 'b', 'c'), 1, 1));
+    by[3].update(*this, Block(*this, CharSet(*this, 'x', 'z'), 1, 1));
+    StringVar x(*this, DashedString(*this, bx, 3));
+    StringVar y(*this, DashedString(*this, by, 4));
+    StringView vx(x), vy(y);
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+    assert (vx[1].ub() == 1 && vx[2].val()[0] == 'b' && vx[3].val()[0] == 'y');
+    assert (equate_x(*this, vy, vx) == ME_STRING_BASE);
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+    assert (vx.varimp()->dom().contains(vy.varimp()->dom()));
+    assert (vy.varimp()->dom().contains(vx.varimp()->dom()));
   }
   
 };
@@ -618,6 +652,7 @@ int main() {
   home->test17();
   home->test18();
   home->test19();
+  home->test20();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }
