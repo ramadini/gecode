@@ -517,7 +517,7 @@ public:
   
   void test16() {
     std::cerr << "\n*** Test 16 ***" << std::endl;
-    int n = 1;
+    int n = 10;
     Block bx[3];
     bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0 , 30*n));
     bx[1].update(*this, Block('d', 5*n));
@@ -535,6 +535,27 @@ public:
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert (equate_x(*this, vy, vx) == ME_STRING_NONE);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+  }
+  
+  void test17() {
+    std::cerr << "\n*** Test 17 ***" << std::endl;
+    Block bx[2];
+    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0 , 300));
+    bx[1].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1 , 1));
+    Block by[2];
+    by[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0 , 300));
+    by[1].update(*this, Block(*this, CharSet(*this, 'b', 'c'), 0 , 200));
+    StringVar x(*this, DashedString(*this, bx, 2));
+    StringVar y(*this, DashedString(*this, by, 2));
+    StringView vx(x), vy(y);
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert (equate_x(*this, vx, vy) == ME_STRING_NONE);
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+  }
+  
+  void test18() {
+    std::cerr << "\n*** Test 18 ***" << std::endl;
+    
   }
   
 };
@@ -557,6 +578,8 @@ int main() {
   home->test14();
   home->test15();
   home->test16();
+  home->test17();
+  home->test18();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }
