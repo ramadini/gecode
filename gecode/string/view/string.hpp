@@ -371,9 +371,66 @@ namespace Gecode { namespace String {
     int m = nabla(bx, bp, bp.ub() - p_o);
     for (int i = p_i+1; i < q_i; i++) {
       const Block& bi = (*this)[i];
-      m += nabla(bx, bi, bi.ub());
+      m = ub_sum(m, nabla(bx, bi, bi.ub()));
     }
-    return m + nabla(bx, (*this)[q_i], q_o);
+    return ub_sum(m, nabla(bx, (*this)[q_i], q_o));
+  }
+  
+  forceinline void
+  StringView::opt_region(Space& home, const Block& bx, Block& bnew,
+                              const Position& p, const Position& q) const {
+    assert(prec(p,q));
+    int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
+        p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
+//    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
+    // Only one block involved
+    const Block& bp = (*this)[p_i];
+    if (p_i == q_i) {
+      bnew.update(home, bp);
+      bnew.baseIntersect(home, bx);
+      if (!bnew.isNull())
+        bnew.updateCard(home, 0, q_o - p_o);
+      return;
+    }
+    // More than one block involved
+    Gecode::Set::GLBndSet s;
+    if (bp.baseSize() == 1) {
+      int m = bp.baseMin();
+      Gecode::Set::SetDelta d;
+      s.include(home, m, m, d);
+    }
+    else {
+      Gecode::Set::BndSetRanges r(bp.ranges());
+      s.includeI(home, r);
+    }
+    int u = bp.ub() - p_o;
+    for (int i = p_i+1; i < q_i; ++i) {
+      const Block& bi = (*this)[i];
+      if (bi.baseSize() == 1) {
+        int m = bi.baseMin();
+        Gecode::Set::SetDelta d;
+        s.include(home, m, m, d);
+      }
+      else {
+        Gecode::Set::BndSetRanges r(bi.ranges());
+        s.includeI(home, r);
+      }
+      u = ub_sum(u, bi.ub());
+    }
+    const Block& bq = (*this)[q_i];
+    if (bq.baseSize() == 1) {
+      int m = bq.baseMin();
+      Gecode::Set::SetDelta d;
+      s.include(home, m, m, d);
+    }
+    else {
+      Gecode::Set::BndSetRanges r(bq.ranges());
+      s.includeI(home, r);
+    }
+    bnew.update(home, bx);
+    bnew.baseIntersect(home, s);    
+    if (!bnew.isNull())
+      bnew.updateCard(home, 0, ub_sum(u, q_o));
   }
   
   forceinline void
@@ -405,50 +462,7 @@ namespace Gecode { namespace String {
     bx.baseIntersect(home, s);
   }
    
-  forceinline void
-  StringView::opt_region(Space& home, const Block& bx, Block& bnew,
-                              const Position& p, const Position& q) const {
-    assert (prec(p, q));
-    int p_i = p.idx, p_o = p.off, q_i = q.off > 0 ? q.idx : q.idx-1, 
-                                  q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
-//    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
-    // Only one block involved
-    if (p_i == q_i) {
-      bnew.update(home, (*this)[p_i]);
-      bnew.baseIntersect(home, bx);
-      if (!bnew.isNull())
-        bnew.updateCard(home, 0, q_o - p_o);
-      return;
-    }
-    // More than one block involved
-    Gecode::Set::GLBndSet s;
-    if ((*this)[p_i].baseSize() == 1) {
-      int m = (*this)[p_i].baseMin();
-      Gecode::Set::SetDelta d;
-      s.include(home, m, m, d);
-    }
-    else {
-      Gecode::Set::BndSetRanges r((*this)[p_i].ranges());
-      s.includeI(home, r);
-    }
-    int u = (*this)[p_i].ub() - p_o;
-    for (int i = p_i+1; i < q_i; ++i) {
-      if ((*this)[i].baseSize() == 1) {
-        int m = (*this)[i].baseMin();
-        Gecode::Set::SetDelta d;
-        s.include(home, m, m, d);
-      }
-      else {
-        Gecode::Set::BndSetRanges r((*this)[i].ranges());
-        s.includeI(home, r);
-      }
-      u = ub_sum(u, (*this)[i].ub());
-    }
-    bnew.update(home, bx);
-    bnew.baseIntersect(home, s);    
-    if (!bnew.isNull())
-      bnew.updateCard(home, 0, ub_sum(u, q_o));
-  }
+  
   
   forceinline void
   StringView::resize(Space& home, Block newBlocks[], int newSize, int U[], 
