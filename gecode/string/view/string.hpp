@@ -444,25 +444,23 @@ namespace Gecode { namespace String {
   }
 
   forceinline void
-  StringView::crushBase(Space& home, Block& bx, const Position& esp, 
-                                                 const Position& lep) const {
+  StringView::crushBase(Space& home, Block& bx, const Position& p, 
+                                                const Position& q) const {
     Gecode::Set::GLBndSet s;
-    int k = lep.idx - (lep.off == 0);
-    for (int i = esp.idx; i <= k; ++i) {
-      if ((*this)[i].baseSize() == 1) {
-        int m = (*this)[i].baseMin();
+    for (int i = p.idx, j = q.idx - (q.off == 0); i <= j; ++i) {
+      const Block& bi = (*this)[i];
+      if (bi.baseSize() == 1) {
+        int m = bi.baseMin();
         Gecode::Set::SetDelta d;
         s.include(home, m, m, d);
       }
       else {
-        Gecode::Set::BndSetRanges r((*this)[i].ranges());
+        Gecode::Set::BndSetRanges r(bi.ranges());
         s.includeI(home, r);
       }
     }
     bx.baseIntersect(home, s);
   }
-   
-  
   
   forceinline void
   StringView::resize(Space& home, Block newBlocks[], int newSize, int U[], 
