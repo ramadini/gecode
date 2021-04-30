@@ -163,6 +163,8 @@ namespace Gecode { namespace String {
     /// A VariableEmptyDomain exception is raised if the base becomes empty but 
     /// the lower bound is greater than zero.
     void baseExclude(Space& home, const Gecode::Set::BndSet& S);
+    /// Include the elements of this base in S.
+    void includeBaseIn(Space& home, Gecode::Set::GLBndSet& S) const;
     //@}
     
     /// \name Cloning
@@ -688,6 +690,19 @@ namespace Gecode { namespace String {
     if (l == u && S->size() == 1)
       fix(home);
     assert(isOK());
+  }
+  
+  forceinline void
+  Block::includeBaseIn(Space& home, Gecode::Set::GLBndSet& s) const {
+    if (baseSize() == 1) {
+      int m = baseMin();
+      Gecode::Set::SetDelta d;
+      s.include(home, m, m, d);
+    }
+    else {
+      Gecode::Set::BndSetRanges r(ranges());
+      s.includeI(home, r);
+    }
   }
   
   forceinline void

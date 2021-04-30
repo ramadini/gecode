@@ -394,39 +394,14 @@ namespace Gecode { namespace String {
     }
     // More than one block involved
     Gecode::Set::GLBndSet s;
-    if (bp.baseSize() == 1) {
-      int m = bp.baseMin();
-      Gecode::Set::SetDelta d;
-      s.include(home, m, m, d);
-    }
-    else {
-      Gecode::Set::BndSetRanges r(bp.ranges());
-      s.includeI(home, r);
-    }
+    bp.includeBaseIn(home, s);
     int u = bp.ub() - p_o;
     for (int i = p_i+1; i < q_i; ++i) {
       const Block& bi = (*this)[i];
-      if (bi.baseSize() == 1) {
-        int m = bi.baseMin();
-        Gecode::Set::SetDelta d;
-        s.include(home, m, m, d);
-      }
-      else {
-        Gecode::Set::BndSetRanges r(bi.ranges());
-        s.includeI(home, r);
-      }
+      bi.includeBaseIn(home, s);
       u = ub_sum(u, bi.ub());
     }
-    const Block& bq = (*this)[q_i];
-    if (bq.baseSize() == 1) {
-      int m = bq.baseMin();
-      Gecode::Set::SetDelta d;
-      s.include(home, m, m, d);
-    }
-    else {
-      Gecode::Set::BndSetRanges r(bq.ranges());
-      s.includeI(home, r);
-    }
+    (*this)[q_i].includeBaseIn(home, s);
     bnew.update(home, bx);
     bnew.baseIntersect(home, s);    
     if (!bnew.isNull())
