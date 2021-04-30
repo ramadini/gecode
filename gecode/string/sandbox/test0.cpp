@@ -595,17 +595,6 @@ public:
   }
   
   void test20() {
-//NSBlocks vx({
-//      NSBlock(NSIntSet('x', 'z'), 1, 1),
-//      NSBlock(NSIntSet('a', 'b'), 0, 2),
-//      NSBlock(NSIntSet('y', 'y'), 1, 1),
-//    });
-//    NSBlocks vy({
-//      NSBlock(NSIntSet('x', 'z'), 1, 1),
-//      NSBlock(NSIntSet('a', 'c'), 0, 1),
-//      NSBlock(NSIntSet('b', 'c'), 1, 1),
-//      NSBlock(NSIntSet('x', 'z'), 1, 1)
-//    });
     std::cerr << "\n*** Test 20 ***" << std::endl;
     Block bx[3];
     bx[0].update(*this, Block(*this, CharSet(*this, 'x', 'z'), 1, 1));
@@ -627,6 +616,26 @@ public:
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     assert (vx.varimp()->dom().contains(vy.varimp()->dom()));
     assert (vy.varimp()->dom().contains(vx.varimp()->dom()));
+  }
+  
+  void test21() {
+    std::cerr << "\n*** Test 21 ***" << std::endl;
+    Block bx[3];
+    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 0, 2));
+    bx[1].update(*this, Block(*this, CharSet(*this, 'a', 'd'), 1, 1));
+    bx[2].update(*this, Block(*this, CharSet(*this, 'f', 'h'), 0, 2));
+    Block by[2];
+    by[0].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 1));
+    by[1].update(*this, Block(*this, CharSet(*this, 'c', 'd'), 0, 1));
+    StringVar x(*this, DashedString(*this, bx, 3));
+    StringVar y(*this, DashedString(*this, by, 2));
+    StringView vx(x), vy(y);
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
+    equate_x(*this, vy, vx) ; // FIXME: Why cardinalities are not fixed?
+    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
   }
   
 };
@@ -653,6 +662,7 @@ int main() {
   home->test18();
   home->test19();
   home->test20();
+  home->test21();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }
