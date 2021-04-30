@@ -363,15 +363,17 @@ namespace Gecode { namespace String {
     if (equiv(esp,lep))
       return 0;
     assert(!prec(lep, esp));
-    int p = esp.idx, p1 = lep.off > 0 ? lep.idx : lep.idx-1,
-        q = esp.off, q1 = lep.off > 0 ? lep.off : (*this)[p1].ub();
-//    std::cerr << "ESP=(" << p << "," << q << "), LEP=(" << p1 << "," << q1 << ")\n";
-    if (p == p1)
-      return nabla(bx, (*this)[p], q1-q);
-    int m = nabla(bx, (*this)[p], (*this)[p].ub() - q);
-    for (int i = p+1; i < p1; i++) 
-      m += nabla(bx,(*this)[i], (*this)[i].ub());
-    return m + nabla(bx,(*this)[p1], q1);
+    int p_i = esp.idx, q_i = lep.off > 0 ? lep.idx : lep.idx-1,
+        p_o = esp.off, q_o = lep.off > 0 ? lep.off : (*this)[q_i].ub();
+    const Block& bp = (*this)[p_i];
+    if (p_i == q_i)
+      return nabla(bx, bp, q_o-p_o);
+    int m = nabla(bx, bp, bp.ub() - p_o);
+    for (int i = p_i+1; i < q_i; i++) {
+      const Block& bi = (*this)[i];
+      m += nabla(bx, bi, bi.ub());
+    }
+    return m + nabla(bx, (*this)[q_i], q_o);
   }
   
   forceinline void
