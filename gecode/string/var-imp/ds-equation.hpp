@@ -1,7 +1,6 @@
 namespace Gecode { namespace String {
 
-  /// Struct abstracting a position in a dashed string. For a dashed 
-  /// string X, a valid position (i,j)
+  /// Struct abstracting a position in a dashed string.
   struct Position {
     /// Index of the position
     int idx;
@@ -38,7 +37,7 @@ namespace Gecode { namespace String {
     return os;
   }
   
-  /// Immutable struct defining a matching region.
+  /// Struct defining a matching region.
   struct Matching {
     /// Earliest start position.
     Position ESP;
@@ -86,7 +85,7 @@ namespace Gecode { namespace String {
         continue; 
       int u1 = y.max_len_opt(x_i, esp, lep);
 //      std::cerr << "l'=" << l1 << ", u'=" << u1 << "\n";
-      assert (l1 <= u1);      
+      assert (l1 <= u1);
       if (l1 == 0 || l1 < l || u1 > u) {
         if (u1 == 0) {
           x_i.nullify(home);
@@ -143,7 +142,14 @@ namespace Gecode { namespace String {
       DashedString d(home, mreg, n);
 //      std::cerr << "d: " << d << '\n';
       r.free();      
-      n = d.size();                                                         
+      n = d.size();
+      if (n == 1) {
+        // No need to unfold x_i.
+        x_i.update(home, d[0]);
+        changed |= l < x_i.lb() || u > x_i.ub() || n < x_i.baseSize();
+//        std::cerr << "x[" << i << "] ref. into " << x_i << "\n";
+        continue;
+      }
       for (int j = 0, k = newSize; j < n; ++j,++k)
         newBlocks[k].update(home, d[j]);              
       U[uSize++] = i;
