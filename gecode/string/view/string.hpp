@@ -303,10 +303,13 @@ namespace Gecode { namespace String {
     const Block& bp = (*this)[p_i];
     if (p_i == q_i)
       return nabla(bx, bp, std::max(0, std::min(q_o, bp.lb()) - p_o));
-    int m = nabla(bx, bp, bp.lb() - p_o);
-    for (int i = p_i+1; i < q_i; i++) 
-      m += nabla(bx, (*this)[i], (*this)[i].lb());
-    return m + nabla(bx, (*this)[p_o], q_o);
+    int m = std::max(0, nabla(bx, bp, bp.lb() - p_o));
+    for (int i = p_i+1; i < q_i; i++) {
+      const Block& bi = (*this)[p_i];
+      m += nabla(bx, bi, bi.lb());
+    }
+    const Block& bq = (*this)[q_i];
+    return m + nabla(bx, bq, std::min(bq.lb(), q_o));
   }
   
   forceinline void
