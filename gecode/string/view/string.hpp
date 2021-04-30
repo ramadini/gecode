@@ -422,18 +422,8 @@ namespace Gecode { namespace String {
   StringView::crushBase(Space& home, Block& bx, const Position& p, 
                                                 const Position& q) const {
     Gecode::Set::GLBndSet s;
-    for (int i = p.idx, j = q.idx - (q.off == 0); i <= j; ++i) {
-      const Block& bi = (*this)[i];
-      if (bi.baseSize() == 1) {
-        int m = bi.baseMin();
-        Gecode::Set::SetDelta d;
-        s.include(home, m, m, d);
-      }
-      else {
-        Gecode::Set::BndSetRanges r(bi.ranges());
-        s.includeI(home, r);
-      }
-    }
+    for (int i = p.idx, j = q.idx - (q.off == 0); i <= j; ++i)
+      (*this)[i].includeBaseIn(home, s);
     bx.baseIntersect(home, s);
   }
   
