@@ -571,6 +571,28 @@ public:
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert (equate_x(*this, vy, vx) == ME_STRING_VAL);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+    assert (x.val() == y.val());
+  }
+  
+  void test19() {
+    std::cerr << "\n*** Test 19 ***" << std::endl;
+    Block bx[3];
+    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1 , 1));
+    bx[1].update(*this, Block(*this, CharSet(*this, 'e', 'f'), 1 , 1));
+    bx[2].update(*this, Block(*this, CharSet(*this, 'c', 'd'), 1 , 1));
+    Block by[2];
+    by[0].update(*this, Block(*this, CharSet(*this, 'a', 'd'), 0 , 2));
+    by[1].update(*this, Block(*this, CharSet(*this, 'd', 'd'), 1 , 1));
+    StringVar x(*this, DashedString(*this, bx, 3));
+    StringVar y(*this, DashedString(*this, by, 2));
+    StringView vx(x), vy(y);
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert (equate_x(*this, vx, vy) == ME_STRING_FAILED);
+    cerr << "Unsat!\n";
+    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
+    assert (equate_x(*this, vy, vx) == ME_STRING_FAILED);
+    cerr << "Unsat!\n";
   }
   
 };
@@ -595,6 +617,7 @@ int main() {
   home->test16();
   home->test17();
   home->test18();
+  home->test19();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }
