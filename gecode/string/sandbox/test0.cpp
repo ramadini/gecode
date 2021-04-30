@@ -626,7 +626,7 @@ public:
     bx[2].update(*this, Block(*this, CharSet(*this, 'f', 'h'), 0, 2));
     Block by[2];
     by[0].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 1));
-    by[1].update(*this, Block(*this, CharSet(*this, 'c', 'd'), 0, 1));
+    by[1].update(*this, Block(*this, CharSet(*this, 'c', 'd'), 1, 1));
     StringVar x(*this, DashedString(*this, bx, 3));
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vx(x), vy(y);
@@ -634,8 +634,31 @@ public:
     assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    equate_x(*this, vy, vx) ; // FIXME: Why cardinalities are not fixed?
+    assert (vx.varimp()->dom().contains(vy.varimp()->dom()));
+    assert (vy.varimp()->dom().contains(vx.varimp()->dom()));
+    assert (equate_x(*this, vx, vy) == ME_STRING_NONE);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+  }
+  
+  void test22() {
+    std::cerr << "\n*** Test 22 ***" << std::endl;
+    Block bx[2];
+    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 500));
+    bx[1].update(*this, Block(*this, CharSet(*this, 'd', 'e'), 0, 300));
+    Block by[2];
+    by[0].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 0, 200));
+    by[1].update(*this, Block(*this, CharSet(*this, 'c', 'd'), 0, 900));
+    StringVar x(*this, DashedString(*this, bx, 2));
+    StringVar y(*this, DashedString(*this, by, 2));
+    StringView vx(x), vy(y);
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert (equate_x(*this, vx, vy) == ME_STRING_BASE);
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+  }
+  
+  void test23() {
+    std::cerr << "\n*** Test 23 ***" << std::endl;
+    //TODO: test10() from str_test2.cpp
   }
   
 };
@@ -663,6 +686,8 @@ int main() {
   home->test19();
   home->test20();
   home->test21();
+  home->test22();
+  home->test23();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }
