@@ -263,7 +263,7 @@ namespace Gecode { namespace String {
 //    std::cerr << "Pushing LEP of " << x[i] << " from " << m[i].LEP << '\n';
     if (x[i].lb() == 0) {
       // x[i] nullable, not pushing LEP[i]
-      if (i > 0 && y.prec(m[i-1].LEP, m[i].LEP))
+      if (i > 0 && y.prec(m[i].LEP, m[i-1].LEP))
         // x[i-1] cannot end after x[i]
         m[i-1].LEP = m[i].LEP;
       return true;

@@ -742,15 +742,6 @@ public:
   
   void test27() {
     std::cerr << "\n*** Test 27 ***" << std::endl;
-//    NSBlocks vx({
-//      NSBlock(NSIntSet('a', 'b'), 0, 6),
-//      NSBlock(NSIntSet('c', 'c'), 1, 1),
-//      NSBlock(NSIntSet('d', 'd'), 1, 1),
-//    });
-//    NSBlocks vy({
-//      NSBlock(NSIntSet('a', 'c'), 0, 5),
-//      NSBlock(NSIntSet('d', 'd'), 0, 1),
-//    });
     Block bx[3];
     bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 0, 6));
     bx[1].update(*this, Block('c'));
@@ -767,6 +758,24 @@ public:
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+  }
+  
+  void test28() {
+    std::cerr << "\n*** Test 28 ***" << std::endl;
+    StringVar x(*this, 
+                 DashedString(*this, Block(*this, CharSet(*this, 'a'), 0, 6)));
+    Block by[3];
+    by[0].update(*this, Block(*this, CharSet(*this, 'a'), 0, 5));
+    by[1].update(*this, Block('a'));
+    by[2].update(*this, Block(*this, CharSet(*this, 'a'), 0, 5));
+    StringVar y(*this, DashedString(*this, by, 3));
+    StringView vx(x), vy(y);
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+//    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
+//    assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
+//    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
   }
   
 };
@@ -800,6 +809,7 @@ int main() {
   home->test25();
   home->test26();
   home->test27();
+  home->test28();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }
