@@ -357,7 +357,15 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline ModEvent
   equate_x(Space& home, ViewX x, ViewY& y) {
-    int lb = x.min_length(), ub = x.max_length();
+    int lb = x.min_length();
+    long ub = x.max_length();
+    if (ub == Limits::MAX_STRING_LENGTH && x.size() > 1) {
+      ub = 0;
+      for (int i = 0; i < x.size(); ++i)
+        ub += x[i].ub();
+    }
+    else
+      ub = x.max_length();
     Matching m[x.size()];
     int n;
     if (sweep_x(home, x, y, m, n) && refine_x(home, x, y, m, n)) {
@@ -365,9 +373,20 @@ namespace Gecode { namespace String {
         return ME_STRING_NONE;
       if (x.assigned())
         return ME_STRING_VAL;
-      if (x.min_length() > lb || x.max_length() < ub)
+      int ux = x.max_length();
+      if (x.min_length() > lb || (ux < ub && ux < MAX_STRING_LENGTH))
         return ME_STRING_CARD;
-      return ME_STRING_BASE;
+      if (ux == MAX_STRING_LENGTH && ub > MAX_STRING_LENGTH) {
+        int u = 0L;
+        for (int i = 0; i < x.size(); ++i) {
+          u += x[i].ub();
+          if (u >= ub)
+            return ME_STRING_BASE;
+        }
+        return ME_STRING_CARD;
+      }
+      else
+        return ME_STRING_BASE;
     }
     else
       return ME_STRING_FAILED;
