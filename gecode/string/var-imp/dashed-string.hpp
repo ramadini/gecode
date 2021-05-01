@@ -843,9 +843,25 @@ namespace Gecode { namespace String {
       max_len = ub_sum(max_len, x[i].ub());      
       norm |= i > 0 && (x[i].isNull() || x[i].baseEquals(x[i-1]));
     }
+    if (n > 1 && max_len == Limits::MAX_STRING_LENGTH) {
+      max_len = 0;
+      for (int i = 0; i < n; ++i) {
+        Block& bi = x[i];
+        int ll = min_len - bi.lb(), uu = ub_sum(bi.ub(), ll);
+        if (uu == Limits::MAX_STRING_LENGTH) {
+          long d = bi.ub() + ll - Limits::MAX_STRING_LENGTH;
+          assert (d <= MAX_STRING_LENGTH);
+          bi.ub(home, bi.ub() - d);
+          if (bi.isNull())
+            norm = true;
+        }
+        max_len = ub_sum(max_len, bi.ub()); 
+      }
+    }
     if (norm)
       normalize(home);
-    assert (isOK() && isNorm());
+    assert(isNorm());
+    assert(isOK());
   }
 
   forceinline int DashedString::min_length() const { return min_len; }
@@ -1009,8 +1025,9 @@ namespace Gecode { namespace String {
         n = newSize;
       }
     }
-    assert(isOK());
     assert(isNorm());
+    assert(isOK());
+    
   }
   
   forceinline bool
@@ -1025,8 +1042,8 @@ namespace Gecode { namespace String {
   
   forceinline bool
   DashedString::isOK() const {
-    if (n <= 0 || min_len < 0 || max_len > MAX_STRING_LENGTH 
-    || min_len > max_len)
+    if (n == 0 || min_len < 0 || min_len > max_len 
+    ||  max_len > MAX_STRING_LENGTH)
       return false;
     if (x[0].isNull())
       return min_len == 0 && max_len == 0;
