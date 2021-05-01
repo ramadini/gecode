@@ -843,6 +843,7 @@ namespace Gecode { namespace String {
       max_len = ub_sum(max_len, x[i].ub());      
       norm |= i > 0 && (x[i].isNull() || x[i].baseEquals(x[i-1]));
     }
+    std::cerr << *this << ' ' << min_len << ' ' << max_len << ' ' << '\n';
     if (norm)
       normalize(home);
     assert (isOK() && isNorm());

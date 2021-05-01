@@ -33,7 +33,7 @@ public:
                 s4(*this, 100, 200), s5(*this, IntSet({2, 8, 3, 90}));
     cerr << "|" << s0 << "| = " << s0.size() << "\n";
     cerr << "|" << s1 << "| = " << s1.size() << "\n";
-    assert (s0.empty() && s1.size() == MAX_ALPHABET_SIZE);
+    assert (s0.empty() && int(s1.size()) == MAX_ALPHABET_SIZE);
     cerr << "|" << s2 << "| = " << s2.size() << "\n";
     cerr << "|" << s3 << "| = " << s3.size() << "\n";
     assert (s2.size() == 8 && s3.size() == 5);
@@ -700,6 +700,25 @@ public:
     assert (x.val().empty() == y.val().empty());
   }
   
+  void test25() {
+    std::cerr << "\n*** Test 25 ***" << std::endl;
+    int u = Limits::MAX_STRING_LENGTH;
+    Block bx[2];
+    bx[0].update(*this, Block(*this, CharSet(*this, 'b'), 0, u));
+    bx[1].update(*this, Block(*this, CharSet(*this, 'c', 'd'), 0, u));
+    Block by[2];
+    by[0].update(*this, Block(*this, CharSet(*this, 'b', 'c'), 0, 2000));
+    StringVar x(*this, DashedString(*this, bx, 2));
+    // FIXME: max_len must be min(MAX_STRING_LENGTH, max_len). This means that only checking if max_len changed
+    // when updating is not enough to discriminate ME_STRING_BASE/ME_STRING_CARD. Probably best way is to 
+    // sum the upper bounds in a long variable if max_len == MAX_STRING_LENGTH before refining, and then check 
+    // that sum after refining
+// TODO: test12 of str_test2   
+//    StringVar y(*this, DashedString(*this, by, 1));
+//    StringView vx(x), vy(y);
+        
+  }
+  
 };
 
 int main() {
@@ -728,6 +747,7 @@ int main() {
   home->test22();
   home->test23();
   home->test24();
+  home->test25();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }
