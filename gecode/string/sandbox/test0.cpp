@@ -633,10 +633,10 @@ public:
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
     assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
-    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert (vx.varimp()->dom().contains(vy.varimp()->dom()));
     assert (vy.varimp()->dom().contains(vx.varimp()->dom()));
-    assert (equate_x(*this, vx, vy) == ME_STRING_NONE);
+    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
+    assert (equate_x(*this, vy, vx) == ME_STRING_NONE);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
   }
   
@@ -654,11 +654,31 @@ public:
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
     assert (equate_x(*this, vx, vy) == ME_STRING_BASE);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+    assert(vx[1].baseMax() == vx[1].baseMin() && vx[1].baseMax() == 'd');
+    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
+    assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
+    assert(vy[1].ub() == 800);
   }
   
   void test23() {
-    std::cerr << "\n*** Test 23 ***" << std::endl;
-    //TODO: test10() from str_test2.cpp
+    std::cerr << "\n*** Test 23 ***" << std::endl;  
+    Block bx[4];
+    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 400));
+    bx[1].update(*this, Block(*this, CharSet(*this, 'b', 'c'), 3, 3));
+    bx[2].update(*this, Block(*this, CharSet(*this, 'b', 'c'), 0, 97));
+    bx[3].update(*this, Block(*this, CharSet(*this, 
+                                              IntSet({'a','d','e',})), 0, 300));
+    Block by[2];
+    by[0].update(*this, Block(*this, CharSet(*this, 
+                                              IntSet({'a','b','d',})), 0, 900));
+    by[1].update(*this, Block(*this, CharSet(*this, 'c', 'd'), 0, 900));
+    StringVar x(*this, DashedString(*this, bx, 4));
+    StringVar y(*this, DashedString(*this, by, 2));
+    StringView vx(x), vy(y);
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert (equate_x(*this, vx, vy) == ME_STRING_BASE);
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";                                              
+                                                  
   }
   
 };
