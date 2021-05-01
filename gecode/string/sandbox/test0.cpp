@@ -662,7 +662,7 @@ public:
   }
   
   void test23() {
-    std::cerr << "\n*** Test 23 ***" << std::endl;  
+    std::cerr << "\n*** Test 23 ***" << std::endl;
     Block bx[4];
     bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 400));
     bx[1].update(*this, Block(*this, CharSet(*this, 'b', 'c'), 3, 3));
@@ -684,6 +684,20 @@ public:
     assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert(vy[1].ub() == 800);              
+  }
+  
+  void test24() {
+    std::cerr << "\n*** Test 24 ***" << std::endl;
+    StringVar x(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 400));
+    StringVar y(*this, Block(*this, CharSet(*this, 'd'), 0, 900));
+    StringView vx(x), vy(y);
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert (equate_x(*this, vx, vy) == ME_STRING_VAL);
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
+    assert (equate_x(*this, vy, vx) == ME_STRING_VAL);
+    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+    assert (x.val().empty() == y.val().empty());
   }
   
 };
@@ -713,6 +727,7 @@ int main() {
   home->test21();
   home->test22();
   home->test23();
+  home->test24();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }

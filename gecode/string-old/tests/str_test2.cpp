@@ -295,7 +295,7 @@ public:
     std::cerr << "y = " << y << std::endl;
     assert (x == y);
     std::cerr << y.max_length() << "\n";
-    assert(true && y.null());
+    assert(y.null());
   }
 
   void test12() {
