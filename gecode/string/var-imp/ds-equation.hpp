@@ -100,7 +100,7 @@ namespace Gecode { namespace String {
           Block* y1 = r.alloc<Block>(y.size());
           y.expandBlock(home, x_i, y1);
           DashedString d(home, y1, y.size());
-          r.free();std::cerr << "Heren\n";
+          r.free();
           // If some prefix or suffix fixed, or d actually refines x_i
           if ((d[0].baseSize() == 1 && d[0].lb() > 0) 
           ||  (d[d.size()-1].baseSize() == 1 && d[d.size()-1].lb() > 0)

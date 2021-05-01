@@ -773,9 +773,11 @@ public:
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
     assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
-//    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-//    assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
-//    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
+    assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
+    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+    assert (vx.varimp()->dom().contains(vy.varimp()->dom()));
+    assert (vy.varimp()->dom().contains(vx.varimp()->dom()));
   }
   
 };
