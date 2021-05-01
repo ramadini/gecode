@@ -718,6 +718,7 @@ public:
     assert (equate_x(*this, vy, vx) == ME_STRING_BASE);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert (vx.size() == 2);
+    //FIXME: Put max_feas_len
   }
   
   void test26() {
@@ -732,7 +733,11 @@ public:
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
     assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
-    //FIXME: Fix this (test13)
+    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
+    assert (equate_x(*this, vy, vx) == ME_STRING_BASE);
+    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+    assert (vx.varimp()->dom().contains(vy.varimp()->dom()));
+    assert (vy.varimp()->dom().contains(vx.varimp()->dom()));
   }
   
 };

@@ -975,7 +975,7 @@ namespace Gecode { namespace String {
         continue;
       }
       min_len += x[i].lb();
-      max_len += x[i].ub();
+      max_len = ub_sum(max_len, x[i].ub());
       // j is the index of the last encountered non-null block.
       if (j != -1 && x[i].baseEquals(x[j])) {
         int u = x[i].ub() + x[j].ub();
@@ -1009,7 +1009,8 @@ namespace Gecode { namespace String {
         n = newSize;
       }
     }
-    assert(isOK() && isNorm());
+    assert(isOK());
+    assert(isNorm());
   }
   
   forceinline bool

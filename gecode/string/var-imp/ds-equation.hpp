@@ -84,7 +84,7 @@ namespace Gecode { namespace String {
       if (x_i.isFixed())
         continue; 
       int u1 = y.max_len_opt(x_i, esp, lep);
-//      std::cerr << "l'=" << l1 << ", u'=" << u1 << "\n";
+      std::cerr << "l'=" << l1 << ", u'=" << u1 << "\n";
       assert (l1 <= u1);
       if (l1 == 0 || l1 < l || u1 > u) {
         if (u1 == 0) {
@@ -100,7 +100,7 @@ namespace Gecode { namespace String {
           Block* y1 = r.alloc<Block>(y.size());
           y.expandBlock(home, x_i, y1);
           DashedString d(home, y1, y.size());
-          r.free();
+          r.free();std::cerr << "Heren\n";
           // If some prefix or suffix fixed, or d actually refines x_i
           if ((d[0].baseSize() == 1 && d[0].lb() > 0) 
           ||  (d[d.size()-1].baseSize() == 1 && d[d.size()-1].lb() > 0)

@@ -320,14 +320,19 @@ namespace Gecode { namespace String {
         p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
 //    std::cerr << "LSP=(" << p_i << "," << p_o << "), EEP=(" << q_i << "," << q_o << ")\n";
     const Block& bp = (*this)[p_i];
-    // Head of the region.
+    // Head of the region.    
     bnew[0].update(home, bp);
-    bnew[0].baseIntersect(home, bx);
-    if (!bnew[0].isNull())
-      bnew[0].updateCard(home, std::max(0, std::min(q_o, bp.lb()) - p_o), 
-                               std::min(u, q_o-p_o));
-    if (p_i == q_i)
-      return;
+    bnew[0].baseIntersect(home, bx);    
+    if (!bnew[0].isNull()) {
+      if (p_i == q_i) {      
+        bnew[0].updateCard(home, std::max(0, std::min(q_o, bp.lb()) - p_o), 
+                                 std::min(u, q_o-p_o));    
+        return;
+      }
+      else
+        bnew[0].updateCard(home, std::max(0, std::min(q_o, bp.lb()) - p_o), 
+                                 std::min(u, bp.ub()-p_o));
+    }
     // Central part of the region.
     int j = 1;
     for (int i = p_i+1; i < q_i; ++i, ++j) {
