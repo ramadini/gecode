@@ -657,6 +657,7 @@ public:
     assert(vx[1].baseMax() == vx[1].baseMin() && vx[1].baseMax() == 'd');
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
+    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert(vy[1].ub() == 800);
   }
   
@@ -677,8 +678,12 @@ public:
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
     assert (equate_x(*this, vx, vy) == ME_STRING_BASE);
-    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";                                              
-                                                  
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";     
+    assert (vx[2].baseMin() == 'a' && vx[2].baseMax() == 'd');
+    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
+    assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
+    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+    assert(vy[1].ub() == 800);              
   }
   
 };
