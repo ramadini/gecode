@@ -780,6 +780,54 @@ public:
     assert (vy.varimp()->dom().contains(vx.varimp()->dom()));
   }
   
+  void test29() {
+    std::cerr << "\n*** Test 29 ***" << std::endl;
+    Block bx[3];
+    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 3));
+    bx[1].update(*this, Block(*this, CharSet(*this, 'd', 'd'), 1, 1));
+    bx[2].update(*this, Block(*this, CharSet(*this, 'c', 'f'), 0, 2));
+    Block by[2];
+    by[0].update(*this, Block(*this, CharSet(*this, 'b', 'd'), 0, 3));
+    by[1].update(*this, Block('f'));
+    StringVar x(*this, DashedString(*this, bx, 3));
+    StringVar y(*this, DashedString(*this, by, 2));
+    StringView vx(x), vy(y);
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+    //FIXME: Refinement less precise than test16 of str_test2.cpp
+    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
+    assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
+    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";    
+  }
+  
+  void test30() {
+    std::cerr << "\n*** Test 30 ***" << std::endl;
+    int N = Limits::MAX_ALPHABET_SIZE-1;
+    int M = Limits::MAX_STRING_LENGTH;
+    Block bx[3];
+    str2blocks("0=1", bx);
+    Block by[2];
+    by[0].update(*this, Block(*this, CharSet(*this, 0, N), 1, M));
+    by[1].update(*this, Block(*this, CharSet(*this, 0, N-1), 0, M));
+    StringVar x(*this, DashedString(*this, bx, 3));
+    StringVar y(*this, DashedString(*this, by, 2));
+    StringView vx(x), vy(y);
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert (equate_x(*this, vx, vy) == ME_STRING_NONE);
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
+    assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
+    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+    assert (vy[0].val() == vector<int>({'0'}) && vy.size() == 2);
+    //FIXME: Check why vy[1].ub() == 2.
+  }
+  
+  void test31() {
+    std::cerr << "\n*** Test 31 ***" << std::endl;
+    //TODO: test18 of str_test2.
+  }
+  
 };
 
 int main() {
@@ -812,6 +860,9 @@ int main() {
   home->test26();
   home->test27();
   home->test28();
+  home->test29();
+  home->test30();
+  home->test31();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }
