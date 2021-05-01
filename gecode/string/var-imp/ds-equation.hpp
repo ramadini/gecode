@@ -93,8 +93,9 @@ namespace Gecode { namespace String {
           continue;
         }
         if (nx == 1 && l <= l1) {
-          // x is a single block: we can expand x into |y| blocks if |x|=|y| 
-          // is propagated, otherwise the propagation is unsound!!!
+          // FIXME: x is a single block, so we can expand it into |y| blocks but
+          // only if we keep track that |x| <= y.max_length(), otherwise we lose 
+          // the length information and propagation can be unsound!!!
           Region r;
           Block* y1 = r.alloc<Block>(y.size());
           y.expandBlock(home, x_i, y1);
@@ -106,10 +107,8 @@ namespace Gecode { namespace String {
           ||  (d.logdim() < x_i.logdim())) {
             x.update(home, d);
             changed = true;
+            break;
           }
-          else
-            nBlocks = -1;
-          return true;
         }
         // Crushing into a single block
         int m = x_i.baseSize();
@@ -165,6 +164,8 @@ namespace Gecode { namespace String {
       x.normalize(home);
     else
       nBlocks = -1;
+    // FIXME: An alternative approach is to keep track of max_feas_len for string views, and
+    // use a x.check_length() that e.g. returning x.max_length() <= x.max_feas_len() for a StringView
     return true;
   }
   

@@ -709,14 +709,30 @@ public:
     Block by[2];
     by[0].update(*this, Block(*this, CharSet(*this, 'b', 'c'), 0, 2000));
     StringVar x(*this, DashedString(*this, bx, 2));
-    // FIXME: max_len must be min(MAX_STRING_LENGTH, max_len). This means that only checking if max_len changed
-    // when updating is not enough to discriminate ME_STRING_BASE/ME_STRING_CARD. Probably best way is to 
-    // sum the upper bounds in a long variable if max_len == MAX_STRING_LENGTH before refining, and then check 
-    // that sum after refining
-// TODO: test12 of str_test2   
-//    StringVar y(*this, DashedString(*this, by, 1));
-//    StringView vx(x), vy(y);
-        
+    StringVar y(*this, DashedString(*this, by, 1));
+    StringView vx(x), vy(y);
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
+    assert (equate_x(*this, vy, vx) == ME_STRING_BASE);
+    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+    assert (vx.size() == 2);
+  }
+  
+  void test26() {
+    std::cerr << "\n*** Test 26 ***" << std::endl;
+    int M = Limits::MAX_STRING_LENGTH;
+    StringVar x(*this, Block(*this, CharSet(*this, 'a', 'b'), 0, M));
+    Block by[2];
+    by[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, M));
+    by[1].update(*this, Block('b'));
+    StringVar y(*this, DashedString(*this, by, 2));
+    StringView vx(x), vy(y);
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+    //FIXME: Fix this (test13)
   }
   
 };
@@ -748,6 +764,7 @@ int main() {
   home->test23();
   home->test24();
   home->test25();
+  home->test26();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }
