@@ -718,7 +718,6 @@ public:
     assert (equate_x(*this, vy, vx) == ME_STRING_BASE);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert (vx.size() == 2);
-    //FIXME: Put max_feas_len
   }
   
   void test26() {

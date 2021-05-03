@@ -77,6 +77,8 @@ namespace Gecode { namespace String {
     bool check_equate(const Block& b) const;
     /// Test whether the domain is equatable with dashed string \a x.
     bool check_equate(const DashedString& x) const;
+    /// Consistency checks on the domain
+    bool isOK(void) const;
     /// Returns the i-th block of the domain
     Block& operator[](int i);
     const Block& operator[](int i) const;

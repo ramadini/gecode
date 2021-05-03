@@ -94,7 +94,7 @@ namespace Gecode { namespace String {
         }
         if (nx == 1 && l <= l1) {
           // FIXME: x is a single block, so we can expand it into |y| blocks but
-          // only if we keep track that |x| <= y.max_length(), otherwise we lose 
+          // only if we keep track that |x| <= y.max_length(), otherwise we lose
           // the length information and propagation can be unsound!!!
           Region r;
           Block* y1 = r.alloc<Block>(y.size());
@@ -107,7 +107,8 @@ namespace Gecode { namespace String {
           ||  (d.logdim() < x_i.logdim())) {
             x.update(home, d);
             changed = true;
-            break;
+            // TODO: Add here the constraint |x| <= y.max_length().
+            return true;
           }
         }
         // Crushing into a single block

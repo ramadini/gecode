@@ -72,6 +72,11 @@ namespace Gecode { namespace String {
     return ds;  
   }
   
+  forceinline bool
+  StringVarImp::isOK() const {
+    return ds.isOK() && ds.isNorm();
+  }
+  
   template<class Char, class Traits>
   forceinline  std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const StringVarImp& x) {

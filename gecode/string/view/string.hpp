@@ -248,6 +248,11 @@ namespace Gecode { namespace String {
     return x->assigned();
   }
   
+  forceinline bool
+  StringView::isOK() const {
+    return x->isOK();
+  }
+  
   template<class Char, class Traits>
   forceinline  std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const StringView& v) {

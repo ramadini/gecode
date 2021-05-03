@@ -289,8 +289,8 @@ namespace Gecode { namespace String {
     void normalize(Space& home);
     
     /// Prints the dashed string \a x
-    friend std::ostream& operator<<(std::ostream& os, const DashedString& x);    
-  private:    
+    friend std::ostream& operator<<(std::ostream& os, const DashedString& x);
+    
     /// Check whether each block is consistent and min_len/max_len correspond to
     /// the sum of each lb/ub
     bool isOK(void) const;
