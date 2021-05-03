@@ -841,7 +841,7 @@ public:
     assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert (vy[0].val() == vector<int>({'0'}) && vy.size() == 2);
-    //FIXME: Check why vy[1].ub() == 2.
+    assert (vy[1].lb() == 0 && vy[1].ub() == 4);
     assert(vx.isOK() && vy.isOK());
   }
   

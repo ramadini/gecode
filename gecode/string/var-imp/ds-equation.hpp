@@ -84,7 +84,7 @@ namespace Gecode { namespace String {
       if (x_i.isFixed())
         continue; 
       int u1 = y.max_len_opt(x_i, esp, lep, l1);
-//      std::cerr << "l'=" << l1 << ", u'=" << u1 << "\n";
+      std::cerr << "l'=" << l1 << ", u'=" << u1 << "\n";
       assert (l1 <= u1);
       if (l1 == 0 || l1 < l || u1 > u) {
         if (u1 == 0) {
@@ -142,14 +142,13 @@ namespace Gecode { namespace String {
       if (eep != lep)
         y.opt_region(home, x_i, mreg[n-1], eep, lep, l1);
       DashedString d(home, mreg, n);
-//      std::cerr << "d: " << d << '\n';
+//      std::cerr << "x[" << i << "] ref. into " << d << "\n";
       r.free();      
       n = d.size();
       if (n == 1) {
         // No need to unfold x_i.
         x_i.update(home, d[0]);
         changed |= l < x_i.lb() || u > x_i.ub() || n > x_i.baseSize();
-//        std::cerr << "x[" << i << "] ref. into " << x_i << "\n";
         continue;
       }
       for (int j = 0, k = newSize; j < n; ++j,++k)
@@ -158,7 +157,7 @@ namespace Gecode { namespace String {
       U[uSize++] = n;
       newSize += n;
     }
-//    std::cerr << "newSize: " << newSize << ", uSize: " << uSize << ", changed: " << changed << "\n";
+    std::cerr << "newSize: " << newSize << ", uSize: " << uSize << ", changed: " << changed << "\n";
     if (newSize > 0)
       x.resize(home, newBlocks, newSize, U, uSize);
     else if (changed)
