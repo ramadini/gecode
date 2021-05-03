@@ -83,7 +83,7 @@ namespace Gecode { namespace String {
         return false;
       if (x_i.isFixed())
         continue; 
-      int u1 = y.max_len_opt(x_i, esp, lep);
+      int u1 = y.max_len_opt(x_i, esp, lep, l1);
 //      std::cerr << "l'=" << l1 << ", u'=" << u1 << "\n";
       assert (l1 <= u1);
       if (l1 == 0 || l1 < l || u1 > u) {
@@ -136,11 +136,11 @@ namespace Gecode { namespace String {
       if (esp == lsp)
         y.mand_region(home, x_i, &mreg[0], u1, lsp, eep);
       else {
-        y.opt_region(home, x_i, mreg[0], esp, lsp);
+        y.opt_region(home, x_i, mreg[0], esp, lsp, l1);
         y.mand_region(home, x_i, &mreg[1], u1, lsp, eep);
       }
       if (eep != lep)
-        y.opt_region(home, x_i, mreg[n-1], eep, lep);
+        y.opt_region(home, x_i, mreg[n-1], eep, lep, l1);
       DashedString d(home, mreg, n);
 //      std::cerr << "d: " << d << '\n';
       r.free();      

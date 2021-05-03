@@ -813,10 +813,12 @@ public:
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
     assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
-    //FIXME: Refinement less precise than test16 of str_test2.cpp
+    assert(vx[0].ub() == 2 && vx[1].val() == std::vector<int>({'d'}));
+    assert(vx[2].ub() == 1 && vx[3].val() == std::vector<int>({'f'}));
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
-    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";    
+    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+    assert(vy[0].lb() == 1 && vy[1].val() == std::vector<int>({'f'}));
     assert(vx.isOK() && vy.isOK());
   }
   
@@ -846,7 +848,7 @@ public:
   void test31() {
     std::cerr << "\n*** Test 31 ***" << std::endl;
     //TODO: test18 of str_test2.
-    assert(vx.isOK() && vy.isOK());
+//    assert(vx.isOK() && vy.isOK());
   }
   
 };
@@ -883,7 +885,7 @@ int main() {
   home->test28();
   home->test29();
   home->test30();
-  home->test31();
+//  home->test31();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }

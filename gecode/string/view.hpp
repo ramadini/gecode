@@ -173,7 +173,7 @@ namespace Gecode { namespace String {
                                       const Position& eep) const;
     /// TODO:
     int max_len_opt(const Block& bx, const Position& esp, 
-                                     const Position& lep) const;
+                                     const Position& lep, int l1) const;
     /// TODO:                             
     void
     expandBlock(Space& home, const Block& bx, Block* y) const;
@@ -185,12 +185,12 @@ namespace Gecode { namespace String {
     /// TODO:                                   
     void
     opt_region(Space& home, const Block& bx, Block& bnew, 
-                            const Position& p, const Position& q) const;                       
+                            const Position& p, const Position& q, int l1) const;                       
     
     /// TODO:                   
     void
     mand_region(Space& home, Block& bx, const Block& by,
-                   const Position& p, const Position& q) const;
+                   const Position& p, const Position& q /*l1*/) const;
     /// TODO:                                                     
     void
     mand_region(Space& home, Block& bx, Block* bnew, int u,

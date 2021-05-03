@@ -369,37 +369,40 @@ namespace Gecode { namespace String {
   
   forceinline int
   StringView::max_len_opt(const Block& bx, const Position& esp, 
-                                           const Position& lep) const {
+                                           const Position& lep, int l1) const {
     if (equiv(esp,lep))
       return 0;
     assert(!prec(lep, esp));
     int p_i = esp.idx, q_i = lep.off > 0 ? lep.idx : lep.idx-1,
         p_o = esp.off, q_o = lep.off > 0 ? lep.off : (*this)[q_i].ub();
     const Block& bp = (*this)[p_i];
+    int k = bx.ub() - l1;
     if (p_i == q_i)
-      return nabla(bx, bp, q_o-p_o);
-    int m = nabla(bx, bp, bp.ub() - p_o);
+      return nabla(bx, bp, std::min(q_o-p_o, bp.lb()+k));
+    int m = nabla(bx, bp, std::min(bp.ub() - p_o, bp.lb()+k));
     for (int i = p_i+1; i < q_i; i++) {
       const Block& bi = (*this)[i];
-      m = ub_sum(m, nabla(bx, bi, bi.ub()));
+      m = ub_sum(m, nabla(bx, bi, std::min(bi.ub(), bi.lb()+k)));
     }
-    return ub_sum(m, nabla(bx, (*this)[q_i], q_o));
+    const Block& bq = (*this)[q_i];
+    return ub_sum(m, nabla(bx, bq, std::min(q_o, bq.lb()+k)));
   }
   
   forceinline void
   StringView::opt_region(Space& home, const Block& bx, Block& bnew,
-                              const Position& p, const Position& q) const {
+                           const Position& p, const Position& q, int l1) const {
     assert(prec(p,q));
     int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
         p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
 //    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
     // Only one block involved
     const Block& bp = (*this)[p_i];
+    int k = bx.ub() - l1;
     if (p_i == q_i) {
       bnew.update(home, bp);
       bnew.baseIntersect(home, bx);
       if (!bnew.isNull())
-        bnew.updateCard(home, 0, q_o - p_o);
+        bnew.updateCard(home, 0, std::min(q_o-p_o, bp.lb()+k));
       return;
     }
     // More than one block involved
@@ -409,13 +412,14 @@ namespace Gecode { namespace String {
     for (int i = p_i+1; i < q_i; ++i) {
       const Block& bi = (*this)[i];
       bi.includeBaseIn(home, s);
-      u = ub_sum(u, bi.ub());
+      u = ub_sum(u, std::min(bi.ub(), bi.lb()+k));
     }
-    (*this)[q_i].includeBaseIn(home, s);
+    const Block& bq = (*this)[q_i];
+    bq.includeBaseIn(home, s);
     bnew.update(home, bx);
     bnew.baseIntersect(home, s);    
     if (!bnew.isNull())
-      bnew.updateCard(home, 0, ub_sum(u, q_o));
+      bnew.updateCard(home, 0, ub_sum(u, std::min(q_o, bq.lb()+k)));
   }
   
   forceinline void
