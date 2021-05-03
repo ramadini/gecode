@@ -84,7 +84,7 @@ namespace Gecode { namespace String {
       if (x_i.isFixed())
         continue; 
       int u1 = y.max_len_opt(x_i, esp, lep, l1);
-      std::cerr << "l'=" << l1 << ", u'=" << u1 << "\n";
+//      std::cerr << "l'=" << l1 << ", u'=" << u1 << "\n";
       assert (l1 <= u1);
       if (l1 == 0 || l1 < l || u1 > u) {
         if (u1 == 0) {
@@ -157,7 +157,7 @@ namespace Gecode { namespace String {
       U[uSize++] = n;
       newSize += n;
     }
-    std::cerr << "newSize: " << newSize << ", uSize: " << uSize << ", changed: " << changed << "\n";
+//    std::cerr << "newSize: " << newSize << ", uSize: " << uSize << ", changed: " << changed << "\n";
     if (newSize > 0)
       x.resize(home, newBlocks, newSize, U, uSize);
     else if (changed)

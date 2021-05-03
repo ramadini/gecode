@@ -847,8 +847,25 @@ public:
   
   void test31() {
     std::cerr << "\n*** Test 31 ***" << std::endl;
-    //TODO: test18 of str_test2.
-//    assert(vx.isOK() && vy.isOK());
+    int N = Limits::MAX_ALPHABET_SIZE-1;
+    int M = Limits::MAX_STRING_LENGTH;
+    string w = "Zz1xJr2yi3kD0njK4mjOWu5HaEnNDg9Ha7o8AniRkfU66m8EpyDsD5yYEF4PAtfcK1fI2aO0xPMfA1gtXhV685G9bVD6MX7urD0Uxq5P2lGERM6iqQYjpgZhuRMNDUCccQHMcnGvUofrvJskrn2vbrKFwvPaNcKlLnqQql7Ut39SxWLnS0kcASqfnDKMLiQLTvXOkcZ0 =09GXSOVfpYV3pELJMYcqwPm5H1O0IQXnE8o3KvItPWQFQopN";
+    int n = w.size();
+    Block bx[n]; 
+    str2blocks(w, bx);
+    Block by[2];
+    by[0].update(*this, Block(*this, CharSet(*this, 0, N), 0, M));
+    by[1].update(*this, Block(*this, CharSet(*this, 0, N-1), 1, M));
+    StringVar x(*this, DashedString(*this, bx, n));
+    StringVar y(*this, DashedString(*this, by, 2));
+    StringView vx(x), vy(y);
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert (equate_x(*this, vx, vy) == ME_STRING_NONE);
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
+    assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
+    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+    assert (vy.size() == 2 && vy[1].val()[0] == 'N');
   }
   
 };
@@ -885,7 +902,7 @@ int main() {
   home->test28();
   home->test29();
   home->test30();
-//  home->test31();
+  home->test31();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }
