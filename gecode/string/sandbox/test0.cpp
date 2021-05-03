@@ -891,6 +891,30 @@ public:
     assert (vy.size() == 2 && vy[0].val()[0] == '6');
   }
   
+  void test33() {
+    std::cerr << "\n*** Test 33 ***" << std::endl;
+    string w = "ab =ab";
+    int n = w.size();
+    Block bx[n]; 
+    str2blocks(w, bx);
+    Block by[n + 1];
+    w = "ab =";
+    str2blocks(w, by);
+    by[4].update(*this, Block(*this, CharSet(*this, '0'), 0, 2));
+    by[5].update(*this, 'a');
+    by[6].update(*this, 'b');
+    StringVar x(*this, DashedString(*this, bx, n));
+    StringVar y(*this, DashedString(*this, by, n+1));
+    StringView vx(x), vy(y);
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert (equate_x(*this, vx, vy) == ME_STRING_NONE);
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
+    assert (equate_x(*this, vy, vx) == ME_STRING_VAL);
+    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+    assert (y.val() == vector<int>({'a','b',' ','=','a','b'}));
+  }
+  
 };
 
 int main() {
@@ -927,6 +951,7 @@ int main() {
   home->test30();
   home->test31();
   home->test32();
+  home->test33();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }
