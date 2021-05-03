@@ -866,6 +866,7 @@ public:
     assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert (vy.size() == 2 && vy[1].val()[0] == 'N');
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test32() {
@@ -889,6 +890,7 @@ public:
     assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert (vy.size() == 2 && vy[0].val()[0] == '6');
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test33() {
@@ -913,6 +915,35 @@ public:
     assert (equate_x(*this, vy, vx) == ME_STRING_VAL);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert (y.val() == vector<int>({'a','b',' ','=','a','b'}));
+    assert(vx.isOK() && vy.isOK());
+  }
+  
+  void test34() {
+    std::cerr << "\n*** Test 34 ***" << std::endl;
+    int N = 5, M = 10;
+    Block bx[N];
+    for (int i = 0; i < N; ++i)
+      bx[i].update(*this, Block(*this, CharSet(*this, 'a'+i), 1, N));
+    Block by[M];
+    for (int i = 0; i < M; ++i)
+      by[i].update(*this, Block(*this, CharSet(*this, 'a'+i, 'a'+M-1), 0, M));
+    StringVar x(*this, DashedString(*this, bx, N));
+    StringVar y(*this, DashedString(*this, by, M));
+    StringView vx(x), vy(y);
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert (equate_x(*this, vx, vy) == ME_STRING_NONE);
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
+    assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
+    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+    for (int i = 0; i < N; ++i)
+      assert(vy[i].baseMin() == 'a'+i && vy[i].baseMax() == 'a'+N-1);
+    assert(vx.isOK() && vy.isOK());
+  }
+  
+  void test35() {
+    std::cerr << "\n*** Test 35 ***" << std::endl;
+    
   }
   
 };
@@ -952,6 +983,8 @@ int main() {
   home->test31();
   home->test32();
   home->test33();
+  home->test34();
+  home->test35();
   cerr << "\n----- test0.cpp passes -----\n\n";
   return 0;
 }
