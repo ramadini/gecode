@@ -448,7 +448,7 @@ public:
     std::cerr << "===== After Equate =====" << std::endl;
     std::cerr << "x = " << x << std::endl;
     std::cerr << "y = " << y << std::endl;
-    assert(y.blocks().front().known() && y.length() == 2);
+    assert(y.blocks().front().known() && y.length() == 2);    
   }
 
   void test18() {

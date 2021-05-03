@@ -294,6 +294,7 @@ public:
     for (int i = 0; i < n; ++i)
       cerr << "ESP[ " << vy[i] << " ] = " << m[i].ESP << ", "
            << "LEP[ " << vy[i] << " ] = " << m[i].LEP << "\n";
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test08() {
@@ -329,7 +330,7 @@ public:
            << "LSP: " << my[i].LSP << ", "
            << "LEP: " << my[i].LEP << "\n";
     assert (my[0].LSP == Position(0,0) && my[0].EEP == Position(4,0));
-    
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test09() {
@@ -350,7 +351,7 @@ public:
     assert(equate_x(*this, vy, vx) == ME_STRING_VAL);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert(x.val() == y.val());
-    
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test10() {
@@ -392,6 +393,7 @@ public:
     cerr << "After equate: t = " << t << "  vs  z = " << z << "\n";
     double lt = t.varimp()->dom().logdim();
     assert (lt == z.varimp()->dom().logdim() && lt == log(4));
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test11() {
@@ -413,6 +415,7 @@ public:
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert(equate_x(*this, vy, vx) == ME_STRING_NONE);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test12() {
@@ -440,6 +443,7 @@ public:
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     for (int i = 0; i < n1; ++i)
       assert(w1[i] == vy[i].val()[0] && w1[i] == vx[i].val()[0]);
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test13() {
@@ -467,6 +471,7 @@ public:
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert (equate_x(*this, vy, vx) == ME_STRING_FAILED);
     cerr << "Unsat!\n";
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test14() {
@@ -498,6 +503,7 @@ public:
     assert (equate_x(*this, vy, vx) == ME_STRING_FAILED);
     cerr << "Unsat!\n";
     // TODO: Try check_sweep here.
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test15() {
@@ -513,6 +519,7 @@ public:
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     assert (vx[0].logdim() + vx[1].logdim() == vy[0].logdim() + vy[1].logdim());
     assert (equate_x(*this, vy, vx) == ME_STRING_NONE);
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test16() {
@@ -535,6 +542,7 @@ public:
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert (equate_x(*this, vy, vx) == ME_STRING_NONE);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test17() {
@@ -551,6 +559,7 @@ public:
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
     assert (equate_x(*this, vx, vy) == ME_STRING_NONE);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test18() {
@@ -572,6 +581,7 @@ public:
     assert (equate_x(*this, vy, vx) == ME_STRING_VAL);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert (x.val() == y.val());
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test19() {
@@ -592,6 +602,7 @@ public:
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert (equate_x(*this, vy, vx) == ME_STRING_FAILED);
     cerr << "Unsat!\n";
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test20() {
@@ -616,6 +627,7 @@ public:
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     assert (vx.varimp()->dom().contains(vy.varimp()->dom()));
     assert (vy.varimp()->dom().contains(vx.varimp()->dom()));
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test21() {
@@ -638,6 +650,7 @@ public:
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert (equate_x(*this, vy, vx) == ME_STRING_NONE);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test22() {
@@ -659,6 +672,7 @@ public:
     assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert(vy[1].ub() == 800);
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test23() {
@@ -683,7 +697,8 @@ public:
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
-    assert(vy[1].ub() == 800);              
+    assert(vy[1].ub() == 800);
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test24() {
@@ -718,6 +733,7 @@ public:
     assert (equate_x(*this, vy, vx) == ME_STRING_BASE);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert (vx.size() == 2);
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test26() {
@@ -737,6 +753,7 @@ public:
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert (vx.varimp()->dom().contains(vy.varimp()->dom()));
     assert (vy.varimp()->dom().contains(vx.varimp()->dom()));
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test27() {
@@ -757,6 +774,7 @@ public:
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test28() {
@@ -777,6 +795,7 @@ public:
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert (vx.varimp()->dom().contains(vy.varimp()->dom()));
     assert (vy.varimp()->dom().contains(vx.varimp()->dom()));
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test29() {
@@ -798,6 +817,7 @@ public:
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";    
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test30() {
@@ -820,11 +840,13 @@ public:
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert (vy[0].val() == vector<int>({'0'}) && vy.size() == 2);
     //FIXME: Check why vy[1].ub() == 2.
+    assert(vx.isOK() && vy.isOK());
   }
   
   void test31() {
     std::cerr << "\n*** Test 31 ***" << std::endl;
     //TODO: test18 of str_test2.
+    assert(vx.isOK() && vy.isOK());
   }
   
 };
