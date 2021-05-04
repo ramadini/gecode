@@ -502,7 +502,7 @@ public:
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert (equate_x(*this, vy, vx) == ME_STRING_FAILED);
     cerr << "Unsat!\n";
-    // TODO: Try check_sweep here.
+    assert (!check_equate_x(vx, vy) && !check_equate_x(vy, vx));
     assert(vx.isOK() && vy.isOK());
   }
   
@@ -602,6 +602,7 @@ public:
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert (equate_x(*this, vy, vx) == ME_STRING_FAILED);
     cerr << "Unsat!\n";
+    assert (!check_equate_x(vx, vy) && !check_equate_x(vy, vx));
     assert(vx.isOK() && vy.isOK());
   }
   
@@ -985,6 +986,7 @@ public:
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert (equate_x(*this, vy, vx) == ME_STRING_FAILED);
     cerr << "Unsat!\n";
+    assert (!check_equate_x(vx, vy) && !check_equate_x(vy, vx));
   }
   
 };
