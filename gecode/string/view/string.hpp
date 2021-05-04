@@ -329,13 +329,13 @@ namespace Gecode { namespace String {
     bnew[0].update(home, bp);
     bnew[0].baseIntersect(home, bx);    
     if (!bnew[0].isNull()) {
-      if (p_i == q_i) {      
+      if (p_i == q_i) {
         bnew[0].updateCard(home, std::max(0, std::min(q_o, bp.lb()) - p_o), 
                                  std::min(u, q_o-p_o));    
         return;
       }
       else
-        bnew[0].updateCard(home, std::max(0, std::min(q_o, bp.lb()) - p_o), 
+        bnew[0].updateCard(home, std::max(0, bp.lb()-p_o), 
                                  std::min(u, bp.ub()-p_o));
     }
     // Central part of the region.
