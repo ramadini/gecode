@@ -10,7 +10,7 @@ namespace Gecode { namespace String {
     Limits::check_length(int n, int m, const char* l) {
       if (n > m)
         throw VariableEmptyDomain(l);
-      if (n < 0 || m >= MAX_ALPHABET_SIZE)
+      if (n < 0 || m > MAX_STRING_LENGTH)
         throw OutOfLimits(l);
     }
 
