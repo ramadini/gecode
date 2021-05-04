@@ -266,12 +266,12 @@ namespace Gecode { namespace String {
   }
   
   forceinline StringView::SweepFwdIterator
-  StringView::fwd_iterator(void) {
+  StringView::fwd_iterator(void) const {
     return SweepFwdIterator(*this);
   }
   
   forceinline StringView::SweepBwdIterator
-  StringView::bwd_iterator(void) {
+  StringView::bwd_iterator(void) const {
     return SweepBwdIterator(*this);
   }
   

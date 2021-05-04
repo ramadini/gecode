@@ -102,8 +102,8 @@ namespace Gecode { namespace String {
 
     /// \name Sweep iterators
     //@{
-    SweepFwdIterator fwd_iterator(void);
-    SweepBwdIterator bwd_iterator(void);
+    SweepFwdIterator fwd_iterator(void) const;
+    SweepBwdIterator bwd_iterator(void) const;
     //@}
 
     //@}

@@ -275,19 +275,19 @@ public:
     int n = vx.size();
     Matching m[n];
     cerr << "Init. x = " << x << "  vs  y = " << y << "\n";
-    bool b = init_x<StringView,StringView>(*this, vx, vy, m);
+    bool b = init_x<StringView,StringView>(vx, vy, m);
     assert(b);    
     for (int i = 0; i < n; ++i)
       cerr << "ESP[ " << vx[i] << " ] = " << m[i].ESP << ", "
            << "LEP[ " << vx[i] << " ] = " << m[i].LEP << "\n";
     cerr << "Init. y = " << y << "  vs  x = " << x << "\n";
-    b = init_x<StringView,StringView>(*this, vy, vx, m);
+    b = init_x<StringView,StringView>(vy, vx, m);
     assert(!b);
     cerr << "Unsat!\n";
     bv[3].update(*this, Block(*this, CharSet(*this, '!'), 0, 3));
     StringVar z(*this, DashedString(*this, bv, 3));
     StringView vz(z);
-    b = init_x<StringView,StringView>(*this, vy, vz, m);
+    b = init_x<StringView,StringView>(vy, vz, m);
     cerr << "Init. y = " << y << "  vs  z = " << z << "\n";
     assert(b);
     n = vy.size();
@@ -310,7 +310,7 @@ public:
     cerr << "Sweep x = " << x << "  vs  y = " << y << "\n";
     int n = vx.size(), k = 0;
     Matching mx[n];
-    assert(sweep_x(*this, vx, vy, mx, k));
+    assert(sweep_x(vx, vy, mx, k));
     for (int i = 0; i < n; ++i)
       cerr << "Block " << vx[i] << ":\t"
            << "ESP: " << mx[i].ESP << ", "
@@ -322,7 +322,7 @@ public:
     cerr << "Sweep y = " << y << "  vs  x = " << x << "\n";    
     n = vy.size();
     Matching my[n];
-    assert(sweep_x(*this, vy, vx, my, k));
+    assert(sweep_x(vy, vx, my, k));
     for (int i = 0; i < n; ++i)
       cerr << "Block " << vy[i] << ":\t"
            << "ESP: " << my[i].ESP << ", "
