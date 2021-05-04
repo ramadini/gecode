@@ -979,9 +979,9 @@ public:
     StringVar y(*this, DashedString(*this, by, ny));
     StringView vx(x), vy(y);
     // NOTE: x and y are not equatable.
-//    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-//    assert (equate_x(*this, vx, vy) == ME_STRING_CARD);    
-//    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+    assert (equate_x(*this, vx, vy) == ME_STRING_CARD);    
+    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert (equate_x(*this, vy, vx) == ME_STRING_FAILED);
     cerr << "Unsat!\n";
