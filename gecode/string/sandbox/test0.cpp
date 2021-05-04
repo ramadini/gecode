@@ -956,7 +956,6 @@ public:
     assert (equate_x(*this, vx, vy) == ME_STRING_VAL);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    //FIXME: Fix this.
     assert (equate_x(*this, vy, vx) == ME_STRING_VAL);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert(vx.isOK() && vy.isOK());
@@ -979,13 +978,13 @@ public:
     StringVar x(*this, DashedString(*this, bx, nx)); 
     StringVar y(*this, DashedString(*this, by, ny));
     StringView vx(x), vy(y);
-    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
-    // FIXME: Check this refinement, because x and y are not equatable.
-    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+    // NOTE: x and y are not equatable.
+//    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
+//    assert (equate_x(*this, vx, vy) == ME_STRING_CARD);    
+//    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert (equate_x(*this, vy, vx) == ME_STRING_FAILED);
-    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
+    cerr << "Unsat!\n";
   }
   
 };
