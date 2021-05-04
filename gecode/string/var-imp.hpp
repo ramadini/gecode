@@ -150,8 +150,6 @@ namespace Gecode { namespace String {
   std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const StringVarImp& x);
   
-  class StringView;
-  
 }}
 #include <gecode/string/var-imp/string.hpp>
 

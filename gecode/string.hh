@@ -64,10 +64,10 @@ namespace Gecode { namespace String {
   /// Numerical limits for string variables
   namespace Limits {
     /// Upper bound on the string length. It has to be in \f$[1, 2^31)\f$, otherwise the behaviour is undefined.
-    int MAX_STRING_LENGTH = 10000;
+    const int MAX_STRING_LENGTH = 2147483647;
     /// Upper bound on the alphabet size. It has to be in \f$[1, 2^31]\f$, otherwise the behaviour is undefined.
     /// The alphabet of each string variable is \f$\{0, 1, \dots, MAX\_ALPHABET\_SIZE\}\f$
-    int MAX_ALPHABET_SIZE = 65536;
+    const int MAX_ALPHABET_SIZE = 65536;
     /// Check whether \f$ n \in [0, MAX\_STRING\_LENGTH]\f$, otherwise throw overflow exception with location \a l
     void check_length(int n, const char* l);
     /// Check whether \f$ [n,m] \subseteq [0, MAX\_STRING\_LENGTH]\f$. The following exceptions might be thrown:
@@ -294,7 +294,7 @@ namespace Gecode {
    *
    * \ingroup TaskModelString
    */
-  enum stringRelType {
+  enum StringRelType {
     STRT_EQ,    ///< Equality
     STRT_NQ,    ///< Disequality
     STRT_LEXLE, ///< Lexicographic less
@@ -311,10 +311,10 @@ namespace Gecode {
   //@{
   /// Post propagator for \f$ x \sim_r y\f$
   GECODE_STRING_EXPORT void
-  rel(Home home, StringVar x, stringRelType r, StringVar y);
+  rel(Home home, StringVar x, StringRelType r, StringVar y);
   /// Post propagator for \f$ (x \sim_{rt} y) \equiv r\f$
   GECODE_STRING_EXPORT void
-  rel(Home home, StringVar x, stringRelType rt, StringVar y, Reify r);
+  rel(Home home, StringVar x, StringRelType rt, StringVar y, Reify r);
   //@}
 
 }

@@ -1,6 +1,6 @@
 namespace Gecode { namespace String {
 
-  StringView::
+  forceinline StringView::
   SweepIterator::SweepIterator(const StringView& x, const Position& p)
   : sv(x), pos(p) {
     if (!p.isNorm(x)) {
@@ -43,11 +43,11 @@ namespace Gecode { namespace String {
 
 namespace Gecode { namespace String {
 
-  StringView::
+  forceinline StringView::
   SweepFwdIterator::SweepFwdIterator(const StringView& x) 
   : SweepIterator(x, Position(0,0)) {};
   
-  StringView::
+  forceinline StringView::
   SweepFwdIterator::SweepFwdIterator(const StringView& x, const Position& p) 
   : SweepIterator(x, p) {};
   
@@ -112,10 +112,11 @@ namespace Gecode { namespace String {
 
 namespace Gecode { namespace String {
   
-  StringView::SweepBwdIterator::SweepBwdIterator(const StringView& x) 
+  forceinline StringView::
+  SweepBwdIterator::SweepBwdIterator(const StringView& x) 
   : SweepIterator(x, Position(x.size(), 0)) {};
   
-  StringView::
+  forceinline StringView::
   SweepBwdIterator::SweepBwdIterator(const StringView& x, const Position& p) 
   : SweepIterator(x, p) {};
   

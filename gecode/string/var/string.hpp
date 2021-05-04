@@ -13,13 +13,13 @@ namespace Gecode {
   StringVar::StringVar(const String::StringView& y)
     : VarImpVar<String::StringVarImp>(y.varimp()) {}
     
-  StringVar::StringVar(Space& home)
+  forceinline StringVar::StringVar(Space& home)
     : VarImpVar<String::StringVarImp>(new (home) String::StringVarImp(home)) {}
     
-  StringVar::StringVar(Space& home, const String::Block& b)
+  forceinline StringVar::StringVar(Space& home, const String::Block& b)
     : VarImpVar<String::StringVarImp>(new (home) String::StringVarImp(home, b)) {}
     
-  StringVar::StringVar(Space& home, const String::DashedString& d)
+  forceinline StringVar::StringVar(Space& home, const String::DashedString& d)
     : VarImpVar<String::StringVarImp>(new (home) String::StringVarImp(home, d)) {}
   
   forceinline int
