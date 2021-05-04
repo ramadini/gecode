@@ -393,44 +393,41 @@ namespace Gecode { namespace String {
       return ME_STRING_FAILED;
   }
   
-//  template <class ViewX, class ViewY>
-//  forceinline bool
-//  check_equate_x(Space& home, ViewX x, const ViewY& y) {
-//    Matching m[x.size()];
-//    if (!init_x(home, x, y, m))
-//      return false;
-//    int nx = x.size(); 
-//    for (int i = 0; i < nx; ++i) {
-//      if (!pushESP<ViewX,ViewY,typename ViewY::SweepFwdIterator>(x, y, m, i))
-//        return false;
-//    }
-//    for (int i = nx-1; i >= 0; --i) {
-//      if (!pushLEP<ViewX,ViewY,typename ViewY::SweepBwdIterator>(x, y, m, i))
-//        return false;
-//    }
-//    m[0].LSP = m[0].ESP;
-//    assert (m[0].LSP == Position(0,0));
-//    for (int i = 1; i < nx; ++i) {
-//      m[i].LSP = m[i-1].LEP;
-////      std::cerr << "ESP of " << x[i] << ": " << m[i].ESP << ", " 
-////                << "LSP of " << x[i] << ": " << m[i].LSP << "\n";
-//      if (y.prec(m[i].LSP, m[i].ESP))
-//        return false;
-//      assert (m[i].ESP.isNorm(y) && m[i].LSP.isNorm(y));
-//    }
-//    m[nx-1].EEP = m[nx-1].LEP;
-//    n = y.ub_new_blocks(m[nx-1]);
-//    for (int i = nx-2; i >= 0; --i) {
-//      m[i].EEP = m[i+1].ESP;
-////      std::cerr << "EEP of " << x[i] << ": " << m[i].EEP << ", " 
-////                << "LEP of " << x[i] << ": " << m[i].LEP << "\n";
-//      if (y.prec(m[i].LEP, m[i].EEP))
-//        return false;
-//      n += y.ub_new_blocks(m[i]);
-//      assert (m[i].EEP.isNorm(y) && m[i].LEP.isNorm(y));
-//    }
-//    assert (m[nx-1].EEP == Position(y.size(),0));
-//    return true;
-//  }
+  template <class ViewX, class ViewY>
+  forceinline bool
+  check_equate_x(ViewX x, const ViewY& y) {
+    Matching m[x.size()];
+    if (!init_x(x, y, m))
+      return false;
+    int nx = x.size(); 
+    for (int i = 0; i < nx; ++i) {
+      if (!pushESP<ViewX,ViewY,typename ViewY::SweepFwdIterator>(x, y, m, i))
+        return false;
+    }
+    for (int i = nx-1; i >= 0; --i) {
+      if (!pushLEP<ViewX,ViewY,typename ViewY::SweepBwdIterator>(x, y, m, i))
+        return false;
+    }
+    m[0].LSP = m[0].ESP;
+    assert (m[0].LSP == Position(0,0));
+    for (int i = 1; i < nx; ++i) {
+      m[i].LSP = m[i-1].LEP;
+      if (y.prec(m[i].LSP, m[i].ESP))
+        return false;
+      assert (m[i].ESP.isNorm(y) && m[i].LSP.isNorm(y));
+    }
+    m[nx-1].EEP = m[nx-1].LEP;
+    for (int i = nx-2; i >= 0; --i) {
+      m[i].EEP = m[i+1].ESP;
+      if (y.prec(m[i].LEP, m[i].EEP))
+        return false;
+      assert (m[i].EEP.isNorm(y) && m[i].LEP.isNorm(y));
+    }
+    assert (m[nx-1].EEP == Position(y.size(),0));
+    for (int i = 0; i < nx; ++i)
+      if (x[i].ub() < y.min_len_mand(x[i], m[i].LSP, m[i].LEP))
+        return false;
+    return true;
+  }
 
 }}
