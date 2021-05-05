@@ -280,6 +280,12 @@ namespace Gecode { namespace String {
     void nullify(Space& home);
     /// Update this dashed string to be a clone of \a x
     void update(Space& home, const DashedString& x);
+    /// Possibly refine this dashed string given minimum length l.
+    /// Pre-condition: min_length() <= l <= max_length()
+    void min_length(Space& home, int l);
+    /// Possibly refine this dashed string given maximum length u.
+    /// Pre-condition: min_length() <= u <= max_length()
+    void max_length(Space& home, int u);
     //@}
     
     /// Check whether the dashed string is normalized
@@ -952,6 +958,39 @@ namespace Gecode { namespace String {
     }
     min_len = max_len = 0;
     assert(isOK() && isNorm());
+  }
+  
+  forceinline void 
+  DashedString::min_length(Space& home, int l) {
+    assert (min_len <= l && l <= max_len);
+    for (int i = 0; i < n; ++i) {
+      Block& bi = x[i];
+      int li = bi.lb(), ui = bi.ub(), min_i = l - max_len + ui;
+      assert (min_i <= ui);
+      if (li < min_i)
+        bi.lb(home, min_i);
+    }
+    min_len = l;
+    assert (isOK() && isNorm());
+  }
+  
+  forceinline void 
+  DashedString::max_length(Space& home, int u) {
+    assert (min_len <= u && u <= max_len);
+    bool norm = false;
+    for (int i = 0; i < n; ++i) {
+      Block& bi = x[i];
+      int li = bi.lb(), ui = bi.ub(), max_i = u - min_len + li;
+      assert (max_i >= li);
+      if (ui > max_i) {
+        bi.ub(home, max_i);
+        norm |= max_i == 0;
+      }
+    }
+    max_len = u;
+    if (norm)
+      normalize(home);
+    assert (isOK() && isNorm());
   }
   
   forceinline void 

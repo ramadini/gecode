@@ -156,13 +156,10 @@ namespace Gecode { namespace String {
     //@{
     /// Possibly update the lower bound of the blocks, knowing that the minimum 
     /// length for any string in the domain is \a l
-    ModEvent lengthMin(Space& home, int l);
+    ModEvent min_length(Space& home, int l);
     /// Possibly update the upper bound of the blocks, knowing that the maximum 
     /// length for any string in the domain is \a u
-    ModEvent lengthMax(Space& home, int u);
-    /// Possibly update the cardinality of the blocks, knowing that the length 
-    /// for any string in the domain is between \a l and \a u
-    ModEvent lengthIn(Space& home, int l, int u);
+    ModEvent max_length(Space& home, int u);
     //@}
     
     /// Returns true if p and q are the same position in this view.

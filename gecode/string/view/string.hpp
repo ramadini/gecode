@@ -218,7 +218,7 @@ namespace Gecode { namespace String {
   forceinline void
   StringView::update(Space& home, StringView& y) {
     VarImpView::update(home, y);
-    varimp()->update(home, y.varimp()->dom());
+    x->update(home, y.x->dom());
   }
   
   forceinline bool
@@ -260,10 +260,20 @@ namespace Gecode { namespace String {
     return x->isOK();
   }
   
+  forceinline ModEvent
+  StringView::min_length(Space& home, int l) {
+    return x->min_length(home, l);
+  }
+  
+  forceinline ModEvent
+  StringView::max_length(Space& home, int u) {
+    return x->max_length(home, u);
+  }
+  
   template<class Char, class Traits>
   forceinline  std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const StringView& v) {
-    os << v.varimp()->dom();
+    os << v.x->dom();
     return os;
   };
   
@@ -463,8 +473,9 @@ namespace Gecode { namespace String {
     for (h = U[uSize-2]+1; h < size(); ++j, ++h)
       d[j].update(home, (*this)[h]);
     d.normalize(home);
-    varimp()->update(home, d);
+    x->update(home, d);
   }
+  
      
 }}
 

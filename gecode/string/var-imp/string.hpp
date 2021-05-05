@@ -48,13 +48,29 @@ namespace Gecode { namespace String {
   }
   
   forceinline int
+  StringVarImp::min_length() const {
+    return ds.min_length();
+  }
+  
+  forceinline int
   StringVarImp::max_length() const {
     return ds.max_length();
   }
   
-  forceinline int
-  StringVarImp::min_length() const {
-    return ds.min_length();
+  forceinline ModEvent
+  StringVarImp::min_length(Space& home, int l) {
+    if (l > max_length())
+      return ME_STRING_FAILED;
+    int lx = min_length();
+    if (l <= lx)
+      return ME_STRING_NONE;
+    ds.min_length(home, l);
+    StringDelta d;
+    return notify(home, assigned() ? ME_STRING_VAL : ME_STRING_CARD, d);
+  }
+  
+  forceinline ModEvent
+    StringVarImp::max_length(Space& home, int u) {
   }
   
   forceinline std::vector<int>
