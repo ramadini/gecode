@@ -372,22 +372,23 @@ namespace Gecode { namespace String {
     if (sweep_x(x, y, m, n) && refine_x(home, x, y, m, n)) {
       if (n == -1)
         return ME_STRING_NONE;
+      StringDelta d;
       if (x.assigned())
-        return ME_STRING_VAL;
+        return x.varimp()->notify(home, ME_STRING_VAL, d);
       int ux = x.max_length();
       if (x.min_length() > lb || (ux < ub && ux < MAX_STRING_LENGTH))
-        return ME_STRING_CARD;
+        return x.varimp()->notify(home, ME_STRING_CARD, d);
       if (ux == MAX_STRING_LENGTH && ub > MAX_STRING_LENGTH) {
         int u = 0L;
         for (int i = 0; i < x.size(); ++i) {
           u += x[i].ub();
           if (u >= ub)
-            return ME_STRING_BASE;
+            return x.varimp()->notify(home, ME_STRING_BASE, d);
         }
-        return ME_STRING_CARD;
+        return x.varimp()->notify(home, ME_STRING_CARD, d);
       }
       else
-        return ME_STRING_BASE;
+        return x.varimp()->notify(home, ME_STRING_BASE, d);
     }
     else
       return ME_STRING_FAILED;

@@ -27,48 +27,49 @@ namespace Gecode { namespace String { namespace Rel {
   template<class View0, class View1>
   ExecStatus
   Eq<View0,View1>::propagate(Space& home, const ModEventDelta& med) {
-
-    ModEvent me0 = View0::me(med);
-    ModEvent me1 = View1::me(med);
-    
-    return ES_OK;
-
-//    Region r;
-
-//    if (testStringEventLB(me0,me1)) {
-//      GlbRanges<View0> x0lb(x0);
-//      GlbRanges<View1> x1lb(x1);
-//      Iter::Ranges::Union<GlbRanges<View0>,GlbRanges<View1> > lbu(x0lb,x1lb);
-//      Iter::Ranges::Cache lbuc(r,lbu);
-//      GECODE_ME_CHECK(x0.includeI(home,lbuc));
-//      lbuc.reset();
-//      GECODE_ME_CHECK(x1.includeI(home,lbuc));
+    GECODE_ME_CHECK(equate_x(home, x0, x1));
+    GECODE_ME_CHECK(equate_x(home, x1, x0));
+//    if (!refine_card_eq(h, that))
+//      return false;
+//    if (known()) {
+//      string s = val();
+//      if (that.known())
+//        return s == that.val();
+//      else {
+//        if (check_equate_x(s, x1)) {
+//          that.update(h, s);
+//          return true;
+//        }
+//        else
+//          return false;
+//      }
 //    }
-
-//    if (testStringEventUB(me0,me1)) {
-//      LubRanges<View0> x0ub(x0);
-//      LubRanges<View1> x1ub(x1);
-//      Iter::Ranges::Inter<LubRanges<View0>,LubRanges<View1> > ubi(x0ub,x1ub);
-//      Iter::Ranges::Cache ubic(r,ubi);
-//      GECODE_ME_CHECK(x0.intersectI(home,ubic));
-//      ubic.reset();
-//      GECODE_ME_CHECK(x1.intersectI(home,ubic));
+//    if (that.known()) {
+//      string s = that.val();
+//      if (check_sweep<DSBlock, DSBlocks, char, string>(_blocks, s)) {
+//        update(h, s);
+//        return true;
+//      }
+//      else
+//        return false;
 //    }
-
-//    if (testStringEventCard(me0,me1)) {
-//      unsigned int max = std::min(x0.cardMax(),x1.cardMax());
-//      unsigned int min = std::max(x0.cardMin(),x1.cardMin());
-//      GECODE_ME_CHECK(x0.cardMax(home,max));
-//      GECODE_ME_CHECK(x1.cardMax(home,max));
-//      GECODE_ME_CHECK(x0.cardMin(home,min));
-//      GECODE_ME_CHECK(x1.cardMin(home,min));
+//    if (contains(that)) {
+//      if (*this == that)
+//        return true;
+//      update(h, that);
+//      return true;
 //    }
-
-//    if (x0.assigned()) {
-//      assert (x1.assigned());
-//      return home.ES_SUBSUMED(*this);
+//    if (that.contains(*this)) {
+//      that.update(h, *this);
+//      return true;
 //    }
-//    return shared(x0,x1) ? ES_NOFIX : ES_FIX;
+//    // std::cerr<<"refined: "<<*this<<' '<<that<<std::endl;
+//    if (!sweep_equate(h, *this, that))
+//      return false;
+//    if ((_changed || that._changed) && !refine_card_eq(h, that))
+//      return false;
+//    // std::cerr<<"DashedString::equated "<<*this<<' '<<that<<std::endl;
+//    return true;
   }
 
 }}}
