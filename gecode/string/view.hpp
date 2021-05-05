@@ -132,10 +132,15 @@ namespace Gecode { namespace String {
     bool check_equate(const DashedString& x) const;
     /// Consistency checks on the view
     bool isOK(void) const;
-    /// 
+    /// If this view is the same of y
+    bool same(const StringView& y) const;
     //@}
     
-    void update(Space& home, const DashedString& d);
+    /// \name Cloning
+    //@{
+    /// Update this view to be a clone of view \a y
+    void update(Space& home, StringView& y);
+    //@}
     
     /// \name Domain update by equation: FIXME: Check if needed
     //@{
@@ -181,7 +186,7 @@ namespace Gecode { namespace String {
     /// TODO:
     void
     crushBase(Space& home, Block& bx, const Position& esp, 
-                                       const Position& lep) const;
+                                      const Position& lep) const;
     /// TODO:                                   
     void
     opt_region(Space& home, const Block& bx, Block& bnew, 
@@ -190,7 +195,7 @@ namespace Gecode { namespace String {
     /// TODO:                   
     void
     mand_region(Space& home, Block& bx, const Block& by,
-                   const Position& p, const Position& q /*l1*/) const;
+                             const Position& p, const Position& q) const;
     /// TODO:                                                     
     void
     mand_region(Space& home, Block& bx, Block* bnew, int u,

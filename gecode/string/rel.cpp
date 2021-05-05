@@ -14,9 +14,9 @@ namespace Gecode { namespace String {
     case STRT_EQ:
       GECODE_ES_FAIL((Eq<View0,View1>::post(home,x0,x1)));
       break;
-    case STRT_NQ:
-      GECODE_ES_FAIL((Nq<View0,View1>::post(home,x0,x1)));
-      break;
+//    case STRT_NQ:
+//      GECODE_ES_FAIL((Nq<View0,View1>::post(home,x0,x1)));
+//      break;
     default:
       throw UnknownRelation("String::rel");
     }
@@ -62,11 +62,11 @@ namespace Gecode { namespace String {
 
 namespace Gecode {
 
-//  void
-//  rel(Home home, StringVar x, StringRelType r, StringVar y) {
-//    using namespace String;
-//    rel_post<StringView,StringView>(home,x,r,y);
-//  }
+  void
+  rel(Home home, StringVar x, StringRelType r, StringVar y) {
+    using namespace String;
+    rel_post<StringView,StringView>(home,x,r,y);
+  }
 
 //  void
 //  rel(Home home, StringVar x, StringRelType rt, StringVar y, Reify r) {

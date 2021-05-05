@@ -216,8 +216,14 @@ namespace Gecode { namespace String {
     : VarImpView<StringVar>(y) {}
 
   forceinline void
-  StringView::update(Space& home, const DashedString& d) {
-    x->update(home, d);
+  StringView::update(Space& home, StringView& y) {
+    VarImpView::update(home, y);
+    varimp()->update(home, y.varimp()->dom());
+  }
+  
+  forceinline bool
+  StringView::same(const StringView& y) const {
+    return varimp() == y.varimp();
   }
 
   forceinline int 
@@ -457,7 +463,7 @@ namespace Gecode { namespace String {
     for (h = U[uSize-2]+1; h < size(); ++j, ++h)
       d[j].update(home, (*this)[h]);
     d.normalize(home);
-    update(home, d);                                                                
+    varimp()->update(home, d);
   }
      
 }}
