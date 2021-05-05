@@ -82,6 +82,11 @@ namespace Gecode { namespace String {
     /// Returns the i-th block of the domain
     Block& operator[](int i);
     const Block& operator[](int i) const;
+    /// If this domain contains y
+    bool contains(const StringVarImp& y) const;
+    /// If this domain is equal to y
+    bool equals(const StringVarImp& y) const;
+    
     //@}
     
     /// Normalize the domain
@@ -105,6 +110,8 @@ namespace Gecode { namespace String {
     ModEvent min_length(Space& home, int l);
     /// Updates the maximum length of each string of the domain
     ModEvent max_length(Space& home, int u);
+    /// Equates with dashed string \a x
+    ModEvent bnd_length(Space& home, int l, int u);
     //@}
     
     /// \name Dependencies

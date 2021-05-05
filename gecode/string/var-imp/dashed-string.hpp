@@ -135,8 +135,10 @@ namespace Gecode { namespace String {
     /// Test whether the base of this block is equal to the base of \a b
     bool baseEquals(const Block& b) const;
     /// Test whether this block contains block \a b, i.e. base() contains b.base() 
-    /// and lb() <= b.lb() and ub() >= b.ub()
+    /// and lb() <= b.lb() and ub() >= b.ub()    
     bool contains(const Block& b) const;
+    /// Test whether this block is equal to b
+    bool equals(const Block& b) const;
     //@}
     
     /// \name Update operations
@@ -272,6 +274,8 @@ namespace Gecode { namespace String {
     /// for \f$ i=1,\dots, size()\$ and the j-th block of this dashed string is null
     /// for \f$ j=b.size()+1,\dots, size()\$
     bool contains(const DashedString& x) const;
+    /// Test whether this dashed string is equal to x
+    bool equals(const DashedString& x) const;
     //@}
     
     /// \name Cloning and updating
@@ -574,6 +578,15 @@ namespace Gecode { namespace String {
     if (isFixed())
       return b.isFixed() && l == b.l && u == b.u;
     return b.isFixed() ? S->in(b.l) : S->contains(*b.S);
+  }
+  
+  forceinline bool
+  Block::equals(const Block& b) const {
+    if (this == &b)
+      return true;
+    if (l != b.l || u != b.u)
+      return false;
+    return baseEquals(b);
   }
   
   forceinline std::vector<int>
@@ -921,10 +934,16 @@ namespace Gecode { namespace String {
   
   forceinline bool
   DashedString::contains(const DashedString& d) const {
-    if (min_len > d.min_len || max_len < d.max_len || n < d.n)
+    if (min_len > d.min_len || max_len < d.max_len)
       return false;
-    if (isUniverse() || (d.isNull() && min_len == 0))
+    if (n == 1) {      
+      for (int i = 0; i < d.n; ++i)
+        if (!x[0].contains(d[i]))
+          return false;
       return true;
+    }
+    if (n < d.n)
+      return false;
     for (int i = 0; i < d.n; ++i)
       if (!x[i].contains(d.x[i]))
         return false;
@@ -932,6 +951,18 @@ namespace Gecode { namespace String {
       if (x[i].lb() > 0)
         return false;
     return true;
+  }
+  
+  forceinline bool
+  DashedString::equals(const DashedString& d) const {
+    if (this == &d)
+      return true;
+    if (n != d.n || min_len != d.min_len || max_len != d.max_len)
+      return false;
+    for (int i = 0; i < n; ++i)
+      if (!x[i].equals(d[i]))
+        return false;
+    return true;      
   }
   
   forceinline std::vector<int>

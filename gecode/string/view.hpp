@@ -135,8 +135,12 @@ namespace Gecode { namespace String {
     bool check_equate(const DashedString& x) const;
     /// Consistency checks on the view
     bool isOK(void) const;
-    /// If this view is the same of y
+    /// If this view and y are the same
     bool same(const StringView& y) const;
+    /// If this view contains y
+    bool contains(const StringView& y) const;
+    /// If this view is equals to y
+    bool equals(const StringView& y) const;
     //@}
     
     /// \name Cloning
@@ -163,6 +167,10 @@ namespace Gecode { namespace String {
     /// Possibly update the upper bound of the blocks, knowing that the maximum 
     /// length for any string in the domain is \a u
     ModEvent max_length(Space& home, int u);
+    /// Possibly update the upper bound of the blocks, knowing that the minimum 
+    /// length for any string in the domain is \a l and the maximum length for 
+    /// any string in the domain is \a u
+    ModEvent bnd_length(Space& home, int l, int u);
     //@}
     
     /// Returns true if p and q are the same position in this view.

@@ -1288,7 +1288,6 @@ namespace Gecode { namespace String {
     return true;
   }
  
- 
   forceinline bool
   DashedString::refine_card_cat(Space& h, DashedString& x, DashedString& y) {
     long lx = x._min_length, ly = y._min_length, lz = _min_length,

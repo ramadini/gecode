@@ -287,7 +287,7 @@ namespace Gecode { namespace String {
   forceinline bool
   init_x(ViewX x, const ViewY& y, Matching m[]) {
     typename ViewY::SweepFwdIterator fwd_it = y.fwd_iterator();
-    int nx = x.size(), ny = y.size();
+    int nx = x.size();
     for (int i = 0; i < nx; ++i) {
       stretch<typename ViewY::SweepFwdIterator>(x[i], fwd_it);
       m[i].LEP = *fwd_it;

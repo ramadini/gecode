@@ -265,6 +265,16 @@ namespace Gecode { namespace String {
     return x->isOK();
   }
   
+  forceinline bool
+  StringView::contains(const StringView& y) const {
+    return x->contains(*y.x);
+  }
+  
+  forceinline bool
+  StringView::equals(const StringView& y) const {
+    return x->equals(*y.x);
+  }
+  
   forceinline ModEvent
   StringView::min_length(Space& home, int l) {
     return x->min_length(home, l);
@@ -273,6 +283,11 @@ namespace Gecode { namespace String {
   forceinline ModEvent
   StringView::max_length(Space& home, int u) {
     return x->max_length(home, u);
+  }
+  
+  forceinline ModEvent
+  StringView::bnd_length(Space& home, int l, int u) {
+    return x->bnd_length(home, l, u);
   }
   
   template<class Char, class Traits>

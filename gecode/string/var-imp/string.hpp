@@ -57,6 +57,16 @@ namespace Gecode { namespace String {
     return ds.max_length();
   }
   
+  forceinline bool
+  StringVarImp::contains(const StringVarImp& y) const {
+    return ds.contains(y.ds);
+  }
+  
+  forceinline bool
+  StringVarImp::equals(const StringVarImp& y) const {
+    return ds.equals(y.ds);
+  }
+  
   forceinline ModEvent
   StringVarImp::min_length(Space& home, int l) {
     if (l > max_length())
@@ -70,7 +80,30 @@ namespace Gecode { namespace String {
   }
   
   forceinline ModEvent
-    StringVarImp::max_length(Space& home, int u) {
+  StringVarImp::bnd_length(Space& home, int l, int u) {
+    int lx = min_length(), ux = max_length();    
+    if (l < lx || u > ux)
+      return ME_STRING_NONE;
+    if (l > ux || u < lx)
+      return ES_FAILED;
+    ModEvent me = ME_STRING_NONE;
+    if (l > lx)
+      me = min_length(home, l);
+    if (u < ux)
+      me = me_combine(me, max_length(home, u));
+    return me;
+  }
+  
+  forceinline ModEvent
+  StringVarImp::max_length(Space& home, int u) {
+    if (u < min_length())
+      return ME_STRING_FAILED;
+    int ux = max_length();
+    if (u >= ux)
+      return ME_STRING_NONE;
+    ds.max_length(home, u);
+    StringDelta d;
+    return notify(home, assigned() ? ME_STRING_VAL : ME_STRING_CARD, d);
   }
   
   forceinline std::vector<int>
