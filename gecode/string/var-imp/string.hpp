@@ -77,6 +77,23 @@ namespace Gecode { namespace String {
     return ds.isOK() && ds.isNorm();
   }
   
+  forceinline void
+  StringVarImp::subscribe(Space& home, Propagator& p, PropCond pc, 
+                                                      bool schedule) {
+    StringVarImpBase::subscribe(home, p, pc, assigned(), schedule);
+  }
+
+  forceinline void
+  StringVarImp::reschedule(Space& home, Propagator& p, PropCond pc) {
+    StringVarImpBase::reschedule(home,p,pc,assigned());
+  }
+  
+  forceinline StringVarImp*
+  StringVarImp::copy(Space& home) {
+    return copied() ? static_cast<StringVarImp*>(forward())
+                    : new (home) StringVarImp(home, *this);
+  }
+  
   template<class Char, class Traits>
   forceinline  std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const StringVarImp& x) {
