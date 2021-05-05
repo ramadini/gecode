@@ -27,10 +27,30 @@ namespace Gecode { namespace String { namespace Rel {
   template<class View0, class View1>
   ExecStatus
   Eq<View0,View1>::propagate(Space& home, const ModEventDelta& med) {
-    GECODE_ME_CHECK(equate_x(home, x0, x1));
-    GECODE_ME_CHECK(equate_x(home, x1, x0));
-//    if (!refine_card_eq(h, that))
-//      return false;
+    int l0 = x0.min_length(), l1 = x1.min_length(), 
+        u0 = x0.min_length(), u1 = x1.min_length();
+    if (l0 > u1 || l1 > u0)
+      return ES_FAILED;
+    int l = std::max(l0, l1), u = std::min(u0, u1);
+    ModEvent me = ME_STRING_NONE;
+    if (l0 > l1)
+      me = x1.min_length(home, l0);
+    else if (l1 > l0)
+      me = x0.min_length(home, l1);
+    GECODE_ME_CHECK(me);
+    if (u0 < u1)
+      me = StringVarImp::me_combine(me, x1.max_length(home, u0));
+    else if (u1 < u0)
+      me = StringVarImp::me_combine(me, x0.max_length(home, u1));
+    GECODE_ME_CHECK(me);
+    if (x0.assigned()) {
+      if (x1.assigned())
+        return x0.val() == x1.val() ? home.ES_SUBSUMED(*this) : ES_FAILED;
+    }
+    if (x1.assigned()) {
+    
+    }
+    
 //    if (known()) {
 //      string s = val();
 //      if (that.known())
@@ -68,8 +88,7 @@ namespace Gecode { namespace String { namespace Rel {
 //      return false;
 //    if ((_changed || that._changed) && !refine_card_eq(h, that))
 //      return false;
-//    // std::cerr<<"DashedString::equated "<<*this<<' '<<that<<std::endl;
-//    return true;
+    return ES_OK;
   }
 
 }}}

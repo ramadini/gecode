@@ -240,6 +240,11 @@ namespace Gecode { namespace String {
     return x->operator[](i);
   }
   
+  forceinline std::vector<int> 
+  StringView::val(void) const {
+    return x->val();
+  }
+  
   forceinline int
   StringView::max_length() const {
     return x->max_length();

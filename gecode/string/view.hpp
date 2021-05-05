@@ -118,6 +118,9 @@ namespace Gecode { namespace String {
     /// Returns the i-th block of the domain
     Block& operator[](int i);
     const Block& operator[](int i) const;
+    /// Return the value of this string view, if assigned. Otherwise, an
+    /// IllegalOperation exception is thrown.
+    std::vector<int> val(void) const;
     //@}
 
     /// \name Domain tests
