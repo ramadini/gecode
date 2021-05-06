@@ -1,5 +1,7 @@
 #define DEBUG
 
+/* Testing dashed string equation */
+
 #include <iostream>
 #include <cassert>
 #include <gecode/string.hh>
@@ -1029,7 +1031,7 @@ int main() {
   home->test34();
   home->test35();
   home->test36();
-  cerr << "\n----- test0.cpp passes -----\n\n";
+  cerr << "\n----- test-eq.cpp passes -----\n\n";
   return 0;
 }
 
