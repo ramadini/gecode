@@ -64,6 +64,7 @@ public:
     assert(vz[0].lb() == 3 && vz[0].ub() == 10);
     IntSet s({' ','!','H','d','e','l','o','r'});
     vz[0].baseExclude(*this, Gecode::Set::GLBndSet(*this, s));
+    vz.bnd_length(*this, 3, 3);
     assert (z.val() == str2vec("WWW"));
   }
 };
