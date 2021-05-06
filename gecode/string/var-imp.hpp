@@ -93,6 +93,7 @@ namespace Gecode { namespace String {
     void normalize(Space& home);
   
     void update(Space& home, const DashedString& d);
+    void update(Space& home, const StringVarImp& y);
     
     /// \name Domain update by equation
     //@{

@@ -216,9 +216,12 @@ namespace Gecode { namespace String {
     : VarImpView<StringVar>(y) {}
 
   forceinline void
-  StringView::update(Space& home, StringView& y) {
-    VarImpView::update(home, y);
-    x->update(home, y.x->dom());
+  StringView::update(Space& home, const DashedString& d) {
+    x->update(home, d);
+  }
+  forceinline void
+  StringView::update(Space& home, const StringView& y) {
+    x->update(home, *y.x);
   }
   
   forceinline bool

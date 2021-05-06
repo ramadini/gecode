@@ -146,7 +146,8 @@ namespace Gecode { namespace String {
     /// \name Cloning
     //@{
     /// Update this view to be a clone of view \a y
-    void update(Space& home, StringView& y);
+    void update(Space& home, const DashedString& d);
+    void update(Space& home, const StringView& y);
     //@}
     
     /// \name Domain update by equation: FIXME: Check if needed

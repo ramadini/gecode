@@ -40,7 +40,7 @@ public:
  
   void test01() {
     cerr << "\n*** Test 01 ***" << endl;
-    StringVar x(*this);//, Block(*this, CharSet(*this), 3, 10));
+    StringVar x(*this);    
     string w = "Hello World!";
     int n = w.size();
     Block b[n];
@@ -53,8 +53,18 @@ public:
     };
     Eq0 eq(*this, x, y);
     assert(eq.propagate(*this, 0) == ES_OK);
+    assert(x.varimp()->dom().equals(y.varimp()->dom()));
+    StringVar z(*this, Block(*this, CharSet(*this), 3, 10));
     std::cerr << "x = " << x << std::endl;
     std::cerr << "y = " << y << std::endl;
+    eq = Eq0(*this, y, z);
+    assert(eq.propagate(*this, 0) == ES_OK);
+    std::cerr << "z = " << z << std::endl;
+    StringView vz(z);
+    assert(vz[0].lb() == 3 && vz[0].ub() == 10);
+    IntSet s({' ','!','H','d','e','l','o','r'});
+    vz[0].baseExclude(*this, Gecode::Set::GLBndSet(*this, s));
+    assert (z.val() == str2vec("WWW"));
   }
 };
 

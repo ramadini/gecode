@@ -27,6 +27,10 @@ namespace Gecode { namespace String {
   StringVarImp::update(Space& home, const DashedString& d) {
     ds.update(home, d);
   }
+  forceinline void
+  StringVarImp::update(Space& home, const StringVarImp& y) {
+    ds.update(home, y.ds);
+  }
   
   forceinline int 
   StringVarImp::size() const {

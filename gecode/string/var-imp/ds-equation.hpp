@@ -105,7 +105,7 @@ namespace Gecode { namespace String {
           if ((d[0].baseSize() == 1 && d[0].lb() > 0) 
           ||  (d[d.size()-1].baseSize() == 1 && d[d.size()-1].lb() > 0)
           ||  (d.logdim() < x_i.logdim())) {
-            x.varimp()->update(home, d);
+            x.update(home, d);
             changed = true;
             // TODO: Add here the constraint |x| <= y.max_length().
             return true;
