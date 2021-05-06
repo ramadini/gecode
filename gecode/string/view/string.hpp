@@ -293,7 +293,7 @@ namespace Gecode { namespace String {
   template<class Char, class Traits>
   forceinline  std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const StringView& v) {
-    os << v.x->dom();
+    os << *v.varimp();
     return os;
   };
   

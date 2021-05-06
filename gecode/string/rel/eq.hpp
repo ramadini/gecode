@@ -27,8 +27,9 @@ namespace Gecode { namespace String { namespace Rel {
   template<class View0, class View1>
   ExecStatus
   Eq<View0,View1>::propagate(Space& home, const ModEventDelta&) {
+//    std::cerr << "Prop. Eq " << x0 << "  vs  " << x1 << "\n";
     int l0 = x0.min_length(), l1 = x1.min_length(), 
-        u0 = x0.min_length(), u1 = x1.min_length(),
+        u0 = x0.max_length(), u1 = x1.max_length(),
         l = std::max(l0, l1), u = std::min(u0, u1);
     ModEvent me = x0.bnd_length(home, l, u);
     GECODE_ME_CHECK(me);
@@ -41,7 +42,7 @@ namespace Gecode { namespace String { namespace Rel {
       StringDelta d;
       if (x0.assigned()) {
         x0.varimp()->notify(home, ME_STRING_VAL, d);
-        return home.ES_SUBSUMED(*this);  
+        return home.ES_SUBSUMED(*this);
       }
       x0.varimp()->notify(home, x0.min_length() > l0 || x0.max_length() < u0 ?
                           ME_STRING_CARD : ME_STRING_BASE, d);
@@ -52,7 +53,7 @@ namespace Gecode { namespace String { namespace Rel {
       StringDelta d;
       if (x1.assigned()) {
         x1.varimp()->notify(home, ME_STRING_VAL, d);
-        return home.ES_SUBSUMED(*this);  
+        return home.ES_SUBSUMED(*this);
       }
       x1.varimp()->notify(home, x1.min_length() > l1 || x1.max_length() < u1 ?
                           ME_STRING_CARD : ME_STRING_BASE, d);

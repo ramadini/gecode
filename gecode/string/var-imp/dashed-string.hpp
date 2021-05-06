@@ -1001,7 +1001,7 @@ namespace Gecode { namespace String {
       if (li < min_i)
         bi.lb(home, min_i);
     }
-    min_len = l;
+    min_len = l;std::cerr  << *this << '\n';
     assert (isOK() && isNorm());
   }
   
@@ -1020,7 +1020,7 @@ namespace Gecode { namespace String {
     }
     max_len = u;
     if (norm)
-      normalize(home);
+      normalize(home);    
     assert (isOK() && isNorm());
   }
   
@@ -1126,7 +1126,7 @@ namespace Gecode { namespace String {
       l += x[i].lb();
       u = ub_sum(u, x[i].ub());
     }
-    return l == min_len && u == max_len;
+    return l <= min_len && u >= max_len;
   }
   
   forceinline std::ostream&
