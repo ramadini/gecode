@@ -39,23 +39,23 @@ namespace Gecode { namespace String { namespace Rel {
         return ES_OK;
       x0.update(home, x1);
       StringDelta d;
-      if (x0.assigned())
+      if (x0.assigned()) {
         x0.varimp()->notify(home, ME_STRING_VAL, d);
-      else if (x0.min_length() > l0 || x0.max_length() < u0)
-        x0.varimp()->notify(home, ME_STRING_CARD, d);
-      else
-        x0.varimp()->notify(home, ME_STRING_BASE, d);
+        return home.ES_SUBSUMED(*this);  
+      }
+      x0.varimp()->notify(home, x0.min_length() > l0 || x0.max_length() < u0 ?
+                          ME_STRING_CARD : ME_STRING_BASE, d);
       return ES_OK;
     }
     if (x1.contains(x0)) {
       x1.update(home, x0);
       StringDelta d;
-      if (x1.assigned())
+      if (x1.assigned()) {
         x1.varimp()->notify(home, ME_STRING_VAL, d);
-      else if (x1.min_length() > l1 || x1.max_length() < u1)
-        x1.varimp()->notify(home, ME_STRING_CARD, d);
-      else
-        x1.varimp()->notify(home, ME_STRING_BASE, d);
+        return home.ES_SUBSUMED(*this);  
+      }
+      x1.varimp()->notify(home, x1.min_length() > l1 || x1.max_length() < u1 ?
+                          ME_STRING_CARD : ME_STRING_BASE, d);
       return ES_OK;
     }
     do {
