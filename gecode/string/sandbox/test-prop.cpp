@@ -37,6 +37,15 @@ public:
       v[i] = w[i];
     return v;
   }
+  
+  string
+  vec2str(const std::vector<int>& v) {
+    int n = v.size();
+    string w;
+    for (int i = 0; i < n; ++i)
+      w += v[i];
+    return w;
+  }
  
   void test01() {
     cerr << "\n*** Test 01 ***" << endl;
@@ -46,26 +55,28 @@ public:
     Block b[n];
     str2blocks(w, b, n, 0, 1);
     StringVar y(*this, DashedString(*this, b, n));
-    std::cerr << "Propagating Eq: x = " << x << ", y = " << y << "\n";
+    std::cerr << "Propagating Eq: x = " << x << "  vs  y = " << y << "\n";
     class Eq0 : public Eq<StringView,StringView> {
     public:
       Eq0(Home h, StringView x, StringView y) : Eq(h, x, y) {};
     };
-    Eq0 eq(*this, x, y);
-    assert(eq.propagate(*this, 0) == ES_OK);
+    assert(Eq0(*this, x, y).propagate(*this, 0) == ES_OK);
     assert(x.varimp()->dom().equals(y.varimp()->dom()));
-    StringVar z(*this, Block(*this, CharSet(*this), 3, 10));
+    StringVar z(*this, Block(*this, CharSet(*this), 3, 12));
     std::cerr << "x = " << x << std::endl;
     std::cerr << "y = " << y << std::endl;
-    eq = Eq0(*this, y, z);
-    assert(eq.propagate(*this, 0) == ES_OK);
+    std::cerr << "Propagating Eq: y = " << y << "  vs  z = " << z << "\n";
+    assert(Eq0(*this, y, z).propagate(*this, 0) == ES_OK);
     std::cerr << "z = " << z << std::endl;
     StringView vz(z);
-    assert(vz[0].lb() == 3 && vz[0].ub() == 10);
-    IntSet s({' ','!','H','d','e','l','o','r'});
-    vz[0].baseExclude(*this, Gecode::Set::GLBndSet(*this, s));
-    vz.bnd_length(*this, 3, 3);
-    assert (z.val() == str2vec("WWW"));
+    assert(vz[0].lb() == 3 && vz[0].ub() == 12);
+    StringVar t(*this, Block(*this, CharSet(*this), 12, 12));
+    std::cerr << "Propagating Eq: t = " << t << "  vs  z = " << z << "\n";
+    assert(Eq0(*this, t, z).propagate(*this, 0) == ES_OK);
+    std::cerr << "Propagating Eq: x = " << x << "  vs  z = " << z << "\n";
+    assert(Eq0(*this, x, z).propagate(*this, 0) == __ES_SUBSUMED);
+    std::cerr << "x = " << x << "\n";
+    assert (x.val() == str2vec(w) && w == vec2str(x.val()));
   }
 };
 
