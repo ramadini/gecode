@@ -94,8 +94,8 @@ namespace Gecode { namespace String { namespace Rel {
 }}}
 
 #include <gecode/string/rel/eq.hpp>
-#include <gecode/string/rel/re-eq.hpp>
 #include <gecode/string/rel/nq.hpp>
+#include <gecode/string/rel/re-eq.hpp>
 
 #endif
 

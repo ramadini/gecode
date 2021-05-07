@@ -28,8 +28,6 @@ namespace Gecode { namespace String { namespace Rel {
   ExecStatus
   Nq<View0,View1>::propagate(Space& home, const ModEventDelta&) {
 //    std::cerr << "Prop. Nq " << x0 << "  vs  " << x1 << "\n";
-    int l0 = x0.min_length(), l1 = x1.min_length(), 
-        u0 = x0.max_length(), u1 = x1.max_length();
     if (x0.min_length() > x1.max_length() || x0.max_length() < x1.min_length())
       return home.ES_SUBSUMED(*this);
     if (x1.assigned()) {
@@ -46,7 +44,7 @@ namespace Gecode { namespace String { namespace Rel {
       // FIXME: TODO length(home, x1, n);
       return home.ES_SUBSUMED(*this);
     }
-    if (!x0.check_equate_x(x1) || !x1.check_equate_x(x0))
+    if (!check_equate_x(x0,x1) || !check_equate_x(x1,x0))
       return home.ES_SUBSUMED(*this);
     // std::cerr << "Nq::propagated.\n";
     return ES_FIX;
