@@ -71,6 +71,7 @@ namespace Gecode { namespace String { namespace Rel {
       me = StringVarImp::me_combine(me, x1.bnd_length(home, l, u));
       GECODE_ME_CHECK(me);
     } while (x0.assigned() + x1.assigned() == 1);
+    // std::cerr << "Eq::propagated.\n";
     return x0.assigned() ? home.ES_SUBSUMED(*this) : ES_OK;
   }
 
