@@ -62,13 +62,13 @@ namespace Gecode { namespace String {
 
 namespace Gecode {
 
-  void
+  forceinline void
   rel(Home home, StringVar x, StringRelType r, StringVar y) {
     using namespace String;
     rel_post<StringView,StringView>(home,x,r,y);
   }
 
-  void
+  forceinline void
   rel(Home home, StringVar x, StringRelType rt, StringVar y, Reify r) {
     using namespace String;
     switch (r.mode()) {
@@ -83,6 +83,20 @@ namespace Gecode {
       break;
     default: throw Gecode::Int::UnknownReifyMode("String::rel");
     }
+  }
+  
+  forceinline void
+  eq(Home home, StringVar x, StringVar y) {
+    using namespace String;
+    GECODE_POST;
+    GECODE_ES_FAIL((Rel::Eq<StringView,StringView>::post(home, x, y)));
+  }
+  
+  forceinline void
+  nq(Home home, StringVar x, StringVar y) {
+    using namespace String;
+    GECODE_POST;
+    GECODE_ES_FAIL((Rel::Nq<StringView,StringView>::post(home, x, y)));
   }
   
 }

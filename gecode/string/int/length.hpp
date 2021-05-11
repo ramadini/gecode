@@ -33,7 +33,7 @@ namespace Gecode { namespace String { namespace Int {
   template<class View>
   ExecStatus
   Length<View>::propagate(Space& home, const ModEventDelta&) {
-    int x0min, x0max, x1min, x1max;
+    int x1min, x1max;
     do {
       x1min = x1.min();
       x1max = x1.max();

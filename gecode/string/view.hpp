@@ -236,7 +236,37 @@ namespace Gecode { namespace String {
    * \ingroup TaskActorStringView
    */
   class ConstStringView : public ConstView<StringView> {
-    // TODO:
+  // FIXME: For a const view, we do not require normalization because we assume 
+  //        that almost all the blocks have cardinality 1.
+//  protected:
+//    Gecode::Support::DynamicArray<int,Space> w; //FIXME: Is DynamicArray the right choice?
+//  public:
+//    /// Construct with \a d as domain (n = |d|).
+//    ConstStringView(Space& home, int d[], int n);
+////    int min_length(void) const;
+////    /// Return the maximum length for a string in the variable's domain
+////    int max_length(void) const;
+////    /// Returns the number of blocks of the domain
+//    int size(void) const;
+////    /// Returns the i-th block of the domain
+////    const Block operator[](int i) const;
+////    /// Return the value of this string view, if assigned.
+////    std::vector<int> val(void) const;
+////    //@}
+
+////    /// \name Domain tests
+////    //@{
+////    /// Test whether variable is assigned
+////    bool assigned(void) const;
+////    /// Test whether the domain is equatable with string \a w.
+////    /// Consistency checks on the view
+////    bool isOK(void) const;
+////    /// If this view contains y
+////    bool contains(const StringView& y) const;
+////    /// If this view is equals to y
+////    bool equals(const StringView& y) const;
+    
+    
   };
   
   class ReverseView : public StringView {
@@ -255,3 +285,4 @@ namespace Gecode { namespace String {
 
 #include <gecode/string/var/string.hpp>
 #include <gecode/string/view/string.hpp>
+#include <gecode/string/view/const.hpp>

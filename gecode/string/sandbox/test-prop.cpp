@@ -117,12 +117,19 @@ public:
     assert (v[0] == 'g' && v[1] == v[0] && v[2] == 'o' && v.size() == 3);
   }
   
+  void test03() {
+    cerr << "\n*** Test 03 ***" << endl;
+    int d[] = {0,1,2};
+    ConstStringView c(*this, d, 3);
+  }
+  
 };
 
 int main() {
   StrTest* home = new StrTest();
   home->test01();
   home->test02();
+  home->test03();
   cerr << "\n----- test-prop.cpp passes -----\n\n";
   return 0;
 }
