@@ -114,7 +114,7 @@ public:
     assert(E(*this, x, z).propagate(*this, 0) == __ES_SUBSUMED);
     std::cerr << "After equate(x, {g}^(2,5) + {o}^(1,2)), x = " << x << "\n";
     std::vector<int> v = x.val();
-    assert (v[0] == 'g' && v[1] == v[0] && v[2] == 'o');// && v.size() == 2);// == vector<int>({'g', 'g', 'o'}));
+    assert (v[0] == 'g' && v[1] == v[0] && v[2] == 'o' && v.size() == 3);
   }
   
 };
