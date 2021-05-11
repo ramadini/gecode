@@ -992,16 +992,18 @@ namespace Gecode { namespace String {
   }
   
   forceinline void 
-  DashedString::min_length(Space& home, int l) {
+  DashedString::min_length(Space& home, int l) {std::cerr << *this << ' ' << min_len << ' ' << max_len << ", l = " << l << '\n';
     assert (min_len <= l && l <= max_len);
+    int maxl = 0;
+    for (int i = 0; i < n; ++i)
+      maxl += x[i].ub();
     for (int i = 0; i < n; ++i) {
       Block& bi = x[i];
-      int li = bi.lb(), ui = bi.ub(), min_i = l - max_len + ui;
-      assert (min_i <= ui);
+      int li = bi.lb(), ui = bi.ub(), min_i = std::min(ui, l - maxl + ui);
       if (li < min_i)
         bi.lb(home, min_i);
     }
-    min_len = l;
+    min_len = l;std::cerr << *this << ' ' << min_len << ' ' << max_len << '\n';
     assert (isOK() && isNorm());
   }
   
@@ -1009,18 +1011,24 @@ namespace Gecode { namespace String {
   DashedString::max_length(Space& home, int u) {
     assert (min_len <= u && u <= max_len);
     bool norm = false;
+    int minl = 0;
+    for (int i = 0; i < n; ++i)
+      minl += x[i].lb();
     for (int i = 0; i < n; ++i) {
       Block& bi = x[i];
-      int li = bi.lb(), ui = bi.ub(), max_i = u - min_len + li;
-      assert (max_i >= li);
+      int li = bi.lb(), ui = bi.ub(), max_i = std::max(li, u - minl + li);
       if (ui > max_i) {
-        bi.ub(home, max_i);
-        norm |= max_i == 0;
+        if (max_i == 0) {
+          bi.nullify(home);
+          norm = true;
+        }
+        else
+          bi.ub(home, max_i);
       }
     }
     max_len = u;
     if (norm)
-      normalize(home);    
+      normalize(home);
     assert (isOK() && isNorm());
   }
   
