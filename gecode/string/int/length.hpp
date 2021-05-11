@@ -33,17 +33,17 @@ namespace Gecode { namespace String { namespace Int {
   template<class View>
   ExecStatus
   Length<View>::propagate(Space& home, const ModEventDelta&) {
-//   int x1min, x1max;
-//   do {
-//     x1min = x1.min();
-//     x1max = x1.max();
+   int x1min, x1max;
+   do {
+     x1min = x1.min();
+     x1max = x1.max();
 //     GECODE_ME_CHECK(x0.cardMin(home,static_cast<unsigned int>(x1min)));
 //     GECODE_ME_CHECK(x0.cardMax(home,static_cast<unsigned int>(x1max)));
-//     GECODE_ME_CHECK(x1.gq(home,static_cast<int>(x0.cardMin())));
-//     GECODE_ME_CHECK(x1.lq(home,static_cast<int>(x0.cardMax())));
-//   } while (x1.min() > x1min || x1.max() < x1max);
-//   if (x1.assigned())
-//     return home.ES_SUBSUMED(*this);
+     GECODE_ME_CHECK(x1.gq(home,static_cast<int>(x0.min_length())));
+     GECODE_ME_CHECK(x1.lq(home,static_cast<int>(x0.max_length())));
+   } while (x1.min() > x1min || x1.max() < x1max);
+   if (x1.assigned())
+     return home.ES_SUBSUMED(*this);
    return ES_FIX;
   }
 

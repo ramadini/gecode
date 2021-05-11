@@ -6,6 +6,7 @@
 #include <cassert>
 #include <gecode/string.hh>
 #include <gecode/string/rel.hh>
+#include <gecode/string/int.hh>
 
 using namespace Gecode;
 using namespace String;
