@@ -263,7 +263,41 @@ namespace Gecode { namespace String {
     bool contains(const StringView& y) const;
     /// If this view is equals to y
     bool equals(const StringView& y) const;
+    /// Returns true if p and q are the same position in this view.
+    bool equiv(const Position& p, const Position& q) const;
+    /// Returns true if p precedes q according to this view.
+    bool prec(const Position& p, const Position& q) const;
     
+    ///TODO:
+    int ub_new_blocks(const Matching& m) const;
+    
+    /// TODO:
+    int min_len_mand(const Block& bx, const Position& lsp, 
+                                      const Position& eep) const;
+    /// TODO:
+    int max_len_opt(const Block& bx, const Position& esp, 
+                                     const Position& lep, int l1) const;
+    /// TODO:                             
+    void
+    expandBlock(Space& home, const Block& bx, Block* y) const;
+    
+    /// TODO:
+    void
+    crushBase(Space& home, Block& bx, const Position& esp, 
+                                      const Position& lep) const;
+    /// TODO:                                   
+    void
+    opt_region(Space& home, const Block& bx, Block& bnew, 
+                            const Position& p, const Position& q, int l1) const;                       
+    
+    /// TODO:                   
+    void
+    mand_region(Space& home, Block& bx, const Block& by,
+                             const Position& p, const Position& q) const;
+    /// TODO:                                                     
+    void
+    mand_region(Space& home, Block& bx, Block* bnew, int u,
+                             const Position& p, const Position& q) const;
     
   };
   /**

@@ -59,6 +59,10 @@ namespace Gecode { namespace String {
   nabla(const Block& bx, const Block& by, int x) {
     return x <= 0 || bx.baseDisjoint(by) ? 0 : x;
   }
+//  forceinline int
+//  nabla(const Block& bx, int k, int x) {
+//    return x > 0 && bx.baseIn(k) ? x : 0;
+//  }
   
   forceinline int ubound(int) { return 1; }
   forceinline int lbound(int) { return 1; }
