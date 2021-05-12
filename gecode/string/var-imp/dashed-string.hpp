@@ -134,6 +134,8 @@ namespace Gecode { namespace String {
     bool baseDisjoint(const Block& b) const;
     /// Test whether the base of this block is equal to the base of \a b
     bool baseEquals(const Block& b) const;
+    /// Test whether the base of this block contains c
+    bool baseContains(int c) const;
     /// Test whether this block contains block \a b, i.e. base() contains b.base() 
     /// and lb() <= b.lb() and ub() >= b.ub()    
     bool contains(const Block& b) const;
@@ -569,6 +571,11 @@ namespace Gecode { namespace String {
     if (b.isFixed())
       return S->size() == 1 && S->min() == b.l;
     return S->equals(*b.S);
+  }
+  
+  forceinline bool
+  Block::baseContains(int c) const {
+    return isNull() ? false : S->in(c);
   }
   
   forceinline bool

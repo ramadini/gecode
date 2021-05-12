@@ -61,11 +61,24 @@ namespace Gecode { namespace String {
   ConstStringView::equals(const StringView& y) const {
     if (!y.assigned() || n != y.min_length())
       return false;
-    std::vector<int> v = y.val();
-    for (int i = 0; i < n; ++i)
-      if (_val[i] != v[i])
-        return false;
-    return true;
+    if (n == 0)
+      return true;
+    int j = 0, k = MAX_STRING_LENGTH;
+    for (int i = 0; i < n; ++i) {
+      const Block& b = y[j];      
+      if (b.baseContains(_val[i])) {
+        k = std::min(b.lb(), k);
+        if (k == 1) {
+          ++j;
+          k = MAX_STRING_LENGTH;
+        }
+        else
+          k--;
+      }
+      else
+        return false;  
+    }
+    return j == y.size() && k == MAX_STRING_LENGTH;
   }
   
 //  
@@ -112,15 +125,13 @@ namespace Gecode { namespace String {
                                 const Position& p, const Position& q) const {
     assert (prec(p,q) && n <= u);
     int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1;
-    bnew[0].update(home, (*this)[p_i]);
-    for (int i = p_i+1, j = 1; i <= q_i; ++i, ++j)
+    for (int i = p_i, j = 0; i <= q_i; ++i, ++j)
       bnew[j].update(home, (*this)[i]);
   }
   
   forceinline void
   ConstStringView::mand_region(Space& home, Block& bx, const Block& by,
                              const Position&, const Position&) const {
-    // FIXME: When only block by is involved.
     assert (by.isFixed());
     bx.update(home, by);
   }
@@ -136,7 +147,7 @@ namespace Gecode { namespace String {
                            const Position& p, const Position& q, int l1) const {
     assert(prec(p,q));
     int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
-        p_o = p.off, q_o = q.off > 0 ? q.off :1;
+        p_o = p.off, q_o = q.off > 0 ? q.off : 1;
 //    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
     Gecode::Set::GLBndSet s;
     for (int i = p_i; i <= q_i; ++i) {
@@ -146,13 +157,12 @@ namespace Gecode { namespace String {
     }
     bnew.update(home, bx);
     bnew.baseIntersect(home, s);
-    int k = q_i - p_i + 1;
-    bnew.updateCard(home, 0, std::min(k, k + bx.ub() - l1));
+    bnew.updateCard(home, 0, std::min(q_i - p_i + 1, bx.ub() - l1 + 1));
   }
   
   forceinline void
   ConstStringView::expandBlock(Space& home, const Block&, Block* y) const {
-    for (int i = 0; i < size(); i++)
+    for (int i = 0; i < n; i++)
       y[i].update(home, (*this)[i]);
   }
 
