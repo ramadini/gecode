@@ -138,31 +138,16 @@ namespace Gecode { namespace String {
     int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
         p_o = p.off, q_o = q.off > 0 ? q.off :1;
 //    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
-    // Only one block involved
-    const Block& bp = (*this)[p_i];
-    int k = bx.ub() - l1;
-    if (p_i == q_i) {
-      bnew.update(home, bp);
-      bnew.baseIntersect(home, bx);
-      if (!bnew.isNull())
-        bnew.updateCard(home, 0, std::min(q_o-p_o, 1+k));
-      return;
-    }
-    // More than one block involved
     Gecode::Set::GLBndSet s;
-    bp.includeBaseIn(home, s);
-    int u = bp.ub() - p_o;
-    for (int i = p_i+1; i < q_i; ++i) {
-      const Block& bi = (*this)[i];
-      bi.includeBaseIn(home, s);
-      u = ub_sum(u, std::min(bi.ub(), 1+k));
+    for (int i = p_i; i <= q_i; ++i) {
+      int c = (*this)[i]; 
+      Gecode::Set::SetDelta d;
+      s.include(home, c, c, d);
     }
-    const Block& bq = (*this)[q_i];
-    bq.includeBaseIn(home, s);
     bnew.update(home, bx);
-    bnew.baseIntersect(home, s);    
-    if (!bnew.isNull())
-      bnew.updateCard(home, 0, ub_sum(u, std::min(q_o, 1+k)));
+    bnew.baseIntersect(home, s);
+    int k = q_i - p_i + 1;
+    bnew.updateCard(home, 0, std::min(k, k + bx.ub() - l1));
   }
   
   forceinline void
@@ -177,8 +162,8 @@ namespace Gecode { namespace String {
     Gecode::Set::GLBndSet s;
     for (int i = p.idx, j = q.idx - (q.off == 0); i <= j; ++i) {
       Gecode::Set::SetDelta d;
-      int k = (*this)[i]; 
-      s.include(home, k, k, d);
+      int c = (*this)[i]; 
+      s.include(home, c, c, d);
     }
     bx.baseIntersect(home, s);
   }
