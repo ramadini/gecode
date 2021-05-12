@@ -236,38 +236,43 @@ namespace Gecode { namespace String {
    * \ingroup TaskActorStringView
    */
   class ConstStringView : public ConstView<StringView> {
-  // FIXME: For a const view, we do not require normalization because we assume 
-  //        that almost all the blocks have cardinality 1.
-//  protected:
-//    Gecode::Support::DynamicArray<int,Space> w; //FIXME: Is DynamicArray the right choice?
-//  public:
-//    /// Construct with \a d as domain (n = |d|).
-//    ConstStringView(Space& home, int d[], int n);
-////    int min_length(void) const;
-////    /// Return the maximum length for a string in the variable's domain
-////    int max_length(void) const;
-////    /// Returns the number of blocks of the domain
-//    int size(void) const;
-////    /// Returns the i-th block of the domain
-////    const Block operator[](int i) const;
-////    /// Return the value of this string view, if assigned.
-////    std::vector<int> val(void) const;
-////    //@}
+  // FIXME: To save space, for a const view we do not require normalization 
+  //        because we assume that almost all the blocks have cardinality 1.
+  protected:
+    /// The value
+    int* _val;
+    /// The size of the value
+    int n;
+  public:
+    /// Construct with \a w as domain (n = |w|).
+    ConstStringView(Space& home, int w[], int n);
+    /// Return the length of the string (for compatibility with other views)
+    int min_length(void) const;
+    /// Return the length of the string (for compatibility with other views)
+    int max_length(void) const;
+    /// Return the length of the string
+    int size(void) const;
+    /// Returns the i-th character of the string
+    int operator[](int i) const;
+    /// Return the value of this view
+    std::vector<int> val(void) const;
 
-////    /// \name Domain tests
-////    //@{
-////    /// Test whether variable is assigned
-////    bool assigned(void) const;
-////    /// Test whether the domain is equatable with string \a w.
-////    /// Consistency checks on the view
-////    bool isOK(void) const;
-////    /// If this view contains y
-////    bool contains(const StringView& y) const;
-////    /// If this view is equals to y
-////    bool equals(const StringView& y) const;
+    /// Always returns true (for compatibility with other views)
+    bool assigned(void) const;
+    /// If this view contains y
+    bool contains(const StringView& y) const;
+    /// If this view is equals to y
+    bool equals(const StringView& y) const;
     
     
   };
+  /**
+   * \brief Print string variable view
+   * \relates Gecode::String::StringView
+   */
+  template<class Char, class Traits>
+  std::basic_ostream<Char,Traits>&
+  operator <<(std::basic_ostream<Char,Traits>& os, const ConstStringView& x);
   
   class ReverseView : public StringView {
     

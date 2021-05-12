@@ -5,85 +5,52 @@ namespace Gecode { namespace String {
    *
    */
   
-//  forceinline
-//  ConstStringView::ConstStringView(Space& home, int d[], int n) : w(home) {
-//    if (n > Limits::MAX_STRING_LENGTH)
-//      throw OutOfLimits("ConstStringView::ConstStringView");
-//    w = Gecode::Support::DynamicArray<int,Space>(home, n);
-//    for (int i = 0; i < n; ++i) {
-//      int di = d[i];
-//      if (di < 0 || di >= Limits::MAX_ALPHABET_SIZE)
-//        throw OutOfLimits("ConstStringView::ConstStringView");
-//      w[i] = di;
-//    }
-//  }
+  forceinline
+  ConstStringView::ConstStringView(Space& home, int w[], int k) {
+    if (k > Limits::MAX_STRING_LENGTH)
+      throw OutOfLimits("ConstStringView::ConstStringView");
+    n = k;
+    _val = home.alloc<int>(n);
+    for (int i = 0; i < n; ++i) {
+      int wi = w[i];
+      if (wi < 0 || wi >= Limits::MAX_ALPHABET_SIZE)
+        throw OutOfLimits("ConstStringView::ConstStringView");
+      _val[i] = wi;
+    }
+  }
+  
+  forceinline int 
+  ConstStringView::size() const {
+    return n;
+  }
  
-//  forceinline int 
-//  ConstStringView::size() const {
-//    return w.n;
-//  }
-//  
-//  forceinline std::vector<int> 
-//  ConstStringView::val(void) const {
-//    return x->val();
-//  }
-//  
-//  forceinline int
-//  ConstStringView::max_length() const {
-//    return x->max_length();
-//  }
-//  
-//  forceinline int
-//  ConstStringView::min_length() const {
-//    return x->min_length();
-//  }
-//  
-//  forceinline bool
-//  ConstStringView::assigned() const {
-//    return x->assigned();
-//  }
-//  
-//  forceinline bool
-//  ConstStringView::isOK() const {
-//    return x->isOK();
-//  }
-//  
-//  forceinline bool
-//  ConstStringView::contains(const StringView& y) const {
-//    return x->contains(*y.x);
-//  }
-//  
-//  forceinline bool
-//  ConstStringView::equals(const StringView& y) const {
-//    return x->equals(*y.x);
-//  }
-//  
-//  forceinline ModEvent
-//  ConstStringView::min_length(Space& home, int l) {
-//    return x->min_length(home, l);
-//  }
-//  
-//  forceinline ModEvent
-//  ConstStringView::max_length(Space& home, int u) {
-//    return x->max_length(home, u);
-//  }
-//  
-//  forceinline ModEvent
-//  ConstStringView::bnd_length(Space& home, int l, int u) {
-//    return x->bnd_length(home, l, u);
-//  }
-//  
-//  template<class Char, class Traits>
-//  forceinline  std::basic_ostream<Char,Traits>&
-//  operator <<(std::basic_ostream<Char,Traits>& os, const StringView& v) {
-//    os << *v.varimp();
-//    return os;
-//  };
-//  
-//  forceinline void
-//  ConstStringView::normalize(Space& home) {
-//    x->normalize(home);
-//  }
+  forceinline std::vector<int> 
+  ConstStringView::val(void) const {
+    return std::vector<int>(_val, _val + n);
+  }
+  
+  forceinline int
+  ConstStringView::max_length() const {
+    return n;
+  }
+  
+  forceinline int
+  ConstStringView::min_length() const {
+    return n;
+  }
+  
+  forceinline bool
+  ConstStringView::assigned() const {
+    return true;
+  }
+
+  template<class Char, class Traits>
+  forceinline  std::basic_ostream<Char,Traits>&
+  operator <<(std::basic_ostream<Char,Traits>& os, const ConstStringView& v) {
+    for (int i = 0; i < v.n; ++i)
+      os << v._val[i];
+    return os;
+  };
 //  
 //  forceinline ConstStringView::SweepFwdIterator
 //  ConstStringView::fwd_iterator(void) const {
@@ -97,16 +64,15 @@ namespace Gecode { namespace String {
 //  
 //  forceinline bool
 //  ConstStringView::equiv(const Position& p, const Position& q) const {
-//    return p == q 
-//       || (q.off == 0 && p.idx == q.idx-1 && p.off == (*this)[p.idx].ub())
-//       || (p.off == 0 && q.idx == p.idx-1 && q.off == (*this)[q.idx].ub());
+//    return p == q || (q.off == 0 && p.off == 1 && p.idx == q.idx-1)
+//                  || (p.off == 0 && q.off == 1 && q.idx == p.idx-1);
 //  }
 //  
 //  forceinline bool
 //  ConstStringView::prec(const Position& p, const Position& q) const {
 //    return (p.idx < q.idx-1)
 //        || (p.idx == q.idx && p.off < q.off)
-//        || (p.idx == q.idx-1 && (q.off > 0 || p.off < (*this)[p.idx].ub()));
+//        || (p.idx == q.idx-1 && (q.off > 0 || p.off == 0));
 //  }
 //  
 //  forceinline int
@@ -124,17 +90,17 @@ namespace Gecode { namespace String {
 //    if (!prec(p,q))
 //      return 0;    
 //    int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
-//        p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
+//        p_o = p.off, q_o = q.off > 0 ? q.off : 1;
 //    const Block& bp = (*this)[p_i];
 //    if (p_i == q_i)
-//      return nabla(bx, bp, std::min(q_o, bp.lb()) - p_o);
-//    int m = nabla(bx, bp, bp.lb() - p_o);
+//      return nabla(bx, bp, std::min(q_o, 1) - p_o);
+//    int m = nabla(bx, bp, 1-p_o);
 //    for (int i = p_i+1; i < q_i; i++) {
 //      const Block& bi = (*this)[p_i];
-//      m += nabla(bx, bi, bi.lb());
+//      m += nabla(bx, bi, 1);
 //    }
 //    const Block& bq = (*this)[q_i];
-//    return m + nabla(bx, bq, std::min(bq.lb(), q_o));
+//    return m + nabla(bx, bq, std::min(1, q_o));
 //  }  
 //  
 //  forceinline void
@@ -142,7 +108,7 @@ namespace Gecode { namespace String {
 //                                const Position& p, const Position& q) const {
 //    assert (prec(p, q));
 //    int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
-//        p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
+//        p_o = p.off, q_o = q.off > 0 ? q.off : 1;
 ////    std::cerr << "LSP=(" << p_i << "," << p_o << "), EEP=(" << q_i << "," << q_o << ")\n";
 //    const Block& bp = (*this)[p_i];
 //    // Head of the region.    
@@ -150,13 +116,13 @@ namespace Gecode { namespace String {
 //    bnew[0].baseIntersect(home, bx);    
 //    if (!bnew[0].isNull()) {
 //      if (p_i == q_i) {
-//        bnew[0].updateCard(home, std::max(0, std::min(q_o, bp.lb()) - p_o), 
+//        bnew[0].updateCard(home, std::max(0, std::min(q_o, 1) - p_o), 
 //                                 std::min(u, q_o-p_o));    
 //        return;
 //      }
 //      else
-//        bnew[0].updateCard(home, std::max(0, bp.lb()-p_o), 
-//                                 std::min(u, bp.ub()-p_o));
+//        bnew[0].updateCard(home, std::max(0, 1-p_o), 
+//                                 std::min(u, 1-p_o));
 //    }
 //    // Central part of the region.
 //    int j = 1;

@@ -60,6 +60,11 @@ namespace Gecode { namespace String {
     return x <= 0 || bx.baseDisjoint(by) ? 0 : x;
   }
   
+  forceinline int ubound(int) { return 1; }
+  forceinline int lbound(int) { return 1; }
+  forceinline int ubound(const Block& b) { return b.ub(); }
+  forceinline int lbound(const Block& b) { return b.lb(); }
+  
   /// Possibly refines each x[i] according to its matching region m[i] in y. 
   /// It returns true iff at least a block has been refined.
   template <class ViewX, class ViewY>
@@ -237,7 +242,7 @@ namespace Gecode { namespace String {
   pushESP(ViewX& x, const ViewY& y, Matching m[], int i) {
 //    std::cerr << "Pushing ESP of " << x[i] << " from " << m[i].ESP << '\n';
     int n = x.size();
-    if (x[i].lb() == 0) {
+    if (lbound(x[i]) == 0) {
       // x[i] nullable, not pushing ESP[i]
       if (i < n-1 && y.prec(m[i+1].ESP, m[i].ESP))
         // x[i+1] cannot start before x[i]
@@ -261,7 +266,7 @@ namespace Gecode { namespace String {
   forceinline bool
   pushLEP(ViewX& x, const ViewY& y, Matching m[], int i) {
 //    std::cerr << "Pushing LEP of " << x[i] << " from " << m[i].LEP << '\n';
-    if (x[i].lb() == 0) {
+    if (lbound(x[i]) == 0) {
       // x[i] nullable, not pushing LEP[i]
       if (i > 0 && y.prec(m[i].LEP, m[i-1].LEP))
         // x[i-1] cannot end after x[i]
@@ -360,10 +365,10 @@ namespace Gecode { namespace String {
   equate_x(Space& home, ViewX x, const ViewY& y) {
     int lb = x.min_length();
     long ub = x.max_length();
-    if (ub == Limits::MAX_STRING_LENGTH && x.size() > 1) {
+    if (ub == Limits::MAX_STRING_LENGTH && lb < ub && x.size() > 1) {
       ub = 0;
       for (int i = 0; i < x.size(); ++i)
-        ub += x[i].ub();
+        ub += ubound(x[i]);
     }
     else
       ub = x.max_length();
@@ -381,7 +386,7 @@ namespace Gecode { namespace String {
       if (ux == MAX_STRING_LENGTH && ub > MAX_STRING_LENGTH) {
         int u = 0L;
         for (int i = 0; i < x.size(); ++i) {
-          u += x[i].ub();
+          u += ubound(x[i]);
           if (u >= ub)
             return x.varimp()->notify(home, ME_STRING_BASE, d);
         }
@@ -426,7 +431,7 @@ namespace Gecode { namespace String {
     }
     assert (m[nx-1].EEP == Position(y.size(),0));
     for (int i = 0; i < nx; ++i)
-      if (x[i].ub() < y.min_len_mand(x[i], m[i].LSP, m[i].LEP))
+      if (ubound(x[i]) < y.min_len_mand(x[i], m[i].LSP, m[i].EEP))
         return false;
     return true;
   }
