@@ -1,5 +1,18 @@
 namespace Gecode { namespace String {
 
+  forceinline int
+  nabla(const Block& bx, const Block& by, int x) {
+    return x <= 0 || bx.baseDisjoint(by) ? 0 : x;
+  }
+  
+  forceinline int ubound(int) { return 1; }
+  forceinline int lbound(int) { return 1; }
+  forceinline int ubound(const Block& b) { return b.ub(); }
+  forceinline int lbound(const Block& b) { return b.lb(); }
+  
+  template <class T> class SweepFwdIterator;
+  template <class T> class SweepBwdIterator;
+  
   /// Struct abstracting a position in a dashed string.
   struct Position {
     /// Index of the position
@@ -27,7 +40,7 @@ namespace Gecode { namespace String {
     forceinline bool
     isNorm(View& y) const {
       int n = y.size();
-      return (0 <= idx && idx < n && 0 <= off && off < y[idx].ub())
+      return (0 <= idx && idx < n && 0 <= off && off < ubound(y[idx]))
           || (idx == n && off == 0);
     }
   };
@@ -55,19 +68,7 @@ namespace Gecode { namespace String {
  
   // FIXME: Maybe define a namespace for equate-based functions?
 
-  forceinline int
-  nabla(const Block& bx, const Block& by, int x) {
-    return x <= 0 || bx.baseDisjoint(by) ? 0 : x;
-  }
-  
-  forceinline int ubound(int) { return 1; }
-  forceinline int lbound(int) { return 1; }
-  forceinline int ubound(const Block& b) { return b.ub(); }
-  forceinline int lbound(const Block& b) { return b.lb(); }
-  
-  template <class T> class SweepFwdIterator;
-  template <class T> class SweepBwdIterator;
-  
+ 
   /// Possibly refines each x[i] according to its matching region m[i] in y. 
   /// It returns true iff at least a block has been refined.
   template <class ViewX, class ViewY>

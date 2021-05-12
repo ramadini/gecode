@@ -239,7 +239,11 @@ namespace Gecode { namespace String {
     int operator[](int i) const;
     /// Return the value of this view
     std::vector<int> val(void) const;
-
+    /// \name Sweep iterators
+    //@{
+    SweepFwdIterator<ConstStringView> fwd_iterator(void) const;
+    SweepBwdIterator<ConstStringView> bwd_iterator(void) const;
+    //@}s
     /// Always returns true (for compatibility with other views)
     bool assigned(void) const;
     /// If this view contains y

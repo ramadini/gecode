@@ -226,11 +226,6 @@ namespace Gecode { namespace String {
 
 namespace Gecode { namespace String {
 
-  /*
-   * Constructors and access
-   *
-   */
-
   forceinline
   StringView::StringView(void) {}
   forceinline
@@ -523,17 +518,6 @@ namespace Gecode { namespace String {
     d.normalize(home);
     x->update(home, d);
   }
-  
      
 }}
-
-
-
-
-
-
-
-
-
-
 
