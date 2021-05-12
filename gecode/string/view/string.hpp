@@ -1,41 +1,46 @@
 namespace Gecode { namespace String {
 
-  forceinline StringView::
-  SweepIterator::SweepIterator(const StringView& x, const Position& p)
-  : sv(x), pos(p) {
+  template <>
+  forceinline SweepIterator<StringView>::
+  SweepIterator(const StringView& x, const Position& p) : sv(x), pos(p) {
     if (!p.isNorm(x)) {
       if (p.off == sv[p.idx].ub()) {
         pos.idx++;
         pos.off = 0;
       }
       else
-        throw OutOfLimits("StringView::SweepFwdIterator::SweepFwdIterator");
+        throw OutOfLimits("SweepIterator<StringView>::SweepIterator");
     }
-    assert (isOK());
+    assert (pos.isNorm(sv));
   };
   
+  template <>
   forceinline const Position& 
-  StringView::SweepIterator::operator*(void) {
+  SweepIterator<StringView>::operator*(void) {
     return pos;
   }
 
+  template <>
   forceinline int
-  StringView::SweepIterator::lb() const {
+  SweepIterator<StringView>::lb() const {
     return sv[pos.idx].lb();
   }
   
+  template <>
   forceinline int
-  StringView::SweepIterator::ub() const {
+  SweepIterator<StringView>::ub() const {
     return sv[pos.idx].ub();
   }
   
+  template <>
   forceinline bool
-  StringView::SweepIterator::disj(const Block& b) const {
+  SweepIterator<StringView>::disj(const Block& b) const {
     return sv[pos.idx].baseDisjoint(b);
   }
   
+  template <>
   forceinline bool
-  StringView::SweepIterator::isOK() const {
+  SweepIterator<StringView>::isOK() const {
     return pos.isNorm(sv);
   }
 
@@ -43,21 +48,24 @@ namespace Gecode { namespace String {
 
 namespace Gecode { namespace String {
 
-  forceinline StringView::
-  SweepFwdIterator::SweepFwdIterator(const StringView& x) 
-  : SweepIterator(x, Position(0,0)) {};
+  template <>
+  forceinline SweepFwdIterator<StringView>::
+  SweepFwdIterator(const StringView& x) : SweepIterator(x, Position(0,0)) {};
   
-  forceinline StringView::
-  SweepFwdIterator::SweepFwdIterator(const StringView& x, const Position& p) 
+  template <>
+  forceinline SweepFwdIterator<StringView>::
+  SweepFwdIterator(const StringView& x, const Position& p) 
   : SweepIterator(x, p) {};
   
+  template <>
   forceinline bool
-  StringView::SweepFwdIterator::operator()(void) const {
+  SweepFwdIterator<StringView>::operator()(void) const {
     return sv.prec(pos, Position(sv.size(),0));
   }
   
+  template <>
   forceinline void
-  StringView::SweepFwdIterator::nextBlock() {
+  SweepFwdIterator<StringView>::nextBlock() {
     if (pos.idx >= sv.size())
       return;
     pos.idx++;
@@ -65,23 +73,27 @@ namespace Gecode { namespace String {
     assert (isOK() || sv[pos.idx].isNull());
   }
   
+  template <>
   forceinline bool
-  StringView::SweepFwdIterator::hasNextBlock(void) const {
+  SweepFwdIterator<StringView>::hasNextBlock(void) const {
     return pos.idx < sv.size();
   }
   
+  template <>
   forceinline int
-  StringView::SweepFwdIterator::must_consume() const {
+  SweepFwdIterator<StringView>::must_consume() const {
     return std::max(0, lb() - pos.off);
   }
   
+  template <>
   forceinline int
-  StringView::SweepFwdIterator::may_consume() const {
+  SweepFwdIterator<StringView>::may_consume() const {
     return ub() - pos.off;
   }
   
+  template <>
   forceinline void
-  StringView::SweepFwdIterator::consume(int k) {
+  SweepFwdIterator<StringView>::consume(int k) {
     if (k == 0)
       return;
     pos.off += k;
@@ -94,8 +106,9 @@ namespace Gecode { namespace String {
     assert (isOK());
   }
   
+  template <>
   forceinline void
-  StringView::SweepFwdIterator::consumeMand(int k) {
+  SweepFwdIterator<StringView>::consumeMand(int k) {
     if (k == 0)
       return;
     pos.off += k; 
@@ -112,36 +125,43 @@ namespace Gecode { namespace String {
 
 namespace Gecode { namespace String {
   
-  forceinline StringView::
-  SweepBwdIterator::SweepBwdIterator(const StringView& x) 
+  template <>
+  forceinline SweepBwdIterator<StringView>::
+  SweepBwdIterator(const StringView& x)
   : SweepIterator(x, Position(x.size(), 0)) {};
   
-  forceinline StringView::
-  SweepBwdIterator::SweepBwdIterator(const StringView& x, const Position& p) 
+  template <>
+  forceinline SweepBwdIterator<StringView>::
+  SweepBwdIterator(const StringView& x, const Position& p) 
   : SweepIterator(x, p) {};
   
+  template <>
   forceinline int
-  StringView::SweepBwdIterator::lb() const {
+  SweepBwdIterator<StringView>::lb() const {
     return sv[pos.off > 0 ? pos.idx : pos.idx-1].lb();
   }
   
+  template <>
   forceinline int
-  StringView::SweepBwdIterator::ub() const {
+  SweepBwdIterator<StringView>::ub() const {
     return sv[pos.off > 0 ? pos.idx : pos.idx-1].ub();
   }
   
+  template <>
   forceinline bool
-  StringView::SweepBwdIterator::disj(const Block& b) const {
+  SweepBwdIterator<StringView>::disj(const Block& b) const {
     return  sv[pos.off > 0 ? pos.idx : pos.idx-1].baseDisjoint(b);
   }
   
+  template <>
   forceinline bool
-  StringView::SweepBwdIterator::operator()(void) const {
+  SweepBwdIterator<StringView>::operator()(void) const {
     return sv.prec(Position(0,0), pos);
   }
   
+  template <>
   forceinline void
-  StringView::SweepBwdIterator::nextBlock() {
+  SweepBwdIterator<StringView>::nextBlock() {
     if (pos.idx == 0 && pos.off == 0)
       return;
     if (pos.off > 0)
@@ -151,24 +171,28 @@ namespace Gecode { namespace String {
     assert (isOK() || sv[pos.idx].isNull());
   };
   
+  template <>
   forceinline bool
-  StringView::SweepBwdIterator::hasNextBlock(void) const {
+  SweepBwdIterator<StringView>::hasNextBlock(void) const {
     return pos.idx > 0 || pos.off > 0;
   };
   
+  template <>
   forceinline int
-  StringView::SweepBwdIterator::may_consume() const {
+  SweepBwdIterator<StringView>::may_consume() const {
     return (pos.idx > 0 && pos.off == 0) ? sv[pos.idx-1].ub() : pos.off;
   }
   
+  template <>
   forceinline int
-  StringView::SweepBwdIterator::must_consume() const {
+  SweepBwdIterator<StringView>::must_consume() const {
     return (pos.idx > 0 && pos.off == 0) ? sv[pos.idx-1].lb() 
                                          : std::min(pos.off, sv[pos.idx].lb());
   }
   
+  template <>
   forceinline void
-  StringView::SweepBwdIterator::consume(int k) {
+  SweepBwdIterator<StringView>::consume(int k) {
     if (k == 0)
       return;
     if (pos.off == 0 && pos.idx > 0) {
@@ -178,12 +202,13 @@ namespace Gecode { namespace String {
     else
       pos.off -= k;
     if (pos.off < 0)
-      throw OutOfLimits("StringView::SweepBwdIterator::consume");
+      throw OutOfLimits("SweepBwdIterator<StringView>::consume");
     assert (isOK());
   }
   
+  template <>
   forceinline void
-  StringView::SweepBwdIterator::consumeMand(int k) {
+  SweepBwdIterator<StringView>::consumeMand(int k) {
     if (k == 0)
       return;
     if (pos.off == 0 && pos.idx > 0) {
@@ -193,7 +218,7 @@ namespace Gecode { namespace String {
     else
       pos.off = std::min(pos.off, sv[pos.idx].lb()) - k;
     if (pos.off < 0)
-      throw OutOfLimits("StringView::SweepBwdIterator::consumeMand");
+      throw OutOfLimits("SweepBwdIterator<StringView>::consumeMand");
     assert (isOK());
   }
 
@@ -305,14 +330,14 @@ namespace Gecode { namespace String {
     x->normalize(home);
   }
   
-  forceinline StringView::SweepFwdIterator
+  forceinline SweepFwdIterator<StringView>
   StringView::fwd_iterator(void) const {
-    return SweepFwdIterator(*this);
+    return SweepFwdIterator<StringView>(*this);
   }
   
-  forceinline StringView::SweepBwdIterator
+  forceinline SweepBwdIterator<StringView>
   StringView::bwd_iterator(void) const {
-    return SweepBwdIterator(*this);
+    return SweepBwdIterator<StringView>(*this);
   }
   
   forceinline bool

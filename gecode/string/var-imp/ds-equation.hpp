@@ -65,6 +65,9 @@ namespace Gecode { namespace String {
   forceinline int ubound(const Block& b) { return b.ub(); }
   forceinline int lbound(const Block& b) { return b.lb(); }
   
+  template <class T> class SweepFwdIterator;
+  template <class T> class SweepBwdIterator;
+  
   /// Possibly refines each x[i] according to its matching region m[i] in y. 
   /// It returns true iff at least a block has been refined.
   template <class ViewX, class ViewY>
@@ -291,10 +294,10 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool
   init_x(ViewX x, const ViewY& y, Matching m[]) {
-    typename ViewY::SweepFwdIterator fwd_it = y.fwd_iterator();
+    SweepFwdIterator<ViewY> fwd_it = y.fwd_iterator();
     int nx = x.size();
     for (int i = 0; i < nx; ++i) {
-      stretch<typename ViewY::SweepFwdIterator>(x[i], fwd_it);
+      stretch(x[i], fwd_it);
       m[i].LEP = *fwd_it;
 //      std::cerr << i << ": " << x[i] << " LEP: " << m[i].LEP << '\n';
       if (!fwd_it.hasNextBlock()) {
@@ -305,9 +308,9 @@ namespace Gecode { namespace String {
     }
     if (fwd_it())
       return false;
-    typename ViewY::SweepBwdIterator bwd_it = y.bwd_iterator();
+    SweepBwdIterator<ViewY> bwd_it = y.bwd_iterator();
     for (int i = nx-1; i >= 0; --i) {
-      stretch<typename ViewY::SweepBwdIterator>(x[i], bwd_it);
+      stretch(x[i], bwd_it);
       m[i].ESP = *bwd_it;
 //      std::cerr << i << ": " << x[i] << " ESP: " << m[i].ESP << '\n';
       if (!bwd_it.hasNextBlock()) {
@@ -327,11 +330,11 @@ namespace Gecode { namespace String {
       return false;
     int nx = x.size(); 
     for (int i = 0; i < nx; ++i) {
-      if (!pushESP<ViewX,ViewY,typename ViewY::SweepFwdIterator>(x, y, m, i))
+      if (!pushESP<ViewX,ViewY,SweepFwdIterator<ViewY>>(x, y, m, i))
         return false;
     }
     for (int i = nx-1; i >= 0; --i) {
-      if (!pushLEP<ViewX,ViewY,typename ViewY::SweepBwdIterator>(x, y, m, i))
+      if (!pushLEP<ViewX,ViewY,SweepBwdIterator<ViewY>>(x, y, m, i))
         return false;
     }
     m[0].LSP = m[0].ESP;
@@ -407,11 +410,11 @@ namespace Gecode { namespace String {
       return false;
     int nx = x.size(); 
     for (int i = 0; i < nx; ++i) {
-      if (!pushESP<ViewX,ViewY,typename ViewY::SweepFwdIterator>(x, y, m, i))
+      if (!pushESP<ViewX,ViewY,SweepFwdIterator<ViewY>>(x, y, m, i))
         return false;
     }
     for (int i = nx-1; i >= 0; --i) {
-      if (!pushLEP<ViewX,ViewY,typename ViewY::SweepBwdIterator>(x, y, m, i))
+      if (!pushLEP<ViewX,ViewY,SweepBwdIterator<ViewY>>(x, y, m, i))
         return false;
     }
     m[0].LSP = m[0].ESP;

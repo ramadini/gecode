@@ -1,5 +1,79 @@
 namespace Gecode { namespace String {
 
+  /// Abstract class for iterating views, used to push/stretch blocks in dashed 
+  /// string equation.
+  /// FIXME: The current position of the iterator must always be normalized 
+  ///        w.r.t. its view.
+  template <class View>
+  class SweepIterator {
+  protected:
+    /// The view on which we iterate
+    const View& sv;
+    /// The current position on the view, always normalized w.r.t. sv
+    Position pos;
+    /// Check if the iterator position is in a consistent state;
+    bool isOK(void) const;
+  public:
+    /// Constructor
+    SweepIterator(const View& x, const Position& p);
+    /// Move iterator to the beginning of the next block (if possible)
+    virtual void nextBlock(void) = 0;
+    /// Test whether iterator is still within the dashed string or done
+    virtual bool hasNextBlock(void) const = 0;
+    /// Min. no. of chars that must be consumed from current position within current block
+    virtual int must_consume(void) const = 0;
+    /// Max. no. of chars that may be consumed from current position within current block
+    virtual int may_consume(void) const = 0;
+    /// Consume \a k characters from current position within current block
+    virtual void consume(int k) = 0;
+    /// Consume \a k mandatory characters from current position within current block
+    virtual void consumeMand(int k) = 0;
+    /// Returns const reference to the current position
+    const Position& operator *(void);
+    /// Return the lower bound of the current block
+    int lb(void) const;
+    /// Return the upper bound of the current block
+    int ub(void) const;
+    /// Check if the base of the current block is disjoint with that of \a b
+    bool disj(const Block& b) const;
+  };
+  
+  /// Iterator for pushing/stretching forward.
+  template <class View>
+  struct SweepFwdIterator : public SweepIterator<View> {
+    SweepFwdIterator(const View& x);
+    SweepFwdIterator(const View& x, const Position& p);
+    void nextBlock(void);
+    bool hasNextBlock(void) const;
+    void consume(int k);
+    void consumeMand(int k);
+    int must_consume(void) const;
+    int may_consume(void) const;
+    bool operator()(void) const;
+  };
+  
+  /// Iterator for pushing/stretching backward.
+  template <class View>
+  struct SweepBwdIterator : public SweepIterator<View> {
+    SweepBwdIterator(const View& x);
+    SweepBwdIterator(const View& x, const Position& p);
+    bool disj(const Block& b) const;
+    void nextBlock(void);
+    bool hasNextBlock(void) const;
+    void consume(int k);
+    void consumeMand(int k);
+    int must_consume(void) const;
+    int may_consume(void) const;
+    bool operator()(void) const;
+    int lb(void) const;
+    int ub(void) const;
+  };
+    
+}}
+
+
+namespace Gecode { namespace String {
+
   /**
    * \defgroup TaskActorStringView String views
    *
@@ -8,87 +82,10 @@ namespace Gecode { namespace String {
    * string constants, and TODO: ....
    * \ingroup TaskActorString
    */
-
-  /**
-   * \brief %String view for string variables
-   * \ingroup TaskActorStringView
-   */
-
   class StringView : public VarImpView<StringVar> {
-  
   protected:
     using VarImpView<StringVar>::x;
-    
   public:
-  
-    /// Abstract class for iterating string views, used to push/stretch blocks 
-    /// in dashed string equation.
-    /// FIXME: The current position of the iterator must always be normalized 
-    ///        w.r.t. its view.
-    class SweepIterator {
-    protected:
-      /// The views on which we iterate
-      const StringView& sv;
-      /// The current position on the view, always normalized w.r.t. sv
-      Position pos;
-      /// Check if the iterator position is in a consistent state;
-      bool isOK(void) const;
-    public:
-      /// Constructor
-      SweepIterator(const StringView& x, const Position& p);
-      /// Move iterator to the beginning of the next block (if possible)
-      virtual void nextBlock(void) = 0;
-      /// Test whether iterator is still within the dashed string or done
-      virtual bool hasNextBlock(void) const = 0;
-      /// Min. no. of chars that must be consumed from current position within current block
-      virtual int must_consume(void) const = 0;
-      /// Max. no. of chars that may be consumed from current position within current block
-      virtual int may_consume(void) const = 0;
-      /// Consume \a k characters from current position within current block
-      virtual void consume(int k) = 0;
-      /// Consume \a k mandatory characters from current position within current block
-      virtual void consumeMand(int k) = 0;
-      /// Returns const reference to the current position
-      const Position& operator *(void);
-      /// Return the lower bound of the current block
-      int lb(void) const;
-      /// Return the upper bound of the current block
-      int ub(void) const;
-      /// Check if the base of the current block is disjoint with that of \a b
-      bool disj(const Block& b) const;
-    };
-    /// Iterator for pushing/stretching forwards. Positions range from (0,0) 
-    /// included to (|x|,0) excluded
-    struct SweepFwdIterator : public SweepIterator {
-      SweepFwdIterator(const StringView& x);
-      SweepFwdIterator(const StringView& x, const Position& p);
-      void nextBlock(void);
-      bool hasNextBlock(void) const;
-      void consume(int k);
-      void consumeMand(int k);
-      int must_consume(void) const;
-      int may_consume(void) const;
-      bool operator()(void) const;
-    };
-    /// Iterator for pushing/stretching backwards. Positions range from (|x|,0)
-    /// included to (0,0) excluded
-    struct SweepBwdIterator : public SweepIterator {
-      SweepBwdIterator(const StringView& x);
-      SweepBwdIterator(const StringView& x, const Position& p);
-      int lb(void) const;
-      int ub(void) const;
-      bool disj(const Block& b) const;
-      void nextBlock(void);
-      bool hasNextBlock(void) const;
-      void consume(int k);
-      void consumeMand(int k);
-      int must_consume(void) const;
-      int may_consume(void) const;
-      bool operator()(void) const;
-    };
-    
-  public:
-  
     /// \name Constructors and initialization
     //@{
     /// Default constructor
@@ -98,14 +95,11 @@ namespace Gecode { namespace String {
     /// Initialize from set variable implementation \a y
     StringView(StringVarImp* y);
     //@}
-
-
     /// \name Sweep iterators
     //@{
-    SweepFwdIterator fwd_iterator(void) const;
-    SweepBwdIterator bwd_iterator(void) const;
+    SweepFwdIterator<StringView> fwd_iterator(void) const;
+    SweepBwdIterator<StringView> bwd_iterator(void) const;
     //@}
-
     //@}
     /// \name Value access
     //@{
@@ -122,7 +116,6 @@ namespace Gecode { namespace String {
     /// IllegalOperation exception is thrown.
     std::vector<int> val(void) const;
     //@}
-
     /// \name Domain tests
     //@{
     /// Test whether variable is assigned
@@ -142,14 +135,12 @@ namespace Gecode { namespace String {
     /// If this view is equals to y
     bool equals(const StringView& y) const;
     //@}
-    
     /// \name Cloning
     //@{
     /// Update this view to be a clone of view \a y
     void update(Space& home, const DashedString& d);
     void update(Space& home, const StringView& y);
     //@}
-    
     /// \name Domain update by equation: FIXME: Check if needed
     //@{
     /// Equates the domain with string \a w.
@@ -159,7 +150,6 @@ namespace Gecode { namespace String {
     /// Equates with dashed string \a x.
     ModEvent equate(Space& home, const DashedString& x);
     //@}
-    
     /// \name Domain update by cardinality refinement: FIXME: Check if needed
     //@{
     /// Possibly update the lower bound of the blocks, knowing that the minimum 
@@ -173,15 +163,12 @@ namespace Gecode { namespace String {
     /// any string in the domain is \a u
     ModEvent bnd_length(Space& home, int l, int u);
     //@}
-    
     /// Returns true if p and q are the same position in this view.
     bool equiv(const Position& p, const Position& q) const;
     /// Returns true if p precedes q according to this view.
     bool prec(const Position& p, const Position& q) const;
-    
     ///TODO:
     int ub_new_blocks(const Matching& m) const;
-    
     /// TODO:
     int min_len_mand(const Block& bx, const Position& lsp, 
                                       const Position& eep) const;
@@ -191,7 +178,6 @@ namespace Gecode { namespace String {
     /// TODO:                             
     void
     expandBlock(Space& home, const Block& bx, Block* y) const;
-    
     /// TODO:
     void
     crushBase(Space& home, Block& bx, const Position& esp, 
@@ -209,14 +195,11 @@ namespace Gecode { namespace String {
     void
     mand_region(Space& home, Block& bx, Block* bnew, int u,
                              const Position& p, const Position& q) const;
-    
     /// TODO:
     void
     resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize);
-    
     /// Normalize this view
     void normalize(Space& home);
-        
   };
   /**
    * \brief Print string variable view
