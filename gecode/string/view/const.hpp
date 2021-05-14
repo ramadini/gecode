@@ -88,7 +88,7 @@ namespace Gecode { namespace String {
   template <>
   forceinline int
   SweepFwdIterator<ConstStringView>::may_consume() const {
-    may_consume();
+    return may_consume();
   }
   
   template <>
@@ -248,6 +248,11 @@ namespace Gecode { namespace String {
   ConstStringView::assigned() const {
     return true;
   }
+  
+  forceinline int
+  ConstStringView::operator[](int i) const {
+    return _val[i];
+  }
 
   template<class Char, class Traits>
   forceinline  std::basic_ostream<Char,Traits>&
@@ -331,7 +336,7 @@ namespace Gecode { namespace String {
     assert (prec(p,q) && n <= u);
     int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1;
     for (int i = p_i, j = 0; i <= q_i; ++i, ++j)
-      bnew[j].update(home, (*this)[i]);
+      bnew[j].update(home, Block((*this)[i]));
   }
   
   forceinline void
@@ -384,7 +389,7 @@ namespace Gecode { namespace String {
   forceinline void
   ConstStringView::expandBlock(Space& home, const Block&, Block* y) const {
     for (int i = 0; i < n; i++)
-      y[i].update(home, (*this)[i]);
+      y[i].update(home, Block((*this)[i]));
   }
 
   forceinline void

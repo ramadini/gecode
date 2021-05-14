@@ -906,8 +906,8 @@ public:
     w = "ab =";
     str2blocks(w, by, n+1);
     by[4].update(*this, Block(*this, CharSet(*this, '0'), 0, 2));
-    by[5].update(*this, 'a');
-    by[6].update(*this, 'b');
+    by[5].update(*this, Block('a'));
+    by[6].update(*this, Block('b'));
     StringVar x(*this, DashedString(*this, bx, n));
     StringVar y(*this, DashedString(*this, by, n+1));
     StringView vx(x), vy(y);

@@ -83,7 +83,7 @@ namespace Gecode { namespace String {
     Block(void);
     /// Creates fixed block \f$ {a}^{1,1} \$
     /// Throws OutOfLimits exception if \f$a < 0 \vee a \geq MAX\_ALPHABET\_LENGTH\f$
-    Block(int a);
+    explicit Block(int a);
     /// Creates fixed block \f$ {a}^{n,n} \$
     /// Throws OutOfLimits exception if 
     /// \f$a < 0 \vee a \geq MAX\_ALPHABET\_LENGTH \vee n < 0 \vee n > MAX\_STRING\_LENGTH \f$
