@@ -89,7 +89,7 @@ namespace Gecode { namespace String {
     /// \f$a < 0 \vee a \geq MAX\_ALPHABET\_LENGTH \vee n < 0 \vee n > MAX\_STRING\_LENGTH \f$
     Block(int a, int n);
     /// Creates block \f$ {0, \dots, {MAX\_ALPHABET\_SIZE}-1}^{(0,{MAX\_STRING\_LENGTH})} \$
-    Block(Space& home);
+    explicit Block(Space& home);
     /// Creates block \f$ S^{(0,{MAX\_STRING\_LENGTH})} \$
     Block(Space& home, const CharSet& S);    
     /// Creates block \f$ S^{l,u} \$

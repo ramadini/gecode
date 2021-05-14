@@ -215,6 +215,34 @@ namespace Gecode { namespace String {
     }
     return p;
   };
+  template <class IterY>
+  forceinline Position
+  push(int cx, IterY& it) {
+//    std::cerr << "Pushing " << bx << " from " << *it << '\n';
+    Position p = *it;
+    // No. of chars. that must be consumed
+    int k = 1;
+    while (k > 0) {
+//      std::cerr << "p=" << p << ", it=" << *it << ", k=" << k << std::endl;
+      if (!it.hasNextBlock())
+        return *it;
+      if (it.disj(cx)) {
+        // Skipping block, possibly resetting k
+        if (it.lb() > 0) {
+          it.nextBlock();
+          p = *it;
+          k = 1;
+        }
+        else
+          it.nextBlock();
+      }
+      else {
+        it.consume(1);
+        return p;
+      }
+    }
+    return p;
+  };
   
   /// TODO:
   template <class IterY>
@@ -236,6 +264,29 @@ namespace Gecode { namespace String {
       }
       else {
         k -= m;
+        it.nextBlock();
+      }
+    }
+  };
+  template <class IterY>
+  forceinline void
+  stretch(int cx, IterY& it) {
+//    std::cerr << "Streching " << bx << " from " << *it << '\n';
+    int k = 1;
+    while (it.hasNextBlock()) {
+      // Min. no. of chars that must be consumed.
+      int m = it.must_consume();
+//      std::cerr << "it=" << *it << ", k=" << k << ", m=" << m << std::endl;      
+      if (m == 0)
+        it.nextBlock();
+      else if (it.disj(cx))
+        return;
+      else if (k < m) {
+        it.consumeMand(k);
+        return;
+      }
+      else {
+        k = 0;
         it.nextBlock();
       }
     }
