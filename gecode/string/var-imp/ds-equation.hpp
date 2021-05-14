@@ -241,7 +241,7 @@ namespace Gecode { namespace String {
     }
   };
   
-  template <class ViewX, class ViewY, class IterY>
+  template <class ViewX, class ViewY>
   forceinline bool
   pushESP(ViewX& x, const ViewY& y, Matching m[], int i) {
 //    std::cerr << "Pushing ESP of " << x[i] << " from " << m[i].ESP << '\n';
@@ -253,8 +253,8 @@ namespace Gecode { namespace String {
         m[i+1].ESP = m[i].ESP;
       return true;
     }
-    IterY q(y, m[i].ESP);
-    IterY p(y, push<IterY>(x[i], q));
+    SweepFwdIterator<ViewY> q(y, m[i].ESP);
+    SweepFwdIterator<ViewY> p(y, push<SweepFwdIterator<ViewY>>(x[i], q));
     if (!p())
       return false;    
     if (i < n && y.prec(m[i+1].ESP, *q))
@@ -266,7 +266,7 @@ namespace Gecode { namespace String {
     return true;
   }
   
-  template <class ViewX, class ViewY, class IterY>
+  template <class ViewX, class ViewY>
   forceinline bool
   pushLEP(ViewX& x, const ViewY& y, Matching m[], int i) {
 //    std::cerr << "Pushing LEP of " << x[i] << " from " << m[i].LEP << '\n';
@@ -277,8 +277,8 @@ namespace Gecode { namespace String {
         m[i-1].LEP = m[i].LEP;
       return true;
     }
-    IterY p(y, m[i].LEP);
-    IterY q(y, push<IterY>(x[i], p));
+    SweepBwdIterator<ViewY> p(y, m[i].LEP);
+    SweepBwdIterator<ViewY> q(y, push<SweepBwdIterator<ViewY>>(x[i], p));
 //    std::cerr << "p = " << *p << ", q = " << *q << "\n";
     if (!q())
       return false;
@@ -331,11 +331,11 @@ namespace Gecode { namespace String {
       return false;
     int nx = x.size(); 
     for (int i = 0; i < nx; ++i) {
-      if (!pushESP<ViewX,ViewY,SweepFwdIterator<ViewY>>(x, y, m, i))
+      if (!pushESP<ViewX,ViewY>(x, y, m, i))
         return false;
     }
     for (int i = nx-1; i >= 0; --i) {
-      if (!pushLEP<ViewX,ViewY,SweepBwdIterator<ViewY>>(x, y, m, i))
+      if (!pushLEP<ViewX,ViewY>(x, y, m, i))
         return false;
     }
     m[0].LSP = m[0].ESP;
@@ -411,11 +411,11 @@ namespace Gecode { namespace String {
       return false;
     int nx = x.size(); 
     for (int i = 0; i < nx; ++i) {
-      if (!pushESP<ViewX,ViewY,SweepFwdIterator<ViewY>>(x, y, m, i))
+      if (!pushESP<ViewX,ViewY>(x, y, m, i))
         return false;
     }
     for (int i = nx-1; i >= 0; --i) {
-      if (!pushLEP<ViewX,ViewY,SweepBwdIterator<ViewY>>(x, y, m, i))
+      if (!pushLEP<ViewX,ViewY>(x, y, m, i))
         return false;
     }
     m[0].LSP = m[0].ESP;
