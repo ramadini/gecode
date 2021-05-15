@@ -1012,7 +1012,7 @@ namespace Gecode { namespace String {
       if (li < min_i)
         bi.lb(home, min_i);
     }
-    min_len = l;std::cerr << *this << ' ' << min_len << ' ' << max_len << '\n';
+    min_len = l;
     assert (isOK() && isNorm());
   }
   
