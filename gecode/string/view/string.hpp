@@ -157,6 +157,11 @@ namespace Gecode { namespace String {
   SweepBwdIterator<StringView>::disj(const Block& b) const {
     return  sv[pos.off > 0 ? pos.idx : pos.idx-1].baseDisjoint(b);
   }
+  template <>
+  forceinline bool
+  SweepBwdIterator<StringView>::disj(int c) const {
+    return !sv[pos.off > 0 ? pos.idx : pos.idx-1].baseContains(c);
+  }
   
   template <>
   forceinline bool

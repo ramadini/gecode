@@ -262,10 +262,10 @@ namespace Gecode { namespace String {
   }
 
   template<class Char, class Traits>
-  forceinline  std::basic_ostream<Char,Traits>&
+  forceinline std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const ConstStringView& v) {
     for (int i = 0; i < v.n; ++i)
-      os << v._val[i];
+      os << int2str(v._val[i]);
     return os;
   };
   

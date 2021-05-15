@@ -293,7 +293,10 @@ namespace Gecode { namespace String {
     void
     mand_region(Space& home, Block& bx, Block* bnew, int u,
                              const Position& p, const Position& q) const;
-    
+                             
+    template<class Char, class Traits>
+    friend std::basic_ostream<Char,Traits>&
+    operator <<(std::basic_ostream<Char,Traits>& os, const ConstStringView& v);
   };
   /**
    * \brief Print string variable view

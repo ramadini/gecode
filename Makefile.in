@@ -586,7 +586,7 @@ export STRINGRES		=
 export STRINGRC		=
 endif
 STRINGBUILDDIRS	= \
-	string string/var-imp
+	string string/var string/var-imp string/view string/int
 
 #
 # SET COMPONENTS

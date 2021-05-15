@@ -13,7 +13,7 @@
 #if !defined(GECODE_STATIC_LIBS) && \
     (defined(__CYGWIN__) || defined(__MINGW32__) || defined(_MSC_VER))
 
-#ifdef GECODE_BUILD_String
+#ifdef GECODE_BUILD_STRING
 #define GECODE_STRING_EXPORT __declspec( dllexport )
 #else
 #define GECODE_STRING_EXPORT __declspec( dllimport )
@@ -30,7 +30,7 @@
 #endif
 
 // Configure auto-linking
-#ifndef GECODE_BUILD_String
+#ifndef GECODE_BUILD_STRING
 #define GECODE_LIBRARY_NAME "String"
 #include <gecode/support/auto-link.hpp>
 #endif
@@ -315,6 +315,13 @@ namespace Gecode {
   /// Post propagator for \f$ (x \sim_{rt} y) \equiv r\f$
   GECODE_STRING_EXPORT void
   rel(Home home, StringVar x, StringRelType rt, StringVar y, Reify r);
+  
+  GECODE_STRING_EXPORT void eq(Home home, StringVar x, StringVar y);
+  GECODE_STRING_EXPORT void eq(Home home, StringVar x, std::vector<int> w);
+  GECODE_STRING_EXPORT void eq(Home home, std::vector<int> w, StringVar x);
+  GECODE_STRING_EXPORT void nq(Home home, StringVar x, StringVar y);
+  GECODE_STRING_EXPORT void nq(Home home, StringVar x, std::vector<int> w);
+  GECODE_STRING_EXPORT void nq(Home home, std::vector<int> w, StringVar x);
   //@}
 
 }

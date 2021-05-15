@@ -466,6 +466,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool
   check_equate_x(ViewX x, const ViewY& y) {
+    std::cerr << "Checking eq: " << x << "  vs  " << y << "\n";
     Matching m[x.size()];
     if (!init_x(x, y, m))
       return false;

@@ -119,8 +119,13 @@ public:
   
   void test03() {
     cerr << "\n*** Test 03 ***" << endl;
-    int d[] = {0,1,2};
-    ConstStringView c(*this, d, 3);
+    Block b[2];
+    b[0].update(*this, Block(*this, CharSet(*this,IntSet({'h','l','e'})),2,4));
+    b[1].update(*this, Block(*this, CharSet(*this, 'o'), 1, 2));
+    DashedString d(*this, DashedString(*this, b, 2));
+    StringVar x(*this, d);
+    eq(*this, x, str2vec("hello"));
+    std::cerr << x << "\n";
   }
   
 };
