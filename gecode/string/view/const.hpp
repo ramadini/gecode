@@ -109,7 +109,7 @@ namespace Gecode { namespace String {
   template <>
   forceinline void
   SweepFwdIterator<ConstStringView>::consumeMand(int k) {
-    consumeMand(k);
+    consume(k);
   }
   
 }}
@@ -340,7 +340,7 @@ namespace Gecode { namespace String {
   forceinline void
   ConstStringView::mand_region(Space& home, Block&, Block* bnew, int u,
                                 const Position& p, const Position& q) const {
-    assert (prec(p,q) && n <= u);
+    assert (prec(p,q) && u <= n);
     int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1;
     for (int i = p_i, j = 0; i <= q_i; ++i, ++j)
       bnew[j].update(home, Block((*this)[i]));

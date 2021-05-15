@@ -1001,7 +1001,7 @@ namespace Gecode { namespace String {
   }
   
   forceinline void 
-  DashedString::min_length(Space& home, int l) {std::cerr << *this << ' ' << min_len << ' ' << max_len << ", l = " << l << '\n';
+  DashedString::min_length(Space& home, int l) {
     assert (min_len <= l && l <= max_len);
     int maxl = 0;
     for (int i = 0; i < n; ++i)

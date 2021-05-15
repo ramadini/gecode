@@ -527,8 +527,8 @@ namespace Gecode { namespace String {
     for (int i = 0; i < uSize; i += 2) {
       for (int k = j; k < U[i]; ++k)
         d[k].update(home, (*this)[k]);
-      j = U[i] + U[i+1];
-      for (int k = U[i]; k < j; ++k, ++h)
+      j = h + U[i] + U[i+1];
+      for (int k = h + U[i]; k < j; ++k, ++h)
         d[k].update(home, newBlocks[h]);
     }
     for (h = U[uSize-2]+1; h < size(); ++j, ++h)

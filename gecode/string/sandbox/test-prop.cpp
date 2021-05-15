@@ -133,6 +133,23 @@ public:
     assert (!check_equate_x(vx, StringView(y)));
     assert (!check_equate_x(StringView(y), vx));
     assert (equate_x(*this, StringView(y), vx) == ES_FAILED);
+    vector<int> w = str2vec(
+      ":?@NbT;^AZR3IuW3ee:)DpBr%&C]=x=BqcG8[Pe.Uj` ]c4]?e]qCu|B,LSV!W(e: "
+    );
+    ConstStringView vz(*this, &w[0], w.size());
+    b[0].update(*this, Block(*this, CharSet(*this), 3, 31));
+    b[1].update(*this, Block(*this, CharSet(*this, 0, 1000), 2, 50));
+    d.update(*this, DashedString(*this, b, 2));
+    StringVar t(*this, d);
+    std::cerr << "t = " << t << "\n";
+    std::cerr << "z = " << vz << "\n";
+    cerr << "Equate t = " << t << "  vs  z = " << vz << "\n";
+    StringView vt(t);
+    assert (equate_x(*this, vt, vz) == ME_STRING_CARD);
+    std::cerr << "After equate, t = " << t << "\n";
+    assert (vt.size() == 16+1+35   && vt[0].val()[0] == ':');
+    assert (vt[15].val()[0] == '3' && !vt[16].isFixed());
+    assert (vt[17].val()[0] == 'B' && vt[vt.size()-1].val()[0] == ' ');
   }
   
 };
