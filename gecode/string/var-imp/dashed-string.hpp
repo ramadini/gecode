@@ -1069,11 +1069,23 @@ namespace Gecode { namespace String {
   forceinline void 
   DashedString::update(Space& home, const std::vector<int>& w) {
     int m = w.size();
+    if (m == 0) {
+      nullify(home);
+      return;
+    }
     min_len = m;
-    max_len = m;
+    max_len = m;    
+    for (int i = 1; i < (int) w.size(); ++i)
+      if (w[i] == w[i-1])
+        m--;
+    n = m;
+    x[0].update(home, Block(w[0]));
     if (m <= n) {
-      for (int i = 0; i < m; ++i)
-        x[i].update(home, Block(w[i]));
+      for (int i = 1, j = 0; i < (int) w.size(); ++i)
+        if (w[i] == w[i-1])
+          x[j].updateCard(home, x[j].lb() + 1, x[j].ub() + 1);
+        else
+          x[++j].update(home, Block(w[i]));
       if (m < n) {
         for (int i = m; i < n; ++i)
           x[i].nullify(home);
@@ -1086,9 +1098,11 @@ namespace Gecode { namespace String {
       x[i].nullify(home);
     a.free(x, n);
     x = a.template alloc<Block>(m);
-    for (int i = 0; i < m; ++i)
-      x[i].update(home, Block(w[i]));
-    n = m;
+    for (int i = 1, j = 0; i < (int) w.size(); ++i)
+      if (w[i] == w[i-1])
+        x[j].updateCard(home, x[j].lb() + 1, x[j].ub() + 1);
+      else
+        x[++j].update(home, Block(w[i]));
     assert(isOK() && isNorm());
   }
   

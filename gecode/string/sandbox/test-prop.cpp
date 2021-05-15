@@ -124,8 +124,10 @@ public:
     b[1].update(*this, Block(*this, CharSet(*this, 'o'), 1, 2));
     DashedString d(*this, DashedString(*this, b, 2));
     StringVar x(*this, d);
+    std::cerr << "eq(" << x << ", hello)\n";
     eq(*this, x, str2vec("hello"));
-    std::cerr << x << "\n";
+    assert (vec2str(x.val()) == "hello");
+    std::cerr << "x = " << x << "\n";
   }
   
 };

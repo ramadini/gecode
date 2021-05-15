@@ -93,7 +93,7 @@ namespace Gecode { namespace String {
   template <>
   forceinline int
   SweepFwdIterator<ConstStringView>::may_consume() const {
-    return may_consume();
+    return must_consume();
   }
   
   template <>
@@ -141,7 +141,7 @@ namespace Gecode { namespace String {
   template <>
   forceinline bool
   SweepBwdIterator<ConstStringView>::disj(const Block& b) const {
-    return b.baseContains(sv[pos.off > 0 ? pos.idx : pos.idx-1]);
+    return !b.baseContains(sv[pos.off > 0 ? pos.idx : pos.idx-1]);
   }
   
   template <>

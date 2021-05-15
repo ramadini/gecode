@@ -112,7 +112,7 @@ namespace Gecode {
     StringView vx(x);
     ConstStringView vw(home, &w[0], w.size());
     if (check_equate_x(vx,vw) && check_equate_x(vw,vx))
-      x.varimp()->update(home, w);
+      vx.update(home, w);
     else
       home.fail();
   }

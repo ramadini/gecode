@@ -224,6 +224,7 @@ namespace Gecode { namespace String {
     }
     return p;
   };
+  
   template <class IterY>
   forceinline Position
   push(int cx, IterY& it) {
@@ -277,10 +278,11 @@ namespace Gecode { namespace String {
       }
     }
   };
+  
   template <class IterY>
   forceinline void
   stretch(int cx, IterY& it) {
-//    std::cerr << "Streching " << bx << " from " << *it << '\n';
+//    std::cerr << "Streching " << cx << " from " << *it << '\n';
     int k = 1;
     while (it.hasNextBlock()) {
       // Min. no. of chars that must be consumed.
@@ -355,6 +357,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool
   init_x(ViewX x, const ViewY& y, Matching m[]) {
+//    std::cerr << "Init: " << x << "  vs  " << y << "\n";
     SweepFwdIterator<ViewY> fwd_it = y.fwd_iterator();
     int nx = x.size();
     for (int i = 0; i < nx; ++i) {
@@ -390,14 +393,12 @@ namespace Gecode { namespace String {
     if (!init_x(x, y, m))
       return false;
     int nx = x.size(); 
-    for (int i = 0; i < nx; ++i) {
+    for (int i = 0; i < nx; ++i)
       if (!pushESP<ViewX,ViewY>(x, y, m, i))
         return false;
-    }
-    for (int i = nx-1; i >= 0; --i) {
+    for (int i = nx-1; i >= 0; --i)
       if (!pushLEP<ViewX,ViewY>(x, y, m, i))
         return false;
-    }
     m[0].LSP = m[0].ESP;
     assert (m[0].LSP == Position(0,0));
     for (int i = 1; i < nx; ++i) {
@@ -466,19 +467,17 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool
   check_equate_x(ViewX x, const ViewY& y) {
-    std::cerr << "Checking eq: " << x << "  vs  " << y << "\n";
+//    std::cerr << "Checking eq: " << x << "  vs  " << y << "\n";
     Matching m[x.size()];
     if (!init_x(x, y, m))
       return false;
-    int nx = x.size(); 
-    for (int i = 0; i < nx; ++i) {
+    int nx = x.size();
+    for (int i = 0; i < nx; ++i)
       if (!pushESP<ViewX,ViewY>(x, y, m, i))
         return false;
-    }
-    for (int i = nx-1; i >= 0; --i) {
+    for (int i = nx-1; i >= 0; --i)
       if (!pushLEP<ViewX,ViewY>(x, y, m, i))
         return false;
-    }
     m[0].LSP = m[0].ESP;
     assert (m[0].LSP == Position(0,0));
     for (int i = 1; i < nx; ++i) {
@@ -497,7 +496,7 @@ namespace Gecode { namespace String {
     assert (m[nx-1].EEP == Position(y.size(),0));
     for (int i = 0; i < nx; ++i)
       if (ubound(x[i]) < min_len_mand(x[i], y, m[i].LSP, m[i].EEP))
-        return false;
+        return false;    
     return true;
   }
 

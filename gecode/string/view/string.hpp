@@ -160,7 +160,7 @@ namespace Gecode { namespace String {
   template <>
   forceinline bool
   SweepBwdIterator<StringView>::disj(int c) const {
-    return !sv[pos.off > 0 ? pos.idx : pos.idx-1].baseContains(c);
+    return !(sv[pos.off > 0 ? pos.idx : pos.idx-1].baseContains(c));
   }
   
   template <>
