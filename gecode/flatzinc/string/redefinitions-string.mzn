@@ -13,7 +13,7 @@ let {
 predicate str_eq_c(var string: x, var string: y);
 predicate str_eq_c_reif(var string: x, var string: y, var bool: b);
 predicate str_eq(var string: x, var string: y) = 
-  constraint str_len(x) = str_len(y) /\ str_eq_c(x, y);
+  str_len(x) = str_len(y) /\ str_eq_c(x, y);
 
 function var string: str_rev_c(var string: x) ::promise_total;
 function var string:
