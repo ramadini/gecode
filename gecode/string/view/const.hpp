@@ -347,15 +347,15 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  ConstStringView::mand_region(Space& home, Block& bx, const Block& by,
-                             const Position&, const Position&) const {
-    assert (by.isFixed());
-    bx.update(home, by);
+  ConstStringView::mand_region(Space& home, Block& bx, int cy,
+                               const Position&, const Position&) const {
+    assert (bx.baseContains(cy));
+    bx.update(home, Block(cy));
   }
   
   forceinline int
   ConstStringView::max_len_opt(const Block& bx, const Position& esp, 
-                                               const Position& lep, int) const {
+                                                const Position& lep, int) const {
     return min_len_mand(bx, esp, lep);
   }
   

@@ -120,7 +120,7 @@ public:
   void test03() {
     cerr << "\n*** Test 03 ***" << endl;
     Block b[2];
-    b[0].update(*this, Block(*this, CharSet(*this,IntSet({'h','l','e'})),2,4));
+    b[0].update(*this, Block(*this, CharSet(*this,IntSet({'h','l','e'})), 2,4));
     b[1].update(*this, Block(*this, CharSet(*this, 'o'), 1, 2));
     DashedString d(*this, DashedString(*this, b, 2));
     StringVar x(*this, d);
@@ -128,6 +128,11 @@ public:
     eq(*this, x, str2vec("hello"));
     assert (vec2str(x.val()) == "hello");
     std::cerr << "x = " << x << "\n";
+    ConstStringView vx(*this, &x.val()[0], 5);
+    StringVar y(*this, Block(*this, CharSet(*this,IntSet({'h','l','e'})), 2,6));
+    assert (!check_equate_x(vx, StringView(y)));
+    assert (!check_equate_x(StringView(y), vx));
+    assert (equate_x(*this, StringView(y), vx) == ES_FAILED);
   }
   
 };
