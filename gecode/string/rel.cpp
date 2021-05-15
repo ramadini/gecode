@@ -93,10 +93,37 @@ namespace Gecode {
   }
   
   forceinline void
+  eq(Home home, StringVar x, std::vector<int> w) {
+    using namespace String;
+    StringView vx(x);
+    ConstStringView vw(home, &w[0], w.size());
+    if (check_equate_x(vx,vw) && check_equate_x(vw,vx))
+      vx.update(home, w);
+    else
+      home.fail();
+  }  
+  forceinline void
+  eq(Home home, std::vector<int> w, StringVar x) {
+    eq(home, x, w);
+  }
+  
+  forceinline void
   nq(Home home, StringVar x, StringVar y) {
     using namespace String;
     GECODE_POST;
     GECODE_ES_FAIL((Rel::Nq<StringView,StringView>::post(home, x, y)));
+  }
+  
+  forceinline void
+  nq(Home home, StringVar x, std::vector<int> w) {
+    using namespace String;
+    GECODE_POST;
+    ConstStringView vw(home, &w[0], w.size());
+    GECODE_ES_FAIL((Rel::Nq<StringView,ConstStringView>::post(home, x, vw)));
+  }
+  forceinline void
+  nq(Home home, std::vector<int> w, StringVar x) {
+    nq(home, x, w);
   }
   
 }

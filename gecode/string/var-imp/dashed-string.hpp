@@ -286,6 +286,8 @@ namespace Gecode { namespace String {
     void nullify(Space& home);
     /// Update this dashed string to be a clone of \a x
     void update(Space& home, const DashedString& x);
+    /// Update this dashed string to be assigned to \a w
+    void update(Space& home, const std::vector<int>& w);
     /// Possibly refine this dashed string given minimum length l.
     /// Pre-condition: min_length() <= l <= max_length()
     void min_length(Space& home, int l);
@@ -1061,6 +1063,32 @@ namespace Gecode { namespace String {
     for (int i = 0; i < d.n; ++i)
       x[i].update(home, d[i]);
     n = d.n;
+    assert(isOK() && isNorm());
+  }
+  
+  forceinline void 
+  DashedString::update(Space& home, const std::vector<int>& w) {
+    int m = w.size();
+    min_len = m;
+    max_len = m;
+    if (m <= n) {
+      for (int i = 0; i < m; ++i)
+        x[i].update(home, Block(w[i]));
+      if (m < n) {
+        for (int i = m; i < n; ++i)
+          x[i].nullify(home);
+        a.free(x + m, n - m);
+      }
+      n = m;
+      return;
+    }
+    for (int i = 0; i < n; ++i)
+      x[i].nullify(home);
+    a.free(x, n);
+    x = a.template alloc<Block>(m);
+    for (int i = 0; i < m; ++i)
+      x[i].update(home, Block(w[i]));
+    n = m;
     assert(isOK() && isNorm());
   }
   

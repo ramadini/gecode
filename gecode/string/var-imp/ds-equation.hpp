@@ -1,5 +1,9 @@
 namespace Gecode { namespace String {
 
+  struct Position;
+  template <class T> class SweepFwdIterator;
+  template <class T> class SweepBwdIterator;
+
   forceinline int
   nabla(const Block& bx, const Block& by, int x) {
     return x <= 0 || bx.baseDisjoint(by) ? 0 : x;
@@ -9,9 +13,14 @@ namespace Gecode { namespace String {
   forceinline int lbound(int) { return 1; }
   forceinline int ubound(const Block& b) { return b.ub(); }
   forceinline int lbound(const Block& b) { return b.lb(); }
-  
-  template <class T> class SweepFwdIterator;
-  template <class T> class SweepBwdIterator;
+  template <class View> forceinline int 
+  min_len_mand(const Block& b, View& y, const Position& p, const Position& q) {
+    return y.min_len_mand(b, p, q);
+  }
+  template <class View> forceinline int 
+  min_len_mand(int, View&, const Position&, const Position&) {
+    return 1;
+  }
   
   /// Struct abstracting a position in a dashed string.
   struct Position {
@@ -87,7 +96,7 @@ namespace Gecode { namespace String {
 //                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
       Position& esp = m[i].ESP, eep = m[i].EEP, lsp = m[i].LSP, lep = m[i].LEP;
       Block& x_i = x[i];
-      int l = x_i.lb(), u = x_i.ub(), l1 = y.min_len_mand(x_i, lsp, eep);
+      int l = x_i.lb(), u = x_i.ub(), l1 = min_len_mand(x_i, y, lsp, eep);
       if (u < l1)
         return false;
       if (x_i.isFixed())
@@ -486,7 +495,7 @@ namespace Gecode { namespace String {
     }
     assert (m[nx-1].EEP == Position(y.size(),0));
     for (int i = 0; i < nx; ++i)
-      if (ubound(x[i]) < y.min_len_mand(x[i], m[i].LSP, m[i].EEP))
+      if (ubound(x[i]) < min_len_mand(x[i], y, m[i].LSP, m[i].EEP))
         return false;
     return true;
   }

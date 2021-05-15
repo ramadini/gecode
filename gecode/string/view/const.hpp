@@ -37,6 +37,11 @@ namespace Gecode { namespace String {
   SweepIterator<ConstStringView>::disj(const Block& b) const {
     return !b.baseContains(sv[pos.idx]);
   }
+  template <>
+  forceinline bool
+  SweepIterator<ConstStringView>::disj(int c) const {
+    return c != sv[pos.idx];
+  }
   
   template <>
   forceinline bool
@@ -210,6 +215,8 @@ namespace Gecode { namespace String {
 
 namespace Gecode { namespace String {
 
+  forceinline ConstStringView::ConstStringView() : _val(), n(0) {};
+  
   forceinline
   ConstStringView::ConstStringView(Space& home, int w[], int k) {
     if (k > Limits::MAX_STRING_LENGTH)

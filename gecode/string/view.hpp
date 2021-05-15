@@ -36,6 +36,7 @@ namespace Gecode { namespace String {
     int ub(void) const;
     /// Check if the base of the current block is disjoint with that of \a b
     bool disj(const Block& b) const;
+    bool disj(int c) const;
   };
   
   /// Iterator for pushing/stretching forward.
@@ -58,6 +59,7 @@ namespace Gecode { namespace String {
     SweepBwdIterator(const View& x);
     SweepBwdIterator(const View& x, const Position& p);
     bool disj(const Block& b) const;
+    bool disj(int c) const;
     void nextBlock(void);
     bool hasNextBlock(void) const;
     void consume(int k);
@@ -73,6 +75,8 @@ namespace Gecode { namespace String {
 
 
 namespace Gecode { namespace String {
+
+  class ConstStringView;
 
   /**
    * \defgroup TaskActorStringView String views
@@ -130,6 +134,7 @@ namespace Gecode { namespace String {
     bool isOK(void) const;
     /// If this view and y are the same
     bool same(const StringView& y) const;
+    bool same(const ConstStringView& y) const;
     /// If this view contains y
     bool contains(const StringView& y) const;
     /// If this view is equals to y
@@ -140,6 +145,7 @@ namespace Gecode { namespace String {
     /// Update this view to be a clone of view \a y
     void update(Space& home, const DashedString& d);
     void update(Space& home, const StringView& y);
+    void update(Space& home, const std::vector<int>& w);
     //@}
     /// \name Domain update by equation: FIXME: Check if needed
     //@{
@@ -227,6 +233,8 @@ namespace Gecode { namespace String {
     /// The size of the value
     int n;
   public:
+    /// Construct with empty string
+    ConstStringView(void);
     /// Construct with \a w as domain (n = |w|).
     ConstStringView(Space& home, int w[], int n);
     /// Return the length of the string (for compatibility with other views)

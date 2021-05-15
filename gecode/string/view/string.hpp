@@ -36,6 +36,11 @@ namespace Gecode { namespace String {
   forceinline bool
   SweepIterator<StringView>::disj(const Block& b) const {
     return sv[pos.idx].baseDisjoint(b);
+  }  
+  template <>
+  forceinline bool
+  SweepIterator<StringView>::disj(int c) const {
+    return !sv[pos.idx].baseContains(c);
   }
   
   template <>
@@ -243,10 +248,18 @@ namespace Gecode { namespace String {
   StringView::update(Space& home, const StringView& y) {
     x->update(home, *y.x);
   }
+  forceinline void
+  StringView::update(Space& home, const std::vector<int>& w) {
+    x->update(home, w);
+  }
   
   forceinline bool
   StringView::same(const StringView& y) const {
     return varimp() == y.varimp();
+  }
+  forceinline bool
+  StringView::same(const ConstStringView&) const {
+    return false;
   }
 
   forceinline int 
@@ -375,7 +388,7 @@ namespace Gecode { namespace String {
     }
     const Block& bq = (*this)[q_i];
     return m + nabla(bx, bq, std::min(bq.lb(), q_o));
-  }  
+  }
   
   forceinline void
   StringView::mand_region(Space& home, Block& bx, Block* bnew, int u,

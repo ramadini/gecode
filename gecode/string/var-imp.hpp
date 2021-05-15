@@ -94,6 +94,7 @@ namespace Gecode { namespace String {
   
     void update(Space& home, const DashedString& d);
     void update(Space& home, const StringVarImp& y);
+    void update(Space& home, const std::vector<int>& w);
     
     /// \name Domain update by equation
     //@{

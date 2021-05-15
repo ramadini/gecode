@@ -31,6 +31,10 @@ namespace Gecode { namespace String {
   StringVarImp::update(Space& home, const StringVarImp& y) {
     ds.update(home, y.ds);
   }
+  forceinline void
+  StringVarImp::update(Space& home, const std::vector<int>& w) {
+    ds.update(home, w);
+  }
   
   forceinline int 
   StringVarImp::size() const {
