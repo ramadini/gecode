@@ -392,6 +392,8 @@ namespace Gecode { namespace String {
   sweep_x(ViewX x, const ViewY& y, Matching m[], int& n) {
     if (!init_x(x, y, m))
       return false;
+    if (x.assigned() && y.assigned())
+      return true;
     int nx = x.size(); 
     for (int i = 0; i < nx; ++i)
       if (!pushESP<ViewX,ViewY>(x, y, m, i))
@@ -471,6 +473,8 @@ namespace Gecode { namespace String {
     Matching m[x.size()];
     if (!init_x(x, y, m))
       return false;
+    if (x.min_length() == x.max_length() && y.min_length() == y.max_length())
+      return true;
     int nx = x.size();
     for (int i = 0; i < nx; ++i)
       if (!pushESP<ViewX,ViewY>(x, y, m, i))

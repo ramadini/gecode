@@ -6,7 +6,7 @@ include "regular.mzn";
 include "regular_nfa.mzn";
 include "global_cardinality.mzn";
 
-int: DEF_MAXLENGTH = 1000;
+int: DEF_MAXLENGTH;
 function int: str_lb(var string: x) = lb(str_len(x));
 function int: str_ub(var string: x) = ub(str_len(x));
 
