@@ -351,7 +351,7 @@ namespace Gecode { namespace String {
       return x1.min_len_mand(bx, p-pivot, q-pivot);
     else
       return x0.min_len_mand(bx, p, Position(pivot,0)) 
-           + x1.min_len_mand(bx, Position(pivot,0), q-pivot);
+           + x1.min_len_mand(bx, Position(0,0), q-pivot);
   }
   
   template <class View0, class View1>
@@ -394,77 +394,66 @@ namespace Gecode { namespace String {
     else
       return x0.max_len_opt(bx, esp, Position(pivot,0));
   }
-//  
-//  forceinline void
-//  ConcatView<View0,View1>::opt_region(Space& home, const Block& bx, Block& bnew,
-//                           const Position& p, const Position& q, int l1) const {
-//    assert(prec(p,q));
-//    int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
-//        p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
-////    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
-//    // Only one block involved
-//    const Block& bp = (*this)[p_i];
-//    int k = bx.ub() - l1;
-//    if (p_i == q_i) {
-//      bnew.update(home, bp);
-//      bnew.baseIntersect(home, bx);
-//      if (!bnew.isNull())
-//        bnew.updateCard(home, 0, std::min(q_o-p_o, bp.lb()+k));
-//      return;
-//    }
-//    // More than one block involved
-//    Gecode::Set::GLBndSet s;
-//    bp.includeBaseIn(home, s);
-//    int u = bp.ub() - p_o;
-//    for (int i = p_i+1; i < q_i; ++i) {
-//      const Block& bi = (*this)[i];
-//      bi.includeBaseIn(home, s);
-//      u = ub_sum(u, std::min(bi.ub(), bi.lb()+k));
-//    }
-//    const Block& bq = (*this)[q_i];
-//    bq.includeBaseIn(home, s);
-//    bnew.update(home, bx);
-//    bnew.baseIntersect(home, s);    
-//    if (!bnew.isNull())
-//      bnew.updateCard(home, 0, ub_sum(u, std::min(q_o, bq.lb()+k)));
-//  }
-//  
-//  forceinline void
-//  ConcatView<View0,View1>::expandBlock(Space& home, const Block& bx, Block* y) const {
-//    for (int i = 0; i < size(); i++) {
-//      y[i].update(home, (*this)[i]);
-//      y[i].baseIntersect(home, bx);
-//      if (y[i].ub() > bx.ub())
-//        y[i].ub(home, bx.ub());
-//    }
-//  }
+  
+  template <class View0, class View1>
+  forceinline void
+  ConcatView<View0,View1>::opt_region(Space& home, const Block& bx, Block& bnew,
+                           const Position& p, const Position& q, int l1) const {
+    assert(prec(p,q));
+    if (q.idx < pivot)
+      x0.opt_region(home, bx, bnew, p, q, l1);
+    else if (p.idx >= pivot)
+      x1.opt_region(home, bx, bnew, p-pivot, q-pivot, l1);
+    else {
+      // TODO: Improvable. Use crushBase?
+      Block& bnew0;
+      Block& bnew1;
+      x0.opt_region(home, bx, bnew0, p, Position(pivot,0), l1);
+      x1.opt_region(home, bx, bnew1, Position(0,0), q-pivot, l1);
+      Gecode::Set::GLBndSet s;
+      bnew0.includeBaseIn(home, s);
+      bnew1.includeBaseIn(home, s);      
+      bnew.update(home, bx);
+      bnew.baseIntersect(home, s);
+      bnew.updateCard(home, 0, std::min(bx.ub(),ub_sum(bnew0.ub(),bnew1.ub())));
+    }
+  }
+  
+  template <class View0, class View1>
+  forceinline void
+  ConcatView<View0,View1>::expandBlock(Space& home, const Block& bx, Block* y) const {
+    for (int i = 0; i < size(); i++) {
+      y[i].update(home, (*this)[i]);
+      y[i].baseIntersect(home, bx);
+      if (y[i].ub() > bx.ub())
+        y[i].ub(home, bx.ub());
+    }
+  }
 
-//  forceinline void
-//  ConcatView<View0,View1>::crushBase(Space& home, Block& bx, const Position& p, 
-//                                                const Position& q) const {
-//    Gecode::Set::GLBndSet s;
-//    for (int i = p.idx, j = q.idx - (q.off == 0); i <= j; ++i)
-//      (*this)[i].includeBaseIn(home, s);
-//    bx.baseIntersect(home, s);
-//  }
-//  
-//  forceinline void
-//  ConcatView<View0,View1>::resize(Space& home, Block newBlocks[], int newSize, int U[], 
-//                                                                  int uSize) {
-//    DashedString d(home, size()+newSize);
-//    int j = 0, h = 0;
-//    for (int i = 0; i < uSize; i += 2) {
-//      for (int k = j; k < U[i]; ++k)
-//        d[k].update(home, (*this)[k]);
-//      j = h + U[i] + U[i+1];
-//      for (int k = h + U[i]; k < j; ++k, ++h)
-//        d[k].update(home, newBlocks[h]);
-//    }
-//    for (h = U[uSize-2]+1; h < size(); ++j, ++h)
-//      d[j].update(home, (*this)[h]);
-//    d.normalize(home);
-//    x->update(home, d);
-//  }
+  template <class View0, class View1>
+  forceinline void
+  ConcatView<View0,View1>::crushBase(Space& home, Block& bx, const Position& p, 
+                                                      const Position& q) const {
+    Gecode::Set::GLBndSet s;
+    for (int i = p.idx, j = q.idx - (q.off == 0); i <= j; ++i)
+      (*this)[i].includeBaseIn(home, s);
+    bx.baseIntersect(home, s);
+  }
+  
+  template <class View0, class View1>
+  forceinline void
+  ConcatView<View0,View1>::resize(Space& home, Block newBlocks[], int newSize, int U[], 
+                                                                  int uSize) {
+    int i = 0, j = 0;
+    for (; U[i] < pivot; i += 2)
+      j += U[i+1] - 1;
+    if (j > 0)
+      x0.resize(home, newBlocks, i, U, j);
+    if (i < uSize) {
+      //TODO: Scale pivot.
+      x1.resize(home, newBlocks+i/2, newSize-j, U+i, uSize-i);
+    }
+  }
 
   template<class Char, class Traits, class X, class Y>
   std::basic_ostream<Char,Traits>&
