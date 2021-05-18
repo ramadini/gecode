@@ -1,3 +1,5 @@
+#include <gecode/string/int.hh>
+
 namespace Gecode { namespace String { namespace Rel {
 
   template<class View0, class View1>
@@ -35,13 +37,13 @@ namespace Gecode { namespace String { namespace Rel {
         return check_equate_x(x0, x1) ? ES_FAILED : home.ES_SUBSUMED(*this);
       if (x1.val().empty()) {
         IntVar n(home, 1, x0.max_length());
-        //FIXME: TODO length(home, x0, n);
+        Gecode::String::Int::Length<View0>::post(home, x0, n);
         return home.ES_SUBSUMED(*this);
       }
     }
     if (x0.assigned() && x0.val().empty()) {
       IntVar n(home, 1, x1.max_length());
-      // FIXME: TODO length(home, x1, n);
+      Gecode::String::Int::Length<View1>::post(home, x1, n);
       return home.ES_SUBSUMED(*this);
     }
     if (!check_equate_x(x0,x1) || !check_equate_x(x1,x0))

@@ -1,4 +1,3 @@
-#include <gecode/string.hh>
 #include <gecode/int.hh>
 
 namespace Gecode { namespace String { namespace Int {

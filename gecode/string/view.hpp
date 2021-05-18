@@ -238,6 +238,8 @@ namespace Gecode { namespace String {
     //@}
     /// Always returns true (for compatibility with other views)
     bool assigned(void) const;
+    /// Checks length bounds (for compatibility with other views)
+    ModEvent bnd_length(Space& home, int l, int u) const;
     /// If this view contains y
     bool contains(const StringView& y) const;
     /// If this view is equals to y

@@ -251,6 +251,11 @@ namespace Gecode { namespace String {
     return n;
   }
   
+  forceinline ModEvent
+  ConstStringView::bnd_length(Space&, int l, int u) const {
+    return l == u && u == n ? ME_STRING_NONE : ME_STRING_FAILED;
+  }
+  
   forceinline bool
   ConstStringView::assigned() const {
     return true;
