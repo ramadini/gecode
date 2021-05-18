@@ -315,17 +315,7 @@ namespace Gecode { namespace String {
   StringView::equals(const StringView& y) const {
     return x->equals(*y.x);
   }
-  
-  forceinline ModEvent
-  StringView::min_length(Space& home, int l) {
-    return x->min_length(home, l);
-  }
-  
-  forceinline ModEvent
-  StringView::max_length(Space& home, int u) {
-    return x->max_length(home, u);
-  }
-  
+
   forceinline ModEvent
   StringView::bnd_length(Space& home, int l, int u) {
     return x->bnd_length(home, l, u);

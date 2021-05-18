@@ -94,9 +94,9 @@ namespace Gecode { namespace String {
     //@{
     /// Default constructor
     StringView(void);
-    /// Initialize from set variable \a y
+    /// Initialize from string variable \a y
     StringView(const StringVar& y);
-    /// Initialize from set variable implementation \a y
+    /// Initialize from string variable implementation \a y
     StringView(StringVarImp* y);
     //@}
     /// \name Sweep iterators
@@ -124,12 +124,6 @@ namespace Gecode { namespace String {
     //@{
     /// Test whether variable is assigned
     bool assigned(void) const;
-    /// Test whether the domain is equatable with string \a w.
-    bool check_equate(const std::vector<int>& w) const;
-    /// Test whether the domain is equatable with block \a b.
-    bool check_equate(const Block& b) const;
-    /// Test whether the domain is equatable with dashed string \a x.
-    bool check_equate(const DashedString& x) const;
     /// Consistency checks on the view
     bool isOK(void) const;
     /// If this view and y are the same
@@ -147,28 +141,15 @@ namespace Gecode { namespace String {
     void update(Space& home, const StringView& y);
     void update(Space& home, const std::vector<int>& w);
     //@}
-    /// \name Domain update by equation: FIXME: Check if needed
+    /// \name Domain update by cardinality refinement
     //@{
-    /// Equates the domain with string \a w.
-    ModEvent equate(Space& home, const std::vector<int>& w);
-    /// Equates the domain with block \a b.
-    ModEvent equate(Space& home, const Block& b);
-    /// Equates with dashed string \a x.
-    ModEvent equate(Space& home, const DashedString& x);
-    //@}
-    /// \name Domain update by cardinality refinement: FIXME: Check if needed
-    //@{
-    /// Possibly update the lower bound of the blocks, knowing that the minimum 
-    /// length for any string in the domain is \a l
-    ModEvent min_length(Space& home, int l);
-    /// Possibly update the upper bound of the blocks, knowing that the maximum 
-    /// length for any string in the domain is \a u
-    ModEvent max_length(Space& home, int u);
     /// Possibly update the upper bound of the blocks, knowing that the minimum 
     /// length for any string in the domain is \a l and the maximum length for 
     /// any string in the domain is \a u
     ModEvent bnd_length(Space& home, int l, int u);
     //@}
+    /// \name Methods for dashed string equation
+    //@{
     /// Returns true if p and q are the same position in this view.
     bool equiv(const Position& p, const Position& q) const;
     /// Returns true if p precedes q according to this view.
@@ -206,6 +187,7 @@ namespace Gecode { namespace String {
     resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize);
     /// Normalize this view
     void normalize(Space& home);
+    //@}
   };
   /**
    * \brief Print string variable view
@@ -215,7 +197,9 @@ namespace Gecode { namespace String {
   std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const StringView& x);
 
+}}
 
+namespace Gecode { namespace String {  
 
   /**
    * \brief Constant string view
@@ -251,7 +235,7 @@ namespace Gecode { namespace String {
     //@{
     SweepFwdIterator<ConstStringView> fwd_iterator(void) const;
     SweepBwdIterator<ConstStringView> bwd_iterator(void) const;
-    //@}s
+    //@}
     /// Always returns true (for compatibility with other views)
     bool assigned(void) const;
     /// If this view contains y
@@ -262,7 +246,8 @@ namespace Gecode { namespace String {
     bool equiv(const Position& p, const Position& q) const;
     /// Returns true if p precedes q according to this view.
     bool prec(const Position& p, const Position& q) const;
-    
+    /// \name Methods for dashed string equation
+    //@{
     ///TODO:
     int ub_new_blocks(const Matching& m) const;
     
@@ -293,7 +278,7 @@ namespace Gecode { namespace String {
     void
     mand_region(Space& home, Block& bx, Block* bnew, int u,
                              const Position& p, const Position& q) const;
-                             
+    //@}
     template<class Char, class Traits>
     friend std::basic_ostream<Char,Traits>&
     operator <<(std::basic_ostream<Char,Traits>& os, const ConstStringView& v);
@@ -306,18 +291,129 @@ namespace Gecode { namespace String {
   std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const ConstStringView& x);
   
-  class ReverseView : public StringView {
-    
-//    class SweepFwdIterator   : public StringView::SweepFwdIterator {};
-//    class PushBwdIterator    : public StringView::PushBwdIterator {};
-//    class StretchBwdIterator : public StringView::StretchBwdIterator {};
-    
-//    SweepFwdIterator sweep_fwd_iterator(void);
-//    PushBwdIterator push_bwd_iterator(void);
-//    StretchBwdIterator stretch_bwd_iterator(void);
-    
-  };
+}}
 
+namespace Gecode { namespace String {  
+  
+  /**
+   * \brief Concat view
+   */
+  template <class View0, class View1>
+  class ConcatView : public VarImpView<StringVar> {
+  protected:
+    View0& lhs;
+    View1& rhs;
+    int pivot;
+  public:
+    /// \name Constructors and initialization
+    //@{
+    /// Default constructor
+    ConcatView(void);
+    /// Initialize from string variables \a x and \a y
+    ConcatView(View0& x, View1& y);
+    //@}
+    /// \name Sweep iterators
+    //@{
+    SweepFwdIterator<ConcatView<View0,View1>> fwd_iterator(void) const;
+    SweepBwdIterator<ConcatView<View0,View1>> bwd_iterator(void) const;
+    //@}
+    //@}
+    //@}
+    /// \name Value access
+    //@{
+    /// Return the minimum length for a string in the variable's domain
+    int min_length(void) const;
+    /// Return the maximum length for a string in the variable's domain
+    int max_length(void) const;
+    /// Returns the number of blocks of the domain
+    int size(void) const;
+    /// Returns the i-th block of the domain
+    Block& operator[](int i);
+    const Block& operator[](int i) const;
+    /// Return the value of this string view, if assigned. Otherwise, an
+    /// IllegalOperation exception is thrown.
+    std::vector<int> val(void) const;
+    //@}
+    /// \name Domain tests
+    //@{
+    /// Test whether variable is assigned
+    bool assigned(void) const;
+    /// Consistency checks on the view
+    bool isOK(void) const;
+    /// If this view and y are the same
+    bool same(const StringView& y) const;
+    bool same(const ConstStringView& y) const;
+    /// If this view contains y
+    bool contains(const StringView& y) const;
+    /// If this view is equals to y
+    bool equals(const StringView& y) const;
+    //@}
+    /// \name Cloning
+    //@{
+    /// Update this view to be a clone of view \a y
+    void update(Space& home, const DashedString& d);
+    void update(Space& home, const StringView& y);
+    void update(Space& home, const std::vector<int>& w);
+    //@}
+    /// \name Domain update by cardinality refinement
+    //@{
+    /// Possibly update the upper bound of the blocks, knowing that the minimum 
+    /// length for any string in the domain is \a l and the maximum length for 
+    /// any string in the domain is \a u
+    ModEvent bnd_length(Space& home, int l, int u);
+    //@}
+    /// \name Methods for dashed string equation
+    //@{
+    /// Returns true if p and q are the same position in this view.
+    bool equiv(const Position& p, const Position& q) const;
+    /// Returns true if p precedes q according to this view.
+    bool prec(const Position& p, const Position& q) const;
+    ///TODO:
+    int ub_new_blocks(const Matching& m) const;
+    /// TODO:
+    int min_len_mand(const Block& bx, const Position& lsp, 
+                                      const Position& eep) const;
+    /// TODO:
+    int max_len_opt(const Block& bx, const Position& esp, 
+                                     const Position& lep, int l1) const;
+    /// TODO:                             
+    void
+    expandBlock(Space& home, const Block& bx, Block* y) const;
+    /// TODO:
+    void
+    crushBase(Space& home, Block& bx, const Position& esp, 
+                                      const Position& lep) const;
+    /// TODO:                                   
+    void
+    opt_region(Space& home, const Block& bx, Block& bnew, 
+                            const Position& p, const Position& q, int l1) const;                       
+    
+    /// TODO:                   
+    void
+    mand_region(Space& home, Block& bx, const Block& by,
+                             const Position& p, const Position& q) const;
+    /// TODO:                                                     
+    void
+    mand_region(Space& home, Block& bx, Block* bnew, int u,
+                             const Position& p, const Position& q) const;
+    /// TODO:
+    void
+    resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize);
+    /// Normalize this view
+    void normalize(Space& home);
+    //@}                   
+    template<class Char, class Traits, class X, class Y>
+    friend std::basic_ostream<Char,Traits>&
+    operator <<(std::basic_ostream<Char,Traits>& os, const ConcatView<X,Y>& z);
+  };
+  /**
+   * \brief Print string variable view
+   * \relates Gecode::String::StringView
+   */
+  template<class Char, class Traits, class X, class Y>
+  std::basic_ostream<Char,Traits>&
+  operator <<(std::basic_ostream<Char,Traits>& os, const ConcatView<X,Y>& z);
+  
 }}
 
 #include <gecode/string/var/string.hpp>
