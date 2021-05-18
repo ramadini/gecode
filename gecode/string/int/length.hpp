@@ -38,15 +38,15 @@ namespace Gecode { namespace String { namespace Int {
     do {
       x1min = x1.min();
       x1max = x1.max();
-      ModEvent me = x0.bnd_length(home, x1min, x1max);
-      GECODE_ME_CHECK(me);
-      me0 = StringVarImp::me_combine(me0, me);      
-      me = x1.gq(home, x0.min_length());
-      GECODE_ME_CHECK(me);
-      me1 = Gecode::Int::IntVarImp::me_combine(me, me1);
-      me = x1.lq(home, x0.max_length());
-      GECODE_ME_CHECK(me);
-      me1 = Gecode::Int::IntVarImp::me_combine(me, me1);
+      GECODE_ME_CHECK(combine<StringVarImp>(
+        x0.bnd_length(home, x1min, x1max), me0
+      ));
+      GECODE_ME_CHECK(combine<Gecode::Int::IntVarImp>(
+        x1.gq(home, x0.min_length()), me1
+      ));
+      GECODE_ME_CHECK(combine<Gecode::Int::IntVarImp>(
+        x1.lq(home, x0.max_length()), me1
+      ));
     } while (x1.min() > x1min || x1.max() < x1max);
     if (me0 != ME_STRING_NONE) {
       StringDelta d;

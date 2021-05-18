@@ -70,6 +70,15 @@ namespace Gecode { namespace String {
     /// Latest end position.
     Position LEP;
   };
+  
+  template <class T>
+  forceinline ExecStatus
+  combine(ModEvent me0, ModEvent& me1) {
+    if (me_failed(me0))
+      return ES_FAILED;
+    me1 = T::me_combine(me0, me1);
+    return ES_OK;
+  }
 
 }}
 
