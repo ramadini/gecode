@@ -306,12 +306,7 @@ namespace Gecode { namespace String {
   ConcatView<View0,View1>::isOK() const {
     return x0.isOK() && x1.isOK();
   }
-//  
-//  forceinline bool
-//  ConcatView<View0,View1>::contains(const StringView& y) const {
-//    return x->contains(*y.x);
-//  }
-//  
+
 //  forceinline bool
 //  ConcatView<View0,View1>::equals(const StringView& y) const {
 //    return x->equals(*y.x);
@@ -346,14 +341,15 @@ namespace Gecode { namespace String {
     return (q.idx <  pivot && x0.equiv(p,q))
         || (p.idx >= pivot && x1.equiv(p,q));
   }
-//  
-//  forceinline bool
-//  ConcatView<View0,View1>::prec(const Position& p, const Position& q) const {
-//    return (p.idx < q.idx-1)
-//        || (p.idx == q.idx && p.off < q.off)
-//        || (p.idx == q.idx-1 && (q.off > 0 || p.off < (*this)[p.idx].ub()));
-//  }
-//  
+  
+  template <class View0, class View1>
+  forceinline bool
+  ConcatView<View0,View1>::prec(const Position& p, const Position& q) const {
+    return p.idx < q.idx 
+        || (q.idx <  pivot && x0.prec(p,q))
+        || (p.idx >= pivot && x1.prec(p,q));
+  }
+  
 //  forceinline int
 //  ConcatView<View0,View1>::ub_new_blocks(const Matching& m) const {
 //    if (prec(m.LSP, m.EEP))

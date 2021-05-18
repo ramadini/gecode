@@ -341,11 +341,7 @@ namespace Gecode { namespace String {
     bool assigned(void) const;
     /// Consistency checks on the view
     bool isOK(void) const;
-    /// If this view and y are the same
-    bool same(const StringView& y) const;
-    bool same(const ConstStringView& y) const;
-    /// If this view contains y
-    bool contains(const StringView& y) const;
+
     /// If this view is equals to y
     bool equals(const StringView& y) const;
     //@}

@@ -1375,7 +1375,7 @@ namespace Gecode { namespace String {
         x._changed = true;
         return true;
       }
-    }    
+    }
     if (x.known() && y.known()) {
       string xy = x.val() + y.val();
       int n = xy.size();

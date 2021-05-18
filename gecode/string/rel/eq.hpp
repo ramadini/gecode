@@ -35,6 +35,22 @@ namespace Gecode { namespace String { namespace Rel {
     GECODE_ME_CHECK(me);
     me = StringVarImp::me_combine(me, x1.bnd_length(home, l, u));
     GECODE_ME_CHECK(me);
+    if (x0.assigned()) {
+      if (check_equate_x(x0,x1) && check_equate_x(x1,x0)) {
+        x1.update(home, x0);
+        return home.ES_SUBSUMED(*this);      
+      }
+      else
+        return ES_FAILED;
+    }
+    if (x1.assigned()) {
+      if (check_equate_x(x0,x1) && check_equate_x(x1,x0)) {
+        x0.update(home, x1);
+        return home.ES_SUBSUMED(*this);      
+      }
+      else
+        return ES_FAILED;
+    }
     if (x0.contains(x1)) {
       if (x0.equals(x1))
         return ES_OK;
