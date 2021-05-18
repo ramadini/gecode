@@ -23,17 +23,24 @@ namespace Gecode { namespace String {
   StringVarImp::StringVarImp(Space& home, const DashedString& d)
   : StringVarImpBase(home), ds(home, d) {}  
   
-  forceinline void
+  forceinline ModEvent
   StringVarImp::update(Space& home, const DashedString& d) {
+    bool dsf = ds.isFixed();
     ds.update(home, d);
+    StringDelta sd;
+    return dsf ? ME_STRING_VAL : notify(home, ME_STRING_VAL, sd);
   }
-  forceinline void
+  forceinline ModEvent
   StringVarImp::update(Space& home, const StringVarImp& y) {
+    bool dsf = ds.isFixed();
     ds.update(home, y.ds);
+    StringDelta d;
+    return dsf ? ME_STRING_VAL : notify(home, ME_STRING_VAL, d);
   }
-  forceinline void
+  forceinline ModEvent
   StringVarImp::update(Space& home, const std::vector<int>& w) {
     ds.update(home, w);
+    return ME_STRING_VAL;
   }
   
   forceinline int 

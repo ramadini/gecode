@@ -71,14 +71,6 @@ namespace Gecode { namespace String {
     Position LEP;
   };
   
-  forceinline ExecStatus
-  combine(ModEvent me0, ModEvent& me1) {
-    if (me_failed(me0))
-      return ES_FAILED;
-    me1 = StringVarImp::me_combine(me0, me1);
-    return ES_OK;
-  }
-
 }}
 
 namespace Gecode { namespace String {
@@ -451,10 +443,10 @@ namespace Gecode { namespace String {
     int n;
     if (sweep_x(x, y, m, n) && refine_x(home, x, y, m, n)) {
       if (n == -1)
-        return ME_STRING_NONE;
-      StringDelta d;
+        return ME_STRING_NONE;      
       if (x.assigned())
-        return x.varimp()->notify(home, ME_STRING_VAL, d);
+        return ME_STRING_VAL;
+      StringDelta d;
       int ux = x.max_length();
       if (x.min_length() > lb || (ux < ub && ux < MAX_STRING_LENGTH))
         return x.varimp()->notify(home, ME_STRING_CARD, d);

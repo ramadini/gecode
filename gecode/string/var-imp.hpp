@@ -92,9 +92,9 @@ namespace Gecode { namespace String {
     /// Normalize the domain
     void normalize(Space& home);
   
-    void update(Space& home, const DashedString& d);
-    void update(Space& home, const StringVarImp& y);
-    void update(Space& home, const std::vector<int>& w);
+    ModEvent update(Space& home, const DashedString& d);
+    ModEvent update(Space& home, const StringVarImp& y);
+    ModEvent update(Space& home, const std::vector<int>& w);
     
     /// \name Domain update by equation
     //@{

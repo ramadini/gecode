@@ -28,20 +28,14 @@ namespace Gecode { namespace String { namespace Rel {
   ExecStatus
   Eq<View0,View1>::propagate(Space& home, const ModEventDelta&) {
 //    std::cerr << "Prop. Eq " << x0 << "  vs  " << x1 << "\n";
-    int l0 = x0.min_length(), l1 = x1.min_length(), 
-        u0 = x0.max_length(), u1 = x1.max_length(),
-        l = std::max(l0, l1), u = std::min(u0, u1);
-    ModEvent me0 = x0.bnd_length(home, l, u);
-    GECODE_ME_CHECK(me0);
-    ModEvent me1 = x1.bnd_length(home, l, u);
-    GECODE_ME_CHECK(me1);
+    int l = std::max(x0.min_length(), x1.min_length()), 
+        u = std::min(x0.max_length(), x1.max_length());
+    GECODE_ME_CHECK(x0.bnd_length(home, l, u));
+    GECODE_ME_CHECK(x1.bnd_length(home, l, u));
     if (x0.assigned()) {
       if (check_equate_x(x0,x1) && check_equate_x(x1,x0)) {
-        if (!x1.assigned()) {
-          x1.update(home, x0);
-          StringDelta d;
-          x1.varimp()->notify(home, ME_STRING_VAL, d);
-        }
+        if (!x1.assigned())
+          GECODE_ME_CHECK(x1.update(home, x0));
         return home.ES_SUBSUMED(*this);      
       }
       else
@@ -49,12 +43,8 @@ namespace Gecode { namespace String { namespace Rel {
     }
     if (x1.assigned()) {
       if (check_equate_x(x0,x1) && check_equate_x(x1,x0)) {
-        x0.update(home, x1);
-        if (!x0.assigned()) {
-          x0.update(home, x1);
-          StringDelta d;
-          x0.varimp()->notify(home, ME_STRING_VAL, d);
-        }
+        if (!x0.assigned())
+          GECODE_ME_CHECK(x0.update(home, x1));
         return home.ES_SUBSUMED(*this);      
       }
       else
@@ -63,43 +53,21 @@ namespace Gecode { namespace String { namespace Rel {
     if (x0.contains(x1)) {
       if (x0.equals(x1))
         return ES_OK;
-      x0.update(home, x1);
-      StringDelta d;
-      if (x0.assigned()) {
-        x0.varimp()->notify(home, ME_STRING_VAL, d);
-        return home.ES_SUBSUMED(*this);
-      }
-      x0.varimp()->notify(home, x0.min_length() > l0 || x0.max_length() < u0 ?
-                          ME_STRING_CARD : ME_STRING_BASE, d);
+      GECODE_ME_CHECK(x0.update(home, x1));
       return ES_OK;
     }
     if (x1.contains(x0)) {
-      x1.update(home, x0);
-      StringDelta d;
-      if (x1.assigned()) {
-        x1.varimp()->notify(home, ME_STRING_VAL, d);
-        return home.ES_SUBSUMED(*this);
-      }
-      x1.varimp()->notify(home, x1.min_length() > l1 || x1.max_length() < u1 ?
-                          ME_STRING_CARD : ME_STRING_BASE, d);
+      GECODE_ME_CHECK(x1.update(home, x0));
       return ES_OK;
     }
     do {
-      GECODE_ME_CHECK(combine(equate_x(home, x0, x1), me0));
-      GECODE_ME_CHECK(combine(equate_x(home, x1, x0), me1));
+      GECODE_ME_CHECK(equate_x(home, x0, x1));
+      GECODE_ME_CHECK(equate_x(home, x1, x0));
       int l = std::max(x0.min_length(), x1.min_length()),
           u = std::min(x0.max_length(), x1.max_length());
-      GECODE_ME_CHECK(combine(x0.bnd_length(home, l, u), me0));
-      GECODE_ME_CHECK(combine(x1.bnd_length(home, l, u), me1));
-    } while (x0.assigned() + x1.assigned() == 1);    
-    if (me0 != ME_STRING_NONE) {
-      StringDelta d;
-      x0.varimp()->notify(home, me0, d);
-    }
-    if (me1 != ME_STRING_NONE) {
-      StringDelta d;
-      x1.varimp()->notify(home, me1, d);
-    }
+      GECODE_ME_CHECK(x0.bnd_length(home, l, u));
+      GECODE_ME_CHECK(x1.bnd_length(home, l, u));
+    } while (x0.assigned() + x1.assigned() == 1);
     // std::cerr << "Eq::propagated.\n";
     return x0.assigned() ? home.ES_SUBSUMED(*this) : ES_OK;
   }

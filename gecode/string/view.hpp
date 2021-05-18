@@ -137,9 +137,9 @@ namespace Gecode { namespace String {
     /// \name Cloning
     //@{
     /// Update this view to be a clone of view \a y
-    void update(Space& home, const DashedString& d);
-    void update(Space& home, const StringView& y);
-    void update(Space& home, const std::vector<int>& w);
+    ModEvent update(Space& home, const DashedString& d);
+    ModEvent update(Space& home, const StringView& y);
+    ModEvent update(Space& home, const std::vector<int>& w);
     //@}
     /// \name Domain update by cardinality refinement
     //@{

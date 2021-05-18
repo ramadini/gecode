@@ -245,17 +245,17 @@ namespace Gecode { namespace String {
   StringView::StringView(StringVarImp* y)
     : VarImpView<StringVar>(y) {}
 
-  forceinline void
+  forceinline ModEvent
   StringView::update(Space& home, const DashedString& d) {
-    x->update(home, d);
+    return x->update(home, d);
   }
-  forceinline void
+  forceinline ModEvent
   StringView::update(Space& home, const StringView& y) {
-    x->update(home, *y.x);
+    return x->update(home, *y.x);
   }
-  forceinline void
+  forceinline ModEvent
   StringView::update(Space& home, const std::vector<int>& w) {
-    x->update(home, w);
+    return x->update(home, w);
   }
   
   forceinline bool
