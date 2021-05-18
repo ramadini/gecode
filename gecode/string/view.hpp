@@ -301,8 +301,8 @@ namespace Gecode { namespace String {
   template <class View0, class View1>
   class ConcatView : public VarImpView<StringVar> {
   protected:
-    View0& lhs;
-    View1& rhs;
+    View0& x0;
+    View1& x1;
     int pivot;
   public:
     /// \name Constructors and initialization
@@ -312,6 +312,7 @@ namespace Gecode { namespace String {
     /// Initialize from string variables \a x and \a y
     ConcatView(View0& x, View1& y);
     //@}
+    
     /// \name Sweep iterators
     //@{
     SweepFwdIterator<ConcatView<View0,View1>> fwd_iterator(void) const;
@@ -347,13 +348,6 @@ namespace Gecode { namespace String {
     bool contains(const StringView& y) const;
     /// If this view is equals to y
     bool equals(const StringView& y) const;
-    //@}
-    /// \name Cloning
-    //@{
-    /// Update this view to be a clone of view \a y
-    void update(Space& home, const DashedString& d);
-    void update(Space& home, const StringView& y);
-    void update(Space& home, const std::vector<int>& w);
     //@}
     /// \name Domain update by cardinality refinement
     //@{
@@ -419,3 +413,4 @@ namespace Gecode { namespace String {
 #include <gecode/string/var/string.hpp>
 #include <gecode/string/view/string.hpp>
 #include <gecode/string/view/const.hpp>
+#include <gecode/string/view/concat.hpp>
