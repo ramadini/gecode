@@ -1,0 +1,4 @@
+namespace Gecode { namespace String {
+
+
+}}
