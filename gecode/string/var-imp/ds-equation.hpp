@@ -71,12 +71,11 @@ namespace Gecode { namespace String {
     Position LEP;
   };
   
-  template <class T>
   forceinline ExecStatus
   combine(ModEvent me0, ModEvent& me1) {
     if (me_failed(me0))
       return ES_FAILED;
-    me1 = T::me_combine(me0, me1);
+    me1 = StringVarImp::me_combine(me0, me1);
     return ES_OK;
   }
 

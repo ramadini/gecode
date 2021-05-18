@@ -85,12 +85,12 @@ namespace Gecode { namespace String { namespace Rel {
       return ES_OK;
     }
     do {
-      GECODE_ME_CHECK(combine<StringVarImp>(equate_x(home, x0, x1), me0));
-      GECODE_ME_CHECK(combine<StringVarImp>(equate_x(home, x1, x0), me1));
+      GECODE_ME_CHECK(combine(equate_x(home, x0, x1), me0));
+      GECODE_ME_CHECK(combine(equate_x(home, x1, x0), me1));
       int l = std::max(x0.min_length(), x1.min_length()),
           u = std::min(x0.max_length(), x1.max_length());
-      GECODE_ME_CHECK(combine<StringVarImp>(x0.bnd_length(home, l, u), me0));
-      GECODE_ME_CHECK(combine<StringVarImp>(x1.bnd_length(home, l, u), me1));
+      GECODE_ME_CHECK(combine(x0.bnd_length(home, l, u), me0));
+      GECODE_ME_CHECK(combine(x1.bnd_length(home, l, u), me1));
     } while (x0.assigned() + x1.assigned() == 1);    
     if (me0 != ME_STRING_NONE) {
       StringDelta d;

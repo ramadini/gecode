@@ -34,29 +34,18 @@ namespace Gecode { namespace String { namespace Int {
   Length<View>::propagate(Space& home, const ModEventDelta&) {
     int x1min, x1max;
     ModEvent me0 = ME_STRING_NONE;
-    ModEvent me1 = Gecode::Int::ME_INT_NONE;
     do {
       x1min = x1.min();
       x1max = x1.max();
-      GECODE_ME_CHECK(combine<StringVarImp>(
-        x0.bnd_length(home, x1min, x1max), me0
-      ));
-      GECODE_ME_CHECK(combine<Gecode::Int::IntVarImp>(
-        x1.gq(home, x0.min_length()), me1
-      ));
-      GECODE_ME_CHECK(combine<Gecode::Int::IntVarImp>(
-        x1.lq(home, x0.max_length()), me1
-      ));
+      GECODE_ME_CHECK(combine(x0.bnd_length(home, x1min, x1max), me0));
+      GECODE_ME_CHECK(x1.gq(home, x0.min_length()));
+      GECODE_ME_CHECK(x1.lq(home, x0.max_length()));
     } while (x1.min() > x1min || x1.max() < x1max);
     if (me0 != ME_STRING_NONE) {
       StringDelta d;
       x0.varimp()->notify(home, me0, d);
       if (x1.assigned())
         return home.ES_SUBSUMED(*this);
-    }
-    if (me1 != Gecode::Int::ME_INT_NONE) {
-      Gecode::Int::IntDelta d; //FIXME
-      x1.varimp()->notify(home, me1, d);
     }
     return ES_FIX;
   }
