@@ -43,6 +43,12 @@ namespace Gecode { namespace String {
     operator!=(const Position& p) const {
       return idx != p.idx || off != p.off;
     }
+    forceinline Position
+    operator-(int k) const {
+      assert (k <= idx);
+      return Position(idx-k,off);
+    }
+    
     /// Test if this is normalized w.r.t. to y, i.e., it belongs to the set 
     /// {(i,j) | 0 <= i < |y|, 0 <= j < ub(y)} U {(|y|,0)}
     template <class View>

@@ -318,7 +318,7 @@ namespace Gecode { namespace String {
   forceinline bool
   ConcatView<View0,View1>::equiv(const Position& p, const Position& q) const {
     return (q.idx <  pivot && x0.equiv(p,q))
-        || (p.idx >= pivot && x1.equiv(p,q));
+        || (p.idx >= pivot && x1.equiv(p-pivot,q-pivot));
   }
   
   template <class View0, class View1>
@@ -326,7 +326,7 @@ namespace Gecode { namespace String {
   ConcatView<View0,View1>::prec(const Position& p, const Position& q) const {
     return p.idx < q.idx 
         || (q.idx <  pivot && x0.prec(p,q))
-        || (p.idx >= pivot && x1.prec(p,q));
+        || (p.idx >= pivot && x1.prec(p-pivot,q-pivot));
   }
   
   template <class View0, class View1>
@@ -348,53 +348,31 @@ namespace Gecode { namespace String {
     else if (q.idx < pivot)
       return x0.min_len_mand(bx, p, q);
     else if (p.idx >= pivot)
-      return x1.min_len_mand(bx, p, q);
+      return x1.min_len_mand(bx, p-pivot, q-pivot);
     else
       return x0.min_len_mand(bx, p, Position(pivot,0)) 
-           + x1.min_len_mand(bx, Position(pivot,0), q);
+           + x1.min_len_mand(bx, Position(pivot,0), q-pivot);
   }
-//  
-//  forceinline void
-//  ConcatView<View0,View1>::mand_region(Space& home, Block& bx, Block* bnew, int u,
-//                                const Position& p, const Position& q) const {
-//    assert (prec(p, q));
-//    int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
-//        p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
-////    std::cerr << "LSP=(" << p_i << "," << p_o << "), EEP=(" << q_i << "," << q_o << ")\n";
-//    const Block& bp = (*this)[p_i];
-//    // Head of the region.    
-//    bnew[0].update(home, bp);
-//    bnew[0].baseIntersect(home, bx);    
-//    if (!bnew[0].isNull()) {
-//      if (p_i == q_i) {
-//        bnew[0].updateCard(home, std::max(0, std::min(q_o, bp.lb()) - p_o), 
-//                                 std::min(u, q_o-p_o));    
-//        return;
-//      }
-//      else
-//        bnew[0].updateCard(home, std::max(0, bp.lb()-p_o), 
-//                                 std::min(u, bp.ub()-p_o));
-//    }
-//    // Central part of the region.
-//    int j = 1;
-//    for (int i = p_i+1; i < q_i; ++i, ++j) {
-//      Block& bj = bnew[j];
-//      bj.update(home, (*this)[i]);
-//      bj.baseIntersect(home, bx);
-//      if (!bj.isNull() && bj.ub() > u)
-//        bj.ub(home, u);
-//    }
-//    // Tail of the region.
-//    const Block& bq = (*this)[q_i];
-//    bnew[j].update(home, bq);
-//    bnew[j].baseIntersect(home, bx);
-//    if (!bnew[j].isNull())
-//      bnew[j].updateCard(home, std::min(bq.lb(), q_o), std::min(u, q_o));
-//  }
-//  
-//  forceinline void
-//  ConcatView<View0,View1>::mand_region(Space& home, Block& bx, const Block& by,
-//                             const Position& p, const Position& q) const {
+  
+  template <class View0, class View1>
+  forceinline void
+  ConcatView<View0,View1>::mand_region(Space& home, Block& bx, Block* bnew, int u,
+                                const Position& p, const Position& q) const {
+    assert (prec(p,q));
+    if (q.idx < pivot)
+      x0.mand_region(home, bx, bnew, u, p, q);
+    else if (p.idx >= pivot)
+      x1.mand_region(home, bx, bnew, u, p-pivot, q-pivot);
+    else {
+      x0.mand_region(home, bx, bnew, u, p, Position(pivot,0));
+      x1.mand_region(home, bx, bnew+pivot-p.idx, u, Position(pivot,0), q-pivot);
+    }
+  }
+  
+  template <class View0, class View1>
+  forceinline void
+  ConcatView<View0,View1>::mand_region(Space& home, Block& bx, const Block& by,
+                             const Position& p, const Position& q) const {
 //    // FIXME: When only block by is involved.
 //    assert (p.idx == q.idx || (p.idx == q.idx-1 && q.off == 0));
 //    int q_off = q.off > 0 ? q.off : (*this)[q.idx-1].ub();
@@ -402,7 +380,7 @@ namespace Gecode { namespace String {
 //    if (!bx.isNull())
 //      bx.updateCard(home, std::max(bx.lb(), std::min(q_off, by.lb()) - p.off),
 //                          std::min(bx.ub(), q_off - p.off));
-//  }
+  }
 //  
 //  forceinline int
 //  ConcatView<View0,View1>::max_len_opt(const Block& bx, const Position& esp, 
