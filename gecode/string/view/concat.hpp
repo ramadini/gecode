@@ -244,18 +244,6 @@ namespace Gecode { namespace String {
   forceinline
   ConcatView<View0,View1>::ConcatView(View0& x, View1& y)
   : x0(x), x1(y), pivot(x.size()) {}
-  
-// FIXME: Needed?
-//  template <class View0, class View1>
-//  forceinline View0&
-//  ConcatView<View0,View1>::lhs() {
-//    return x0;
-//  }
-//  template <class View0, class View1>
-//  forceinline View1&
-//  ConcatView<View0,View1>::rhs() {
-//    return x1;
-//  }  
 
   template <class View0, class View1>
   forceinline int 
@@ -277,10 +265,12 @@ namespace Gecode { namespace String {
   template <class View0, class View1>
   forceinline std::vector<int> 
   ConcatView<View0,View1>::val(void) const {
-    std::vector<int> v0(x1.val());
-    std::vector<int> v1(x1.val());
-    v0.insert(std::end(v0), std::begin(v1), std::end(v1));
-    return v0;
+    std::vector<int> v(size());
+    for (int i = 0; i < x0.size(); ++i)
+      v[i] = x0[i];
+    for (int i = 0, j = x0.size(); i < x1.size(); ++i, ++j)
+      v[j] = x1[i];
+    return v;
   }
   
   template <class View0, class View1>
@@ -306,17 +296,6 @@ namespace Gecode { namespace String {
   ConcatView<View0,View1>::isOK() const {
     return x0.isOK() && x1.isOK();
   }
-
-//  forceinline bool
-//  ConcatView<View0,View1>::equals(const StringView& y) const {
-//    return x->equals(*y.x);
-//  }
-
-//  forceinline ModEvent
-//  ConcatView<View0,View1>::bnd_length(Space& home, int l, int u) {
-//    return x->bnd_length(home, l, u);
-//  }
-//
   
   template <class View0, class View1>
   forceinline void
@@ -350,33 +329,30 @@ namespace Gecode { namespace String {
         || (p.idx >= pivot && x1.prec(p,q));
   }
   
-//  forceinline int
-//  ConcatView<View0,View1>::ub_new_blocks(const Matching& m) const {
-//    if (prec(m.LSP, m.EEP))
-//      return prec(m.ESP, m.LSP) + m.EEP.idx - m.LSP.idx + (m.EEP.off > 0) 
-//           + prec(m.EEP, m.LEP);
-//    else
-//      return 0;
-//  }
+  template <class View0, class View1>
+  forceinline int
+  ConcatView<View0,View1>::ub_new_blocks(const Matching& m) const {
+    if (prec(m.LSP, m.EEP))
+      return prec(m.ESP, m.LSP) + m.EEP.idx - m.LSP.idx + (m.EEP.off > 0) 
+           + prec(m.EEP, m.LEP);
+    else
+      return 0;
+  }
 
-//  forceinline int
-//  ConcatView<View0,View1>::min_len_mand(const Block& bx, const Position& p,
-//                                            const Position& q) const {
-//    if (!prec(p,q))
-//      return 0;    
-//    int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
-//        p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
-//    const Block& bp = (*this)[p_i];
-//    if (p_i == q_i)
-//      return nabla(bx, bp, std::min(q_o, bp.lb()) - p_o);
-//    int m = nabla(bx, bp, bp.lb() - p_o);
-//    for (int i = p_i+1; i < q_i; i++) {
-//      const Block& bi = (*this)[p_i];
-//      m += nabla(bx, bi, bi.lb());
-//    }
-//    const Block& bq = (*this)[q_i];
-//    return m + nabla(bx, bq, std::min(bq.lb(), q_o));
-//  }
+  template <class View0, class View1>
+  forceinline int
+  ConcatView<View0,View1>::min_len_mand(const Block& bx, const Position& p,
+                                        const Position& q) const {
+    if (!prec(p,q))
+      return 0;
+    else if (q.idx < pivot)
+      return x0.min_len_mand(bx, p, q);
+    else if (p.idx >= pivot)
+      return x1.min_len_mand(bx, p, q);
+    else
+      return x0.min_len_mand(bx, p, Position(pivot,0)) 
+           + x1.min_len_mand(bx, Position(pivot,0), q);
+  }
 //  
 //  forceinline void
 //  ConcatView<View0,View1>::mand_region(Space& home, Block& bx, Block* bnew, int u,
