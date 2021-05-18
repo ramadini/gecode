@@ -152,6 +152,20 @@ public:
     assert (vt[17].val()[0] == 'B' && vt[vt.size()-1].val()[0] == ' ');
   }
   
+  void test04() {
+    cerr << "\n*** Test 04 ***" << endl;
+    Block b[2];
+    b[0].update(*this, Block(*this, CharSet(*this,IntSet({'h','l','e'})), 2,4));
+    b[1].update(*this, Block(*this, CharSet(*this, 'o'), 1, 2));
+    StringVar x(*this, DashedString(*this, b, 2));
+    vector<int> w = str2vec(
+      ":?@NbT;^AZR3IuW3ee:)DpBr%&C]=x=BqcG8[Pe.Uj` ]c4]?e]qCu|B,LSV!W(e: "
+    );
+    StringView vx(x);
+    ConstStringView vw(*this, &w[0], w.size());
+    ConcatView<StringView,ConstStringView> vxw(vx, vw);
+  }
+  
 };
 
 int main() {
@@ -159,6 +173,7 @@ int main() {
   home->test01();
   home->test02();
   home->test03();
+  home->test04();
   cerr << "\n----- test-prop.cpp passes -----\n\n";
   return 0;
 }
