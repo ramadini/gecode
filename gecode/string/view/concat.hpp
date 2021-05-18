@@ -373,35 +373,27 @@ namespace Gecode { namespace String {
   forceinline void
   ConcatView<View0,View1>::mand_region(Space& home, Block& bx, const Block& by,
                              const Position& p, const Position& q) const {
-//    // FIXME: When only block by is involved.
-//    assert (p.idx == q.idx || (p.idx == q.idx-1 && q.off == 0));
-//    int q_off = q.off > 0 ? q.off : (*this)[q.idx-1].ub();
-//    bx.baseIntersect(home, by);
-//    if (!bx.isNull())
-//      bx.updateCard(home, std::max(bx.lb(), std::min(q_off, by.lb()) - p.off),
-//                          std::min(bx.ub(), q_off - p.off));
+    // FIXME: When only block by is involved.
+    if (p.idx < pivot)
+      x0.mand_region(home, bx, by, p, q);
+    else
+      x1.mand_region(home, bx, by, p-pivot, q-pivot);
   }
-//  
-//  forceinline int
-//  ConcatView<View0,View1>::max_len_opt(const Block& bx, const Position& esp, 
-//                                           const Position& lep, int l1) const {
-//    if (equiv(esp,lep))
-//      return 0;
-//    assert(!prec(lep, esp));
-//    int p_i = esp.idx, q_i = lep.off > 0 ? lep.idx : lep.idx-1,
-//        p_o = esp.off, q_o = lep.off > 0 ? lep.off : (*this)[q_i].ub();
-//    const Block& bp = (*this)[p_i];
-//    int k = bx.ub() - l1;
-//    if (p_i == q_i)
-//      return nabla(bx, bp, std::min(q_o-p_o, bp.lb()+k));
-//    int m = nabla(bx, bp, std::min(bp.ub() - p_o, bp.lb()+k));
-//    for (int i = p_i+1; i < q_i; i++) {
-//      const Block& bi = (*this)[i];
-//      m = ub_sum(m, nabla(bx, bi, std::min(bi.ub(), bi.lb()+k)));
-//    }
-//    const Block& bq = (*this)[q_i];
-//    return ub_sum(m, nabla(bx, bq, std::min(q_o, bq.lb()+k)));
-//  }
+  
+  template <class View0, class View1>
+  forceinline int
+  ConcatView<View0,View1>::max_len_opt(const Block& bx, const Position& esp, 
+                                           const Position& lep, int l1) const {
+    if (equiv(esp,lep))
+      return 0;
+    assert(!prec(lep, esp));
+    if (lep.idx < pivot)
+      return x0.max_len_opt(bx, esp, lep, l1);
+    else if (esp.idx >= pivot)
+      return x1.max_len_opt(bx, esp, lep, l1);
+    else
+      return x0.max_len_opt(bx, esp, Position(pivot,0));
+  }
 //  
 //  forceinline void
 //  ConcatView<View0,View1>::opt_region(Space& home, const Block& bx, Block& bnew,
