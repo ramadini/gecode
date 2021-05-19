@@ -266,10 +266,11 @@ namespace Gecode { namespace String {
   forceinline std::vector<int> 
   ConcatView<View0,View1>::val(void) const {
     std::vector<int> v(size());
-    for (int i = 0; i < x0.size(); ++i)
+    int i = 0;
+    for (; i < x0.size(); ++i)
       v[i] = x0[i];
-    for (int i = 0, j = x0.size(); i < x1.size(); ++i, ++j)
-      v[j] = x1[i];
+    for (int j = 0; j < x1.size(); ++i, ++j)
+      v[i] = x1[j];
     return v;
   }
   
@@ -365,7 +366,7 @@ namespace Gecode { namespace String {
       x1.mand_region(home, bx, bnew, u, p-pivot, q-pivot);
     else {
       x0.mand_region(home, bx, bnew, u, p, Position(pivot,0));
-      x1.mand_region(home, bx, bnew+pivot-p.idx, u, Position(pivot,0), q-pivot);
+      x1.mand_region(home, bx, bnew+pivot-p.idx, u, Position(0,0), q-pivot);
     }
   }
   
@@ -392,7 +393,8 @@ namespace Gecode { namespace String {
     else if (esp.idx >= pivot)
       return x1.max_len_opt(bx, esp, lep, l1);
     else
-      return x0.max_len_opt(bx, esp, Position(pivot,0));
+      return x0.max_len_opt(bx, esp, Position(pivot,0), l1) 
+           + x1.max_len_opt(bx, Position(0,0), lep-pivot, l1);
   }
   
   template <class View0, class View1>
@@ -405,7 +407,6 @@ namespace Gecode { namespace String {
     else if (p.idx >= pivot)
       x1.opt_region(home, bx, bnew, p-pivot, q-pivot, l1);
     else {
-      // TODO: Improvable. Use crushBase?
       Block& bnew0;
       Block& bnew1;
       x0.opt_region(home, bx, bnew0, p, Position(pivot,0), l1);
@@ -421,7 +422,8 @@ namespace Gecode { namespace String {
   
   template <class View0, class View1>
   forceinline void
-  ConcatView<View0,View1>::expandBlock(Space& home, const Block& bx, Block* y) const {
+  ConcatView<View0,View1>::expandBlock(Space& home, const Block& bx, Block* y) 
+  const {
     for (int i = 0; i < size(); i++) {
       y[i].update(home, (*this)[i]);
       y[i].baseIntersect(home, bx);
@@ -442,17 +444,19 @@ namespace Gecode { namespace String {
   
   template <class View0, class View1>
   forceinline void
-  ConcatView<View0,View1>::resize(Space& home, Block newBlocks[], int newSize, int U[], 
-                                                                  int uSize) {
-    int i = 0, j = 0;
-    for (; U[i] < pivot; i += 2)
-      j += U[i+1] - 1;
+  ConcatView<View0,View1>::resize(Space& home, Block newBlocks[], int newSize,
+                                                          int U[],  int uSize) {
+    int i, j;
+    for (i = 0, j = 0; U[i] < pivot; i += 2)
+      j += U[i+1];
     if (j > 0)
-      x0.resize(home, newBlocks, i, U, j);
+      x0.resize(home, newBlocks, j, U, i);
     if (i < uSize) {
-      //TODO: Scale pivot.
-      x1.resize(home, newBlocks+i/2, newSize-j, U+i, uSize-i);
+      for (; i < uSize; i += 2)
+        U[i] -= pivot;
+      x1.resize(home, newBlocks+j, newSize-j, U+i, uSize-i);
     }
+    pivot = x0.size();
   }
 
   template<class Char, class Traits, class X, class Y>
