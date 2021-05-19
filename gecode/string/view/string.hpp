@@ -257,6 +257,11 @@ namespace Gecode { namespace String {
   StringView::update(Space& home, const std::vector<int>& w) {
     return x->update(home, w);
   }
+  template <class View0,class View>
+  forceinline ModEvent 
+  StringView::update(Space& home, const ConcatView<View0,View1>& y) {
+    return x->update(home, y);
+  };
   
   forceinline ModEvent
   StringView::nullify(Space& home) {

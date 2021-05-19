@@ -40,10 +40,48 @@ namespace Gecode { namespace String { namespace RelOp {
       GECODE_ME_CHECK(x1.nullify(home));
       return home.ES_SUBSUMED(*this);
     }
-//    if (x.null())
-//      return equate(h, y);    
-//    if (y.null())
-//      return equate(h, x);
+    if (x0.isNull()) {
+      eq(home, x1, x2);
+      return home.ES_SUBSUMED(*this);
+    }
+    if (x1.isNull()) {
+      eq(home, x0, x2);
+      return home.ES_SUBSUMED(*this);
+    }
+    if (x0.assigned() && x1.assigned()) {
+      ConcatView<View0,View1> xy(x0,x1);
+      if (check_equate_x(x2, xy) && check_equate_x(xy, x2))
+        GECODE_ME_CHECK(x2.update(home, xy)); //TODO:
+      else
+        return ES_FAILED;
+      return home.ES_SUBSUMED(*this);
+    }
+// TODO:
+//    if (x._min_length > 0 && y._min_length > 0 && contains(x, y)) {
+//      // std::cerr << *this << " contains " << x << "  ++  " << y << "\n";
+//      int norm = x.blocks().back().S == y.at(0).S ? 1 : 0;
+//      double d = logdim();
+//      NSBlocks xy(x.length() + y.length() - norm);
+//      for (int i = 0; i < x.length(); ++i)
+//        xy[i] = NSBlock(x.at(i));
+//      if (norm) {
+//        xy[x.length() - 1].l += y.at(0).l;
+//        xy[x.length() - 1].u += y.at(0).u;
+//      }
+//      for (int i = norm; i < y.length(); ++i)
+//        xy[i + x.length() - norm] = NSBlock(y.at(i));
+//      if (d != xy.logdim()) {
+//        update(h, xy);
+//        _changed = true;
+//      }
+//    }
+//    else {
+//      ConcatView xy(x, y);
+//      if (!sweep_concat(h, xy, x, y, *this))
+//        return false;
+//    }
+//    if (!refine_card_cat(h, x, y))
+//      return false;
     return ES_FIX;
   }
   

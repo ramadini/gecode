@@ -42,6 +42,12 @@ namespace Gecode { namespace String {
     ds.update(home, w);
     return ME_STRING_VAL;
   }
+  template <class View0,class View>
+  forceinline ModEvent
+  StringVarImp::update(Space& home, const ConcatView<View0,View1>& y) {
+    ds.update(home, y.lhs(), y.rhs()); //TODO
+    return ME_STRING_VAL;
+  }
   
   forceinline bool
   StringVarImp::isNull() const {

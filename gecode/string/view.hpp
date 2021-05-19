@@ -146,7 +146,10 @@ namespace Gecode { namespace String {
     /// Update this view to be a clone of view \a y
     ModEvent update(Space& home, const DashedString& d);
     ModEvent update(Space& home, const StringView& y);
+    template <class View0,class View>
+    ModEvent update(Space& home, const ConcatView<View0,View1>& y);
     ModEvent update(Space& home, const std::vector<int>& w);
+    
     ModEvent nullify(Space& home);
     //@}
     /// \name Domain update by cardinality refinement

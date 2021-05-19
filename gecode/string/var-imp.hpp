@@ -98,7 +98,8 @@ namespace Gecode { namespace String {
     ModEvent update(Space& home, const DashedString& d);
     ModEvent update(Space& home, const StringVarImp& y);
     ModEvent update(Space& home, const std::vector<int>& w);
-    
+    template <class View0,class View>
+    ModEvent update(Space& home, const ConcatView<View0,View1>& y);
     
     /// \name Domain update by equation
     //@{
