@@ -58,121 +58,121 @@ namespace Gecode { namespace String {
   forceinline SweepFwdIterator<T>::
   SweepFwdIterator(const T& x) : SweepIterator<T>(x, Position(0,0)) {};
   
-//  template <class T>
-//  forceinline SweepFwdIterator<ConcatView<View0,View1>>::
-//  SweepFwdIterator(const StringView& x, const Position& p) 
-//  : SweepIterator(x, p) {};
-//  
-//  template <class T>
-//  forceinline bool
-//  SweepFwdIterator<ConcatView<View0,View1>>::operator()(void) const {
-//    return sv.prec(pos, Position(sv.size(),0));
-//  }
-//  
-//  template <class T>
-//  forceinline void
-//  SweepFwdIterator<ConcatView<View0,View1>>::nextBlock() {
-//    if (pos.idx >= sv.size())
-//      return;
-//    pos.idx++;
-//    pos.off = 0;
-//    assert (isOK() || sv[pos.idx].isNull());
-//  }
-//  
-//  template <class T>
-//  forceinline bool
-//  SweepFwdIterator<ConcatView<View0,View1>>::hasNextBlock(void) const {
-//    return pos.idx < sv.size();
-//  }
-//  
-//  template <class View0, class View1>
-//  forceinline int
-//  SweepFwdIterator<ConcatView<View0,View1>>::must_consume() const {
-//    return std::max(0, lb() - pos.off);
-//  }
-//  
-//  template <class View0, class View1>
-//  forceinline int
-//  SweepFwdIterator<ConcatView<View0,View1>>::may_consume() const {
-//    return ub() - pos.off;
-//  }
-//  
-//  template <class View0, class View1>
-//  forceinline void
-//  SweepFwdIterator<ConcatView<View0,View1>>::consume(int k) {
-//    if (k == 0)
-//      return;
-//    pos.off += k;
-//    if (pos.off >= sv[pos.idx].ub()) {
-//      if (pos.off > sv[pos.idx].ub())
-//        throw OutOfLimits("ConcatView<View0,View1>::SweepBwdIterator::consume");
-//      pos.idx++;
-//      pos.off = 0;
-//    }
-//    assert (isOK());
-//  }
-//  
-//  template <class View0, class View1>
-//  forceinline void
-//  SweepFwdIterator<ConcatView<View0,View1>>::consumeMand(int k) {
-//    if (k == 0)
-//      return;
-//    pos.off += k; 
-//    if (pos.off > sv[pos.idx].lb())
-//      throw OutOfLimits("ConcatView<View0,View1>::SweepBwdIterator::consume");
-//    if (pos.off == sv[pos.idx].ub()) {
-//      pos.idx++;
-//      pos.off = 0;
-//    }
-//    assert (isOK());
-//  }
+  template <class T>
+  forceinline SweepFwdIterator<T>::
+  SweepFwdIterator(const T& x, const Position& p) 
+  : SweepIterator<T>(x, p) {};
+  
+  template <class T>
+  forceinline bool
+  SweepFwdIterator<T>::operator()(void) const {
+    return sv.prec(pos, Position(sv.size(),0));
+  }
+  
+  template <class T>
+  forceinline void
+  SweepFwdIterator<T>::nextBlock() {
+    if (pos.idx >= sv.size())
+      return;
+    pos.idx++;
+    pos.off = 0;
+    assert (SweepIterator<T>::isOK() || sv[pos.idx].isNull());
+  }
+  
+  template <class T>
+  forceinline bool
+  SweepFwdIterator<T>::hasNextBlock(void) const {
+    return pos.idx < sv.size();
+  }
+  
+  template <class T>
+  forceinline int
+  SweepFwdIterator<T>::must_consume() const {
+    return std::max(0, SweepIterator<T>::lb() - pos.off);
+  }
+  
+  template <class T>
+  forceinline int
+  SweepFwdIterator<T>::may_consume() const {
+    return SweepIterator<T>::ub() - pos.off;
+  }
+  
+  template <class T>
+  forceinline void
+  SweepFwdIterator<T>::consume(int k) {
+    if (k == 0)
+      return;
+    pos.off += k;
+    if (pos.off >= sv[pos.idx].ub()) {
+      if (pos.off > sv[pos.idx].ub())
+        throw OutOfLimits("T::SweepBwdIterator::consume");
+      pos.idx++;
+      pos.off = 0;
+    }
+    assert (SweepIterator<T>::isOK());
+  }
+  
+  template <class T>
+  forceinline void
+  SweepFwdIterator<T>::consumeMand(int k) {
+    if (k == 0)
+      return;
+    pos.off += k; 
+    if (pos.off > sv[pos.idx].lb())
+      throw OutOfLimits("T::SweepBwdIterator::consume");
+    if (pos.off == sv[pos.idx].ub()) {
+      pos.idx++;
+      pos.off = 0;
+    }
+    assert (SweepIterator<T>::isOK());
+  }
 
 }}
 
 //namespace Gecode { namespace String {
 //  
-//  template <class View0, class View1>
-//  forceinline SweepBwdIterator<ConcatView<View0,View1>>::
+//  template <class T>
+//  forceinline SweepBwdIterator<T>::
 //  SweepBwdIterator(const StringView& x)
 //  : SweepIterator(x, Position(x.size(), 0)) {};
 //  
-//  template <class View0, class View1>
-//  forceinline SweepBwdIterator<ConcatView<View0,View1>>::
+//  template <class T>
+//  forceinline SweepBwdIterator<T>::
 //  SweepBwdIterator(const StringView& x, const Position& p) 
 //  : SweepIterator(x, p) {};
 //  
-//  template <class View0, class View1>
+//  template <class T>
 //  forceinline int
-//  SweepBwdIterator<ConcatView<View0,View1>>::lb() const {
+//  SweepBwdIterator<T>::lb() const {
 //    return sv[pos.off > 0 ? pos.idx : pos.idx-1].lb();
 //  }
 //  
-//  template <class View0, class View1>
+//  template <class T>
 //  forceinline int
-//  SweepBwdIterator<ConcatView<View0,View1>>::ub() const {
+//  SweepBwdIterator<T>::ub() const {
 //    return sv[pos.off > 0 ? pos.idx : pos.idx-1].ub();
 //  }
 //  
-//  template <class View0, class View1>
+//  template <class T>
 //  forceinline bool
-//  SweepBwdIterator<ConcatView<View0,View1>>::disj(const Block& b) const {
+//  SweepBwdIterator<T>::disj(const Block& b) const {
 //    return  sv[pos.off > 0 ? pos.idx : pos.idx-1].baseDisjoint(b);
 //  }
-//  template <class View0, class View1>
+//  template <class T>
 //  forceinline bool
-//  SweepBwdIterator<ConcatView<View0,View1>>::disj(int c) const {
+//  SweepBwdIterator<T>::disj(int c) const {
 //    return !(sv[pos.off > 0 ? pos.idx : pos.idx-1].baseContains(c));
 //  }
 //  
-//  template <class View0, class View1>
+//  template <class T>
 //  forceinline bool
-//  SweepBwdIterator<ConcatView<View0,View1>>::operator()(void) const {
+//  SweepBwdIterator<T>::operator()(void) const {
 //    return sv.prec(Position(0,0), pos);
 //  }
 //  
-//  template <class View0, class View1>
+//  template <class T>
 //  forceinline void
-//  SweepBwdIterator<ConcatView<View0,View1>>::nextBlock() {
+//  SweepBwdIterator<T>::nextBlock() {
 //    if (pos.idx == 0 && pos.off == 0)
 //      return;
 //    if (pos.off > 0)
@@ -182,28 +182,28 @@ namespace Gecode { namespace String {
 //    assert (isOK() || sv[pos.idx].isNull());
 //  };
 //  
-//  template <class View0, class View1>
+//  template <class T>
 //  forceinline bool
-//  SweepBwdIterator<ConcatView<View0,View1>>::hasNextBlock(void) const {
+//  SweepBwdIterator<T>::hasNextBlock(void) const {
 //    return pos.idx > 0 || pos.off > 0;
 //  };
 //  
-//  template <class View0, class View1>
+//  template <class T>
 //  forceinline int
-//  SweepBwdIterator<ConcatView<View0,View1>>::may_consume() const {
+//  SweepBwdIterator<T>::may_consume() const {
 //    return (pos.idx > 0 && pos.off == 0) ? sv[pos.idx-1].ub() : pos.off;
 //  }
 //  
-//  template <class View0, class View1>
+//  template <class T>
 //  forceinline int
-//  SweepBwdIterator<ConcatView<View0,View1>>::must_consume() const {
+//  SweepBwdIterator<T>::must_consume() const {
 //    return (pos.idx > 0 && pos.off == 0) ? sv[pos.idx-1].lb() 
 //                                         : std::min(pos.off, sv[pos.idx].lb());
 //  }
 //  
-//  template <class View0, class View1>
+//  template <class T>
 //  forceinline void
-//  SweepBwdIterator<ConcatView<View0,View1>>::consume(int k) {
+//  SweepBwdIterator<T>::consume(int k) {
 //    if (k == 0)
 //      return;
 //    if (pos.off == 0 && pos.idx > 0) {
@@ -213,13 +213,13 @@ namespace Gecode { namespace String {
 //    else
 //      pos.off -= k;
 //    if (pos.off < 0)
-//      throw OutOfLimits("SweepBwdIterator<ConcatView<View0,View1>>::consume");
+//      throw OutOfLimits("SweepBwdIterator<T>::consume");
 //    assert (isOK());
 //  }
 //  
-//  template <class View0, class View1>
+//  template <class T>
 //  forceinline void
-//  SweepBwdIterator<ConcatView<View0,View1>>::consumeMand(int k) {
+//  SweepBwdIterator<T>::consumeMand(int k) {
 //    if (k == 0)
 //      return;
 //    if (pos.off == 0 && pos.idx > 0) {
@@ -229,7 +229,7 @@ namespace Gecode { namespace String {
 //    else
 //      pos.off = std::min(pos.off, sv[pos.idx].lb()) - k;
 //    if (pos.off < 0)
-//      throw OutOfLimits("SweepBwdIterator<ConcatView<View0,View1>>::consumeMand");
+//      throw OutOfLimits("SweepBwdIterator<T>::consumeMand");
 //    assert (isOK());
 //  }
 

@@ -42,6 +42,8 @@ namespace Gecode { namespace String {
   /// Iterator for pushing/stretching forward.
   template <class View>
   struct SweepFwdIterator : public SweepIterator<View> {
+    using SweepIterator<View>::sv;
+    using SweepIterator<View>::pos;
     SweepFwdIterator(const View& x);
     SweepFwdIterator(const View& x, const Position& p);
     void nextBlock(void);
@@ -56,6 +58,8 @@ namespace Gecode { namespace String {
   /// Iterator for pushing/stretching backward.
   template <class View>
   struct SweepBwdIterator : public SweepIterator<View> {
+    using SweepIterator<View>::sv;
+    using SweepIterator<View>::pos;
     SweepBwdIterator(const View& x);
     SweepBwdIterator(const View& x, const Position& p);
     bool disj(const Block& b) const;
