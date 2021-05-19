@@ -258,6 +258,17 @@ namespace Gecode { namespace String {
     return x->update(home, w);
   }
   
+  forceinline ModEvent
+  StringView::nullify(Space& home) {
+    if (min_length() > 0)
+      return ME_STRING_FAILED;
+    if (assigned())
+      return ME_STRING_NONE;
+    StringDelta d;
+    x->nullify(home);
+    return x->notify(home, ME_STRING_VAL, d);
+  }
+  
   forceinline bool
   StringView::same(const StringView& y) const {
     return varimp() == y.varimp();
@@ -299,6 +310,11 @@ namespace Gecode { namespace String {
   forceinline bool
   StringView::assigned() const {
     return x->assigned();
+  }
+  
+  forceinline bool
+  StringView::isNull() const {
+    return x->isNull();
   }
   
   forceinline bool

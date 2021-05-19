@@ -86,15 +86,19 @@ namespace Gecode { namespace String {
     bool contains(const StringVarImp& y) const;
     /// If this domain is equal to y
     bool equals(const StringVarImp& y) const;
+    /// If this domain is null
+    bool isNull(void) const;
     
     //@}
     
     /// Normalize the domain
     void normalize(Space& home);
+    void nullify(Space& home);
   
     ModEvent update(Space& home, const DashedString& d);
     ModEvent update(Space& home, const StringVarImp& y);
     ModEvent update(Space& home, const std::vector<int>& w);
+    
     
     /// \name Domain update by equation
     //@{

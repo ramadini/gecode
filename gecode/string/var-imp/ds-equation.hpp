@@ -315,7 +315,7 @@ namespace Gecode { namespace String {
   
   template <class ViewX, class ViewY>
   forceinline bool
-  pushESP(ViewX& x, const ViewY& y, Matching m[], int i) {
+  pushESP(const ViewX& x, const ViewY& y, Matching m[], int i) {
 //    std::cerr << "Pushing ESP of " << x[i] << " from " << m[i].ESP << '\n';
     int n = x.size();
     if (lbound(x[i]) == 0) {
@@ -340,7 +340,7 @@ namespace Gecode { namespace String {
   
   template <class ViewX, class ViewY>
   forceinline bool
-  pushLEP(ViewX& x, const ViewY& y, Matching m[], int i) {
+  pushLEP(const ViewX& x, const ViewY& y, Matching m[], int i) {
 //    std::cerr << "Pushing LEP of " << x[i] << " from " << m[i].LEP << '\n';
     if (lbound(x[i]) == 0) {
       // x[i] nullable, not pushing LEP[i]
@@ -399,7 +399,7 @@ namespace Gecode { namespace String {
   /// TODO:
   template <class ViewX, class ViewY>
   forceinline bool
-  sweep_x(ViewX x, const ViewY& y, Matching m[], int& n) {
+  sweep_x(ViewX& x, const ViewY& y, Matching m[], int& n) {
     if (!init_x(x, y, m))
       return false;
     if (x.assigned() && y.assigned())
@@ -439,7 +439,7 @@ namespace Gecode { namespace String {
   /// TODO: 
   template <class ViewX, class ViewY>
   forceinline ModEvent
-  equate_x(Space& home, ViewX x, const ViewY& y) {
+  equate_x(Space& home, ViewX& x, const ViewY& y) {
     int lb = x.min_length();
     long ub = x.max_length();
     if (ub == Limits::MAX_STRING_LENGTH && lb < ub && x.size() > 1) {
@@ -478,7 +478,7 @@ namespace Gecode { namespace String {
   
   template <class ViewX, class ViewY>
   forceinline bool
-  check_equate_x(ViewX x, const ViewY& y) {
+  check_equate_x(const ViewX& x, const ViewY& y) {
 //    std::cerr << "Checking eq: " << x << "  vs  " << y << "\n";
     Matching m[x.size()];
     if (!init_x(x, y, m))

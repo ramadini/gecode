@@ -43,6 +43,11 @@ namespace Gecode { namespace String {
     return ME_STRING_VAL;
   }
   
+  forceinline bool
+  StringVarImp::isNull() const {
+    return ds.isNull();
+  }  
+  
   forceinline int 
   StringVarImp::size() const {
     return ds.size();
@@ -51,6 +56,11 @@ namespace Gecode { namespace String {
   forceinline void
   StringVarImp::normalize(Space& home) {
     ds.normalize(home);
+  }
+  
+  forceinline void
+  StringVarImp::nullify(Space& home) {
+    ds.nullify(home);
   }
 
   forceinline Block&

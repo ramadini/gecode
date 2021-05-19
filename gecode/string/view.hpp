@@ -129,6 +129,8 @@ namespace Gecode { namespace String {
     //@{
     /// Test whether variable is assigned
     bool assigned(void) const;
+    /// Test whether the view is null
+    bool isNull(void) const;
     /// Consistency checks on the view
     bool isOK(void) const;
     /// If this view and y are the same
@@ -145,6 +147,7 @@ namespace Gecode { namespace String {
     ModEvent update(Space& home, const DashedString& d);
     ModEvent update(Space& home, const StringView& y);
     ModEvent update(Space& home, const std::vector<int>& w);
+    ModEvent nullify(Space& home);
     //@}
     /// \name Domain update by cardinality refinement
     //@{

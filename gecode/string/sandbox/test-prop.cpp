@@ -130,9 +130,10 @@ public:
     std::cerr << "x = " << x << "\n";
     ConstStringView vx(*this, &x.val()[0], 5);
     StringVar y(*this, Block(*this, CharSet(*this,IntSet({'h','l','e'})), 2,6));
-    assert (!check_equate_x(vx, StringView(y)));
-    assert (!check_equate_x(StringView(y), vx));
-    assert (equate_x(*this, StringView(y), vx) == ES_FAILED);
+    StringView vy(y);
+    assert (!check_equate_x(vx, vy));
+    assert (!check_equate_x(vy, vx));
+    assert (equate_x(*this, vy, vx) == ES_FAILED);
     vector<int> w = str2vec(
       ":?@NbT;^AZR3IuW3ee:)DpBr%&C]=x=BqcG8[Pe.Uj` ]c4]?e]qCu|B,LSV!W(e: "
     );

@@ -46,7 +46,6 @@ namespace Gecode { namespace String { namespace RelOp {
 
 namespace Gecode {
   //FIXME: Workaround, because of linking problems in rel.cpp.
- 
   forceinline void
   concat(Home home, StringVar x, StringVar y, StringVar z) {
     using namespace String;
