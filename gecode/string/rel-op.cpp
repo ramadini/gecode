@@ -10,7 +10,7 @@ namespace Gecode { namespace String {
     GECODE_POST;
     switch (r) {
     case STRT_CAT:
-      //TODO: GECODE_ES_FAIL((Concat<View0,View1,View2>::post(home, x0, x1, x2)));
+      GECODE_ES_FAIL((Concat<View0,View1,View2>::post(home, x0, x1, x2)));
       break;
     default:
       throw UnknownRelation("String::rel_op_post");
