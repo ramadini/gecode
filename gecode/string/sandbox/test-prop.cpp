@@ -163,7 +163,9 @@ public:
     );
     StringView vx(x);
     ConstStringView vw(*this, &w[0], w.size());
+//    ConcatView<ConstStringView,ConstStringView> vxw(vw, vw);
     ConcatView<StringView,ConstStringView> vxw(vx, vw);
+    vxw.fwd_iterator();
   }
   
 };

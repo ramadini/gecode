@@ -69,7 +69,8 @@ namespace Gecode { namespace String {
     bool operator()(void) const;
     int lb(void) const;
     int ub(void) const;
-  };
+  };  
+    
     
 }}
 
@@ -330,9 +331,8 @@ namespace Gecode { namespace String {
     int max_length(void) const;
     /// Returns the number of blocks of the domain
     int size(void) const;
-    /// Returns the i-th block of the domain
-    Block& operator[](int i);
-    const Block& operator[](int i) const;
+    /// Returns the i-th block of the domain in the form of a CBlock.
+    CBlock operator[](int i) const;
     /// Return the value of this string view, if assigned. Otherwise, an
     /// IllegalOperation exception is thrown.
     std::vector<int> val(void) const;

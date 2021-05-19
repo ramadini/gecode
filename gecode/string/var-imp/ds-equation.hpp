@@ -4,6 +4,8 @@ namespace Gecode { namespace String {
   template <class T> class SweepFwdIterator;
   template <class T> class SweepBwdIterator;
 
+  /// Auxiliary functions
+  
   forceinline int
   nabla(const Block& bx, const Block& by, int x) {
     return x <= 0 || bx.baseDisjoint(by) ? 0 : x;
@@ -13,6 +15,8 @@ namespace Gecode { namespace String {
   forceinline int lbound(int) { return 1; }
   forceinline int ubound(const Block& b) { return b.ub(); }
   forceinline int lbound(const Block& b) { return b.lb(); }
+  forceinline int ubound(const CBlock& cb) { return cb.ub(); }
+  
   template <class View> forceinline int 
   min_len_mand(const Block& b, View& y, const Position& p, const Position& q) {
     return y.min_len_mand(b, p, q);

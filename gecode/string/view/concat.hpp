@@ -1,76 +1,77 @@
-//namespace Gecode { namespace String {
+namespace Gecode { namespace String {
 
-//  template <>
-//  forceinline SweepIterator<ConcatView>::
-//  SweepIterator(const StringView& x, const Position& p) : sv(x), pos(p) {
-//    if (!p.isNorm(x)) {
-//      if (p.off == sv[p.idx].ub()) {
-//        pos.idx++;
-//        pos.off = 0;
-//      }
-//      else
-//        throw OutOfLimits("SweepIterator<ConcatView>::SweepIterator");
-//    }
-//    assert (pos.isNorm(sv));
-//  };
-//  
-//  template <>
-//  forceinline const Position& 
-//  SweepIterator<ConcatView>::operator*(void) {
-//    return pos;
-//  }
+  template <class T>
+  forceinline SweepIterator<T>::
+  SweepIterator(const T& x, const Position& p)
+  : sv(x), pos(p) {
+    if (!p.isNorm(x)) {
+      if (p.off == sv[p.idx].ub()) {
+        pos.idx++;
+        pos.off = 0;
+      }
+      else
+        throw OutOfLimits("SweepIterator<ConcatView>::SweepIterator");
+    }
+    assert (pos.isNorm(sv));
+  };
+  
+  template <class T>
+  forceinline const Position& 
+  SweepIterator<T>::operator*(void) {
+    return pos;
+  }
 
-//  template <>
-//  forceinline int
-//  SweepIterator<ConcatView>::lb() const {
-//    return sv[pos.idx].lb();
-//  }
-//  
-//  template <>
-//  forceinline int
-//  SweepIterator<ConcatView>::ub() const {
-//    return sv[pos.idx].ub();
-//  }
-//  
-//  template <>
-//  forceinline bool
-//  SweepIterator<ConcatView>::disj(const Block& b) const {
-//    return sv[pos.idx].baseDisjoint(b);
-//  }  
-//  template <>
-//  forceinline bool
-//  SweepIterator<ConcatView>::disj(int c) const {
-//    return !sv[pos.idx].baseContains(c);
-//  }
-//  
-//  template <>
-//  forceinline bool
-//  SweepIterator<ConcatView>::isOK() const {
-//    return pos.isNorm(sv);
-//  }
+  template <class T>
+  forceinline int
+  SweepIterator<T>::lb() const {
+    return sv[pos.idx].lb();
+  }
+  
+  template <class T>
+  forceinline int
+  SweepIterator<T>::ub() const {
+    return sv[pos.idx].ub();
+  }
+  
+  template <class T>
+  forceinline bool
+  SweepIterator<T>::disj(const Block& b) const {
+    return sv[pos.idx].baseDisjoint(b);
+  }
+  template<class T>
+  forceinline bool
+  SweepIterator<T>::disj(int c) const {
+    return !sv[pos.idx].baseContains(c);
+  }
+  
+  template <class T>
+  forceinline bool
+  SweepIterator<T>::isOK() const {
+    return pos.isNorm(sv);
+  }
 
-//}}
+}}
 
-//namespace Gecode { namespace String {
+namespace Gecode { namespace String {
 
-//  template <>
-//  forceinline SweepFwdIterator<ConcatView>::
-//  SweepFwdIterator(const StringView& x) : SweepIterator(x, Position(0,0)) {};
-//  
-//  template <>
-//  forceinline SweepFwdIterator<ConcatView>::
+  template <class T>
+  forceinline SweepFwdIterator<T>::
+  SweepFwdIterator(const T& x) : SweepIterator<T>(x, Position(0,0)) {};
+  
+//  template <class T>
+//  forceinline SweepFwdIterator<ConcatView<View0,View1>>::
 //  SweepFwdIterator(const StringView& x, const Position& p) 
 //  : SweepIterator(x, p) {};
 //  
-//  template <>
+//  template <class T>
 //  forceinline bool
-//  SweepFwdIterator<ConcatView>::operator()(void) const {
+//  SweepFwdIterator<ConcatView<View0,View1>>::operator()(void) const {
 //    return sv.prec(pos, Position(sv.size(),0));
 //  }
 //  
-//  template <>
+//  template <class T>
 //  forceinline void
-//  SweepFwdIterator<ConcatView>::nextBlock() {
+//  SweepFwdIterator<ConcatView<View0,View1>>::nextBlock() {
 //    if (pos.idx >= sv.size())
 //      return;
 //    pos.idx++;
@@ -78,27 +79,27 @@
 //    assert (isOK() || sv[pos.idx].isNull());
 //  }
 //  
-//  template <>
+//  template <class T>
 //  forceinline bool
-//  SweepFwdIterator<ConcatView>::hasNextBlock(void) const {
+//  SweepFwdIterator<ConcatView<View0,View1>>::hasNextBlock(void) const {
 //    return pos.idx < sv.size();
 //  }
 //  
-//  template <>
+//  template <class View0, class View1>
 //  forceinline int
-//  SweepFwdIterator<ConcatView>::must_consume() const {
+//  SweepFwdIterator<ConcatView<View0,View1>>::must_consume() const {
 //    return std::max(0, lb() - pos.off);
 //  }
 //  
-//  template <>
+//  template <class View0, class View1>
 //  forceinline int
-//  SweepFwdIterator<ConcatView>::may_consume() const {
+//  SweepFwdIterator<ConcatView<View0,View1>>::may_consume() const {
 //    return ub() - pos.off;
 //  }
 //  
-//  template <>
+//  template <class View0, class View1>
 //  forceinline void
-//  SweepFwdIterator<ConcatView>::consume(int k) {
+//  SweepFwdIterator<ConcatView<View0,View1>>::consume(int k) {
 //    if (k == 0)
 //      return;
 //    pos.off += k;
@@ -111,9 +112,9 @@
 //    assert (isOK());
 //  }
 //  
-//  template <>
+//  template <class View0, class View1>
 //  forceinline void
-//  SweepFwdIterator<ConcatView>::consumeMand(int k) {
+//  SweepFwdIterator<ConcatView<View0,View1>>::consumeMand(int k) {
 //    if (k == 0)
 //      return;
 //    pos.off += k; 
@@ -126,52 +127,52 @@
 //    assert (isOK());
 //  }
 
-//}}
+}}
 
 //namespace Gecode { namespace String {
 //  
-//  template <>
-//  forceinline SweepBwdIterator<ConcatView>::
+//  template <class View0, class View1>
+//  forceinline SweepBwdIterator<ConcatView<View0,View1>>::
 //  SweepBwdIterator(const StringView& x)
 //  : SweepIterator(x, Position(x.size(), 0)) {};
 //  
-//  template <>
-//  forceinline SweepBwdIterator<ConcatView>::
+//  template <class View0, class View1>
+//  forceinline SweepBwdIterator<ConcatView<View0,View1>>::
 //  SweepBwdIterator(const StringView& x, const Position& p) 
 //  : SweepIterator(x, p) {};
 //  
-//  template <>
+//  template <class View0, class View1>
 //  forceinline int
-//  SweepBwdIterator<ConcatView>::lb() const {
+//  SweepBwdIterator<ConcatView<View0,View1>>::lb() const {
 //    return sv[pos.off > 0 ? pos.idx : pos.idx-1].lb();
 //  }
 //  
-//  template <>
+//  template <class View0, class View1>
 //  forceinline int
-//  SweepBwdIterator<ConcatView>::ub() const {
+//  SweepBwdIterator<ConcatView<View0,View1>>::ub() const {
 //    return sv[pos.off > 0 ? pos.idx : pos.idx-1].ub();
 //  }
 //  
-//  template <>
+//  template <class View0, class View1>
 //  forceinline bool
-//  SweepBwdIterator<ConcatView>::disj(const Block& b) const {
+//  SweepBwdIterator<ConcatView<View0,View1>>::disj(const Block& b) const {
 //    return  sv[pos.off > 0 ? pos.idx : pos.idx-1].baseDisjoint(b);
 //  }
-//  template <>
+//  template <class View0, class View1>
 //  forceinline bool
-//  SweepBwdIterator<ConcatView>::disj(int c) const {
+//  SweepBwdIterator<ConcatView<View0,View1>>::disj(int c) const {
 //    return !(sv[pos.off > 0 ? pos.idx : pos.idx-1].baseContains(c));
 //  }
 //  
-//  template <>
+//  template <class View0, class View1>
 //  forceinline bool
-//  SweepBwdIterator<ConcatView>::operator()(void) const {
+//  SweepBwdIterator<ConcatView<View0,View1>>::operator()(void) const {
 //    return sv.prec(Position(0,0), pos);
 //  }
 //  
-//  template <>
+//  template <class View0, class View1>
 //  forceinline void
-//  SweepBwdIterator<ConcatView>::nextBlock() {
+//  SweepBwdIterator<ConcatView<View0,View1>>::nextBlock() {
 //    if (pos.idx == 0 && pos.off == 0)
 //      return;
 //    if (pos.off > 0)
@@ -181,28 +182,28 @@
 //    assert (isOK() || sv[pos.idx].isNull());
 //  };
 //  
-//  template <>
+//  template <class View0, class View1>
 //  forceinline bool
-//  SweepBwdIterator<ConcatView>::hasNextBlock(void) const {
+//  SweepBwdIterator<ConcatView<View0,View1>>::hasNextBlock(void) const {
 //    return pos.idx > 0 || pos.off > 0;
 //  };
 //  
-//  template <>
+//  template <class View0, class View1>
 //  forceinline int
-//  SweepBwdIterator<ConcatView>::may_consume() const {
+//  SweepBwdIterator<ConcatView<View0,View1>>::may_consume() const {
 //    return (pos.idx > 0 && pos.off == 0) ? sv[pos.idx-1].ub() : pos.off;
 //  }
 //  
-//  template <>
+//  template <class View0, class View1>
 //  forceinline int
-//  SweepBwdIterator<ConcatView>::must_consume() const {
+//  SweepBwdIterator<ConcatView<View0,View1>>::must_consume() const {
 //    return (pos.idx > 0 && pos.off == 0) ? sv[pos.idx-1].lb() 
 //                                         : std::min(pos.off, sv[pos.idx].lb());
 //  }
 //  
-//  template <>
+//  template <class View0, class View1>
 //  forceinline void
-//  SweepBwdIterator<ConcatView>::consume(int k) {
+//  SweepBwdIterator<ConcatView<View0,View1>>::consume(int k) {
 //    if (k == 0)
 //      return;
 //    if (pos.off == 0 && pos.idx > 0) {
@@ -212,13 +213,13 @@
 //    else
 //      pos.off -= k;
 //    if (pos.off < 0)
-//      throw OutOfLimits("SweepBwdIterator<ConcatView>::consume");
+//      throw OutOfLimits("SweepBwdIterator<ConcatView<View0,View1>>::consume");
 //    assert (isOK());
 //  }
 //  
-//  template <>
+//  template <class View0, class View1>
 //  forceinline void
-//  SweepBwdIterator<ConcatView>::consumeMand(int k) {
+//  SweepBwdIterator<ConcatView<View0,View1>>::consumeMand(int k) {
 //    if (k == 0)
 //      return;
 //    if (pos.off == 0 && pos.idx > 0) {
@@ -228,7 +229,7 @@
 //    else
 //      pos.off = std::min(pos.off, sv[pos.idx].lb()) - k;
 //    if (pos.off < 0)
-//      throw OutOfLimits("SweepBwdIterator<ConcatView>::consumeMand");
+//      throw OutOfLimits("SweepBwdIterator<ConcatView<View0,View1>>::consumeMand");
 //    assert (isOK());
 //  }
 
@@ -252,14 +253,12 @@ namespace Gecode { namespace String {
   }
 
   template <class View0, class View1>
-  forceinline Block&
-  ConcatView<View0,View1>::operator[](int i) {
-    return i < pivot ? x0[i] : x1[i];
-  }
-  template <class View0, class View1>
-  forceinline const Block&
+  forceinline CBlock
   ConcatView<View0,View1>::operator[](int i) const {
-    return i < pivot ? x0[i] : x1[i];
+    if (i < pivot)
+      return CBlock(x0[i]);
+    else
+      return CBlock(x1[i-pivot]);
   }
   
   template <class View0, class View1>
@@ -304,16 +303,18 @@ namespace Gecode { namespace String {
     x0.normalize(home);
     x1.normalize(home);
   }
-//  
-//  forceinline SweepFwdIterator<ConcatView>
-//  ConcatView<View0,View1>::fwd_iterator(void) const {
-//    return SweepFwdIterator<ConcatView>(*this);
-//  }
-//  
-//  forceinline SweepBwdIterator<ConcatView>
-//  ConcatView<View0,View1>::bwd_iterator(void) const {
-//    return SweepBwdIterator<ConcatView>(*this);
-//  }
+  
+  template <class View0, class View1>
+  forceinline SweepFwdIterator<ConcatView<View0,View1>>
+  ConcatView<View0,View1>::fwd_iterator(void) const {
+    return SweepFwdIterator<ConcatView<View0,View1>>(*this);
+  }
+  
+  template <class View0, class View1>
+  forceinline SweepBwdIterator<ConcatView<View0,View1>>
+  ConcatView<View0,View1>::bwd_iterator(void) const {
+    return SweepBwdIterator<ConcatView<View0,View1>>(*this);
+  }
   
   template <class View0, class View1>
   forceinline bool

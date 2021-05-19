@@ -62,6 +62,8 @@ namespace Gecode { namespace String {
    */
   class GECODE_STRING_EXPORT Block {
   
+  class CBlock;
+  
   private:
     // Cardinality bounds.
     int l, u;
@@ -83,7 +85,7 @@ namespace Gecode { namespace String {
     Block(void);
     /// Creates fixed block \f$ {a}^{1,1} \$
     /// Throws OutOfLimits exception if \f$a < 0 \vee a \geq MAX\_ALPHABET\_LENGTH\f$
-    Block(int a);
+    explicit Block(int a);
     /// Creates fixed block \f$ {a}^{n,n} \$
     /// Throws OutOfLimits exception if 
     /// \f$a < 0 \vee a \geq MAX\_ALPHABET\_LENGTH \vee n < 0 \vee n > MAX\_STRING\_LENGTH \f$
@@ -196,6 +198,20 @@ namespace Gecode { namespace String {
     /// Dispose S and set it to NULL
     void nullifySet(Space& home);
     
+  };
+
+  class CBlock {
+    int c;
+    const Block* p;    
+  public:
+    CBlock(int c0) : c(c0), p(nullptr) {}
+    CBlock(Block& b) : c(-1), p(&b) {}
+    int lb() const { return c < 0 ? p->lb() : 1; }
+    int ub() const { return c < 0 ? p->ub() : 1; }
+    int disj(int k) const { return c < 0 ? !p->baseContains(k) : c != k; }
+    int disj(const Block& x) const { 
+      return c < 0 ? p->baseDisjoint(x) : !x.baseContains(c); 
+    }
   };
 
 }}
