@@ -166,6 +166,7 @@ public:
 //    ConcatView<ConstStringView,ConstStringView> vxw(vw, vw);
     ConcatView<StringView,ConstStringView> vxw(vx, vw);
     vxw.fwd_iterator();
+    vxw.bwd_iterator();
   }
   
 };

@@ -129,111 +129,111 @@ namespace Gecode { namespace String {
 
 }}
 
-//namespace Gecode { namespace String {
-//  
-//  template <class T>
-//  forceinline SweepBwdIterator<T>::
-//  SweepBwdIterator(const StringView& x)
-//  : SweepIterator(x, Position(x.size(), 0)) {};
-//  
-//  template <class T>
-//  forceinline SweepBwdIterator<T>::
-//  SweepBwdIterator(const StringView& x, const Position& p) 
-//  : SweepIterator(x, p) {};
-//  
-//  template <class T>
-//  forceinline int
-//  SweepBwdIterator<T>::lb() const {
-//    return sv[pos.off > 0 ? pos.idx : pos.idx-1].lb();
-//  }
-//  
-//  template <class T>
-//  forceinline int
-//  SweepBwdIterator<T>::ub() const {
-//    return sv[pos.off > 0 ? pos.idx : pos.idx-1].ub();
-//  }
-//  
-//  template <class T>
-//  forceinline bool
-//  SweepBwdIterator<T>::disj(const Block& b) const {
-//    return  sv[pos.off > 0 ? pos.idx : pos.idx-1].baseDisjoint(b);
-//  }
-//  template <class T>
-//  forceinline bool
-//  SweepBwdIterator<T>::disj(int c) const {
-//    return !(sv[pos.off > 0 ? pos.idx : pos.idx-1].baseContains(c));
-//  }
-//  
-//  template <class T>
-//  forceinline bool
-//  SweepBwdIterator<T>::operator()(void) const {
-//    return sv.prec(Position(0,0), pos);
-//  }
-//  
-//  template <class T>
-//  forceinline void
-//  SweepBwdIterator<T>::nextBlock() {
-//    if (pos.idx == 0 && pos.off == 0)
-//      return;
-//    if (pos.off > 0)
-//      pos.off = 0;
-//    else
-//      pos.idx--;
-//    assert (isOK() || sv[pos.idx].isNull());
-//  };
-//  
-//  template <class T>
-//  forceinline bool
-//  SweepBwdIterator<T>::hasNextBlock(void) const {
-//    return pos.idx > 0 || pos.off > 0;
-//  };
-//  
-//  template <class T>
-//  forceinline int
-//  SweepBwdIterator<T>::may_consume() const {
-//    return (pos.idx > 0 && pos.off == 0) ? sv[pos.idx-1].ub() : pos.off;
-//  }
-//  
-//  template <class T>
-//  forceinline int
-//  SweepBwdIterator<T>::must_consume() const {
-//    return (pos.idx > 0 && pos.off == 0) ? sv[pos.idx-1].lb() 
-//                                         : std::min(pos.off, sv[pos.idx].lb());
-//  }
-//  
-//  template <class T>
-//  forceinline void
-//  SweepBwdIterator<T>::consume(int k) {
-//    if (k == 0)
-//      return;
-//    if (pos.off == 0 && pos.idx > 0) {
-//      pos.idx--;
-//      pos.off = sv[pos.idx].ub() - k;
-//    }
-//    else
-//      pos.off -= k;
-//    if (pos.off < 0)
-//      throw OutOfLimits("SweepBwdIterator<T>::consume");
-//    assert (isOK());
-//  }
-//  
-//  template <class T>
-//  forceinline void
-//  SweepBwdIterator<T>::consumeMand(int k) {
-//    if (k == 0)
-//      return;
-//    if (pos.off == 0 && pos.idx > 0) {
-//      pos.idx--;
-//      pos.off = sv[pos.idx].lb() - k;
-//    }
-//    else
-//      pos.off = std::min(pos.off, sv[pos.idx].lb()) - k;
-//    if (pos.off < 0)
-//      throw OutOfLimits("SweepBwdIterator<T>::consumeMand");
-//    assert (isOK());
-//  }
+namespace Gecode { namespace String {
+  
+  template <class T>
+  forceinline SweepBwdIterator<T>::
+  SweepBwdIterator(const T& x)
+  : SweepIterator<T>::SweepIterator(x, Position(x.size(), 0)) {};
+  
+  template <class T>
+  forceinline SweepBwdIterator<T>::
+  SweepBwdIterator(const T& x, const Position& p) 
+  : SweepIterator<T>::SweepIterator(x, p) {};
+  
+  template <class T>
+  forceinline int
+  SweepBwdIterator<T>::lb() const {
+    return sv[pos.off > 0 ? pos.idx : pos.idx-1].lb();
+  }
+  
+  template <class T>
+  forceinline int
+  SweepBwdIterator<T>::ub() const {
+    return sv[pos.off > 0 ? pos.idx : pos.idx-1].ub();
+  }
+  
+  template <class T>
+  forceinline bool
+  SweepBwdIterator<T>::disj(const Block& b) const {
+    return  sv[pos.off > 0 ? pos.idx : pos.idx-1].baseDisjoint(b);
+  }
+  template <class T>
+  forceinline bool
+  SweepBwdIterator<T>::disj(int c) const {
+    return !(sv[pos.off > 0 ? pos.idx : pos.idx-1].baseContains(c));
+  }
+  
+  template <class T>
+  forceinline bool
+  SweepBwdIterator<T>::operator()(void) const {
+    return sv.prec(Position(0,0), pos);
+  }
+  
+  template <class T>
+  forceinline void
+  SweepBwdIterator<T>::nextBlock() {
+    if (pos.idx == 0 && pos.off == 0)
+      return;
+    if (pos.off > 0)
+      pos.off = 0;
+    else
+      pos.idx--;
+    assert (SweepIterator<T>::isOK() || sv[pos.idx].isNull());
+  };
+  
+  template <class T>
+  forceinline bool
+  SweepBwdIterator<T>::hasNextBlock(void) const {
+    return pos.idx > 0 || pos.off > 0;
+  };
+  
+  template <class T>
+  forceinline int
+  SweepBwdIterator<T>::may_consume() const {
+    return (pos.idx > 0 && pos.off == 0) ? sv[pos.idx-1].ub() : pos.off;
+  }
+  
+  template <class T>
+  forceinline int
+  SweepBwdIterator<T>::must_consume() const {
+    return (pos.idx > 0 && pos.off == 0) ? sv[pos.idx-1].lb() 
+                                         : std::min(pos.off, sv[pos.idx].lb());
+  }
+  
+  template <class T>
+  forceinline void
+  SweepBwdIterator<T>::consume(int k) {
+    if (k == 0)
+      return;
+    if (pos.off == 0 && pos.idx > 0) {
+      pos.idx--;
+      pos.off = sv[pos.idx].ub() - k;
+    }
+    else
+      pos.off -= k;
+    if (pos.off < 0)
+      throw OutOfLimits("SweepBwdIterator<T>::consume");
+    assert (SweepIterator<T>::isOK());
+  }
+  
+  template <class T>
+  forceinline void
+  SweepBwdIterator<T>::consumeMand(int k) {
+    if (k == 0)
+      return;
+    if (pos.off == 0 && pos.idx > 0) {
+      pos.idx--;
+      pos.off = sv[pos.idx].lb() - k;
+    }
+    else
+      pos.off = std::min(pos.off, sv[pos.idx].lb()) - k;
+    if (pos.off < 0)
+      throw OutOfLimits("SweepBwdIterator<T>::consumeMand");
+    assert (SweepIterator<T>::isOK());
+  }
 
-//}}
+}}
 
 namespace Gecode { namespace String {
 
