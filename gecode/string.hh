@@ -302,6 +302,10 @@ namespace Gecode {
     STRT_LEXGE, ///< Lexicographic greater
     STRT_LEXGQ, ///< Lexicographic greater or equal
   };
+  
+  enum StringRelOpType {
+    STRT_CAT,  ///< Concatenation
+  };
 
   /**
    * \defgroup TaskModelStringRel Relation constraints
@@ -312,6 +316,9 @@ namespace Gecode {
   /// Post propagator for \f$ x \sim_r y\f$
   GECODE_STRING_EXPORT void
   rel(Home home, StringVar x, StringRelType r, StringVar y);
+  /// Post propagator for \f$ z = x \sim_r y\f$
+  GECODE_STRING_EXPORT void
+  rel(Home home, StringRelOpType r, StringVar x, StringVar y, StringVar z);  
   /// Post propagator for \f$ (x \sim_{rt} y) \equiv r\f$
   GECODE_STRING_EXPORT void
   rel(Home home, StringVar x, StringRelType rt, StringVar y, Reify r);

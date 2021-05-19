@@ -11,7 +11,6 @@ namespace Gecode { namespace String { namespace Rel {
    * Requires \code #include <gecode/string/rel.hh> \endcode
    * \ingroup FuncStringProp
    */
-  // FIXME: View0 should be always a string view, do we really need this parameter?
   template<class View0, class View1>
   class Eq 
   : public MixBinaryPropagator<View0,PC_STRING_ANY,View1,PC_STRING_ANY> {
@@ -37,7 +36,6 @@ namespace Gecode { namespace String { namespace Rel {
    * Requires \code #include <gecode/string/rel.hh> \endcode
    * \ingroup FuncStringProp
    */
-
   template<class View0, class View1>
   class Nq 
   : public MixBinaryPropagator<View0,PC_STRING_VAL,View1,PC_STRING_VAL> {

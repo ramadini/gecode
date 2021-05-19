@@ -544,7 +544,7 @@ FLOATBUILDDIRS	= \
 #
 
 STRINGSRC0 = \
-  exception.cpp rel.cpp int.cpp
+  exception.cpp rel.cpp rel-op.cpp int.cpp
 
 STRINGHDR0 = \
   limits.hpp exception.hpp array-traits.hpp array.hpp var-imp.hpp view.hpp \
@@ -553,6 +553,7 @@ STRINGHDR0 = \
   view/concat.hpp var/string.hpp \
   branch/val.hpp branch/var.hpp branch/traits.hpp \
   rel.hh rel/eq.hpp rel/nq.hpp rel/re-eq.hpp \
+  rel-op.hh rel-op/concat.hpp \
   int.hh int/length.hpp
 
 STRINGSRC	= $(STRINGSRC0:%=gecode/string/%)
