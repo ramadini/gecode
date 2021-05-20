@@ -56,33 +56,14 @@ namespace Gecode { namespace String { namespace RelOp {
         return ES_FAILED;
       return home.ES_SUBSUMED(*this);
     }
-// TODO:
-//    if (x._min_length > 0 && y._min_length > 0 && contains(x, y)) {
-//      // std::cerr << *this << " contains " << x << "  ++  " << y << "\n";
-//      int norm = x.blocks().back().S == y.at(0).S ? 1 : 0;
-//      double d = logdim();
-//      NSBlocks xy(x.length() + y.length() - norm);
-//      for (int i = 0; i < x.length(); ++i)
-//        xy[i] = NSBlock(x.at(i));
-//      if (norm) {
-//        xy[x.length() - 1].l += y.at(0).l;
-//        xy[x.length() - 1].u += y.at(0).u;
-//      }
-//      for (int i = norm; i < y.length(); ++i)
-//        xy[i + x.length() - norm] = NSBlock(y.at(i));
-//      if (d != xy.logdim()) {
-//        update(h, xy);
-//        _changed = true;
-//      }
-//    }
-//    else {
-//      ConcatView xy(x, y);
-//      if (!sweep_concat(h, xy, x, y, *this))
-//        return false;
-//    }
-//    if (!refine_card_cat(h, x, y))
-//      return false;
-    return ES_FIX;
+    ConcatView<View0,View1> xy(x0,x1);
+    int a;
+    do {
+      GECODE_ME_CHECK(equate_x(home, x2, xy));
+      
+      a = x0.assigned() + x1.assigned() + x2.assigned();
+    } while (a == 2);
+    return a == 3 ? home.ES_SUBSUMED(*this) : ES_FIX;
   }
   
 }}}

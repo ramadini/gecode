@@ -55,14 +55,14 @@ namespace Gecode { namespace String {
 
 namespace Gecode { namespace String {
   
+  class CBlock;
+  
   /**
    * \brief Block of a dashed string modelling the domain of a string variable.
    *
    * \ingroup TaskModelStringBranch
    */
   class GECODE_STRING_EXPORT Block {
-  
-  class CBlock;
   
   private:
     // Cardinality bounds.
@@ -179,6 +179,7 @@ namespace Gecode { namespace String {
     void nullify(Space& home);
     /// Update this block to be a clone of \a b
     void update(Space& home, const Block& b);
+    void update(Space& home, const CBlock& c);
     /// Update the lower/upper bounds of the block. It throws:
     /// - OutOfLimits, if lb < 0 or ub > MAX_STRING_LENGTH
     /// - VariableEmptyDomain, if lb > ub or lb > 0 and the base is empty
@@ -204,26 +205,17 @@ namespace Gecode { namespace String {
     int c;
     const Block* p;    
   public:
-    CBlock(int c0) : c(c0), p(nullptr) {}
-    CBlock(Block& b) : c(-1), p(&b) {}
-    int lb() const { return c < 0 ? p->lb() : 1; }
-    int ub() const { return c < 0 ? p->ub() : 1; }
-    bool isFixed() const { return c < 0; }
-    bool isNull() const { return c < 0 && p->isNull(); }
-    int disj(int k) const { return c < 0 ? !p->baseContains(k) : c != k; }
-    int disj(const Block& x) const { 
-      return c < 0 ? p->baseDisjoint(x) : !x.baseContains(c); 
-    }
-    int val() const {
-      if (c < 0)
-        throw IllegalOperation("CBlock::val");
-      return c;
-    }
-    const Block& block() const {
-      if (c >= 0)
-        throw IllegalOperation("CBlock::val");
-      return *p;
-    }
+    CBlock(int c0);
+    CBlock(Block& b);
+    int lb() const;
+    int ub() const;
+    bool isFixed() const;
+    bool isNull() const;
+    int disj(int k) const;
+    int disj(const Block& x) const;
+    int val() const;
+    const Block& block() const;
+    void includeBaseIn(Space& home, Gecode::Set::GLBndSet& s);
   };
 
 }}
@@ -489,9 +481,57 @@ namespace Gecode { namespace String {
 
 }}
 
-/*** Block ***/
+
+/*** CBlock/Block ***/
 
 namespace Gecode { namespace String {
+
+
+  forceinline CBlock::CBlock(int c0) : c(c0), p(nullptr) {}
+  
+  forceinline CBlock::CBlock(Block& b) : c(-1), p(&b) {}
+  
+  forceinline int CBlock::lb() const { return c < 0 ? p->lb() : 1; }
+  
+  forceinline int CBlock::ub() const { return c < 0 ? p->ub() : 1; }
+  
+  forceinline bool CBlock::isFixed() const { return c < 0; }
+    
+  forceinline bool CBlock::isNull() const { return c < 0 && p->isNull(); }
+    
+  forceinline int 
+  CBlock::disj(int k) const { 
+    return c < 0 ? !p->baseContains(k) : c != k;
+  }
+    
+  forceinline int 
+  CBlock::disj(const Block& x) const {
+      return c < 0 ? p->baseDisjoint(x) : !x.baseContains(c); 
+    }
+    
+  forceinline int 
+  CBlock::val() const {
+    if (c < 0)
+      throw IllegalOperation("CBlock::val");
+    return c;
+  }
+  
+  forceinline const Block& 
+  CBlock::block() const {
+    if (c >= 0)
+      throw IllegalOperation("CBlock::val");
+    return *p;
+  }
+  
+  forceinline void 
+  CBlock::includeBaseIn(Space& home, Gecode::Set::GLBndSet& s) {
+    if (c < 0)
+      p->includeBaseIn(home, s);
+    else {
+      Gecode::Set::SetDelta d;
+      s.include(home, c, c, d);
+    }
+  }
 
   using namespace Limits;
 
@@ -791,6 +831,22 @@ namespace Gecode { namespace String {
     S->update(home, *b.S);
     assert(isOK());
   }
+  
+  forceinline void
+  Block::update(Space& home, const CBlock& c) {
+    if (c.isFixed()) {
+      l = c.val();
+      u = 1;
+      S = nullptr;
+    }
+    else {
+      const Block& b = c.block(); 
+      l = b.l;
+      u = b.u;
+      S = std::unique_ptr<CharSet>();
+      S->update(home, *b.S);
+    }
+  };
   
   forceinline void
   Block::updateCard(Space& home, int lb, int ub) {

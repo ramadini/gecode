@@ -352,10 +352,9 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  ConstStringView::mand_region(Space& home, Block& bx, int cy,
+  ConstStringView::mand_region(Space& home, Block& bx, const Block& by,
                                const Position&, const Position&) const {
-    assert (bx.baseContains(cy));
-    bx.update(home, Block(cy));
+    bx.update(home, by);
   }
   
   forceinline int

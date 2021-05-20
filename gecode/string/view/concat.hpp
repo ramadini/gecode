@@ -423,8 +423,7 @@ namespace Gecode { namespace String {
     else if (p.idx >= pivot)
       x1.opt_region(home, bx, bnew, p-pivot, q-pivot, l1);
     else {
-      Block& bnew0;
-      Block& bnew1;
+      Block bnew0, bnew1;
       x0.opt_region(home, bx, bnew0, p, Position(pivot,0), l1);
       x1.opt_region(home, bx, bnew1, Position(0,0), q-pivot, l1);
       Gecode::Set::GLBndSet s;

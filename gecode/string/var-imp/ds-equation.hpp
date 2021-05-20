@@ -17,7 +17,9 @@ namespace Gecode { namespace String {
   forceinline int lbound(const Block& b) { return b.lb(); }
   forceinline int lbound(const CBlock& c) { return c.lb(); }
   forceinline int ubound(const CBlock& c) { return c.ub(); }
-  
+//  forceinline bool isFixed(int) { return true; }
+//  forceinline bool isFixed(const Block& b) { return b.isFixed(); }
+//  forceinline bool isFixed(const CBlock& c) { return c.isFixed(); }
   template <class View> forceinline int 
   min_len_mand(const Block& b, View& y, const Position& p, const Position& q) {
     return y.min_len_mand(b, p, q);
@@ -159,7 +161,9 @@ namespace Gecode { namespace String {
       if (n == 1 && esp == lsp) {
         // No need to unfold x_i.
         n = x_i.baseSize();
-        y.mand_region(home, x_i, y[lsp.idx], lsp, eep);
+        Block b;
+        b.update(home, y[lsp.idx]);
+        y.mand_region(home, x_i, b, lsp, eep);
         changed |= l < x_i.lb() || u > x_i.ub() || n > x_i.baseSize();
 //        std::cerr << "x[" << i << "] ref. into " << x_i << "\n";
         continue;
