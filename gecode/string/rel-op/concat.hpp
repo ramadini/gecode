@@ -50,8 +50,8 @@ namespace Gecode { namespace String { namespace RelOp {
     }
     if (x0.assigned() && x1.assigned()) {
       ConcatView<View0,View1> xy(x0,x1);
-      if (check_equate_x(x2, xy) && check_equate_x(xy, x2))
-        GECODE_ME_CHECK(x2.update(home, xy)); //TODO:
+      if (check_equate_x(x2, xy) && check_equate_x(xy, x2) && !x2.assigned())
+        GECODE_ME_CHECK(x2.update(home, xy.val()));
       else
         return ES_FAILED;
       return home.ES_SUBSUMED(*this);

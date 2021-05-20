@@ -146,8 +146,6 @@ namespace Gecode { namespace String {
     /// Update this view to be a clone of view \a y
     ModEvent update(Space& home, const DashedString& d);
     ModEvent update(Space& home, const StringView& y);
-    template <class View0,class View>
-    ModEvent update(Space& home, const ConcatView<View0,View1>& y);
     ModEvent update(Space& home, const std::vector<int>& w);
     
     ModEvent nullify(Space& home);
@@ -346,6 +344,8 @@ namespace Gecode { namespace String {
     /// Return the value of this string view, if assigned. Otherwise, an
     /// IllegalOperation exception is thrown.
     std::vector<int> val(void) const;
+    View0 lhs(void) const;
+    View1 rhs(void) const;
     //@}
     /// \name Domain tests
     //@{

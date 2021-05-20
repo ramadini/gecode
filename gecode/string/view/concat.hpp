@@ -36,12 +36,14 @@ namespace Gecode { namespace String {
   template <class T>
   forceinline bool
   SweepIterator<T>::disj(const Block& b) const {
-    return sv[pos.idx].baseDisjoint(b);
+    const CBlock& c = sv[pos.idx];
+    return c.isFixed() ? !b.baseContains(c.val()) : c.block().baseDisjoint(b);
   }
   template<class T>
   forceinline bool
-  SweepIterator<T>::disj(int c) const {
-    return !sv[pos.idx].baseContains(c);
+  SweepIterator<T>::disj(int k) const {
+    const CBlock& c = sv[pos.idx];
+    return c.isFixed() ? c.val() != k : !c.block().baseContains(k);
   }
   
   template <class T>
@@ -156,12 +158,14 @@ namespace Gecode { namespace String {
   template <class T>
   forceinline bool
   SweepBwdIterator<T>::disj(const Block& b) const {
-    return  sv[pos.off > 0 ? pos.idx : pos.idx-1].baseDisjoint(b);
+    const CBlock& c = sv[pos.off > 0 ? pos.idx : pos.idx-1];
+    return c.isFixed() ? !b.baseContains(c.val()) : c.block().baseDisjoint(b);
   }
   template <class T>
   forceinline bool
-  SweepBwdIterator<T>::disj(int c) const {
-    return !(sv[pos.off > 0 ? pos.idx : pos.idx-1].baseContains(c));
+  SweepBwdIterator<T>::disj(int k) const {
+    const CBlock& c = sv[pos.off > 0 ? pos.idx : pos.idx-1];
+    return c.isFixed() ? c.val() != k : !c.block().baseContains(k);
   }
   
   template <class T>
@@ -247,6 +251,18 @@ namespace Gecode { namespace String {
   : x0(x), x1(y), pivot(x.size()) {}
 
   template <class View0, class View1>
+  forceinline View0
+  ConcatView<View0,View1>::lhs() const {
+    return x0;  
+  }
+
+  template <class View0, class View1>
+  forceinline View1
+  ConcatView<View0,View1>::rhs() const {
+    return x1;  
+  }
+
+  template <class View0, class View1>
   forceinline int 
   ConcatView<View0,View1>::size() const {
     return x0.size() + x1.size();
@@ -264,12 +280,11 @@ namespace Gecode { namespace String {
   template <class View0, class View1>
   forceinline std::vector<int> 
   ConcatView<View0,View1>::val(void) const {
-    std::vector<int> v(size());
-    int i = 0;
-    for (; i < x0.size(); ++i)
-      v[i] = x0[i];
-    for (int j = 0; j < x1.size(); ++i, ++j)
-      v[i] = x1[j];
+    if (!assigned())
+      throw IllegalOperation("ConcatView<View0,View1>::val(void)");
+    std::vector<int> v(x0.val());
+    std::vector<int> w(x1.val());
+    v.insert(std::end(v), std::begin(w), std::end(w));
     return v;
   }
   

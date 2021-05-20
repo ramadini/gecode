@@ -208,10 +208,21 @@ namespace Gecode { namespace String {
     CBlock(Block& b) : c(-1), p(&b) {}
     int lb() const { return c < 0 ? p->lb() : 1; }
     int ub() const { return c < 0 ? p->ub() : 1; }
+    bool isFixed() const { return c < 0; }
     bool isNull() const { return c < 0 && p->isNull(); }
     int disj(int k) const { return c < 0 ? !p->baseContains(k) : c != k; }
     int disj(const Block& x) const { 
       return c < 0 ? p->baseDisjoint(x) : !x.baseContains(c); 
+    }
+    int val() const {
+      if (c < 0)
+        throw IllegalOperation("CBlock::val");
+      return c;
+    }
+    const Block& block() const {
+      if (c >= 0)
+        throw IllegalOperation("CBlock::val");
+      return *p;
     }
   };
 

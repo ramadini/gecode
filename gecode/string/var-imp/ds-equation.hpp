@@ -15,7 +15,8 @@ namespace Gecode { namespace String {
   forceinline int lbound(int) { return 1; }
   forceinline int ubound(const Block& b) { return b.ub(); }
   forceinline int lbound(const Block& b) { return b.lb(); }
-  forceinline int ubound(const CBlock& cb) { return cb.ub(); }
+  forceinline int lbound(const CBlock& c) { return c.lb(); }
+  forceinline int ubound(const CBlock& c) { return c.ub(); }
   
   template <class View> forceinline int 
   min_len_mand(const Block& b, View& y, const Position& p, const Position& q) {
@@ -24,6 +25,10 @@ namespace Gecode { namespace String {
   template <class View> forceinline int 
   min_len_mand(int, View&, const Position&, const Position&) {
     return 1;
+  }
+  template <class View> forceinline int 
+  min_len_mand(const CBlock& c, View& y, const Position& p, const Position& q) {
+    return c.isFixed() ? 1 : y.min_len_mand(c.block(), p, q);
   }
   
   /// Struct abstracting a position in a dashed string.
@@ -264,6 +269,12 @@ namespace Gecode { namespace String {
     return p;
   };
   
+  template <class IterY>
+  forceinline Position
+  push(const CBlock& c, IterY& it) {
+    return c.isFixed() ? push(c.val(), it) : push(c.block(), it);
+  }
+  
   /// TODO:
   template <class IterY>
   forceinline void
@@ -312,6 +323,12 @@ namespace Gecode { namespace String {
       }
     }
   };
+  
+  template <class IterY>
+  forceinline void
+  stretch(const CBlock& c, IterY& it) {
+    c.isFixed() ? stretch(c.val(), it) : stretch(c.block(), it);
+  }
   
   template <class ViewX, class ViewY>
   forceinline bool
