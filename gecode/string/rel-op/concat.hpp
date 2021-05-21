@@ -60,7 +60,7 @@ namespace Gecode { namespace String { namespace RelOp {
     int a;
     do {
       GECODE_ME_CHECK(equate_x(home, x2, xy));
-      //TODO: GECODE_ME_CHECK(equate_x(home, xy, x2));
+      GECODE_ME_CHECK(equate_x(home, xy, x2));
       a = x0.assigned() + x1.assigned() + x2.assigned();
     } while (a == 2);
     return a == 3 ? home.ES_SUBSUMED(*this) : ES_FIX;

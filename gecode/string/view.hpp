@@ -323,7 +323,7 @@ namespace Gecode { namespace String {
     /// Initialize from string variables \a x and \a y
     ConcatView(View0& x, View1& y);
     //@}
-    
+    ModEvent update(Space& home, const DashedString& d) const;
     /// \name Sweep iterators
     //@{
     SweepFwdIterator<ConcatView<View0,View1>> fwd_iterator(void) const;

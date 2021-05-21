@@ -261,6 +261,13 @@ namespace Gecode { namespace String {
   ConcatView<View0,View1>::rhs() const {
     return x1;  
   }
+  
+  template <class View0, class View1>
+  forceinline ModEvent
+  ConcatView<View0,View1>::update(Space&, const DashedString&) const {
+    GECODE_NEVER;
+    return ME_STRING_FAILED;
+  }
 
   template <class View0, class View1>
   forceinline int 

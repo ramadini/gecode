@@ -203,19 +203,27 @@ namespace Gecode { namespace String {
 
   class CBlock {
     int c;
-    const Block* p;    
+    Block* p;    
   public:
     CBlock(int c0);
     CBlock(Block& b);
     int lb() const;
     int ub() const;
-    bool isFixed() const;
     bool isNull() const;
+    bool isChar() const;
+    bool isFixed() const;
     int disj(int k) const;
     int disj(const Block& x) const;
     int val() const;
+    Block& block();
     const Block& block() const;
     void includeBaseIn(Space& home, Gecode::Set::GLBndSet& s);
+    friend std::ostream& operator<<(std::ostream& os, const CBlock& x);
+//    void nullify(Space& home) { if (c < 0) p->nullify(home); GECODE_NEVER; }
+//    void update(Space& home, const Block& b) { if (c < 0) p->update(home, b); GECODE_NEVER; }
+//    void updateCard(Space& home, int l, int u) { if (c < 0) p->updateCard(home, l, u); GECODE_NEVER;}
+//    double logdim(void) const { return c < 0 ? 0 : p->logdim(); }
+//    int baseSize(void) const { return c < 0 ? 1 : p->baseSize(); }
   };
 
 }}
@@ -495,7 +503,9 @@ namespace Gecode { namespace String {
   
   forceinline int CBlock::ub() const { return c < 0 ? p->ub() : 1; }
   
-  forceinline bool CBlock::isFixed() const { return c < 0; }
+  forceinline bool CBlock::isChar() const { return c >= 0; }
+  
+  forceinline bool CBlock::isFixed() const { return c >= 0 || p->isFixed(); }
     
   forceinline bool CBlock::isNull() const { return c < 0 && p->isNull(); }
     
@@ -523,6 +533,13 @@ namespace Gecode { namespace String {
     return *p;
   }
   
+  forceinline Block& 
+  CBlock::block() {
+    if (c >= 0)
+      throw IllegalOperation("CBlock::val");
+    return *p;
+  }
+  
   forceinline void 
   CBlock::includeBaseIn(Space& home, Gecode::Set::GLBndSet& s) {
     if (c < 0)
@@ -532,6 +549,17 @@ namespace Gecode { namespace String {
       s.include(home, c, c, d);
     }
   }
+  
+  forceinline std::ostream&
+  operator<<(std::ostream& os, const CBlock& b) {
+    if (b.c < 0)
+      os << b.block();
+    else
+      os << b.val();
+    return os;
+  }
+  
+  
 
   using namespace Limits;
 

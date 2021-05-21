@@ -15,23 +15,47 @@ namespace Gecode { namespace String {
   forceinline int lbound(int) { return 1; }
   forceinline int ubound(const Block& b) { return b.ub(); }
   forceinline int lbound(const Block& b) { return b.lb(); }
-  forceinline int lbound(const CBlock& c) { return c.lb(); }
-  forceinline int ubound(const CBlock& c) { return c.ub(); }
-//  forceinline bool isFixed(int) { return true; }
-//  forceinline bool isFixed(const Block& b) { return b.isFixed(); }
-//  forceinline bool isFixed(const CBlock& c) { return c.isFixed(); }
+  forceinline int lbound(const CBlock& g) { return g.lb(); }
+  forceinline int ubound(const CBlock& g) { return g.ub(); }
+  
   template <class View> forceinline int 
-  min_len_mand(const Block& b, View& y, const Position& p, const Position& q) {
+  min_len_mand(const View& y, const Block& b, const Position& p, 
+                                              const Position& q) {
     return y.min_len_mand(b, p, q);
   }
   template <class View> forceinline int 
-  min_len_mand(int, View&, const Position&, const Position&) {
+  min_len_mand(const View&, int, const Position&, const Position&) {
     return 1;
   }
   template <class View> forceinline int 
-  min_len_mand(const CBlock& c, View& y, const Position& p, const Position& q) {
-    return c.isFixed() ? 1 : y.min_len_mand(c.block(), p, q);
+  min_len_mand(const View& y, const CBlock& g, const Position& p, 
+                                               const Position& q) {
+    return g.isChar() ? 1 : y.min_len_mand(g.block(), p, q);
   }
+  
+//  template <class View> forceinline int 
+//  max_len_opt(const View& y, const CBlock& g, const Position& p, 
+//                                              const Position& q, int l) {
+//    return g.isChar() ? 1 : y.max_len_opt(g.block(), p, q, l);
+//  }
+//  template <class View> forceinline void
+//  expandBlock(Space& home, const View& y, const CBlock& g, Block* y1) {
+//    if (g.isChar()) y.expandBlock(home, g.block(), y1);
+//  }
+//  template <class View> void
+//  crushBase(Space& home, const View& y, CBlock& g, const Position& p, 
+//                                                   const Position& q) {
+//    if (g.isChar()) y.crushBase(home, g.block(), p, q);
+//  }
+//  template <class View> forceinline void
+//  opt_region(Space& home, const CBlock& g, Block& bnew, 
+//                          const Position& p, const Position& q, int l) {
+//    if (g.isChar()) y.crushBase(home, g.block(), p, q);
+//  }
+  
+}}  
+  
+namespace Gecode { namespace String {  
   
   /// Struct abstracting a position in a dashed string.
   struct Position {
@@ -112,12 +136,13 @@ namespace Gecode { namespace String {
 //      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].LSP << "\nEEP: " 
 //                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
       Position& esp = m[i].ESP, eep = m[i].EEP, lsp = m[i].LSP, lep = m[i].LEP;
-      Block& x_i = x[i];
-      int l = x_i.lb(), u = x_i.ub(), l1 = min_len_mand(x_i, y, lsp, eep);
+      CBlock g_i(x[i]);
+      int l = g_i.lb(), u = g_i.ub(), l1 = min_len_mand(y, g_i, lsp, eep);
       if (u < l1)
         return false;
-      if (x_i.isFixed())
-        continue; 
+      if (g_i.isFixed())
+        continue;
+      Block& x_i = g_i.block();
       int u1 = y.max_len_opt(x_i, esp, lep, l1);
 //      std::cerr << "l'=" << l1 << ", u'=" << u1 << "\n";
       assert (l1 <= u1);
@@ -530,7 +555,7 @@ namespace Gecode { namespace String {
     }
     assert (m[nx-1].EEP == Position(y.size(),0));
     for (int i = 0; i < nx; ++i)
-      if (ubound(x[i]) < min_len_mand(x[i], y, m[i].LSP, m[i].EEP))
+      if (ubound(x[i]) < min_len_mand(y, x[i], m[i].LSP, m[i].EEP))
         return false;    
     return true;
   }
