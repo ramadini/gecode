@@ -15,8 +15,8 @@ namespace Gecode { namespace String {
   forceinline int lbound(int) { return 1; }
   forceinline int ubound(const Block& b) { return b.ub(); }
   forceinline int lbound(const Block& b) { return b.lb(); }
-  forceinline int lbound(const CBlock& g) { return g.lb(); }
-  forceinline int ubound(const CBlock& g) { return g.ub(); }
+  forceinline int lbound(const Gblock& g) { return g.lb(); }
+  forceinline int ubound(const Gblock& g) { return g.ub(); }
   
   template <class View> forceinline int 
   min_len_mand(const View& y, const Block& b, const Position& p, 
@@ -28,7 +28,7 @@ namespace Gecode { namespace String {
     return 1;
   }
   template <class View> forceinline int 
-  min_len_mand(const View& y, const CBlock& g, const Position& p, 
+  min_len_mand(const View& y, const Gblock& g, const Position& p, 
                                                const Position& q) {
     return g.isChar() ? 1 : y.min_len_mand(g.block(), p, q);
   }
@@ -112,7 +112,7 @@ namespace Gecode { namespace String {
 //      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].LSP << "\nEEP: " 
 //                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
       Position& esp = m[i].ESP, eep = m[i].EEP, lsp = m[i].LSP, lep = m[i].LEP;
-      CBlock g_i(x[i]);
+      Gblock g_i(x[i]);
       int l = g_i.lb(), u = g_i.ub(), l1 = min_len_mand(y, g_i, lsp, eep);
       if (u < l1)
         return false;
@@ -276,8 +276,8 @@ namespace Gecode { namespace String {
   
   template <class IterY>
   forceinline Position
-  push(const CBlock& c, IterY& it) {
-    return c.isFixed() ? push(c.val(), it) : push(c.block(), it);
+  push(const Gblock& g, IterY& it) {
+    return g.isFixed() ? push(g.val(), it) : push(g.block(), it);
   }
   
   /// TODO:
@@ -331,8 +331,8 @@ namespace Gecode { namespace String {
   
   template <class IterY>
   forceinline void
-  stretch(const CBlock& c, IterY& it) {
-    c.isFixed() ? stretch(c.val(), it) : stretch(c.block(), it);
+  stretch(const Gblock& g, IterY& it) {
+    g.isFixed() ? stretch(g.val(), it) : stretch(g.block(), it);
   }
   
   template <class ViewX, class ViewY>

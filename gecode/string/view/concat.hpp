@@ -36,14 +36,14 @@ namespace Gecode { namespace String {
   template <class T>
   forceinline bool
   SweepIterator<T>::disj(const Block& b) const {
-    const CBlock& c = sv[pos.idx];
-    return c.isFixed() ? !b.baseContains(c.val()) : c.block().baseDisjoint(b);
+    const Gblock& g = sv[pos.idx];
+    return g.isFixed() ? !b.baseContains(g.val()) : g.block().baseDisjoint(b);
   }
   template<class T>
   forceinline bool
   SweepIterator<T>::disj(int k) const {
-    const CBlock& c = sv[pos.idx];
-    return c.isFixed() ? c.val() != k : !c.block().baseContains(k);
+    const Gblock& g = sv[pos.idx];
+    return g.isFixed() ? g.val() != k : !g.block().baseContains(k);
   }
   
   template <class T>
@@ -158,14 +158,14 @@ namespace Gecode { namespace String {
   template <class T>
   forceinline bool
   SweepBwdIterator<T>::disj(const Block& b) const {
-    const CBlock& c = sv[pos.off > 0 ? pos.idx : pos.idx-1];
-    return c.isFixed() ? !b.baseContains(c.val()) : c.block().baseDisjoint(b);
+    const Gblock& g = sv[pos.off > 0 ? pos.idx : pos.idx-1];
+    return g.isFixed() ? !b.baseContains(g.val()) : g.block().baseDisjoint(b);
   }
   template <class T>
   forceinline bool
   SweepBwdIterator<T>::disj(int k) const {
-    const CBlock& c = sv[pos.off > 0 ? pos.idx : pos.idx-1];
-    return c.isFixed() ? c.val() != k : !c.block().baseContains(k);
+    const Gblock& g = sv[pos.off > 0 ? pos.idx : pos.idx-1];
+    return g.isFixed() ? g.val() != k : !g.block().baseContains(k);
   }
   
   template <class T>
@@ -276,12 +276,12 @@ namespace Gecode { namespace String {
   }
 
   template <class View0, class View1>
-  forceinline CBlock
+  forceinline Gblock
   ConcatView<View0,View1>::operator[](int i) const {
     if (i < pivot)
-      return CBlock(x0[i]);
+      return Gblock(x0[i]);
     else
-      return CBlock(x1[i-pivot]);
+      return Gblock(x1[i-pivot]);
   }
   
   template <class View0, class View1>
