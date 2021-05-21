@@ -68,14 +68,19 @@ namespace Gecode { namespace String { namespace Rel {
       GECODE_ME_CHECK(x1.update(home, x0));
       return ES_OK;
     }
+    ModEvent me;
     do {
       GECODE_ME_CHECK(equate_x(home, x0, x1));
       GECODE_ME_CHECK(equate_x(home, x1, x0));
       int l = std::max(x0.min_length(), x1.min_length()),
           u = std::min(x0.max_length(), x1.max_length());
-      GECODE_ME_CHECK(x0.bnd_length(home, l, u));
-      GECODE_ME_CHECK(x1.bnd_length(home, l, u));
-    } while (x0.assigned() + x1.assigned() == 1);
+      ModEvent m = x0.bnd_length(home, l, u);
+      GECODE_ME_CHECK(m);
+      me = m;
+      m = x1.bnd_length(home, l, u);
+      GECODE_ME_CHECK(m);
+      me += m;
+    } while (me > 0 || x0.assigned() + x1.assigned() == 1);
     // std::cerr << "Eq::propagated.\n";
     return x0.assigned() ? home.ES_SUBSUMED(*this) : ES_OK;
   }

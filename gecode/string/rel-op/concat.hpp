@@ -55,15 +55,31 @@ namespace Gecode { namespace String { namespace RelOp {
       else
         return ES_FAILED;
       return home.ES_SUBSUMED(*this);
-    }
-    ConcatView<View0,View1> xy(x0,x1);
+    }    
     int a;
+    ModEvent me;
     do {
+      ConcatView<View0,View1> xy(x0,x1);
       GECODE_ME_CHECK(equate_x(home, x2, xy));
       GECODE_ME_CHECK(equate_x(home, xy, x2));
+      int l = std::max(x0.min_length(), x2.min_length() - x1.max_length()),
+          u = std::min(x0.max_length(), x2.max_length() - x1.min_length());
+      ModEvent m = x0.bnd_length(home, l, u);
+      GECODE_ME_CHECK(m);
+      me = m;
+      l = std::max(x1.min_length(), x2.min_length() - x0.max_length()),
+      u = std::min(x1.max_length(), x2.max_length() - x0.min_length());
+      m = x1.bnd_length(home, l, u);
+      GECODE_ME_CHECK(m);
+      me += m;
+      l = std::max(x2.min_length(), x0.min_length() + x1.min_length()),
+      u = std::min(x2.max_length(), x0.max_length() + x1.max_length());
+      m = x2.bnd_length(home, l, u);
+      GECODE_ME_CHECK(m);
+      me += m;
       a = x0.assigned() + x1.assigned() + x2.assigned();
-    } while (a == 2);
+    } while (me > 0 || a == 2);
     return a == 3 ? home.ES_SUBSUMED(*this) : ES_FIX;
-  }
+  }  
   
 }}}
