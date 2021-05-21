@@ -33,30 +33,6 @@ namespace Gecode { namespace String {
     return g.isChar() ? 1 : y.min_len_mand(g.block(), p, q);
   }
   
-//  template <class View> forceinline int 
-//  max_len_opt(const View& y, const CBlock& g, const Position& p, 
-//                                              const Position& q, int l) {
-//    return g.isChar() ? 1 : y.max_len_opt(g.block(), p, q, l);
-//  }
-//  template <class View> forceinline void
-//  expandBlock(Space& home, const View& y, const CBlock& g, Block* y1) {
-//    if (g.isChar()) y.expandBlock(home, g.block(), y1);
-//  }
-//  template <class View> void
-//  crushBase(Space& home, const View& y, CBlock& g, const Position& p, 
-//                                                   const Position& q) {
-//    if (g.isChar()) y.crushBase(home, g.block(), p, q);
-//  }
-//  template <class View> forceinline void
-//  opt_region(Space& home, const CBlock& g, Block& bnew, 
-//                          const Position& p, const Position& q, int l) {
-//    if (g.isChar()) y.crushBase(home, g.block(), p, q);
-//  }
-  
-}}  
-  
-namespace Gecode { namespace String {  
-  
   /// Struct abstracting a position in a dashed string.
   struct Position {
     /// Index of the position

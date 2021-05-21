@@ -219,11 +219,6 @@ namespace Gecode { namespace String {
     const Block& block() const;
     void includeBaseIn(Space& home, Gecode::Set::GLBndSet& s);
     friend std::ostream& operator<<(std::ostream& os, const CBlock& x);
-//    void nullify(Space& home) { if (c < 0) p->nullify(home); GECODE_NEVER; }
-//    void update(Space& home, const Block& b) { if (c < 0) p->update(home, b); GECODE_NEVER; }
-//    void updateCard(Space& home, int l, int u) { if (c < 0) p->updateCard(home, l, u); GECODE_NEVER;}
-//    double logdim(void) const { return c < 0 ? 0 : p->logdim(); }
-//    int baseSize(void) const { return c < 0 ? 1 : p->baseSize(); }
   };
 
 }}
