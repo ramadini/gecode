@@ -323,7 +323,7 @@ namespace Gecode { namespace String {
     /// Initialize from string variables \a x and \a y
     ConcatView(View0& x, View1& y);
     //@}
-    ModEvent update(Space& home, const DashedString& d) const;
+    template <class T> ModEvent update(Space& home, const T& d) const;
     /// \name Sweep iterators
     //@{
     SweepFwdIterator<ConcatView<View0,View1>> fwd_iterator(void) const;
@@ -362,7 +362,7 @@ namespace Gecode { namespace String {
     /// Possibly update the upper bound of the blocks, knowing that the minimum 
     /// length for any string in the domain is \a l and the maximum length for 
     /// any string in the domain is \a u
-    ModEvent bnd_length(Space& home, int l, int u);
+    ModEvent bnd_length(Space& home, int l, int u) const;
     //@}
     /// \name Methods for dashed string equation
     //@{

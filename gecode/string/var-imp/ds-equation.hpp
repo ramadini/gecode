@@ -143,7 +143,7 @@ namespace Gecode { namespace String {
           ||  (d.logdim() < x_i.logdim())) {
             x.update(home, d);
             changed = true;
-            // TODO: Add here the constraint |x| <= y.max_length().
+            //FIXME: Gecode::String::Int::Length<ViewX>::post(home, x, IntVar(home, 0, y.max_length()));
             return true;
           }
         }

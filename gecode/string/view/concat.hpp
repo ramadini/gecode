@@ -243,7 +243,8 @@ namespace Gecode { namespace String {
 
   template <class View0, class View1>
   forceinline 
-  ConcatView<View0,View1>::ConcatView(void) : x0(), x1(), pivot(0) {}
+  ConcatView<View0,View1>::ConcatView(void) 
+  : x0(*(new View0())), x1(*(new View1())), pivot(0) { GECODE_NEVER; }
   
   template <class View0, class View1>
   forceinline
@@ -263,10 +264,17 @@ namespace Gecode { namespace String {
   }
   
   template <class View0, class View1>
+  template <class T>
   forceinline ModEvent
-  ConcatView<View0,View1>::update(Space&, const DashedString&) const {
+  ConcatView<View0,View1>::update(Space&, const T&) const {
     GECODE_NEVER;
-    return ME_STRING_FAILED;
+    return ME_STRING_NONE;
+  }
+  template <class View0, class View1>
+  forceinline ModEvent
+  ConcatView<View0,View1>::bnd_length(Space&, int, int) const {
+    GECODE_NEVER;
+    return ME_STRING_NONE;
   }
 
   template <class View0, class View1>
