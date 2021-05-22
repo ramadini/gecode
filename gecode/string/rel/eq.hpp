@@ -28,7 +28,7 @@ namespace Gecode { namespace String { namespace Rel {
   ExecStatus
   Eq<View0,View1>::propagate(Space& home, const ModEventDelta&) {
 //    std::cerr << "Prop. Eq " << x0 << "  vs  " << x1 << "\n";
-    int l = std::max(x0.min_length(), x1.min_length()), 
+    int l = std::max(x0.min_length(), x1.min_length()),
         u = std::min(x0.max_length(), x1.max_length());
     GECODE_ME_CHECK(x0.bnd_length(home, l, u));
     GECODE_ME_CHECK(x1.bnd_length(home, l, u));
@@ -68,19 +68,23 @@ namespace Gecode { namespace String { namespace Rel {
       GECODE_ME_CHECK(x1.update(home, x0));
       return ES_OK;
     }
-    ModEvent me;
+    ModEvent me0;
     do {
-      GECODE_ME_CHECK(equate_x(home, x0, x1));
-      GECODE_ME_CHECK(equate_x(home, x1, x0));
-      int l = std::max(x0.min_length(), x1.min_length()),
-          u = std::min(x0.max_length(), x1.max_length());
-      ModEvent m = x0.bnd_length(home, l, u);
-      GECODE_ME_CHECK(m);
-      me = m;
-      m = x1.bnd_length(home, l, u);
-      GECODE_ME_CHECK(m);
-      me += m;
-    } while (me > 0 || x0.assigned() + x1.assigned() == 1);
+      me0 = equate_x(home, x0, x1);
+      GECODE_ME_CHECK(me0);
+      ModEvent me1 = equate_x(home, x1, x0);
+      GECODE_ME_CHECK(me1);
+      me0 += me1; 
+      if (me0 != ME_STRING_NONE) {
+        l = std::max(x0.min_length(), x1.min_length()),
+        u = std::min(x0.max_length(), x1.max_length());
+        me0 = x0.bnd_length(home, l, u);
+        GECODE_ME_CHECK(me0);
+        me1 = x1.bnd_length(home, l, u);
+        GECODE_ME_CHECK(me1);
+        me0 += me1;
+      }
+    } while (me0 != ME_STRING_NONE || x0.assigned() + x1.assigned() == 1);
     // std::cerr << "Eq::propagated.\n";
     return x0.assigned() ? home.ES_SUBSUMED(*this) : ES_OK;
   }
