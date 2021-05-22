@@ -32,9 +32,34 @@ namespace Gecode { namespace String { namespace RelOp {
   : MixTernaryPropagator<View0,PC_STRING_ANY,View1,PC_STRING_ANY, 
                                              View2,PC_STRING_ANY>(home, p) {}
 
+  
+  template<class View0, class View1, class View2>
+  forceinline ExecStatus
+  Concat<View0,View1,View2>::refine_card(Space& home) {
+    ModEvent me0;
+    do {
+      int l = std::max(x0.min_length(), x2.min_length() - x1.max_length()),
+          u = std::min(x0.max_length(), x2.max_length() - x1.min_length());
+      me0 = x0.bnd_length(home, l, u);
+      GECODE_ME_CHECK(me0);
+      l = std::max(x1.min_length(), x2.min_length() - x0.max_length()),
+      u = std::min(x1.max_length(), x2.max_length() - x0.min_length());
+      ModEvent me1 = x1.bnd_length(home, l, u);
+      GECODE_ME_CHECK(me1);
+      me0 += me1;
+      l = std::max(x2.min_length(), x0.min_length() + x1.min_length()),
+      u = std::min(x2.max_length(), x0.max_length() + x1.max_length());
+      me1 = x2.bnd_length(home, l, u);
+      GECODE_ME_CHECK(me1);
+      me0 += me1;
+    } while (me0 != ME_STRING_NONE);
+    return ES_OK;
+  }
+
   template<class View0, class View1, class View2>
   forceinline ExecStatus
   Concat<View0,View1,View2>::propagate(Space& home, const ModEventDelta&) {
+    GECODE_ME_CHECK(refine_card(home));
     if (x2.isNull()) {
       GECODE_ME_CHECK(x0.nullify(home));
       GECODE_ME_CHECK(x1.nullify(home));
@@ -55,30 +80,18 @@ namespace Gecode { namespace String { namespace RelOp {
       else
         return ES_FAILED;
       return home.ES_SUBSUMED(*this);
-    }    
+    }
     int a;
-    ModEvent me;
     do {
       ConcatView<View0,View1> xy(x0,x1);
-      GECODE_ME_CHECK(equate_x(home, x2, xy));
-      GECODE_ME_CHECK(equate_x(home, xy, x2));
-        int l = std::max(x0.min_length(), x2.min_length() - x1.max_length()),
-            u = std::min(x0.max_length(), x2.max_length() - x1.min_length());
-        ModEvent m = x0.bnd_length(home, l, u);
-        GECODE_ME_CHECK(m);
-        me = m;
-        l = std::max(x1.min_length(), x2.min_length() - x0.max_length()),
-        u = std::min(x1.max_length(), x2.max_length() - x0.min_length());
-        m = x1.bnd_length(home, l, u);
-        GECODE_ME_CHECK(m);
-        me += m;
-        l = std::max(x2.min_length(), x0.min_length() + x1.min_length()),
-        u = std::min(x2.max_length(), x0.max_length() + x1.max_length());
-        m = x2.bnd_length(home, l, u);
-        GECODE_ME_CHECK(m);
-        me += m;
+      ModEvent me0 = equate_x(home, x2, xy);
+      GECODE_ME_CHECK(me0);
+      ModEvent me1 = equate_x(home, xy, x2);
+      GECODE_ME_CHECK(me1);
+      if (me0 + me1 != ME_STRING_NONE)
+        GECODE_ME_CHECK(refine_card(home));
       a = x0.assigned() + x1.assigned() + x2.assigned();
-    } while (me > 0 || a == 2);
+    } while (a == 2);
     return a == 3 ? home.ES_SUBSUMED(*this) : ES_FIX;
   }  
   
