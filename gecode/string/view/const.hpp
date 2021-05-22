@@ -229,6 +229,11 @@ namespace Gecode { namespace String {
         throw OutOfLimits("ConstStringView::ConstStringView");
       _val[i] = wi;
     }
+  }  
+  
+  forceinline bool
+  ConstStringView::isNull() const {
+    return n == 0;
   }
   
   forceinline int 
@@ -413,7 +418,19 @@ namespace Gecode { namespace String {
       s.include(home, c, c, d);
     }
     bx.baseIntersect(home, s);
+  }  
+    
+  template <class T> forceinline ModEvent 
+  ConstStringView::update(Space&, const T&) const {
+    GECODE_NEVER;
+    return ME_STRING_NONE;
   }
+  forceinline void
+  ConstStringView::resize(Space&, Block[], int, int[], int) const {
+    GECODE_NEVER;                                                                
+  }
+  forceinline void ConstStringView::normalize(Space&) { GECODE_NEVER; }
+  
      
 }}
 

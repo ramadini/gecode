@@ -56,6 +56,15 @@ namespace Gecode {
       ::post(home,x,y,z)));
   }
   
+  forceinline void
+  concat(Home home, StringVar x, StringVar y, std::vector<int> w) {
+    using namespace String;
+    GECODE_POST;
+    ConstStringView vw(home, &w[0], w.size());
+    GECODE_ES_FAIL((RelOp::Concat<StringView,StringView,ConstStringView>
+      ::post(home,x,y,vw)));
+  }
+  
 }
 
 #endif

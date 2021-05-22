@@ -236,6 +236,8 @@ namespace Gecode { namespace String {
     int max_length(void) const;
     /// Return the length of the string
     int size(void) const;
+    /// Return true iff the view is on the empty string
+    bool isNull(void) const;
     /// Returns the i-th character of the string
     int operator[](int i) const;
     /// Return the value of this view
@@ -244,6 +246,7 @@ namespace Gecode { namespace String {
     //@{
     SweepFwdIterator<ConstStringView> fwd_iterator(void) const;
     SweepBwdIterator<ConstStringView> bwd_iterator(void) const;
+    template <class T> ModEvent update(Space&, const T&) const;    
     //@}
     /// Always returns true (for compatibility with other views)
     bool assigned(void) const;
@@ -289,6 +292,10 @@ namespace Gecode { namespace String {
     void
     mand_region(Space& home, Block& bx, Block* bnew, int u,
                              const Position& p, const Position& q) const;
+    void
+    resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize) const;
+    /// Normalize this view
+    void normalize(Space& home);                                 
     //@}
     template<class Char, class Traits>
     friend std::basic_ostream<Char,Traits>&

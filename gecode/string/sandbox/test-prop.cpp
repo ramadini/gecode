@@ -8,10 +8,12 @@
 #include <gecode/string.hh>
 #include <gecode/string/rel.hh>
 #include <gecode/string/int.hh>
+#include <gecode/string/rel-op.hh>
 
 using namespace Gecode;
 using namespace String;
 using namespace Rel;
+using namespace RelOp;
 using namespace Gecode::Int;
 using namespace String::Int;
 using std::cerr;
@@ -164,10 +166,25 @@ public:
     );
     StringView vx(x);
     ConstStringView vw(*this, &w[0], w.size());
-//    ConcatView<ConstStringView,ConstStringView> vxw(vw, vw);
     ConcatView<StringView,ConstStringView> vxw(vx, vw);
     vxw.fwd_iterator();
     vxw.bwd_iterator();
+    StringVar y(*this);
+    StringView vy(y);
+    std::cerr << "x = " << x << "\n";
+    std::cerr << "y = " << y << "\n";
+    std::cerr << "w = " << vw << "\n";
+    class C : public Concat<StringView,StringView,ConstStringView> {
+    public:
+      C(Home h, StringView x, StringView y, ConstStringView z) 
+      : Concat(h, x, y, z) {};
+    };
+    assert(C(*this, vx, vx, vw).propagate(*this, 0) == ES_FAILED);
+    assert(C(*this, vx, vy, vw).propagate(*this, 0) == ES_FAILED);
+    assert(C(*this, vy, vx, vw).propagate(*this, 0) == ES_FAILED);
+    // FIXME: Fix this.
+    vy.update(*this, DashedString(*this));
+    assert(C(*this, vy, vy, vw).propagate(*this, 0) == ES_OK);
   }
   
 };
