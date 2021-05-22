@@ -28,6 +28,8 @@ namespace Gecode { namespace String { namespace Rel {
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator \f$ x=y \f$
     static ExecStatus post(Home home, View0 x, View1 y);
+  private:
+    ExecStatus refine_card(Space& home);
   };
   
    /**

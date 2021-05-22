@@ -26,12 +26,20 @@ namespace Gecode { namespace String { namespace Rel {
 
   template<class View0, class View1>
   ExecStatus
-  Eq<View0,View1>::propagate(Space& home, const ModEventDelta&) {
-//    std::cerr << "Prop. Eq " << x0 << "  vs  " << x1 << "\n";
+  Eq<View0,View1>::refine_card(Space& home) {
     int l = std::max(x0.min_length(), x1.min_length()),
         u = std::min(x0.max_length(), x1.max_length());
     GECODE_ME_CHECK(x0.bnd_length(home, l, u));
     GECODE_ME_CHECK(x1.bnd_length(home, l, u));
+    return ES_OK;
+  }
+
+
+  template<class View0, class View1>
+  ExecStatus
+  Eq<View0,View1>::propagate(Space& home, const ModEventDelta&) {
+//    std::cerr << "Prop. Eq " << x0 << "  vs  " << x1 << "\n";
+    refine_card(home);
     if (x0.assigned()) {
       if (x0.isNull()) {
         GECODE_ME_CHECK(x1.nullify(home));
@@ -74,15 +82,8 @@ namespace Gecode { namespace String { namespace Rel {
       GECODE_ME_CHECK(me0);
       ModEvent me1 = equate_x(home, x1, x0);
       GECODE_ME_CHECK(me1);
-      if (me0 + me1 != ME_STRING_NONE) {
-        l = std::max(x0.min_length(), x1.min_length()),
-        u = std::min(x0.max_length(), x1.max_length());
-        me0 = x0.bnd_length(home, l, u);
-        GECODE_ME_CHECK(me0);
-        me1 = x1.bnd_length(home, l, u);
-        GECODE_ME_CHECK(me1);
-        me0 += me1;
-      }
+      if (me0 + me1 != ME_STRING_NONE)
+        refine_card(home);
     } while (x0.assigned() + x1.assigned() == 1);
     // std::cerr << "Eq::propagated.\n";
     return x0.assigned() ? home.ES_SUBSUMED(*this) : ES_OK;
