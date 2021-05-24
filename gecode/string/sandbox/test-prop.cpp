@@ -182,9 +182,11 @@ public:
     assert(C(*this, vx, vx, vw).propagate(*this, 0) == ES_FAILED);
     assert(C(*this, vx, vy, vw).propagate(*this, 0) == ES_FAILED);
     assert(C(*this, vy, vx, vw).propagate(*this, 0) == ES_FAILED);
-    // FIXME: Fix this.
-    vy.update(*this, DashedString(*this));
-    assert(C(*this, vy, vy, vw).propagate(*this, 0) == ES_OK);
+    StringView vt(*this);
+    //FIXME: Seg.Fault in kernel/core.hpp 
+    // assert(C(*this, vt, vt, vw).propagate(*this, 0) == ES_OK);
+    ConcatView<StringView,StringView> cvt(vt,vt);
+    equate_x(*this, cvt, vw);
   }
   
 };

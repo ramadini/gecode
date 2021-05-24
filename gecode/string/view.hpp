@@ -346,8 +346,8 @@ namespace Gecode { namespace String {
     int max_length(void) const;
     /// Returns the number of blocks of the domain
     int size(void) const;
-    /// Returns the i-th block of the domain in the form of a Gblock.
-    Gblock operator[](int i) const;
+    /// Returns the i-th block of the domain in the form of a GBlock.
+    GBlock operator[](int i) const;
     /// Return the value of this string view, if assigned. Otherwise, an
     /// IllegalOperation exception is thrown.
     std::vector<int> val(void) const;

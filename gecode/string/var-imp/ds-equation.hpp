@@ -15,8 +15,8 @@ namespace Gecode { namespace String {
   forceinline int lbound(int) { return 1; }
   forceinline int ubound(const Block& b) { return b.ub(); }
   forceinline int lbound(const Block& b) { return b.lb(); }
-  forceinline int lbound(const Gblock& g) { return g.lb(); }
-  forceinline int ubound(const Gblock& g) { return g.ub(); }
+  forceinline int lbound(const GBlock& g) { return g.lb(); }
+  forceinline int ubound(const GBlock& g) { return g.ub(); }
   
   template <class View> forceinline int 
   min_len_mand(const View& y, const Block& b, const Position& p, 
@@ -28,7 +28,7 @@ namespace Gecode { namespace String {
     return 1;
   }
   template <class View> forceinline int 
-  min_len_mand(const View& y, const Gblock& g, const Position& p, 
+  min_len_mand(const View& y, const GBlock& g, const Position& p, 
                                                const Position& q) {
     return g.isChar() ? 1 : y.min_len_mand(g.block(), p, q);
   }
@@ -112,7 +112,7 @@ namespace Gecode { namespace String {
 //      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].LSP << "\nEEP: " 
 //                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
       Position& esp = m[i].ESP, eep = m[i].EEP, lsp = m[i].LSP, lep = m[i].LEP;
-      Gblock g_i(x[i]);
+      GBlock g_i(x[i]);
       int l = g_i.lb(), u = g_i.ub(), l1 = min_len_mand(y, g_i, lsp, eep);
       if (u < l1)
         return false;
@@ -275,7 +275,7 @@ namespace Gecode { namespace String {
   
   template <class IterY>
   forceinline Position
-  push(const Gblock& g, IterY& it) {
+  push(const GBlock& g, IterY& it) {
     return g.isFixed() ? push(g.val(), it) : push(g.block(), it);
   }
   
@@ -330,7 +330,7 @@ namespace Gecode { namespace String {
   
   template <class IterY>
   forceinline void
-  stretch(const Gblock& g, IterY& it) {
+  stretch(const GBlock& g, IterY& it) {
     g.isFixed() ? stretch(g.val(), it) : stretch(g.block(), it);
   }
   
@@ -421,6 +421,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool
   sweep_x(ViewX& x, const ViewY& y, Matching m[], int& n) {
+    std::cerr << "sweep_x: " << x << "  vs  " << y << "\n";
     if (!init_x(x, y, m))
       return false;
     if (x.assigned() && y.assigned())
@@ -436,8 +437,8 @@ namespace Gecode { namespace String {
     assert (m[0].LSP == Position(0,0));
     for (int i = 1; i < nx; ++i) {
       m[i].LSP = m[i-1].LEP;
-//      std::cerr << "ESP of " << x[i] << ": " << m[i].ESP << ", " 
-//                << "LSP of " << x[i] << ": " << m[i].LSP << "\n";
+      std::cerr << "ESP of " << GBlock(x[i]) << ": " << m[i].ESP << ", " 
+                << "LSP of " << GBlock(x[i]) << ": " << m[i].LSP << "\n";
       if (y.prec(m[i].LSP, m[i].ESP))
         return false;
       assert (m[i].ESP.isNorm(y) && m[i].LSP.isNorm(y));
@@ -490,8 +491,8 @@ namespace Gecode { namespace String {
         }
         return x.varimp()->notify(home, ME_STRING_CARD, d);
       }
-      else
-        return x.varimp()->notify(home, ME_STRING_BASE, d);
+      else {std::cerr << x.varimp() << "\n";
+        return x.varimp()->notify(home, ME_STRING_BASE, d);}
     }
     else
       return ME_STRING_FAILED;

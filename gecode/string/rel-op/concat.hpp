@@ -59,6 +59,7 @@ namespace Gecode { namespace String { namespace RelOp {
   template<class View0, class View1, class View2>
   forceinline ExecStatus
   Concat<View0,View1,View2>::propagate(Space& home, const ModEventDelta&) {
+    std::cerr << "Concat::propagate " <<x0<< " ++ " <<x1<< " = " <<x2<<"\n";
     GECODE_ME_CHECK(refine_card(home));
     if (x2.isNull()) {
       GECODE_ME_CHECK(x0.nullify(home));

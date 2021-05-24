@@ -55,7 +55,7 @@ namespace Gecode { namespace String {
 
 namespace Gecode { namespace String {
   
-  class Gblock;
+  class GBlock;
   
   /**
    * \brief Block of a dashed string modelling the domain of a string variable.
@@ -179,7 +179,7 @@ namespace Gecode { namespace String {
     void nullify(Space& home);
     /// Update this block to be a clone of \a b
     void update(Space& home, const Block& b);
-    void update(Space& home, const Gblock& g);
+    void update(Space& home, const GBlock& g);
     /// Update the lower/upper bounds of the block. It throws:
     /// - OutOfLimits, if lb < 0 or ub > MAX_STRING_LENGTH
     /// - VariableEmptyDomain, if lb > ub or lb > 0 and the base is empty
@@ -201,12 +201,12 @@ namespace Gecode { namespace String {
     
   };
 
-  class Gblock {
+  class GBlock {
     int c;
     Block* p;    
   public:
-    Gblock(int c0);
-    Gblock(Block& b);
+    GBlock(int c0);
+    GBlock(Block& b);
     int lb() const;
     int ub() const;
     bool isNull() const;
@@ -218,7 +218,7 @@ namespace Gecode { namespace String {
     Block& block();
     const Block& block() const;
     void includeBaseIn(Space& home, Gecode::Set::GLBndSet& s);
-    friend std::ostream& operator<<(std::ostream& os, const Gblock& g);
+    friend std::ostream& operator<<(std::ostream& os, const GBlock& g);
   };
 
 }}
@@ -485,58 +485,58 @@ namespace Gecode { namespace String {
 }}
 
 
-/*** Gblock/Block ***/
+/*** GBlock/Block ***/
 
 namespace Gecode { namespace String {
 
 
-  forceinline Gblock::Gblock(int c0) : c(c0), p(nullptr) {}
+  forceinline GBlock::GBlock(int c0) : c(c0), p(nullptr) {}
   
-  forceinline Gblock::Gblock(Block& b) : c(-1), p(&b) {}
+  forceinline GBlock::GBlock(Block& b) : c(-1), p(&b) {}
   
-  forceinline int Gblock::lb() const { return c < 0 ? p->lb() : 1; }
+  forceinline int GBlock::lb() const { return c < 0 ? p->lb() : 1; }
   
-  forceinline int Gblock::ub() const { return c < 0 ? p->ub() : 1; }
+  forceinline int GBlock::ub() const { return c < 0 ? p->ub() : 1; }
   
-  forceinline bool Gblock::isChar() const { return c >= 0; }
+  forceinline bool GBlock::isChar() const { return c >= 0; }
   
-  forceinline bool Gblock::isFixed() const { return c >= 0 || p->isFixed(); }
+  forceinline bool GBlock::isFixed() const { return c >= 0 || p->isFixed(); }
     
-  forceinline bool Gblock::isNull() const { return c < 0 && p->isNull(); }
+  forceinline bool GBlock::isNull() const { return c < 0 && p->isNull(); }
     
   forceinline int 
-  Gblock::disj(int k) const { 
+  GBlock::disj(int k) const { 
     return c < 0 ? !p->baseContains(k) : c != k;
   }
     
   forceinline int 
-  Gblock::disj(const Block& x) const {
+  GBlock::disj(const Block& x) const {
       return c < 0 ? p->baseDisjoint(x) : !x.baseContains(c); 
     }
     
   forceinline int 
-  Gblock::val() const {
+  GBlock::val() const {
     if (c < 0)
-      throw IllegalOperation("Gblock::val");
+      throw IllegalOperation("GBlock::val");
     return c;
   }
   
   forceinline const Block& 
-  Gblock::block() const {
+  GBlock::block() const {
     if (c >= 0)
-      throw IllegalOperation("Gblock::val");
+      throw IllegalOperation("GBlock::val");
     return *p;
   }
   
   forceinline Block& 
-  Gblock::block() {
+  GBlock::block() {
     if (c >= 0)
-      throw IllegalOperation("Gblock::val");
+      throw IllegalOperation("GBlock::val");
     return *p;
   }
   
   forceinline void 
-  Gblock::includeBaseIn(Space& home, Gecode::Set::GLBndSet& s) {
+  GBlock::includeBaseIn(Space& home, Gecode::Set::GLBndSet& s) {
     if (c < 0)
       p->includeBaseIn(home, s);
     else {
@@ -546,11 +546,11 @@ namespace Gecode { namespace String {
   }
   
   forceinline std::ostream&
-  operator<<(std::ostream& os, const Gblock& g) {
+  operator<<(std::ostream& os, const GBlock& g) {
     if (g.c < 0)
       os << g.block();
     else
-      os << g.val();
+      os << int2str(g.val());
     return os;
   }
   
@@ -856,7 +856,7 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  Block::update(Space& home, const Gblock& c) {
+  Block::update(Space& home, const GBlock& c) {
     if (c.isFixed()) {
       l = c.val();
       u = 1;

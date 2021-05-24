@@ -36,13 +36,13 @@ namespace Gecode { namespace String {
   template <class T>
   forceinline bool
   SweepIterator<T>::disj(const Block& b) const {
-    const Gblock& g = sv[pos.idx];
+    const GBlock& g = sv[pos.idx];
     return g.isFixed() ? !b.baseContains(g.val()) : g.block().baseDisjoint(b);
   }
   template<class T>
   forceinline bool
   SweepIterator<T>::disj(int k) const {
-    const Gblock& g = sv[pos.idx];
+    const GBlock& g = sv[pos.idx];
     return g.isFixed() ? g.val() != k : !g.block().baseContains(k);
   }
   
@@ -158,13 +158,13 @@ namespace Gecode { namespace String {
   template <class T>
   forceinline bool
   SweepBwdIterator<T>::disj(const Block& b) const {
-    const Gblock& g = sv[pos.off > 0 ? pos.idx : pos.idx-1];
+    const GBlock& g = sv[pos.off > 0 ? pos.idx : pos.idx-1];
     return g.isFixed() ? !b.baseContains(g.val()) : g.block().baseDisjoint(b);
   }
   template <class T>
   forceinline bool
   SweepBwdIterator<T>::disj(int k) const {
-    const Gblock& g = sv[pos.off > 0 ? pos.idx : pos.idx-1];
+    const GBlock& g = sv[pos.off > 0 ? pos.idx : pos.idx-1];
     return g.isFixed() ? g.val() != k : !g.block().baseContains(k);
   }
   
@@ -284,12 +284,12 @@ namespace Gecode { namespace String {
   }
 
   template <class View0, class View1>
-  forceinline Gblock
+  forceinline GBlock
   ConcatView<View0,View1>::operator[](int i) const {
     if (i < pivot)
-      return Gblock(x0[i]);
+      return GBlock(x0[i]);
     else
-      return Gblock(x1[i-pivot]);
+      return GBlock(x1[i-pivot]);
   }
   
   template <class View0, class View1>
@@ -356,9 +356,11 @@ namespace Gecode { namespace String {
   template <class View0, class View1>
   forceinline bool
   ConcatView<View0,View1>::prec(const Position& p, const Position& q) const {
-    return p.idx < q.idx 
-        || (q.idx <  pivot && x0.prec(p,q))
-        || (p.idx >= pivot && x1.prec(p-pivot,q-pivot));
+    std::cerr << pivot << ' ' << p << ' ' << q << '\n';
+    if (p.idx > q.idx)
+      return false;
+    return q.idx < pivot ? x0.prec(p,q) 
+                         : p.idx < pivot || x1.prec(p-pivot,q-pivot);
   }
   
   template <class View0, class View1>
