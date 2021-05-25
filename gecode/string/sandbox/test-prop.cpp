@@ -180,8 +180,11 @@ public:
       : Concat(h, x, y, z) {};
     };
     assert(C(*this, vx, vx, vw).propagate(*this, 0) == ES_FAILED);
+    std::cerr << "xx = w unsat!\n";
     assert(C(*this, vx, vy, vw).propagate(*this, 0) == ES_FAILED);
+    std::cerr << "xy = w unsat!\n";
     assert(C(*this, vy, vx, vw).propagate(*this, 0) == ES_FAILED);
+    std::cerr << "yx = w unsat!\n";
     StringView vt(*this);
     //FIXME: Seg.Fault in kernel/core.hpp 
     // assert(C(*this, vt, vt, vw).propagate(*this, 0) == ES_OK);
