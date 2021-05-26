@@ -411,6 +411,70 @@ namespace Gecode { namespace String {
       return ME_STRING_FAILED;  
   }
   
+  template <class IterY>
+  forceinline Position
+  StringView::push(int i, IterY& it) const {
+//    std::cerr << "Pushing " << bx << " from " << *it << '\n';
+    Position p = *it;
+    // No. of chars. that must be consumed
+    const Block& bx = (*this)[i];
+    int k = bx.lb(); 
+    while (k > 0) {
+//      std::cerr << "p=" << p << ", it=" << *it << ", k=" << k << std::endl;
+      if (!it.hasNextBlock())
+        return *it;
+      if (it.disj(bx)) {
+        // Skipping block, possibly resetting k
+        if (it.lb() > 0) {
+          it.nextBlock();
+          p = *it;
+          k = bx.lb();
+        }
+        else
+          it.nextBlock();
+      }
+      else {
+        // Max. no. of chars that may be consumed.
+        int m = it.may_consume();
+        if (k <= m) {
+          it.consume(k);
+          return p;
+        }
+        else {
+          k -= m;
+          it.nextBlock();
+        }
+      }
+    }
+    return p;
+  };
+  
+  template <class IterY>
+  forceinline void
+  StringView::stretch(int i, IterY& it) const {
+//    std::cerr << "Streching " << bx << " from " << *it << '\n';
+    const Block& bx = (*this)[i];
+    int k = bx.ub();
+    while (it.hasNextBlock()) {
+      // Min. no. of chars that must be consumed.
+      int m = it.must_consume();
+//      std::cerr << "it=" << *it << ", k=" << k << ", m=" << m << std::endl;      
+      if (m == 0)
+        it.nextBlock();
+      else if (it.disj(bx))
+        return;
+      else if (k < m) {
+        it.consumeMand(k);
+        return;
+      }
+      else {
+        k -= m;
+        it.nextBlock();
+      }
+    }
+  };
+  
+  
   forceinline bool
   StringView::equiv(const Position& p, const Position& q) const {
     return p == q 

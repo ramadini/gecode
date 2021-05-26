@@ -330,6 +330,59 @@ namespace Gecode { namespace String {
     return check_equate_x(*this, y) ? ME_STRING_NONE : ME_STRING_FAILED;
   }
   
+  template <class IterY>
+  forceinline Position
+  ConstStringView::push(int i, IterY& it) const {
+//  std::cerr << "Pushing " << bx << " from " << *it << '\n';
+    Position p = *it;
+    // No. of chars. that must be consumed
+    int cx = (*this)[i], k = 1;
+    while (k > 0) {
+//  std::cerr << "p=" << p << ", it=" << *it << ", k=" << k << std::endl;
+      if (!it.hasNextBlock())
+        return *it;
+      if (it.disj(cx)) {
+        // Skipping block, possibly resetting k
+        if (it.lb() > 0) {
+          it.nextBlock();
+          p = *it;
+          k = 1;
+        }
+        else
+          it.nextBlock();
+      }
+      else {
+        it.consume(1);
+        return p;
+      }
+    }
+    return p;
+  }
+  
+  template <class IterY>
+  forceinline void
+  ConstStringView::stretch(int i, IterY& it) const {
+//    std::cerr << "Streching " << cx << " from " << *it << '\n';
+    int cx = (*this)[i], k = 1;
+    while (it.hasNextBlock()) {
+      // Min. no. of chars that must be consumed.
+      int m = it.must_consume();
+//      std::cerr << "it=" << *it << ", k=" << k << ", m=" << m << std::endl;      
+      if (m == 0)
+        it.nextBlock();
+      else if (it.disj(cx))
+        return;
+      else if (k < m) {
+        it.consumeMand(k);
+        return;
+      }
+      else {
+        k = 0;
+        it.nextBlock();
+      }
+    }
+  };
+  
   forceinline bool
   ConstStringView::equiv(const Position& p, const Position& q) const {
     return p == q || (q.off == 0 && p.off == 1 && p.idx == q.idx-1)

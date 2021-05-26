@@ -387,6 +387,20 @@ namespace Gecode { namespace String {
   }
   
   template <class View0, class View1>
+  template <class IterY>
+  forceinline void
+  ConcatView<View0,View1>::stretch(int i, IterY& it) const {
+    i < pivot ? x0.stretch(i, it) : x1.stretch(i-pivot, it);
+  }
+  
+  template <class View0, class View1>
+  template <class IterY>
+  forceinline Position
+  ConcatView<View0,View1>::push(int i, IterY& it) const {
+    return i < pivot ? x0.push(i, it) : x1.push(i-pivot, it);
+  }
+  
+  template <class View0, class View1>
   forceinline bool
   ConcatView<View0,View1>::equiv(const Position& p, const Position& q) const {
     return (q.idx <  pivot && x0.equiv(p,q))

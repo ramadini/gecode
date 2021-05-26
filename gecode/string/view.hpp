@@ -153,6 +153,8 @@ namespace Gecode { namespace String {
     void gets(Space& home, const ConstStringView& y);
     void gets(Space& home, const std::vector<int>& w);
     
+    template <class IterY> Position push(int i, IterY& it) const;
+    template <class IterY> void stretch(int i, IterY& it) const;
     template <class T> ModEvent equate(Space& home, const T& y);
     
     ModEvent nullify(Space& home);
@@ -257,6 +259,8 @@ namespace Gecode { namespace String {
     SweepBwdIterator<ConstStringView> bwd_iterator(void) const;
     template <class T> ModEvent gets(Space&, const T&) const;
     template <class T> ModEvent equate(Space& home, const T& y) const;
+    template <class IterY> Position push(int i, IterY& it) const;
+    template <class IterY> void stretch(int i, IterY& it) const;
     //@}
     /// Always returns true (for compatibility with other views)
     bool assigned(void) const;
@@ -344,6 +348,8 @@ namespace Gecode { namespace String {
     //@}
     template <class T> ModEvent gets(Space& home, const T& d) const;
     template <class T> ModEvent equate(Space& home, const T& y);
+    template <class IterY> Position push(int i, IterY& it) const;
+    template <class IterY> void stretch(int i, IterY& it) const;
     /// \name Sweep iterators
     //@{
     SweepFwdIterator<ConcatView<View0,View1>> fwd_iterator(void) const;

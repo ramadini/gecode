@@ -205,134 +205,134 @@ namespace Gecode { namespace String {
     // use a x.check_length() that e.g. returning x.max_length() <= x.max_feas_len() for a StringView
     return true;
   }
-  
-  /// TODO:
-  template <class IterY>
-  forceinline Position
-  push(const Block& bx, IterY& it) {
-//    std::cerr << "Pushing " << bx << " from " << *it << '\n';
-    Position p = *it;
-    // No. of chars. that must be consumed
-    int k = bx.lb(); 
-    while (k > 0) {
-//      std::cerr << "p=" << p << ", it=" << *it << ", k=" << k << std::endl;
-      if (!it.hasNextBlock())
-        return *it;
-      if (it.disj(bx)) {
-        // Skipping block, possibly resetting k
-        if (it.lb() > 0) {
-          it.nextBlock();
-          p = *it;
-          k = bx.lb();
-        }
-        else
-          it.nextBlock();
-      }
-      else {
-        // Max. no. of chars that may be consumed.
-        int m = it.may_consume();
-        if (k <= m) {
-          it.consume(k);
-          return p;
-        }
-        else {
-          k -= m;
-          it.nextBlock();
-        }
-      }
-    }
-    return p;
-  };
-  
-  template <class IterY>
-  forceinline Position
-  push(int cx, IterY& it) {
-//    std::cerr << "Pushing " << bx << " from " << *it << '\n';
-    Position p = *it;
-    // No. of chars. that must be consumed
-    int k = 1;
-    while (k > 0) {
-//      std::cerr << "p=" << p << ", it=" << *it << ", k=" << k << std::endl;
-      if (!it.hasNextBlock())
-        return *it;
-      if (it.disj(cx)) {
-        // Skipping block, possibly resetting k
-        if (it.lb() > 0) {
-          it.nextBlock();
-          p = *it;
-          k = 1;
-        }
-        else
-          it.nextBlock();
-      }
-      else {
-        it.consume(1);
-        return p;
-      }
-    }
-    return p;
-  };
-  
-  template <class IterY>
-  forceinline Position
-  push(const GBlock& g, IterY& it) {
-    return g.isFixed() ? push(g.val(), it) : push(g.block(), it);
-  }
-  
-  /// TODO:
-  template <class IterY>
-  forceinline void
-  stretch(const Block& bx, IterY& it) {
-//    std::cerr << "Streching " << bx << " from " << *it << '\n';
-    int k = bx.ub();
-    while (it.hasNextBlock()) {
-      // Min. no. of chars that must be consumed.
-      int m = it.must_consume();
-//      std::cerr << "it=" << *it << ", k=" << k << ", m=" << m << std::endl;      
-      if (m == 0)
-        it.nextBlock();
-      else if (it.disj(bx))
-        return;
-      else if (k < m) {
-        it.consumeMand(k);
-        return;
-      }
-      else {
-        k -= m;
-        it.nextBlock();
-      }
-    }
-  };
-  
-  template <class IterY>
-  forceinline void
-  stretch(int cx, IterY& it) {
-//    std::cerr << "Streching " << cx << " from " << *it << '\n';
-    int k = 1;
-    while (it.hasNextBlock()) {
-      // Min. no. of chars that must be consumed.
-      int m = it.must_consume();
-//      std::cerr << "it=" << *it << ", k=" << k << ", m=" << m << std::endl;      
-      if (m == 0)
-        it.nextBlock();
-      else if (it.disj(cx))
-        return;
-      else if (k < m) {
-        it.consumeMand(k);
-        return;
-      }
-      else {
-        k = 0;
-        it.nextBlock();
-      }
-    }
-  };
-  
-  template <class IterY>
-  forceinline void
-  stretch(const GBlock& g, IterY& it) {
-    g.isFixed() ? stretch(g.val(), it) : stretch(g.block(), it);
-  }
+//  
+//  /// TODO:
+//  template <class IterY>
+//  forceinline Position
+//  push(const Block& bx, IterY& it) {
+////    std::cerr << "Pushing " << bx << " from " << *it << '\n';
+//    Position p = *it;
+//    // No. of chars. that must be consumed
+//    int k = bx.lb(); 
+//    while (k > 0) {
+////      std::cerr << "p=" << p << ", it=" << *it << ", k=" << k << std::endl;
+//      if (!it.hasNextBlock())
+//        return *it;
+//      if (it.disj(bx)) {
+//        // Skipping block, possibly resetting k
+//        if (it.lb() > 0) {
+//          it.nextBlock();
+//          p = *it;
+//          k = bx.lb();
+//        }
+//        else
+//          it.nextBlock();
+//      }
+//      else {
+//        // Max. no. of chars that may be consumed.
+//        int m = it.may_consume();
+//        if (k <= m) {
+//          it.consume(k);
+//          return p;
+//        }
+//        else {
+//          k -= m;
+//          it.nextBlock();
+//        }
+//      }
+//    }
+//    return p;
+//  };
+//  
+//  template <class IterY>
+//  forceinline Position
+//  push(int cx, IterY& it) {
+////    std::cerr << "Pushing " << bx << " from " << *it << '\n';
+//    Position p = *it;
+//    // No. of chars. that must be consumed
+//    int k = 1;
+//    while (k > 0) {
+////      std::cerr << "p=" << p << ", it=" << *it << ", k=" << k << std::endl;
+//      if (!it.hasNextBlock())
+//        return *it;
+//      if (it.disj(cx)) {
+//        // Skipping block, possibly resetting k
+//        if (it.lb() > 0) {
+//          it.nextBlock();
+//          p = *it;
+//          k = 1;
+//        }
+//        else
+//          it.nextBlock();
+//      }
+//      else {
+//        it.consume(1);
+//        return p;
+//      }
+//    }
+//    return p;
+//  };
+//  
+//  template <class IterY>
+//  forceinline Position
+//  push(const GBlock& g, IterY& it) {
+//    return g.isFixed() ? push(g.val(), it) : push(g.block(), it);
+//  }
+//  
+//  /// TODO:
+//  template <class IterY>
+//  forceinline void
+//  stretch(const Block& bx, IterY& it) {
+////    std::cerr << "Streching " << bx << " from " << *it << '\n';
+//    int k = bx.ub();
+//    while (it.hasNextBlock()) {
+//      // Min. no. of chars that must be consumed.
+//      int m = it.must_consume();
+////      std::cerr << "it=" << *it << ", k=" << k << ", m=" << m << std::endl;      
+//      if (m == 0)
+//        it.nextBlock();
+//      else if (it.disj(bx))
+//        return;
+//      else if (k < m) {
+//        it.consumeMand(k);
+//        return;
+//      }
+//      else {
+//        k -= m;
+//        it.nextBlock();
+//      }
+//    }
+//  };
+//  
+//  template <class IterY>
+//  forceinline void
+//  stretch(int cx, IterY& it) {
+////    std::cerr << "Streching " << cx << " from " << *it << '\n';
+//    int k = 1;
+//    while (it.hasNextBlock()) {
+//      // Min. no. of chars that must be consumed.
+//      int m = it.must_consume();
+////      std::cerr << "it=" << *it << ", k=" << k << ", m=" << m << std::endl;      
+//      if (m == 0)
+//        it.nextBlock();
+//      else if (it.disj(cx))
+//        return;
+//      else if (k < m) {
+//        it.consumeMand(k);
+//        return;
+//      }
+//      else {
+//        k = 0;
+//        it.nextBlock();
+//      }
+//    }
+//  };
+//  
+//  template <class IterY>
+//  forceinline void
+//  stretch(const GBlock& g, IterY& it) {
+//    g.isFixed() ? stretch(g.val(), it) : stretch(g.block(), it);
+//  }
   
   template <class ViewX, class ViewY>
   forceinline bool
@@ -347,7 +347,7 @@ namespace Gecode { namespace String {
       return true;
     }
     SweepFwdIterator<ViewY> q(y, m[i].ESP);
-    SweepFwdIterator<ViewY> p(y, push<SweepFwdIterator<ViewY>>(x[i], q));
+    SweepFwdIterator<ViewY> p(y, x.push(i, q));
     if (!p())
       return false;    
     if (i < n && y.prec(m[i+1].ESP, *q))
@@ -371,7 +371,7 @@ namespace Gecode { namespace String {
       return true;
     }
     SweepBwdIterator<ViewY> p(y, m[i].LEP);
-    SweepBwdIterator<ViewY> q(y, push<SweepBwdIterator<ViewY>>(x[i], p));
+    SweepBwdIterator<ViewY> q(y, x.push(i, p));
 //    std::cerr << "p = " << *p << ", q = " << *q << "\n";
     if (!q())
       return false;
@@ -392,7 +392,7 @@ namespace Gecode { namespace String {
     SweepFwdIterator<ViewY> fwd_it = y.fwd_iterator();
     int nx = x.size();
     for (int i = 0; i < nx; ++i) {
-      stretch(x[i], fwd_it);
+      x.stretch(i, fwd_it);
       m[i].LEP = *fwd_it;
 //      std::cerr << i << ": " << x[i] << " LEP: " << m[i].LEP << '\n';
       if (!fwd_it.hasNextBlock()) {
@@ -405,7 +405,7 @@ namespace Gecode { namespace String {
       return false;
     SweepBwdIterator<ViewY> bwd_it = y.bwd_iterator();
     for (int i = nx-1; i >= 0; --i) {
-      stretch(x[i], bwd_it);
+      x.stretch(i, bwd_it);
       m[i].ESP = *bwd_it;
 //      std::cerr << i << ": " << x[i] << " ESP: " << m[i].ESP << '\n';
       if (!bwd_it.hasNextBlock()) {
