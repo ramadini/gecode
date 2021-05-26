@@ -194,10 +194,9 @@ public:
     assert(C(*this, vy, vx, vw).propagate(*this, 0) == ES_FAILED);
     std::cerr << "yx = w unsat!\n";
     StringView vt(*this);
-    std::cerr << C(*this, vt, vt, vw).propagate(*this, 0) << "\n";
-//    assert(C(*this, vt, vt, vw).propagate(*this, 0) == ES_OK);
-//    ConcatView<StringView,StringView> cvt(vt,vt);
-//    cvt.equate(*this, vw);
+    assert(C(*this, vt, vt, vw).propagate(*this, 0) == ES_OK);
+    std::cerr << "vt = " << vt << '\n';
+    assert (vt.min_length() == 0 && vt.max_length() == (int) w.size());
   }
   
 };

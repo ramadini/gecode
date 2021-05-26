@@ -59,7 +59,7 @@ namespace Gecode { namespace String { namespace RelOp {
   template<class View0, class View1, class View2>
   forceinline ExecStatus
   Concat<View0,View1,View2>::propagate(Space& home, const ModEventDelta&) {
-    std::cerr << "Concat::propagate " <<x0<< " ++ " <<x1<< " = " <<x2<<"\n";
+//    std::cerr << "Concat::propagate " <<x0<< " ++ " <<x1<< " = " <<x2<<"\n";
     GECODE_ME_CHECK(refine_card(home));
     if (x2.isNull()) {
       GECODE_ME_CHECK(x0.nullify(home));
@@ -93,7 +93,8 @@ namespace Gecode { namespace String { namespace RelOp {
         GECODE_ME_CHECK(refine_card(home));
       a = x0.assigned() + x1.assigned() + x2.assigned();
     } while (a == 2);
-    return a == 3 ? home.ES_SUBSUMED(*this) : ES_FIX;
+//    std::cerr << "After Concat::propagate " <<x0<< " ++ " <<x1<< " = " <<x2<<"\n";
+    return a == 3 ? home.ES_SUBSUMED(*this) : ES_OK;
   }  
   
 }}}
