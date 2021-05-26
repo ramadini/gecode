@@ -347,6 +347,46 @@ namespace Gecode { namespace String {
   }
   
   template <class View0, class View1>
+  template <class T>
+  forceinline ModEvent
+  ConcatView<View0,View1>::me(Space& home, const T& xk, int lb, int ub) const {
+    int ux = xk.max_length();
+    StringDelta d;
+    if (xk.min_length() > lb || (ux < ub && ux < MAX_STRING_LENGTH))
+      return xk.varimp()->notify(home, ME_STRING_CARD, d);
+    if (ux == MAX_STRING_LENGTH && ub > MAX_STRING_LENGTH) {
+      long u = 0L;
+      for (int i = 0; i < xk.size(); ++i) {
+        u += xk[i].ub();
+        if (u >= ub)
+          return xk.varimp()->notify(home, ME_STRING_BASE, d);
+      }
+      return xk.varimp()->notify(home, ME_STRING_CARD, d);
+    }
+    else
+      return xk.varimp()->notify(home, ME_STRING_BASE, d);
+  }
+  
+  template <class View0, class View1>
+  template <class T>
+  forceinline ModEvent
+  ConcatView<View0,View1>::equate(Space& home, const T& y) {
+    assert (!assigned());
+    int lb0 = x0.min_length(), lb1 = x1.min_length();
+    long ub0 = x0.ubounds_sum(), ub1 = x1.ubounds_sum();
+    Matching m[size()];
+    int n;
+    if (sweep_x(*this, y, m, n) && refine_x(home, *this, y, m, n)) {
+      if (n == -1)
+        return ME_STRING_NONE;
+      return StringVarImp::me_combine(me<View0>(home, x0, lb0, ub0),
+                                      me<View1>(home, x1, lb1, ub1));
+    }
+    else
+      return ME_STRING_FAILED;  
+  }
+  
+  template <class View0, class View1>
   forceinline bool
   ConcatView<View0,View1>::equiv(const Position& p, const Position& q) const {
     return (q.idx <  pivot && x0.equiv(p,q))

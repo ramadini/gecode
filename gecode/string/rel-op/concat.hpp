@@ -87,7 +87,7 @@ namespace Gecode { namespace String { namespace RelOp {
       ConcatView<View0,View1> xy(x0,x1);
       ModEvent me0 = x2.equate(home, xy);
       GECODE_ME_CHECK(me0);      
-      ModEvent me1 = equate_x(home, xy, x2); // TODO: xy.equate(home, x2);
+      ModEvent me1 = xy.equate(home, x2);
       GECODE_ME_CHECK(me1);
       if (me0 + me1 != ME_STRING_NONE)
         GECODE_ME_CHECK(refine_card(home));

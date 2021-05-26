@@ -142,7 +142,7 @@ public:
     StringView vy(y);
     assert (!check_equate_x(vx, vy));
     assert (!check_equate_x(vy, vx));
-    assert (equate_x(*this, vy, vx) == ES_FAILED);
+    assert (vy.equate(*this, vx) == ES_FAILED);
     w = str2vec(
       ":?@NbT;^AZR3IuW3ee:)DpBr%&C]=x=BqcG8[Pe.Uj` ]c4]?e]qCu|B,LSV!W(e: "
     );
@@ -156,7 +156,7 @@ public:
     std::cerr << "z = " << vz << "\n";
     cerr << "Equate t = " << t << "  vs  z = " << vz << "\n";
     StringView vt(t);
-    assert (equate_x(*this, vt, vz) == ME_STRING_CARD);
+    assert (vt.equate(*this, vz) == ME_STRING_CARD);
     std::cerr << "After equate, t = " << t << "\n";
     assert (vt.size() == 16+1+35   && vt[0].val()[0] == ':');
     assert (vt[15].val()[0] == '3' && !vt[16].isFixed());
@@ -194,10 +194,10 @@ public:
     assert(C(*this, vy, vx, vw).propagate(*this, 0) == ES_FAILED);
     std::cerr << "yx = w unsat!\n";
     StringView vt(*this);
-    //FIXME: Seg.Fault in kernel/core.hpp 
+    std::cerr << C(*this, vt, vt, vw).propagate(*this, 0) << "\n";
 //    assert(C(*this, vt, vt, vw).propagate(*this, 0) == ES_OK);
-    ConcatView<StringView,StringView> cvt(vt,vt);
-    equate_x(*this, cvt, vw);
+//    ConcatView<StringView,StringView> cvt(vt,vt);
+//    cvt.equate(*this, vw);
   }
   
 };

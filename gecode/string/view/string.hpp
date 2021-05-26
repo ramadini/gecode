@@ -305,6 +305,17 @@ namespace Gecode { namespace String {
     return x->min_length();
   }
   
+  forceinline long
+  StringView::ubounds_sum() const {
+    long ub = max_length();
+    if (ub == Limits::MAX_STRING_LENGTH && min_length() < ub && size() > 1) {
+      ub = 0;
+      for (int i = 0; i < size(); ++i)
+        ub += (*this)[i].ub();
+    }
+    return ub;
+  }
+  
   forceinline bool
   StringView::assigned() const {
     return x->assigned();
@@ -370,23 +381,17 @@ namespace Gecode { namespace String {
   template <class T>
   forceinline ModEvent
   StringView::equate(Space& home, const T& y) {
+    assert (!assigned());
     int lb = min_length();
-    long ub = max_length();
-    if (ub == Limits::MAX_STRING_LENGTH && lb < ub && size() > 1) {
-      ub = 0;
-      for (int i = 0; i < size(); ++i)
-        ub += (*this)[i].ub();
-    }
-    else
-      ub = max_length();
+    long ub = this->ubounds_sum();
     Matching m[size()];
     int n;
     if (sweep_x(*this, y, m, n) && refine_x(home, *this, y, m, n)) {
       if (n == -1)
-        return ME_STRING_NONE;      
+        return ME_STRING_NONE;
+      StringDelta d;    
       if (assigned())
-        return ME_STRING_VAL;
-      StringDelta d;
+        return x->notify(home, ME_STRING_VAL, d);
       int ux = max_length();
       if (min_length() > lb || (ux < ub && ux < MAX_STRING_LENGTH))
         return x->notify(home, ME_STRING_CARD, d);

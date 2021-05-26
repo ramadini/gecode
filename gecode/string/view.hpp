@@ -116,6 +116,8 @@ namespace Gecode { namespace String {
     int min_length(void) const;
     /// Return the maximum length for a string in the variable's domain
     int max_length(void) const;
+    /// Return the sum of the upper bounds
+    long ubounds_sum(void) const;
     /// Returns the number of blocks of the domain
     int size(void) const;
     /// Returns the i-th block of the domain
@@ -239,6 +241,8 @@ namespace Gecode { namespace String {
     int min_length(void) const;
     /// Return the length of the string (for compatibility with other views)
     int max_length(void) const;
+    /// Return the sum of the upper bounds
+    int ubounds_sum(void) const;
     /// Return the length of the string
     int size(void) const;
     /// Return true iff the view is on the empty string
@@ -329,6 +333,7 @@ namespace Gecode { namespace String {
     View0& x0;
     View1& x1;
     int pivot;
+    template <class T> ModEvent me(Space&, const T& xk, int lb, int ub) const;
   public:
     /// \name Constructors and initialization
     //@{
@@ -338,6 +343,7 @@ namespace Gecode { namespace String {
     ConcatView(View0& x, View1& y);
     //@}
     template <class T> ModEvent gets(Space& home, const T& d) const;
+    template <class T> ModEvent equate(Space& home, const T& y);
     /// \name Sweep iterators
     //@{
     SweepFwdIterator<ConcatView<View0,View1>> fwd_iterator(void) const;

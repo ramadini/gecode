@@ -346,11 +346,11 @@ public:
     StringVar y(*this, Block(*this, CharSet(*this,IntSet({'b','o','m'})),0,4));    
     StringView vx(x), vy(y);    
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert(equate_x(*this, vx, vy) == ME_STRING_VAL);
+    assert(vx.equate(*this, vy) == ME_STRING_VAL);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     assert(x.val() == vector<int>({'b', 'o', 'o', 'm'}));
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert(equate_x(*this, vy, vx) == ME_STRING_VAL);
+    assert(vy.equate(*this, vx) == ME_STRING_VAL);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert(x.val() == y.val());
     assert(vx.isOK() && vy.isOK());
@@ -372,26 +372,26 @@ public:
     StringVar y(*this, Block(*this, CharSet(*this, '=')));    
     StringView vx(x), vy(y);    
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert(equate_x(*this, vx, vy) == ME_STRING_FAILED);
-    assert(equate_x(*this, vy, vx) == ME_STRING_FAILED);
+    assert(vx.equate(*this, vy) == ME_STRING_FAILED);
+    assert(vy.equate(*this, vx) == ME_STRING_FAILED);
     cerr << "Unsat!\n";
     
     StringVar z(*this, Block(*this, CharSet(*this, ' ', '~')));
     StringView vz(z);
     cerr << "Equate y = " << y << "  vs  z = " << z << "\n";
-    assert(equate_x(*this, vy, vz) == ME_STRING_NONE);
+    assert(vy.equate(*this, vz) == ME_STRING_NONE);
     cerr << "After equate: y = " << y << "  vs  z = " << z << "\n";    
     cerr << "Equate z = " << z << "  vs  y = " << y << "\n";
-    assert(equate_x(*this, vz, vy) == ME_STRING_BASE);
+    assert(vz.equate(*this, vy) == ME_STRING_BASE);
     cerr << "After equate: z = " << z << "  vs  y = " << y << "\n";
     
     StringVar t(*this, DashedString(*this, bv, 8));
     StringView vt(t);
     cerr << "Equate z = " << z << "  vs  t = " << t << "\n";
-    assert(equate_x(*this, vz, vt) > -1);// == ME_STRING_CARD);
+    assert(vz.equate(*this, vt) == ME_STRING_CARD);
     cerr << "After equate: z = " << z << "  vs  t = " << t << "\n";
     cerr << "Equate t = " << t << "  vs  z = " << z << "\n";
-    assert(equate_x(*this, vt, vz) == ME_STRING_CARD);
+    assert(vt.equate(*this, vz) == ME_STRING_CARD);
     cerr << "After equate: t = " << t << "  vs  z = " << z << "\n";
     double lt = t.varimp()->dom().logdim();
     assert (lt == z.varimp()->dom().logdim() && lt == log(4));
@@ -412,10 +412,10 @@ public:
     StringVar y(*this, DashedString(*this, bv, 3));
     StringView vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_NONE);
+    assert (vx.equate(*this, vy) == ME_STRING_NONE);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert(equate_x(*this, vy, vx) == ME_STRING_NONE);
+    assert(vy.equate(*this, vx) == ME_STRING_NONE);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert(vx.isOK() && vy.isOK());
   }
@@ -438,10 +438,10 @@ public:
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_NONE);
+    assert (vx.equate(*this, vy) == ME_STRING_NONE);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
+    assert (vy.equate(*this, vx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     for (int i = 0; i < n1; ++i)
       assert(w1[i] == vy[i].val()[0] && w1[i] == vx[i].val()[0]);
@@ -468,10 +468,10 @@ public:
     StringVar y(*this, DashedString(*this, by, w.size()));
     StringView vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_FAILED);
+    assert (vx.equate(*this, vy) == ME_STRING_FAILED);
     cerr << "Unsat!\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (equate_x(*this, vy, vx) == ME_STRING_FAILED);
+    assert (!check_equate_x(vx, vy));
     cerr << "Unsat!\n";
     assert(vx.isOK() && vy.isOK());
   }
@@ -499,10 +499,10 @@ public:
     StringVar y(*this, DashedString(*this, by, ny));
     StringView vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_FAILED);
+    assert (vx.equate(*this, vy) == ME_STRING_FAILED);
     cerr << "Unsat!\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (equate_x(*this, vy, vx) == ME_STRING_FAILED);
+    assert (vy.equate(*this, vx) == ME_STRING_FAILED);
     cerr << "Unsat!\n";
     assert (!check_equate_x(vx, vy) && !check_equate_x(vy, vx));
     assert(vx.isOK() && vy.isOK());
@@ -517,10 +517,10 @@ public:
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
+    assert (vx.equate(*this, vy) == ME_STRING_CARD);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     assert (vx[0].logdim() + vx[1].logdim() == vy[0].logdim() + vy[1].logdim());
-    assert (equate_x(*this, vy, vx) == ME_STRING_NONE);
+    assert (vy.equate(*this, vx) == ME_STRING_NONE);
     assert(vx.isOK() && vy.isOK());
   }
   
@@ -538,11 +538,11 @@ public:
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
+    assert (vx.equate(*this, vy) == ME_STRING_CARD);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     assert (vx.size() == 4 && vx[3].val()[0] == 'f');
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (equate_x(*this, vy, vx) == ME_STRING_NONE);
+    assert (vy.equate(*this, vx) == ME_STRING_NONE);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert(vx.isOK() && vy.isOK());
   }
@@ -559,7 +559,7 @@ public:
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_NONE);
+    assert (vx.equate(*this, vy) == ME_STRING_NONE);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     assert(vx.isOK() && vy.isOK());
   }
@@ -577,10 +577,10 @@ public:
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_VAL);
+    assert (vx.equate(*this, vy) == ME_STRING_VAL);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (equate_x(*this, vy, vx) == ME_STRING_VAL);
+    assert (vy.equate(*this, vx) == ME_STRING_VAL);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert (x.val() == y.val());
     assert(vx.isOK() && vy.isOK());
@@ -599,10 +599,10 @@ public:
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_FAILED);
+    assert (vx.equate(*this, vy) == ME_STRING_FAILED);
     cerr << "Unsat!\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (equate_x(*this, vy, vx) == ME_STRING_FAILED);
+    assert (vy.equate(*this, vx) == ME_STRING_FAILED);
     cerr << "Unsat!\n";
     assert (!check_equate_x(vx, vy) && !check_equate_x(vy, vx));
     assert(vx.isOK() && vy.isOK());
@@ -623,10 +623,10 @@ public:
     StringVar y(*this, DashedString(*this, by, 4));
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
+    assert (vx.equate(*this, vy) == ME_STRING_CARD);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     assert (vx[1].ub() == 1 && vx[2].val()[0] == 'b' && vx[3].val()[0] == 'y');
-    assert (equate_x(*this, vy, vx) == ME_STRING_BASE);
+    assert (vy.equate(*this, vx) == ME_STRING_BASE);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     assert (vx.varimp()->dom().contains(vy.varimp()->dom()));
     assert (vy.varimp()->dom().contains(vx.varimp()->dom()));
@@ -646,12 +646,12 @@ public:
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
+    assert (vx.equate(*this, vy) == ME_STRING_CARD);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     assert (vx.varimp()->dom().contains(vy.varimp()->dom()));
     assert (vy.varimp()->dom().contains(vx.varimp()->dom()));
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (equate_x(*this, vy, vx) == ME_STRING_NONE);
+    assert (vy.equate(*this, vx) == ME_STRING_NONE);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert(vx.isOK() && vy.isOK());
   }
@@ -668,11 +668,11 @@ public:
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_BASE);
+    assert (vx.equate(*this, vy) == ME_STRING_BASE);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     assert(vx[1].baseMax() == vx[1].baseMin() && vx[1].baseMax() == 'd');
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
+    assert (vy.equate(*this, vx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert(vy[1].ub() == 800);
     assert(vx.isOK() && vy.isOK());
@@ -694,11 +694,11 @@ public:
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_BASE);
+    assert (vx.equate(*this, vy) == ME_STRING_BASE);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";     
     assert (vx[2].baseMin() == 'a' && vx[2].baseMax() == 'd');
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
+    assert (vy.equate(*this, vx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert(vy[1].ub() == 800);
     assert(vx.isOK() && vy.isOK());
@@ -710,10 +710,10 @@ public:
     StringVar y(*this, Block(*this, CharSet(*this, 'd'), 0, 900));
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_VAL);
+    assert (vx.equate(*this, vy) == ME_STRING_VAL);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (equate_x(*this, vy, vx) == ME_STRING_VAL);
+    assert (vy.equate(*this, vx) == ME_STRING_VAL);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert (x.val().empty() == y.val().empty());
   }
@@ -730,10 +730,10 @@ public:
     StringVar y(*this, DashedString(*this, by, 1));
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
+    assert (vx.equate(*this, vy) == ME_STRING_CARD);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (equate_x(*this, vy, vx) == ME_STRING_BASE);
+    assert (vy.equate(*this, vx) == ME_STRING_BASE);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert (vx.size() == 2);
     assert(vx.isOK() && vy.isOK());
@@ -749,10 +749,10 @@ public:
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
+    assert (vx.equate(*this, vy) == ME_STRING_CARD);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (equate_x(*this, vy, vx) == ME_STRING_BASE);
+    assert (vy.equate(*this, vx) == ME_STRING_BASE);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert (vx.varimp()->dom().contains(vy.varimp()->dom()));
     assert (vy.varimp()->dom().contains(vx.varimp()->dom()));
@@ -772,10 +772,10 @@ public:
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
+    assert (vx.equate(*this, vy) == ME_STRING_CARD);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
+    assert (vy.equate(*this, vx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert(vx.isOK() && vy.isOK());
   }
@@ -791,10 +791,10 @@ public:
     StringVar y(*this, DashedString(*this, by, 3));
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
+    assert (vx.equate(*this, vy) == ME_STRING_CARD);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
+    assert (vy.equate(*this, vx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert (vx.varimp()->dom().contains(vy.varimp()->dom()));
     assert (vy.varimp()->dom().contains(vx.varimp()->dom()));
@@ -814,12 +814,12 @@ public:
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_CARD);
+    assert (vx.equate(*this, vy) == ME_STRING_CARD);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     assert(vx[0].ub() == 2 && vx[1].val() == std::vector<int>({'d'}));
     assert(vx[2].ub() == 1 && vx[3].val() == std::vector<int>({'f'}));
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
+    assert (vy.equate(*this, vx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert(vy[0].lb() == 1 && vy[1].val() == std::vector<int>({'f'}));
     assert(vx.isOK() && vy.isOK());
@@ -838,10 +838,10 @@ public:
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_NONE);
+    assert (check_equate_x(vx, vy));
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
+    assert (vy.equate(*this, vx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert (vy[0].val() == vector<int>({'0'}) && vy.size() == 2);
     assert (vy[1].lb() == 0 && vy[1].ub() == 4);
@@ -863,10 +863,10 @@ public:
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_NONE);
+    assert (check_equate_x(vx, vy));
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
+    assert (vy.equate(*this, vx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert (vy.size() == 2 && vy[1].val()[0] == 'N');
     assert(vx.isOK() && vy.isOK());
@@ -887,10 +887,10 @@ public:
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_NONE);
+    assert (check_equate_x(vx, vy));
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
+    assert (vy.equate(*this, vx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert (vy.size() == 2 && vy[0].val()[0] == '6');
     assert(vx.isOK() && vy.isOK());
@@ -912,10 +912,10 @@ public:
     StringVar y(*this, DashedString(*this, by, n+1));
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_NONE);
+    assert (check_equate_x(vx, vy));
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (equate_x(*this, vy, vx) == ME_STRING_VAL);
+    assert (vy.equate(*this, vx) == ME_STRING_VAL);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert (y.val() == vector<int>({'a','b',' ','=','a','b'}));
     assert(vx.isOK() && vy.isOK());
@@ -934,10 +934,10 @@ public:
     StringVar y(*this, DashedString(*this, by, M));
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_NONE);
+    assert (vx.equate(*this, vy) == ME_STRING_NONE);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (equate_x(*this, vy, vx) == ME_STRING_CARD);
+    assert (vy.equate(*this, vx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     for (int i = 0; i < N; ++i)
       assert(vy[i].baseMin() == 'a'+i && vy[i].baseMax() == 'a'+N-1);
@@ -956,10 +956,10 @@ public:
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vx(x), vy(y);
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_VAL);
+    assert (vx.equate(*this, vy) == ME_STRING_VAL);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (equate_x(*this, vy, vx) == ME_STRING_VAL);
+    assert (vy.equate(*this, vx) == ME_STRING_VAL);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert(vx.isOK() && vy.isOK());
   }
@@ -983,10 +983,10 @@ public:
     StringView vx(x), vy(y);
     // NOTE: x and y are not equatable.
     cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-    assert (equate_x(*this, vx, vy) == ME_STRING_CARD);    
+    assert (vx.equate(*this, vy) == ME_STRING_CARD);    
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (equate_x(*this, vy, vx) == ME_STRING_FAILED);
+    assert (vy.equate(*this, vx) == ME_STRING_FAILED);
     cerr << "Unsat!\n";
     assert (!check_equate_x(vx, vy) && !check_equate_x(vy, vx));
   }

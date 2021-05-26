@@ -458,46 +458,6 @@ namespace Gecode { namespace String {
     return true;
   }
   
-  /// TODO: Remove this:
-  template <class ViewX, class ViewY>
-  forceinline ModEvent
-  equate_x(Space& home, ViewX& x, const ViewY& y) {
-    int lb = x.min_length();
-    long ub = x.max_length();
-    if (ub == Limits::MAX_STRING_LENGTH && lb < ub && x.size() > 1) {
-      ub = 0;
-      for (int i = 0; i < x.size(); ++i)
-        ub += ubound(x[i]);
-    }
-    else
-      ub = x.max_length();
-    Matching m[x.size()];
-    int n;
-    if (sweep_x(x, y, m, n) && refine_x(home, x, y, m, n)) {
-      if (n == -1)
-        return ME_STRING_NONE;      
-      if (x.assigned())
-        return ME_STRING_VAL;
-      StringDelta d;
-      int ux = x.max_length();
-      if (x.min_length() > lb || (ux < ub && ux < MAX_STRING_LENGTH))
-        return x.varimp()->notify(home, ME_STRING_CARD, d);
-      if (ux == MAX_STRING_LENGTH && ub > MAX_STRING_LENGTH) {
-        long u = 0L;
-        for (int i = 0; i < x.size(); ++i) {
-          u += ubound(x[i]);
-          if (u >= ub)
-            return x.varimp()->notify(home, ME_STRING_BASE, d);
-        }
-        return x.varimp()->notify(home, ME_STRING_CARD, d);
-      }
-      else
-        return x.varimp()->notify(home, ME_STRING_BASE, d);
-    }
-    else
-      return ME_STRING_FAILED;
-  }
-  
   template <class ViewX, class ViewY>
   forceinline bool
   check_equate_x(const ViewX& x, const ViewY& y) {
