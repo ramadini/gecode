@@ -826,7 +826,7 @@ namespace Gecode { namespace String {
   
   forceinline void
   Block::nullifySet(Space& home) {
-    if (S != NULL) {
+    if (S != nullptr) {
       S->dispose(home);
       S = nullptr;
     }
@@ -834,14 +834,13 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  Block::nullify(Space& home) {    
-    l = u = 0;
+  Block::nullify(Space& home) {
+    l = u = 0; 
     nullifySet(home);
   }
   
   forceinline void
   Block::update(Space& home, const Block& b) {
-//    std::cerr << "Update " << *this << " with " << b << "\n";
     l = b.l;
     u = b.u;
     if (&S == &b.S)
@@ -852,8 +851,7 @@ namespace Gecode { namespace String {
     }
     if (isFixed())
       S = std::unique_ptr<CharSet>(new CharSet());
-    std::cerr << *b.S << "\n";
-    S->become(home, *b.S);
+    S->update(home, *b.S);
     assert(isOK());
   }
   
@@ -869,7 +867,7 @@ namespace Gecode { namespace String {
       l = b.l;
       u = b.u;
       S = std::unique_ptr<CharSet>();
-      S->become(home, *b.S);
+      S->update(home, *b.S);
     }
   };
   
@@ -981,6 +979,7 @@ namespace Gecode { namespace String {
       norm |= i > 0 && (x[i].isNull() || x[i].baseEquals(x[i-1]));
     }
     if (n > 1 && max_len == Limits::MAX_STRING_LENGTH) {
+      // Possibly refining upper bounds.
       max_len = 0;
       for (int i = 0; i < n; ++i) {
         Block& bi = x[i];
@@ -1218,6 +1217,7 @@ namespace Gecode { namespace String {
   
   forceinline void
   DashedString::normalize(Space& home) {
+//    std::cerr << "Normalize: " << *this << '\n';
     min_len = max_len = 0;
     int newSize = n;
     int j = -1;
@@ -1238,15 +1238,16 @@ namespace Gecode { namespace String {
         x[i].nullify(home);
         --newSize;
       }
-      else if (j < i - 1) {
+      else if (j < i-1) {
         // x[i] and x[j] have different base, and there is at least a null block
-        // x[k] with j < k < i: 
+        // x[k] with j < k < i:
         x[++j].update(home, x[i]);
         x[i].nullify(home);
       }
       else
         j = i;
     }
+//    std::cerr << "After 1st pass: " << *this << '\n';
     // 2nd pass: possibly downsize the dynamic array due to nullification.    
     if (newSize < n) {
       if (newSize == 0) {

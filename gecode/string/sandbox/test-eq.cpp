@@ -131,7 +131,7 @@ public:
     b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'!'})), 0, 1));
     b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'!'})), 0, 0));
     b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'!'})), 0, 2));
-    DashedString d2(*this, b, n);
+    DashedString d2(*this, b, i);
     cerr << d2 << '\n';
     assert (d2.min_length() == 4 && d2.size() == 4 && d2.max_length() == 9);
     assert (d2.logdim() - log(24) < DBL_EPSILON);
