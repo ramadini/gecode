@@ -151,6 +151,8 @@ namespace Gecode { namespace String {
     void gets(Space& home, const ConstStringView& y);
     void gets(Space& home, const std::vector<int>& w);
     
+    template <class T> ModEvent equate(Space& home, const T& y);
+    
     ModEvent nullify(Space& home);
     //@}
     /// \name Domain update by cardinality refinement
@@ -249,7 +251,8 @@ namespace Gecode { namespace String {
     //@{
     SweepFwdIterator<ConstStringView> fwd_iterator(void) const;
     SweepBwdIterator<ConstStringView> bwd_iterator(void) const;
-    template <class T> ModEvent gets(Space&, const T&) const;    
+    template <class T> ModEvent gets(Space&, const T&) const;
+    template <class T> ModEvent equate(Space& home, const T& y) const;
     //@}
     /// Always returns true (for compatibility with other views)
     bool assigned(void) const;

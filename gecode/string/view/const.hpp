@@ -319,6 +319,12 @@ namespace Gecode { namespace String {
     return SweepBwdIterator<ConstStringView>(*this);
   }
   
+  template <class T>
+  forceinline ModEvent
+  ConstStringView::equate(Space&, const T& y) const {
+    return check_equate_x(*this, y) ? ME_STRING_NONE : ME_STRING_FAILED;
+  }
+  
   forceinline bool
   ConstStringView::equiv(const Position& p, const Position& q) const {
     return p == q || (q.off == 0 && p.off == 1 && p.idx == q.idx-1)

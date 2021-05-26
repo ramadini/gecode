@@ -72,11 +72,11 @@ namespace Gecode { namespace String {
     /// Test whether variable is assigned
     bool assigned(void) const;
     /// Test whether the domain is equatable with string \a w.
-    bool check_equate(const std::vector<int>& w) const;
-    /// Test whether the domain is equatable with block \a b.
-    bool check_equate(const Block& b) const;
-    /// Test whether the domain is equatable with dashed string \a x.
-    bool check_equate(const DashedString& x) const;
+//    bool check_equate(const std::vector<int>& w) const;
+//    /// Test whether the domain is equatable with block \a b.
+//    bool check_equate(const Block& b) const;
+//    /// Test whether the domain is equatable with dashed string \a x.
+//    bool check_equate(const DashedString& x) const;
     /// Consistency checks on the domain
     bool isOK(void) const;
     /// Returns the i-th block of the domain

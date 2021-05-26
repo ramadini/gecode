@@ -78,9 +78,9 @@ namespace Gecode { namespace String { namespace Rel {
     }
     ModEvent me0;
     do {
-      me0 = equate_x(home, x0, x1);
+      me0 = x0.equate(home, x1);
       GECODE_ME_CHECK(me0);
-      ModEvent me1 = equate_x(home, x1, x0);
+      ModEvent me1 = x1.equate(home, x0);
       GECODE_ME_CHECK(me1);
       if (me0 + me1 != ME_STRING_NONE)
         refine_card(home);

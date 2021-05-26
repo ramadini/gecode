@@ -367,6 +367,45 @@ namespace Gecode { namespace String {
     return SweepBwdIterator<StringView>(*this);
   }
   
+  template <class T>
+  forceinline ModEvent
+  StringView::equate(Space& home, const T& y) {
+    int lb = min_length();
+    long ub = max_length();
+    if (ub == Limits::MAX_STRING_LENGTH && lb < ub && size() > 1) {
+      ub = 0;
+      for (int i = 0; i < size(); ++i)
+        ub += (*this)[i].ub();
+    }
+    else
+      ub = max_length();
+    Matching m[size()];
+    int n;
+    if (sweep_x(*this, y, m, n) && refine_x(home, *this, y, m, n)) {
+      if (n == -1)
+        return ME_STRING_NONE;      
+      if (assigned())
+        return ME_STRING_VAL;
+      StringDelta d;
+      int ux = max_length();
+      if (min_length() > lb || (ux < ub && ux < MAX_STRING_LENGTH))
+        return x->notify(home, ME_STRING_CARD, d);
+      if (ux == MAX_STRING_LENGTH && ub > MAX_STRING_LENGTH) {
+        long u = 0L;
+        for (int i = 0; i < size(); ++i) {
+          u += (*this)[i].ub();
+          if (u >= ub)
+            return x->notify(home, ME_STRING_BASE, d);
+        }
+        return x->notify(home, ME_STRING_CARD, d);
+      }
+      else
+        return x->notify(home, ME_STRING_BASE, d);
+    }
+    else
+      return ME_STRING_FAILED;  
+  }
+  
   forceinline bool
   StringView::equiv(const Position& p, const Position& q) const {
     return p == q 

@@ -458,7 +458,7 @@ namespace Gecode { namespace String {
     return true;
   }
   
-  /// TODO: 
+  /// TODO: Remove this:
   template <class ViewX, class ViewY>
   forceinline ModEvent
   equate_x(Space& home, ViewX& x, const ViewY& y) {
@@ -483,7 +483,7 @@ namespace Gecode { namespace String {
       if (x.min_length() > lb || (ux < ub && ux < MAX_STRING_LENGTH))
         return x.varimp()->notify(home, ME_STRING_CARD, d);
       if (ux == MAX_STRING_LENGTH && ub > MAX_STRING_LENGTH) {
-        int u = 0L;
+        long u = 0L;
         for (int i = 0; i < x.size(); ++i) {
           u += ubound(x[i]);
           if (u >= ub)
