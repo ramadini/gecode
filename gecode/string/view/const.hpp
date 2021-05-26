@@ -421,7 +421,7 @@ namespace Gecode { namespace String {
   }  
     
   template <class T> forceinline ModEvent 
-  ConstStringView::update(Space&, const T&) const {
+  ConstStringView::gets(Space&, const T&) const {
     GECODE_NEVER;
     return ME_STRING_NONE;
   }
@@ -429,7 +429,12 @@ namespace Gecode { namespace String {
   ConstStringView::resize(Space&, Block[], int, int[], int) const {
     GECODE_NEVER;                                                                
   }
+  forceinline ModEvent ConstStringView::nullify(Space&) { 
+    GECODE_NEVER; 
+    return ME_STRING_NONE;
+  }
   forceinline void ConstStringView::normalize(Space&) { GECODE_NEVER; }
+  
   
      
 }}

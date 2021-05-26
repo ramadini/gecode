@@ -38,7 +38,7 @@ namespace Gecode { namespace String { namespace Rel {
   template<class View0, class View1>
   ExecStatus
   Eq<View0,View1>::propagate(Space& home, const ModEventDelta&) {
-//    std::cerr << "Prop. Eq " << x0 << "  vs  " << x1 << "\n";
+    std::cerr << "Prop. Eq " << x0 << "  vs  " << x1 << "\n";
     refine_card(home);
     if (x0.assigned()) {
       if (x0.isNull()) {
@@ -47,7 +47,7 @@ namespace Gecode { namespace String { namespace Rel {
       }
       if (check_equate_x(x0,x1) && check_equate_x(x1,x0)) {
         if (!x1.assigned())
-          GECODE_ME_CHECK(x1.update(home, x0));
+          x1.gets(home, x0);
         return home.ES_SUBSUMED(*this);      
       }
       else
@@ -60,7 +60,7 @@ namespace Gecode { namespace String { namespace Rel {
       }
       if (check_equate_x(x0,x1) && check_equate_x(x1,x0)) {
         if (!x0.assigned())
-          GECODE_ME_CHECK(x0.update(home, x1));
+          x0.gets(home, x1);
         return home.ES_SUBSUMED(*this);      
       }
       else
@@ -69,11 +69,11 @@ namespace Gecode { namespace String { namespace Rel {
     if (x0.contains(x1)) {
       if (x0.equals(x1))
         return ES_OK;
-      GECODE_ME_CHECK(x0.update(home, x1));
+      x0.gets(home, x1);
       return ES_OK;
     }
     if (x1.contains(x0)) {
-      GECODE_ME_CHECK(x1.update(home, x0));
+      x1.gets(home, x0);
       return ES_OK;
     }
     ModEvent me0;

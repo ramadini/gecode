@@ -23,32 +23,44 @@ namespace Gecode { namespace String {
   StringVarImp::StringVarImp(Space& home, const DashedString& d)
   : StringVarImpBase(home), ds(home, d) {}  
   
-  forceinline ModEvent
-  StringVarImp::update(Space& home, const DashedString& dy) {
-    bool dsf = ds.isFixed();
+  forceinline void
+  StringVarImp::gets(Space& home, const DashedString& dy) {
+    assert (!assigned() && !ds.equals(dy));
+    int l = min_length(), u = max_length();    
     ds.update(home, dy);
-    if (dsf)
-      return ME_STRING_NONE;
     StringDelta d;
-    return notify(home, assigned() ? ME_STRING_VAL : ME_STRING_CARD, d);
+    if (assigned())
+      notify(home, ME_STRING_VAL, d);
+    else if (min_length() > l || max_length() < u)
+      notify(home, ME_STRING_CARD, d);
+    else
+      notify(home, ME_STRING_BASE, d);
   }
-  forceinline ModEvent
-  StringVarImp::update(Space& home, const StringVarImp& y) {
-    bool dsf = ds.isFixed();
-    ds.update(home, y.ds);
-    if (dsf)
-      return ME_STRING_NONE;
-    StringDelta d;
-    return notify(home, assigned() ? ME_STRING_VAL : ME_STRING_CARD, d);
+  
+  forceinline void
+  StringVarImp::gets(Space& home, const StringVarImp& y) {
+    gets(home, y.ds);
   }
-  forceinline ModEvent
-  StringVarImp::update(Space& home, const std::vector<int>& w) {
-    bool dsf = ds.isFixed();
+  
+  forceinline void
+  StringVarImp::gets(Space& home, const std::vector<int>& w) {
+    assert (!assigned());
     ds.update(home, w);
-    if (dsf)
+    StringDelta d;
+    std::cerr << *this << '\n';
+    notify(home, ME_STRING_VAL, d);
+    std::cerr << *this << '\n';
+  }
+  
+  forceinline ModEvent
+  StringVarImp::nullify(Space& home) {
+    if (min_length() > 0)
+      return ME_STRING_FAILED;
+    if (assigned())
       return ME_STRING_NONE;
     StringDelta d;
-    return notify(home, ME_STRING_CARD, d);
+    ds.nullify(home);
+    return notify(home, ME_STRING_VAL, d);    
   }
   
   forceinline bool
@@ -64,12 +76,7 @@ namespace Gecode { namespace String {
   forceinline void
   StringVarImp::normalize(Space& home) {
     ds.normalize(home);
-  }
-  
-  forceinline void
-  StringVarImp::nullify(Space& home) {
-    ds.nullify(home);
-  }
+  }  
 
   forceinline Block&
   StringVarImp::operator[](int i) {

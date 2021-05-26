@@ -67,17 +67,17 @@ namespace Gecode { namespace String { namespace RelOp {
       return home.ES_SUBSUMED(*this);
     }
     if (x0.isNull()) {
-      eq(home, x1, x2);
+      Gecode::String::Rel::Eq<View1,View2>::post(home, x1, x2);
       return home.ES_SUBSUMED(*this);
     }
     if (x1.isNull()) {
-      eq(home, x0, x2);
+      Gecode::String::Rel::Eq<View0,View2>::post(home, x0, x2);
       return home.ES_SUBSUMED(*this);
     }
     if (x0.assigned() && x1.assigned()) {
       ConcatView<View0,View1> xy(x0,x1);
       if (check_equate_x(x2, xy) && check_equate_x(xy, x2) && !x2.assigned())
-        GECODE_ME_CHECK(x2.update(home, xy.val()));
+        x2.gets(home, xy.val());
       else
         return ES_FAILED;
       return home.ES_SUBSUMED(*this);

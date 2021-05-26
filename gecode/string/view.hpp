@@ -138,15 +138,18 @@ namespace Gecode { namespace String {
     bool same(const ConstStringView& y) const;
     /// If this view contains y
     bool contains(const StringView& y) const;
+    bool contains(const ConstStringView& y) const;
     /// If this view is equals to y
     bool equals(const StringView& y) const;
+    bool equals(const ConstStringView& y) const;
     //@}
     /// \name Cloning
     //@{
     /// Update this view to be a clone of view \a y
-    ModEvent update(Space& home, const DashedString& d);
-    ModEvent update(Space& home, const StringView& y);
-    ModEvent update(Space& home, const std::vector<int>& w);
+    void gets(Space& home, const DashedString& d);
+    void gets(Space& home, const StringView& y);
+    void gets(Space& home, const ConstStringView& y);
+    void gets(Space& home, const std::vector<int>& w);
     
     ModEvent nullify(Space& home);
     //@}
@@ -246,7 +249,7 @@ namespace Gecode { namespace String {
     //@{
     SweepFwdIterator<ConstStringView> fwd_iterator(void) const;
     SweepBwdIterator<ConstStringView> bwd_iterator(void) const;
-    template <class T> ModEvent update(Space&, const T&) const;    
+    template <class T> ModEvent gets(Space&, const T&) const;    
     //@}
     /// Always returns true (for compatibility with other views)
     bool assigned(void) const;
@@ -295,7 +298,8 @@ namespace Gecode { namespace String {
     void
     resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize) const;
     /// Normalize this view
-    void normalize(Space& home);                                 
+    void normalize(Space& home);
+    ModEvent nullify(Space& home);                            
     //@}
     template<class Char, class Traits>
     friend std::basic_ostream<Char,Traits>&
@@ -330,7 +334,7 @@ namespace Gecode { namespace String {
     /// Initialize from string variables \a x and \a y
     ConcatView(View0& x, View1& y);
     //@}
-    template <class T> ModEvent update(Space& home, const T& d) const;
+    template <class T> ModEvent gets(Space& home, const T& d) const;
     /// \name Sweep iterators
     //@{
     SweepFwdIterator<ConcatView<View0,View1>> fwd_iterator(void) const;

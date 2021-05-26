@@ -93,22 +93,13 @@ namespace Gecode { namespace String {
     
     /// Normalize the domain
     void normalize(Space& home);
-    void nullify(Space& home);
-  
-    ModEvent update(Space& home, const DashedString& d);
-    ModEvent update(Space& home, const StringVarImp& y);
-    ModEvent update(Space& home, const std::vector<int>& w);
     
-    /// \name Domain update by equation
-    //@{
-    /// Equates the domain with string \a w.
-    ModEvent equate(Space& home, const std::vector<int>& w);
-    /// Equates the domain with block \a b.
-    ModEvent equate(Space& home, const Block& b);
-    /// Equates with dashed string \a x.
-    ModEvent equate(Space& home, const DashedString& x);
-    //@}
+    ModEvent nullify(Space& home);
     
+    void gets(Space& home, const DashedString& d);
+    void gets(Space& home, const StringVarImp& y);
+    void gets(Space& home, const std::vector<int>& w);
+
     /// \name Domain update by cardinality refinement
     //@{
     /// Updates the minimum length of each string of the domain

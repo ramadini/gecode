@@ -127,7 +127,14 @@ public:
     DashedString d(*this, DashedString(*this, b, 2));
     StringVar x(*this, d);
     std::cerr << "eq(" << x << ", hello)\n";
-    eq(*this, x, str2vec("hello"));
+    
+    class E : public Eq<StringView,ConstStringView> {
+    public:
+      E(Home h, StringView x, ConstStringView w) : Eq(h, x, w) {};
+    };
+    vector<int> w = str2vec("hello");
+    ConstStringView vw(*this, &w[0], w.size());
+    assert(E(*this, x, vw).propagate(*this, 0) == __ES_SUBSUMED);
     assert (vec2str(x.val()) == "hello");
     std::cerr << "x = " << x << "\n";
     ConstStringView vx(*this, &x.val()[0], 5);
@@ -136,7 +143,7 @@ public:
     assert (!check_equate_x(vx, vy));
     assert (!check_equate_x(vy, vx));
     assert (equate_x(*this, vy, vx) == ES_FAILED);
-    vector<int> w = str2vec(
+    w = str2vec(
       ":?@NbT;^AZR3IuW3ee:)DpBr%&C]=x=BqcG8[Pe.Uj` ]c4]?e]qCu|B,LSV!W(e: "
     );
     ConstStringView vz(*this, &w[0], w.size());

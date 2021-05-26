@@ -245,28 +245,26 @@ namespace Gecode { namespace String {
   StringView::StringView(StringVarImp* y)
     : VarImpView<StringVar>(y) {}
 
-  forceinline ModEvent
-  StringView::update(Space& home, const DashedString& d) {
-    return x->update(home, d);
+  forceinline void
+  StringView::gets(Space& home, const DashedString& d) {
+    x->gets(home, d);
   }
-  forceinline ModEvent
-  StringView::update(Space& home, const StringView& y) {
-    return x->update(home, *y.x);
+  forceinline void
+  StringView::gets(Space& home, const StringView& y) {
+    x->gets(home, *y.x);
   }
-  forceinline ModEvent
-  StringView::update(Space& home, const std::vector<int>& w) {
-    return x->update(home, w);
+  forceinline void
+  StringView::gets(Space& home, const std::vector<int>& w) {
+    x->gets(home, w);
+  }
+  forceinline void
+  StringView::gets(Space& home, const ConstStringView& y) {
+    x->gets(home, y.val());
   }
   
   forceinline ModEvent
   StringView::nullify(Space& home) {
-    if (min_length() > 0)
-      return ME_STRING_FAILED;
-    if (assigned())
-      return ME_STRING_NONE;
-    StringDelta d;
-    x->nullify(home);
-    return x->notify(home, ME_STRING_VAL, d);
+    return x->nullify(home);
   }
   
   forceinline bool
@@ -326,10 +324,20 @@ namespace Gecode { namespace String {
   StringView::contains(const StringView& y) const {
     return x->contains(*y.x);
   }
+  forceinline bool
+  StringView::contains(const ConstStringView&) const {
+    GECODE_NEVER;
+    return false;
+  }
   
   forceinline bool
   StringView::equals(const StringView& y) const {
     return x->equals(*y.x);
+  }
+  forceinline bool
+  StringView::equals(const ConstStringView&) const {
+    GECODE_NEVER;
+    return false;
   }
 
   forceinline ModEvent
@@ -541,7 +549,7 @@ namespace Gecode { namespace String {
     for (h = U[uSize-2]+1; h < size(); ++j, ++h)
       d[j].update(home, (*this)[h]);
     d.normalize(home);
-    x->update(home, d);
+    x->gets(home, d);
   }
      
 }}

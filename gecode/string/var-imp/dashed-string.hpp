@@ -841,6 +841,7 @@ namespace Gecode { namespace String {
   
   forceinline void
   Block::update(Space& home, const Block& b) {
+//    std::cerr << "Update " << *this << " with " << b << "\n";
     l = b.l;
     u = b.u;
     if (&S == &b.S)
@@ -850,8 +851,9 @@ namespace Gecode { namespace String {
       return;
     }
     if (isFixed())
-      S = std::unique_ptr<CharSet>(new CharSet());    
-    S->update(home, *b.S);
+      S = std::unique_ptr<CharSet>(new CharSet());
+    std::cerr << *b.S << "\n";
+    S->become(home, *b.S);
     assert(isOK());
   }
   
@@ -867,7 +869,7 @@ namespace Gecode { namespace String {
       l = b.l;
       u = b.u;
       S = std::unique_ptr<CharSet>();
-      S->update(home, *b.S);
+      S->become(home, *b.S);
     }
   };
   
@@ -1185,9 +1187,8 @@ namespace Gecode { namespace String {
     for (int i = 1; i < (int) w.size(); ++i)
       if (w[i] == w[i-1])
         m--;
-    n = m;
-    x[0].update(home, Block(w[0]));
     if (m <= n) {
+      x[0].update(home, Block(w[0]));
       for (int i = 1, j = 0; i < (int) w.size(); ++i)
         if (w[i] == w[i-1])
           x[j].updateCard(home, x[j].lb() + 1, x[j].ub() + 1);
@@ -1205,11 +1206,13 @@ namespace Gecode { namespace String {
       x[i].nullify(home);
     a.free(x, n);
     x = a.template alloc<Block>(m);
+    x[0].update(home, Block(w[0]));
     for (int i = 1, j = 0; i < (int) w.size(); ++i)
       if (w[i] == w[i-1])
         x[j].updateCard(home, x[j].lb() + 1, x[j].ub() + 1);
       else
         x[++j].update(home, Block(w[i]));
+    n = m;
     assert(isOK() && isNorm());
   }
   

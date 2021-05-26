@@ -100,7 +100,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool 
   refine_x(Space& home, ViewX& x, const ViewY& y, Matching m[], int& nBlocks) {
-//    std::cerr << "Refining " << x << "  vs  " << y << "\nMax. " << nBlocks << " new blocks needed.\n";
+    std::cerr << "Refining " << x << "  vs  " << y << "\nMax. " << nBlocks << " new blocks needed.\n";
     int nx = x.size();    
     bool changed = false;
     Region r;
@@ -141,7 +141,7 @@ namespace Gecode { namespace String {
           if ((d[0].baseSize() == 1 && d[0].lb() > 0) 
           ||  (d[d.size()-1].baseSize() == 1 && d[d.size()-1].lb() > 0)
           ||  (d.logdim() < x_i.logdim())) {
-            x.update(home, d);
+            x.gets(home, d);
             changed = true;
             return true;
           }
@@ -421,7 +421,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool
   sweep_x(ViewX& x, const ViewY& y, Matching m[], int& n) {
-    std::cerr << "sweep_x: " << x << "  vs  " << y << "\n";
+//    std::cerr << "sweep_x: " << x << "  vs  " << y << "\n";
     if (!init_x(x, y, m))
       return false;
     if (x.assigned() && y.assigned())
@@ -437,8 +437,8 @@ namespace Gecode { namespace String {
     assert (m[0].LSP == Position(0,0));
     for (int i = 1; i < nx; ++i) {
       m[i].LSP = m[i-1].LEP;
-      std::cerr << "ESP of " << GBlock(x[i]) << ": " << m[i].ESP << ", " 
-                << "LSP of " << GBlock(x[i]) << ": " << m[i].LSP << "\n";
+//      std::cerr << "ESP of " << GBlock(x[i]) << ": " << m[i].ESP << ", " 
+//                << "LSP of " << GBlock(x[i]) << ": " << m[i].LSP << "\n";
       if (y.prec(m[i].LSP, m[i].ESP))
         return false;
       assert (m[i].ESP.isNorm(y) && m[i].LSP.isNorm(y));

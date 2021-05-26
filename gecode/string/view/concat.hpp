@@ -266,7 +266,7 @@ namespace Gecode { namespace String {
   template <class View0, class View1>
   template <class T>
   forceinline ModEvent
-  ConcatView<View0,View1>::update(Space&, const T&) const {
+  ConcatView<View0,View1>::gets(Space&, const T&) const {
     GECODE_NEVER;
     return ME_STRING_NONE;
   }
