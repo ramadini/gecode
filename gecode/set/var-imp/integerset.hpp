@@ -147,7 +147,6 @@ namespace Gecode { namespace Set {
       fst(NULL); lst(NULL);
       return;
     }
-
     int n=0;
     for (RangeList* c = d.fst(); c != NULL; c = c->next())
       n++;

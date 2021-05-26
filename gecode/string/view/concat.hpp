@@ -356,7 +356,6 @@ namespace Gecode { namespace String {
   template <class View0, class View1>
   forceinline bool
   ConcatView<View0,View1>::prec(const Position& p, const Position& q) const {
-    std::cerr << pivot << ' ' << p << ' ' << q << '\n';
     if (p.idx > q.idx)
       return false;
     return q.idx < pivot ? x0.prec(p,q) 

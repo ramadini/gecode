@@ -38,7 +38,7 @@ namespace Gecode { namespace String { namespace Rel {
   template<class View0, class View1>
   ExecStatus
   Eq<View0,View1>::propagate(Space& home, const ModEventDelta&) {
-    std::cerr << "Prop. Eq " << x0 << "  vs  " << x1 << "\n";
+//    std::cerr << "Prop. Eq " << x0 << "  vs  " << x1 << "\n";
     refine_card(home);
     if (x0.assigned()) {
       if (x0.isNull()) {

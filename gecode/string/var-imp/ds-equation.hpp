@@ -100,7 +100,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool 
   refine_x(Space& home, ViewX& x, const ViewY& y, Matching m[], int& nBlocks) {
-    std::cerr << "Refining " << x << "  vs  " << y << "\nMax. " << nBlocks << " new blocks needed.\n";
+//    std::cerr << "Refining " << x << "  vs  " << y << "\nMax. " << nBlocks << " new blocks needed.\n";
     int nx = x.size();    
     bool changed = false;
     Region r;
@@ -491,8 +491,8 @@ namespace Gecode { namespace String {
         }
         return x.varimp()->notify(home, ME_STRING_CARD, d);
       }
-      else {std::cerr << x.varimp() << "\n";
-        return x.varimp()->notify(home, ME_STRING_BASE, d);}
+      else
+        return x.varimp()->notify(home, ME_STRING_BASE, d);
     }
     else
       return ME_STRING_FAILED;

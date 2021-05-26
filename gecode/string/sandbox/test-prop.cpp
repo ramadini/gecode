@@ -147,9 +147,10 @@ public:
       ":?@NbT;^AZR3IuW3ee:)DpBr%&C]=x=BqcG8[Pe.Uj` ]c4]?e]qCu|B,LSV!W(e: "
     );
     ConstStringView vz(*this, &w[0], w.size());
-    b[0].update(*this, Block(*this, CharSet(*this), 3, 31));
-    b[1].update(*this, Block(*this, CharSet(*this, 0, 1000), 2, 50));
-    d.update(*this, DashedString(*this, b, 2));
+    Block c[2];
+    c[0].update(*this, Block(*this, CharSet(*this), 3, 31));
+    c[1].update(*this, Block(*this, CharSet(*this, 0, 1000), 2, 50));
+    d.update(*this, DashedString(*this, c, 2));
     StringVar t(*this, d);
     std::cerr << "t = " << t << "\n";
     std::cerr << "z = " << vz << "\n";
@@ -194,7 +195,7 @@ public:
     std::cerr << "yx = w unsat!\n";
     StringView vt(*this);
     //FIXME: Seg.Fault in kernel/core.hpp 
-    // assert(C(*this, vt, vt, vw).propagate(*this, 0) == ES_OK);
+//    assert(C(*this, vt, vt, vw).propagate(*this, 0) == ES_OK);
     ConcatView<StringView,StringView> cvt(vt,vt);
     equate_x(*this, cvt, vw);
   }

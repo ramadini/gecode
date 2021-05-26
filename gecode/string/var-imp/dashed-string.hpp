@@ -856,14 +856,14 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  Block::update(Space& home, const GBlock& c) {
-    if (c.isFixed()) {
-      l = c.val();
+  Block::update(Space& home, const GBlock& g) {
+    if (g.isFixed()) {
+      l = g.val();
       u = 1;
       S = nullptr;
     }
     else {
-      const Block& b = c.block(); 
+      const Block& b = g.block(); 
       l = b.l;
       u = b.u;
       S = std::unique_ptr<CharSet>();
