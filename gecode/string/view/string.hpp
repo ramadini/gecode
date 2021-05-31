@@ -510,7 +510,7 @@ namespace Gecode { namespace String {
       return nabla(bx, bp, std::min(q_o, bp.lb()) - p_o);
     int m = nabla(bx, bp, bp.lb() - p_o);
     for (int i = p_i+1; i < q_i; i++) {
-      const Block& bi = (*this)[p_i];
+      const Block& bi = (*this)[i];
       m += nabla(bx, bi, bi.lb());
     }
     const Block& bq = (*this)[q_i];

@@ -114,13 +114,14 @@ namespace Gecode { namespace String {
       Position& esp = m[i].ESP, eep = m[i].EEP, lsp = m[i].LSP, lep = m[i].LEP;
       GBlock g_i(x[i]);
       int l = g_i.lb(), u = g_i.ub(), l1 = min_len_mand(y, g_i, lsp, eep);
+//      std::cerr << "l'=" << l1 << "\n";
       if (u < l1)
         return false;
       if (g_i.isFixed())
         continue;
       Block& x_i = g_i.block();
       int u1 = y.max_len_opt(x_i, esp, lep, l1);
-//      std::cerr << "l'=" << l1 << ", u'=" << u1 << "\n";
+//      std::cerr << "u'=" << u1 << "\n";
       assert (l1 <= u1);
       if (l1 == 0 || l1 < l || u1 > u) {
         if (u1 == 0) {
