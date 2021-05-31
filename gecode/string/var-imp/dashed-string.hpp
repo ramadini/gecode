@@ -963,9 +963,10 @@ namespace Gecode { namespace String {
   
   forceinline
   DashedString::DashedString(Space& home, Block blocks[], int n)
-  : DynamicArray(home, n), min_len(0), max_len(0) {
-    bool norm = false;
-    for (int i = 0; i < n; ++i) {
+  : DynamicArray(home, n), min_len(blocks[0].lb()), max_len(blocks[0].ub()) {
+    bool norm = blocks[0].isNull();
+    x[0].update(home, blocks[0]);
+    for (int i = 1; i < n; ++i) {
       x[i].update(home, blocks[i]);
       // NOTE: The sum of the blocks' bounds might overflow.
       if (min_len > MAX_STRING_LENGTH || min_len + x[i].ub() < min_len) {
@@ -976,7 +977,7 @@ namespace Gecode { namespace String {
       }
       min_len += x[i].lb();
       max_len = ub_sum(max_len, x[i].ub());      
-      norm |= i > 0 && (x[i].isNull() || x[i].baseEquals(x[i-1]));
+      norm |= x[i].isNull() || x[i].baseEquals(x[i-1]);
     }
     if (n > 1 && max_len == Limits::MAX_STRING_LENGTH) {
       // Possibly refining upper bounds.

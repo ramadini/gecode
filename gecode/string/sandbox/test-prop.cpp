@@ -199,6 +199,40 @@ public:
     assert (vt.min_length() == 0 && vt.max_length() == (int) w.size());
   }
   
+  void test05() {
+    cerr << "\n*** Test 05 ***" << endl;
+    Block b[2];
+    b[0].update(*this, Block(*this, CharSet(*this, 'a'), 0,2));
+    b[1].update(*this, Block('d'));
+    StringVar x(*this, DashedString(*this, b, 2));
+    StringVar y(*this, DashedString(*this,Block(*this,CharSet(*this,'d'),0,3)));
+    b[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 1,1));
+    b[1].update(*this, Block(*this, CharSet(*this, 'd'), 1, 2));
+    StringVar z(*this, DashedString(*this, b, 2));
+    class C : public Concat<StringView,StringView,StringView> {
+    public:
+      C(Home h, StringView x, StringView y, StringView z) 
+      : Concat(h, x, y, z) {};
+    };
+    StringView vx(x), vy(y), vz(z);
+    std::cerr << "x = " << x << "\n";
+    std::cerr << "y = " << y << "\n";
+    std::cerr << "z = " << z << "\n";
+    assert(C(*this, vx, vy, vz).propagate(*this, 0) == ES_OK);
+    std::cerr << "After Concat(x,y,z):\n";
+    std::cerr << "x = " << x << "\n";
+    std::cerr << "y = " << y << "\n";
+    std::cerr << "z = " << z << "\n";
+    assert (vx.val() == str2vec("ad") && vy.size() == 1 && vy[0].ub() == 1);
+    assert (vz[0].val()[0] == 'a' && vz[1].baseEquals(vy[0]));
+  }
+
+
+void test06() {
+    cerr << "\n*** Test 06 ***" << endl;
+
+  }
+
 };
 
 int main() {
@@ -207,6 +241,8 @@ int main() {
   home->test02();
   home->test03();
   home->test04();
+  home->test05();
+  home->test06();
   cerr << "\n----- test-prop.cpp passes -----\n\n";
   return 0;
 }

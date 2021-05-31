@@ -36,14 +36,12 @@ namespace Gecode { namespace String {
   template <class T>
   forceinline bool
   SweepIterator<T>::disj(const Block& b) const {
-    const GBlock& g = sv[pos.idx];
-    return g.isFixed() ? !b.baseContains(g.val()) : g.block().baseDisjoint(b);
+    return sv[pos.idx].disj(b);
   }
   template<class T>
   forceinline bool
   SweepIterator<T>::disj(int k) const {
-    const GBlock& g = sv[pos.idx];
-    return g.isFixed() ? g.val() != k : !g.block().baseContains(k);
+    return sv[pos.idx].disj(k);
   }
   
   template <class T>
@@ -158,14 +156,12 @@ namespace Gecode { namespace String {
   template <class T>
   forceinline bool
   SweepBwdIterator<T>::disj(const Block& b) const {
-    const GBlock& g = sv[pos.off > 0 ? pos.idx : pos.idx-1];
-    return g.isFixed() ? !b.baseContains(g.val()) : g.block().baseDisjoint(b);
+    return sv[pos.off > 0 ? pos.idx : pos.idx-1].disj(b);
   }
   template <class T>
   forceinline bool
   SweepBwdIterator<T>::disj(int k) const {
-    const GBlock& g = sv[pos.off > 0 ? pos.idx : pos.idx-1];
-    return g.isFixed() ? g.val() != k : !g.block().baseContains(k);
+    return sv[pos.off > 0 ? pos.idx : pos.idx-1].disj(k);
   }
   
   template <class T>

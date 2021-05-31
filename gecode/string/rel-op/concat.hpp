@@ -61,6 +61,7 @@ namespace Gecode { namespace String { namespace RelOp {
   Concat<View0,View1,View2>::propagate(Space& home, const ModEventDelta&) {
 //    std::cerr << "Concat::propagate " <<x0<< " ++ " <<x1<< " = " <<x2<<"\n";
     GECODE_ME_CHECK(refine_card(home));
+//    std::cerr << "After refine_card: " <<x0<< " ++ " <<x1<< " = " <<x2<<"\n";
     if (x2.isNull()) {
       GECODE_ME_CHECK(x0.nullify(home));
       GECODE_ME_CHECK(x1.nullify(home));
@@ -86,7 +87,7 @@ namespace Gecode { namespace String { namespace RelOp {
     do {
       ConcatView<View0,View1> xy(x0,x1);
       ModEvent me0 = x2.equate(home, xy);
-      GECODE_ME_CHECK(me0);      
+      GECODE_ME_CHECK(me0);
       ModEvent me1 = xy.equate(home, x2);
       GECODE_ME_CHECK(me1);
       if (me0 + me1 != ME_STRING_NONE)
