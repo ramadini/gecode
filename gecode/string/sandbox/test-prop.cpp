@@ -219,12 +219,19 @@ public:
     std::cerr << "y = " << y << "\n";
     std::cerr << "z = " << z << "\n";
     assert(C(*this, vx, vy, vz).propagate(*this, 0) == ES_OK);
-    std::cerr << "After Concat(x,y,z):\n";
+    std::cerr << "After z = xy:\n";
     std::cerr << "x = " << x << "\n";
     std::cerr << "y = " << y << "\n";
     std::cerr << "z = " << z << "\n";
     assert (vx.val() == str2vec("ad") && vy.size() == 1 && vy[0].ub() == 1);
     assert (vz[0].val()[0] == 'a' && vz[1].baseEquals(vy[0]));
+    assert(C(*this, vz, vy, vx).propagate(*this, 0) == __ES_SUBSUMED);
+    std::cerr << "After x = zy:\n";
+    std::cerr << "x = " << x << "\n";
+    std::cerr << "y = " << y << "\n";
+    std::cerr << "z = " << z << "\n";
+    assert(C(*this, vy, vy, vz).propagate(*this, 0) == ES_FAILED);
+    
   }
 
 
