@@ -492,7 +492,12 @@ namespace Gecode { namespace String {
 
   forceinline GBlock::GBlock(int c0) : c(c0), p(nullptr) {}
   
-  forceinline GBlock::GBlock(Block& b) : c(-1), p(&b) {}
+  forceinline GBlock::GBlock(Block& b) : c(-1), p(nullptr) {
+    if (b.ub() == 1 && b.isFixed())
+      c = b.val()[0];
+    else
+      p = &b;
+  }
   
   forceinline int GBlock::lb() const { return c < 0 ? p->lb() : 1; }
   
@@ -505,10 +510,8 @@ namespace Gecode { namespace String {
   forceinline bool GBlock::isNull() const { return c < 0 && p->isNull(); }
     
   forceinline int 
-  GBlock::disj(int k) const { 
-    return c < 0 ? !p->baseContains(k) : c != k;
-  }
-    
+  GBlock::disj(int k) const { return c < 0 ? !p->baseContains(k) : c != k; }
+  
   forceinline int 
   GBlock::disj(const Block& x) const {
       return c < 0 ? p->baseDisjoint(x) : !x.baseContains(c); 
@@ -668,7 +671,7 @@ namespace Gecode { namespace String {
   
   forceinline bool
   Block::baseContains(int c) const {
-    return isNull() ? false : S->in(c);
+    return isFixed() ? u > 0 && l == c : S->in(c);
   }
   
   forceinline bool
