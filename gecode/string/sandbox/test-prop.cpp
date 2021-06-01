@@ -274,12 +274,13 @@ public:
     ConstStringView w(*this, &vw[0], vw.size());
     std::cerr << "xy = " << xy << "\n";
     std::cerr << "w = " << w << "\n";
-    class E : public Eq<ConstStringView,ConcatView<StringView,StringView>> {
+    assert (!check_equate_x(xy,w) && check_equate_x(w,xy));
+    class C : public Concat<StringView,StringView,ConstStringView> {
     public:
-      E(Home h, ConstStringView x, ConcatView<StringView,StringView> y) 
-      : Eq(h, x, y) {};
+      C(Home h, StringView x, StringView y, ConstStringView z) 
+      : Concat(h, x, y, z) {};
     };
-    assert(E(*this, w, xy).propagate(*this, 0) == ES_FAILED);
+    assert(C(*this, x, y, w).propagate(*this, 0) == ES_FAILED);
     std::cerr << "Unsat!\n";
   }
   

@@ -297,6 +297,7 @@ namespace Gecode { namespace String {
     return false;
   }
   
+// FIXME:
 //  forceinline bool
 //  ConstStringView::contains(const StringView& y) const {
 //    return equals(y);
