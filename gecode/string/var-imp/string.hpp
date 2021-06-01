@@ -47,9 +47,7 @@ namespace Gecode { namespace String {
     assert (!assigned());
     ds.update(home, w);
     StringDelta d;
-    std::cerr << *this << '\n';
     notify(home, ME_STRING_VAL, d);
-    std::cerr << *this << '\n';
   }
   
   forceinline ModEvent

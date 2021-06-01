@@ -274,12 +274,46 @@ public:
     ConstStringView w(*this, &vw[0], vw.size());
     std::cerr << "xy = " << xy << "\n";
     std::cerr << "w = " << w << "\n";
-    assert (check_equate_x(w,xy) && !check_equate_x(xy,w));
+    class E : public Eq<ConstStringView,ConcatView<StringView,StringView>> {
+    public:
+      E(Home h, ConstStringView x, ConcatView<StringView,StringView> y) 
+      : Eq(h, x, y) {};
+    };
+    assert(E(*this, w, xy).propagate(*this, 0) == ES_FAILED);
+    std::cerr << "Unsat!\n";
   }
   
-  void test06() {
-    cerr << "\n*** Test 06 ***" << endl;
-    // TODO: test10 of str_test1.cpp
+  void test07() {
+    cerr << "\n*** Test 07 ***" << endl;
+    string w1 = "A;CW7.MC3ER88MWZPRP.9H@A3?(2-UL3S3-3EG<;MQ@4TW6%*,FKYZ;J3XMF9?<F9>F%I)*HTAX3)7?'/0X*19<D1T)A><#V$V4UL7$@D W$,U5&GPFA(MH;.Z-N7/FBT7H0L5/;(#$S<LFZ6(SY5H6#YY/VD.=CUJG.5<7?O%W1N@PTHD3;A3.A4X%GN3Y(/&FFQ2#MK&/)WM&:>=23WNH;Q72P YHOAM++MROZPIOJ=))4MR7?&D;=N/&RR(6E7ZB,$?<<0GIE51P8%NV:J";
+    string w2 = "K+BW#FY9X=TSG7E/<&#+LG+S&M .8K3UT)-''GXFH2D2D(?<BFE>XH*4G(:>F,;?AH652FX>2+MU)?N ?T'?YO,%(90 Y $1Y/,O 8MS6-A=5<WA 8";
+    string w3 = "%N:K+BW#FY9X=TSG7E/<&#+LG+S&M .8K3UT)-'GXFH2D2D(?<BFE>XH*4G(:>F,;?AH652FX>2+MU)?N ?T'?YO,%(90 Y $1Y/,O 8MS6-A=5<WA 8=";
+    string w4 = "*9.63TS$1BY#<VP+%U.N#%,0@/JH$0X>A<VLG'O@M-II%;D-XXU5,,O+Q8&YWO%DX.SS/AADJG-$.7*FX+R7UEW(E(S5EY:;<M%> CKL#DBB";
+    int n = w1.size() + w2.size() + w3.size() + w4.size() + 2;
+    Block by[n];
+    int i = 0;
+    for (auto c : w1)
+      by[i++].update(*this, Block(c));
+    for (auto c : w2)
+      by[i++].update(*this, Block(*this, CharSet(*this, c), 0, 1));
+    by[i++].update(*this, Block('='));
+    by[i++].update(*this, Block('8'));
+    for (auto c : w3)
+      by[i++].update(*this, Block(*this, CharSet(*this, c), 0, 1));
+    for (auto c : w4)
+      by[i++].update(*this, Block(c));
+    StringVar y(*this, DashedString(*this, by, i));
+    StringView vy(y);
+    std::vector<int> w = str2vec("A;CW7.MC3ER88MWZPRP.9H@A3?(2-UL3S3-3EG<;MQ@4TW6%*,FKYZ;J3XMF9?<F9>F%I)*HTAX3)7?'/0X*19<D1T)A><#V$V4UL7$@D W$,U5&GPFA(MH;.Z-N7/FBT7H0L5/;(#$S<LFZ6(SY5H6#YY/VD.=CUJG.5<7?O%W1N@PTHD3;A3.A4X%GN3Y(/&FFQ2#MK&/)WM&:>=23WNH;Q72P YHOAM++MROZPIOJ=))4MR7?&D;=N/&RR(6E7ZB,$?<<0GIE51P8%NV:JK+BW#FY9X=TSG7E/<&#+LG+S&M .8K3UT)-''GXFH2D2D(?<BFE>XH*4G(:>F,;?AH652FX>2+MU)?N ?T'?YO,%(90 Y $1Y/,O 8MS6-A=5<WA 8=*9.63TS$1BY#<VP+%U.N#%,0@/JH$0X>A<VLG'O@M-II%;D-XXU5,,O+Q8&YWO%DX.SS/AADJG-$.7*FX+R7UEW(E(S5EY:;<M%> CKL#DBB");
+    ConstStringView vw(*this, &w[0], w.size());
+    std::cerr << "y = " << vy << "\n";
+    std::cerr << "w = " << vw << "\n";
+    class E : public Eq<StringView,ConstStringView> {
+    public:
+      E(Home h, StringView x, ConstStringView y) : Eq(h, x, y) {};
+    };
+    assert(E(*this, vy, vw).propagate(*this, 0) == ES_FAILED);
+    std::cerr << "Unsat!\n";
   }
 
 };

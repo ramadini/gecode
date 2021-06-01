@@ -341,8 +341,6 @@ namespace Gecode { namespace String {
     Matching m[x.size()];
     if (!init_x(x, y, m))
       return false;
-    if (x.min_length() == x.max_length() && y.min_length() == y.max_length())
-      return true;
     int nx = x.size();
     for (int i = 0; i < nx; ++i)
       if (!pushESP<ViewX,ViewY>(x, y, m, i))
@@ -366,9 +364,13 @@ namespace Gecode { namespace String {
       assert (m[i].EEP.isNorm(y) && m[i].LEP.isNorm(y));
     }
     assert (m[nx-1].EEP == Position(y.size(),0));
-    for (int i = 0; i < nx; ++i)
+    for (int i = 0; i < nx; ++i) {
+//      std::cerr << "Checking x[" << i << "] = " << x[i] << "\n";
+//      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].LSP << "\nEEP: " 
+//                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
       if (ubound(x[i]) < min_len_mand(y, x[i], m[i].LSP, m[i].EEP))
-        return false;    
+        return false;
+    }
     return true;
   }
 

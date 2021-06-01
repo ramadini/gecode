@@ -140,10 +140,10 @@ namespace Gecode { namespace String {
     bool same(const ConstStringView& y) const;
     /// If this view contains y
     bool contains(const StringView& y) const;
-    bool contains(const ConstStringView& y) const;
+    template <class T> bool contains(const T& y) const;
     /// If this view is equals to y
     bool equals(const StringView& y) const;
-    bool equals(const ConstStringView& y) const;
+    template <class T> bool equals(const T& y) const;
     //@}
     /// \name Cloning
     //@{
@@ -267,9 +267,9 @@ namespace Gecode { namespace String {
     /// Checks length bounds (for compatibility with other views)
     ModEvent bnd_length(Space& home, int l, int u) const;
     /// If this view contains y
-    bool contains(const StringView& y) const;
+    template <class T> bool contains(const T& y) const;
     /// If this view is equals to y
-    bool equals(const StringView& y) const;
+    template <class T> bool equals(const T& y) const;
     /// Returns true if p and q are the same position in this view.
     bool equiv(const Position& p, const Position& q) const;
     /// Returns true if p precedes q according to this view.
@@ -350,6 +350,9 @@ namespace Gecode { namespace String {
     template <class T> ModEvent equate(Space& home, const T& y);
     template <class IterY> Position push(int i, IterY& it) const;
     template <class IterY> void stretch(int i, IterY& it) const;
+    
+    ModEvent nullify(Space& home);
+    
     /// \name Sweep iterators
     //@{
     SweepFwdIterator<ConcatView<View0,View1>> fwd_iterator(void) const;
@@ -379,9 +382,11 @@ namespace Gecode { namespace String {
     bool assigned(void) const;
     /// Consistency checks on the view
     bool isOK(void) const;
+    bool isNull(void) const;
 
     /// If this view is equals to y
-    bool equals(const StringView& y) const;
+    template <class T> bool equals(const T& y) const;
+    template <class T> bool contains(const T& y) const;
     //@}
     /// \name Domain update by cardinality refinement
     //@{

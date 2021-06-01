@@ -335,9 +335,10 @@ namespace Gecode { namespace String {
   StringView::contains(const StringView& y) const {
     return x->contains(*y.x);
   }
+  template <class T>
   forceinline bool
-  StringView::contains(const ConstStringView&) const {
-    GECODE_NEVER;
+  StringView::contains(const T&) const {
+    GECODE_NEVER
     return false;
   }
   
@@ -345,9 +346,10 @@ namespace Gecode { namespace String {
   StringView::equals(const StringView& y) const {
     return x->equals(*y.x);
   }
+  template <class T>
   forceinline bool
-  StringView::equals(const ConstStringView&) const {
-    GECODE_NEVER;
+  StringView::equals(const T&) const {
+    GECODE_NEVER
     return false;
   }
 
