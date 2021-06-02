@@ -445,6 +445,7 @@ namespace Gecode {
 
      /// Return selection strategy
      Select select(void) const;
+  
   };
 
 }
