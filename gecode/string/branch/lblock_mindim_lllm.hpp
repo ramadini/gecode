@@ -55,7 +55,7 @@ namespace Gecode { namespace String { namespace Branch {
             xi.varimp()->gets(home, std::vector<int>());
             continue;
           }
-          Block& bi = xi[xi.smallest_unfixed_idx()];
+          Block& bi = xi[xi.leftmost_unfixed_idx()];
           double di = bi.logdim();
           int li = bi.ub() - bi.lb();
           int mi = xi.min_length();
