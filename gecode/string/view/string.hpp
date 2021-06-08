@@ -380,19 +380,26 @@ namespace Gecode { namespace String {
     return SweepBwdIterator<StringView>(*this);
   }
   
-  forceinline const Block&
-  StringView::leftmost_unfixed_block(void) const {
+  forceinline int
+  StringView::leftmost_unfixed_idx(void) const {
     assert (!assigned());
-    for (int i = 0; i < size(); ++i) {
-      const Block& b = (*this)[i];
-      if (!b.isFixed())
-        return b;
-    }
+    for (int i = 0; i < size(); ++i)
+      if (!(*this)[i].isFixed())
+        return i;
     GECODE_NEVER;
   }
   
-  forceinline const Block&
-  StringView::smallest_unfixed_block(void) const {
+  forceinline int
+  StringView::rightmost_unfixed_idx(void) const {
+    assert (!assigned());
+    for (int i = size()-1; i >= 0; --i)
+      if (!(*this)[i].isFixed())
+        return i;
+    GECODE_NEVER;
+  }
+  
+  forceinline int
+  StringView::smallest_unfixed_idx(void) const {
     assert (!assigned());
     double l = (*this)[0].logdim();
     int j = 0;
@@ -406,7 +413,7 @@ namespace Gecode { namespace String {
         }
       }
     }
-    return (*this)[j];    
+    return j;    
   }
   
   template <class T>

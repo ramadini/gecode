@@ -21,7 +21,7 @@ namespace Gecode { namespace String { namespace Branch {
     None_LLLL::commit(Space& home, const Choice& c, unsigned a) {
       const PosLevVal& plv = static_cast<const PosLevVal&>(c);
       // this->print(home, c, a, std::cerr); std::cerr << '\n';
-      x[plv.pos].commit(home, plv.lev, Value::MIN, Block::LEFTMOST, a);
+      StringBrancher::commit(home, x[plv.pos], plv.lev, Val::MIN, Blc::LEFTMOST, a);
       return ES_OK;
     }
 

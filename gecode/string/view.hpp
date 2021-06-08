@@ -111,8 +111,9 @@ namespace Gecode { namespace String {
     //@}
     //@}
     
-    const Block& leftmost_unfixed_block(void) const;
-    const Block& smallest_unfixed_block(void) const;
+    int leftmost_unfixed_idx(void) const;
+    int rightmost_unfixed_idx(void) const;
+    int smallest_unfixed_idx(void) const;
     
     /// \name Value access
     //@{

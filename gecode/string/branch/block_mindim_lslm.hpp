@@ -26,8 +26,8 @@ namespace Gecode { namespace String { namespace Branch {
     forceinline Choice*
     Block_MinDim_LSLM::choice(Space& home) {
       // std::cerr << "\nVar. choice\n";
-      const StringView& vx = x[start];
-      const Gecode::String::Block& b = vx.smallest_unfixed_block();
+      StringView& vx = x[start];
+      Block& b = vx[vx.smallest_unfixed_idx()];
       double d = b.logdim();
       int l = b.ub() - b.lb();
       int m = vx.min_length();
@@ -50,14 +50,14 @@ namespace Gecode { namespace String { namespace Branch {
         }
       }
       for (int i = start + 1; i < x.size(); ++i) {
-        const StringView& xi = x[i];
+        StringView& xi = x[i];
         if (!xi.assigned()) {
           if (xi.degree() == 0) {
             std::cerr << "Warning: " << xi << " has degree 0!\n";
             xi.varimp()->gets(home, std::vector<int>());
             continue;
           }
-          const Gecode::String::Block& bi = xi.smallest_unfixed_block();
+          Block& bi = xi[xi.smallest_unfixed_idx()];
           double di = bi.logdim();
           int li = bi.ub() - bi.lb();
           int mi = xi.min_length();
@@ -81,7 +81,7 @@ namespace Gecode { namespace String { namespace Branch {
     Block_MinDim_LSLM::commit(Space& home, const Choice& c, unsigned a) {
       const PosLevVal& p = static_cast<const PosLevVal&>(c);
       // std::cerr << '\n'; this->print(home, c, a, std::cerr); std::cerr << '\n';
-      x[p.pos].commit(home, p.lev, p.val, Block::LEFTMOST, a);
+      StringBrancher::commit(home, x[p.pos], p.lev, p.val, Blc::LEFTMOST, a);
       return ES_OK;
     }
 

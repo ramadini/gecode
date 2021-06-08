@@ -10,19 +10,19 @@
 
 namespace Gecode { namespace String { namespace Branch {
 
-  enum Level {
+  enum Lev {
     LENGTH,
     CARD,
     BASE
   };
 
-  enum Block {
+  enum Blc {
     LEFTMOST,
     SMALLEST,
     RIGHTMOST
   };
 
-  enum Value {
+  enum Val {
     MIN,
     MAX,
     MUST_MIN,
@@ -42,10 +42,10 @@ namespace Gecode { namespace String { namespace Branch {
     class PosLevVal : public Choice {
     public:
       int pos;
-      Level lev;
-      Value val;
+      Lev lev;
+      Val val;
 
-      PosLevVal(const StringBrancher& b, int p, Level l, Value v)
+      PosLevVal(const StringBrancher& b, int p, Lev l, Val v)
       :  Choice(b,2), pos(p), lev(l), val(v) {}
 
       virtual size_t size(void) const { return sizeof(*this); }
@@ -57,44 +57,73 @@ namespace Gecode { namespace String { namespace Branch {
       }
 
     };
-
-    Choice*
-    val_llll(int pos, const Gecode::String::StringView& x) {
-      if (x.min_length() < x.max_length())
-        return new PosLevVal(*this, pos, Level::LENGTH, Value::MIN);
-      const Gecode::String::Block& b = x.leftmost_unfixed_block();
-      if (b.lb() < b.ub())
-        return new PosLevVal(*this, pos, Level::CARD, Value::MIN);
-      else
-        return new PosLevVal(*this, pos, Level::BASE, Value::MIN);
-    }
     
-    Choice*
-    val_lllm(int pos, const Gecode::String::StringView& x) {
-      if (x.min_length() < x.max_length())
-        return new PosLevVal(*this, pos, Level::LENGTH, Value::MIN);
-      const Gecode::String::Block& b = x.leftmost_unfixed_block();
-      if (b.lb() < b.ub())
-        return new PosLevVal(*this, pos, Level::CARD, Value::MIN);
-      else
-        return new PosLevVal(*this, pos, Level::BASE, Value::MUST_MIN);
-    }
-    
-    Choice*
-    val_lslm(int pos, const Gecode::String::StringView& x) {
-      if (x.min_length() < x.max_length())
-        return new PosLevVal(*this, pos, Level::LENGTH, Value::MIN);
-      const Gecode::String::Block& b = x.smallest_unfixed_block();
-      if (b.lb() < b.ub())
-        return new PosLevVal(*this, pos, Level::CARD, Value::MIN);
-      else
-        return new PosLevVal(*this, pos, Level::BASE, Value::MUST_MIN);
-    }
-    
+  forceinline Choice*
+  val_llll(int pos, Gecode::String::StringView& x) {
+    if (x.min_length() < x.max_length())
+      return new PosLevVal(*this, pos, Lev::LENGTH, Val::MIN);
+    Block& b = x[x.leftmost_unfixed_idx()];
+    if (b.lb() < b.ub())
+      return new PosLevVal(*this, pos, Lev::CARD, Val::MIN);
+    else
+      return new PosLevVal(*this, pos, Lev::BASE, Val::MIN);
+  }
+  
+  forceinline Choice*
+  val_lllm(int pos, Gecode::String::StringView& x) {
+    if (x.min_length() < x.max_length())
+      return new PosLevVal(*this, pos, Lev::LENGTH, Val::MIN);
+    Block& b = x[x.leftmost_unfixed_idx()];
+    if (b.lb() < b.ub())
+      return new PosLevVal(*this, pos, Lev::CARD, Val::MIN);
+    else
+      return new PosLevVal(*this, pos, Lev::BASE, Val::MUST_MIN);
+  }
+  
+  forceinline Choice*
+  val_lslm(int pos, Gecode::String::StringView& x) {
+    if (x.min_length() < x.max_length())
+      return new PosLevVal(*this, pos, Lev::LENGTH, Val::MIN);
+    Block& b = x[x.smallest_unfixed_idx()];
+    if (b.lb() < b.ub())
+      return new PosLevVal(*this, pos, Lev::CARD, Val::MIN);
+    else
+      return new PosLevVal(*this, pos, Lev::BASE, Val::MUST_MIN);
+  }
+  
+  forceinline static void
+  commit0(Space& home, StringView& x, Lev l, Val v, Block& b) {
+  
+  }
+  
+  forceinline static void
+  commit1(Space& home, StringView& x, Lev l, Val v, Block& b) {
+  
+  }
 
-  public:
-
-    static Gecode::Set::GLBndSet _MUST_CHARS;
+  forceinline static void
+  commit(Space& home, StringView& x, Lev l, Val v, Blc b, unsigned a) {
+    int i;
+    switch (b) {
+    case LEFTMOST:
+      i = x.leftmost_unfixed_idx();
+      break;
+    case RIGHTMOST:
+      i = x.rightmost_unfixed_idx();
+      break;
+    case SMALLEST:
+      i = x.smallest_unfixed_idx();
+      break;
+    default:
+      GECODE_NEVER;
+    }
+    a == 0 ? commit0(home, x, l, v, x[i]) : commit1(home, x, l, v, x[i]);  
+    assert (x.isOK());
+  }
+  
+  static Gecode::Set::GLBndSet _MUST_CHARS;
+  
+  public:    
 
     StringBrancher(Home home, ViewArray<String::StringView>& x0)
     : Brancher(home), x(x0), start(0) {};
@@ -116,7 +145,7 @@ namespace Gecode { namespace String { namespace Branch {
     choice(const Space&, Archive& e) {
       int pos, lev, val;
       e >> pos >> lev >> val;
-      return new PosLevVal(*this, pos, Level(lev), Value(val));
+      return new PosLevVal(*this, pos, Lev(lev), Val(val));
     }
 
     virtual void
@@ -127,6 +156,7 @@ namespace Gecode { namespace String { namespace Branch {
     }
 
   };
+  Gecode::Set::GLBndSet StringBrancher::_MUST_CHARS;  
 
 }}}
 

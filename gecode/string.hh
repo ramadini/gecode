@@ -570,7 +570,6 @@ namespace Gecode {
          StringVarBranch vars, StringValBranch vals);
 
 }
-#include <gecode/string/branch.hpp>
 // TODO: Add support for Dynamic Symmetry Breaking?
 
 // FIXME: Delta information hardly traceable: dashed strings do not form a lattice...
