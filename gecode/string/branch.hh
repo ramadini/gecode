@@ -41,7 +41,6 @@ namespace Gecode { namespace String { namespace Branch {
 
     class PosLevVal : public Choice {
     public:
-
       int pos;
       Level lev;
       Value val;
@@ -59,44 +58,43 @@ namespace Gecode { namespace String { namespace Branch {
 
     };
 
-//    Choice*
-//    val_llll(int pos, Gecode::String::DashedString* p) {
-//      if (p->min_length() < p->max_length())
-//        return new PosLevVal(*this, pos, Level::LENGTH, Value::MIN);
-//      int i = p->leftmost_unfixed();
-//      const DSBlock& b = p->at(i);
-//      if (b.l < b.u)
-//        return new PosLevVal(*this, pos, Level::CARD, Value::MIN);
-//      else
-//        return new PosLevVal(*this, pos, Level::BASE, Value::MIN);
-//    }
+    Choice*
+    val_llll(int pos, const Gecode::String::StringView& x) {
+      if (x.min_length() < x.max_length())
+        return new PosLevVal(*this, pos, Level::LENGTH, Value::MIN);
+      const Gecode::String::Block& b = x.leftmost_unfixed_block();
+      if (b.lb() < b.ub())
+        return new PosLevVal(*this, pos, Level::CARD, Value::MIN);
+      else
+        return new PosLevVal(*this, pos, Level::BASE, Value::MIN);
+    }
     
-//    Choice*
-//    val_lllm(int pos, Gecode::String::DashedString* p) {
-//      if (p->min_length() < p->max_length())
-//        return new PosLevVal(*this, pos, Level::LENGTH, Value::MIN);
-//      int i = p->leftmost_unfixed();
-//      const DSBlock& b = p->at(i);
-//      if (b.l < b.u)
-//        return new PosLevVal(*this, pos, Level::CARD, Value::MIN);
-//      else
-//        return new PosLevVal(*this, pos, Level::BASE, Value::MUSTMIN);
-//    }
+    Choice*
+    val_lllm(int pos, const Gecode::String::StringView& x) {
+      if (x.min_length() < x.max_length())
+        return new PosLevVal(*this, pos, Level::LENGTH, Value::MIN);
+      const Gecode::String::Block& b = x.leftmost_unfixed_block();
+      if (b.lb() < b.ub())
+        return new PosLevVal(*this, pos, Level::CARD, Value::MIN);
+      else
+        return new PosLevVal(*this, pos, Level::BASE, Value::MUST_MIN);
+    }
     
-//    Choice*
-//    val_lslm(int pos, Gecode::String::DashedString* p) {
-//      if (p->min_length() < p->max_length())
-//        return new PosLevVal(*this, pos, Level::LENGTH, Value::MIN);
-//      int i = p->smalles_unfixed();
-//      const DSBlock& b = p->at(i);
-//      if (b.l < b.u)
-//        return new PosLevVal(*this, pos, Level::CARD, Value::MIN);
-//      else
-//        return new PosLevVal(*this, pos, Level::BASE, Value::MUSTMIN);
-//    }
+    Choice*
+    val_lslm(int pos, const Gecode::String::StringView& x) {
+      if (x.min_length() < x.max_length())
+        return new PosLevVal(*this, pos, Level::LENGTH, Value::MIN);
+      const Gecode::String::Block& b = x.smallest_unfixed_block();
+      if (b.lb() < b.ub())
+        return new PosLevVal(*this, pos, Level::CARD, Value::MIN);
+      else
+        return new PosLevVal(*this, pos, Level::BASE, Value::MUST_MIN);
+    }
     
 
   public:
+
+    static Gecode::Set::GLBndSet _MUST_CHARS;
 
     StringBrancher(Home home, ViewArray<String::StringView>& x0)
     : Brancher(home), x(x0), start(0) {};
@@ -156,11 +154,11 @@ namespace Gecode { namespace String { namespace Branch {
 
 namespace Gecode { namespace String { namespace Branch {
 
-  struct BDim_Min_LSLM: public StringBrancher {
+  struct Block_MinDim_LSLM: public StringBrancher {
 
-    BDim_Min_LSLM(Home home, ViewArray<String::StringView>& x0);
+    Block_MinDim_LSLM(Home home, ViewArray<String::StringView>& x0);
 
-    BDim_Min_LSLM(Home home, BDim_Min_LSLM& b);
+    Block_MinDim_LSLM(Home home, Block_MinDim_LSLM& b);
 
     Actor* copy(Space& home);
 
@@ -174,18 +172,18 @@ namespace Gecode { namespace String { namespace Branch {
 
   };
   
-  bool BDim_Min_LSLM::_FIRST = true;
+  bool Block_MinDim_LSLM::_FIRST = true;
 
 }}}
-#include <gecode/string/branch/bdim_min_lslm.hpp>
+#include <gecode/string/branch/block_mindim_lslm.hpp>
 
 namespace Gecode { namespace String { namespace Branch {
 
-  struct BDim_Min_LLLM: public StringBrancher {
+  struct LBlock_MinDim_LLLM: public StringBrancher {
 
-    BDim_Min_LLLM(Home home, ViewArray<String::StringView>& x0);
+    LBlock_MinDim_LLLM(Home home, ViewArray<String::StringView>& x0);
 
-    BDim_Min_LLLM(Home home, BDim_Min_LLLM& b);
+    LBlock_MinDim_LLLM(Home home, LBlock_MinDim_LLLM& b);
 
     Actor* copy(Space& home);
 
@@ -199,9 +197,9 @@ namespace Gecode { namespace String { namespace Branch {
 
   };
   
-  bool BDim_Min_LLLM::_FIRST = true;
+  bool LBlock_MinDim_LLLM::_FIRST = true;
 
 }}}
-#include <gecode/string/branch/bdim_min_lllm.hpp>
+#include <gecode/string/branch/lblock_mindim_lllm.hpp>
 
 #endif

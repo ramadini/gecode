@@ -110,6 +110,10 @@ namespace Gecode { namespace String {
     SweepBwdIterator<StringView> bwd_iterator(void) const;
     //@}
     //@}
+    
+    const Block& leftmost_unfixed_block(void) const;
+    const Block& smallest_unfixed_block(void) const;
+    
     /// \name Value access
     //@{
     /// Return the minimum length for a string in the variable's domain
@@ -382,7 +386,7 @@ namespace Gecode { namespace String {
     bool assigned(void) const;
     /// Consistency checks on the view
     bool isOK(void) const;
-    bool isNull(void) const;
+    bool isNull(void) const;    
 
     /// If this view is equals to y
     template <class T> bool equals(const T& y) const;

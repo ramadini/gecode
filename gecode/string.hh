@@ -509,14 +509,10 @@ namespace Gecode {
   public:
     /// Which variable selection
     enum Select {
-      STR_NONE = 0,     ///< First unassigned
-      STR_BDIM_MIN,     ///< With unfixed block having smallest dimension
-// TODO: Other possible heuristics:
-//      STR_DIM_MIN,      ///< With smallest dimension
-//      STR_LEN_MIN       ///< With smallest difference max_len-min_len
-//      STR_MINLEN_MIN,   ///< With smallest min_len
-//      STR_MINLEN_MAX,   ///< With biggest max_len
-//      STR_MAXLEN_MIN,   ///< With smallest max_len
+      STR_NONE = 0,      ///< First unassigned
+      STR_LEFTBLOCK_MIN, ///< With leftmost unfixed block with least dimension
+      STR_BLOCK_MIN,     ///< With unfixed block having least dimension
+// TODO: Add heuristics
     };
   protected:
     /// Which variable to select
@@ -529,17 +525,7 @@ namespace Gecode {
     /// Return selection strategy
     Select select(void) const;
   };
-
-  /**
-   * \defgroup TaskModelStringBranchVar Selecting string variables
-   * \ingroup TaskModelStringBranch
-   */
-  //@{
-  /// Select first unassigned variable
-  StringVarBranch STRING_VAR_NONE(void);
-  /// Select the variable with the unfixed block having smallest dimension
-  StringVarBranch STRING_VAR_BDIM_MIN(Rnd r);
-  //@}
+  
 }
 #include <gecode/string/branch/var.hpp>
 
@@ -570,17 +556,6 @@ namespace Gecode {
     /// Return selection strategy
     Select select(void) const;
   };
-
-  /**
-   * \defgroup TaskModelStringBranchVal Value selection for string variables
-   * \ingroup TaskModelStringBranch
-   */
-  //@{
-  StringValBranch STR_VAL_LLLL(void);
-  StringValBranch STR_VAL_LLLM(void);
-  StringValBranch STR_VAL_LSLM(void);
-  //@}
-
 }
 #include <gecode/string/branch/val.hpp>
 

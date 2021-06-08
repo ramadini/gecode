@@ -364,7 +364,7 @@ namespace Gecode { namespace String {
     os << *v.varimp();
     return os;
   };
-  
+    
   forceinline void
   StringView::normalize(Space& home) {
     x->normalize(home);
@@ -378,6 +378,35 @@ namespace Gecode { namespace String {
   forceinline SweepBwdIterator<StringView>
   StringView::bwd_iterator(void) const {
     return SweepBwdIterator<StringView>(*this);
+  }
+  
+  forceinline const Block&
+  StringView::leftmost_unfixed_block(void) const {
+    assert (!assigned());
+    for (int i = 0; i < size(); ++i) {
+      const Block& b = (*this)[i];
+      if (!b.isFixed())
+        return b;
+    }
+    GECODE_NEVER;
+  }
+  
+  forceinline const Block&
+  StringView::smallest_unfixed_block(void) const {
+    assert (!assigned());
+    double l = (*this)[0].logdim();
+    int j = 0;
+    for (int i = 1; i < size(); ++i) {
+      const Block& b = (*this)[i];
+      if (!b.isFixed()) {
+        double lb = b.logdim();
+        if (lb < l) {
+          l = lb;
+          j = i;  
+        }
+      }
+    }
+    return (*this)[j];    
   }
   
   template <class T>

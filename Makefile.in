@@ -552,7 +552,7 @@ STRINGHDR0 = \
   var-imp/ds-equation.hpp var-imp/string.hpp view/string.hpp view/const.hpp \
   view/concat.hpp var/string.hpp \
   branch.hh branch.hpp branch/val.hpp branch/var.hpp branch/traits.hpp \
-  branch/bdim_min_lllm.hpp branch/bdim_min_lslm.hpp branch/none_llll.hpp \
+  branch/lblock_mindim_lllm.hpp branch/block_mindim_lslm.hpp branch/none_llll.hpp \
   rel.hh rel/eq.hpp rel/nq.hpp rel/re-eq.hpp \
   rel-op.hh rel-op/concat.hpp \
   int.hh int/length.hpp
