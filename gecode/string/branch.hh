@@ -59,7 +59,7 @@ namespace Gecode { namespace String { namespace Branch {
     };
     
   forceinline Choice*
-  val_llll(int pos, Gecode::String::StringView& x) {
+  val_llll(int pos, Gecode::String::StringView& x) const {
     if (x.min_length() < x.max_length())
       return new PosLevVal(*this, pos, Lev::LENGTH, Val::MIN);
     Block& b = x[x.leftmost_unfixed_idx()];
@@ -70,7 +70,7 @@ namespace Gecode { namespace String { namespace Branch {
   }
   
   forceinline Choice*
-  val_lllm(int pos, Gecode::String::StringView& x) {
+  val_lllm(int pos, Gecode::String::StringView& x) const {
     if (x.min_length() < x.max_length())
       return new PosLevVal(*this, pos, Lev::LENGTH, Val::MIN);
     Block& b = x[x.leftmost_unfixed_idx()];
@@ -81,7 +81,7 @@ namespace Gecode { namespace String { namespace Branch {
   }
   
   forceinline Choice*
-  val_lslm(int pos, Gecode::String::StringView& x) {
+  val_lslm(int pos, Gecode::String::StringView& x) const {
     if (x.min_length() < x.max_length())
       return new PosLevVal(*this, pos, Lev::LENGTH, Val::MIN);
     Block& b = x[x.smallest_unfixed_idx()];
