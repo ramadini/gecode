@@ -92,12 +92,93 @@ namespace Gecode { namespace String { namespace Branch {
   }
   
   forceinline static void
-  commit0(Space& home, StringView& x, Lev l, Val v, Block& b) {
-  
+  commit0(Space& home, StringView& x, Lev lev, Val val, int idx) {
+   // FIXME: Implement me.
+    Block& block = x[idx];
+    switch (lev) {
+      case LENGTH: {
+        if (x.min_length() == x.max_length())
+          home.fail();
+        switch (val) {
+          case MIN:
+//            x.min_length(home, x.min_length() + 1);
+            return;
+          case MAX:
+//            x.max_length(home, x.max_length() - 1);
+            return;
+          default:
+            GECODE_NEVER;
+        }
+      }
+      case Branch::CARD: {
+        if (block.lb() == block.ub())
+          home.fail();
+        switch (val) {
+          case Branch::MIN:
+             block.lb(home, block.lb()+1);
+             x.bnd_length(home, x.min_length()+1, x.max_length());
+             return;
+          case Branch::MAX:
+             block.ub(home, block.ub()-1);
+             x.bnd_length(home, x.min_length(), x.max_length()-1);
+             return;
+          default:
+            GECODE_NEVER;
+        }
+      }
+      case Branch::BASE: {
+        Gecode::Set::LUBndSet S1;
+//        block.includeBaseIn(home,S1);
+        if (S1.size() == 1)
+          home.fail();
+        int l = block.lb();
+        Gecode::Set::SetDelta d;
+        switch (val) {
+          case Branch::MIN: {
+            int m = S1.min();
+            S1.exclude(home, m, m, d);
+            break;
+          }
+          case Branch::MAX: {
+            int m = S1.max();
+            S1.exclude(home, m, m, d);
+            break;
+          }
+          case Branch::MUST_MIN: {
+//            int m;
+//            if (_MUST_CHARS.disjoint(S1))
+//              m = S1.min();
+//            else {
+//              NSIntSet t(_MUST_CHARS);
+//              t.intersect(S1);
+//              m = t.min();
+//            }
+//            S1.exclude(home, m, m, d);
+            break;
+          }
+          default:
+            GECODE_NEVER;
+        }
+        bool norm = (idx > 0 /* && x[idx-1].baseEquals(S1)*/) ||
+          (l == 1 && idx < x.size() - 1 /*&& x[idx+1].baseEquals(S1)*/);
+        if (l == 1 && !norm) {
+//          x[idx].baseUpdate(home,S1);
+          return;
+        }
+//        _blocks.insert(h, idx, DSBlock(h, S1, 1, 1));
+//        _blocks.at(idx + 1).l--;
+//        _blocks.at(idx + 1).u--;
+        if (norm)
+          x.normalize(home);
+        return;
+      }
+      default:
+        GECODE_NEVER;
+    }
   }
   
   forceinline static void
-  commit1(Space& home, StringView& x, Lev l, Val v, Block& b) {
+  commit1(Space& home, StringView& x, Lev l, Val v, int i) {
   
   }
 
@@ -117,7 +198,7 @@ namespace Gecode { namespace String { namespace Branch {
     default:
       GECODE_NEVER;
     }
-    a == 0 ? commit0(home, x, l, v, x[i]) : commit1(home, x, l, v, x[i]);  
+    a == 0 ? commit0(home, x, l, v, i) : commit1(home, x, l, v, i);  
     assert (x.isOK());
   }
   
