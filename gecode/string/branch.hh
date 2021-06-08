@@ -92,8 +92,8 @@ namespace Gecode { namespace String { namespace Branch {
   }
   
   forceinline static void
-  commit0(Space& home, StringView& x, Lev lev, Val val, int idx) {
-   // FIXME: Implement me.
+  commit1(Space& home, StringView& x, Lev lev, Val val, int idx) {
+    // FIXME: Implement me.
     Block& block = x[idx];
     switch (lev) {
       case LENGTH: {
@@ -110,15 +110,15 @@ namespace Gecode { namespace String { namespace Branch {
             GECODE_NEVER;
         }
       }
-      case Branch::CARD: {
+      case CARD: {
         if (block.lb() == block.ub())
           home.fail();
         switch (val) {
-          case Branch::MIN:
+          case MIN:
              block.lb(home, block.lb()+1);
              x.bnd_length(home, x.min_length()+1, x.max_length());
              return;
-          case Branch::MAX:
+          case MAX:
              block.ub(home, block.ub()-1);
              x.bnd_length(home, x.min_length(), x.max_length()-1);
              return;
@@ -126,7 +126,7 @@ namespace Gecode { namespace String { namespace Branch {
             GECODE_NEVER;
         }
       }
-      case Branch::BASE: {
+      case BASE: {
         Gecode::Set::LUBndSet S1;
 //        block.includeBaseIn(home,S1);
         if (S1.size() == 1)
@@ -134,17 +134,17 @@ namespace Gecode { namespace String { namespace Branch {
         int l = block.lb();
         Gecode::Set::SetDelta d;
         switch (val) {
-          case Branch::MIN: {
+          case MIN: {
             int m = S1.min();
             S1.exclude(home, m, m, d);
             break;
           }
-          case Branch::MAX: {
+          case MAX: {
             int m = S1.max();
             S1.exclude(home, m, m, d);
             break;
           }
-          case Branch::MUST_MIN: {
+          case MUST_MIN: {
 //            int m;
 //            if (_MUST_CHARS.disjoint(S1))
 //              m = S1.min();
@@ -178,8 +178,85 @@ namespace Gecode { namespace String { namespace Branch {
   }
   
   forceinline static void
-  commit1(Space& home, StringView& x, Lev l, Val v, int i) {
-  
+  commit0(Space& home, StringView& x, Lev lev, Val val, int idx) {
+    // FIXME: Implement me.
+    Block& block = x[idx];
+    switch (lev) {
+      case LENGTH: {
+        switch (val) {
+          case MIN:
+//            max_length(home, min_length());
+            return;
+          case MAX:
+//            min_length(home, max_length());
+            return;
+          default:
+            GECODE_NEVER;
+        }
+      }
+      case CARD: {
+        int k = block.ub() - block.lb();
+        switch (val) {
+          case MIN:
+            block.ub(home, block.lb());
+            x.bnd_length(home, x.min_length(), x.max_length()-k);
+            return;
+          case MAX:
+            block.lb(home, block.ub());
+            x.bnd_length(home, x.min_length()+k, x.max_length());
+            return;
+          default:
+            GECODE_NEVER;
+        }
+      }
+      case BASE: {
+        int l = block.lb();
+//        const DSIntSet& S = block.S;
+//        DSIntSet s;
+//        switch (val) {
+//          case MIN:
+//            s.init(h, S.min());
+//            break;
+//          case MAX:
+//            s.init(h, S.max());
+//            break;
+//          case MUSTMIN:
+//            if (_MUST_CHARS.disjoint(S))
+//              s.init(h, S.min());
+//            else {
+//              NSIntSet t(_MUST_CHARS);
+//              t.intersect(S);
+//              s.init(h, t.min());
+//            }
+//            break;
+//          case MUSTMAX:
+//            if (_MUST_CHARS.disjoint(S))
+//              s.init(h, S.max());
+//            else {
+//              NSIntSet t(_MUST_CHARS);
+//              t.intersect(S);
+//              s.init(h, t.max());
+//            }
+//            break;
+//          default:
+//            GECODE_NEVER;
+//        }
+//        bool norm = (idx > 0 && at(idx - 1).S == s) ||
+//          (l == 1 && idx < length() - 1 && at(idx + 1).S == s);
+//        if (l == 1 && !norm) {
+//          at(idx).S.update(h, s);
+//          return;
+//        }
+//        _blocks.insert(h, idx, DSBlock(h, s, 1, 1));
+//        _blocks.at(idx + 1).l--;
+//        _blocks.at(idx + 1).u--;
+//        if (norm)
+//          normalize(home);
+        return;
+      }
+      default:
+        GECODE_NEVER;
+    }
   }
 
   forceinline static void
