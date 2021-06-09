@@ -170,6 +170,8 @@ namespace Gecode { namespace String {
     /// length for any string in the domain is \a l and the maximum length for 
     /// any string in the domain is \a u
     ModEvent bnd_length(Space& home, int l, int u);
+    ModEvent min_length(Space& home, int l);
+    ModEvent max_length(Space& home, int u);
     //@}
     /// \name Methods for dashed string equation
     //@{

@@ -358,6 +358,16 @@ namespace Gecode { namespace String {
     return x->bnd_length(home, l, u);
   }
   
+  forceinline ModEvent
+  StringView::min_length(Space& home, int l) {
+    return x->min_length(home, l);
+  }
+  
+  forceinline ModEvent
+  StringView::max_length(Space& home, int u) {
+    return x->max_length(home, u);
+  }
+  
   template<class Char, class Traits>
   forceinline  std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const StringView& v) {

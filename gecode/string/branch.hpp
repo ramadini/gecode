@@ -34,27 +34,30 @@ namespace Gecode { namespace String { namespace Branch {
   }
   
   forceinline void
-  StringBrancher::commit1(Space& home, StringView& x, Lev lev, Val val, int idx) {
-    // FIXME: Implement me.
-    Block& block = x[idx];
+  StringBrancher::commit1(Space& home, StringView& x, Lev lev, Val val, int i) {
+    Block& block = x[i];
     switch (lev) {
       case LENGTH: {
-        if (x.min_length() == x.max_length())
+        if (x.min_length() == x.max_length()) {
           home.fail();
+          return;
+        }
         switch (val) {
           case MIN:
-//            x.min_length(home, x.min_length() + 1);
+            x.min_length(home, x.min_length() + 1);
             return;
           case MAX:
-//            x.max_length(home, x.max_length() - 1);
+            x.max_length(home, x.max_length() - 1);
             return;
           default:
             GECODE_NEVER;
         }
       }
       case CARD: {
-        if (block.lb() == block.ub())
+        if (block.lb() == block.ub()) {
           home.fail();
+          return;
+        }
         switch (val) {
           case MIN:
              block.lb(home, block.lb()+1);
@@ -69,10 +72,12 @@ namespace Gecode { namespace String { namespace Branch {
         }
       }
       case BASE: {
+        if (block.baseSize() == 1) {
+          home.fail();
+          return;
+        }
         Gecode::Set::LUBndSet S1;
 //        block.includeBaseIn(home,S1);
-        if (S1.size() == 1)
-          home.fail();
         int l = block.lb();
         Gecode::Set::SetDelta d;
         switch (val) {
@@ -101,15 +106,15 @@ namespace Gecode { namespace String { namespace Branch {
           default:
             GECODE_NEVER;
         }
-        bool norm = (idx > 0 /* && x[idx-1].baseEquals(S1)*/) ||
-          (l == 1 && idx < x.size() - 1 /*&& x[idx+1].baseEquals(S1)*/);
+        bool norm = (i > 0 /* && x[i-1].baseEquals(S1)*/) ||
+          (l == 1 && i < x.size() - 1 /*&& x[i+1].baseEquals(S1)*/);
         if (l == 1 && !norm) {
-//          x[idx].baseUpdate(home,S1);
+//          x[i].baseUpdate(home,S1);
           return;
         }
-//        _blocks.insert(h, idx, DSBlock(h, S1, 1, 1));
-//        _blocks.at(idx + 1).l--;
-//        _blocks.at(idx + 1).u--;
+//        _blocks.insert(h, i, DSBlock(h, S1, 1, 1));
+//        _blocks.at(i + 1).l--;
+//        _blocks.at(i + 1).u--;
         if (norm)
           x.normalize(home);
         return;
@@ -120,17 +125,16 @@ namespace Gecode { namespace String { namespace Branch {
   }
   
   forceinline void
-  StringBrancher::commit0(Space& home, StringView& x, Lev lev, Val val, int idx) {
-    // FIXME: Implement me.
-    Block& block = x[idx];
+  StringBrancher::commit0(Space& home, StringView& x, Lev lev, Val val, int i) {
+    Block& block = x[i];
     switch (lev) {
       case LENGTH: {
         switch (val) {
           case MIN:
-//            max_length(home, min_length());
+            max_length(home, min_length());
             return;
           case MAX:
-//            min_length(home, max_length());
+            min_length(home, max_length());
             return;
           default:
             GECODE_NEVER;
@@ -183,15 +187,15 @@ namespace Gecode { namespace String { namespace Branch {
 //          default:
 //            GECODE_NEVER;
 //        }
-//        bool norm = (idx > 0 && at(idx - 1).S == s) ||
-//          (l == 1 && idx < length() - 1 && at(idx + 1).S == s);
+//        bool norm = (i > 0 && at(i - 1).S == s) ||
+//          (l == 1 && i < length() - 1 && at(i + 1).S == s);
 //        if (l == 1 && !norm) {
-//          at(idx).S.update(h, s);
+//          at(i).S.update(h, s);
 //          return;
 //        }
-//        _blocks.insert(h, idx, DSBlock(h, s, 1, 1));
-//        _blocks.at(idx + 1).l--;
-//        _blocks.at(idx + 1).u--;
+//        _blocks.insert(h, i, DSBlock(h, s, 1, 1));
+//        _blocks.at(i + 1).l--;
+//        _blocks.at(i + 1).u--;
 //        if (norm)
 //          normalize(home);
         return;
