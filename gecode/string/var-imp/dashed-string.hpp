@@ -328,6 +328,9 @@ namespace Gecode { namespace String {
     /// and 0 <= min_len <= max_len <= MAX_STRING_LENGTH.
     void normalize(Space& home);
     
+    /// Splits x[i]=S^{k,k} into {c}^{1,1} S^{k-1,k-1}, and possibly normalizes.
+    void splitBlock(Space& home, int idx, int c);
+    
     /// Prints the dashed string \a x
     friend std::ostream& operator<<(std::ostream& os, const DashedString& x);
     
@@ -1232,6 +1235,48 @@ namespace Gecode { namespace String {
         x[++j].update(home, Block(w[i]));
     n = m;
     assert(isOK() && isNorm());
+  }
+  
+  forceinline void
+  DashedString::splitBlock(Space& home, int idx, int c) {
+    Block& x_i = x[idx];
+    int k = x_i.lb();
+    assert (!x_i.isFixed() && x_i.ub() == k);
+    bool lnorm = idx > 0 && x[idx-1].isFixed() && x[idx-1].baseMin() == c;
+    bool rnorm = idx < n-1 && k == 1 && x[idx+1].baseMin() == c;
+    if (lnorm) {
+      Block& x_prev = x[idx-1];
+      if (rnorm) {
+        Block& x_next = x[idx+1];
+        x_prev.updateCard(home, x_prev.lb() + 1 + x_next.lb(), 
+                                x_prev.ub() + 1 + x_next.ub());
+        for (int j = idx; j < n-1; ++j)
+          x[j].update(home, x[j+2]);
+        a.free(x+n-2, 2);
+        n -= 2;
+      }
+      else {
+        x_prev.updateCard(home, x_prev.lb() + k, x_prev.ub() + k);
+        x_i.updateCard(home, k-1, k-1);
+      }
+    }
+    else if (rnorm) {
+      x_i.updateCard(home, x_i.lb() + 1, x_i.ub() + 1);
+      for (int j = idx+1; j < n; ++j)
+        x[j].update(home, x[j+1]);
+      a.free(x+n-1, 1);
+      --n;
+    }
+    else {
+      Block* y = a.template alloc<Block>(n+1);
+      n++;
+      y[idx].update(home, c);
+      for (int j = idx+1; j < n; ++j)
+        y[j].update(home, x[j-1]);
+      a.free(x, n-1);
+      x = y;
+    }
+    assert (isOK() && isNorm());
   }
   
   forceinline void

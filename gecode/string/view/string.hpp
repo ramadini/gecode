@@ -374,7 +374,12 @@ namespace Gecode { namespace String {
     os << *v.varimp();
     return os;
   };
-    
+  
+  forceinline void
+  StringView::splitBlock(Space& home, int idx, int c) {
+    x->splitBlock(home, idx, c);
+  }
+  
   forceinline void
   StringView::normalize(Space& home) {
     x->normalize(home);

@@ -187,7 +187,7 @@ namespace Gecode { namespace String { namespace Branch {
           default:
             GECODE_NEVER;
         }
-//        x.splitBlock(home, block, c);
+        x.splitBlock(home, i, c);
         return;
       }
       default:

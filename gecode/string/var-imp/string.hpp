@@ -70,6 +70,11 @@ namespace Gecode { namespace String {
   StringVarImp::size() const {
     return ds.size();
   }
+  
+  forceinline void
+  StringVarImp::splitBlock(Space& home, int idx, int c) {
+    ds.splitBlock(home, idx, c);
+  }
 
   forceinline void
   StringVarImp::normalize(Space& home) {

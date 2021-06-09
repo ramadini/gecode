@@ -212,6 +212,7 @@ namespace Gecode { namespace String {
     resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize);
     /// Normalize this view
     void normalize(Space& home);
+    void splitBlock(Space& home, int idx, int c);
     //@}
   };
   /**
