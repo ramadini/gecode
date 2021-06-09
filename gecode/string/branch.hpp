@@ -72,51 +72,10 @@ namespace Gecode { namespace String { namespace Branch {
         }
       }
       case BASE: {
-        if (x_i.baseSize() == 1) {
+        if (x_i.baseSize() == 1)
           home.fail();
-          return;
-        }
-        Gecode::Set::LUBndSet S1;
-//        x_i.includeBaseIn(home,S1);
-        int l = x_i.lb();
-        Gecode::Set::SetDelta d;
-        switch (val) {
-          case MIN: {
-            int m = S1.min();
-            S1.exclude(home, m, m, d);
-            break;
-          }
-          case MAX: {
-            int m = S1.max();
-            S1.exclude(home, m, m, d);
-            break;
-          }
-          case MUST_MIN: {
-//            int m;
-//            if (_MUST_CHARS.disjoint(S1))
-//              m = S1.min();
-//            else {
-//              NSIntSet t(_MUST_CHARS);
-//              t.intersect(S1);
-//              m = t.min();
-//            }
-//            S1.exclude(home, m, m, d);
-            break;
-          }
-          default:
-            GECODE_NEVER;
-        }
-        bool norm = (i > 0 /* && x[i-1].baseEquals(S1)*/) ||
-          (l == 1 && i < x.size() - 1 /*&& x[i+1].baseEquals(S1)*/);
-        if (l == 1 && !norm) {
-//          x[i].baseUpdate(home,S1);
-          return;
-        }
-//        _x_is.insert(h, i, DSBlock(h, S1, 1, 1));
-//        _x_is.at(i + 1).l--;
-//        _x_is.at(i + 1).u--;
-        if (norm)
-          x.normalize(home);
+        else
+          splitBlock(home, x, i, val, 1);
         return;
       }
       default:
