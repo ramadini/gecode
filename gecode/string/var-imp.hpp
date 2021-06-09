@@ -93,7 +93,7 @@ namespace Gecode { namespace String {
     
     /// Normalize the domain
     void normalize(Space& home);
-    void splitBlock(Space& home, int idx, int c);
+    void splitBlock(Space& home, int idx, int c, unsigned a);
     ModEvent nullify(Space& home);
     
     void gets(Space& home, const DashedString& d);

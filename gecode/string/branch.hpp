@@ -157,7 +157,7 @@ namespace Gecode { namespace String { namespace Branch {
       default:
         GECODE_NEVER;
     }
-    x.splitBlock(home, i, c); //FIXME: a.
+    x.splitBlock(home, i, c, a);
   }
   
   forceinline void

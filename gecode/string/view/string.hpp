@@ -376,8 +376,8 @@ namespace Gecode { namespace String {
   };
   
   forceinline void
-  StringView::splitBlock(Space& home, int idx, int c) {
-    x->splitBlock(home, idx, c);
+  StringView::splitBlock(Space& home, int idx, int c, unsigned a) {
+    x->splitBlock(home, idx, c, a);
   }
   
   forceinline void
