@@ -35,7 +35,7 @@ namespace Gecode { namespace String { namespace Branch {
   
   forceinline void
   StringBrancher::commit1(Space& home, StringView& x, Lev lev, Val val, int i) {
-    Block& block = x[i];
+    Block& x_i = x[i];
     switch (lev) {
       case LENGTH: {
         if (x.min_length() == x.max_length()) {
@@ -54,31 +54,31 @@ namespace Gecode { namespace String { namespace Branch {
         }
       }
       case CARD: {
-        if (block.lb() == block.ub()) {
+        if (x_i.lb() == x_i.ub()) {
           home.fail();
           return;
         }
         switch (val) {
           case MIN:
-             block.lb(home, block.lb()+1);
-             x.bnd_length(home, x.min_length()+1, x.max_length());
+             x_i.lb(home, x_i.lb()+1);
+             x.min_length(home, x.min_length()+1);
              return;
           case MAX:
-             block.ub(home, block.ub()-1);
-             x.bnd_length(home, x.min_length(), x.max_length()-1);
+             x_i.ub(home, x_i.ub()-1);
+             x.max_length(home, x.max_length()+1);
              return;
           default:
             GECODE_NEVER;
         }
       }
       case BASE: {
-        if (block.baseSize() == 1) {
+        if (x_i.baseSize() == 1) {
           home.fail();
           return;
         }
         Gecode::Set::LUBndSet S1;
-//        block.includeBaseIn(home,S1);
-        int l = block.lb();
+//        x_i.includeBaseIn(home,S1);
+        int l = x_i.lb();
         Gecode::Set::SetDelta d;
         switch (val) {
           case MIN: {
@@ -112,9 +112,9 @@ namespace Gecode { namespace String { namespace Branch {
 //          x[i].baseUpdate(home,S1);
           return;
         }
-//        _blocks.insert(h, i, DSBlock(h, S1, 1, 1));
-//        _blocks.at(i + 1).l--;
-//        _blocks.at(i + 1).u--;
+//        _x_is.insert(h, i, DSBlock(h, S1, 1, 1));
+//        _x_is.at(i + 1).l--;
+//        _x_is.at(i + 1).u--;
         if (norm)
           x.normalize(home);
         return;
@@ -126,7 +126,7 @@ namespace Gecode { namespace String { namespace Branch {
   
   forceinline void
   StringBrancher::commit0(Space& home, StringView& x, Lev lev, Val val, int i) {
-    Block& block = x[i];
+    Block& x_i = x[i];
     switch (lev) {
       case LENGTH: {
         assert (x.min_length() < x.max_length());
@@ -142,61 +142,68 @@ namespace Gecode { namespace String { namespace Branch {
         }
       }
       case CARD: {
-        int k = block.ub() - block.lb();
+        int k = x_i.ub() - x_i.lb();
         assert (k > 0);
         switch (val) {
           case MIN:
-            block.ub(home, block.lb());
+            x_i.ub(home, x_i.lb());
             x.max_length(home, x.max_length()-k);
             return;
           case MAX:
-            block.lb(home, block.ub());
+            x_i.lb(home, x_i.ub());
             x.min_length(home, x.min_length()+k);
             return;
           default:
             GECODE_NEVER;
         }
       }
-      case BASE: {
-        int u = block.ub();
-        assert (u > 0 && block.lb() == u && block.baseSize() > 1);
-        int c;
-        switch (val) {
-          case MIN:
-            c = block.baseMin();
-            break;
-          case MAX:
-            c = block.baseMax();
-            break;
-          case MUST_MIN:
-            c = block.baseMin();
-            if (!_MUST_CHARS.in(c)) { 
-              Gecode::Set::BndSetRanges i(_MUST_CHARS);
-              Gecode::Set::BndSetRanges j = block.ranges();
-              while (i() && j()) {
-                int li = i.min(), lj = j.min(), ui = i.max(), uj = j.max();
-                if (li > uj)
-                  ++j;
-                else if (lj > ui)
-                  ++i;
-                else
-                  c = li > lj ? li : lj;
-              }
-            }
-            break;
-          default:
-            GECODE_NEVER;
-        }
-        x.splitBlock(home, i, c);
+      case BASE:
+        splitBlock(home, x, i, val, 0);
         return;
-      }
       default:
         GECODE_NEVER;
     }
   }
   
   forceinline void
-  StringBrancher::commit(Space& home, StringView& x, Lev l, Val v, Blc b, unsigned a) {
+  StringBrancher::splitBlock(Space& home, StringView& x, int i, Val val, 
+                                                                unsigned a) {
+    Block& x_i = x[i];
+    int u = x_i.ub();
+    assert (u > 0 && x_i.lb() == u && x_i.baseSize() > 1);
+    int c;
+    switch (val) {
+      case MIN:
+        c = x_i.baseMin();
+        break;
+      case MAX:
+        c = x_i.baseMax();
+        break;
+      case MUST_MIN:
+        c = x_i.baseMin();
+        if (!_MUST_CHARS.in(c)) { 
+          Gecode::Set::BndSetRanges i(_MUST_CHARS);
+          Gecode::Set::BndSetRanges j = x_i.ranges();
+          while (i() && j()) {
+            int li = i.min(), lj = j.min(), ui = i.max(), uj = j.max();
+            if (li > uj)
+              ++j;
+            else if (lj > ui)
+              ++i;
+            else
+              c = li > lj ? li : lj;
+          }
+        }
+        break;
+      default:
+        GECODE_NEVER;
+    }
+    x.splitBlock(home, i, c); //FIXME: a.
+  }
+  
+  forceinline void
+  StringBrancher::commit(Space& home, StringView& x, Lev l, Val v, Blc b, 
+                                                                   unsigned a) {
     int i;
     switch (b) {
     case LEFTMOST:
