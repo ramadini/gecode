@@ -129,12 +129,13 @@ namespace Gecode { namespace String { namespace Branch {
     Block& block = x[i];
     switch (lev) {
       case LENGTH: {
+        assert (x.min_length() < x.max_length());
         switch (val) {
           case MIN:
-            max_length(home, min_length());
+            x.max_length(home, x.min_length());
             return;
           case MAX:
-            min_length(home, max_length());
+            x.min_length(home, x.max_length());
             return;
           default:
             GECODE_NEVER;
@@ -142,62 +143,51 @@ namespace Gecode { namespace String { namespace Branch {
       }
       case CARD: {
         int k = block.ub() - block.lb();
+        assert (k > 0);
         switch (val) {
           case MIN:
             block.ub(home, block.lb());
-            x.bnd_length(home, x.min_length(), x.max_length()-k);
+            x.max_length(home, x.max_length()-k);
             return;
           case MAX:
             block.lb(home, block.ub());
-            x.bnd_length(home, x.min_length()+k, x.max_length());
+            x.min_length(home, x.min_length()+k);
             return;
           default:
             GECODE_NEVER;
         }
       }
       case BASE: {
-        int l = block.lb();
-//        const DSIntSet& S = block.S;
-//        DSIntSet s;
-//        switch (val) {
-//          case MIN:
-//            s.init(h, S.min());
-//            break;
-//          case MAX:
-//            s.init(h, S.max());
-//            break;
-//          case MUSTMIN:
-//            if (_MUST_CHARS.disjoint(S))
-//              s.init(h, S.min());
-//            else {
-//              NSIntSet t(_MUST_CHARS);
-//              t.intersect(S);
-//              s.init(h, t.min());
-//            }
-//            break;
-//          case MUSTMAX:
-//            if (_MUST_CHARS.disjoint(S))
-//              s.init(h, S.max());
-//            else {
-//              NSIntSet t(_MUST_CHARS);
-//              t.intersect(S);
-//              s.init(h, t.max());
-//            }
-//            break;
-//          default:
-//            GECODE_NEVER;
-//        }
-//        bool norm = (i > 0 && at(i - 1).S == s) ||
-//          (l == 1 && i < length() - 1 && at(i + 1).S == s);
-//        if (l == 1 && !norm) {
-//          at(i).S.update(h, s);
-//          return;
-//        }
-//        _blocks.insert(h, i, DSBlock(h, s, 1, 1));
-//        _blocks.at(i + 1).l--;
-//        _blocks.at(i + 1).u--;
-//        if (norm)
-//          normalize(home);
+        int u = block.ub();
+        assert (u > 0 && block.lb() == u && block.baseSize() > 1);
+        int c;
+        switch (val) {
+          case MIN:
+            c = block.baseMin();
+            break;
+          case MAX:
+            c = block.baseMax();
+            break;
+          case MUST_MIN:
+            c = block.baseMin();
+            if (!_MUST_CHARS.in(c)) { 
+              Gecode::Set::BndSetRanges i(_MUST_CHARS);
+              Gecode::Set::BndSetRanges j = block.ranges();
+              while (i() && j()) {
+                int li = i.min(), lj = j.min(), ui = i.max(), uj = j.max();
+                if (li > uj)
+                  ++j;
+                else if (lj > ui)
+                  ++i;
+                else
+                  c = li > lj ? li : lj;
+              }
+            }
+            break;
+          default:
+            GECODE_NEVER;
+        }
+//        x.splitBlock(home, block, c);
         return;
       }
       default:

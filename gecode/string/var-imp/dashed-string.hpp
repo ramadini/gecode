@@ -22,6 +22,7 @@ namespace Gecode { namespace String {
     CharSet(void);
     /// Creates the CharSet [0, String::Limits::MAX_ALPHABET_SIZE)
     CharSet(Space& home);
+    CharSet(Space& home, const BndSet& S);
     /// Creates the CharSet {a}. Throws OutOfLimits if \f$ a < 0 \vee a \geq MAX\_ALPHABET\_SIZE \f$
     CharSet(Space& home, int a);
     /// Creates the CharSet [a, b]. The following exceptions might be thrown:
@@ -44,6 +45,8 @@ namespace Gecode { namespace String {
     bool contains(const CharSet& S) const;
     /// Test whether the set is equal to \a S
     bool equals(const CharSet& S) const;
+    /// Intersect this set with \a S
+    template <class T> void intersect(Space& home, const T& S);
     //@}
     
     /// Prints \a set according to Limits::CHAR_ENCODING
@@ -388,6 +391,11 @@ namespace Gecode { namespace String {
   CharSet::CharSet() {
     Set::LUBndSet();
   }
+  
+  forceinline
+  CharSet::CharSet(Space& home, const BndSet& S) : Set::LUBndSet() {
+    update(home, S);
+  }
 
   forceinline
   CharSet::CharSet(Space& home) : Set::LUBndSet(home, 0, MAX_ALPHABET_SIZE-1) {}
@@ -465,6 +473,13 @@ namespace Gecode { namespace String {
       ++i2;
     }
     return !i1() && !i2();
+  }
+
+  template <class T>
+  forceinline void
+  CharSet::intersect(Space& home, const T& s) {
+    Gecode::Set::BndSetRanges i(s);
+    intersectI(home, i);
   }
 
   forceinline std::ostream&
@@ -788,7 +803,7 @@ namespace Gecode { namespace String {
     S->intersectI(home, i);
     if (S->empty()) {
       if (l > 0)
-        throw VariableEmptyDomain("Block::inters");
+        throw VariableEmptyDomain("Block::baseIntersect");
       nullify(home);
     }
     else if (l == u && S->size() == 1)
@@ -802,13 +817,13 @@ namespace Gecode { namespace String {
       return;
     if (isFixed()) {
       if (s.in(l))
-        throw VariableEmptyDomain("Block::inters"); 
+        throw VariableEmptyDomain("Block::baseExclude"); 
       return;
     }
     Gecode::Set::BndSetRanges i(s);
     S->excludeI(home, i);
     if (S->empty() && l > 0)
-      throw VariableEmptyDomain("Block::exclude");
+      throw VariableEmptyDomain("Block::baseExclude");
     if (l == u && S->size() == 1)
       fix(home);
     assert(isOK());
