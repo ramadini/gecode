@@ -9,6 +9,7 @@
 #include <gecode/string/rel.hh>
 #include <gecode/string/int.hh>
 #include <gecode/string/rel-op.hh>
+#include <gecode/string/branch.hh>
 
 using namespace Gecode;
 using namespace String;
@@ -317,6 +318,54 @@ public:
     std::cerr << "Unsat!\n";
   }
 
+  void test08() {
+    cerr << "\n*** Test 08 ***" << endl;
+    ViewArray<StringView> vx(*this, 2);
+    Block d[3];
+    d[0].update(*this, 'd');
+    d[1].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 2));
+    d[2].update(*this, Block(*this, CharSet(*this, 'c'), 0, 2));
+    vx[0] = StringVar(*this, DashedString(*this, d, 3));
+    vx[1] = StringVar(*this);
+    using Gecode::String::Branch::None_LLLL;
+//    using Gecode::String::Branch::Block_MinDim_LSLM;
+    None_LLLL brancher(*this, vx);
+    std::cerr << "x = " << vx[0] << std::endl;
+    int i = 0;
+    while (!vx[0].assigned()) {
+      const Choice* c = brancher.choice(*this);
+      brancher.commit(*this, *c, 0);
+      std::cerr << "After commit " << ++i << ": " << vx[0] << std::endl;
+    }
+    
+  }
+//std::cerr << "\n*** Test 02 ***" << std::endl;
+//    ViewArray<String::StringView> x(*this, 2);
+//    NSBlocks v({
+//      NSBlock(NSIntSet('d'), 1),
+//      NSBlock(NSIntSet('a', 'b'), 1, 2),
+//      NSBlock(NSIntSet('c'), 0, 2)
+//    });
+//    x[0] = StringVar(*this, v, 0, 100);
+//    x[1] = StringVar(*this);
+//    using Gecode::String::Branch::SizeMin_LLUL;
+//    None_LLLL brancher(*this, x);
+//    const Choice* c;
+//    while (!x[0].assigned()) {
+//      c = brancher.choice(*this);
+//      std::cerr << "Here!\n";
+//      brancher.commit(*this, *c, 0);
+//      std::cerr << "x[0]: " << x[0] << std::endl;
+//    }
+//    assert (x[0].pdomain()->val() == "da");
+//    assert (brancher.status(*this));
+//    while (!x[1].assigned()) {
+//         c = brancher.choice(*this);
+//         brancher.commit(*this, *c, 0);
+//         std::cerr << "x[1]: " << x[1] << std::endl;
+//      }
+//    assert (x[1].pdomain()->val() == "");
+
 };
 
 int main() {
@@ -328,6 +377,7 @@ int main() {
   home->test05();
   home->test06();
   home->test07();
+  home->test08();
   cerr << "\n----- test-prop.cpp passes -----\n\n";
   return 0;
 }
