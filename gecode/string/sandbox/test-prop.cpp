@@ -327,9 +327,7 @@ public:
     d[2].update(*this, Block(*this, CharSet(*this, 'c'), 0, 2));
     vx[0] = StringVar(*this);
     vx[1] = StringVar(*this, DashedString(*this, d, 3));
-    using Gecode::String::Branch::None_LLLL;
-    None_LLLL brancher(*this, vx);
-    std::cerr << "x = " << vx[0] << std::endl;
+    Gecode::String::Branch::None_LLLL brancher(*this, vx);
     int i = 0;
     while (brancher.status(*this)) {
       const Choice* c = brancher.choice(*this);
@@ -338,6 +336,26 @@ public:
       std::cerr << "After commit:  " << i << ": " << vx << "\n----------\n";      
     }
     assert (vec2str(vx[0].val()) == "" && vec2str(vx[1].val()) == "da");
+  }
+  
+  void test09() {
+    cerr << "\n*** Test 09 ***" << endl;
+    ViewArray<StringView> vx(*this, 2);
+    Block d[3];
+    d[0].update(*this, 'd');    
+    d[1].update(*this, Block(*this, CharSet(*this, 'c'), 0, 2));
+    d[2].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 2));
+    vx[0] = StringVar(*this);
+    vx[1] = StringVar(*this, DashedString(*this, d, 3));
+    Gecode::String::Branch::Block_MinDim_LSLM brancher(*this, vx);
+    int i = 0;
+    while (brancher.status(*this)) {
+      const Choice* c = brancher.choice(*this);
+      std::cerr << "Before commit: " << ++i << ": " << vx << "\n";
+      brancher.commit(*this, *c, 0);
+      std::cerr << "After commit:  " << i << ": " << vx << "\n----------\n";      
+    }
+//    assert (vec2str(vx[0].val()) == "" && vec2str(vx[1].val()) == "da");
   }
 
 };
@@ -352,6 +370,7 @@ int main() {
   home->test06();
   home->test07();
   home->test08();
+  home->test09();
   cerr << "\n----- test-prop.cpp passes -----\n\n";
   return 0;
 }
