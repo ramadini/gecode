@@ -372,10 +372,12 @@ public:
     assert (vec2str(x[1].val()) == "bb");
     x[1].lb(*this, 2);
     x.min_length(*this, x.min_length()+2);
-    std::cerr << "x = " << x << "\n";
     x.splitBlock(*this, 2, 'c', 1);
     std::cerr << "After split x[2], x = " << x << "\n";
-    
+    assert (vec2str(x[1].val()) == "bbb");
+    x.splitBlock(*this, 2, 'b', 1);
+    std::cerr << "After split x[2], x = " << x << "\n";
+    assert (vec2str(x.val()) == "dbbbc");
   }
 
 };

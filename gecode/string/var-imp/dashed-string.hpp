@@ -1278,7 +1278,7 @@ namespace Gecode { namespace String {
  
   forceinline void
   DashedString::splitBlock(Space& home, int idx, int c, unsigned alt) {
-    std::cerr <<"split"<<alt<<"["<<idx<<"]: "<<*this<<" <- "<<int2str(c)<<"\n"; 
+//    std::cerr <<"split"<<alt<<"["<<idx<<"]: "<<*this<<" <- "<<int2str(c)<<"\n"; 
     Block& x_i = x[idx];
     int k = x_i.lb();
     assert (!x_i.isFixed() && x_i.ub() == k);
@@ -1300,7 +1300,7 @@ namespace Gecode { namespace String {
     }
     bool rnorm = k == 1 && idx < n-1 && x[idx+1].isFixed() 
                                      && x[idx+1].baseMin() == c;
-    std::cerr << lnorm << ' ' << rnorm << '\n';
+//    std::cerr << lnorm << ' ' << rnorm << '\n';
     if (lnorm) {
       Block& x_prev = x[idx-1];
       if (rnorm) {
@@ -1351,7 +1351,6 @@ namespace Gecode { namespace String {
         alt == 0 ? x[idx].update(home, c) : x_i.baseRemove(home, c);
     }
     assert (isOK());
-    std::cerr << *this << '\n';
     assert (isNorm());
   }
   
