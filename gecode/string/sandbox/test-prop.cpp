@@ -336,26 +336,26 @@ public:
       std::cerr << "After commit:  " << i << ": " << vx << "\n----------\n";      
     }
     assert (vec2str(vx[0].val()) == "" && vec2str(vx[1].val()) == "da");
-  }
-  
-  void test09() {
-    cerr << "\n*** Test 09 ***" << endl;
-    ViewArray<StringView> vx(*this, 2);
-    Block d[3];
+    
     d[0].update(*this, 'd');    
     d[1].update(*this, Block(*this, CharSet(*this, 'c'), 0, 2));
     d[2].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 2));
     vx[0] = StringVar(*this);
     vx[1] = StringVar(*this, DashedString(*this, d, 3));
-    Gecode::String::Branch::Block_MinDim_LSLM brancher(*this, vx);
-    int i = 0;
-    while (brancher.status(*this)) {
-      const Choice* c = brancher.choice(*this);
+    Gecode::String::Branch::Block_MinDim_LSLM brancher2(*this, vx);
+    i = 0;
+    while (brancher2.status(*this)) {
+      const Choice* c = brancher2.choice(*this);
       std::cerr << "Before commit: " << ++i << ": " << vx << "\n";
-      brancher.commit(*this, *c, 0);
+      brancher2.commit(*this, *c, 0);
       std::cerr << "After commit:  " << i << ": " << vx << "\n----------\n";      
     }
-//    assert (vec2str(vx[0].val()) == "" && vec2str(vx[1].val()) == "da");
+    assert (vec2str(vx[0].val()) == "" && vec2str(vx[1].val()) == "");
+  }
+  
+  void test09() {
+    cerr << "\n*** Test 09 ***" << endl;
+    
   }
 
 };

@@ -44,8 +44,13 @@ namespace Gecode { namespace String { namespace Branch {
         for (int i = start; i < x.size(); ++i) {
           const StringView& vi = x[i];
           for (int j = 0; j < vi.size(); ++j)
-            vi[j].includeBaseIn(home, _MUST_CHARS);
+            if (vi[j].baseSize() == 1) {
+              Gecode::Set::SetDelta d;
+              int m = vi[j].baseMin();
+              StringBrancher::_MUST_CHARS.include(home, m, m, d);
+            }
         }
+        _FIRST = false;
       }
       for (int i = start + 1; i < x.size(); ++i) {
         StringView& xi = x[i];
@@ -71,7 +76,6 @@ namespace Gecode { namespace String { namespace Branch {
       // if (_FIRST) std::cerr<<"Must chars: "<<DashedString::_MUST_CHARS<<"\n";      
       // std::cerr << "Chosen var. " << x[pos] << " (pos. " << pos << ")\n";
       // abort();
-      _FIRST = false;
       return val_lllm(pos, x[pos]);
     }
 
