@@ -1282,7 +1282,7 @@ namespace Gecode { namespace String {
     Block& x_i = x[idx];
     int k = x_i.lb();
     assert (!x_i.isFixed() && x_i.ub() == k);
-    bool lnorm;
+    bool lnorm = false;
     if (idx > 0) {
       Block& x_prev = x[idx-1];
       if (alt == 0)
@@ -1295,11 +1295,21 @@ namespace Gecode { namespace String {
         s.include(home, c, c, d);
         lnorm = x_i.baseEquals(s);
       }
-      else
-        lnorm = false;
     }
-    bool rnorm = k == 1 && idx < n-1 && x[idx+1].isFixed() 
-                                     && x[idx+1].baseMin() == c;
+    bool rnorm = false;
+    if (k == 1 && idx < n-1) {
+      Block& x_next = x[idx+1];
+      if (alt == 0)
+        rnorm = x_next.isFixed() && x_next.baseMin() == c;
+      else if (x_next.baseSize() == x_i.baseSize()-1 
+           && !x_next.baseContains(c)) {
+        Gecode::Set::GLBndSet s;
+        x_next.includeBaseIn(home, s);
+        Gecode::Set::SetDelta d;
+        s.include(home, c, c, d);
+        rnorm = x_i.baseEquals(s);
+      }
+    }
 //    std::cerr << lnorm << ' ' << rnorm << '\n';
     if (lnorm) {
       Block& x_prev = x[idx-1];
@@ -1307,7 +1317,7 @@ namespace Gecode { namespace String {
         Block& x_next = x[idx+1];
         x_prev.updateCard(home, x_prev.lb() + 1 + x_next.lb(), 
                                 x_prev.ub() + 1 + x_next.ub());
-        for (int j = idx; j < n-1; ++j)
+        for (int j = idx; j < n-2; ++j)
           x[j].update(home, x[j+2]);
         a.free(x+n-2, 2);
         n -= 2;
@@ -1327,8 +1337,11 @@ namespace Gecode { namespace String {
       }
     }
     else if (rnorm) {
-      x_i.updateCard(home, x_i.lb() + 1, x_i.ub() + 1);
-      for (int j = idx+1; j < n; ++j)
+      Block& x_next = x[idx+1];
+      x_i.updateCard(home, x_next.lb() + 1, x_next.ub() + 1);
+      if (alt == 1)
+        x_i.baseRemove(home, c);
+      for (int j = idx+1; j < n-1; ++j)
         x[j].update(home, x[j+1]);
       a.free(x+n-1, 1);
       --n;
@@ -1351,6 +1364,7 @@ namespace Gecode { namespace String {
         alt == 0 ? x[idx].update(home, c) : x_i.baseRemove(home, c);
     }
     assert (isOK());
+//    std::cerr << *this << '\n';
     assert (isNorm());
   }
   

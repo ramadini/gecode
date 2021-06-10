@@ -380,6 +380,33 @@ public:
     assert (vec2str(x.val()) == "dbbbc");
   }
 
+  void test10() {
+    cerr << "\n*** Test 10 ***" << endl;
+    Block d[3];
+    d[0].update(*this, Block(*this, CharSet(*this, 'c', 'd'), 3, 3));
+    d[1].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 1, 1));
+    d[2].update(*this, Block(*this, CharSet(*this, 'b', 'c'), 0, 2));
+    DashedString x(*this, d, 3);
+    std::cerr << "x = " << x << "\n";
+    x.splitBlock(*this, 1, 'a', 1);
+    std::cerr << "After split x[1], x = " << x << "\n";
+    assert (x.size() == 2 && x[1].lb() == 1 && x[1].ub() == 3);
+    x[1].ub(*this, 1);
+    x.max_length(*this, x.max_length()-2);
+    std::cerr << "New x = " << x << "\n";
+    x.splitBlock(*this, 1, 'b', 1);
+    std::cerr << "After split x[1], x = " << x << "\n";
+    x.splitBlock(*this, 0, 'c', 0);
+    std::cerr << "After split x[0], x = " << x << "\n";
+    assert (vec2str(x[0].val()) == "c");
+    x.splitBlock(*this, 1, 'c', 0);
+    std::cerr << "After split x[1], x = " << x << "\n";
+    assert (vec2str(x[0].val()) == "cc");
+    x.splitBlock(*this, 1, 'd', 1);
+    std::cerr << "After split x[1], x = " << x << "\n";
+    assert (vec2str(x[0].val()) == "cccc");
+  }
+
 };
 
 int main() {
@@ -393,6 +420,7 @@ int main() {
   home->test07();
   home->test08();
   home->test09();
+  home->test10();
   cerr << "\n----- test-prop.cpp passes -----\n\n";
   return 0;
 }
