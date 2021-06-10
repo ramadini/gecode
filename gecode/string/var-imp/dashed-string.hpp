@@ -44,7 +44,7 @@ namespace Gecode { namespace String {
     /// Test whether the set contains \a S
     bool contains(const CharSet& S) const;
     /// Test whether the set is equal to \a S
-    bool equals(const CharSet& S) const;
+    template <class T> bool equals(const T& S) const;
     /// Intersect this set with \a S
     template <class T> void intersect(Space& home, const T& S);
     //@}
@@ -139,6 +139,7 @@ namespace Gecode { namespace String {
     bool baseDisjoint(const Block& b) const;
     /// Test whether the base of this block is equal to the base of \a b
     bool baseEquals(const Block& b) const;
+    bool baseEquals(const Gecode::Set::BndSet& s) const;
     /// Test whether the base of this block contains c
     bool baseContains(int c) const;
     /// Test whether this block contains block \a b, i.e. base() contains b.base() 
@@ -461,16 +462,34 @@ namespace Gecode { namespace String {
     return !i2();
   }
   
+//  forceinline bool
+//  CharSet::equals(const CharSet& x) const {
+//    if (_size != x._size)
+//      return false;
+//    if (_size == 0 || fst() == x.fst())
+//      return true;
+//    if (min() != x.min() || max() != x.max())
+//      return false;
+//    Gecode::Set::BndSetRanges i1(*this);
+//    Gecode::Set::BndSetRanges i2(x);    
+//    while (i1() && i2()) {
+//      if (i1.min() != i2.min() || i1.max() != i2.max())
+//        return false;
+//      ++i1;
+//      ++i2;
+//    }
+//    return !i1() && !i2();
+//  }
+//  
+  template <class T>
   forceinline bool
-  CharSet::equals(const CharSet& x) const {
-    if (_size != x._size)
+  CharSet::equals(const T& s) const {
+    if (_size != s.size())
       return false;
-    if (_size == 0 || fst() == x.fst())
-      return true;
-    if (min() != x.min() || max() != x.max())
+    if (min() != s.min() || max() != s.max())
       return false;
     Gecode::Set::BndSetRanges i1(*this);
-    Gecode::Set::BndSetRanges i2(x);    
+    Gecode::Set::BndSetRanges i2(s);    
     while (i1() && i2()) {
       if (i1.min() != i2.min() || i1.max() != i2.max())
         return false;
@@ -687,6 +706,12 @@ namespace Gecode { namespace String {
     if (b.isFixed())
       return S->size() == 1 && S->min() == b.l;
     return S->equals(*b.S);
+  }
+  forceinline bool
+  Block::baseEquals(const Gecode::Set::BndSet& s) const {
+    if (isFixed())
+      return s.size() == 1 && s.min() == l;
+    return S->equals(s);
   }
   
   forceinline bool
@@ -1253,12 +1278,29 @@ namespace Gecode { namespace String {
  
   forceinline void
   DashedString::splitBlock(Space& home, int idx, int c, unsigned alt) {
-//    std::cerr <<"split"<<alt<<"["<<idx<<"]: "<<*this<<" <- "<<int2str(c)<<"\n"; 
+    std::cerr <<"split"<<alt<<"["<<idx<<"]: "<<*this<<" <- "<<int2str(c)<<"\n"; 
     Block& x_i = x[idx];
     int k = x_i.lb();
     assert (!x_i.isFixed() && x_i.ub() == k);
-    bool lnorm = idx > 0 && x[idx-1].isFixed() && x[idx-1].baseMin() == c;
-    bool rnorm = idx < n-1 && k == 1 && x[idx+1].baseMin() == c;
+    bool lnorm;
+    if (idx > 0) {
+      Block& x_prev = x[idx-1];
+      if (alt == 0)
+        lnorm = x_prev.isFixed() && x_prev.baseMin() == c;
+      else if (x_prev.baseSize() == x_i.baseSize()-1 
+           && !x_prev.baseContains(c)) {
+        Gecode::Set::GLBndSet s;
+        x_prev.includeBaseIn(home, s);
+        Gecode::Set::SetDelta d;
+        s.include(home, c, c, d);
+        lnorm = x_i.baseEquals(s);
+      }
+      else
+        lnorm = false;
+    }
+    bool rnorm = k == 1 && idx < n-1 && x[idx+1].isFixed() 
+                                     && x[idx+1].baseMin() == c;
+    std::cerr << lnorm << ' ' << rnorm << '\n';
     if (lnorm) {
       Block& x_prev = x[idx-1];
       if (rnorm) {
@@ -1271,15 +1313,17 @@ namespace Gecode { namespace String {
         n -= 2;
       }
       else {
-        x_prev.updateCard(home, x_prev.lb() + k, x_prev.ub() + k);
+        x_prev.updateCard(home, x_prev.lb() + 1, x_prev.ub() + 1);
         if (k == 1) {
-          for (int j = idx+1; j < n; ++j)
+          for (int j = idx; j < n-1; ++j)
             x[j].update(home, x[j+1]);
           a.free(x+n-1, 1);
           --n;
         }
-        else
-          x_i.updateCard(home, k-1, k-1);
+        else {
+          --k;
+          x_i.updateCard(home, k, k);
+        }
       }
     }
     else if (rnorm) {
@@ -1292,17 +1336,23 @@ namespace Gecode { namespace String {
     else {
       if (k > 1) {
         Block* y = a.template alloc<Block>(n+1);
+        for (int j = 0; j <= idx; ++j)
+          y[j].update(home, x[j]);
+        alt == 0 ? y[idx].update(home, c) : x_i.baseRemove(home, c);
         n++;
-        alt == 0 ? y[idx].update(home, c) : y[idx].baseRemove(home, c);
         for (int j = idx+1; j < n; ++j)
           y[j].update(home, x[j-1]);
-        a.free(x, n-1);
+        --k;
+        y[idx+1].updateCard(home, k, k);
+        a.free(x, n-1);        
         x = y;
       }
       else
-        alt == 0 ? x[idx].update(home, c) : x[idx].baseRemove(home, c);
+        alt == 0 ? x[idx].update(home, c) : x_i.baseRemove(home, c);
     }
-    assert (isOK() && isNorm());
+    assert (isOK());
+    std::cerr << *this << '\n';
+    assert (isNorm());
   }
   
   forceinline void

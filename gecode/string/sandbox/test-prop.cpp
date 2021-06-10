@@ -15,6 +15,7 @@ using namespace Gecode;
 using namespace String;
 using namespace Rel;
 using namespace RelOp;
+using namespace Branch;
 using namespace Gecode::Int;
 using namespace String::Int;
 using std::cerr;
@@ -355,6 +356,25 @@ public:
   
   void test09() {
     cerr << "\n*** Test 09 ***" << endl;
+    Block d[3];
+    d[0].update(*this, 'd');
+    d[1].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 2));
+    d[2].update(*this, Block(*this, CharSet(*this, 'b', 'c'), 0, 2));
+    DashedString x(*this, d, 3);
+    x[1].lb(*this, 2);
+    x.min_length(*this, x.min_length()+1);
+    std::cerr << "x = " << x << "\n";
+    x.splitBlock(*this, 1, 'b', 0);
+    std::cerr << "After split x[1], x = " << x << "\n";
+    assert (vec2str(x[1].val()) == "b");
+    x.splitBlock(*this, 2, 'b', 0);
+    std::cerr << "After split x[2], x = " << x << "\n";
+    assert (vec2str(x[1].val()) == "bb");
+    x[1].lb(*this, 2);
+    x.min_length(*this, x.min_length()+2);
+    std::cerr << "x = " << x << "\n";
+    x.splitBlock(*this, 2, 'c', 1);
+    std::cerr << "After split x[2], x = " << x << "\n";
     
   }
 
