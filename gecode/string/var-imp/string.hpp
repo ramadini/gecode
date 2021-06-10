@@ -73,7 +73,7 @@ namespace Gecode { namespace String {
   
   forceinline void
   StringVarImp::splitBlock(Space& home, int idx, int c, unsigned a) {
-    a == 0 ? ds.splitBlockIncl(home, idx, c) : ds.splitBlockExcl(home, idx, c);
+    ds.splitBlock(home, idx, c, a);
   }
 
   forceinline void

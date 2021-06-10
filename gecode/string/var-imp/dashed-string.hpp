@@ -172,6 +172,7 @@ namespace Gecode { namespace String {
     /// A VariableEmptyDomain exception is raised if the base becomes empty but 
     /// the lower bound is greater than zero.
     void baseExclude(Space& home, const Gecode::Set::BndSet& S);
+    void baseRemove(Space& home, int c);
     /// Include the elements of this base in S.
     void includeBaseIn(Space& home, Gecode::Set::GLBndSet& S) const;
     //@}
@@ -328,10 +329,9 @@ namespace Gecode { namespace String {
     /// and 0 <= min_len <= max_len <= MAX_STRING_LENGTH.
     void normalize(Space& home);
     
-    /// Splits x[i]=S^{k,k} into {c}^{1,1} S^{k-1,k-1}, and possibly normalizes.
-    void splitBlockIncl(Space& home, int idx, int c);
-    /// Splits x[i]=S^{k,k} into (S-{c})^{1,1} S^{k-1,k-1}, and possibly normalizes.
-    void splitBlockExcl(Space& home, int idx, int c);
+    /// Splits x[i]=S^{k,k} into: {c}^{1,1} S^{k-1,k-1}, if a = 0;
+    /// (S-{c})^{1,1} S^{k-1,k-1} otherwise, and possibly normalizes.
+    void splitBlock(Space& home, int idx, int c, unsigned a);
     
     /// Prints the dashed string \a x
     friend std::ostream& operator<<(std::ostream& os, const DashedString& x);
@@ -835,6 +835,17 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
+  Block::baseRemove(Space& home, int c) {
+    if (S == nullptr || (l > 0 && S->size() == 1))
+      throw VariableEmptyDomain("Block::baseRemove"); 
+    Gecode::Set::SetDelta d;
+    S->exclude(home, c, c, d);
+    if (l == u && S->size() == 1)
+      fix(home);
+    assert(isOK());
+  }
+  
+  forceinline void
   Block::includeBaseIn(Space& home, Gecode::Set::GLBndSet& s) const {
     if (baseSize() == 1) {
       int m = baseMin();
@@ -909,9 +920,10 @@ namespace Gecode { namespace String {
       return;   
     if (lb > 0 && S->empty())
       throw VariableEmptyDomain("Block::updateCard");
-    if (lb == ub && l < u && S->size() == 1) {
+    if (lb == ub && l < u && S->size() <= 1) {
       // Block become fixed.
-      l = S->min();
+      if (!S->empty())
+        l = S->min();
       nullifySet(home);
     }
     else
@@ -1238,9 +1250,9 @@ namespace Gecode { namespace String {
     n = m;
     assert(isOK() && isNorm());
   }
-  
+ 
   forceinline void
-  DashedString::splitBlockIncl(Space& home, int idx, int c) {
+  DashedString::splitBlock(Space& home, int idx, int c, unsigned alt) {
     Block& x_i = x[idx];
     int k = x_i.lb();
     assert (!x_i.isFixed() && x_i.ub() == k);
@@ -1259,7 +1271,14 @@ namespace Gecode { namespace String {
       }
       else {
         x_prev.updateCard(home, x_prev.lb() + k, x_prev.ub() + k);
-        x_i.updateCard(home, k-1, k-1);
+        if (k == 1) {
+          for (int j = idx+1; j < n; ++j)
+            x[j].update(home, x[j+1]);
+          a.free(x+n-1, 1);
+          --n;
+        }
+        else
+          x_i.updateCard(home, k-1, k-1);
       }
     }
     else if (rnorm) {
@@ -1272,55 +1291,12 @@ namespace Gecode { namespace String {
     else {
       Block* y = a.template alloc<Block>(n+1);
       n++;
-      y[idx].update(home, c);
+      alt == 0 ? y[idx].update(home, c) : y[idx].baseRemove(home, c);
       for (int j = idx+1; j < n; ++j)
         y[j].update(home, x[j-1]);
       a.free(x, n-1);
       x = y;
     }
-    assert (isOK() && isNorm());
-  }
-  
-  forceinline void
-  DashedString::splitBlockExcl(Space& home, int idx, int c) {
-    Block& x_i = x[idx];
-    int k = x_i.lb();
-    assert (!x_i.isFixed() && x_i.ub() == k);
-    bool lnorm = idx > 0 && x[idx-1].isFixed() && x[idx-1].baseMin() == c;
-    bool rnorm = idx < n-1 && k == 1 && x[idx+1].baseMin() == c;
-// TODO:
-//    if (lnorm) {
-//      Block& x_prev = x[idx-1];
-//      if (rnorm) {
-//        Block& x_next = x[idx+1];
-//        x_prev.updateCard(home, x_prev.lb() + 1 + x_next.lb(), 
-//                                x_prev.ub() + 1 + x_next.ub());
-//        for (int j = idx; j < n-1; ++j)
-//          x[j].update(home, x[j+2]);
-//        a.free(x+n-2, 2);
-//        n -= 2;
-//      }
-//      else {
-//        x_prev.updateCard(home, x_prev.lb() + k, x_prev.ub() + k);
-//        x_i.updateCard(home, k-1, k-1);
-//      }
-//    }
-//    else if (rnorm) {
-//      x_i.updateCard(home, x_i.lb() + 1, x_i.ub() + 1);
-//      for (int j = idx+1; j < n; ++j)
-//        x[j].update(home, x[j+1]);
-//      a.free(x+n-1, 1);
-//      --n;
-//    }
-//    else {
-//      Block* y = a.template alloc<Block>(n+1);
-//      n++;
-//      y[idx].update(home, c);
-//      for (int j = idx+1; j < n; ++j)
-//        y[j].update(home, x[j-1]);
-//      a.free(x, n-1);
-//      x = y;
-//    }
     assert (isOK() && isNorm());
   }
   
