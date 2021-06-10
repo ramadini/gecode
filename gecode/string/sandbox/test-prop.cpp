@@ -325,46 +325,20 @@ public:
     d[0].update(*this, 'd');
     d[1].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 2));
     d[2].update(*this, Block(*this, CharSet(*this, 'c'), 0, 2));
-    vx[0] = StringVar(*this, DashedString(*this, d, 3));
-    vx[1] = StringVar(*this);
+    vx[0] = StringVar(*this);
+    vx[1] = StringVar(*this, DashedString(*this, d, 3));
     using Gecode::String::Branch::None_LLLL;
-//    using Gecode::String::Branch::Block_MinDim_LSLM;
     None_LLLL brancher(*this, vx);
     std::cerr << "x = " << vx[0] << std::endl;
     int i = 0;
-    while (!vx[0].assigned()) {
+    while (brancher.status(*this)) {
       const Choice* c = brancher.choice(*this);
+      std::cerr << "Before commit: " << ++i << ": " << vx << "\n";
       brancher.commit(*this, *c, 0);
-      std::cerr << "After commit " << ++i << ": " << vx[0] << std::endl;
+      std::cerr << "After commit:  " << i << ": " << vx << "\n----------\n";      
     }
-    
+    assert (vec2str(vx[0].val()) == "" && vec2str(vx[1].val()) == "da");
   }
-//std::cerr << "\n*** Test 02 ***" << std::endl;
-//    ViewArray<String::StringView> x(*this, 2);
-//    NSBlocks v({
-//      NSBlock(NSIntSet('d'), 1),
-//      NSBlock(NSIntSet('a', 'b'), 1, 2),
-//      NSBlock(NSIntSet('c'), 0, 2)
-//    });
-//    x[0] = StringVar(*this, v, 0, 100);
-//    x[1] = StringVar(*this);
-//    using Gecode::String::Branch::SizeMin_LLUL;
-//    None_LLLL brancher(*this, x);
-//    const Choice* c;
-//    while (!x[0].assigned()) {
-//      c = brancher.choice(*this);
-//      std::cerr << "Here!\n";
-//      brancher.commit(*this, *c, 0);
-//      std::cerr << "x[0]: " << x[0] << std::endl;
-//    }
-//    assert (x[0].pdomain()->val() == "da");
-//    assert (brancher.status(*this));
-//    while (!x[1].assigned()) {
-//         c = brancher.choice(*this);
-//         brancher.commit(*this, *c, 0);
-//         std::cerr << "x[1]: " << x[1] << std::endl;
-//      }
-//    assert (x[1].pdomain()->val() == "");
 
 };
 
