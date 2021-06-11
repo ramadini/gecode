@@ -416,9 +416,9 @@ namespace Gecode { namespace String {
   forceinline int
   StringView::smallest_unfixed_idx(void) const {
     assert (!assigned());
-    double l = (*this)[0].logdim();
-    int j = 0;
-    for (int i = 1; i < size(); ++i) {
+    double l = std::numeric_limits<double>::infinity();
+    int j = -1;
+    for (int i = 0; i < size(); ++i) {
       const Block& b = (*this)[i];
       if (!b.isFixed()) {
         double lb = b.logdim();

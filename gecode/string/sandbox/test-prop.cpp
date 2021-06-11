@@ -328,6 +328,12 @@ public:
     d[2].update(*this, Block(*this, CharSet(*this, 'c'), 0, 2));
     vx[0] = StringVar(*this);
     vx[1] = StringVar(*this, DashedString(*this, d, 3));
+    assert (vx[0].smallest_unfixed_idx() == 0);
+    assert (vx[0].leftmost_unfixed_idx() == 0);
+    assert (vx[0].rightmost_unfixed_idx() == 0);
+    assert (vx[1].smallest_unfixed_idx() == 2);
+    assert (vx[1].leftmost_unfixed_idx() == 1);
+    assert (vx[1].rightmost_unfixed_idx() == 2);
     Gecode::String::Branch::None_LLLL brancher(*this, vx);
     int i = 0;
     while (brancher.status(*this)) {
@@ -385,8 +391,8 @@ public:
     Block d[3];
     d[0].update(*this, Block(*this, CharSet(*this, 'c', 'd'), 3, 3));
     d[1].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 1, 1));
-    d[2].update(*this, Block(*this, CharSet(*this, 'b', 'c'), 0, 2));
-    DashedString x(*this, d, 3);
+    d[2].update(*this, Block(*this, CharSet(*this, 'b', 'c'), 0, 2));    
+    DashedString x(*this, d, 3);    
     std::cerr << "x = " << x << "\n";
     x.splitBlock(*this, 1, 'a', 1);
     std::cerr << "After split x[1], x = " << x << "\n";
