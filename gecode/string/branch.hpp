@@ -140,7 +140,7 @@ namespace Gecode { namespace String { namespace Branch {
         break;
       case MUST_MIN:
         c = x_i.baseMin();
-        if (!_MUST_CHARS.in(c)) { 
+        if (!_MUST_CHARS.in(c)) {
           Gecode::Set::BndSetRanges i(_MUST_CHARS);
           Gecode::Set::BndSetRanges j = x_i.ranges();
           while (i() && j()) {
@@ -149,14 +149,18 @@ namespace Gecode { namespace String { namespace Branch {
               ++j;
             else if (lj > ui)
               ++i;
-            else
+            else {
               c = li > lj ? li : lj;
+              break;
+            }
           }
         }
+        
         break;
       default:
         GECODE_NEVER;
     }
+    std::cerr << int2str(c) << " chosen\n";
     x.splitBlock(home, i, c, a);
   }
   

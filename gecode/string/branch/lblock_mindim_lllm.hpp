@@ -22,15 +22,15 @@ namespace Gecode { namespace String { namespace Branch {
     }
 
     forceinline Choice*
-    LBlock_MinDim_LLLM::choice(Space& home) {
-      // std::cerr << "\nVar. choice\n";
+    LBlock_MinDim_LLLM::choice(Space& home) {std::cerr<<_FIRST<<"?______________Must chars: "<<CharSet(home,_MUST_CHARS);
+      std::cerr << "\nVar. choice\n";
       StringView& vx = x[start];
       Block& b = vx[vx.smallest_unfixed_idx()];
       double d = b.logdim();
       int l = b.ub() - b.lb();
       int m = vx.min_length();
       int pos = start;      
-      // std::cerr<<x[start]<<" (pos. "<<start<<", dim. "<<s<<")\n";
+      std::cerr<<x[start]<<" (pos. "<<start<<", dim. "<<d<<")\n";
       if (_FIRST) {
         assert (StringBrancher::_MUST_CHARS.size() == 0);
         for (int i = 0; i < start; ++i) {
@@ -50,6 +50,7 @@ namespace Gecode { namespace String { namespace Branch {
               StringBrancher::_MUST_CHARS.include(home, m, m, d);
             }
         }
+        std::cerr<<"Must chars: "<<CharSet(home,_MUST_CHARS)<<"\n";
         _FIRST = false;
       }
       for (int i = start + 1; i < x.size(); ++i) {
@@ -64,7 +65,7 @@ namespace Gecode { namespace String { namespace Branch {
           double di = bi.logdim();
           int li = bi.ub() - bi.lb();
           int mi = xi.min_length();
-          // std::cerr<<x[i]<<" (pos. "<<i<<", deg. "<<di<<", dim. "<<si<<")\n";
+          std::cerr<<x[i]<<" (pos. "<<i<<", dim. "<<di<<")\n";
           if (di < d || (di == d && li < l) || (di == d && li == l && mi < m)) {
             d = di;   
             l = li;
@@ -73,16 +74,15 @@ namespace Gecode { namespace String { namespace Branch {
           }
         }
       }
-      // if (_FIRST) std::cerr<<"Must chars: "<<DashedString::_MUST_CHARS<<"\n";      
-      // std::cerr << "Chosen var. " << x[pos] << " (pos. " << pos << ")\n";
-      // abort();
+       std::cerr << "Chosen var. " << x[pos] << " (pos. " << pos << ")\n";
+//       abort();
       return val_lllm(pos, x[pos]);
     }
 
     forceinline ExecStatus
     LBlock_MinDim_LLLM::commit(Space& home, const Choice& c, unsigned a) {
       const PosLevVal& p = static_cast<const PosLevVal&>(c);
-      // std::cerr << '\n'; this->print(home, c, a, std::cerr); std::cerr << '\n';
+       std::cerr << '\n'; this->print(home, c, a, std::cerr); std::cerr << '\n';
       StringBrancher::commit(home, x[p.pos], p.lev, p.val, Blc::LEFTMOST, a);
       return ES_OK;
     }
