@@ -39,6 +39,14 @@ public:
       v[i] = w[i];
     return v;
   }
+  static string
+  vec2str(const std::vector<int>& v) {
+    int n = v.size();
+    string w;
+    for (int i = 0; i < n; ++i)
+      w += v[i];
+    return w;
+  }
 
   // b => x = y; x != ""; y = "Hello world!";
   Ex1(const StringOptions& so): Script(so) {
@@ -68,21 +76,21 @@ public:
 
   virtual void
   print(std::ostream& os) const {
-//    for (int i = 0; i < bool_vars.size(); ++i)
-//      if (bool_vars[i].assigned())
-//        os << "bool_var[" << i << "] = " << bool_vars[i].val() << "\n";
-//      else
-//        os << "bool_var[" << i << "] = " << bool_vars[i] << "\n";
-//    for (int i = 0; i < string_vars.size(); ++i)
-//      if (string_vars[i].assigned())
-//        os << "string_var[" << i << "] = \"" << string_vars[i].val() << "\"\n";
-//      else
-//        os << "string_var[" << i << "] = \"" << string_vars[i] << "\"\n";
-//    os << "----------\n";
-//    if (S1 == "")
-//      S1 = string_vars[0].val();
-//    else
-//      S2 = string_vars[0].val();
+    for (int i = 0; i < bool_vars.size(); ++i)
+      if (bool_vars[i].assigned())
+        os << "bool_var[" << i << "] = " << bool_vars[i].val() << "\n";
+      else
+        os << "bool_var[" << i << "] = " << bool_vars[i] << "\n";
+    for (int i = 0; i < string_vars.size(); ++i)
+      if (string_vars[i].assigned())
+        os << "string_var[" << i << "] = \"" << vec2str(string_vars[i].val()) << "\"\n";
+      else
+        os << "string_var[" << i << "] = \"" << string_vars[i] << "\"\n";
+    os << "----------\n";
+    if (S1 == "")
+      S1 = vec2str(string_vars[0].val());
+    else
+      S2 = vec2str(string_vars[0].val());
   }
 
 };
@@ -94,6 +102,6 @@ int main() {
   StringOptions opt("*** Ex1 ***");
   opt.solutions(2);
   Script::run<Ex1, DFS, StringOptions>(opt);
-//  assert(Ex1::S1 == "d" && Ex1::S2 == "e");
+  assert(Ex1::S1 == "d" && Ex1::S2 == "e");
   return 0;
 }
