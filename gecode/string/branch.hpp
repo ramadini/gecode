@@ -140,22 +140,33 @@ namespace Gecode { namespace String { namespace Branch {
         break;
       case MUST_MIN:
         c = x_i.baseMin();
-        if (!_MUST_CHARS.in(c)) {
-          Gecode::Set::BndSetRanges i(_MUST_CHARS);
+        if (_MUST_CHARS.size() > 0) {
+          bool in = false;
+          int n = _MUST_CHARS.size();
+          for (int i = 0; i < n;  i += 2)
+            if (_MUST_CHARS[i] > c)
+              break;
+            else if (c <= _MUST_CHARS[i+1]) {
+              in = true;
+              break;
+            }
+          if (in)
+            break;
+          int i = 0;
           Gecode::Set::BndSetRanges j = x_i.ranges();
-          while (i() && j()) {
-            int li = i.min(), lj = j.min(), ui = i.max(), uj = j.max();
+          while (i < n && j()) {
+            int li = _MUST_CHARS[i], ui = _MUST_CHARS[i+1];
+            int lj = j.min(), uj = j.max();
             if (li > uj)
               ++j;
             else if (lj > ui)
-              ++i;
+              i += 2;
             else {
               c = li > lj ? li : lj;
               break;
             }
           }
         }
-        
         break;
       default:
         GECODE_NEVER;

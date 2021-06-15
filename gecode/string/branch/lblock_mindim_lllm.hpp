@@ -22,7 +22,7 @@ namespace Gecode { namespace String { namespace Branch {
     }
 
     forceinline Choice*
-    LBlock_MinDim_LLLM::choice(Space& home) {std::cerr<<_FIRST<<"?______________Must chars: "<<CharSet(home,_MUST_CHARS);
+    LBlock_MinDim_LLLM::choice(Space& home) {
       std::cerr << "\nVar. choice\n";
       StringView& vx = x[start];
       Block& b = vx[vx.smallest_unfixed_idx()];
@@ -31,14 +31,15 @@ namespace Gecode { namespace String { namespace Branch {
       int m = vx.min_length();
       int pos = start;      
       std::cerr<<x[start]<<" (pos. "<<start<<", dim. "<<d<<")\n";
-      if (_FIRST) {
-        assert (StringBrancher::_MUST_CHARS.size() == 0);
+      if (_FIRST) {        
+        assert (StringBrancher::_MUST_CHARS.empty());
+        Gecode::Set::GLBndSet s;
         for (int i = 0; i < start; ++i) {
           const StringView& vi = x[i];
           for (int j = 0; j < vi.size(); ++j) {
             Gecode::Set::SetDelta d;
             int m = vi[j].baseMin();
-            StringBrancher::_MUST_CHARS.include(home, m, m, d);
+            s.include(home, m, m, d);
           }
         }
         for (int i = start; i < x.size(); ++i) {
@@ -47,10 +48,16 @@ namespace Gecode { namespace String { namespace Branch {
             if (vi[j].baseSize() == 1) {
               Gecode::Set::SetDelta d;
               int m = vi[j].baseMin();
-              StringBrancher::_MUST_CHARS.include(home, m, m, d);
+              s.include(home, m, m, d);
             }
         }
-        std::cerr<<"Must chars: "<<CharSet(home,_MUST_CHARS)<<"\n";
+        std::cerr<<"Must chars: "<<CharSet(home,s)<<"\n";        
+        _MUST_CHARS.resize(s.size()*2);
+        Gecode::Set::BndSetRanges is(s);
+        for (int i = 0; is(); ++is, i += 2) {
+          _MUST_CHARS[i]   = is.min();
+          _MUST_CHARS[i+1] = is.max();
+        }
         _FIRST = false;
       }
       for (int i = start + 1; i < x.size(); ++i) {

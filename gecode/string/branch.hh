@@ -68,7 +68,7 @@ namespace Gecode { namespace String { namespace Branch {
   static void splitBlock(Space&, StringView&, int, Val, unsigned);
   
   
-  static Gecode::Set::GLBndSet _MUST_CHARS;
+  static std::vector<int> _MUST_CHARS;
   
   public:    
 
@@ -103,7 +103,7 @@ namespace Gecode { namespace String { namespace Branch {
     }
 
   };
-  Gecode::Set::GLBndSet StringBrancher::_MUST_CHARS;  
+  std::vector<int> StringBrancher::_MUST_CHARS;
 
 }}}
 #include <gecode/string/branch.hpp>
