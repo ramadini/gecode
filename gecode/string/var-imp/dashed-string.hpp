@@ -1278,7 +1278,7 @@ namespace Gecode { namespace String {
  
   forceinline void
   DashedString::splitBlock(Space& home, int idx, int c, unsigned alt) {
-    std::cerr <<"split"<<alt<<"["<<idx<<"]: "<<*this<<" <- "<<int2str(c)<<"\n"; 
+//    std::cerr <<"split"<<alt<<"["<<idx<<"]: "<<*this<<" <- "<<int2str(c)<<"\n"; 
     Block& x_i = x[idx];
     int k = x_i.lb();
     assert (!x_i.isFixed() && x_i.ub() == k);

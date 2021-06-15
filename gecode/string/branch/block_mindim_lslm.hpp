@@ -51,7 +51,7 @@ namespace Gecode { namespace String { namespace Branch {
               s.include(home, m, m, d);
             }
         }
-        std::cerr<<"Must chars: "<<CharSet(home,s)<<"\n";        
+//        std::cerr<<"Must chars: "<<CharSet(home,s)<<"\n";        
         _MUST_CHARS.resize(s.size()*2);
         Gecode::Set::BndSetRanges is(s);
         for (int i = 0; is(); ++is, i += 2) {
@@ -81,7 +81,6 @@ namespace Gecode { namespace String { namespace Branch {
           }
         }
       }
-      // if (_FIRST) std::cerr<<"Must chars: "<<DashedString::_MUST_CHARS<<"\n";      
       // std::cerr << "Chosen var. " << x[pos] << " (pos. " << pos << ")\n";
       // abort();
       return val_lllm(pos, x[pos]);

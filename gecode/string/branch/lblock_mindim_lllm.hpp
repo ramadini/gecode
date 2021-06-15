@@ -23,14 +23,14 @@ namespace Gecode { namespace String { namespace Branch {
 
     forceinline Choice*
     LBlock_MinDim_LLLM::choice(Space& home) {
-      std::cerr << "\nVar. choice\n";
+//      std::cerr << "\nVar. choice\n";
       StringView& vx = x[start];
       Block& b = vx[vx.smallest_unfixed_idx()];
       double d = b.logdim();
       int l = b.ub() - b.lb();
       int m = vx.min_length();
       int pos = start;      
-      std::cerr<<x[start]<<" (pos. "<<start<<", dim. "<<d<<")\n";
+//      std::cerr<<x[start]<<" (pos. "<<start<<", dim. "<<d<<")\n";
       if (_FIRST) {        
         assert (StringBrancher::_MUST_CHARS.empty());
         Gecode::Set::GLBndSet s;
@@ -51,7 +51,7 @@ namespace Gecode { namespace String { namespace Branch {
               s.include(home, m, m, d);
             }
         }
-        std::cerr<<"Must chars: "<<CharSet(home,s)<<"\n";        
+//        std::cerr<<"Must chars: "<<CharSet(home,s)<<"\n";        
         _MUST_CHARS.resize(s.size()*2);
         Gecode::Set::BndSetRanges is(s);
         for (int i = 0; is(); ++is, i += 2) {
@@ -72,7 +72,7 @@ namespace Gecode { namespace String { namespace Branch {
           double di = bi.logdim();
           int li = bi.ub() - bi.lb();
           int mi = xi.min_length();
-          std::cerr<<x[i]<<" (pos. "<<i<<", dim. "<<di<<")\n";
+//          std::cerr<<x[i]<<" (pos. "<<i<<", dim. "<<di<<")\n";
           if (di < d || (di == d && li < l) || (di == d && li == l && mi < m)) {
             d = di;   
             l = li;
@@ -81,7 +81,7 @@ namespace Gecode { namespace String { namespace Branch {
           }
         }
       }
-       std::cerr << "Chosen var. " << x[pos] << " (pos. " << pos << ")\n";
+//       std::cerr << "Chosen var. " << x[pos] << " (pos. " << pos << ")\n";
 //       abort();
       return val_lllm(pos, x[pos]);
     }
@@ -89,7 +89,7 @@ namespace Gecode { namespace String { namespace Branch {
     forceinline ExecStatus
     LBlock_MinDim_LLLM::commit(Space& home, const Choice& c, unsigned a) {
       const PosLevVal& p = static_cast<const PosLevVal&>(c);
-       std::cerr << '\n'; this->print(home, c, a, std::cerr); std::cerr << '\n';
+//       std::cerr << '\n'; this->print(home, c, a, std::cerr); std::cerr << '\n';
       StringBrancher::commit(home, x[p.pos], p.lev, p.val, Blc::LEFTMOST, a);
       return ES_OK;
     }

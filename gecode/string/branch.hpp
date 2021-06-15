@@ -171,7 +171,7 @@ namespace Gecode { namespace String { namespace Branch {
       default:
         GECODE_NEVER;
     }
-    std::cerr << int2str(c) << " chosen\n";
+//    std::cerr << int2str(c) << " chosen\n";
     x.splitBlock(home, i, c, a);
   }
   
