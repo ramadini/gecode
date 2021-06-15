@@ -46,27 +46,6 @@ namespace Gecode { namespace String { namespace RelOp {
 }}}
 #include <gecode/string/rel-op/concat.hpp>
 
-namespace Gecode {
-  //FIXME: Workaround, because of linking problems in rel.cpp.
-  forceinline void
-  concat(Home home, StringVar x, StringVar y, StringVar z) {
-    using namespace String;
-    GECODE_POST;
-    GECODE_ES_FAIL((RelOp::Concat<StringView,StringView,StringView>
-      ::post(home,x,y,z)));
-  }
-  
-  forceinline void
-  concat(Home home, StringVar x, StringVar y, std::vector<int> w) {
-    using namespace String;
-    GECODE_POST;
-    ConstStringView vw(home, &w[0], w.size());
-    GECODE_ES_FAIL((RelOp::Concat<StringView,StringView,ConstStringView>
-      ::post(home,x,y,vw)));
-  }
-  
-}
-
 #endif
 
 // STATISTICS: string-prop

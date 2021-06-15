@@ -6,7 +6,7 @@
 namespace Gecode { namespace String {
 
   template<class View0, class View1>
-  forceinline void
+  void
   rel_post(Home home, View0 x0, StringRelType r, View1 x1) {
     using namespace String::Rel;
 //    using namespace String::RelOp;
@@ -24,7 +24,7 @@ namespace Gecode { namespace String {
   }
   
   template<class View0, class View1, ReifyMode rm>
-  forceinline void
+  void
   rel_re(Home home, View0 x, StringRelType r, View1 y, BoolVar b) {
     using namespace String::Rel;
 //    using namespace String::RelOp;
@@ -63,13 +63,13 @@ namespace Gecode { namespace String {
 
 namespace Gecode {
 
-  forceinline void
+  void
   rel(Home home, StringVar x, StringRelType r, StringVar y) {
     using namespace String;
     rel_post<StringView,StringView>(home,x,r,y);
   }
 
-  forceinline void
+  void
   rel(Home home, StringVar x, StringRelType rt, StringVar y, Reify r) {
     using namespace String;
     switch (r.mode()) {
@@ -86,47 +86,44 @@ namespace Gecode {
     }
   }
  
-// FIXME: Problems with linking here!
-//  forceinline void
-//  eq(Home home, StringVar x, StringVar y) {
-//    using namespace String;
-//    GECODE_POST;
-//    GECODE_ES_FAIL((Rel::Eq<StringView,StringView>::post(home, x, y)));
-//  }
-//  
-//  forceinline void
-//  eq(Home home, StringVar x, std::vector<int> w) {
-//    using namespace String;
-//    StringView vx(x);
-//    ConstStringView vw(home, &w[0], w.size());
-//    if (check_equate_x(vx,vw) && check_equate_x(vw,vx))
-//      vx.update(home, w);
-//    else
-//      home.fail();
-//  }
-//  forceinline void
-//  eq(Home home, std::vector<int> w, StringVar x) {
-//    eq(home, x, w);
-//  }
-//  
-//  forceinline void
-//  nq(Home home, StringVar x, StringVar y) {
-//    using namespace String;
-//    GECODE_POST;
-//    GECODE_ES_FAIL((Rel::Nq<StringView,StringView>::post(home, x, y)));
-//  }
-//  
-//  forceinline void
-//  nq(Home home, StringVar x, std::vector<int> w) {
-//    using namespace String;
-//    GECODE_POST;
-//    ConstStringView vw(home, &w[0], w.size());
-//    GECODE_ES_FAIL((Rel::Nq<StringView,ConstStringView>::post(home, x, vw)));
-//  }
-//  forceinline void
-//  nq(Home home, std::vector<int> w, StringVar x) {
-//    nq(home, x, w);
-//  }
+  void
+  eq(Home home, StringVar x, StringVar y) {
+    using namespace String;
+    GECODE_POST;
+    GECODE_ES_FAIL((Rel::Eq<StringView,StringView>::post(home, x, y)));
+  }
+  void
+  eq(Home home, StringVar x, std::vector<int> w) {
+    using namespace String;
+    StringView vx(x);
+    ConstStringView vw(home, &w[0], w.size());
+    GECODE_POST;
+    GECODE_ES_FAIL((Rel::Eq<StringView,ConstStringView>::post(home, vx, vw)));
+  }
+  void
+  eq(Home home, std::vector<int> w, StringVar x) {
+    eq(home, x, w);
+  }
+  
+  
+  void
+  nq(Home home, StringVar x, StringVar y) {
+    using namespace String;
+    GECODE_POST;
+    GECODE_ES_FAIL((Rel::Nq<StringView,StringView>::post(home, x, y)));
+  }
+  
+  void
+  nq(Home home, StringVar x, std::vector<int> w) {
+    using namespace String;
+    GECODE_POST;
+    ConstStringView vw(home, &w[0], w.size());
+    GECODE_ES_FAIL((Rel::Nq<StringView,ConstStringView>::post(home, x, vw)));
+  }
+  void
+  nq(Home home, std::vector<int> w, StringVar x) {
+    nq(home, x, w);
+  }
   
 }
 
