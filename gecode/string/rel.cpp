@@ -96,9 +96,15 @@ namespace Gecode {
   eq(Home home, StringVar x, std::vector<int> w) {
     using namespace String;
     StringView vx(x);
-    ConstStringView vw(home, &w[0], w.size());
     GECODE_POST;
-    GECODE_ES_FAIL((Rel::Eq<StringView,ConstStringView>::post(home, vx, vw)));
+    if (w.empty()) {
+      ConstStringView vw;
+      GECODE_ES_FAIL((Rel::Eq<StringView,ConstStringView>::post(home, vx, vw)));
+    }
+    else {
+      ConstStringView vw(home, &w[0], w.size());
+      GECODE_ES_FAIL((Rel::Eq<StringView,ConstStringView>::post(home, vx, vw)));
+    }
   }
   void
   eq(Home home, std::vector<int> w, StringVar x) {
@@ -116,9 +122,16 @@ namespace Gecode {
   void
   nq(Home home, StringVar x, std::vector<int> w) {
     using namespace String;
+    StringView vx(x);
     GECODE_POST;
-    ConstStringView vw(home, &w[0], w.size());
-    GECODE_ES_FAIL((Rel::Nq<StringView,ConstStringView>::post(home, x, vw)));
+    if (w.empty()) {
+      ConstStringView vw;
+      GECODE_ES_FAIL((Rel::Nq<StringView,ConstStringView>::post(home, vx, vw)));
+    }
+    else {
+      ConstStringView vw(home, &w[0], w.size());
+      GECODE_ES_FAIL((Rel::Nq<StringView,ConstStringView>::post(home, vx, vw)));
+    }
   }
   void
   nq(Home home, std::vector<int> w, StringVar x) {

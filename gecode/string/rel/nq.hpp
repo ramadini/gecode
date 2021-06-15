@@ -36,7 +36,7 @@ namespace Gecode { namespace String { namespace Rel {
       if (x0.assigned())
         return check_equate_x(x0, x1) ? ES_FAILED : home.ES_SUBSUMED(*this);
       if (x1.val().empty()) {
-        IntVar n(home, 1, x0.max_length());
+        IntVar n(home, 1, std::min(Gecode::Int::Limits::max, x0.max_length()));
         Gecode::String::Int::Length<View0>::post(home, x0, n);
         return home.ES_SUBSUMED(*this);
       }
