@@ -42,8 +42,8 @@ public:
     sva << x;
     str_vars = StringVarArray(*this, sva);
     // Constraints.
-    rel(*this, x, STRT_NQ, StringVar(*this, "aa"));
-    rel(*this, x, STRT_NQ, StringVar(*this, "aaa"));
+    rel(*this, x, STRT_NQ, StringVar(*this, "bb"));
+    rel(*this, x, STRT_NQ, StringVar(*this, "bac"));
     length(*this, x, l);
     // Branching.
     blockmin_lllm(*this, str_vars);

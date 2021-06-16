@@ -316,6 +316,7 @@ namespace Gecode { namespace String {
                              const Position& p, const Position& q) const;
     void
     resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize) const;
+    
     /// Normalize this view
     void normalize(Space& home);
     ModEvent nullify(Space& home);                            

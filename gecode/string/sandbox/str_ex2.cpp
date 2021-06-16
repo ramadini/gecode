@@ -49,7 +49,7 @@ public:
 
   Ex2(const StringOptions& so): Script(so) {
     int N = Limits::MAX_STRING_LENGTH;
-    StringVar x(*this, Block(*this, CharSet(*this, 'a', 'c'), 2, 3));
+    StringVar x(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, N));
     IntVar l(*this, 2, 3);
     IntVarArgs iva;
     iva << l;
@@ -58,16 +58,25 @@ public:
     sva << x;
     string_vars = StringVarArray(*this, sva);
     // Constraints.
-    nq(*this, x, str2vec("aa"));
-    nq(*this, x, str2vec("aaa"));
-//FIXME:    length(*this, x, l);
+    nq(*this, x, StringVar(*this, Block('b', 2)));
+    Block b[3];
+    b[0].update(*this, 'c');
+    b[1].update(*this, 'a');
+    b[2].update(*this, 'b');
+    nq(*this, x, StringVar(*this, DashedString(*this, b, 3)));
+    length(*this, x, l);
     // Branching.
     lblock_mindim_lllm(*this, string_vars);
   }
 
   virtual void
   print(std::ostream& os) const {
-    
+    for (int i = 0; i < int_vars.size(); ++i)
+      os << "int_var[" << i << "] = " << int_vars[i].val() << "\n";
+    for (int i = 0; i < string_vars.size(); ++i)
+      os << "string_var[" << i << "] = \"" << vec2str(string_vars[i].val()) << "\"\n";
+    os << "----------\n";
+    N++;
   }
 
 };
@@ -78,7 +87,7 @@ int main() {
   StringOptions opt("*** Ex2 ***");
   opt.solutions(0);
   Script::run<Ex2, DFS, StringOptions>(opt);
-//  assert (Ex2::N == 34);
+  assert (Ex2::N == 34);
   return 0;
 }
 

@@ -92,6 +92,7 @@ namespace Gecode {
     GECODE_POST;
     GECODE_ES_FAIL((Rel::Eq<StringView,StringView>::post(home, x, y)));
   }
+  //FIXME: Not sure about this:
   void
   eq(Home home, StringVar x, std::vector<int> w) {
     using namespace String;
@@ -119,6 +120,7 @@ namespace Gecode {
     GECODE_ES_FAIL((Rel::Nq<StringView,StringView>::post(home, x, y)));
   }
   
+  //FIXME: Not sure about this:
   void
   nq(Home home, StringVar x, std::vector<int> w) {
     using namespace String;

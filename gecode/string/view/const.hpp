@@ -481,8 +481,6 @@ namespace Gecode { namespace String {
     return ME_STRING_NONE;
   }
   forceinline void ConstStringView::normalize(Space&) { GECODE_NEVER; }
-  
-  
      
 }}
 

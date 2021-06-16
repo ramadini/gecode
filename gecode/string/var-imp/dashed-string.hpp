@@ -1335,11 +1335,16 @@ namespace Gecode { namespace String {
     }
     else {
       if (k > 1) {
-        Block* y = a.template alloc<Block>(n+1);
-        for (int j = 0; j <= idx; ++j)
+        Block* y = a.template alloc<Block>(++n);
+        for (int j = 0; j < idx; ++j)
           y[j].update(home, x[j]);
-        alt == 0 ? y[idx].update(home, c) : x_i.baseRemove(home, c);
-        n++;
+        if (alt == 0)
+          y[idx].update(home, c);
+        else {
+          y[idx].update(home, x_i);
+          y[idx].baseRemove(home, c);
+          y[idx].updateCard(home, 1, 1);
+        }
         for (int j = idx+1; j < n; ++j)
           y[j].update(home, x[j-1]);
         --k;
@@ -1351,7 +1356,6 @@ namespace Gecode { namespace String {
         alt == 0 ? x[idx].update(home, c) : x_i.baseRemove(home, c);
     }
     assert (isOK());
-//    std::cerr << *this << '\n';
     assert (isNorm());
   }
   

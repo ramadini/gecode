@@ -74,6 +74,8 @@ namespace Gecode { namespace String {
   forceinline void
   StringVarImp::splitBlock(Space& home, int idx, int c, unsigned a) {
     ds.splitBlock(home, idx, c, a);
+    StringDelta d;
+    notify(home, assigned() ? ME_STRING_VAL : ME_STRING_CARD, d);
   }
 
   forceinline void

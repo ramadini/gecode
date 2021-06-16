@@ -2,7 +2,7 @@
 
 namespace Gecode {
 
-  forceinline void
+  void
   length(Home home, StringVar x, IntVar n) {
     using namespace String;
     GECODE_POST;

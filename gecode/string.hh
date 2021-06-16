@@ -334,9 +334,9 @@ namespace Gecode {
 }
 
 namespace Gecode {
-
-// TODO: Add string constraints here:
-
+  
+  GECODE_STRING_EXPORT void length(Home home, StringVar x, IntVar n);
+  
   /**
    * \defgroup TaskModelStringElement
    * \ingroup TaskModelString
