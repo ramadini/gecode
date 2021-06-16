@@ -1054,14 +1054,13 @@ namespace Gecode { namespace String {
  
   forceinline Block&
   DashedString::operator[](int i) {
-    if (i < 0 || i >= n)
-      throw OutOfLimits("DashedString::operator[]");
+    // FIXME: std::cerr << *this << "[" << i << "]\n";
+    assert (i >= 0 && i < n);
     return *(x + i);
   } 
   forceinline const Block&
   DashedString::operator[](int i) const {
-    if (i < 0 || i >= n)
-      throw OutOfLimits("DashedString::operator[]");
+    assert (i >= 0 && i < n);
     return *(x + i);
   }
   

@@ -518,8 +518,17 @@ namespace Gecode { namespace String {
       x1.opt_region(home, bx, bnew, p-pivot, q-pivot, l1);
     else {
       Block bnew0, bnew1;
-      x0.opt_region(home, bx, bnew0, p, Position(pivot,0), l1);
-      x1.opt_region(home, bx, bnew1, Position(0,0), q-pivot, l1);
+      Position r = Position(pivot,0);
+      if (p != r)
+        x0.opt_region(home, bx, bnew0, p, r, l1);
+      r = Position(0,0);
+      Position q1 = q-pivot;
+      if (r != q1)
+        x1.opt_region(home, bx, bnew1, r, q1, l1);
+      if (bnew0.isNull() && bnew1.isNull()) {
+        bnew.nullify(home);
+        return;
+      }
       Gecode::Set::GLBndSet s;
       bnew0.includeBaseIn(home, s);
       bnew1.includeBaseIn(home, s);      
