@@ -562,6 +562,11 @@ namespace Gecode {
 namespace Gecode {
 
   GECODE_STRING_EXPORT void
+  none_llll(Home home, const StringVarArray& x);
+  GECODE_STRING_EXPORT void
+  none_llll(Home home, const StringVarArgs& x);
+
+  GECODE_STRING_EXPORT void
   lblock_mindim_lllm(Home home, const StringVarArray& x);
   GECODE_STRING_EXPORT void
   lblock_mindim_lllm(Home home, const StringVarArgs& x);
