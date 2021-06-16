@@ -53,6 +53,8 @@ namespace Gecode { namespace String {
     
     StringVarImp(Space& home, int l, int u);
     
+    StringVarImp(Space& home, const IntSet& s, int l, int u);
+    
     //@}
     /// \name Value access
     //@{

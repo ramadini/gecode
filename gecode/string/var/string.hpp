@@ -24,6 +24,9 @@ namespace Gecode {
     
   forceinline StringVar::StringVar(Space& home, int l, int u)
     : VarImpVar<String::StringVarImp>(new (home) String::StringVarImp(home, l, u)) {}  
+    
+  forceinline StringVar::StringVar(Space& home, const IntSet& s, int l, int u)
+    : VarImpVar<String::StringVarImp>(new (home) String::StringVarImp(home, s, l, u)) {}  
   
   forceinline int
   StringVar::min_length() const {

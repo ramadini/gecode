@@ -30,6 +30,16 @@ namespace Gecode { namespace String {
     ds.min_length(home, l);
     ds.max_length(home, u);
     ds[0].updateCard(home, l, u);
+  }
+  
+  forceinline
+  StringVarImp::StringVarImp(Space& home, const IntSet& s, int l, int u)
+  : StringVarImpBase(home), ds(home) {
+    Limits::check_length(l, u, "StringVarImp::StringVarImp");
+    Limits::check_length(s.min(), s.max(), "StringVarImp::StringVarImp");
+    ds.min_length(home, l);
+    ds.max_length(home, u);
+    ds[0].update(home, Block(home, CharSet(home, s), l, u));
   }  
   
   forceinline void
