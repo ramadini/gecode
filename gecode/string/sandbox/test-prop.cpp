@@ -427,6 +427,7 @@ int main() {
   home->test08();
   home->test09();
   home->test10();
+  delete home;
   cerr << "\n----- test-prop.cpp passes -----\n\n";
   return 0;
 }

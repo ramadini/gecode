@@ -1034,6 +1034,7 @@ int main() {
   home->test34();
   home->test35();
   home->test36();
+  delete home;
   cerr << "\n----- test-eq.cpp passes -----\n\n";
   return 0;
 }
