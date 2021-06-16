@@ -582,18 +582,18 @@ namespace Gecode { namespace String {
   using namespace Limits;
 
   forceinline Block::Block() 
-  : l(0), u(0), S() {};
+  : l(0), u(0), S(nullptr) {};
   
   forceinline Block::Block(int a)
-  : l(a), u(1), S()  { Limits::check_alphabet(a, "Block::Block"); };
+  : l(a), u(1), S(nullptr)  { Limits::check_alphabet(a, "Block::Block"); };
   
   forceinline Block::Block(int a, int n)
-  : l(a), u(n), S() { Limits::check_length(n, "Block::Block"); };
+  : l(a), u(n), S(nullptr) { Limits::check_length(n, "Block::Block"); };
   
   forceinline Block::Block(Space& home) 
   : l(0), u(MAX_STRING_LENGTH), S(nullptr) {
     S = home.alloc<CharSet>(1);
-    S->update(home, CharSet(home, 0, MAX_ALPHABET_SIZE-1));
+    S->become(home, CharSet(home));
   };
   
   forceinline Block::Block(Space& home, const CharSet& s) 
