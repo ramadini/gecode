@@ -90,7 +90,7 @@ public:
     rel(*this, 0 <= ((-1 * l_5) + l_2) + (-8));
     rel(*this, 0 <= l_5);
     
-//TODO:    rel(*this, STRT_CAT, var_5, var_6, var_56);
+    rel(*this, STRT_CAT, var_5, var_6, var_56);
 //    concat(*this, var_56, var_7, var_567);
 //    rel(*this, STRT_CAT, var_567, StringVar(*this, Block('z')), var_567z);
 //    concat(*this, var_567z, var_5, var_567z5);

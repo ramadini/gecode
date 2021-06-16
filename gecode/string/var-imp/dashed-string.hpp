@@ -932,10 +932,9 @@ namespace Gecode { namespace String {
       return;   
     if (lb > 0 && S->empty())
       throw VariableEmptyDomain("Block::updateCard");
-    if (lb == ub && l < u && S->size() <= 1) {
+    if (ub == 0 || (lb == ub && l < u && S->size() <= 1)) {
       // Block become fixed.
-      if (!S->empty())
-        l = S->min();
+      l = ub > 0 && !S->empty() ? S->min() : 0;
       nullifySet(home);
     }
     else
