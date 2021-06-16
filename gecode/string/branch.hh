@@ -58,17 +58,16 @@ namespace Gecode { namespace String { namespace Branch {
 
     };
     
-  Choice* val_llll(int pos, Gecode::String::StringView& x) const;
-  Choice* val_lllm(int pos, Gecode::String::StringView& x) const;
-  Choice* val_lslm(int pos, Gecode::String::StringView& x) const;
-  
-  static void commit0(Space&, StringView&, Lev, Val, int);
-  static void commit1(Space&, StringView&, Lev, Val, int);
-  static void commit (Space&, StringView&, Lev, Val, Blc, unsigned);
-  static void splitBlock(Space&, StringView&, int, Val, unsigned);
-  
-  
-  static std::vector<int> _MUST_CHARS;
+    Choice* val_llll(int pos, Gecode::String::StringView& x) const;
+    Choice* val_lllm(int pos, Gecode::String::StringView& x) const;
+    Choice* val_lslm(int pos, Gecode::String::StringView& x) const;
+    
+    static void commit0(Space&, StringView&, Lev, Val, int);
+    static void commit1(Space&, StringView&, Lev, Val, int);
+    static void commit (Space&, StringView&, Lev, Val, Blc, unsigned);
+    static void splitBlock(Space&, StringView&, int, Val, unsigned);
+    
+    static std::vector<int> _MUST_CHARS;
   
   public:    
 
@@ -101,6 +100,8 @@ namespace Gecode { namespace String { namespace Branch {
       o << "Alt. " << a << " -- Var. " << p.pos << " -- Lev. " << p.lev
         << " -- Val. " << p.val << " of " << x[p.pos];
     }
+    
+    
 
   };
   std::vector<int> StringBrancher::_MUST_CHARS;

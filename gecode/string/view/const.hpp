@@ -297,37 +297,6 @@ namespace Gecode { namespace String {
     return false;
   }
   
-// FIXME:
-//  forceinline bool
-//  ConstStringView::contains(const StringView& y) const {
-//    return equals(y);
-//  }
-  
-//  forceinline bool
-//  ConstStringView::equals(const StringView& y) const {
-//    if (!y.assigned() || n != y.min_length())
-//      return false;
-//    if (n == 0)
-//      return true;
-//    int j = 0, k = MAX_STRING_LENGTH;
-//    for (int i = 0; i < n; ++i) {
-//      const Block& b = y[j];      
-//      if (b.baseContains(_val[i])) {
-//        k = std::min(b.lb(), k);
-//        if (k == 1) {
-//          ++j;
-//          k = MAX_STRING_LENGTH;
-//        }
-//        else
-//          k--;
-//      }
-//      else
-//        return false;  
-//    }
-//    return j == y.size() && k == MAX_STRING_LENGTH;
-//  }
-  
-  
   forceinline SweepFwdIterator<ConstStringView>
   ConstStringView::fwd_iterator(void) const {
     return SweepFwdIterator<ConstStringView>(*this);
