@@ -57,7 +57,7 @@ public:
     DashedString v(*this, Block(*this, CharSet(*this, 'a', M-1), 0, N));
     StringVar x(*this, v);
     StringVar y(*this);
-    DashedString w(*this, Block(*this, CharSet(*this, 'a', 'z'), 1, 2));
+    DashedString w(*this, Block(*this, CharSet(*this, 'a', 'z'), 2, 4));
     StringVar z(*this, w);
     BoolVarArgs bva;
     StringVarArgs sva;
