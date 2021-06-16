@@ -70,8 +70,8 @@ namespace Gecode { namespace String {
   private:
     // Cardinality bounds.
     int l, u;
-    // Smart pointer to the base.
-    std::unique_ptr<CharSet> S;
+    // Pointer to the base, if the block is unknown.
+    CharSet* S;
    
     // FIXME: To save space, each fixed blocks {a}^(n,n) must be encoded with
     // (S=NULL,l=a,u=n). The null block is (S=NULL,l=0,u=0). For each block b
@@ -462,25 +462,6 @@ namespace Gecode { namespace String {
     return !i2();
   }
   
-//  forceinline bool
-//  CharSet::equals(const CharSet& x) const {
-//    if (_size != x._size)
-//      return false;
-//    if (_size == 0 || fst() == x.fst())
-//      return true;
-//    if (min() != x.min() || max() != x.max())
-//      return false;
-//    Gecode::Set::BndSetRanges i1(*this);
-//    Gecode::Set::BndSetRanges i2(x);    
-//    while (i1() && i2()) {
-//      if (i1.min() != i2.min() || i1.max() != i2.max())
-//        return false;
-//      ++i1;
-//      ++i2;
-//    }
-//    return !i1() && !i2();
-//  }
-//  
   template <class T>
   forceinline bool
   CharSet::equals(const T& s) const {
@@ -610,13 +591,19 @@ namespace Gecode { namespace String {
   : l(a), u(n), S() { Limits::check_length(n, "Block::Block"); };
   
   forceinline Block::Block(Space& home) 
-  : l(0), u(MAX_STRING_LENGTH), S(new CharSet(home, 0, MAX_ALPHABET_SIZE-1)) {};
+  : l(0), u(MAX_STRING_LENGTH), S(nullptr) {
+    S = home.alloc<CharSet>(1);
+    S->update(home, CharSet(home, 0, MAX_ALPHABET_SIZE-1));
+  };
   
   forceinline Block::Block(Space& home, const CharSet& s) 
-  : l(0), u(MAX_STRING_LENGTH), S(new CharSet()) { S->update(home, s); };
+  : l(0), u(MAX_STRING_LENGTH), S(nullptr) { 
+    S = home.alloc<CharSet>(1);
+    S->update(home, s); 
+  };
   
   forceinline Block::Block(Space& home, const CharSet& s, int lb, int ub)
-  : l(lb), u(ub), S(new CharSet()) { 
+  : l(lb), u(ub), S(nullptr) { 
     check_length(lb, ub, "Block::Block");
     switch (s.size()) {
       case 0:
@@ -624,23 +611,22 @@ namespace Gecode { namespace String {
           throw VariableEmptyDomain("Block::Block");
         // Null block.
         l = u = 0;
-        S = nullptr;
         return;
       case 1:
-        if (lb == ub) {
+        if (lb == ub)
           // Fixed block s^n with n=lb=ub.
           l = s.min();
-          S = nullptr;
-        }
-        else
+        else {
+          S = home.alloc<CharSet>(1);
           S->update(home, s);
+        }
         return;
       default:
         // General case.        
-        if (ub > 0)
-          S->update(home, s);
-        else
-          S = nullptr;
+        if (ub > 0) {
+          S = home.alloc<CharSet>(1);
+          S->update(home, s);          
+        }
     }
   }
 
@@ -909,7 +895,7 @@ namespace Gecode { namespace String {
       return;
     }
     if (isFixed())
-      S = std::unique_ptr<CharSet>(new CharSet());
+      S = home.alloc<CharSet>(1);
     S->update(home, *b.S);
     assert(isOK());
   }
@@ -925,7 +911,7 @@ namespace Gecode { namespace String {
       const Block& b = g.block(); 
       l = b.l;
       u = b.u;
-      S = std::unique_ptr<CharSet>();
+      S = home.alloc<CharSet>(1);
       S->update(home, *b.S);
     }
   };
@@ -935,7 +921,8 @@ namespace Gecode { namespace String {
     check_length(lb, ub, "Block::updateCard");
     if (isFixed()) {
       if (lb < ub) {
-        S = std::unique_ptr<CharSet>(new CharSet(home, l));
+        S = home.alloc<CharSet>(1);
+        S->update(home, CharSet(home,l));
         l = lb;
       }
       u = ub;

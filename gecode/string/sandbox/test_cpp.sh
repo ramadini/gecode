@@ -21,7 +21,7 @@ fi
 
 echo 'Executing'
 if
-  [[ "${@: -1}" == "val" ]] 
+  [[ "${@: -1}" == "--valgrind" ]] 
 then
   valgrind --gen-suppressions=yes --leak-check=full ./$1.out $2 $3
 else
