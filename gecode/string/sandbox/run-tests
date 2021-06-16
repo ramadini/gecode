@@ -14,7 +14,7 @@ make -j 4 && sudo make install &&
 for t in "${TESTS[@]}"
 do
   echo "===== Testing $t ====="
-  $TEST_CMD $TEST_DIR/$t $1
+  $TEST_CMD $TEST_DIR/$t $1 $2
   if
     [ $? -ne 0 ]
   then

@@ -4,8 +4,8 @@ namespace Gecode { namespace String { namespace Branch {
   StringBrancher::val_llll(int pos, Gecode::String::StringView& x) const {
     if (x.min_length() < x.max_length())
       return new PosLevVal(*this, pos, Lev::LENGTH, Val::MIN);
-    Block& b = x[x.leftmost_unfixed_idx()];
-    if (b.lb() < b.ub())
+//    Block& b = x[x.leftmost_unfixed_idx()];
+    if (x[x.leftmost_unfixed_idx()].lb() < x[x.leftmost_unfixed_idx()].ub())
       return new PosLevVal(*this, pos, Lev::CARD, Val::MIN);
     else
       return new PosLevVal(*this, pos, Lev::BASE, Val::MIN);

@@ -334,7 +334,8 @@ public:
       const Choice* c = brancher.choice(*this);
       std::cerr << "Before commit: " << ++i << ": " << vx << "\n";
       brancher.commit(*this, *c, 0);
-      std::cerr << "After commit:  " << i << ": " << vx << "\n----------\n";      
+      std::cerr << "After commit:  " << i << ": " << vx << "\n----------\n";
+      delete c;    
     }
     assert (vec2str(vx[0].val()) == "" && vec2str(vx[1].val()) == "da");
     
@@ -349,7 +350,8 @@ public:
       const Choice* c = brancher2.choice(*this);
       std::cerr << "Before commit: " << ++i << ": " << vx << "\n";
       brancher2.commit(*this, *c, 0);
-      std::cerr << "After commit:  " << i << ": " << vx << "\n----------\n";      
+      std::cerr << "After commit:  " << i << ": " << vx << "\n----------\n";
+      delete c;
     }
     assert (vec2str(vx[0].val()) == "" && vec2str(vx[1].val()) == "");
   }
@@ -418,9 +420,9 @@ int main() {
   home->test05();
   home->test06();
   home->test07();
-//  home->test08();
-//  home->test09();
-//  home->test10();
+  home->test08();
+  home->test09();
+  home->test10();
   delete home;
   cerr << "\n----- test-prop.cpp passes -----\n\n";
   return 0;
