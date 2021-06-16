@@ -137,6 +137,15 @@ namespace Gecode {
     GECODE_STRING_EXPORT StringVar(Space& home, const String::DashedString& S);
     
     /**
+     * \brief Initialize variable's domain with block \f$ [0, MAX\_ALPHABET\_SIZE)^{(l,u)} \f$
+     *
+     * The following exceptions might be thrown:
+     *  - Gecode::String::VariableEmptyDomain, if l > u.
+     *  - Gecode::String::OutOfLimits, if l < 0 \vee u > MAX\_STRING\_LENGTH\f$
+     */
+    GECODE_STRING_EXPORT StringVar(Space& home, int l, int u);
+    
+    /**
      * \brief Initialize variable's domain with block \f$ S^{(l,u)} \f$
      *
      * The following exceptions might be thrown:
@@ -336,6 +345,8 @@ namespace Gecode {
 namespace Gecode {
   
   GECODE_STRING_EXPORT void length(Home home, StringVar x, IntVar n);
+  GECODE_STRING_EXPORT void concat(Home home, StringVar x,
+                                              StringVar y, StringVar z);
   
   /**
    * \defgroup TaskModelStringElement

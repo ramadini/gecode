@@ -1153,7 +1153,8 @@ namespace Gecode { namespace String {
       n = 1;
     }
     min_len = max_len = 0;
-    assert(isOK() && isNorm());
+    assert (isOK());
+    assert (isNorm());
   }
   
   forceinline void 
@@ -1169,7 +1170,8 @@ namespace Gecode { namespace String {
         bi.lb(home, min_i);
     }
     min_len = l;
-    assert (isOK() && isNorm());
+    assert (isOK());
+    assert (isNorm());
   }
   
   forceinline void 
@@ -1194,7 +1196,8 @@ namespace Gecode { namespace String {
     max_len = u;
     if (norm)
       normalize(home);
-    assert (isOK() && isNorm());
+    assert (isOK());
+    assert (isNorm());
   }
   
   forceinline void 
@@ -1219,7 +1222,8 @@ namespace Gecode { namespace String {
     for (int i = 0; i < d.n; ++i)
       x[i].update(home, d[i]);
     n = d.n;
-    assert(isOK() && isNorm());
+    assert (isOK());
+    assert (isNorm());
   }
   
   forceinline void 
@@ -1260,7 +1264,8 @@ namespace Gecode { namespace String {
       else
         x[++j].update(home, Block(w[i]));
     n = m;
-    assert(isOK() && isNorm());
+    assert (isOK());
+    assert (isNorm());
   }
  
   forceinline void
@@ -1433,7 +1438,7 @@ namespace Gecode { namespace String {
       return false;
     int l =0, u = 0;
     for (int i = 0; i < n; i++) {
-      if (!x[i].isOK())
+      if (i > 0 && !x[i].isOK())
         return false;
       l += x[i].lb();
       u = ub_sum(u, x[i].ub());

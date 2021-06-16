@@ -21,7 +21,16 @@ namespace Gecode { namespace String {
   
   forceinline
   StringVarImp::StringVarImp(Space& home, const DashedString& d)
-  : StringVarImpBase(home), ds(home, d) {}  
+  : StringVarImpBase(home), ds(home, d) {}
+  
+  forceinline
+  StringVarImp::StringVarImp(Space& home, int l, int u)
+  : StringVarImpBase(home), ds(home) {
+    Limits::check_length(l, u, "StringVarImp::StringVarImp");
+    ds.min_length(home, l);
+    ds.max_length(home, u);
+    ds[0].updateCard(home, l, u);
+  }  
   
   forceinline void
   StringVarImp::gets(Space& home, const DashedString& dy) {

@@ -2,7 +2,9 @@
 
 TEST_DIR="${0%/*}"
 TEST_CMD=$TEST_DIR/test_cpp.sh
-declare -a TESTS=('test-eq.cpp' 'test-prop.cpp' 'str_ex1.cpp')
+declare -a TESTS=(
+  'test-eq.cpp' 'test-prop.cpp' 'str_ex1.cpp' 'str_ex2.cpp' 'str_ex3.cpp'
+)
 
 if
   [[ $1 == "dep" ]]
