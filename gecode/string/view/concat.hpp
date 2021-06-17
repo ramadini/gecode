@@ -485,7 +485,7 @@ namespace Gecode { namespace String {
   ConcatView<View0,View1>::mand_region(Space& home, Block& bx, const Block& by,
                              const Position& p, const Position& q) const {
     // FIXME: When only block by is involved.
-    if (q.idx < pivot)
+    if (p.idx < pivot)
       x0.mand_region(home, bx, by, p, q);
     else
       x1.mand_region(home, bx, by, p-pivot, q-pivot);

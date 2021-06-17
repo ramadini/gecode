@@ -868,12 +868,16 @@ namespace Gecode { namespace String {
   
   forceinline void
   Block::includeBaseIn(Space& home, Gecode::Set::GLBndSet& s) const {
-    if (baseSize() == 1) {
+    switch (baseSize()) {
+    case 0:
+      return;
+    case 1: {
       int m = baseMin();
       Gecode::Set::SetDelta d;
       s.include(home, m, m, d);
+      return;
     }
-    else {
+    default:
       Gecode::Set::BndSetRanges r(ranges());
       s.includeI(home, r);
     }
