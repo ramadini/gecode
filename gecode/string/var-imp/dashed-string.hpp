@@ -800,6 +800,7 @@ namespace Gecode { namespace String {
   
   forceinline void
   Block::baseIntersect(Space& home, const Block& b) {
+//    std::cerr << *this << " baseIntersect " << b << '\n';
     if (isNull())
       return;
     if (isFixed()) {
@@ -807,10 +808,14 @@ namespace Gecode { namespace String {
         throw VariableEmptyDomain("Block::baseIntersect");
       return;
     }
-    if (l == u && b.isFixed()) {
+    if (b.isFixed()) {
       if (S->in(b.l)) {
-        nullifySet(home);
-        l = b.l;  
+        if (l == u) {
+          nullifySet(home);
+          l = b.l;
+        }
+        else
+          ((Gecode::Set::LUBndSet*) S)->intersect(home, b.l, b.l);
       }
       else {
         if (l > 0)
