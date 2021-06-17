@@ -553,7 +553,7 @@ STRINGHDR0 = \
   view/concat.hpp var/string.hpp \
   branch.hh branch.hpp branch/val.hpp branch/var.hpp branch/traits.hpp \
   branch/lblock_mindim_lllm.hpp branch/block_mindim_lslm.hpp branch/none_llll.hpp \
-  rel.hh rel/eq.hpp rel/nq.hpp rel/re-eq.hpp \
+  rel.hh rel/eq.hpp rel/nq.hpp rel/re-eq.hpp rel/dom.hpp \
   rel-op.hh rel-op/concat.hpp \
   int.hh int/length.hpp
 

@@ -96,9 +96,9 @@ public:
     concat(*this, var_567z, var_5, var_567z5);
 
     IntSet s({'a', 'b', 'c', 'z'});
-    eq(*this, var_567z5, StringVar(*this, s, 0, so.N));
-    eq(*this, var_5, StringVar(*this, IntSet('a', 'u'), 0, so.N));
-    eq(*this, var_567, StringVar(*this, IntSet('a', 'u'), 0, so.N));
+    dom(*this, var_567z5, StringVar(*this, s, 0, so.N));
+    dom(*this, var_5, StringVar(*this, IntSet('a', 'u'), 0, so.N));
+    dom(*this, var_567, StringVar(*this, IntSet('a', 'u'), 0, so.N));
     lblock_mindim_lllm(*this, str_vars);
   }
   

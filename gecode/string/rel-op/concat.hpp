@@ -75,12 +75,15 @@ namespace Gecode { namespace String { namespace RelOp {
       Gecode::String::Rel::Eq<View0,View2>::post(home, x0, x2);
       return home.ES_SUBSUMED(*this);
     }
-    // TODO: Check z == xy.
     if (x0.assigned() && x1.assigned()) {
       ConcatView<View0,View1> xy(x0,x1);
-      if (check_equate_x(x2, xy) && check_equate_x(xy, x2)) {
-        if (!x2.assigned())
+      if (check_equate_x(x2, xy)) {
+        if (x2.assigned())
+          return home.ES_SUBSUMED(*this);
+        if (check_equate_x(xy, x2))
           x2.gets(home, xy.val());
+        else
+          return ES_FAILED;
       }
       else
         return ES_FAILED;

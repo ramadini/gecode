@@ -58,6 +58,31 @@ namespace Gecode { namespace String { namespace Rel {
   };
   
   /**
+   * \brief %Propagator for string domain
+   *
+   * Requires \code #include <gecode/string/rel.hh> \endcode
+   * \ingroup FuncStringProp
+   */
+  template<class View0, class View1>
+  class Dom 
+  : public MixBinaryPropagator<View0,PC_STRING_ANY,View1,PC_STRING_ANY> {
+  protected:
+    using MixBinaryPropagator<View0,PC_STRING_ANY,View1,PC_STRING_ANY>::x0;
+    using MixBinaryPropagator<View0,PC_STRING_ANY,View1,PC_STRING_ANY>::x1;
+    /// Constructor for cloning \a p
+    Dom(Space& home, Dom& p);
+    /// Constructor for posting
+    Dom(Home home, View0 x0, View1 x1);
+  public:
+    /// Copy propagator during cloning
+    virtual Actor* copy(Space& home);
+    /// Perform propagation
+    virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
+    /// Post propagator \f$ x :: y \f$
+    static ExecStatus post(Home home, View0 x, View1 y);
+  };
+  
+  /**
    * \brief %Reified string equality propagator
    *
    * Requires \code #include <gecode/string/rel.hh> \endcode
@@ -94,6 +119,7 @@ namespace Gecode { namespace String { namespace Rel {
 }}}
 #include <gecode/string/rel/eq.hpp>
 #include <gecode/string/rel/nq.hpp>
+#include <gecode/string/rel/dom.hpp>
 #include <gecode/string/rel/re-eq.hpp>
 
 #endif

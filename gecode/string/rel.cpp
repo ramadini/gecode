@@ -140,6 +140,13 @@ namespace Gecode {
     nq(home, x, w);
   }
   
+  void
+  dom(Home home, StringVar x, StringVar y) {
+    using namespace String;
+    GECODE_POST;
+    GECODE_ES_FAIL((Rel::Dom<StringView,StringView>::post(home, x, y)));
+  }
+  
 }
 
 
