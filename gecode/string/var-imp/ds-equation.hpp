@@ -180,7 +180,8 @@ namespace Gecode { namespace String {
       if (eep != lep)
         y.opt_region(home, x_i, mreg[n-1], eep, lep, l1);
       DashedString d(home, mreg, n);
-      r.free();      
+//      std::cerr << "d = " << d << "\n";
+      r.free();
       n = d.size();
       if (n == 1) {
         // No need to unfold x_i.

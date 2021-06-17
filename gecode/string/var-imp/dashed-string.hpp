@@ -214,6 +214,7 @@ namespace Gecode { namespace String {
     GBlock(Block& b);
     int lb() const;
     int ub() const;
+    int baseMin() const;
     bool isNull() const;
     bool isChar() const;
     bool isFixed() const;
@@ -539,7 +540,7 @@ namespace Gecode { namespace String {
     
   forceinline int 
   GBlock::val() const {
-    if (c < 0)
+    if (!isFixed())
       throw IllegalOperation("GBlock::val");
     return c;
   }
@@ -566,6 +567,11 @@ namespace Gecode { namespace String {
       Gecode::Set::SetDelta d;
       s.include(home, c, c, d);
     }
+  }
+  
+  forceinline int 
+  GBlock::baseMin() const {
+    return c < 0 ? p->baseMin() : c;
   }
   
   forceinline std::ostream&
@@ -798,14 +804,13 @@ namespace Gecode { namespace String {
       return;
     if (isFixed()) {
       if ((b.isFixed() && l != b.l) || (!isFixed() && !b.S->in(l)))
-        throw VariableEmptyDomain("Block::baseIntersect"); 
+        throw VariableEmptyDomain("Block::baseIntersect");
       return;
     }
-    if (b.isFixed()) {
+    if (l == u && b.isFixed()) {
       if (S->in(b.l)) {
         nullifySet(home);
-        l = b.l;
-        u = b.u;        
+        l = b.l;  
       }
       else {
         if (l > 0)
@@ -890,7 +895,7 @@ namespace Gecode { namespace String {
     u = b.u;
     if (&S == &b.S)
       return;
-    if (b.isFixed()) { 
+    if (b.isFixed()) {
       nullifySet(home);
       return;
     }
@@ -903,9 +908,9 @@ namespace Gecode { namespace String {
   forceinline void
   Block::update(Space& home, const GBlock& g) {
     if (g.isFixed()) {
-      l = g.val();
-      u = 1;
-      S = nullptr;
+      l = g.baseMin();
+      u = g.ub();
+      nullifySet(home);
     }
     else {
       const Block& b = g.block(); 
@@ -914,6 +919,7 @@ namespace Gecode { namespace String {
       S = home.alloc<CharSet>(1);
       S->update(home, *b.S);
     }
+    assert(isOK());
   };
   
   forceinline void
