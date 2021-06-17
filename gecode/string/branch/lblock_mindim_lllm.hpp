@@ -89,7 +89,7 @@ namespace Gecode { namespace String { namespace Branch {
     forceinline ExecStatus
     LBlock_MinDim_LLLM::commit(Space& home, const Choice& c, unsigned a) {
       const PosLevVal& p = static_cast<const PosLevVal&>(c);
-//       std::cerr << '\n'; this->print(home, c, a, std::cerr); std::cerr << '\n';
+//      std::cerr << '\n'; this->print(home, c, a, std::cerr); std::cerr << '\n';
       StringBrancher::commit(home, x[p.pos], p.lev, p.val, Blc::LEFTMOST, a);
       return ES_OK;
     }

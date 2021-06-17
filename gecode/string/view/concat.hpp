@@ -456,7 +456,7 @@ namespace Gecode { namespace String {
                                         const Position& q) const {
     if (!prec(p,q))
       return 0;
-    else if (q.idx < pivot)
+    else if (q.idx < pivot || (q.idx == pivot && q.off == 0))
       return x0.min_len_mand(bx, p, q);
     else if (p.idx >= pivot)
       return x1.min_len_mand(bx, p-pivot, q-pivot);
@@ -469,8 +469,9 @@ namespace Gecode { namespace String {
   forceinline void
   ConcatView<View0,View1>::mand_region(Space& home, Block& bx, Block* bnew, int u,
                                 const Position& p, const Position& q) const {
+//    std::cerr << "ConcatView<View0,View1>::mand_region" << bx << p << pivot << q << '\n';
     assert (prec(p,q));
-    if (q.idx < pivot)
+    if (q.idx < pivot || (q.idx == pivot && q.off == 0))
       x0.mand_region(home, bx, bnew, u, p, q);
     else if (p.idx >= pivot)
       x1.mand_region(home, bx, bnew, u, p-pivot, q-pivot);
@@ -512,7 +513,7 @@ namespace Gecode { namespace String {
   ConcatView<View0,View1>::opt_region(Space& home, const Block& bx, Block& bnew,
                            const Position& p, const Position& q, int l1) const {
     assert(prec(p,q));
-    if (q.idx < pivot)
+    if (q.idx < pivot || (q.idx == pivot && q.off == 0))
       x0.opt_region(home, bx, bnew, p, q, l1);
     else if (p.idx >= pivot)
       x1.opt_region(home, bx, bnew, p-pivot, q-pivot, l1);

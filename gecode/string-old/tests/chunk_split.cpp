@@ -81,7 +81,8 @@ public:
     rel(*this, 0 <= (l_3 + (-1 * l_5)) + (-8));
     rel(*this, 0 <= ((-1 * l_5) + l_2) + (-8));
     rel(*this, 0 <= l_5);
-
+//FIXME:
+length(*this,var_7, IntVar(*this,0,0));
     rel(*this, var_5, var_6, STRT_CAT, var_56);
     rel(*this, var_56, var_7, STRT_CAT, var_567);
     rel(*this, var_567, StringVar(*this, "z"), STRT_CAT, var_567z);

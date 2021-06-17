@@ -32,6 +32,7 @@ namespace Gecode { namespace String { namespace Int {
   template<class View>
   ExecStatus
   Length<View>::propagate(Space& home, const ModEventDelta&) {
+//    std::cerr << "Length::propagate |" <<x0<< "| = " <<x1<< "\n";
     int x1min, x1max;
     do {
       x1min = x1.min();
@@ -42,6 +43,7 @@ namespace Gecode { namespace String { namespace Int {
     } while (x1.min() > x1min || x1.max() < x1max);
     if (x1.assigned())
       return home.ES_SUBSUMED(*this);
+//    std::cerr << "Length::propagated |" <<x0<< "| = " <<x1<< "\n";
     return ES_FIX;
   }
 
