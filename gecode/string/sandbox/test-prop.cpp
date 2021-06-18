@@ -68,19 +68,19 @@ public:
     public:
       E(Home h, StringView x, StringView y) : Eq(h, x, y) {};
     };
-    assert(E(*this, x, y).propagate(*this, 0) == ES_OK);
+    assert(E(*this, x, y).propagate(*this, 0) == ES_FIX);
     assert(x.varimp()->dom().equals(y.varimp()->dom()));
     StringVar z(*this, Block(*this, CharSet(*this), 3, 12));
     std::cerr << "x = " << x << std::endl;
     std::cerr << "y = " << y << std::endl;
     std::cerr << "Propagating Eq: y = " << y << "  vs  z = " << z << "\n";
-    assert(E(*this, y, z).propagate(*this, 0) == ES_OK);
+    assert(E(*this, y, z).propagate(*this, 0) == ES_FIX);
     std::cerr << "z = " << z << std::endl;
     StringView vz(z);
     assert(vz[0].lb() == 3 && vz[0].ub() == 12);
     StringVar t(*this, Block(*this, CharSet(*this), 12, 12));
     std::cerr << "Propagating Eq: t = " << t << "  vs  z = " << z << "\n";
-    assert(E(*this, t, z).propagate(*this, 0) == ES_OK);
+    assert(E(*this, t, z).propagate(*this, 0) == ES_FIX);
     std::cerr << "Propagating Eq: x = " << x << "  vs  z = " << z << "\n";
     assert(E(*this, x, z).propagate(*this, 0) == __ES_SUBSUMED);
     std::cerr << "x = " << x << "\n";
@@ -196,7 +196,7 @@ public:
     assert(C(*this, vy, vx, vw).propagate(*this, 0) == ES_FAILED);
     std::cerr << "yx = w unsat!\n";
     StringView vt(*this);
-    assert(C(*this, vt, vt, vw).propagate(*this, 0) == ES_OK);
+    assert(C(*this, vt, vt, vw).propagate(*this, 0) == ES_FIX);
     std::cerr << "vt = " << vt << '\n';
     assert (vt.min_length() == 0 && vt.max_length() == (int) w.size());
   }
@@ -220,7 +220,7 @@ public:
     std::cerr << "x = " << x << "\n";
     std::cerr << "y = " << y << "\n";
     std::cerr << "z = " << z << "\n";
-    assert(C(*this, vx, vy, vz).propagate(*this, 0) == ES_OK);
+    assert(C(*this, vx, vy, vz).propagate(*this, 0) == ES_FIX);
     std::cerr << "After z = xy:\n";
     std::cerr << "x = " << x << "\n";
     std::cerr << "y = " << y << "\n";

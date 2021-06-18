@@ -68,13 +68,13 @@ namespace Gecode { namespace String { namespace Rel {
     }
     if (x0.contains(x1)) {
       if (x0.equals(x1))
-        return ES_OK;
+        return ES_FIX;
       x0.gets(home, x1);
-      return ES_OK;
+      return ES_FIX;
     }
     if (x1.contains(x0)) {
       x1.gets(home, x0);
-      return ES_OK;
+      return ES_FIX;
     }
     ModEvent me0;
     do {
@@ -86,7 +86,7 @@ namespace Gecode { namespace String { namespace Rel {
         refine_card(home);
     } while (x0.assigned() + x1.assigned() == 1);
     // std::cerr << "Eq::propagated.\n";
-    return x0.assigned() ? home.ES_SUBSUMED(*this) : ES_OK;
+    return x0.assigned() ? home.ES_SUBSUMED(*this) : ES_FIX;
   }
 
 }}}

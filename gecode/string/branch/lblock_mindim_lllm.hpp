@@ -64,7 +64,7 @@ namespace Gecode { namespace String { namespace Branch {
         StringView& xi = x[i];
         if (!xi.assigned()) {
           if (xi.degree() == 0) {
-            std::cerr << "Warning: " << xi << " has degree 0!\n";
+//            std::cerr << "Warning: " << xi << " has degree 0!\n";
             xi.varimp()->gets(home, std::vector<int>());
             continue;
           }
