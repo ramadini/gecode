@@ -83,6 +83,7 @@ public:
     b[0].update(*this, 'z');
     b[1].update(*this, 'b');
     concat(*this, var_5, StringVar(*this, DashedString(*this, b, 2)), var_5zb);
+//FIXME: It should be: pow(*this, StringVar(*this, abc, 0, so.N), n, var_abc);
     dom(*this, var_abc, Block(*this, CharSet(*this, 'a', 'c'), 0, so.N));
     concat(*this, StringVar(*this, Block(*this, CharSet(*this, 'z'), 0, so.N)), 
                   var_abc, var_5zb6);
@@ -112,7 +113,7 @@ public:
     concat(*this, StringVar(*this, Block('b')), var_5, StringVar(*this, u));
     dom(*this, var_5, u);
     // Branching.
-    block_mindim_lslm(*this, str_vars);
+    lblock_mindim_lllm(*this, str_vars);
   }
   
   virtual void

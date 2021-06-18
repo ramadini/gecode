@@ -37,9 +37,11 @@ namespace Gecode { namespace String { namespace Branch {
         for (int i = 0; i < start; ++i) {
           const StringView& vi = x[i];
           for (int j = 0; j < vi.size(); ++j) {
-            Gecode::Set::SetDelta d;
-            int m = vi[j].baseMin();
-            s.include(home, m, m, d);
+            if (vi[j].baseSize() == 1) {
+              Gecode::Set::SetDelta d;
+              int m = vi[j].baseMin();
+              s.include(home, m, m, d);
+            }
           }
         }
         for (int i = start; i < x.size(); ++i) {
