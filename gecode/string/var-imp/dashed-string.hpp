@@ -1185,7 +1185,6 @@ namespace Gecode { namespace String {
         bi.lb(home, min_i);
     }
     min_len = l;
-    std::cerr << *this << ' ' << min_len << ' ' << max_len << '\n';
     assert (isOK());
     assert (isNorm());
   }

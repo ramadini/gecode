@@ -36,7 +36,7 @@ namespace Gecode { namespace String { namespace RelOp {
   template<class View0, class View1, class View2>
   forceinline ExecStatus
   Concat<View0,View1,View2>::refine_card(Space& home) {
-    std::cerr << "Before refine_card: " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
+//    std::cerr << "Before refine_card: " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
     ModEvent me0;
     do {
       int l = std::max(x0.min_length(), x2.min_length() - x1.max_length()),
@@ -54,14 +54,14 @@ namespace Gecode { namespace String { namespace RelOp {
       GECODE_ME_CHECK(me1);
       me0 += me1;
     } while (me0 != ME_STRING_NONE);
-    std::cerr << "After refine_card: " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
+//    std::cerr << "After refine_card: " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
     return ES_OK;
   }
 
   template<class View0, class View1, class View2>
   forceinline ExecStatus
   Concat<View0,View1,View2>::propagate(Space& home, const ModEventDelta&) {
-    std::cerr << "\n" << this << "::Concat::propagate " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
+//    std::cerr << "\n" << this << "::Concat::propagate " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
     GECODE_ME_CHECK(refine_card(home));    
     if (x2.isNull()) {
       GECODE_ME_CHECK(x0.nullify(home));
@@ -94,16 +94,14 @@ namespace Gecode { namespace String { namespace RelOp {
     do {
       ConcatView<View0,View1> xy(x0,x1);
       ModEvent me0 = x2.equate(home, xy);
-      std::cerr << "After equate1: " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
       GECODE_ME_CHECK(me0);
       ModEvent me1 = xy.equate(home, x2);
-      std::cerr << "After equate2: " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
       GECODE_ME_CHECK(me1);
       if (me0 + me1 != ME_STRING_NONE)
         GECODE_ME_CHECK(refine_card(home));
       a = x0.assigned() + x1.assigned() + x2.assigned();
     } while (a == 2);
-    std::cerr << "After Concat::propagate " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
+//    std::cerr << "After Concat::propagate " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
     return a == 3 ? home.ES_SUBSUMED(*this) : ES_FIX;
   }  
   
