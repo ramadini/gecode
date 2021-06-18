@@ -1218,7 +1218,6 @@ namespace Gecode { namespace String {
   
   forceinline void
   DashedString::sync_length() {
-    std::cerr << *this << ' ' << min_len << ' ' << max_len << '\n';
     int k = 0;
     for (int i = 0; i < n; ++i)
       k += (*this)[i].lb();

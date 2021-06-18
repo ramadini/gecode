@@ -88,45 +88,44 @@ public:
     concat(*this, var_5, StringVar(*this, Block('z')), var_5z);
     concat(*this, var_5z, var_6, var_5z6);
 
+    CharSet bz(*this, IntSet({'b','z'}));
+    CharSet az(*this, IntSet({'a','z'}));
+    CharSet abz(*this, IntSet({'a','b','z'}));
+    
     // var_5 ++ "z" ++ var_6 IN (("a" ++ (("z" | "b") ++ (("b")* ++ ("z" | "a")))))*
     Block b1[4];
     b1[0].update(*this, 'a');
-    b1[1].update(*this, Block(*this, CharSet(*this, IntSet({'b','z'})), 1, 1));
+    b1[1].update(*this, Block(*this, bz, 1, 1));
     b1[2].update(*this, Block(*this, CharSet(*this, 'b'), 0, so.N));
-    b1[3].update(*this, Block(*this, CharSet(*this, IntSet({'a','z'})), 1, 1));
+    b1[3].update(*this, Block(*this, az, 1, 1));
     DashedString d1(*this, b1, 4);
 //FIXME: It should be pow(*this, StringVar(*this, v1, 3, so.N), n, expr_1);
     eq(*this, StringVar(*this, d1), expr_1); 
     eq(*this, var_5z6, expr_1);
 
     // var_5 ++ "z" ++ var_6 IN ((("z" | "b") ++ ("a" ++ ("z" | "b" | "a"))))* ++ "a"
-//    NSIntSet zba(zb);FIXME
-//    zba.include('a');
-//    NSBlocks v2({
-//      NSBlock(zb, 1, 1),
-//      NSBlock(NSIntSet('a', 'a'), 1, 1),
-//      NSBlock(zba, 1, 1)
-//    });
-    Block b2(*this, CharSet(*this, IntSet({'a','b','z'})), 3, 3);
+    Block b2[3];
+    b2[0].update(*this, Block(*this, bz, 1, 1));
+    b2[1].update(*this, Block('a'));
+    b2[2].update(*this, Block(*this, abz, 1, 1));
+    DashedString d2(*this, b2, 3);
 //FIXME: It should be pow(*this, StringVar(*this, v2, 3, 3), m, expr_2);
-    eq(*this, StringVar(*this, b2), expr_2);
+    eq(*this, StringVar(*this, d2), expr_2);
     concat(*this, expr_2, StringVar(*this, Block('a')), var_5z6);
 
-//    // var_5 ++ "z" ++ var_6 IN ((("z" | "b") ++ ("a" ++ ("z" | "a"))))* ++ "a"
-//    NSBlocks v3({
-//      NSBlock(zb, 1, 1),
-//      NSBlock(NSIntSet('a', 'a'), 1, 1),
-//      NSBlock(za, 1, 1)
-//    });
-//    pow(*this, StringVar(*this, v3, 3, 3), l, expr_3);
-//    rel(*this, expr_3, StringVar(*this, "a"), STRT_CAT, var_5z6);
+    // var_5 ++ "z" ++ var_6 IN ((("z" | "b") ++ ("a" ++ ("z" | "a"))))* ++ "a"
+    Block b3[3];
+    b3[0].update(*this, Block('b'));
+    b3[1].update(*this, Block('a'));
+    b3[2].update(*this, Block(*this, az, 1, 1));
+    DashedString d3(*this, b3, 3);    
+//FIXME: It should be pow(*this, StringVar(*this, v3, 3, 3), l, expr_3);
+    concat(*this, expr_3, StringVar(*this, Block('a')), var_5z6);
 
     // Branching.
     lblock_mindim_lllm(*this, str_vars);
   }
   
-
-
   virtual void
   print(std::ostream& os) const {
     assert (0);
