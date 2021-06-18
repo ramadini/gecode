@@ -584,6 +584,11 @@ namespace Gecode {
   GECODE_STRING_EXPORT void
   lblock_mindim_lllm(Home home, const StringVarArgs& x);
 
+  GECODE_STRING_EXPORT void
+  block_mindim_lslm(Home home, const StringVarArray& x);
+  GECODE_STRING_EXPORT void
+  block_mindim_lslm(Home home, const StringVarArgs& x);
+
   /**
    * \brief Branch over \a x with variable selection \a vars and value selection \a vals
    *
