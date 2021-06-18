@@ -68,14 +68,6 @@ namespace Gecode { namespace String { namespace RelOp {
       GECODE_ME_CHECK(x1.nullify(home));
       return home.ES_SUBSUMED(*this);
     }
-    if (x0.isNull()) {
-      Gecode::String::Rel::Eq<View1,View2>::post(home, x1, x2);
-      return home.ES_SUBSUMED(*this);
-    }
-    if (x1.isNull()) {
-      Gecode::String::Rel::Eq<View0,View2>::post(home, x0, x2);
-      return home.ES_SUBSUMED(*this);
-    }
     if (x0.assigned() && x1.assigned()) {
       ConcatView<View0,View1> xy(x0,x1);
       if (check_equate_x(x2, xy)) {
@@ -90,12 +82,23 @@ namespace Gecode { namespace String { namespace RelOp {
         return ES_FAILED;
       return home.ES_SUBSUMED(*this);
     }
+    if (x0.isNull()) {
+      GECODE_REWRITE(*this, 
+        (Gecode::String::Rel::Eq<View1,View2>::post(home(*this), x1, x2)));
+      return home.ES_SUBSUMED(*this);
+    }
+    if (x1.isNull()) {
+      GECODE_REWRITE(*this, 
+        (Gecode::String::Rel::Eq<View1,View2>::post(home(*this), x0, x2)));
+      return home.ES_SUBSUMED(*this);
+    }
     int a;
     do {
       ConcatView<View0,View1> xy(x0,x1);
       ModEvent me0 = x2.equate(home, xy);
       GECODE_ME_CHECK(me0);
       ModEvent me1 = xy.equate(home, x2);
+      assert(xy.isOK());
       GECODE_ME_CHECK(me1);
       if (me0 + me1 != ME_STRING_NONE)
         GECODE_ME_CHECK(refine_card(home));

@@ -572,11 +572,15 @@ namespace Gecode { namespace String {
       j += U[i+1];
     if (j > 0)
       x0.resize(home, newBlocks, j, U, i);
+    else
+      x0.normalize(home);
     if (i < uSize) {
       for (int k = i; k < uSize; k += 2)
         U[k] -= pivot;
       x1.resize(home, newBlocks+j, newSize-j, U+i, uSize-i);
     }
+    else
+      x1.normalize(home);
     pivot = x0.size();
   }
 

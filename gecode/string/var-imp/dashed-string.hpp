@@ -1468,7 +1468,7 @@ namespace Gecode { namespace String {
     if (x[0].isNull())
       return min_len == 0 && max_len == 0;
     if (!x[0].isOK())
-      return false;
+      return false;    
     int l =0, u = 0;
     for (int i = 0; i < n; i++) {
       if (i > 0 && !x[i].isOK())

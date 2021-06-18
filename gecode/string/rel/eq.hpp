@@ -45,10 +45,14 @@ namespace Gecode { namespace String { namespace Rel {
         GECODE_ME_CHECK(x1.nullify(home));
         return home.ES_SUBSUMED(*this);
       }
-      if (check_equate_x(x0,x1) && check_equate_x(x1,x0)) {
-        if (!x1.assigned())
-          x1.gets(home, x0);
-        return home.ES_SUBSUMED(*this);      
+      if (check_equate_x(x0,x1)) {
+        if (!x1.assigned()) {
+          if (check_equate_x(x1,x0))
+            x1.gets(home, x0);
+          else
+            return ES_FAILED;
+        }
+        return home.ES_SUBSUMED(*this);
       }
       else
         return ES_FAILED;

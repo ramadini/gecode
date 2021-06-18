@@ -66,8 +66,8 @@ namespace Gecode { namespace String {
     forceinline bool
     isNorm(View& y) const {
       int n = y.size();
-      return (0 <= idx && idx < n && 0 <= off && off < ubound(y[idx]))
-          || (idx == n && off == 0);
+      return (0 <= idx && idx < n && 0 <= off && (ubound(y[idx]) == 0 
+                            || off < ubound(y[idx]))) || (idx == n && off == 0);
     }
   };
   forceinline std::ostream&
