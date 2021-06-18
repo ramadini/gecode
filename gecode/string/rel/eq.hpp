@@ -38,7 +38,7 @@ namespace Gecode { namespace String { namespace Rel {
   template<class View0, class View1>
   ExecStatus
   Eq<View0,View1>::propagate(Space& home, const ModEventDelta&) {
-//    std::cerr << "Prop. Eq " << x0 << "  vs  " << x1 << "\n";
+//    std::cerr<<"\n"<<this<<"::Eq::propagate" << x0 << "  vs  " << x1 << "\n";
     refine_card(home);
     if (x0.assigned()) {
       if (x0.isNull()) {
@@ -61,7 +61,7 @@ namespace Gecode { namespace String { namespace Rel {
       if (check_equate_x(x0,x1) && check_equate_x(x1,x0)) {
         if (!x0.assigned())
           x0.gets(home, x1);
-        return home.ES_SUBSUMED(*this);      
+        return home.ES_SUBSUMED(*this);
       }
       else
         return ES_FAILED;
@@ -85,7 +85,7 @@ namespace Gecode { namespace String { namespace Rel {
       if (me0 + me1 != ME_STRING_NONE)
         refine_card(home);
     } while (x0.assigned() + x1.assigned() == 1);
-    // std::cerr << "Eq::propagated.\n";
+//    std::cerr << "Eq::propagated.\n";
     return x0.assigned() ? home.ES_SUBSUMED(*this) : ES_FIX;
   }
 

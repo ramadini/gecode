@@ -112,6 +112,8 @@ namespace Gecode { namespace String {
     ModEvent max_length(Space& home, int u);
     /// Equates with dashed string \a x
     ModEvent bnd_length(Space& home, int l, int u);
+    /// 
+    void sync_length(void);
     //@}
     
     /// \name Dependencies

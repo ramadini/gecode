@@ -180,7 +180,7 @@ namespace Gecode { namespace String {
       if (eep != lep)
         y.opt_region(home, x_i, mreg[n-1], eep, lep, l1);
       DashedString d(home, mreg, n);
-//      std::cerr << "d = " << d << "\n";
+      std::cerr << "d = " << d << "\n";
       r.free();
       n = d.size();
       if (n == 1) {
@@ -205,9 +205,8 @@ namespace Gecode { namespace String {
     else if (changed)
       x.normalize(home);
     else
+      // No modifications.
       nBlocks = -1;
-    // FIXME: An alternative approach is to keep track of max_feas_len for string views, and
-    // use a x.check_length() that e.g. returning x.max_length() <= x.max_feas_len() for a StringView
     return true;
   }
 

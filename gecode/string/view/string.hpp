@@ -371,7 +371,7 @@ namespace Gecode { namespace String {
   template<class Char, class Traits>
   forceinline  std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const StringView& v) {
-    os << *v.varimp();
+    os << *v.varimp() << " |" << v.min_length()<< ".."<< v.max_length() << "|";
     return os;
   };
   
@@ -431,10 +431,15 @@ namespace Gecode { namespace String {
     return j;    
   }
   
+  forceinline void
+  StringView::sync_length() {
+    return x->sync_length();
+  }
+  
   template <class T>
   forceinline ModEvent
   StringView::equate(Space& home, const T& y) {
-    assert (!assigned());
+    assert (!assigned() || !y.assigned());
     int lb = min_length();
     long ub = this->ubounds_sum();
     Matching m[size()];
@@ -443,11 +448,15 @@ namespace Gecode { namespace String {
       if (n == -1)
         return ME_STRING_NONE;
       StringDelta d;    
-      if (assigned())
+      if (assigned()) {
+        sync_length();
         return x->notify(home, ME_STRING_VAL, d);
+      }
       int ux = max_length();
-      if (min_length() > lb || (ux < ub && ux < MAX_STRING_LENGTH))
+      if (min_length() > lb || (ux < ub && ux < MAX_STRING_LENGTH)) {
+        sync_length();
         return x->notify(home, ME_STRING_CARD, d);
+      }
       if (ux == MAX_STRING_LENGTH && ub > MAX_STRING_LENGTH) {
         long u = 0L;
         for (int i = 0; i < size(); ++i) {
@@ -455,6 +464,7 @@ namespace Gecode { namespace String {
           if (u >= ub)
             return x->notify(home, ME_STRING_BASE, d);
         }
+        sync_length();
         return x->notify(home, ME_STRING_CARD, d);
       }
       else

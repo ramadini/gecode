@@ -403,6 +403,8 @@ namespace Gecode { namespace String {
     if (sweep_x(*this, y, m, n) && refine_x(home, *this, y, m, n)) {
       if (n == -1)
         return ME_STRING_NONE;
+      x0.sync_length();
+      x1.sync_length();
       return StringVarImp::me_combine(me<View0>(home, x0, lb0, ub0),
                                       me<View1>(home, x1, lb1, ub1));
     }
@@ -566,13 +568,13 @@ namespace Gecode { namespace String {
   ConcatView<View0,View1>::resize(Space& home, Block newBlocks[], int newSize,
                                                           int U[],  int uSize) {
     int i, j;
-    for (i = 0, j = 0; U[i] < pivot; i += 2)
+    for (i = 0, j = 0; i < uSize && U[i] < pivot; i += 2)
       j += U[i+1];
     if (j > 0)
       x0.resize(home, newBlocks, j, U, i);
     if (i < uSize) {
-      for (; i < uSize; i += 2)
-        U[i] -= pivot;
+      for (int k = i; k < uSize; k += 2)
+        U[k] -= pivot;
       x1.resize(home, newBlocks+j, newSize-j, U+i, uSize-i);
     }
     pivot = x0.size();

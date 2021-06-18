@@ -172,6 +172,11 @@ namespace Gecode { namespace String {
     return notify(home, assigned() ? ME_STRING_VAL : ME_STRING_CARD, d);
   }
   
+  forceinline void
+  StringVarImp::sync_length() {
+    ds.sync_length();
+  }
+  
   forceinline std::vector<int>
   StringVarImp::val() const {
     return ds.val();

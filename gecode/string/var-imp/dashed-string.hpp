@@ -279,7 +279,7 @@ namespace Gecode { namespace String {
     /// Returns the minimum length for a concrete string denoted by the dashed string
     int min_length(void) const;
     /// Returns the maximum length for a concrete string denoted by the dashed string
-    int max_length(void) const;
+    int max_length(void) const;    
     /// Returns the number of blocks of the dashed string
     int size(void) const;
     /// Returns the natural logarithm of the dimension of this dashed string
@@ -323,6 +323,8 @@ namespace Gecode { namespace String {
     /// Possibly refine this dashed string given maximum length u.
     /// Pre-condition: min_length() <= u <= max_length()
     void max_length(Space& home, int u);
+    /// 
+    void sync_length(void);
     //@}
     
     /// Check whether the dashed string is normalized
@@ -1183,6 +1185,7 @@ namespace Gecode { namespace String {
         bi.lb(home, min_i);
     }
     min_len = l;
+    std::cerr << *this << ' ' << min_len << ' ' << max_len << '\n';
     assert (isOK());
     assert (isNorm());
   }
@@ -1211,6 +1214,25 @@ namespace Gecode { namespace String {
       normalize(home);
     assert (isOK());
     assert (isNorm());
+  }
+  
+  forceinline void
+  DashedString::sync_length() {
+    std::cerr << *this << ' ' << min_len << ' ' << max_len << '\n';
+    int k = 0;
+    for (int i = 0; i < n; ++i)
+      k += (*this)[i].lb();
+    if (k > min_len)
+      min_len = k;
+    for (int i = 0, k = 0; i < n; ++i) {      
+      k += (*this)[i].ub();
+      if (k >= max_len) {
+        assert (isOK());
+        return;
+      }
+    }
+    max_len = k;
+    assert (isOK());
   }
   
   forceinline void 

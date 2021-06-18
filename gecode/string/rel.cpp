@@ -141,8 +141,16 @@ namespace Gecode {
   }
   
   void
-  dom(Home home, StringVar x, StringVar y) {
+  dom(Home home, StringVar x, const String::Block& b) {
     using namespace String;
+    StringVar y(home, b);
+    GECODE_POST;
+    GECODE_ES_FAIL((Rel::Dom<StringView,StringView>::post(home, x, y)));
+  }
+  void
+  dom(Home home, StringVar x, const String::DashedString& d) {
+    using namespace String;
+    StringVar y(home, d);
     GECODE_POST;
     GECODE_ES_FAIL((Rel::Dom<StringView,StringView>::post(home, x, y)));
   }
