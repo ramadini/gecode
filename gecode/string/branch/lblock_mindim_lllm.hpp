@@ -23,15 +23,8 @@ namespace Gecode { namespace String { namespace Branch {
 
     forceinline Choice*
     LBlock_MinDim_LLLM::choice(Space& home) {
-//      std::cerr << "\nVar. choice\n";
-      StringView& vx = x[start];
-      Block& b = vx[vx.smallest_unfixed_idx()];
-      double d = b.logdim();
-      int l = b.ub() - b.lb();
-      int m = vx.min_length();
-      int pos = start;      
-//      std::cerr<<x[start]<<" (pos. "<<start<<", dim. "<<d<<")\n";
-      if (_FIRST) {        
+//      std::cerr << "\nVar. choice\n";      
+      if (_FIRST) {
         assert (StringBrancher::_MUST_CHARS.empty());
         Gecode::Set::GLBndSet s;
         for (int i = 0; i < start; ++i) {
@@ -61,6 +54,15 @@ namespace Gecode { namespace String { namespace Branch {
         }
         _FIRST = false;
       }
+      StringView& vx = x[start];
+      Block& b = vx[vx.smallest_unfixed_idx()];
+      double d = b.logdim();
+      int l = b.ub() - b.lb();
+      int m = vx.min_length();
+      int f = vx.max_length() - m;
+      int pos = start;
+//      std::cerr << start << ' ' << x.size() << '\n';
+//      std::cerr<<x[start]<<" (pos. "<<start<<", dim. "<<d<<")\n";
       for (int i = start + 1; i < x.size(); ++i) {
         StringView& xi = x[i];
         if (!xi.assigned()) {
@@ -73,7 +75,18 @@ namespace Gecode { namespace String { namespace Branch {
           double di = bi.logdim();
           int li = bi.ub() - bi.lb();
           int mi = xi.min_length();
+          int fi = xi.max_length() - mi;
 //          std::cerr<<x[i]<<" (pos. "<<i<<", dim. "<<di<<")\n";
+          if (fi > 0) {
+            if (fi < f) {
+              f = fi;
+              d = di;
+              l = li;
+              m = mi;
+              pos = i;   
+            }
+            continue;
+          }
           if (di < d || (di == d && li < l) || (di == d && li == l && mi < m)) {
             d = di;   
             l = li;
