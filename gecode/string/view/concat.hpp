@@ -456,7 +456,7 @@ namespace Gecode { namespace String {
       return prec(m.ESP, m.LSP) + m.EEP.idx - m.LSP.idx + (m.EEP.off > 0) 
            + prec(m.EEP, m.LEP);
     else
-      return 0;
+      return 1;
   }
 
   template <class View0, class View1>

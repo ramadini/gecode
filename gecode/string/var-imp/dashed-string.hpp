@@ -598,7 +598,7 @@ namespace Gecode { namespace String {
   : l(0), u(0), S() {};
   
   forceinline Block::Block(int a)
-  : l(a), u(1), S()  { Limits::check_alphabet(a, "Block::Block"); };
+  : l(a), u(1), S() { Limits::check_alphabet(a, "Block::Block"); };
   
   forceinline Block::Block(int a, int n)
   : l(a), u(n), S() { Limits::check_length(n, "Block::Block"); };

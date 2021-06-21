@@ -553,12 +553,12 @@ namespace Gecode { namespace String {
   }
   
   forceinline int
-  StringView::ub_new_blocks(const Matching& m) const {
+  StringView::ub_new_blocks(const Matching& m) const {    
     if (prec(m.LSP, m.EEP))
-      return prec(m.ESP, m.LSP) + m.EEP.idx - m.LSP.idx + (m.EEP.off > 0) 
+      return prec(m.ESP, m.LSP) + m.EEP.idx - m.LSP.idx + (m.EEP.off > 0)
            + prec(m.EEP, m.LEP);
     else
-      return 0;
+      return 1;
   }
 
   forceinline int

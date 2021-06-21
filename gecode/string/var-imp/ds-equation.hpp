@@ -133,19 +133,26 @@ namespace Gecode { namespace String {
           // FIXME: x is a single block, so we can expand it into |y| blocks but
           // only if we propagate |x| <= min(u, y.max_length()), otherwise we 
           // lose the length information and the propagation can be unsound!!!
-          Region r;
-          Block* y1 = r.alloc<Block>(y.size());
+          Region r1;
+          int ny = y.size();
+          Block* y1 = r1.alloc<Block>(ny);
           y.expandBlock(home, x_i, y1);
-          DashedString d(home, y1, y.size());
-          if (d.max_length() > u)
-            d.max_length(home, u);
-          r.free();
-          // If some prefix or suffix fixed, or d actually refines x_i
-          if (d.logdim() < x_i.logdim()) {
-            x.gets(home, d);
+          double ld = 0.0, ldi = x_i.logdim();
+          for (int i = 0; i < ny && ld < ldi; ++i)
+            ld += y1[i].logdim();
+          if (ld < ldi) {
+            if (ny == 1)
+              x_i.update(home, y1[0]);
+            else {
+              DashedString d(home, y1, ny);
+              x.gets(home, d);
+            }
+            if (x.max_length() > u)
+              x.max_length(home, u);
             changed = true;
             return true;
           }
+          r1.free();
         }
         // Crushing into a single block
         int m = x_i.baseSize();
@@ -159,7 +166,7 @@ namespace Gecode { namespace String {
       Region r;
       int n = y.ub_new_blocks(m[i]);
       assert (n > 0);
-      if (n == 1 && esp == lsp) {
+      if (n == 1) {
         // No need to unfold x_i.
         n = x_i.baseSize();
         Block b;
@@ -170,7 +177,8 @@ namespace Gecode { namespace String {
         continue;
       }
       // Unfolding x_i into newBlocks
-      Block* mreg = r.alloc<Block>(n);
+      Region r1;
+      Block* mreg = r1.alloc<Block>(n);
       if (esp == lsp)
         y.mand_region(home, x_i, &mreg[0], u1, lsp, eep);
       else {
@@ -179,20 +187,33 @@ namespace Gecode { namespace String {
       }
       if (eep != lep)
         y.opt_region(home, x_i, mreg[n-1], eep, lep, l1);
-      DashedString d(home, mreg, n);
-//      std::cerr << "d = " << d << "\n";
-      r.free();
-      n = d.size();
       if (n == 1) {
         // No need to unfold x_i.
+        if (mreg[0].ub() > u)
+          mreg[0].ub(home, u);
+        if (mreg[0].equals(x_i))
+          continue;
+        x_i.update(home, mreg[0]);
+        changed = true;
+        continue;
+      }
+      DashedString d(home, mreg, n);
+      assert (d.min_length() >= l); 
+      n = d.size();
+//      std::cerr << "n = " << n << ", d = " << d << "\n";
+      if (n == 1) {
         if (d[0].ub() > u)
-          d[0].ub(home, u); 
-        x_i.update(home, d[0]);        
-        changed |= l < x_i.lb() || u > x_i.ub() || n > x_i.baseSize();
+          d[0].ub(home, u);
+        if (d[0].equals(x_i))
+          continue;
+        n = x_i.baseSize();
+        x_i.update(home, d[0]);
+        changed = true;
         continue;
       }
       for (int j = 0, k = newSize; j < n; ++j,++k) {
-        assert (d[j].ub() <= u);
+        if (d[j].ub() > u)
+          d[j].ub(home, u);
         newBlocks[k].update(home, d[j]);
       }  
       U[uSize++] = i;
@@ -329,7 +350,7 @@ namespace Gecode { namespace String {
         return false;
       n += y.ub_new_blocks(m[i]);
       assert (m[i].EEP.isNorm(y) && m[i].LEP.isNorm(y));
-    }
+    }    
     assert (m[nx-1].EEP == Position(y.size(),0));
     return true;
   }
