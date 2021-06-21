@@ -69,7 +69,7 @@ namespace Gecode { namespace String { namespace RelOp {
       return home.ES_SUBSUMED(*this);
     }
     if (x0.assigned() && x1.assigned()) {
-      ConcatView<View0,View1> xy(x0,x1);
+      ConcatView xy(x0,x1);
       if (check_equate_x(x2, xy)) {
         if (x2.assigned())
           return home.ES_SUBSUMED(*this);
@@ -94,8 +94,14 @@ namespace Gecode { namespace String { namespace RelOp {
     }
     int a;
     do {
-      ConcatView<View0,View1> xy(x0,x1);
-      ModEvent me0 = x2.equate(home, xy);
+      ConcatView xy(x0,x1);
+      ModEvent me0 = ME_STRING_NONE;
+      if (x2.assigned()) {
+        if (!check_equate_x(xy, x2))
+          return ES_FAILED;
+      }
+      else
+        me0 = x2.equate(home, xy);
       GECODE_ME_CHECK(me0);
       ModEvent me1 = xy.equate(home, x2);
       assert(xy.isOK());

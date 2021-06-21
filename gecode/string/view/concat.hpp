@@ -1,5 +1,4 @@
 namespace Gecode { namespace String {
-
   template <class T>
   forceinline SweepIterator<T>::
   SweepIterator(const T& x, const Position& p)
@@ -20,7 +19,6 @@ namespace Gecode { namespace String {
   SweepIterator<T>::operator*(void) {
     return pos;
   }
-
   template <class T>
   forceinline int
   SweepIterator<T>::lb() const {
@@ -36,12 +34,12 @@ namespace Gecode { namespace String {
   template <class T>
   forceinline bool
   SweepIterator<T>::disj(const Block& b) const {
-    return sv[pos.idx].disj(b);
+    return sv[pos.idx].baseDisjoint(b);
   }
   template<class T>
   forceinline bool
   SweepIterator<T>::disj(int k) const {
-    return sv[pos.idx].disj(k);
+    return !sv[pos.idx].baseContains(k);
   }
   
   template <class T>
@@ -49,11 +47,8 @@ namespace Gecode { namespace String {
   SweepIterator<T>::isOK() const {
     return pos.isNorm(sv);
   }
-
 }}
-
 namespace Gecode { namespace String {
-
   template <class T>
   forceinline SweepFwdIterator<T>::
   SweepFwdIterator(const T& x) : SweepIterator<T>(x, Position(0,0)) {};
@@ -126,9 +121,7 @@ namespace Gecode { namespace String {
     }
     assert (SweepIterator<T>::isOK());
   }
-
 }}
-
 namespace Gecode { namespace String {
   
   template <class T>
@@ -156,12 +149,12 @@ namespace Gecode { namespace String {
   template <class T>
   forceinline bool
   SweepBwdIterator<T>::disj(const Block& b) const {
-    return sv[pos.off > 0 ? pos.idx : pos.idx-1].disj(b);
+    return sv[pos.off > 0 ? pos.idx : pos.idx-1].baseDisjoint(b);
   }
   template <class T>
   forceinline bool
   SweepBwdIterator<T>::disj(int k) const {
-    return sv[pos.off > 0 ? pos.idx : pos.idx-1].disj(k);
+    return !sv[pos.off > 0 ? pos.idx : pos.idx-1].baseContains(k);
   }
   
   template <class T>
@@ -232,155 +225,138 @@ namespace Gecode { namespace String {
       throw OutOfLimits("SweepBwdIterator<T>::consumeMand");
     assert (SweepIterator<T>::isOK());
   }
-
 }}
-
 namespace Gecode { namespace String {
 
-  template <class View0, class View1>
   forceinline 
-  ConcatView<View0,View1>::ConcatView(void) 
-  : x0(*(new View0())), x1(*(new View1())), pivot(0) { GECODE_NEVER; }
+  ConcatView::ConcatView(void) 
+  : x0(*(new StringView())), x1(*(new StringView())), pivot(0) { GECODE_NEVER; }
   
-  template <class View0, class View1>
   forceinline
-  ConcatView<View0,View1>::ConcatView(View0& x, View1& y)
+  ConcatView::ConcatView(StringView& x, StringView& y)
   : x0(x), x1(y), pivot(x.size()) {}
 
-  template <class View0, class View1>
-  forceinline View0
-  ConcatView<View0,View1>::lhs() const {
+  forceinline StringView
+  ConcatView::lhs() const {
     return x0;  
   }
 
-  template <class View0, class View1>
-  forceinline View1
-  ConcatView<View0,View1>::rhs() const {
+  forceinline StringView
+  ConcatView::rhs() const {
     return x1;  
   }
   
-  template <class View0, class View1>
   template <class T>
   forceinline ModEvent
-  ConcatView<View0,View1>::gets(Space&, const T&) const {
+  ConcatView::gets(Space&, const T&) const {
     GECODE_NEVER;
     return ME_STRING_NONE;
   }
-  template <class View0, class View1>
   forceinline ModEvent
-  ConcatView<View0,View1>::bnd_length(Space&, int, int) const {
+  ConcatView::bnd_length(Space&, int, int) const {
     GECODE_NEVER;
     return ME_STRING_NONE;
   }
-  template <class View0, class View1>
   template <class T>
   forceinline bool
-  ConcatView<View0,View1>::contains(const T&) const {
+  ConcatView::contains(const T&) const {
     GECODE_NEVER
     return false;
   }  
-  template <class View0, class View1>
   template <class T>
   forceinline bool
-  ConcatView<View0,View1>::equals(const T&) const {
+  ConcatView::equals(const T&) const {
     GECODE_NEVER
     return false;
   }
-  template <class View0, class View1>
   forceinline ModEvent
-  ConcatView<View0,View1>::max_length(Space&, int) const {
+  ConcatView::max_length(Space&, int) const {
     GECODE_NEVER;
     return ME_STRING_NONE;
   }
 
-  template <class View0, class View1>
   forceinline int 
-  ConcatView<View0,View1>::size() const {
+  ConcatView::size() const {
     return x0.size() + x1.size();
   }
 
-  template <class View0, class View1>
-  forceinline GBlock
-  ConcatView<View0,View1>::operator[](int i) const {
+  forceinline const Block&
+  ConcatView::operator[](int i) const {
     if (i < pivot)
-      return GBlock(x0[i]);
+      return x0[i];
     else
-      return GBlock(x1[i-pivot]);
+      return x1[i-pivot];
+  }
+  forceinline Block&
+  ConcatView::operator[](int i) {
+    if (i < pivot)
+      return x0[i];
+    else
+      return x1[i-pivot];
   }
   
-  template <class View0, class View1>
   forceinline std::vector<int> 
-  ConcatView<View0,View1>::val(void) const {
+  ConcatView::val(void) const {
     if (!assigned())
-      throw IllegalOperation("ConcatView<View0,View1>::val(void)");
+      throw IllegalOperation("ConcatView::val(void)");
     std::vector<int> v(x0.val());
     std::vector<int> w(x1.val());
     v.insert(std::end(v), std::begin(w), std::end(w));
     return v;
   }
   
-  template <class View0, class View1>
   forceinline int
-  ConcatView<View0,View1>::max_length() const {
+  ConcatView::max_length() const {
     return x0.max_length() + x1.max_length();
   }
   
   
-  template <class View0, class View1>
   forceinline int
-  ConcatView<View0,View1>::min_length() const {
+  ConcatView::min_length() const {
     return x0.min_length() + x1.min_length();
   }
   
-  template <class View0, class View1>
   forceinline bool
-  ConcatView<View0,View1>::assigned() const {
+  ConcatView::assigned() const {
     return x0.assigned() && x1.assigned();
   }
   
-  template <class View0, class View1>
   forceinline bool
-  ConcatView<View0,View1>::isOK() const {
+  ConcatView::isOK() const {
     return x0.isOK() && x1.isOK();
   }
   
-  template <class View0, class View1>
   forceinline bool
-  ConcatView<View0,View1>::isNull() const {
+  ConcatView::isNull() const {
     return x0.isNull() && x1.isNull();
   }
   
-  template <class View0, class View1>
   forceinline ModEvent
-  ConcatView<View0,View1>::nullify(Space& home) {
+  ConcatView::nullify(Space& home) {
     if (x0.nullify(home) == ME_STRING_FAILED)
       return ME_STRING_FAILED;
     return x1.nullify(home);
   }
   
-  template <class View0, class View1>
   forceinline void
-  ConcatView<View0,View1>::normalize(Space& home) {
+  ConcatView::normalize(Space& home) {
     x0.normalize(home);
     x1.normalize(home);
   }
   
-  template <class View0, class View1>
-  forceinline SweepFwdIterator<ConcatView<View0,View1>>
-  ConcatView<View0,View1>::fwd_iterator(void) const {
-    return SweepFwdIterator<ConcatView<View0,View1>>(*this);
+  forceinline SweepFwdIterator<ConcatView>
+  ConcatView::fwd_iterator(void) const {
+    return SweepFwdIterator<ConcatView>(*this);
   }
   
-  template <class View0, class View1>
-  forceinline SweepBwdIterator<ConcatView<View0,View1>>
-  ConcatView<View0,View1>::bwd_iterator(void) const {
-    return SweepBwdIterator<ConcatView<View0,View1>>(*this);
+  forceinline SweepBwdIterator<ConcatView>
+  ConcatView::bwd_iterator(void) const {
+    return SweepBwdIterator<ConcatView>(*this);
   }
   
-  template <class View0, class View1>
   template <class T>
   forceinline ModEvent
-  ConcatView<View0,View1>::me(Space& home, const T& xk, int lb, int ub) const {
+  ConcatView::me(Space& home, const T& xk, int lb, int ub) const {
     int ux = xk.max_length();
     StringDelta d;
     if (xk.min_length() > lb || (ux < ub && ux < MAX_STRING_LENGTH))
@@ -398,10 +374,9 @@ namespace Gecode { namespace String {
       return xk.varimp()->notify(home, ME_STRING_BASE, d);
   }
   
-  template <class View0, class View1>
   template <class T>
   forceinline ModEvent
-  ConcatView<View0,View1>::equate(Space& home, const T& y) {
+  ConcatView::equate(Space& home, const T& y) {
     assert (!assigned());
     int lb0 = x0.min_length(), lb1 = x1.min_length();
     long ub0 = x0.ubounds_sum(), ub1 = x1.ubounds_sum();
@@ -412,46 +387,41 @@ namespace Gecode { namespace String {
         return ME_STRING_NONE;
       x0.sync_length();
       x1.sync_length();
-      return StringVarImp::me_combine(me<View0>(home, x0, lb0, ub0),
-                                      me<View1>(home, x1, lb1, ub1));
+      return StringVarImp::me_combine(me<StringView>(home, x0, lb0, ub0),
+                                      me<StringView>(home, x1, lb1, ub1));
     }
     else
       return ME_STRING_FAILED;  
   }
   
-  template <class View0, class View1>
   template <class IterY>
   forceinline void
-  ConcatView<View0,View1>::stretch(int i, IterY& it) const {
+  ConcatView::stretch(int i, IterY& it) const {
     i < pivot ? x0.stretch(i, it) : x1.stretch(i-pivot, it);
   }
   
-  template <class View0, class View1>
   template <class IterY>
   forceinline Position
-  ConcatView<View0,View1>::push(int i, IterY& it) const {
+  ConcatView::push(int i, IterY& it) const {
     return i < pivot ? x0.push(i, it) : x1.push(i-pivot, it);
   }
   
-  template <class View0, class View1>
   forceinline bool
-  ConcatView<View0,View1>::equiv(const Position& p, const Position& q) const {
+  ConcatView::equiv(const Position& p, const Position& q) const {
     return (q.idx <  pivot && x0.equiv(p,q))
         || (p.idx >= pivot && x1.equiv(p-pivot,q-pivot));
   }
   
-  template <class View0, class View1>
   forceinline bool
-  ConcatView<View0,View1>::prec(const Position& p, const Position& q) const {
+  ConcatView::prec(const Position& p, const Position& q) const {
     if (p.idx > q.idx)
       return false;
     return q.idx < pivot ? x0.prec(p,q) 
                          : p.idx < pivot || x1.prec(p-pivot,q-pivot);
   }
   
-  template <class View0, class View1>
   forceinline int
-  ConcatView<View0,View1>::ub_new_blocks(const Matching& m) const {
+  ConcatView::ub_new_blocks(const Matching& m) const {
     if (prec(m.LSP, m.EEP))
       return prec(m.ESP, m.LSP) + m.EEP.idx - m.LSP.idx + (m.EEP.off > 0) 
            + prec(m.EEP, m.LEP);
@@ -459,9 +429,8 @@ namespace Gecode { namespace String {
       return 1;
   }
 
-  template <class View0, class View1>
   forceinline int
-  ConcatView<View0,View1>::min_len_mand(const Block& bx, const Position& p,
+  ConcatView::min_len_mand(const Block& bx, const Position& p,
                                         const Position& q) const {
     if (!prec(p,q))
       return 0;
@@ -474,11 +443,10 @@ namespace Gecode { namespace String {
            + x1.min_len_mand(bx, Position(0,0), q-pivot);
   }
   
-  template <class View0, class View1>
   forceinline void
-  ConcatView<View0,View1>::mand_region(Space& home, Block& bx, Block* bnew, int u,
+  ConcatView::mand_region(Space& home, Block& bx, Block* bnew, int u,
                                 const Position& p, const Position& q) const {
-//    std::cerr << "ConcatView<View0,View1>::mand_region" << bx << p << pivot << q << '\n';
+//    std::cerr << "ConcatView::mand_region" << bx << p << pivot << q << '\n';
     assert (prec(p,q));
     if (q.idx < pivot || (q.idx == pivot && q.off == 0))
       x0.mand_region(home, bx, bnew, u, p, q);
@@ -490,9 +458,8 @@ namespace Gecode { namespace String {
     }
   }
   
-  template <class View0, class View1>
   forceinline void
-  ConcatView<View0,View1>::mand_region(Space& home, Block& bx, const Block& by,
+  ConcatView::mand_region(Space& home, Block& bx, const Block& by,
                              const Position& p, const Position& q) const {
     // FIXME: When only block by is involved.
     if (p.idx < pivot)
@@ -501,9 +468,8 @@ namespace Gecode { namespace String {
       x1.mand_region(home, bx, by, p-pivot, q-pivot);
   }
   
-  template <class View0, class View1>
   forceinline int
-  ConcatView<View0,View1>::max_len_opt(const Block& bx, const Position& esp, 
+  ConcatView::max_len_opt(const Block& bx, const Position& esp, 
                                            const Position& lep, int l1) const {
     if (equiv(esp,lep))
       return 0;
@@ -517,9 +483,8 @@ namespace Gecode { namespace String {
            + x1.max_len_opt(bx, Position(0,0), lep-pivot, l1);
   }
   
-  template <class View0, class View1>
   forceinline void
-  ConcatView<View0,View1>::opt_region(Space& home, const Block& bx, Block& bnew,
+  ConcatView::opt_region(Space& home, const Block& bx, Block& bnew,
                            const Position& p, const Position& q, int l1) const {
     assert(prec(p,q));
     if (q.idx < pivot || (q.idx == pivot && q.off == 0))
@@ -548,9 +513,8 @@ namespace Gecode { namespace String {
     }
   }
   
-  template <class View0, class View1>
   forceinline void
-  ConcatView<View0,View1>::expandBlock(Space& home, const Block& bx, Block* y) 
+  ConcatView::expandBlock(Space& home, const Block& bx, Block* y) 
   const {
     for (int i = 0; i < size(); i++) {
       y[i].update(home, (*this)[i]);
@@ -560,9 +524,8 @@ namespace Gecode { namespace String {
     }
   }
 
-  template <class View0, class View1>
   forceinline void
-  ConcatView<View0,View1>::crushBase(Space& home, Block& bx, const Position& p, 
+  ConcatView::crushBase(Space& home, Block& bx, const Position& p, 
                                                       const Position& q) const {
     Gecode::Set::GLBndSet s;
     for (int i = p.idx, j = q.idx - (q.off == 0); i <= j; ++i)
@@ -570,9 +533,8 @@ namespace Gecode { namespace String {
     bx.baseIntersect(home, s);
   }
   
-  template <class View0, class View1>
   forceinline void
-  ConcatView<View0,View1>::resize(Space& home, Block newBlocks[], int newSize,
+  ConcatView::resize(Space& home, Block newBlocks[], int newSize,
                                                           int U[],  int uSize) {
     int i, j;
     for (i = 0, j = 0; i < uSize && U[i] < pivot; i += 2)
@@ -590,11 +552,10 @@ namespace Gecode { namespace String {
       x1.normalize(home);
     pivot = x0.size();
   }
-
-  template<class Char, class Traits, class X, class Y>
+  template<class Char, class Traits>
   std::basic_ostream<Char,Traits>&
-  operator <<(std::basic_ostream<Char,Traits>& os, const ConcatView<X,Y>& z) {
-    os << z.x0 << " ++ " << z.x1;
+  operator <<(std::basic_ostream<Char,Traits>& os, const ConcatView& z) {
+    os << z.lhs() << " ++ " << z.rhs();
     return os;
   };
      

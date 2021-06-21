@@ -112,14 +112,13 @@ namespace Gecode { namespace String {
 //      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].LSP << "\nEEP: " 
 //                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
       Position& esp = m[i].ESP, eep = m[i].EEP, lsp = m[i].LSP, lep = m[i].LEP;
-      GBlock g_i(x[i]);
-      int l = g_i.lb(), u = g_i.ub(), l1 = min_len_mand(y, g_i, lsp, eep);
+      Block& x_i = x[i];
+      int l = x_i.lb(), u = x_i.ub(), l1 = min_len_mand(y, x_i, lsp, eep);
 //      std::cerr << "l'=" << l1 << "\n";
       if (u < l1)
         return false;
-      if (g_i.isFixed())
+      if (x_i.isFixed())
         continue;
-      Block& x_i = g_i.block();
       int u1 = y.max_len_opt(x_i, esp, lep, l1);
 //      std::cerr << "u'=" << u1 << "\n";
       assert (l1 <= u1);
@@ -152,18 +151,19 @@ namespace Gecode { namespace String {
             changed = true;
             return true;
           }
-          r1.free();
         }
         // Crushing into a single block
         int m = x_i.baseSize();
-        x_i.updateCard(home, std::max(l, l1), std::min(u, u1));
+        if (l1 > l)
+          x_i.lb(home, l1);
+        if (u1 < u)
+          x_i.ub(home, u1);
         y.crushBase(home, x_i, esp, lep);
 //        std::cerr << "x[" << i << "] ref. into " << x_i << "\n";
         changed |= l < l1 || u > u1 || m > x_i.baseSize();
         continue;
       }
       assert (l1 > 0);
-      Region r;
       int n = y.ub_new_blocks(m[i]);
       assert (n > 0);
       if (n == 1) {
@@ -198,9 +198,9 @@ namespace Gecode { namespace String {
         continue;
       }
       DashedString d(home, mreg, n);
+      r1.free();
       assert (d.min_length() >= l); 
       n = d.size();
-//      std::cerr << "n = " << n << ", d = " << d << "\n";
       if (n == 1) {
         if (d[0].ub() > u)
           d[0].ub(home, u);
@@ -211,6 +211,7 @@ namespace Gecode { namespace String {
         changed = true;
         continue;
       }
+//      std::cerr << "n = " << n << ", d = " << d << "\n";
       for (int j = 0, k = newSize; j < n; ++j,++k) {
         if (d[j].ub() > u)
           d[j].ub(home, u);

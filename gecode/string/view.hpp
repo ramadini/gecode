@@ -341,11 +341,10 @@ namespace Gecode { namespace String {
   /**
    * \brief Concat view
    */
-  template <class View0, class View1>
   class ConcatView : public VarImpView<StringVar> {
   protected:
-    View0& x0;
-    View1& x1;
+    StringView& x0;
+    StringView& x1;
     int pivot;
     template <class T> ModEvent me(Space&, const T& xk, int lb, int ub) const;
   public:
@@ -354,7 +353,7 @@ namespace Gecode { namespace String {
     /// Default constructor
     ConcatView(void);
     /// Initialize from string variables \a x and \a y
-    ConcatView(View0& x, View1& y);
+    ConcatView(StringView& x, StringView& y);
     //@}
     template <class T> ModEvent gets(Space& home, const T& d) const;
     template <class T> ModEvent equate(Space& home, const T& y);
@@ -365,8 +364,8 @@ namespace Gecode { namespace String {
     
     /// \name Sweep iterators
     //@{
-    SweepFwdIterator<ConcatView<View0,View1>> fwd_iterator(void) const;
-    SweepBwdIterator<ConcatView<View0,View1>> bwd_iterator(void) const;
+    SweepFwdIterator<ConcatView> fwd_iterator(void) const;
+    SweepBwdIterator<ConcatView> bwd_iterator(void) const;
     //@}
     //@}
     //@}
@@ -378,13 +377,14 @@ namespace Gecode { namespace String {
     int max_length(void) const;
     /// Returns the number of blocks of the domain
     int size(void) const;
-    /// Returns the i-th block of the domain in the form of a GBlock.
-    GBlock operator[](int i) const;
+    /// Returns the i-th block of the domain
+    const Block& operator[](int i) const;
+    Block& operator[](int i);
     /// Return the value of this string view, if assigned. Otherwise, an
     /// IllegalOperation exception is thrown.
     std::vector<int> val(void) const;
-    View0 lhs(void) const;
-    View1 rhs(void) const;
+    StringView lhs(void) const;
+    StringView rhs(void) const;
     //@}
     /// \name Domain tests
     //@{
@@ -448,7 +448,7 @@ namespace Gecode { namespace String {
     //@}                   
     template<class Char, class Traits, class X, class Y>
     friend std::basic_ostream<Char,Traits>&
-    operator <<(std::basic_ostream<Char,Traits>& os, const ConcatView<X,Y>& z);
+    operator <<(std::basic_ostream<Char,Traits>& os, const ConcatView& z);
   };
   /**
    * \brief Print string variable view
@@ -456,7 +456,7 @@ namespace Gecode { namespace String {
    */
   template<class Char, class Traits, class X, class Y>
   std::basic_ostream<Char,Traits>&
-  operator <<(std::basic_ostream<Char,Traits>& os, const ConcatView<X,Y>& z);
+  operator <<(std::basic_ostream<Char,Traits>& os, const ConcatView& z);
   
 }}
 

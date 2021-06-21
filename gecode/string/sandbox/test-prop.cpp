@@ -171,12 +171,12 @@ public:
     b[0].update(*this, Block(*this, CharSet(*this,IntSet({'h','l','e'})), 2,4));
     b[1].update(*this, Block(*this, CharSet(*this, 'o'), 1, 2));
     StringVar x(*this, DashedString(*this, b, 2));
-    vector<int> w = str2vec(
-      ":?@NbT;^AZR3IuW3ee:)DpBr%&C]=x=BqcG8[Pe.Uj` ]c4]?e]qCu|B,LSV!W(e: "
-    );
+    string w =":?@NbT;^AZR3IuW3ee:)DpBr%&C]=x=BqcG8[Pe.Uj` ]c4]?e]qCu|B,LSV!W(e: ";
     StringView vx(x);
-    ConstStringView vw(*this, &w[0], w.size());
-    ConcatView<StringView,ConstStringView> vxw(vx, vw);
+    Block bw[w.size()];
+    str2blocks(w, bw, w.size());
+    StringView vw(StringVar(*this,DashedString(*this, bw, w.size())));
+    ConcatView vxw(vx, vw);
     vxw.fwd_iterator();
     vxw.bwd_iterator();
     StringVar y(*this);
@@ -184,9 +184,9 @@ public:
     std::cerr << "x = " << x << "\n";
     std::cerr << "y = " << y << "\n";
     std::cerr << "w = " << vw << "\n";
-    class C : public Concat<StringView,StringView,ConstStringView> {
+    class C : public Concat<StringView,StringView,StringView> {
     public:
-      C(Home h, StringView x, StringView y, ConstStringView z) 
+      C(Home h, StringView x, StringView y, StringView z) 
       : Concat(h, x, y, z) {};
     };
     assert(C(*this, vx, vx, vw).propagate(*this, 0) == ES_FAILED);
@@ -271,7 +271,7 @@ public:
     StringView vy(y), vyy(yy);
     assert (vy.equate(*this, vyy) == ME_STRING_NONE);
     assert (vyy.equate(*this, vy) == ME_STRING_BASE);
-    ConcatView<StringView,StringView> xy(vx,vy);
+    ConcatView xy(vx,vy);
     std::vector<int> vw = str2vec("A;CW7.MC3ER88MWZPRP.9H@A3?(2-UL3S3-3EG<;MQ@4TW6%*,FKYZ;J3XMF9?<F9>F%I)*HTAX3)7?'/0X*19<D1T)A><#V$V4UL7$@D W$,U5&GPFA(MH;.Z-N7/FBT7H0L5/;(#$S<LFZ6(SY5H6#YY/VD.=CUJG.5<7?O%W1N@PTHD3;A3.A4X%GN3Y(/&FFQ2#MK&/)WM&:>=23WNH;Q72P YHOAM++MROZPIOJ=))4MR7?&D;=N/&RR(6E7ZB,$?<<0GIE51P8%NV:JK+BW#FY9X=TSG7E/<&#+LG+S&M .8K3UT)-''GXFH2D2D(?<BFE>XH*4G(:>F,;?AH652FX>2+MU)?N ?T'?YO,%(90 Y $1Y/,O 8MS6-A=5<WA 8=*9.63TS$1BY#<VP+%U.N#%,0@/JH$0X>A<VLG'O@M-II%;D-XXU5,,O+Q8&YWO%DX.SS/AADJG-$.7*FX+R7UEW(E(S5EY:;<M%> CKL#DBB");
     ConstStringView w(*this, &vw[0], vw.size());
     std::cerr << "xy = " << xy << "\n";
