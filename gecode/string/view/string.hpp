@@ -691,8 +691,6 @@ namespace Gecode { namespace String {
     for (int i = 0; i < size(); i++) {
       y[i].update(home, (*this)[i]);
       y[i].baseIntersect(home, bx);
-      if (y[i].ub() > bx.ub())
-        y[i].ub(home, bx.ub());
     }
   }
 

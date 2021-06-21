@@ -397,6 +397,7 @@ namespace Gecode { namespace String {
     /// If this view is equals to y
     template <class T> bool equals(const T& y) const;
     template <class T> bool contains(const T& y) const;
+    ModEvent max_length(Space& home, int u) const;
     //@}
     /// \name Domain update by cardinality refinement
     //@{

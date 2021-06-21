@@ -131,17 +131,16 @@ namespace Gecode { namespace String {
         }
         if (nx == 1 && l <= l1) {
           // FIXME: x is a single block, so we can expand it into |y| blocks but
-          // only if we propagate |x| <= y.max_length(), otherwise we lose the
-          // length information and the propagation can be unsound!!!
+          // only if we propagate |x| <= min(u, y.max_length()), otherwise we 
+          // lose the length information and the propagation can be unsound!!!
           Region r;
           Block* y1 = r.alloc<Block>(y.size());
           y.expandBlock(home, x_i, y1);
           DashedString d(home, y1, y.size());
+          d.max_length(home, u);
           r.free();
           // If some prefix or suffix fixed, or d actually refines x_i
-          if ((d[0].baseSize() == 1 && d[0].lb() > 0) 
-          ||  (d[d.size()-1].baseSize() == 1 && d[d.size()-1].lb() > 0)
-          ||  (d.logdim() < x_i.logdim())) {
+          if (d.logdim() < x_i.logdim()) {
             x.gets(home, d);
             changed = true;
             return true;

@@ -55,7 +55,7 @@ namespace Gecode { namespace String { namespace RelOp {
       me0 += me1;
     } while (me0 != ME_STRING_NONE);
 //    std::cerr << "After refine_card: " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
-    return ES_OK;
+    return ES_FIX;
   }
 
   template<class View0, class View1, class View2>

@@ -286,6 +286,12 @@ namespace Gecode { namespace String {
     GECODE_NEVER
     return false;
   }
+  template <class View0, class View1>
+  forceinline ModEvent
+  ConcatView<View0,View1>::max_length(Space&, int) const {
+    GECODE_NEVER;
+    return ME_STRING_NONE;
+  }
 
   template <class View0, class View1>
   forceinline int 
@@ -318,6 +324,7 @@ namespace Gecode { namespace String {
   ConcatView<View0,View1>::max_length() const {
     return x0.max_length() + x1.max_length();
   }
+  
   
   template <class View0, class View1>
   forceinline int

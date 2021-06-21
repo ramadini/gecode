@@ -43,20 +43,18 @@ namespace Gecode { namespace String { namespace Rel {
       x0.gets(home, x1);
       return home.ES_SUBSUMED(*this);
     }
-    do {
-      ModEvent me = x0.assigned() ? ME_STRING_NONE : x0.equate(home, x1);
-      GECODE_ME_CHECK(me);
-      if (me != ME_STRING_NONE) {
-        GECODE_ME_CHECK(x0.bnd_length(home, 
-          std::max(x0.min_length(), x1.min_length()),
-          std::min(x0.max_length(), x1.max_length())
-        ));
-      }
-      else
-        check_equate_x(x0,x1);
-      if (!check_equate_x(x1,x0))
-        return ES_FAILED;      
-    } while (x0.assigned() + x1.assigned() == 1);
+    ModEvent me = x0.assigned() ? ME_STRING_NONE : x0.equate(home, x1);
+    GECODE_ME_CHECK(me);
+    if (me != ME_STRING_NONE) {
+      GECODE_ME_CHECK(x0.bnd_length(home, 
+        std::max(x0.min_length(), x1.min_length()),
+        std::min(x0.max_length(), x1.max_length())
+      ));
+    }
+    else
+      check_equate_x(x0,x1);
+    if (!check_equate_x(x1,x0))
+      return ES_FAILED;
 //     std::cerr<<"Dom::propagated" << x0 << "  vs  " << x1 << "\n";
     return x0.assigned() ? home.ES_SUBSUMED(*this) : ES_FIX;
   }
