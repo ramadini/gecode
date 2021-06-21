@@ -75,8 +75,8 @@ namespace Gecode { namespace String {
     CharSet S;
    
     // FIXME: To save space, each fixed blocks {a}^(n,n) must be encoded with
-    // (S=NULL,l=a,u=n). The null block is (S=NULL,l=0,u=0). For each block b
-    // the invariant b.isFixed() <=> b.S == nullptr must hold.
+    // (S={},l=a,u=n). The null block is (S={},l=0,u=0). For each block b
+    // the invariant b.isFixed() <=> b.S == {} must hold.
     // Each non-const operation on a block must leave it in a consistent and
     // normalized state.
     // Once constructed, a Block can only shrink unless updated with cloning 
