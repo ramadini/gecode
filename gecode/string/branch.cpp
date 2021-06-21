@@ -21,21 +21,21 @@ namespace Gecode {
   }
   
   void
-  lblock_mindim_lllm(Home home, const StringVarArgs& x) {
+  lenblock_min_lllm(Home home, const StringVarArgs& x) {
     if (home.failed())
       return;
     ViewArray<String::StringView> y(home, x);
-    String::Branch::LBlock_MinDim_LLLM::post(home, y);
+    String::Branch::LenBlock_Min_LLLM::post(home, y);
   }
   void
-  lblock_mindim_lllm(Home home, const StringVarArray& x) {
+  lenblock_min_lllm(Home home, const StringVarArray& x) {
     if (home.failed())
       return;
     StringVarArgs y(x.size());
     for (int i = 0; i < x.size(); ++i)
       y[i] = x[i];
     ViewArray<String::StringView> z(home, y);
-    String::Branch::LBlock_MinDim_LLLM::post(home, z);
+    String::Branch::LenBlock_Min_LLLM::post(home, z);
   }
   
   void
@@ -66,15 +66,15 @@ namespace Gecode {
         return;
       case StringVarBranch::Select::STR_LEFTBLOCK_MIN:
         if (vals.select() == StringValBranch::Select::STR_LLLM)
-          lblock_mindim_lllm(home, x);
+          lenblock_min_lllm(home, x);
         else if (vals.select() == StringValBranch::Select::STR_LSLM)
           block_mindim_lslm(home, x);
         return;
       default:
         GECODE_NEVER;
     }
-    std::cerr << "Undefined search heuristics. Using lblock_mindim_lllm.";
-    lblock_mindim_lllm(home, x);
+    std::cerr << "Undefined search heuristics. Using lenblock_min_lllm.";
+    lenblock_min_lllm(home, x);
   };
 
 }

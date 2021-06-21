@@ -135,7 +135,7 @@ public:
     concat(*this, eq, rhs, StringVar(*this, DashedString(*this, b, k)));
 
     // Branching.
-    lblock_mindim_lllm(*this, str_vars);
+    lenblock_min_lllm(*this, str_vars);
   }
   
   virtual void

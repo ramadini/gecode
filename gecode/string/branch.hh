@@ -158,11 +158,11 @@ namespace Gecode { namespace String { namespace Branch {
 
 namespace Gecode { namespace String { namespace Branch {
 
-  struct LBlock_MinDim_LLLM: public StringBrancher {
+  struct LenBlock_Min_LLLM: public StringBrancher {
 
-    LBlock_MinDim_LLLM(Home home, ViewArray<String::StringView>& x0);
+    LenBlock_Min_LLLM(Home home, ViewArray<String::StringView>& x0);
 
-    LBlock_MinDim_LLLM(Home home, LBlock_MinDim_LLLM& b);
+    LenBlock_Min_LLLM(Home home, LenBlock_Min_LLLM& b);
 
     Actor* copy(Space& home);
 
@@ -176,9 +176,9 @@ namespace Gecode { namespace String { namespace Branch {
 
   };
   
-  bool LBlock_MinDim_LLLM::_FIRST = true;
+  bool LenBlock_Min_LLLM::_FIRST = true;
 
 }}}
-#include <gecode/string/branch/lblock_mindim_lllm.hpp>
+#include <gecode/string/branch/lenblock_min_lllm.hpp>
 
 #endif

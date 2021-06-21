@@ -71,7 +71,7 @@ public:
     eq(*this, y, str2vec("Hello world!"));    
     rel(*this, x, STRT_EQ, y, Reify(b));
     // Branching.
-    lblock_mindim_lllm(*this, string_vars);
+    lenblock_min_lllm(*this, string_vars);
   }
 
   virtual void

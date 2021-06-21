@@ -101,7 +101,7 @@ public:
     Block b2(*this, CharSet(*this, 'a', 'u'), 0, so.N);
     dom(*this, var_5, b2);
     dom(*this, var_567, b2);
-    lblock_mindim_lllm(*this, str_vars);
+    lenblock_min_lllm(*this, str_vars);
   }
   
 

@@ -123,7 +123,7 @@ public:
     concat(*this, expr_3, StringVar(*this, Block('a')), var_5z6);
 
     // Branching.
-    lblock_mindim_lllm(*this, str_vars);
+    lenblock_min_lllm(*this, str_vars);
   }
   
   virtual void

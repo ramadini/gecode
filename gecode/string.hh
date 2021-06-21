@@ -580,9 +580,9 @@ namespace Gecode {
   none_llll(Home home, const StringVarArgs& x);
 
   GECODE_STRING_EXPORT void
-  lblock_mindim_lllm(Home home, const StringVarArray& x);
+  lenblock_min_lllm(Home home, const StringVarArray& x);
   GECODE_STRING_EXPORT void
-  lblock_mindim_lllm(Home home, const StringVarArgs& x);
+  lenblock_min_lllm(Home home, const StringVarArgs& x);
 
   GECODE_STRING_EXPORT void
   block_mindim_lslm(Home home, const StringVarArray& x);

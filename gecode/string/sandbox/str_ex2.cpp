@@ -66,7 +66,7 @@ public:
     nq(*this, x, StringVar(*this, DashedString(*this, b, 3)));
     length(*this, x, l);
     // Branching.
-    lblock_mindim_lllm(*this, string_vars);
+    lenblock_min_lllm(*this, string_vars);
   }
 
   virtual void

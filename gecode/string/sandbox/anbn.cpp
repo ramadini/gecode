@@ -70,7 +70,7 @@ public:
     rel(*this, l >= 0);
     rel(*this, l * 2 == l + 2);
     // Branching.
-    lblock_mindim_lllm(*this, str_vars);
+    lenblock_min_lllm(*this, str_vars);
   }
 
   virtual void

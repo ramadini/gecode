@@ -7431,7 +7431,7 @@ gecode/string/branch$(OBJSUFFIX) gecode/string/branch$(SBJSUFFIX): \
 	./gecode/set/view/const.hpp ./gecode/set/view/print.hpp ./gecode/set/view/set.hpp \
 	./gecode/set/view/singleton.hpp ./gecode/string.hh ./gecode/string/array-traits.hpp \
 	./gecode/string/array.hpp ./gecode/string/branch.hh ./gecode/string/branch.hpp \
-	./gecode/string/branch/block_mindim_lslm.hpp ./gecode/string/branch/lblock_mindim_lllm.hpp ./gecode/string/branch/none_llll.hpp \
+	./gecode/string/branch/block_mindim_lslm.hpp ./gecode/string/branch/lenblock_min_lllm.hpp ./gecode/string/branch/none_llll.hpp \
 	./gecode/string/branch/traits.hpp ./gecode/string/branch/val.hpp ./gecode/string/branch/var.hpp \
 	./gecode/string/exception.hpp ./gecode/string/limits.hpp ./gecode/string/var-imp.hpp \
 	./gecode/string/var-imp/dashed-string.hpp ./gecode/string/var-imp/delta.hpp ./gecode/string/var-imp/ds-equation.hpp \
