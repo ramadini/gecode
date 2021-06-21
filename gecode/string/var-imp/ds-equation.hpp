@@ -137,7 +137,8 @@ namespace Gecode { namespace String {
           Block* y1 = r.alloc<Block>(y.size());
           y.expandBlock(home, x_i, y1);
           DashedString d(home, y1, y.size());
-          d.max_length(home, u);
+          if (d.max_length() > u)
+            d.max_length(home, u);
           r.free();
           // If some prefix or suffix fixed, or d actually refines x_i
           if (d.logdim() < x_i.logdim()) {

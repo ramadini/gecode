@@ -87,7 +87,6 @@ namespace Gecode { namespace String { namespace Branch {
             continue;
           }
           if (di < d || (di == d && li < l) || (di == d && li == l && mi < m)) {
-            std::cerr << di << ' ' << li << ' ' << mi << '\n';
             d = di;   
             l = li;
             m = mi;

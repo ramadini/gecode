@@ -44,6 +44,7 @@ namespace Gecode { namespace String {
   
   forceinline void
   StringVarImp::gets(Space& home, const DashedString& dy) {
+//    std::cerr << *this << " gets dy: " << dy << "\n";
     assert (!assigned() && !ds.equals(dy));
     int l = min_length(), u = max_length();    
     ds.update(home, dy);
@@ -133,8 +134,8 @@ namespace Gecode { namespace String {
   
   forceinline ModEvent
   StringVarImp::bnd_length(Space& home, int l, int u) {
-    int lx = min_length(), ux = max_length();    
-    if (l < lx || u > ux)
+    int lx = min_length(), ux = max_length();
+    if (l < lx && u > ux)
       return ME_STRING_NONE;
     if (l > ux || u < lx)
       return ES_FAILED;

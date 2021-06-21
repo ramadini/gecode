@@ -47,6 +47,7 @@ namespace Gecode { namespace String {
     template <class T> bool equals(const T& S) const;
     /// Intersect this set with \a S
     template <class T> void intersect(Space& home, const T& S);
+    void intersect(Space& home, int i, int j);
     //@}
     
     /// Prints \a set according to Limits::CHAR_ENCODING
@@ -70,8 +71,8 @@ namespace Gecode { namespace String {
   private:
     // Cardinality bounds.
     int l, u;
-    // Pointer to the base, if the block is unknown.
-    CharSet* S;
+    // Base, if the block is unknown (otherwise S = {}).
+    CharSet S;
    
     // FIXME: To save space, each fixed blocks {a}^(n,n) must be encoded with
     // (S=NULL,l=a,u=n). The null block is (S=NULL,l=0,u=0). For each block b
@@ -202,7 +203,7 @@ namespace Gecode { namespace String {
     /// From fixed block S={a},l=u to consistent encoding with S=NULL and l=a
     void fix(Space& home);
     /// Dispose S and set it to NULL
-    void nullifySet(Space& home);
+    void nullifyBase(Space& home);
     
   };
 
@@ -489,7 +490,11 @@ namespace Gecode { namespace String {
     Gecode::Set::BndSetRanges i(s);
     intersectI(home, i);
   }
-
+  forceinline void
+  CharSet::intersect(Space& home, int i, int j) {
+    Gecode::Set::LUBndSet::intersect(home, i, j);
+  }
+  
   forceinline std::ostream&
   operator<<(std::ostream& os, const CharSet& set) {
     Gecode::Set::BndSetRanges i(set);
@@ -590,28 +595,24 @@ namespace Gecode { namespace String {
   using namespace Limits;
 
   forceinline Block::Block() 
-  : l(0), u(0), S(nullptr) {};
+  : l(0), u(0), S() {};
   
   forceinline Block::Block(int a)
-  : l(a), u(1), S(nullptr)  { Limits::check_alphabet(a, "Block::Block"); };
+  : l(a), u(1), S()  { Limits::check_alphabet(a, "Block::Block"); };
   
   forceinline Block::Block(int a, int n)
-  : l(a), u(n), S(nullptr) { Limits::check_length(n, "Block::Block"); };
+  : l(a), u(n), S() { Limits::check_length(n, "Block::Block"); };
   
   forceinline Block::Block(Space& home) 
-  : l(0), u(MAX_STRING_LENGTH), S(nullptr) {
-    S = home.alloc<CharSet>(1);
-    S->become(home, CharSet(home));
-  };
+  : l(0), u(MAX_STRING_LENGTH), S(home) {};
   
   forceinline Block::Block(Space& home, const CharSet& s) 
-  : l(0), u(MAX_STRING_LENGTH), S(nullptr) { 
-    S = home.alloc<CharSet>(1);
-    S->update(home, s); 
+  : l(0), u(MAX_STRING_LENGTH), S() {
+    S.update(home, s); 
   };
   
   forceinline Block::Block(Space& home, const CharSet& s, int lb, int ub)
-  : l(lb), u(ub), S(nullptr) { 
+  : l(lb), u(ub), S() { 
     check_length(lb, ub, "Block::Block");
     switch (s.size()) {
       case 0:
@@ -624,93 +625,89 @@ namespace Gecode { namespace String {
         if (lb == ub)
           // Fixed block s^n with n=lb=ub.
           l = s.min();
-        else {
-          S = home.alloc<CharSet>(1);
-          S->update(home, s);
-        }
+        else
+          S.update(home, s);
         return;
       default:
         // General case.        
-        if (ub > 0) {
-          S = home.alloc<CharSet>(1);
-          S->update(home, s);          
-        }
+        if (ub > 0)
+          S.update(home, s);
     }
   }
 
-  forceinline int Block::lb() const { return S ? l : u; }
+  forceinline int Block::lb() const { return isFixed() ? u : l; }
   forceinline int Block::ub() const { return u; }
   
   forceinline bool Block::isNull()  const { return u == 0; }
-  forceinline bool Block::isFixed() const { return !S; }
+  forceinline bool Block::isFixed() const { return S.empty(); }
   
   forceinline bool Block::isUniverse() const {
-    return l == 0 && u == MAX_STRING_LENGTH && S->isUniverse();
+    return l == 0 && u == MAX_STRING_LENGTH && S.isUniverse();
   }
   
   forceinline double
   Block::logdim() const {
     if (isFixed())
       return 0;
-    if (S->size() == 1)
+    if (S.size() == 1)
       return log(u - l + 1);
-    double s = S->size();
+    double s = S.size();
     return u * log(s) + log(1.0 - std::pow(s, l-u-1)) - log(1 - 1/s);
   }
   
   forceinline int
   Block::baseSize(void) const {
-    return isFixed() ? u > 0 : S->size();
+    return isFixed() ? u > 0 : S.size();
   }
   
   forceinline int
   Block::baseMin(void) const {
     if (isNull())
       throw IllegalOperation("Block::baseMin");
-    return isFixed() ? l: S->min();
+    return isFixed() ? l: S.min();
   }
   
   forceinline int
   Block::baseMax(void) const {
     if (isNull())
       throw IllegalOperation("Block::baseMax");
-    return isFixed() ? l: S->max();
+    return isFixed() ? l: S.max();
   }
   
   forceinline Gecode::Set::BndSetRanges
   Block::ranges() const {
     if (isFixed())
       throw IllegalOperation("Block::ranges");
-    return Gecode::Set::BndSetRanges(*S);
+    return Gecode::Set::BndSetRanges(S);
   }
   
   forceinline bool
   Block::baseDisjoint(const Block& b) const {
     if (isFixed())
-      return b.isFixed() ? l != b.l : !b.S->in(l);
+      return b.isFixed() ? l != b.l : !b.S.in(l);
     if (b.isFixed())
-      return !S->in(b.l);
-    return S->disjoint(*b.S);
+      return !S.in(b.l);
+    return S.disjoint(b.S);
   }
   
   forceinline bool
   Block::baseEquals(const Block& b) const {
     if (isFixed())
-      return b.isFixed() ? l == b.l : b.S->size() == 1 && b.S->min() == l;
+      return b.isFixed() ? l == b.l : b.S.size() == 1 && b.S.min() == l;
     if (b.isFixed())
-      return S->size() == 1 && S->min() == b.l;
-    return S->equals(*b.S);
+      return S.size() == 1 && S.min() == b.l;
+    return S.equals(b.S);
   }
   forceinline bool
   Block::baseEquals(const Gecode::Set::BndSet& s) const {
     if (isFixed())
       return s.size() == 1 && s.min() == l;
-    return S->equals(s);
+    return S.equals(s);
   }
   
   forceinline bool
   Block::baseContains(int c) const {
-    return isFixed() ? u > 0 && l == c : S->in(c);
+    return isFixed() ? u > 0 && l == c : S.in(c);
   }
   
   forceinline bool
@@ -719,7 +716,7 @@ namespace Gecode { namespace String {
       return false;
     if (isFixed())
       return b.isFixed() && l == b.l && u == b.u;
-    return b.isFixed() ? S->in(b.l) : S->contains(*b.S);
+    return b.isFixed() ? S.in(b.l) : S.contains(b.S);
   }
   
   forceinline bool
@@ -740,9 +737,9 @@ namespace Gecode { namespace String {
   
   forceinline void
   Block::fix(Space& home) {
-    assert(l == u && S->size() <= 1);
-    l = S->empty() ? 0 : S->min();
-    nullifySet(home);
+    assert(l == u && S.size() <= 1);
+    l = S.empty() ? 0 : S.min();
+    nullifyBase(home);
   }
   
   forceinline void
@@ -757,7 +754,7 @@ namespace Gecode { namespace String {
     if (x < l)
       throw IllegalOperation("Block::lb");
     l = x;
-    if (l == u && S->size() == 1)
+    if (l == u && S.size() == 1)
       fix(home);
     assert(isOK());
   }
@@ -774,7 +771,7 @@ namespace Gecode { namespace String {
     if (x < l)
       throw VariableEmptyDomain("Block::ub");
     u = x;
-    if (x == l && S->size() <= 1)
+    if (x == l && S.size() <= 1)
       fix(home);
     assert(isOK());
   }
@@ -789,13 +786,13 @@ namespace Gecode { namespace String {
       return;
     }
     Gecode::Set::BndSetRanges i(s);
-    S->intersectI(home, i);
-    if (S->empty()) {
+    S.intersectI(home, i);
+    if (S.empty()) {
       if (l > 0)
         throw VariableEmptyDomain("Block::baseIntersect");
       nullify(home);
     }
-    else if (l == u && S->size() == 1)
+    else if (l == u && S.size() == 1)
       fix(home);
     assert(isOK());
   }
@@ -806,18 +803,18 @@ namespace Gecode { namespace String {
     if (isNull())
       return;
     if (isFixed()) {
-      if ((b.isFixed() && l != b.l) || (!isFixed() && !b.S->in(l)))
+      if ((b.isFixed() && l != b.l) || (!isFixed() && !b.S.in(l)))
         throw VariableEmptyDomain("Block::baseIntersect");
       return;
     }
     if (b.isFixed()) {
-      if (S->in(b.l)) {
+      if (S.in(b.l)) {
         if (l == u) {
-          nullifySet(home);
+          nullifyBase(home);
           l = b.l;
         }
         else
-          ((Gecode::Set::LUBndSet*) S)->intersect(home, b.l, b.l);
+          S.intersect(home, b.l, b.l);
       }
       else {
         if (l > 0)
@@ -827,14 +824,14 @@ namespace Gecode { namespace String {
       assert(isOK());
       return;
     }
-    Gecode::Set::BndSetRanges i(*b.S);
-    S->intersectI(home, i);
-    if (S->empty()) {
+    Gecode::Set::BndSetRanges i(b.S);
+    S.intersectI(home, i);
+    if (S.empty()) {
       if (l > 0)
         throw VariableEmptyDomain("Block::baseIntersect");
       nullify(home);
     }
-    else if (l == u && S->size() == 1)
+    else if (l == u && S.size() == 1)
       fix(home);
     assert(isOK());
   }
@@ -849,21 +846,21 @@ namespace Gecode { namespace String {
       return;
     }
     Gecode::Set::BndSetRanges i(s);
-    S->excludeI(home, i);
-    if (S->empty() && l > 0)
+    S.excludeI(home, i);
+    if (S.empty() && l > 0)
       throw VariableEmptyDomain("Block::baseExclude");
-    if (l == u && S->size() == 1)
+    if (l == u && S.size() == 1)
       fix(home);
     assert(isOK());
   }
   
   forceinline void
   Block::baseRemove(Space& home, int c) {
-    if (S == nullptr || (l > 0 && S->size() == 1))
+    if (isFixed()|| (l > 0 && S.size() == 1))
       throw VariableEmptyDomain("Block::baseRemove"); 
     Gecode::Set::SetDelta d;
-    S->exclude(home, c, c, d);
-    if (l == u && S->size() == 1)
+    S.exclude(home, c, c, d);
+    if (l == u && S.size() == 1)
       fix(home);
     assert(isOK());
   }
@@ -886,33 +883,26 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  Block::nullifySet(Space& home) {
-    if (S != nullptr) {
-      S->dispose(home);
-      S = nullptr;
-    }
+  Block::nullifyBase(Space& home) {
+    if (!S.empty())
+      S.excludeAll(home);
     assert(isOK());
   }
   
   forceinline void
   Block::nullify(Space& home) {
     l = u = 0; 
-    nullifySet(home);
+    nullifyBase(home);
   }
   
   forceinline void
   Block::update(Space& home, const Block& b) {
     l = b.l;
     u = b.u;
-    if (&S == &b.S)
-      return;
-    if (b.isFixed()) {
-      nullifySet(home);
-      return;
-    }
-    if (isFixed())
-      S = home.alloc<CharSet>(1);
-    S->update(home, *b.S);
+    if (b.isFixed())
+      nullifyBase(home);
+    else
+      S.update(home, b.S);
     assert(isOK());
   }
   
@@ -921,14 +911,13 @@ namespace Gecode { namespace String {
     if (g.isFixed()) {
       l = g.baseMin();
       u = g.ub();
-      nullifySet(home);
+      nullifyBase(home);
     }
     else {
       const Block& b = g.block(); 
       l = b.l;
       u = b.u;
-      S = home.alloc<CharSet>(1);
-      S->update(home, *b.S);
+      S.update(home, b.S);
     }
     assert(isOK());
   };
@@ -938,8 +927,7 @@ namespace Gecode { namespace String {
     check_length(lb, ub, "Block::updateCard");
     if (isFixed()) {
       if (lb < ub) {
-        S = home.alloc<CharSet>(1);
-        S->update(home, CharSet(home,l));
+        S.update(home, CharSet(home,l));
         l = lb;
       }
       u = ub;
@@ -947,12 +935,12 @@ namespace Gecode { namespace String {
     }
     if (l == lb && u == ub)
       return;   
-    if (lb > 0 && S->empty())
+    if (lb > 0 && S.empty())
       throw VariableEmptyDomain("Block::updateCard");
-    if (ub == 0 || (lb == ub && l < u && S->size() <= 1)) {
+    if (ub == 0 || (lb == ub && l < u && S.size() <= 1)) {
       // Block become fixed.
-      l = ub > 0 && !S->empty() ? S->min() : 0;
-      nullifySet(home);
+      l = ub > 0 && !S.empty() ? S.min() : 0;
+      nullifyBase(home);
     }
     else
       l = lb;
@@ -961,15 +949,15 @@ namespace Gecode { namespace String {
   }
   
   forceinline bool
-  Block::isOK(void) const {
+  Block::isOK() const {
     if (isFixed()) {
       check_alphabet(l, "Block::isOK");
       check_length(u, "Block::isOK");
       return true;
     }
     check_length(l, u, "Block::isOK");
-    check_alphabet(S->min(), S->max(), "Block::isOK");
-    return u > 0 && (S->size() > 1 || (S->size() == 1 && l < u));
+    check_alphabet(S.min(), S.max(), "Block::isOK");
+    return u > 0 && (S.size() > 1 || (S.size() == 1 && l < u));
   }
 
   forceinline std::ostream&
@@ -977,7 +965,7 @@ namespace Gecode { namespace String {
     if (b.isFixed())
       os << "{" + (b.u > 0 ? int2str(b.l) : "") + "}" << "^(" << b.u << ",";
     else
-      os << *b.S << "^(" << b.l << ",";
+      os << b.S << "^(" << b.l << ",";
     os << b.u << ")";
     return os;
   }
