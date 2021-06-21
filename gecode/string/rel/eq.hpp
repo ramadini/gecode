@@ -34,7 +34,6 @@ namespace Gecode { namespace String { namespace Rel {
     return ES_OK;
   }
 
-
   template<class View0, class View1>
   ExecStatus
   Eq<View0,View1>::propagate(Space& home, const ModEventDelta&) {
@@ -65,7 +64,7 @@ namespace Gecode { namespace String { namespace Rel {
       if (check_equate_x(x0,x1) && check_equate_x(x1,x0)) {
         if (!x0.assigned())
           x0.gets(home, x1);
-        return home.ES_SUBSUMED(*this);
+        return __ES_SUBSUMED; //FIXME: with home.ES_SUBSUMED(*this), seg.fault in SQL 12
       }
       else
         return ES_FAILED;
