@@ -16,8 +16,8 @@ namespace Gecode { namespace String {
   forceinline bool baseSingle(int) { return true; }
   forceinline int ubound(const Block& b) { return b.ub(); }
   forceinline int lbound(const Block& b) { return b.lb(); }
-  forceinline int lbound(const GBlock& g) { return g.lb(); }
-  forceinline int ubound(const GBlock& g) { return g.ub(); }
+//  forceinline int lbound(const GBlock& g) { return g.lb(); }
+//  forceinline int ubound(const GBlock& g) { return g.ub(); }
   forceinline bool baseSingle(const Block& b) { 
     return b.lb() > 0 && b.baseSize() == 1; 
   }
@@ -31,11 +31,11 @@ namespace Gecode { namespace String {
   min_len_mand(const View&, int, const Position&, const Position&) {
     return 1;
   }
-  template <class View> forceinline int 
-  min_len_mand(const View& y, const GBlock& g, const Position& p, 
-                                               const Position& q) {
-    return g.isChar() ? 1 : y.min_len_mand(g.block(), p, q);
-  }
+//  template <class View> forceinline int 
+//  min_len_mand(const View& y, const GBlock& g, const Position& p, 
+//                                               const Position& q) {
+//    return g.isChar() ? 1 : y.min_len_mand(g.block(), p, q);
+//  }
   
   /// Struct abstracting a position in a dashed string.
   struct Position {
@@ -266,8 +266,8 @@ namespace Gecode { namespace String {
     SweepFwdIterator<ViewY> q(y, m[i].ESP);
     SweepFwdIterator<ViewY> p(y, x.push(i, q));
     if (!p())
-      return false;    
-    if (i < n && y.prec(m[i+1].ESP, *q))
+      return false;
+    if (i < n-1 && y.prec(m[i+1].ESP, *q))
       // x[i+1] cannot start before *q
       m[i+1].ESP = *q;
     if (y.prec(m[i].ESP, *p))

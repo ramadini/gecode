@@ -113,7 +113,7 @@ public:
     concat(*this, StringVar(*this, Block('b')), var_5, StringVar(*this, u));
     dom(*this, var_5, u);
     // Branching.
-    lblock_mindim_lllm(*this, str_vars);
+    lenblock_min_lllm(*this, str_vars);
   }
   
   virtual void

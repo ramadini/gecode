@@ -4,7 +4,8 @@ TEST_DIR="${0%/*}"
 TEST_CMD=$TEST_DIR/test_cpp.sh
 declare -a TESTS=(
   'test-eq.cpp' 'test-prop.cpp' 'str_ex1.cpp' 'str_ex2.cpp' 'str_ex3.cpp' \
-  'anbn.cpp' 'chunk_split.cpp' 'hamming_mod.cpp' 'levenshtein.cpp'
+  'anbn.cpp' 'chunk_split.cpp' 'hamming_mod.cpp' 'levenshtein.cpp' \
+  'string_replace.cpp'
 )
 
 if
@@ -23,5 +24,23 @@ do
   then
     exit 1
   fi
-  echo "===== All tests pass! ====="
-done
+done &&
+for i in 11 12 100 200 250 300 400 500
+    do
+      $TEST_CMD $TEST_DIR/sql.cpp $i $1
+      if
+        [ $? -ne 0 ]
+      then
+        exit 1
+      fi
+    done &&
+    for i in 1000 2500 5000 10000
+    do
+      $TEST_CMD $TEST_DIR/sql.cpp $i
+      if
+        [ $? -ne 0 ]
+      then
+        exit 1
+      fi
+    done &&    
+echo "===== All tests pass! ====="

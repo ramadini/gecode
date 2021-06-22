@@ -59,7 +59,7 @@ namespace Gecode { namespace String {
 
 namespace Gecode { namespace String {
   
-  class GBlock;
+//  class GBlock;
   
   /**
    * \brief Block of a dashed string modelling the domain of a string variable.
@@ -89,7 +89,7 @@ namespace Gecode { namespace String {
     Block(void);
     /// Creates fixed block \f$ {a}^{1,1} \$
     /// Throws OutOfLimits exception if \f$a < 0 \vee a \geq MAX\_ALPHABET\_LENGTH\f$
-    explicit Block(int a);
+    Block(int a);
     /// Creates fixed block \f$ {a}^{n,n} \$
     /// Throws OutOfLimits exception if 
     /// \f$a < 0 \vee a \geq MAX\_ALPHABET\_LENGTH \vee n < 0 \vee n > MAX\_STRING\_LENGTH \f$
@@ -185,7 +185,7 @@ namespace Gecode { namespace String {
     void nullify(Space& home);
     /// Update this block to be a clone of \a b
     void update(Space& home, const Block& b);
-    void update(Space& home, const GBlock& g);
+//    void update(Space& home, const GBlock& g);
     /// Update the lower/upper bounds of the block. It throws:
     /// - OutOfLimits, if lb < 0 or ub > MAX_STRING_LENGTH
     /// - VariableEmptyDomain, if lb > ub or lb > 0 and the base is empty
@@ -207,26 +207,26 @@ namespace Gecode { namespace String {
     
   };
 
-  class GBlock {
-    int c;
-    Block* p;    
-  public:
-    GBlock(int c0);
-    GBlock(Block& b);
-    int lb() const;
-    int ub() const;
-    int baseMin() const;
-    bool isNull() const;
-    bool isChar() const;
-    bool isFixed() const;
-    int disj(int k) const;
-    int disj(const Block& x) const;
-    int val() const;
-    Block& block();
-    const Block& block() const;
-    void includeBaseIn(Space& home, Gecode::Set::GLBndSet& s);
-    friend std::ostream& operator<<(std::ostream& os, const GBlock& g);
-  };
+//  class GBlock {
+//    int c;
+//    Block* p;    
+//  public:
+//    GBlock(int c0);
+//    GBlock(Block& b);
+//    int lb() const;
+//    int ub() const;
+//    int baseMin() const;
+//    bool isNull() const;
+//    bool isChar() const;
+//    bool isFixed() const;
+//    int disj(int k) const;
+//    int disj(const Block& x) const;
+//    int val() const;
+//    Block& block();
+//    const Block& block() const;
+//    void includeBaseIn(Space& home, Gecode::Set::GLBndSet& s);
+//    friend std::ostream& operator<<(std::ostream& os, const GBlock& g);
+//  };
 
 }}
 
@@ -518,77 +518,77 @@ namespace Gecode { namespace String {
 namespace Gecode { namespace String {
 
 
-  forceinline GBlock::GBlock(int c0) : c(c0), p(nullptr) {}
-  
-  forceinline GBlock::GBlock(Block& b) : c(-1), p(nullptr) {
-    if (b.ub() == 1 && b.isFixed())
-      c = b.val()[0];
-    else
-      p = &b;
-  }
-  
-  forceinline int GBlock::lb() const { return c < 0 ? p->lb() : 1; }
-  
-  forceinline int GBlock::ub() const { return c < 0 ? p->ub() : 1; }
-  
-  forceinline bool GBlock::isChar() const { return c >= 0; }
-  
-  forceinline bool GBlock::isFixed() const { return c >= 0 || p->isFixed(); }
-    
-  forceinline bool GBlock::isNull() const { return c < 0 && p->isNull(); }
-    
-  forceinline int 
-  GBlock::disj(int k) const { return c < 0 ? !p->baseContains(k) : c != k; }
-  
-  forceinline int 
-  GBlock::disj(const Block& x) const {
-      return c < 0 ? p->baseDisjoint(x) : !x.baseContains(c); 
-    }
-    
-  forceinline int 
-  GBlock::val() const {
-    if (!isFixed())
-      throw IllegalOperation("GBlock::val");
-    return c;
-  }
-  
-  forceinline const Block& 
-  GBlock::block() const {
-    if (c >= 0)
-      throw IllegalOperation("GBlock::val");
-    return *p;
-  }
-  
-  forceinline Block& 
-  GBlock::block() {
-    if (c >= 0)
-      throw IllegalOperation("GBlock::val");
-    return *p;
-  }
-  
-  forceinline void 
-  GBlock::includeBaseIn(Space& home, Gecode::Set::GLBndSet& s) {
-    if (c < 0)
-      p->includeBaseIn(home, s);
-    else {
-      Gecode::Set::SetDelta d;
-      s.include(home, c, c, d);
-    }
-  }
-  
-  forceinline int 
-  GBlock::baseMin() const {
-    return c < 0 ? p->baseMin() : c;
-  }
-  
-  forceinline std::ostream&
-  operator<<(std::ostream& os, const GBlock& g) {
-    if (g.c < 0)
-      os << g.block();
-    else
-      os << int2str(g.val());
-    return os;
-  }
+//  forceinline GBlock::GBlock(int c0) : c(c0), p(nullptr) {}
+//  
+//  forceinline GBlock::GBlock(Block& b) : c(-1), p(nullptr) {
+//    if (b.ub() == 1 && b.isFixed())
+//      c = b.val()[0];
+//    else
+//      p = &b;
+//  }
+//  
+//  forceinline int GBlock::lb() const { return c < 0 ? p->lb() : 1; }
+//  
+//  forceinline int GBlock::ub() const { return c < 0 ? p->ub() : 1; }
+//  
+//  forceinline bool GBlock::isChar() const { return c >= 0; }
+//  
+//  forceinline bool GBlock::isFixed() const { return c >= 0 || p->isFixed(); }
+//    
+//  forceinline bool GBlock::isNull() const { return c < 0 && p->isNull(); }
+//    
+//  forceinline int 
+//  GBlock::disj(int k) const { return c < 0 ? !p->baseContains(k) : c != k; }
+//  
+//  forceinline int 
+//  GBlock::disj(const Block& x) const {
+//      return c < 0 ? p->baseDisjoint(x) : !x.baseContains(c); 
+//    }
+//    
+//  forceinline int 
+//  GBlock::val() const {
+//    if (!isFixed())
+//      throw IllegalOperation("GBlock::val");
+//    return c;
+//  }
+//  
+//  forceinline const Block& 
+//  GBlock::block() const {
+//    if (c >= 0)
+//      throw IllegalOperation("GBlock::val");
+//    return *p;
+//  }
+//  
+//  forceinline Block& 
+//  GBlock::block() {
+//    if (c >= 0)
+//      throw IllegalOperation("GBlock::val");
+//    return *p;
+//  }
+//  
+//  forceinline void 
+//  GBlock::includeBaseIn(Space& home, Gecode::Set::GLBndSet& s) {
+//    if (c < 0)
+//      p->includeBaseIn(home, s);
+//    else {
+//      Gecode::Set::SetDelta d;
+//      s.include(home, c, c, d);
+//    }
+//  }
+//  
+//  forceinline int 
+//  GBlock::baseMin() const {
+//    return c < 0 ? p->baseMin() : c;
+//  }
+//  
+//  forceinline std::ostream&
+//  operator<<(std::ostream& os, const GBlock& g) {
+//    if (g.c < 0)
+//      os << g.block();
+//    else
+//      os << int2str(g.val());
+//    return os;
+//  }
   
   
 
@@ -906,21 +906,21 @@ namespace Gecode { namespace String {
     assert(isOK());
   }
   
-  forceinline void
-  Block::update(Space& home, const GBlock& g) {
-    if (g.isFixed()) {
-      l = g.baseMin();
-      u = g.ub();
-      nullifyBase(home);
-    }
-    else {
-      const Block& b = g.block(); 
-      l = b.l;
-      u = b.u;
-      S.update(home, b.S);
-    }
-    assert(isOK());
-  };
+//  forceinline void
+//  Block::update(Space& home, const GBlock& g) {
+//    if (g.isFixed()) {
+//      l = g.baseMin();
+//      u = g.ub();
+//      nullifyBase(home);
+//    }
+//    else {
+//      const Block& b = g.block(); 
+//      l = b.l;
+//      u = b.u;
+//      S.update(home, b.S);
+//    }
+//    assert(isOK());
+//  };
   
   forceinline void
   Block::updateCard(Space& home, int lb, int ub) {
@@ -1366,7 +1366,7 @@ namespace Gecode { namespace String {
         for (int j = 0; j < idx; ++j)
           y[j].update(home, x[j]);
         if (alt == 0)
-          y[idx].update(home, c);
+          y[idx].update(home, Block(c));
         else {
           y[idx].update(home, x_i);
           y[idx].baseRemove(home, c);
@@ -1380,7 +1380,7 @@ namespace Gecode { namespace String {
         x = y;
       }
       else
-        alt == 0 ? x[idx].update(home, c) : x_i.baseRemove(home, c);
+        alt == 0 ? x[idx].update(home, Block(c)) : x_i.baseRemove(home, c);
     }
     assert (isOK());
     assert (isNorm());
