@@ -670,7 +670,6 @@ namespace Gecode { namespace String {
     // Only one block involved
     const Block& bp = (*this)[p_i];
     int k = bx.ub() - l1;
-//    std::cerr << bx << ' ' << k << '\n';
     if (p_i == q_i) {
       bnew.update(home, bp);
       bnew.baseIntersect(home, bx);

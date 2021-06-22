@@ -171,12 +171,14 @@ namespace Gecode { namespace String {
         }
         int np = esp == lsp ? y.fixed_chars_pref(lsp, eep) : 0;
         int ns = eep == lep ? y.fixed_chars_suff(lsp, eep) : 0;
-//        std::cerr << np << ' ' << ns << '\n';
+//        std::cerr << x_i << ' ' <<  np << ' ' << ns << '\n';
         if (np == 0 && ns == 0)
           continue;
-        assert (np + ns <= l1);
+        assert (np >= 0 && ns >= 0 && np + ns <= l1);
         assert (y.prec(lsp, eep) && (esp == lsp || eep == lep));
         x_i.updateCard(home, x_i.lb()-ns-np, x_i.ub()-ns-np);
+        if (x_i.ub() < l1)
+          return false;
       }
       assert (l1 > 0);
       int n = y.ub_new_blocks(m[i]);
@@ -191,10 +193,11 @@ namespace Gecode { namespace String {
 //        std::cerr << "x[" << i << "] ref. into " << x_i << "\n";
         continue;
       }
+      l = x_i.lb(), u = x_i.ub();
       // Unfolding x_i into newBlocks
       Region r1;
       Block* mreg = r1.alloc<Block>(n);
-//      std::cerr << x_i << '\n';
+//      std::cerr << "Before unfolding: "  << x_i << ' ' << l1 << '\n';
       if (esp == lsp)
         y.mand_region(home, x_i, &mreg[0], u1, lsp, eep);
       else {

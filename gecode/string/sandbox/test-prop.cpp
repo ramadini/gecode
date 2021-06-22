@@ -254,7 +254,7 @@ public:
     StringVar xx(*this, Block(*this, CharSet(*this, 0, 1000), 390, 390));
     StringView vx(x), vxx(xx);
     assert (vx.equate(*this, vxx) == ME_STRING_NONE);
-    assert (vxx.equate(*this, vx) == ME_STRING_BASE);
+    assert (vxx.equate(*this, vx) == ME_STRING_FAILED);
     w1 = "%N:K+BW#FY9X=TSG7E/<&#+LG+S&M .8K3UT)-'GXFH2D2D(?<BFE>XH*4G(:>F,;?AH652FX>2+MU)?N ?T'?YO,%(90 Y $1Y/,O 8MS6-A=5<WA 8=";
     w2 = "*9.63TS$1BY#<VP+%U.N#%,0@/JH$0X>A<VLG'O@M-II%;D-XXU5,,O+Q8&YWO%DX.SS/AADJG-$.7*FX+R7UEW(E(S5EY:;<M%> CKL#DBB";
     n = w1.size() + w2.size() + 1;
@@ -270,7 +270,7 @@ public:
     StringVar yy(*this, Block(*this, CharSet(*this, 0, 1000), 110, 110));
     StringView vy(y), vyy(yy);
     assert (vy.equate(*this, vyy) == ME_STRING_NONE);
-    assert (vyy.equate(*this, vy) == ME_STRING_BASE);
+    assert (vyy.equate(*this, vy) == ME_STRING_FAILED);
     ConcatView xy(vx,vy);
     std::vector<int> vw = str2vec("A;CW7.MC3ER88MWZPRP.9H@A3?(2-UL3S3-3EG<;MQ@4TW6%*,FKYZ;J3XMF9?<F9>F%I)*HTAX3)7?'/0X*19<D1T)A><#V$V4UL7$@D W$,U5&GPFA(MH;.Z-N7/FBT7H0L5/;(#$S<LFZ6(SY5H6#YY/VD.=CUJG.5<7?O%W1N@PTHD3;A3.A4X%GN3Y(/&FFQ2#MK&/)WM&:>=23WNH;Q72P YHOAM++MROZPIOJ=))4MR7?&D;=N/&RR(6E7ZB,$?<<0GIE51P8%NV:JK+BW#FY9X=TSG7E/<&#+LG+S&M .8K3UT)-''GXFH2D2D(?<BFE>XH*4G(:>F,;?AH652FX>2+MU)?N ?T'?YO,%(90 Y $1Y/,O 8MS6-A=5<WA 8=*9.63TS$1BY#<VP+%U.N#%,0@/JH$0X>A<VLG'O@M-II%;D-XXU5,,O+Q8&YWO%DX.SS/AADJG-$.7*FX+R7UEW(E(S5EY:;<M%> CKL#DBB");
     ConstStringView w(*this, &vw[0], vw.size());

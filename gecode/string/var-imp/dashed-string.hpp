@@ -924,6 +924,7 @@ namespace Gecode { namespace String {
   
   forceinline void
   Block::updateCard(Space& home, int lb, int ub) {
+    assert (lb >= 0 && ub >= 0);
     check_length(lb, ub, "Block::updateCard");
     if (isFixed()) {
       if (lb < ub) {
