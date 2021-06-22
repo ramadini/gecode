@@ -720,7 +720,7 @@ namespace Gecode { namespace String {
     int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
         p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
     const Block& bp = (*this)[p_i];
-    if (p_o > bp.lb() || bp.baseMin() > 0)
+    if (p_o > bp.lb() || bp.baseSize() > 1)
       return 0;
 //    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
     if (p_i == q_i)
@@ -730,14 +730,14 @@ namespace Gecode { namespace String {
       return k;
     for (int i = p_i+1; i < q_i; ++i) {
       const Block& bi = (*this)[i];
-      if (bi.baseMin() > 1)
+      if (bi.baseSize() > 1)
         return k;
       k += bi.lb();
       if (bi.ub() > bi.lb())
         return k;
     }
     const Block& bq = (*this)[q_i];
-    if (bq.baseMin() > 1)
+    if (bq.baseSize() > 1)
       return k;
     return k + std::min(bq.lb(), q_o);
   }
@@ -764,7 +764,7 @@ namespace Gecode { namespace String {
         return k;
     }
     const Block& bp = (*this)[p_i];
-    if (p_o > bp.lb() || bp.baseMin() > 0)
+    if (p_o > bp.lb() || bp.baseSize() > 1)
       return k;
     return k + bp.lb() - p_o;
   }

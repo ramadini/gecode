@@ -527,7 +527,7 @@ namespace Gecode { namespace String {
 
   forceinline void
   ConcatView::crushBase(Space& home, Block& bx, const Position& p, 
-                                                      const Position& q) const {
+                                                const Position& q) const {
     Gecode::Set::GLBndSet s;
     for (int i = p.idx, j = q.idx - (q.off == 0); i <= j; ++i)
       (*this)[i].includeBaseIn(home, s);

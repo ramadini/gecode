@@ -942,7 +942,8 @@ public:
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert (vy.equate(*this, vx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
-    for (int i = 0; i < N; ++i)
+    assert (vy[0].equals(Block(*this, CharSet(*this, 'a'), 1, 5)));
+    for (int i = 1; i < N; ++i)
       assert(vy[i].baseMin() == 'a'+i && vy[i].baseMax() == 'a'+N-1);
     assert(vx.isOK() && vy.isOK());
   }
