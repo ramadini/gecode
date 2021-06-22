@@ -92,6 +92,7 @@ namespace Gecode { namespace String {
     bool equals(const StringVarImp& y) const;
     /// If this domain is null
     bool isNull(void) const;
+    double logdim(void) const;
     
     //@}
     

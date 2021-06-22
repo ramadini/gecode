@@ -408,6 +408,33 @@ public:
     std::cerr << "After split x[1], x = " << x << "\n";
     assert (vec2str(x[0].val()) == "cccc");
   }
+  
+  void test11() {    
+    StringVar x(*this, Block(*this, CharSet(*this, ' '), 0, 144));
+    StringVar y(*this, Block(*this, CharSet(*this, ' ', 'Y'), 1, 145));
+    Block bz[3];
+    bz[0].update(*this, Block(*this, CharSet(*this, ' '), 0, 144));
+    bz[1].update(*this, Block(*this, CharSet(*this, ' ', 'Y'), 0, 144));
+    bz[2].update(*this, Block(':'));
+    StringVar z(*this, DashedString(*this, bz, 3));
+    std::cerr << "Before equate:\n";
+    std::cerr << "x = " << x << "\n";
+    std::cerr << "y = " << y << "\n";
+    std::cerr << "z = " << z << "\n";
+    StringView vx(x), vy(y), vz(z);
+    ConcatView xy(vx,vy);
+    assert (vz.equate(*this, xy) == ME_STRING_NONE);
+    std::cerr << "After z = xy:\n";
+    std::cerr << "x = " << x << "\n";
+    std::cerr << "y = " << y << "\n";
+    std::cerr << "z = " << z << "\n";
+    std::cerr << "After xy = z:\n";
+    assert (xy.equate(*this, vz) >-5);// == ME_STRING_BASE);
+    std::cerr << "x = " << x << "\n";
+    std::cerr << "y = " << y << "\n";
+    std::cerr << "z = " << z << "\n";
+    assert (vy[0].ub() == 144 && vy[1].equals(Block(':')));
+  }
 
 };
 
@@ -423,6 +450,7 @@ int main() {
   home->test08();
   home->test09();
   home->test10();
+  home->test11();
   delete home;
   cerr << "\n----- test-prop.cpp passes -----\n\n";
   return 0;

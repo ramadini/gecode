@@ -149,6 +149,7 @@ namespace Gecode { namespace String {
     /// If this view is equals to y
     bool equals(const StringView& y) const;
     template <class T> bool equals(const T& y) const;
+    double logdim(void) const;
     //@}
     /// \name Cloning
     //@{
@@ -211,6 +212,12 @@ namespace Gecode { namespace String {
     /// TODO:
     void
     resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize);
+    
+    int
+    fixed_chars_suff(const Position& p, const Position& q) const;
+    int
+    fixed_chars_pref(const Position& p, const Position& q) const;
+    
     /// Normalize this view
     void normalize(Space& home);
     void splitBlock(Space& home, int idx, int c, unsigned a);
@@ -270,6 +277,7 @@ namespace Gecode { namespace String {
     template <class T> ModEvent equate(Space& home, const T& y) const;
     template <class IterY> Position push(int i, IterY& it) const;
     template <class IterY> void stretch(int i, IterY& it) const;
+    double logdim(void) const;
     //@}
     /// Always returns true (for compatibility with other views)
     bool assigned(void) const;
@@ -318,6 +326,11 @@ namespace Gecode { namespace String {
     void
     resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize) const;
     
+    int
+    fixed_chars_suff(const Position& p, const Position& q) const;
+    int
+    fixed_chars_pref(const Position& p, const Position& q) const;
+    
     /// Normalize this view
     void normalize(Space& home);
     ModEvent nullify(Space& home);                            
@@ -359,6 +372,7 @@ namespace Gecode { namespace String {
     template <class T> ModEvent equate(Space& home, const T& y);
     template <class IterY> Position push(int i, IterY& it) const;
     template <class IterY> void stretch(int i, IterY& it) const;
+    double logdim(void) const;
     
     ModEvent nullify(Space& home);
     
@@ -392,7 +406,7 @@ namespace Gecode { namespace String {
     bool assigned(void) const;
     /// Consistency checks on the view
     bool isOK(void) const;
-    bool isNull(void) const;    
+    bool isNull(void) const;
 
     /// If this view is equals to y
     template <class T> bool equals(const T& y) const;
@@ -445,6 +459,12 @@ namespace Gecode { namespace String {
     resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize);
     /// Normalize this view
     void normalize(Space& home);
+    
+    int
+    fixed_chars_suff(const Position& p, const Position& q) const;
+    int
+    fixed_chars_pref(const Position& p, const Position& q) const;
+    
     //@}                   
     template<class Char, class Traits, class X, class Y>
     friend std::basic_ostream<Char,Traits>&

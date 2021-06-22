@@ -467,6 +467,25 @@ namespace Gecode { namespace String {
     bx.baseIntersect(home, s);
   }  
     
+  forceinline int
+  ConstStringView::fixed_chars_pref(const Position& p, const Position& q) const {
+    assert(prec(p,q));
+    int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
+        p_o = p.off, q_o = q.off > 0 ? q.off : 1;
+    assert (p_i != q_i);
+    return (1 - p_o) + std::max(0, q_i - p_i - 1) + q_o;
+  }
+  
+  forceinline int
+  ConstStringView::fixed_chars_suff(const Position& p, const Position& q) const {
+    return fixed_chars_pref(p,q);
+  }
+  
+  forceinline double
+  ConstStringView::logdim() const {
+    return 0;
+  }  
+    
   template <class T> forceinline ModEvent 
   ConstStringView::gets(Space&, const T&) const {
     GECODE_NEVER;

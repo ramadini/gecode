@@ -305,6 +305,11 @@ namespace Gecode { namespace String {
     return x->min_length();
   }
   
+  forceinline double
+  StringView::logdim() const {
+    return x->logdim();
+  }
+  
   forceinline long
   StringView::ubounds_sum() const {
     long ub = max_length();
@@ -662,6 +667,7 @@ namespace Gecode { namespace String {
     // Only one block involved
     const Block& bp = (*this)[p_i];
     int k = bx.ub() - l1;
+//    std::cerr << bx << ' ' << k << '\n';
     if (p_i == q_i) {
       bnew.update(home, bp);
       bnew.baseIntersect(home, bx);
@@ -681,9 +687,10 @@ namespace Gecode { namespace String {
     const Block& bq = (*this)[q_i];
     bq.includeBaseIn(home, s);
     bnew.update(home, bx);
-    bnew.baseIntersect(home, s);    
+    bnew.baseIntersect(home, s);
     if (!bnew.isNull())
-      bnew.updateCard(home, 0, ub_sum(u, std::min(q_o, bq.lb()+k)));
+      bnew.updateCard(home, 0, 
+        std::min(bx.ub(), ub_sum(u, std::min(q_o, bq.lb()+k))));
   }
   
   forceinline void
@@ -701,6 +708,62 @@ namespace Gecode { namespace String {
     for (int i = p.idx, j = q.idx - (q.off == 0); i <= j; ++i)
       (*this)[i].includeBaseIn(home, s);
     bx.baseIntersect(home, s);
+  }
+  
+  forceinline int
+  StringView::fixed_chars_pref(const Position& p, const Position& q) const {
+    if (!prec(p,q))
+      return 0;
+    int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
+        p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
+    const Block& bp = (*this)[p_i];
+    if (p_o > bp.lb() || bp.baseMin() > 0)
+      return 0;
+//    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
+    if (p_i == q_i)
+      return std::max(0, std::min(bp.lb(), q_o) - p_o);
+    int k = bp.lb() - p_o;
+    if (bp.lb() < bp.ub())
+      return k;
+    for (int i = p_i+1; i < q_i; ++i) {
+      const Block& bi = (*this)[i];
+      if (bi.baseMin() > 1)
+        return k;
+      k += bi.lb();
+      if (bi.ub() > bi.lb())
+        return k;
+    }
+    const Block& bq = (*this)[q_i];
+    if (bq.baseMin() > 1)
+      return k;
+    return k + std::min(bq.lb(), q_o);
+  }
+  
+  forceinline int
+  StringView::fixed_chars_suff(const Position& p, const Position& q) const {
+    if (!prec(p,q))
+      return 0;
+    int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
+        p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();    
+//    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
+    const Block& bq = (*this)[q_i];    
+    if (bq.baseSize() > 1)
+      return 0;
+    if (p_i == q_i)
+      return std::max(0, std::min(bq.lb(), q_o) - p_o);
+    int k = std::min(bq.lb(), q_o);
+    for (int i = q_i-1; i > p_i; --i) {
+      const Block& bi = (*this)[i];
+      if (bi.baseSize() > 1)
+        return k;
+      k += bi.lb();
+      if (bi.ub() > bi.lb())
+        return k;
+    }
+    const Block& bp = (*this)[p_i];
+    if (p_o > bp.lb() || bp.baseMin() > 0)
+      return k;
+    return k + bp.lb() - p_o;
   }
   
   forceinline void

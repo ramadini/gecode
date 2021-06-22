@@ -122,6 +122,11 @@ namespace Gecode { namespace String {
     return ds.max_length();
   }
   
+  forceinline double
+  StringVarImp::logdim() const {
+    return ds.logdim();
+  }
+  
   forceinline bool
   StringVarImp::contains(const StringVarImp& y) const {
     return ds.contains(y.ds);

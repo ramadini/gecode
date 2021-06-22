@@ -533,6 +533,35 @@ namespace Gecode { namespace String {
     bx.baseIntersect(home, s);
   }
   
+  forceinline int
+  ConcatView::fixed_chars_pref(const Position& p, const Position& q) const {
+    if (q.idx < pivot)
+      return x0.fixed_chars_pref(p,q);
+    else if (p.idx >= pivot)
+      return x1.fixed_chars_pref(p-pivot,q-pivot);
+    else {
+      int k = x0.fixed_chars_pref(p,Position(pivot,0));
+      return k == 0 ? 0 : k + x1.fixed_chars_pref(Position(0,0),q-pivot);
+    }
+  }
+  
+  forceinline int
+  ConcatView::fixed_chars_suff(const Position& p, const Position& q) const {
+    if (q.idx < pivot)
+      return x0.fixed_chars_suff(p,q);
+    else if (p.idx >= pivot)
+      return x1.fixed_chars_suff(p-pivot,q-pivot);
+    else {
+      int k = x1.fixed_chars_suff(Position(0,0),q-pivot);
+      return k == 0 ? 0 : k + x0.fixed_chars_suff(p,Position(pivot,0));
+    }
+  }
+  
+  forceinline double
+  ConcatView::logdim() const {
+    return x0.logdim() + x1.logdim();
+  }
+  
   forceinline void
   ConcatView::resize(Space& home, Block newBlocks[], int newSize,
                                                           int U[],  int uSize) {

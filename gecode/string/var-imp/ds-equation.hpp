@@ -13,10 +13,14 @@ namespace Gecode { namespace String {
   
   forceinline int ubound(int) { return 1; }
   forceinline int lbound(int) { return 1; }
+  forceinline bool baseSingle(int) { return true; }
   forceinline int ubound(const Block& b) { return b.ub(); }
   forceinline int lbound(const Block& b) { return b.lb(); }
   forceinline int lbound(const GBlock& g) { return g.lb(); }
   forceinline int ubound(const GBlock& g) { return g.ub(); }
+  forceinline bool baseSingle(const Block& b) { 
+    return b.lb() > 0 && b.baseSize() == 1; 
+  }
   
   template <class View> forceinline int 
   min_len_mand(const View& y, const Block& b, const Position& p, 
@@ -136,19 +140,19 @@ namespace Gecode { namespace String {
           int ny = y.size();
           Block* y1 = r1.alloc<Block>(ny);
           y.expandBlock(home, x_i, y1);
-          double ld = 0.0, ldi = x_i.logdim();
-          for (int i = 0; i < ny && ld < ldi; ++i)
-            ld += y1[i].logdim();
-          if (ld < ldi) {
+          if (baseSingle(y[0]) || baseSingle(y[ny-1]) 
+          ||  y.logdim() < x_i.logdim()) {
             if (ny == 1)
               x_i.update(home, y1[0]);
             else {
               DashedString d(home, y1, ny);
-              x.gets(home, d);
+              if (d.size() == 1)
+                x_i.update(home, y1[0]);
+              else
+                x.gets(home, d);
             }
             if (x.max_length() > u)
               x.max_length(home, u);
-            changed = true;
             return true;
           }
         }
@@ -159,9 +163,20 @@ namespace Gecode { namespace String {
         if (u1 < u)
           x_i.ub(home, u1);
         y.crushBase(home, x_i, esp, lep);
-//        std::cerr << "x[" << i << "] ref. into " << x_i << "\n";
+        //FIXME: Add known pref/suff.
         changed |= l < l1 || u > u1 || m > x_i.baseSize();
-        continue;
+        if (l1 == 0) {
+//          std::cerr << "x[" << i << "] ref. into " << x_i << "\n";
+          continue;
+        }
+        int np = esp == lsp ? y.fixed_chars_pref(lsp, eep) : 0;
+        int ns = eep == lep ? y.fixed_chars_suff(lsp, eep) : 0;
+//        std::cerr << np << ' ' << ns << '\n';
+        if (np == 0 && ns == 0)
+          continue;
+        assert (np + ns <= l1);
+        assert (y.prec(lsp, eep) && (esp == lsp || eep == lep));
+        x_i.updateCard(home, x_i.lb()-ns-np, x_i.ub()-ns-np);
       }
       assert (l1 > 0);
       int n = y.ub_new_blocks(m[i]);
@@ -179,6 +194,7 @@ namespace Gecode { namespace String {
       // Unfolding x_i into newBlocks
       Region r1;
       Block* mreg = r1.alloc<Block>(n);
+//      std::cerr << x_i << '\n';
       if (esp == lsp)
         y.mand_region(home, x_i, &mreg[0], u1, lsp, eep);
       else {
@@ -199,7 +215,7 @@ namespace Gecode { namespace String {
       }
       DashedString d(home, mreg, n);
       r1.free();
-      assert (d.min_length() >= l); 
+//      assert (d.min_length() >= l); 
       n = d.size();
       if (n == 1) {
         if (d[0].ub() > u)
@@ -213,9 +229,9 @@ namespace Gecode { namespace String {
       }
 //      std::cerr << "n = " << n << ", d = " << d << "\n";
       for (int j = 0, k = newSize; j < n; ++j,++k) {
-        if (d[j].ub() > u)
-          d[j].ub(home, u);
-        newBlocks[k].update(home, d[j]);
+        if (mreg[j].ub() > u)
+          mreg[j].ub(home, u);
+        newBlocks[k].update(home, mreg[j]);
       }  
       U[uSize++] = i;
       U[uSize++] = n;
