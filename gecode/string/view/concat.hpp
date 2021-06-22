@@ -377,7 +377,8 @@ namespace Gecode { namespace String {
   template <class T>
   forceinline ModEvent
   ConcatView::equate(Space& home, const T& y) {
-    assert (!assigned());
+    if (assigned())
+      return check_equate_x(*this,y) ? ME_STRING_NONE : ME_STRING_FAILED;
     int lb0 = x0.min_length(), lb1 = x1.min_length();
     long ub0 = x0.ubounds_sum(), ub1 = x1.ubounds_sum();
     Matching m[size()];

@@ -588,7 +588,10 @@ namespace Gecode { namespace String {
   forceinline void
   StringView::mand_region(Space& home, Block& bx, Block* bnew, int u,
                                 const Position& p, const Position& q) const {
-    assert (prec(p, q));
+    if (!prec(p, q)) {
+      assert ((*this)[p.idx].isNull());
+      return;
+    };
     int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
         p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
 //    std::cerr << "LSP=(" << p_i << "," << p_o << "), EEP=(" << q_i << "," << q_o << ")\n";
