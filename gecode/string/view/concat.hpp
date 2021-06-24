@@ -522,15 +522,16 @@ namespace Gecode { namespace String {
     Set::BndSetRanges i(bx.ranges());
     s.includeI(home, i);
     bool norm = false;
+    int u = bx.ub();
     x.gets(home, *this);
-    if (bx.ub() < max_length())
-      x.max_length(home, bx.ub());
     for (int i = 0; i < x.size(); i++) {
       x[i].baseIntersect(home, s);
       norm |= x[i].isNull() || (i > 0 && x[i].baseEquals(x[i-1]));
     }
     if (norm)
       x.normalize(home);
+    if (u < x.max_length())
+      x.max_length(home, u);
   }
 
   forceinline void

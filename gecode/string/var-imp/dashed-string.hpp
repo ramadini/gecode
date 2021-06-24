@@ -1295,21 +1295,24 @@ namespace Gecode { namespace String {
   DashedString::update(Space& home, const DashedString& x0, 
                                     const DashedString& x1) {
     int n0 = x0.size(), n1 = x1.size();
-    bool norm = x[n0-1].equals(x1[0]);
+    bool norm = x0[n0-1].equals(x1[0]);
     int m = n0 + n1 - norm;
     if (n < m) {
       a.free(x, n);
       x = a.template alloc<Block>(m);
     }
+    else
+      a.free(x+m,n-m);
+    n = m;
     for (int i = 0; i < n0; ++i)
       x[i].update(home, x0[i]);
     if (norm)
-      x[n0].updateCard(home, x[n0-1].lb()+x1[0].lb(), x[n0-1].lb()+x1[0].ub());
+      x[n0-1].updateCard(home, x0[n0-1].lb() + x1[0].lb(), 
+                               x0[n0-1].lb() + x1[0].ub());
     else
       x[n0].update(home, x1[0]);
-    for (int i = n0+1, j = 1; j < n1; ++i, ++j)
+    for (int i = n0+1-norm, j = 1; j < n1; ++i, ++j)
       x[i].update(home, x1[j]);
-    n = m;
     min_len = x0.min_length() + x1.min_length();
     max_len = x0.max_length() + x1.max_length();
   }

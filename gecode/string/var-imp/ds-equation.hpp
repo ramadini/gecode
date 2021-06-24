@@ -200,7 +200,7 @@ namespace Gecode { namespace String {
         continue;
       }
       DashedString d(home, mreg, n);
-      r1.free();
+//      std::cerr << "d = " << d << ' ' << n << "\n";
       assert (d.min_length() >= l);
       n = d.size();
       if (n == 1) {
@@ -214,9 +214,9 @@ namespace Gecode { namespace String {
         continue;
       }
       for (int j = 0, k = newSize; j < n; ++j,++k) {
-        if (mreg[j].ub() > u)
-          mreg[j].ub(home, u);
-        newBlocks[k].update(home, mreg[j]);
+        if (d[j].ub() > u)
+          d[j].ub(home, u);
+        newBlocks[k].update(home, d[j]);
       }      
       U[uSize++] = i;
       U[uSize++] = n;

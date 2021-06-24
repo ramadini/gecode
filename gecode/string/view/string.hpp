@@ -707,6 +707,7 @@ namespace Gecode { namespace String {
     Set::BndSetRanges i(bx.ranges());
     s.includeI(home, i);
     bool norm = false;
+    int u = bx.ub();
     x.gets(home, *this);
     if (bx.ub() < max_length())
       x.max_length(home, bx.ub());
@@ -716,6 +717,8 @@ namespace Gecode { namespace String {
     }
     if (norm)
       x.normalize(home);
+    if (u < x.max_length())
+      x.max_length(home, u);
   }
 
   forceinline void
