@@ -563,7 +563,7 @@ namespace Gecode { namespace String {
       return prec(m.ESP, m.LSP) + m.EEP.idx - m.LSP.idx + (m.EEP.off > 0)
            + prec(m.EEP, m.LEP);
     else
-      return 1;
+      return 0;
   }
 
   forceinline int
