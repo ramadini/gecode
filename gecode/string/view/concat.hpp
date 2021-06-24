@@ -505,7 +505,7 @@ namespace Gecode { namespace String {
         bnew.nullify(home);
         return;
       }
-      Gecode::Set::GLBndSet s;
+      Set::GLBndSet s;
       bnew0.includeBaseIn(home, s);
       bnew1.includeBaseIn(home, s);      
       bnew.update(home, bx);
@@ -514,21 +514,29 @@ namespace Gecode { namespace String {
     }
   }
   
+  template <class T>
   forceinline void
-  ConcatView::expandBlock(Space& home, const Block& bx, Block* y) 
-  const {
-    for (int i = 0; i < size(); i++) {
-      y[i].update(home, (*this)[i]);
-      y[i].baseIntersect(home, bx);
-      if (y[i].ub() > bx.ub())
-        y[i].ub(home, bx.ub());
+  ConcatView::expandBlock(Space& home, const Block& bx, T& x) const {
+    assert (!bx.isFixed());
+    Set::GLBndSet s;
+    Set::BndSetRanges i(bx.ranges());
+    s.includeI(home, i);
+    bool norm = false;
+    x.gets(home, *this);
+    if (bx.ub() < max_length())
+      x.max_length(home, bx.ub());
+    for (int i = 0; i < x.size(); i++) {
+      x[i].baseIntersect(home, s);
+      norm |= x[i].isNull() || (i > 0 && x[i].baseEquals(x[i-1]));
     }
+    if (norm)
+      x.normalize(home);
   }
 
   forceinline void
   ConcatView::crushBase(Space& home, Block& bx, const Position& p, 
                                                 const Position& q) const {
-    Gecode::Set::GLBndSet s;
+    Set::GLBndSet s;
     for (int i = p.idx, j = q.idx - (q.off == 0); i <= j; ++i)
       (*this)[i].includeBaseIn(home, s);
     bx.baseIntersect(home, s);

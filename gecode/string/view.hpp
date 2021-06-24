@@ -81,6 +81,7 @@ namespace Gecode { namespace String {
 
 namespace Gecode { namespace String {
 
+  class ConcatView;
   class ConstStringView;
 
   /**
@@ -156,6 +157,7 @@ namespace Gecode { namespace String {
     /// Update this view to be a clone of view \a y
     void gets(Space& home, const DashedString& d);
     void gets(Space& home, const StringView& y);
+    void gets(Space& home, const ConcatView& y);
     void gets(Space& home, const ConstStringView& y);
     void gets(Space& home, const std::vector<int>& w);
     
@@ -190,8 +192,8 @@ namespace Gecode { namespace String {
     int max_len_opt(const Block& bx, const Position& esp, 
                                      const Position& lep, int l1) const;
     /// TODO:                             
-    void
-    expandBlock(Space& home, const Block& bx, Block* y) const;
+    template <class T> void 
+    expandBlock(Space& home, const Block& bx, T& x) const;
     /// TODO:
     void
     crushBase(Space& home, Block& bx, const Position& esp, 
@@ -303,8 +305,8 @@ namespace Gecode { namespace String {
     int max_len_opt(const Block& bx, const Position& esp, 
                                      const Position& lep, int l1) const;
     /// TODO:                             
-    void
-    expandBlock(Space& home, const Block& bx, Block* y) const;
+    template <class T> void
+    expandBlock(Space& home, const Block& bx, T& x) const;
     
     /// TODO:
     void
@@ -435,8 +437,8 @@ namespace Gecode { namespace String {
     int max_len_opt(const Block& bx, const Position& esp, 
                                      const Position& lep, int l1) const;
     /// TODO:                             
-    void
-    expandBlock(Space& home, const Block& bx, Block* y) const;
+    template <class T> void
+    expandBlock(Space& home, const Block& bx, T& x) const;
     /// TODO:
     void
     crushBase(Space& home, Block& bx, const Position& esp, 

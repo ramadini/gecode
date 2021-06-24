@@ -261,6 +261,10 @@ namespace Gecode { namespace String {
   StringView::gets(Space& home, const ConstStringView& y) {
     x->gets(home, y.val());
   }
+  forceinline void
+  StringView::gets(Space& home, const ConcatView& y) {
+    x->gets(home, *y.lhs().x, *y.rhs().x);
+  }
   
   forceinline ModEvent
   StringView::nullify(Space& home) {
@@ -678,7 +682,7 @@ namespace Gecode { namespace String {
       return;
     }
     // More than one block involved
-    Gecode::Set::GLBndSet s;
+    Set::GLBndSet s;
     bp.includeBaseIn(home, s);
     int u = bp.ub() - p_o;
     for (int i = p_i+1; i < q_i; ++i) {
@@ -695,18 +699,29 @@ namespace Gecode { namespace String {
         std::min(bx.ub(), ub_sum(u, std::min(q_o, bq.lb()+k))));
   }
   
+  template <class T>
   forceinline void
-  StringView::expandBlock(Space& home, const Block& bx, Block* y) const {
-    for (int i = 0; i < size(); i++) {
-      y[i].update(home, (*this)[i]);
-      y[i].baseIntersect(home, bx);
+  StringView::expandBlock(Space& home, const Block& bx, T& x) const {
+    assert (!bx.isFixed());
+    Set::GLBndSet s;
+    Set::BndSetRanges i(bx.ranges());
+    s.includeI(home, i);
+    bool norm = false;
+    x.gets(home, *this);
+    if (bx.ub() < max_length())
+      x.max_length(home, bx.ub());
+    for (int i = 0; i < x.size(); i++) {
+      x[i].baseIntersect(home, s);
+      norm |= x[i].isNull() || (i > 0 && x[i].baseEquals(x[i-1]));
     }
+    if (norm)
+      x.normalize(home);
   }
 
   forceinline void
   StringView::crushBase(Space& home, Block& bx, const Position& p, 
                                                 const Position& q) const {
-    Gecode::Set::GLBndSet s;
+    Set::GLBndSet s;
     for (int i = p.idx, j = q.idx - (q.off == 0); i <= j; ++i)
       (*this)[i].includeBaseIn(home, s);
     bx.baseIntersect(home, s);

@@ -159,7 +159,7 @@ bool Benchmark::sat = false;
 
 int main(int argc, char* argv[]) {
   int n = argc == 1 ? 5000 : atoi(argv[1]);
-  StringOptions opt("*** SQL ***", n);
+  StringOptions opt((string("*** SQL ") + argv[1] + string(" ***")).c_str(), n);
   opt.solutions(1);
   Script::run<Benchmark, DFS, StringOptions>(opt);
   switch (n) {

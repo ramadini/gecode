@@ -432,8 +432,8 @@ namespace Gecode { namespace String {
       return;
     }
     // More than one block involved
-    Gecode::Set::GLBndSet s;
-    Gecode::Set::SetDelta d;
+    Set::GLBndSet s;
+    Set::SetDelta d;
     s.include(home, bp, bp, d);
     int u = 1 - p_o;
     for (int i = p_i+1; i < q_i; ++i) {
@@ -449,18 +449,19 @@ namespace Gecode { namespace String {
       bnew.updateCard(home, 0, ub_sum(u, std::min(q_o, k+1)));
   }
   
+  template <class T>
   forceinline void
-  ConstStringView::expandBlock(Space& home, const Block&, Block* y) const {
-    for (int i = 0; i < n; i++)
-      y[i].update(home, Block((*this)[i]));
+  ConstStringView::expandBlock(Space& home, const Block& bx, T& x) const {
+    x.gets(home, *this);
+    assert (bx.ub() >= size());
   }
 
   forceinline void
   ConstStringView::crushBase(Space& home, Block& bx, const Position& p, 
                                                      const Position& q) const {
-    Gecode::Set::GLBndSet s;
+    Set::GLBndSet s;
     for (int i = p.idx, j = q.idx - (q.off == 0); i <= j; ++i) {
-      Gecode::Set::SetDelta d;
+      Set::SetDelta d;
       int c = (*this)[i]; 
       s.include(home, c, c, d);
     }

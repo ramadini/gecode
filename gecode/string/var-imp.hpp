@@ -104,6 +104,7 @@ namespace Gecode { namespace String {
     void gets(Space& home, const DashedString& d);
     void gets(Space& home, const StringVarImp& y);
     void gets(Space& home, const std::vector<int>& w);
+    void gets(Space& home, const StringVarImp& x, const StringVarImp& y);
 
     /// \name Domain update by cardinality refinement
     //@{

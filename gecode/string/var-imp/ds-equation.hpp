@@ -132,35 +132,15 @@ namespace Gecode { namespace String {
           changed = true;
           continue;
         }
-        int ny = y.size();
+        int ny = y.size(), m = x_i.baseSize();
         if (nx == 1 && l <= l1 && (
         baseSingle(y[0]) || baseSingle(y[ny-1]) || y.logdim() < x_i.logdim())) {
           // FIXME: x is a single block, so we can expand it into |y| blocks.
-          if (ny == 1) {
-            x_i.update(home, y[0]);
-            if (u < x_i.ub())
-              x_i.ub(home, u);  
-          }
-          else {
-            Region r1;
-            Block* y1 = r1.alloc<Block>(ny);
-            y.expandBlock(home, x_i, y1);
-            DashedString d(home, y1, ny);
-            if (d.size() == 1) {
-              x_i.update(home, y1[0]);
-              if (u < x_i.ub())
-              x_i.ub(home, u);
-            }
-            else {
-              x.gets(home, d);
-              if (x.max_length() > u)
-                x.max_length(home, u);  
-            }
-          }
+          y.expandBlock(home, x_i, x);
+          changed |= l < l1 || u > u1 || m > x_i.baseSize();
           return true;
         }
         // Crushing into a single block
-        int m = x_i.baseSize();
         if (l1 > l)
           x_i.lb(home, l1);
         if (u1 < u)
@@ -220,7 +200,8 @@ namespace Gecode { namespace String {
         continue;
       }
       DashedString d(home, mreg, n);
-//      assert (d.min_length() >= l); 
+      r1.free();
+      assert (d.min_length() >= l);
       n = d.size();
       if (n == 1) {
         if (d[0].ub() > u)
@@ -232,12 +213,11 @@ namespace Gecode { namespace String {
         changed = true;
         continue;
       }
-//      std::cerr << "n = " << n << ", d = " << d << "\n";
       for (int j = 0, k = newSize; j < n; ++j,++k) {
         if (mreg[j].ub() > u)
           mreg[j].ub(home, u);
         newBlocks[k].update(home, mreg[j]);
-      }  
+      }      
       U[uSize++] = i;
       U[uSize++] = n;
       newSize += n;

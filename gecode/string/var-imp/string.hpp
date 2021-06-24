@@ -44,8 +44,7 @@ namespace Gecode { namespace String {
   
   forceinline void
   StringVarImp::gets(Space& home, const DashedString& dy) {
-//    std::cerr << *this << " gets dy: " << dy << "\n";
-    assert (!assigned() && !ds.equals(dy));
+    assert (!assigned());    
     int l = min_length(), u = max_length();    
     ds.update(home, dy);
     StringDelta d;
@@ -68,6 +67,11 @@ namespace Gecode { namespace String {
     ds.update(home, w);
     StringDelta d;
     notify(home, ME_STRING_VAL, d);
+  }
+  
+  forceinline void
+  StringVarImp::gets(Space& home, const StringVarImp& x, const StringVarImp& y) {
+    ds.update(home, x.ds, y.ds);
   }
   
   forceinline ModEvent

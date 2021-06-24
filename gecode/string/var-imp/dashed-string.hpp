@@ -10,7 +10,7 @@ namespace Gecode { namespace String {
    *
    * \ingroup TaskModelStringBranch
    */
-  class GECODE_STRING_EXPORT CharSet : public Gecode::Set::LUBndSet {
+  class GECODE_STRING_EXPORT CharSet : public Set::LUBndSet {
   
   // FIXME: One may define subclasses of CharSet for fixed-size charsets 
   // relying on bit-vectors representation.
@@ -120,7 +120,7 @@ namespace Gecode { namespace String {
     /// Throws IllegalOperation if the block is null
     int baseMax(void) const;
     /// Returns a range iterator to the base. Throws IllegalOperation if the block is fixed
-    Gecode::Set::BndSetRanges ranges(void) const;
+    Set::BndSetRanges ranges(void) const;
     /// Returns the natural logarithm of the dimension of the block.    
     double logdim(void) const;
     /// Returns the concrete string denoted by the block, if the block is fixed.
@@ -140,7 +140,7 @@ namespace Gecode { namespace String {
     bool baseDisjoint(const Block& b) const;
     /// Test whether the base of this block is equal to the base of \a b
     bool baseEquals(const Block& b) const;
-    bool baseEquals(const Gecode::Set::BndSet& s) const;
+    bool baseEquals(const Set::BndSet& s) const;
     /// Test whether the base of this block contains c
     bool baseContains(int c) const;
     /// Test whether this block contains block \a b, i.e. base() contains b.base() 
@@ -165,7 +165,7 @@ namespace Gecode { namespace String {
     /// Exclude all elements not in \a S from the base
     /// A VariableEmptyDomain exception is raised if the base becomes empty but 
     /// the lower bound is greater than zero.
-    void baseIntersect(Space& home, const Gecode::Set::BndSet& S);
+    void baseIntersect(Space& home, const Set::BndSet& S);
     /// Exclude all elements not in \a the base of b from this base
     /// A VariableEmptyDomain exception is raised if the base becomes empty but 
     /// the lower bound is greater than zero.
@@ -173,10 +173,10 @@ namespace Gecode { namespace String {
     /// Exclude all elements of \a S from the base
     /// A VariableEmptyDomain exception is raised if the base becomes empty but 
     /// the lower bound is greater than zero.
-    void baseExclude(Space& home, const Gecode::Set::BndSet& S);
+    void baseExclude(Space& home, const Set::BndSet& S);
     void baseRemove(Space& home, int c);
     /// Include the elements of this base in S.
-    void includeBaseIn(Space& home, Gecode::Set::GLBndSet& S) const;
+    void includeBaseIn(Space& home, Set::GLBndSet& S) const;
     //@}
     
     /// \name Cloning
@@ -224,7 +224,7 @@ namespace Gecode { namespace String {
 //    int val() const;
 //    Block& block();
 //    const Block& block() const;
-//    void includeBaseIn(Space& home, Gecode::Set::GLBndSet& s);
+//    void includeBaseIn(Space& home, Set::GLBndSet& s);
 //    friend std::ostream& operator<<(std::ostream& os, const GBlock& g);
 //  };
 
@@ -318,6 +318,8 @@ namespace Gecode { namespace String {
     void update(Space& home, const DashedString& x);
     /// Update this dashed string to be assigned to \a w
     void update(Space& home, const std::vector<int>& w);
+    
+    void update(Space& home, const DashedString& x, const DashedString& y);
     /// Possibly refine this dashed string given minimum length l.
     /// Pre-condition: min_length() <= l <= max_length()
     void min_length(Space& home, int l);
@@ -431,7 +433,7 @@ namespace Gecode { namespace String {
       return true;
     if (min() == x.min() || max() == x.max())
       return false;
-    Gecode::Set::BndSetRanges i1(*this), i2(x);
+    Set::BndSetRanges i1(*this), i2(x);
     while (i1() && i2()) {
       if ((i1.min() <= i2.min() && i2.min() <= i1.max())
       ||  (i1.min() <= i2.max() && i2.max() <= i1.max())
@@ -457,7 +459,7 @@ namespace Gecode { namespace String {
       return true;
     if (_size < x._size)
       return false;
-    Gecode::Set::BndSetRanges i1(*this), i2(x);
+    Set::BndSetRanges i1(*this), i2(x);
     while (i1() && i2())
       if (i1.min() > i2.min() || i1.max() < i2.max())
         ++i1;
@@ -473,8 +475,8 @@ namespace Gecode { namespace String {
       return false;
     if (min() != s.min() || max() != s.max())
       return false;
-    Gecode::Set::BndSetRanges i1(*this);
-    Gecode::Set::BndSetRanges i2(s);    
+    Set::BndSetRanges i1(*this);
+    Set::BndSetRanges i2(s);    
     while (i1() && i2()) {
       if (i1.min() != i2.min() || i1.max() != i2.max())
         return false;
@@ -487,17 +489,17 @@ namespace Gecode { namespace String {
   template <class T>
   forceinline void
   CharSet::intersect(Space& home, const T& s) {
-    Gecode::Set::BndSetRanges i(s);
+    Set::BndSetRanges i(s);
     intersectI(home, i);
   }
   forceinline void
   CharSet::intersect(Space& home, int i, int j) {
-    Gecode::Set::LUBndSet::intersect(home, i, j);
+    Set::LUBndSet::intersect(home, i, j);
   }
   
   forceinline std::ostream&
   operator<<(std::ostream& os, const CharSet& set) {
-    Gecode::Set::BndSetRanges i(set);
+    Set::BndSetRanges i(set);
     os << "{";
     while (i()) {
       os << int2str(i.min());
@@ -567,11 +569,11 @@ namespace Gecode { namespace String {
 //  }
 //  
 //  forceinline void 
-//  GBlock::includeBaseIn(Space& home, Gecode::Set::GLBndSet& s) {
+//  GBlock::includeBaseIn(Space& home, Set::GLBndSet& s) {
 //    if (c < 0)
 //      p->includeBaseIn(home, s);
 //    else {
-//      Gecode::Set::SetDelta d;
+//      Set::SetDelta d;
 //      s.include(home, c, c, d);
 //    }
 //  }
@@ -674,11 +676,11 @@ namespace Gecode { namespace String {
     return isFixed() ? l: S.max();
   }
   
-  forceinline Gecode::Set::BndSetRanges
+  forceinline Set::BndSetRanges
   Block::ranges() const {
     if (isFixed())
       throw IllegalOperation("Block::ranges");
-    return Gecode::Set::BndSetRanges(S);
+    return Set::BndSetRanges(S);
   }
   
   forceinline bool
@@ -699,7 +701,7 @@ namespace Gecode { namespace String {
     return S.equals(b.S);
   }
   forceinline bool
-  Block::baseEquals(const Gecode::Set::BndSet& s) const {
+  Block::baseEquals(const Set::BndSet& s) const {
     if (isFixed())
       return s.size() == 1 && s.min() == l;
     return S.equals(s);
@@ -777,7 +779,7 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  Block::baseIntersect(Space& home, const Gecode::Set::BndSet& s) {
+  Block::baseIntersect(Space& home, const Set::BndSet& s) {
     if (isNull())
       return;
     if (isFixed()) {
@@ -785,7 +787,7 @@ namespace Gecode { namespace String {
         throw VariableEmptyDomain("Block::baseIntersect"); 
       return;
     }
-    Gecode::Set::BndSetRanges i(s);
+    Set::BndSetRanges i(s);
     S.intersectI(home, i);
     if (S.empty()) {
       if (l > 0)
@@ -799,7 +801,6 @@ namespace Gecode { namespace String {
   
   forceinline void
   Block::baseIntersect(Space& home, const Block& b) {
-//    std::cerr << *this << " baseIntersect " << b << '\n';
     if (isNull())
       return;
     if (isFixed()) {
@@ -824,7 +825,7 @@ namespace Gecode { namespace String {
       assert(isOK());
       return;
     }
-    Gecode::Set::BndSetRanges i(b.S);
+    Set::BndSetRanges i(b.S);    
     S.intersectI(home, i);
     if (S.empty()) {
       if (l > 0)
@@ -837,7 +838,7 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  Block::baseExclude(Space& home, const Gecode::Set::BndSet& s) {
+  Block::baseExclude(Space& home, const Set::BndSet& s) {
     if (isNull())
       return;
     if (isFixed()) {
@@ -845,7 +846,7 @@ namespace Gecode { namespace String {
         throw VariableEmptyDomain("Block::baseExclude"); 
       return;
     }
-    Gecode::Set::BndSetRanges i(s);
+    Set::BndSetRanges i(s);
     S.excludeI(home, i);
     if (S.empty() && l > 0)
       throw VariableEmptyDomain("Block::baseExclude");
@@ -858,7 +859,7 @@ namespace Gecode { namespace String {
   Block::baseRemove(Space& home, int c) {
     if (isFixed()|| (l > 0 && S.size() == 1))
       throw VariableEmptyDomain("Block::baseRemove"); 
-    Gecode::Set::SetDelta d;
+    Set::SetDelta d;
     S.exclude(home, c, c, d);
     if (l == u && S.size() == 1)
       fix(home);
@@ -866,18 +867,18 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  Block::includeBaseIn(Space& home, Gecode::Set::GLBndSet& s) const {
+  Block::includeBaseIn(Space& home, Set::GLBndSet& s) const {
     switch (baseSize()) {
     case 0:
       return;
     case 1: {
       int m = baseMin();
-      Gecode::Set::SetDelta d;
+      Set::SetDelta d;
       s.include(home, m, m, d);
       return;
     }
     default:
-      Gecode::Set::BndSetRanges r(ranges());
+      Set::BndSetRanges r(ranges());
       s.includeI(home, r);
     }
   }
@@ -1289,6 +1290,29 @@ namespace Gecode { namespace String {
     assert (isOK());
     assert (isNorm());
   }
+  
+  forceinline void
+  DashedString::update(Space& home, const DashedString& x0, 
+                                    const DashedString& x1) {
+    int n0 = x0.size(), n1 = x1.size();
+    bool norm = x[n0-1].equals(x1[0]);
+    int m = n0 + n1 - norm;
+    if (n < m) {
+      a.free(x, n);
+      x = a.template alloc<Block>(m);
+    }
+    for (int i = 0; i < n0; ++i)
+      x[i].update(home, x0[i]);
+    if (norm)
+      x[n0].updateCard(home, x[n0-1].lb()+x1[0].lb(), x[n0-1].lb()+x1[0].ub());
+    else
+      x[n0].update(home, x1[0]);
+    for (int i = n0+1, j = 1; j < n1; ++i, ++j)
+      x[i].update(home, x1[j]);
+    n = m;
+    min_len = x0.min_length() + x1.min_length();
+    max_len = x0.max_length() + x1.max_length();
+  }
  
   forceinline void
   DashedString::splitBlock(Space& home, int idx, int c, unsigned alt) {
@@ -1303,9 +1327,9 @@ namespace Gecode { namespace String {
         lnorm = x_prev.isFixed() && x_prev.baseMin() == c;
       else if (x_prev.baseSize() == x_i.baseSize()-1 
            && !x_prev.baseContains(c)) {
-        Gecode::Set::GLBndSet s;
+        Set::GLBndSet s;
         x_prev.includeBaseIn(home, s);
-        Gecode::Set::SetDelta d;
+        Set::SetDelta d;
         s.include(home, c, c, d);
         lnorm = x_i.baseEquals(s);
       }
@@ -1317,9 +1341,9 @@ namespace Gecode { namespace String {
         rnorm = x_next.isFixed() && x_next.baseMin() == c;
       else if (x_next.baseSize() == x_i.baseSize()-1 
            && !x_next.baseContains(c)) {
-        Gecode::Set::GLBndSet s;
+        Set::GLBndSet s;
         x_next.includeBaseIn(home, s);
-        Gecode::Set::SetDelta d;
+        Set::SetDelta d;
         s.include(home, c, c, d);
         rnorm = x_i.baseEquals(s);
       }
