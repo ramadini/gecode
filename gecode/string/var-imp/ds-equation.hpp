@@ -132,29 +132,32 @@ namespace Gecode { namespace String {
           changed = true;
           continue;
         }
-        if (nx == 1 && l <= l1) {
-          // FIXME: x is a single block, so we can expand it into |y| blocks but
-          // only if we propagate |x| <= min(u, y.max_length()), otherwise we 
-          // lose the length information and the propagation can be unsound!!!
-          Region r1;
-          int ny = y.size();
-          Block* y1 = r1.alloc<Block>(ny);
-          y.expandBlock(home, x_i, y1);
-          if (baseSingle(y[0]) || baseSingle(y[ny-1]) 
-          ||  y.logdim() < x_i.logdim()) {
-            if (ny == 1)
-              x_i.update(home, y1[0]);
-            else {
-              DashedString d(home, y1, ny);
-              if (d.size() == 1)
-                x_i.update(home, y1[0]);
-              else
-                x.gets(home, d);
-            }
-            if (x.max_length() > u)
-              x.max_length(home, u);
-            return true;
+        int ny = y.size();
+        if (nx == 1 && l <= l1 && (
+        baseSingle(y[0]) || baseSingle(y[ny-1]) || y.logdim() < x_i.logdim())) {
+          // FIXME: x is a single block, so we can expand it into |y| blocks.
+          if (ny == 1) {
+            x_i.update(home, y[0]);
+            if (u < x_i.ub())
+              x_i.ub(home, u);  
           }
+          else {
+            Region r1;
+            Block* y1 = r1.alloc<Block>(ny);
+            y.expandBlock(home, x_i, y1);
+            DashedString d(home, y1, ny);
+            if (d.size() == 1) {
+              x_i.update(home, y1[0]);
+              if (u < x_i.ub())
+              x_i.ub(home, u);
+            }
+            else {
+              x.gets(home, d);
+              if (x.max_length() > u)
+                x.max_length(home, u);  
+            }
+          }
+          return true;
         }
         // Crushing into a single block
         int m = x_i.baseSize();
@@ -217,7 +220,6 @@ namespace Gecode { namespace String {
         continue;
       }
       DashedString d(home, mreg, n);
-      r1.free();
 //      assert (d.min_length() >= l); 
       n = d.size();
       if (n == 1) {
