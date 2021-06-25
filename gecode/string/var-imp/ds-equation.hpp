@@ -201,6 +201,7 @@ namespace Gecode { namespace String {
         continue;
       }
       DashedString d(home, mreg, n);
+      r1.free();
 //      std::cerr << "d = " << d << ' ' << n << "\n";
       assert (d.min_length() >= l);
       n = d.size();
