@@ -452,8 +452,8 @@ namespace Gecode { namespace String {
     int lb = min_length();
     long ub = this->ubounds_sum();
     Matching m[size()];
-    int n = -1;
-    if (sweep_x(*this, y, m, n) && refine_x(home, *this, y, m, n)) {
+    int n, k;
+    if (sweep_x(*this, y, m, k, n) && refine_x(home, *this, y, m, k, n)) {
       if (n == -1)
         return ME_STRING_NONE;
       StringDelta d;    

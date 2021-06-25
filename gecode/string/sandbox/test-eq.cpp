@@ -313,9 +313,9 @@ public:
     StringVar y(*this, Block(*this, CharSet(*this,IntSet({'b','o','m'})),0,4));    
     StringView vx(x), vy(y);    
     cerr << "Sweep x = " << x << "  vs  y = " << y << "\n";
-    int n = vx.size(), k = 0;
+    int n = vx.size(), k = 0, h = 0;
     Matching mx[n];
-    assert(sweep_x(vx, vy, mx, k));
+    assert(sweep_x(vx, vy, mx, h, k));
     for (int i = 0; i < n; ++i)
       cerr << "Block " << vx[i] << ":\t"
            << "ESP: " << mx[i].ESP << ", "
@@ -327,7 +327,7 @@ public:
     cerr << "Sweep y = " << y << "  vs  x = " << x << "\n";    
     n = vy.size();
     Matching my[n];
-    assert(sweep_x(vy, vx, my, k));
+    assert(sweep_x(vy, vx, my, h, k));
     for (int i = 0; i < n; ++i)
       cerr << "Block " << vy[i] << ":\t"
            << "ESP: " << my[i].ESP << ", "

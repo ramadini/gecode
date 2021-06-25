@@ -382,8 +382,8 @@ namespace Gecode { namespace String {
     int lb0 = x0.min_length(), lb1 = x1.min_length();
     long ub0 = x0.ubounds_sum(), ub1 = x1.ubounds_sum();
     Matching m[size()];
-    int n;
-    if (sweep_x(*this, y, m, n) && refine_x(home, *this, y, m, n)) {
+    int n, k;
+    if (sweep_x(*this, y, m, k, n) && refine_x(home, *this, y, m, k, n)) {
       if (n == -1)
         return ME_STRING_NONE;
       x0.sync_length();

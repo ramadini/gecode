@@ -103,13 +103,14 @@ namespace Gecode { namespace String {
   /// It returns true iff at least a block has been refined.
   template <class ViewX, class ViewY>
   forceinline bool 
-  refine_x(Space& home, ViewX& x, const ViewY& y, Matching m[], int& nBlocks) {
+  refine_x(Space& home, ViewX& x, const ViewY& y, Matching m[], int xFixed,
+                                                                int& nBlocks) {
 //    std::cerr << "Refining " << x << "  vs  " << y << "\nMax. " << nBlocks << " new blocks needed.\n";
     int nx = x.size();    
     bool changed = false;
     Region r;
     Block* newBlocks = r.alloc<Block>(nBlocks);
-    int* U = r.alloc<int>(2*nx);
+    int* U = r.alloc<int>(2*(nx-xFixed));
     int newSize = 0, uSize = 0;
     for (int i = 0; i < nx; ++i) {
 //      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
@@ -319,7 +320,7 @@ namespace Gecode { namespace String {
   /// TODO:
   template <class ViewX, class ViewY>
   forceinline bool
-  sweep_x(ViewX& x, const ViewY& y, Matching m[], int& n) {
+  sweep_x(ViewX& x, const ViewY& y, Matching m[], int& xFixed, int& n) {
 //    std::cerr << "sweep_x: " << x << "  vs  " << y << "\n";
     if (!init_x(x, y, m))
       return false;
@@ -343,14 +344,18 @@ namespace Gecode { namespace String {
       assert (m[i].ESP.isNorm(y) && m[i].LSP.isNorm(y));
     }
     m[nx-1].EEP = m[nx-1].LEP;
-    n = y.ub_new_blocks(m[nx-1]);
+    xFixed = x[nx-1].isFixed();
+    n = xFixed ? 0 : y.ub_new_blocks(m[nx-1]);
     for (int i = nx-2; i >= 0; --i) {
       m[i].EEP = m[i+1].ESP;
 //      std::cerr << "EEP of " << x[i] << ": " << m[i].EEP << ", " 
 //                << "LEP of " << x[i] << ": " << m[i].LEP << "\n";
       if (y.prec(m[i].LEP, m[i].EEP))
         return false;
-      n += y.ub_new_blocks(m[i]);
+      if (x[i].isFixed())
+        xFixed++;
+      else
+        n += y.ub_new_blocks(m[i]);
       assert (m[i].EEP.isNorm(y) && m[i].LEP.isNorm(y));
     }    
     assert (m[nx-1].EEP == Position(y.size(),0));
