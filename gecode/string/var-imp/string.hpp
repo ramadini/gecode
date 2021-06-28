@@ -144,7 +144,7 @@ namespace Gecode { namespace String {
   forceinline ModEvent
   StringVarImp::bnd_length(Space& home, int l, int u) {
     int lx = min_length(), ux = max_length();
-    if (l < lx && u > ux)
+    if (l <= lx && u >= ux)
       return ME_STRING_NONE;
     if (l > ux || u < lx)
       return ES_FAILED;

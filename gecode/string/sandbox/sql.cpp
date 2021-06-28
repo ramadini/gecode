@@ -1,5 +1,6 @@
 #include <gecode/string.hh>
 #include <gecode/driver.hh>
+#include <gecode/string/rel-op.hh>
 
 using namespace Gecode;
 using namespace String;
@@ -171,5 +172,6 @@ int main(int argc, char* argv[]) {
   default:
     assert (Benchmark::sat);
   }
+  using namespace Gecode::String::RelOp;
   return 0;
 }
