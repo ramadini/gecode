@@ -37,21 +37,15 @@ namespace Gecode { namespace String { namespace RelOp {
   forceinline ExecStatus
   Concat<View0,View1,View2>::refine_card(Space& home) {
 //    std::cerr << "Before refine_card: " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
-    ModEvent me0;
     int l = std::max(x0.min_length(), x2.min_length() - x1.max_length()),
         u = std::min(x0.max_length(), x2.max_length() - x1.min_length());
-    me0 = x0.bnd_length(home, l, u);
-    GECODE_ME_CHECK(me0);
+    GECODE_ME_CHECK(x0.bnd_length(home, l, u));
     l = std::max(x1.min_length(), x2.min_length() - x0.max_length()),
     u = std::min(x1.max_length(), x2.max_length() - x0.min_length());
-    ModEvent me1 = x1.bnd_length(home, l, u);
-    GECODE_ME_CHECK(me1);
-    me0 += me1;
+    GECODE_ME_CHECK(x1.bnd_length(home, l, u));
     l = std::max(x2.min_length(), x0.min_length() + x1.min_length()),
     u = std::min(x2.max_length(), x0.max_length() + x1.max_length());
-    me1 = x2.bnd_length(home, l, u);
-    GECODE_ME_CHECK(me1);
-    me0 += me1;
+    GECODE_ME_CHECK(x2.bnd_length(home, l, u));
 //    std::cerr << "After refine_card: " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
     return ES_FIX;
   }
@@ -95,11 +89,11 @@ namespace Gecode { namespace String { namespace RelOp {
     do {
       ConcatView xy(x0,x1);
       ModEvent me0 = ME_STRING_NONE;
-      if (!x2.assigned())
+      if (!x2.assigned()) {
         me0 = x2.equate(home, xy);
-      GECODE_ME_CHECK(me0);
+        GECODE_ME_CHECK(me0);
+      }
       ModEvent me1 = xy.equate(home, x2);
-      assert(xy.isOK());
       GECODE_ME_CHECK(me1);
       if (me0 == ME_STRING_VAL || me0 == ME_STRING_CARD
       ||  me1 == ME_STRING_VAL || me1 == ME_STRING_CARD)

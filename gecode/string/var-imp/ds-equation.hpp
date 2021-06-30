@@ -116,14 +116,14 @@ namespace Gecode { namespace String {
 //      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
 //      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].LSP << "\nEEP: " 
 //                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
+      if (x[i].isFixed())
+        continue;
       Position& esp = m[i].ESP, eep = m[i].EEP, lsp = m[i].LSP, lep = m[i].LEP;
       Block& x_i = x[i];
       int l = x_i.lb(), u = x_i.ub(), l1 = min_len_mand(y, x_i, lsp, eep);
 //      std::cerr << "l'=" << l1 << "\n";
       if (u < l1)
         return false;
-      if (x_i.isFixed())
-        continue;
       int u1 = y.max_len_opt(x_i, esp, lep, l1);
 //      std::cerr << "u'=" << u1 << "\n";
       assert (l1 <= u1);
@@ -133,9 +133,8 @@ namespace Gecode { namespace String {
           changed = true;
           continue;
         }
-        int ny = y.size(), m = x_i.baseSize();
-        if (nx == 1 && l <= l1 && (
-        baseSingle(y[0]) || baseSingle(y[ny-1]) || y.logdim() < x_i.logdim())) {
+        int m = x_i.baseSize();
+        if (nx == 1 && l <= l1 && y.logdim() < x_i.logdim()) {
           // FIXME: x is a single block, so we can expand it into |y| blocks.
           y.expandBlock(home, x_i, x);
           changed |= l < l1 || u > u1 || m > x_i.baseSize();
@@ -190,16 +189,6 @@ namespace Gecode { namespace String {
       }
       if (eep != lep)
         y.opt_region(home, x_i, mreg[n-1], eep, lep, l1);
-      if (n == 1) {
-        // No need to unfold x_i.
-        if (mreg[0].ub() > u)
-          mreg[0].ub(home, u);
-        if (mreg[0].equals(x_i))
-          continue;
-        x_i.update(home, mreg[0]);
-        changed = true;
-        continue;
-      }
       DashedString d(home, mreg, n);
       r1.free();
 //      std::cerr << "d = " << d << ' ' << n << "\n";
@@ -210,7 +199,6 @@ namespace Gecode { namespace String {
           d[0].ub(home, u);
         if (d[0].equals(x_i))
           continue;
-        n = x_i.baseSize();
         x_i.update(home, d[0]);
         changed = true;
         continue;

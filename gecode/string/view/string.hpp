@@ -635,10 +635,10 @@ namespace Gecode { namespace String {
                              const Position& p, const Position& q) const {
     // FIXME: When only block by is involved.
     assert (p.idx == q.idx || (p.idx == q.idx-1 && q.off == 0));    
-    bx.baseIntersect(home, by);
+    bx.baseIntersect(home, (*this)[p.idx]);
     if (!bx.isNull()) {
       int q_off = q.off > 0 ? q.off : (*this)[q.idx-1].ub();
-      bx.updateCard(home, std::max(bx.lb(), std::min(q_off, by.lb()) - p.off),
+      bx.updateCard(home, std::max(bx.lb(), std::min(q_off, (*this)[p.idx].lb()) - p.off),
                           std::min(bx.ub(), q_off - p.off));
     }
   }
