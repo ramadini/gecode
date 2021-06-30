@@ -5,23 +5,16 @@ namespace Gecode { namespace String {
   template <class T> class SweepBwdIterator;
 
   /// Auxiliary functions
-  
   forceinline int
   nabla(const Block& bx, const Block& by, int x) {
     return x <= 0 || bx.baseDisjoint(by) ? 0 : x;
   }
-  
   forceinline int ubound(int) { return 1; }
   forceinline int lbound(int) { return 1; }
-  forceinline bool baseSingle(int) { return true; }
   forceinline int ubound(const Block& b) { return b.ub(); }
   forceinline int lbound(const Block& b) { return b.lb(); }
-//  forceinline int lbound(const GBlock& g) { return g.lb(); }
-//  forceinline int ubound(const GBlock& g) { return g.ub(); }
-  forceinline bool baseSingle(const Block& b) { 
-    return b.lb() > 0 && b.baseSize() == 1; 
-  }
-  
+  forceinline bool isFixed(const Block& b) { return b.isFixed(); }
+  forceinline bool isFixed(int) { return 1; }
   template <class View> forceinline int 
   min_len_mand(const View& y, const Block& b, const Position& p, 
                                               const Position& q) {
@@ -31,11 +24,6 @@ namespace Gecode { namespace String {
   min_len_mand(const View&, int, const Position&, const Position&) {
     return 1;
   }
-//  template <class View> forceinline int 
-//  min_len_mand(const View& y, const GBlock& g, const Position& p, 
-//                                               const Position& q) {
-//    return g.isChar() ? 1 : y.min_len_mand(g.block(), p, q);
-//  }
   
   /// Struct abstracting a position in a dashed string.
   struct Position {
@@ -383,6 +371,8 @@ namespace Gecode { namespace String {
 //      std::cerr << "Checking x[" << i << "] = " << x[i] << "\n";
 //      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].LSP << "\nEEP: " 
 //                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
+      if (isFixed(x[i]))
+        continue;
       if (ubound(x[i]) < min_len_mand(y, x[i], m[i].LSP, m[i].EEP))
         return false;
     }

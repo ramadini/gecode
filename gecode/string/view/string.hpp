@@ -795,7 +795,7 @@ namespace Gecode { namespace String {
 //      std::cerr << "U[" << i << "] = " << U[i] << "\n"; 
 //    for (int i = 0; i < newSize; i ++)
 //      std::cerr << "newBlocks[" << i << "] = " << newBlocks[i] << "\n"; 
-    int off = 0, idxOld = 0, idxNew = 0, old_maxlen = max_length();
+    int off = 0, idxOld = 0, idxNew = 0;
     for (int idxU = 0; idxU < uSize; idxU += 2) {
       for (; idxOld < size() && idxOld < U[idxU]; ++idxOld, ++idxNew)
         d[idxNew].update(home, (*this)[idxOld]);
@@ -807,8 +807,8 @@ namespace Gecode { namespace String {
     for (; idxOld < size(); ++idxOld, ++idxNew)
       d[idxNew].update(home, (*this)[idxOld]);
     d.normalize(home);
-    if (d.max_length() > old_maxlen)
-      d.max_length(home, old_maxlen);
+    if (d.max_length() > max_length())
+      d.max_length(home, max_length());    
     x->gets(home, d);
   }
      
