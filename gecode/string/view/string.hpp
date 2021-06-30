@@ -631,14 +631,15 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  StringView::mand_region(Space& home, Block& bx, const Block& by,
-                             const Position& p, const Position& q) const {
+  StringView::mand_region(Space& home, Block& bx, const Position& p, 
+                                                  const Position& q) const {
     // FIXME: When only block by is involved.
-    assert (p.idx == q.idx || (p.idx == q.idx-1 && q.off == 0));    
-    bx.baseIntersect(home, (*this)[p.idx]);
+    assert (p.idx == q.idx || (p.idx == q.idx-1 && q.off == 0));
+    const Block& by = (*this)[p.idx]; 
+    bx.baseIntersect(home, by);
     if (!bx.isNull()) {
       int q_off = q.off > 0 ? q.off : (*this)[q.idx-1].ub();
-      bx.updateCard(home, std::max(bx.lb(), std::min(q_off, (*this)[p.idx].lb()) - p.off),
+      bx.updateCard(home, std::max(bx.lb(), std::min(q_off, by.lb()) - p.off),
                           std::min(bx.ub(), q_off - p.off));
     }
   }

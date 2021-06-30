@@ -169,9 +169,7 @@ namespace Gecode { namespace String {
       if (n == 1) {
         // No need to unfold x_i.
         n = x_i.baseSize();
-        Block b;
-        b.update(home, y[lsp.idx]);
-        y.mand_region(home, x_i, b, lsp, eep);
+        y.mand_region(home, x_i, lsp, eep);
         changed |= l < x_i.lb() || u > x_i.ub() || n > x_i.baseSize();
 //        std::cerr << "x[" << i << "] ref. into " << x_i << "\n";
         continue;

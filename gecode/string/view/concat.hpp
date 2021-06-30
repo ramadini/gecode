@@ -460,13 +460,13 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  ConcatView::mand_region(Space& home, Block& bx, const Block& by,
-                             const Position& p, const Position& q) const {
+  ConcatView::mand_region(Space& home, Block& bx, const Position& p, 
+                                                  const Position& q) const {
     // FIXME: When only block by is involved.
     if (p.idx < pivot)
-      x0.mand_region(home, bx, by, p, q);
+      x0.mand_region(home, bx, p, q);
     else
-      x1.mand_region(home, bx, by, p-pivot, q-pivot);
+      x1.mand_region(home, bx, p-pivot, q-pivot);
   }
   
   forceinline int

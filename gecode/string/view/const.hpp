@@ -404,9 +404,9 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  ConstStringView::mand_region(Space& home, Block& bx, const Block& by,
-                               const Position&, const Position&) const {
-    bx.update(home, by);
+  ConstStringView::mand_region(Space& home, Block& bx, const Position& p, 
+                                                       const Position&) const {
+    bx.update(home, (*this)[p.idx]);
   }
   
   forceinline int
