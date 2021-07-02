@@ -94,11 +94,11 @@ namespace Gecode { namespace String {
   refine_x(Space& home, ViewX& x, const ViewY& y, Matching m[], int xFixed,
                                                                 int& nBlocks) {
 //    std::cerr << "Refining " << x << "  vs  " << y << "\nMax. " << nBlocks << " new blocks needed.\n";
-    int nx = x.size();    
+    int nx = x.size(), ux = 2*(nx-xFixed);    
     bool changed = false;
     Region r;
-    Block* newBlocks = r.alloc<Block>(nBlocks);
-    int* U = r.alloc<int>(2*(nx-xFixed));
+    Block* newBlocks = nullptr;
+    int* U = nullptr;
     int newSize = 0, uSize = 0;
     for (int i = 0; i < nx; ++i) {
 //      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
@@ -119,6 +119,7 @@ namespace Gecode { namespace String {
         if (u1 == 0) {
           x_i.nullify(home);
           changed = true;
+          ux -= 2;
           continue;
         }
         int m = x_i.baseSize();
@@ -138,13 +139,17 @@ namespace Gecode { namespace String {
         changed |= l < l1 || u > u1 || m > x_i.baseSize();
         if (l1 == 0) {
 //          std::cerr << "x[" << i << "] ref. into " << x_i << "\n";
+          ux -= 2;
           continue;
         }
         int np = esp == lsp ? y.fixed_chars_pref(lsp, eep) : 0;
         int ns = eep == lep ? y.fixed_chars_suff(lsp, eep) : 0;
 //        std::cerr << x_i << ' ' <<  np << ' ' << ns << '\n';
-        if (np == 0 && ns == 0)
+        if (np == 0 && ns == 0) {
+          nBlocks--;
+          ux -= 2;
           continue;
+        }
         assert (np >= 0 && ns >= 0 && np + ns <= l1);
         assert (y.prec(lsp, eep) && (esp == lsp || eep == lep));
         x_i.updateCard(home, x_i.lb()-ns-np, x_i.ub()-ns-np);
@@ -155,11 +160,13 @@ namespace Gecode { namespace String {
       int n = y.ub_new_blocks(m[i]);
       assert (n > 0);
       if (n == 1) {
+        nBlocks--;
+        ux -= 2;
         // No need to unfold x_i.
         n = x_i.baseSize();
         y.mand_region(home, x_i, lsp, eep);
         changed |= l < x_i.lb() || u > x_i.ub() || n > x_i.baseSize();
-//        std::cerr << "x[" << i << "] ref. into " << x_i << "\n";
+//        std::cerr << "x[" << i << "] ref. into " << x_i << "\n";        
         continue;
       }
       l = x_i.lb(), u = x_i.ub();
@@ -181,6 +188,8 @@ namespace Gecode { namespace String {
       assert (d.min_length() >= l);
       n = d.size();
       if (n == 1) {
+        nBlocks--;
+        ux -= 2;
         if (d[0].ub() > u)
           d[0].ub(home, u);
         if (d[0].equals(x_i))
@@ -189,6 +198,10 @@ namespace Gecode { namespace String {
         changed = true;
         continue;
       }
+      if (U == nullptr)
+        U = r.alloc<int>(ux);
+      if (newBlocks == nullptr)
+        newBlocks = r.alloc<Block>(nBlocks);
       for (int j = 0, k = newSize; j < n; ++j,++k) {
         if (d[j].ub() > u)
           d[j].ub(home, u);

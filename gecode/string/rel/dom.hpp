@@ -35,15 +35,14 @@ namespace Gecode { namespace String { namespace Rel {
     if (x1.contains(x0))
       return home.ES_SUBSUMED(*this);
     if (x0.assigned())
-      return check_equate_x(x0,x1) && check_equate_x(x1,x0) ?
-        home.ES_SUBSUMED(*this): ES_FAILED;
+      return check_equate_x(x1,x0) ? home.ES_SUBSUMED(*this): ES_FAILED;
     if (x1.assigned()) {
-      if (!check_equate_x(x0,x1) || !check_equate_x(x1,x0))
+      if (!check_equate_x(x0,x1))
         return ES_FAILED;
       x0.gets(home, x1);
       return home.ES_SUBSUMED(*this);
     }
-    ModEvent me = x0.assigned() ? ME_STRING_NONE : x0.equate(home, x1);
+    ModEvent me = x0.equate(home, x1);
     GECODE_ME_CHECK(me);
     if (me != ME_STRING_NONE) {
       GECODE_ME_CHECK(x0.bnd_length(home, 
@@ -51,8 +50,6 @@ namespace Gecode { namespace String { namespace Rel {
         std::min(x0.max_length(), x1.max_length())
       ));
     }
-    else
-      check_equate_x(x0,x1);
     if (!check_equate_x(x1,x0))
       return ES_FAILED;
 //     std::cerr<<"Dom::propagated" << x0 << "  vs  " << x1 << "\n";
