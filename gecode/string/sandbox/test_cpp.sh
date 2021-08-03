@@ -1,7 +1,15 @@
 #!/bin/bash
 
+if
+  [[ "${@: -1}" == "--coverage" ]] 
+then
+  COV='--coverage'
+else
+  COV=
+fi
+
 echo 'Compiling'
-time g++ -O0 -ggdb -pipe -Wall -Wno-switch -I/usr/local/include/gecode -std=c++11 -c -o $1.o $1
+time g++ $COV -O0 -ggdb -pipe -Wall -Wno-switch -I/usr/local/include/gecode -std=c++11 -c -o $1.o $1
 if
   [ $? -ne 0 ]
 then
@@ -10,7 +18,7 @@ then
 fi
 
 echo 'Linking'
-time g++  -o $1.out $1.o -std=c++11 -L/usr/local/lib \
+time g++ $COV -o $1.out $1.o -std=c++11 -L/usr/local/lib \
 -lgecodestring -lgecodeint -lgecodeset -lgecodedriver -lgecodesearch -lgecodeminimodel -lgecodekernel -lgecodesupport -pthread
 if
   [ $? -ne 0 ]
@@ -33,4 +41,10 @@ then
   echo 'Failed!'
   exit 1
 fi
+
+#lcov --capture --directory project-dir --output-file coverage.info
+#genhtml coverage.info --output-directory out
+
 rm $1.out $1.o
+
+
