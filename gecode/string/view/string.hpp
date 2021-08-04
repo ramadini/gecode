@@ -266,6 +266,11 @@ namespace Gecode { namespace String {
     x->gets(home, *y.lhs().x, *y.rhs().x);
   }
   
+  forceinline void
+  StringView::gets_rev(Space& home, const StringView& y) {
+    x->gets_rev(home, *y.x);
+  }
+  
   forceinline ModEvent
   StringView::nullify(Space& home) {
     return x->nullify(home);
@@ -344,6 +349,10 @@ namespace Gecode { namespace String {
   StringView::contains(const StringView& y) const {
     return x->contains(*y.x);
   }
+  forceinline bool
+  StringView::contains_rev(const StringView& y) const {
+    return x->contains_rev(*y.x);
+  }
   template <class T>
   forceinline bool
   StringView::contains(const T&) const {
@@ -355,6 +364,11 @@ namespace Gecode { namespace String {
   StringView::equals(const StringView& y) const {
     return x->equals(*y.x);
   }
+  forceinline bool
+  StringView::equals_rev(const StringView& y) const {
+    return x->equals_rev(*y.x);
+  }
+    
   template <class T>
   forceinline bool
   StringView::equals(const T&) const {

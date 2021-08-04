@@ -487,10 +487,9 @@ namespace Gecode { namespace String {
     return 0;
   }  
     
-  template <class T> forceinline ModEvent 
+  template <class T> forceinline void 
   ConstStringView::gets(Space&, const T&) const {
     GECODE_NEVER;
-    return ME_STRING_NONE;
   }
   forceinline void
   ConstStringView::resize(Space&, Block[], int, int[], int) const {

@@ -46,6 +46,42 @@ namespace Gecode { namespace String { namespace RelOp {
 }}}
 #include <gecode/string/rel-op/concat.hpp>
 
+namespace Gecode { namespace String { namespace RelOp {
+
+  /**
+   * \namespace Gecode::String::RelOp
+   * \brief Standard set operation propagators
+   */
+
+  /**
+   * \brief %Propagator for string reversal
+   *
+   * Requires \code #include <gecode/string/rel-op.hh> \endcode
+   * \ingroup FuncStringProp
+   */
+  template<class View0, class View1>
+  class Reverse:
+    public MixBinaryPropagator<View0,PC_STRING_ANY,View1,PC_STRING_ANY> {
+  protected:
+    using MixBinaryPropagator<View0,PC_STRING_ANY,View1,PC_STRING_ANY>::x0;
+    using MixBinaryPropagator<View0,PC_STRING_ANY,View1,PC_STRING_ANY>::x1;
+    /// Constructor for cloning \a p
+    Reverse(Space& home, Reverse& p);
+    /// Constructor for posting
+    Reverse(Home home,View0,View1);
+  public:
+    /// Copy propagator during cloning
+    virtual Actor* copy(Space& home);
+    /// Perform propagation
+    virtual ExecStatus  propagate(Space& home, const ModEventDelta& med);
+    /// Post propagator \f$ z=x \cdot y\f$
+    static  ExecStatus  post(Home home,View0 x,View1 y);
+  };
+
+
+}}}
+#include <gecode/string/rel-op/reverse.hpp>
+
 #endif
 
 // STATISTICS: string-prop

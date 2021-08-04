@@ -88,8 +88,10 @@ namespace Gecode { namespace String {
     const Block& operator[](int i) const;
     /// If this domain contains y
     bool contains(const StringVarImp& y) const;
+    bool contains_rev(const StringVarImp& y) const;
     /// If this domain is equal to y
     bool equals(const StringVarImp& y) const;
+    bool equals_rev(const StringVarImp& y) const;
     /// If this domain is null
     bool isNull(void) const;
     double logdim(void) const;
@@ -101,10 +103,11 @@ namespace Gecode { namespace String {
     void splitBlock(Space& home, int idx, int c, unsigned a);
     ModEvent nullify(Space& home);
     
-    void gets(Space& home, const DashedString& d);
+    void gets(Space& home, const DashedString& d);    
     void gets(Space& home, const StringVarImp& y);
     void gets(Space& home, const std::vector<int>& w);
     void gets(Space& home, const StringVarImp& x, const StringVarImp& y);
+    void gets_rev(Space& home, const StringVarImp& y);
 
     /// \name Domain update by cardinality refinement
     //@{

@@ -247,11 +247,9 @@ namespace Gecode { namespace String {
     return x1;  
   }
   
-  template <class T>
-  forceinline ModEvent
+  template <class T> forceinline void 
   ConcatView::gets(Space&, const T&) const {
     GECODE_NEVER;
-    return ME_STRING_NONE;
   }
   forceinline ModEvent
   ConcatView::bnd_length(Space&, int, int) const {

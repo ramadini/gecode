@@ -62,6 +62,11 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
+  StringVarImp::gets_rev(Space& home, const StringVarImp& y) {
+    ds.update_rev(home, y.ds);
+  }
+  
+  forceinline void
   StringVarImp::gets(Space& home, const std::vector<int>& w) {
     assert (!assigned());
     ds.update(home, w);
@@ -139,6 +144,16 @@ namespace Gecode { namespace String {
   forceinline bool
   StringVarImp::equals(const StringVarImp& y) const {
     return ds.equals(y.ds);
+  }
+  
+  forceinline bool
+  StringVarImp::equals_rev(const StringVarImp& y) const {
+    return ds.equals_rev(y.ds);
+  }
+  
+  forceinline bool
+  StringVarImp::contains_rev(const StringVarImp& y) const {
+    return ds.contains_rev(y.ds);
   }
   
   forceinline ModEvent

@@ -282,8 +282,11 @@ namespace Gecode { namespace String {
     /// for \f$ i=1,\dots, size()\$ and the j-th block of this dashed string is null
     /// for \f$ j=b.size()+1,\dots, size()\$
     bool contains(const DashedString& x) const;
+    bool contains_rev(const DashedString& x) const;    
     /// Test whether this dashed string is equal to x
     bool equals(const DashedString& x) const;
+    /// Test whether this dashed string is equal to the reverse of x
+    bool equals_rev(const DashedString& x) const;
     //@}
     
     /// \name Cloning and updating
@@ -292,6 +295,7 @@ namespace Gecode { namespace String {
     void nullify(Space& home);
     /// Update this dashed string to be a clone of \a x
     void update(Space& home, const DashedString& x);
+    void update_rev(Space& home, const DashedString& x);
     /// Update this dashed string to be assigned to \a w
     void update(Space& home, const std::vector<int>& w);
     
@@ -1009,6 +1013,27 @@ namespace Gecode { namespace String {
   }
   
   forceinline bool
+  DashedString::contains_rev(const DashedString& d) const {
+    if (min_len > d.min_len || max_len < d.max_len)
+      return false;
+    if (n == 1) { 
+      for (int i = 0; i < d.n; ++i)
+        if (!x[0].contains(d[i]))
+          return false;
+      return true;
+    }
+    if (n < d.n)
+      return false;
+    for (int i = 0; i < d.n; --i)
+      if (!x[i].contains(d.x[d.n-i-1]))
+        return false;
+    for (int i = 0; i < d.n; ++i)
+      if (x[i].lb() > 0)
+        return false;
+    return true;
+  }
+  
+  forceinline bool
   DashedString::equals(const DashedString& d) const {
     if (this == &d)
       return true;
@@ -1017,7 +1042,19 @@ namespace Gecode { namespace String {
     for (int i = 0; i < n; ++i)
       if (!x[i].equals(d[i]))
         return false;
-    return true;      
+    return true;
+  }
+  
+  forceinline bool
+  DashedString::equals_rev(const DashedString& d) const {
+    if (this == &d)
+      return true;
+    if (n != d.n || min_len != d.min_len || max_len != d.max_len)
+      return false;
+    for (int i = 0; i < n; ++i)
+      if (!x[i].equals(d[n-i-1]))
+        return false;
+    return true;
   }
   
   forceinline std::vector<int>
@@ -1129,6 +1166,32 @@ namespace Gecode { namespace String {
     x = a.template alloc<Block>(d.n);
     for (int i = 0; i < d.n; ++i)
       x[i].update(home, d[i]);
+    n = d.n;
+    assert (isOK());
+    assert (isNorm());
+  }
+  
+  forceinline void 
+  DashedString::update_rev(Space& home, const DashedString& d) {
+    min_len = d.min_len;
+    max_len = d.max_len;
+    if (d.n <= n) {
+      for (int i = 0; i < d.n; ++i)
+        x[i].update(home, d[d.n-i-1]);
+      if (d.n < n) {
+        for (int i = d.n; i < n; ++i)
+          x[i].nullify(home);
+        a.free(x + d.n, n - d.n);
+      }
+      n = d.n;
+      return;
+    }
+    for (int i = 0; i < n; ++i)
+      x[i].nullify(home);
+    a.free(x, n);
+    x = a.template alloc<Block>(d.n);
+    for (int i = 0; i < d.n; ++i)
+      x[i].update(home, d[d.n-i-1]);
     n = d.n;
     assert (isOK());
     assert (isNorm());
