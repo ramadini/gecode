@@ -39,7 +39,7 @@ namespace Gecode { namespace String { namespace Rel {
     if (x1.assigned()) {
       if (!check_equate_x(x0,x1))
         return ES_FAILED;
-      x0.gets(home, x1);
+      x0.update(home, x1);
       return home.ES_SUBSUMED(*this);
     }
     ModEvent me = x0.equate(home, x1);

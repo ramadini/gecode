@@ -452,7 +452,7 @@ namespace Gecode { namespace String {
   template <class T>
   forceinline void
   ConstStringView::expandBlock(Space& home, const Block& bx, T& x) const {
-    x.gets(home, *this);
+    x.update(home, *this);
     assert (bx.ub() >= size());
   }
 
@@ -488,7 +488,7 @@ namespace Gecode { namespace String {
   }  
     
   template <class T> forceinline void 
-  ConstStringView::gets(Space&, const T&) const {
+  ConstStringView::update(Space&, const T&) const {
     GECODE_NEVER;
   }
   forceinline void

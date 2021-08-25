@@ -46,7 +46,7 @@ namespace Gecode { namespace String { namespace Rel {
       }
       if (check_equate_x(x1,x0)) {
         if (!x1.assigned())
-            x1.gets(home, x0);
+            x1.update(home, x0);
         return __ES_SUBSUMED; //home.ES_SUBSUMED(*this);
       }
       else
@@ -58,7 +58,7 @@ namespace Gecode { namespace String { namespace Rel {
         return __ES_SUBSUMED; //home.ES_SUBSUMED(*this);
       }
       if (check_equate_x(x0,x1)) {
-        x0.gets(home, x1);
+        x0.update(home, x1);
         return __ES_SUBSUMED; //FIXME: with home.ES_SUBSUMED(*this), seg.fault in SQL 12
       }
       else
@@ -67,11 +67,11 @@ namespace Gecode { namespace String { namespace Rel {
     if (x0.contains(x1)) {
       if (x0.equals(x1))
         return ES_FIX;
-      x0.gets(home, x1);
+      x0.update(home, x1);
       return ES_FIX;
     }
     if (x1.contains(x0)) {
-      x1.gets(home, x0);
+      x1.update(home, x0);
       return ES_FIX;
     }
     ModEvent me0;

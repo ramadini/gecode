@@ -31,6 +31,11 @@ namespace Gecode { namespace String {
   private:
     /// The dashed string denoting the domain
     DashedString ds;
+    /// Minimum length for a string in the domain
+    int min_len;
+    /// Maximum length for a string in the domain
+    int max_len;
+    // FIXME: ds.lb_sum() <= min_len <= max_len <= ds.ub_sum() must hold.
     
   protected:
     /// Constructor for cloning \a x
@@ -84,7 +89,6 @@ namespace Gecode { namespace String {
     /// Consistency checks on the domain
     bool isOK(void) const;
     /// Returns the i-th block of the domain
-    Block& operator[](int i);
     const Block& operator[](int i) const;
     /// If this domain contains y
     bool contains(const StringVarImp& y) const;
@@ -103,11 +107,11 @@ namespace Gecode { namespace String {
     void splitBlock(Space& home, int idx, int c, unsigned a);
     ModEvent nullify(Space& home);
     
-    void gets(Space& home, const DashedString& d);    
-    void gets(Space& home, const StringVarImp& y);
-    void gets(Space& home, const std::vector<int>& w);
-    void gets(Space& home, const StringVarImp& x, const StringVarImp& y);
-    void gets_rev(Space& home, const StringVarImp& y);
+    void update(Space& home, const DashedString& d);    
+    void update(Space& home, const StringVarImp& y);
+    void update(Space& home, const std::vector<int>& w);
+    void update(Space& home, const StringVarImp& x, const StringVarImp& y);
+    void update_rev(Space& home, const StringVarImp& y);
 
     /// \name Domain update by cardinality refinement
     //@{

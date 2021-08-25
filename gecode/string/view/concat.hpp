@@ -248,7 +248,7 @@ namespace Gecode { namespace String {
   }
   
   template <class T> forceinline void 
-  ConcatView::gets(Space&, const T&) const {
+  ConcatView::update(Space&, const T&) const {
     GECODE_NEVER;
   }
   forceinline ModEvent
@@ -281,13 +281,6 @@ namespace Gecode { namespace String {
 
   forceinline const Block&
   ConcatView::operator[](int i) const {
-    if (i < pivot)
-      return x0[i];
-    else
-      return x1[i-pivot];
-  }
-  forceinline Block&
-  ConcatView::operator[](int i) {
     if (i < pivot)
       return x0[i];
     else
@@ -522,7 +515,7 @@ namespace Gecode { namespace String {
     s.includeI(home, i);
     bool norm = false;
     int u = bx.ub();
-    x.gets(home, *this);
+    x.update(home, *this);
     for (int i = 0; i < x.size(); i++) {
       x[i].baseIntersect(home, s);
       norm |= x[i].isNull() || (i > 0 && x[i].baseEquals(x[i-1]));

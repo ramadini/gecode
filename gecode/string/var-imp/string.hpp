@@ -29,7 +29,7 @@ namespace Gecode { namespace String {
     Limits::check_length(l, u, "StringVarImp::StringVarImp");
     ds.min_length(home, l);
     ds.max_length(home, u);
-    ds[0].updateCard(home, l, u);
+    ds.updateCardAt(home, 0, l, u);
   }
   
   forceinline
@@ -39,11 +39,11 @@ namespace Gecode { namespace String {
     Limits::check_length(s.min(), s.max(), "StringVarImp::StringVarImp");
     ds.min_length(home, l);
     ds.max_length(home, u);
-    ds[0].update(home, Block(home, CharSet(home, s), l, u));
+    ds.updateAt(home, 0, Block(home, CharSet(home, s), l, u));
   }  
   
   forceinline void
-  StringVarImp::gets(Space& home, const DashedString& dy) {
+  StringVarImp::update(Space& home, const DashedString& dy) {
     assert (!assigned());    
     int l = min_length(), u = max_length();    
     ds.update(home, dy);
@@ -57,17 +57,17 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  StringVarImp::gets(Space& home, const StringVarImp& y) {
-    gets(home, y.ds);
+  StringVarImp::update(Space& home, const StringVarImp& y) {
+    update(home, y.ds);
   }
   
   forceinline void
-  StringVarImp::gets_rev(Space& home, const StringVarImp& y) {
+  StringVarImp::update_rev(Space& home, const StringVarImp& y) {
     ds.update_rev(home, y.ds);
   }
   
   forceinline void
-  StringVarImp::gets(Space& home, const std::vector<int>& w) {
+  StringVarImp::update(Space& home, const std::vector<int>& w) {
     assert (!assigned());
     ds.update(home, w);
     StringDelta d;
@@ -75,7 +75,7 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  StringVarImp::gets(Space& home, const StringVarImp& x, const StringVarImp& y) {
+  StringVarImp::update(Space& home, const StringVarImp& x, const StringVarImp& y) {
     ds.update(home, x.ds, y.ds);
   }
   
@@ -112,10 +112,6 @@ namespace Gecode { namespace String {
     ds.normalize(home);
   }  
 
-  forceinline Block&
-  StringVarImp::operator[](int i) {
-    return ds[i];
-  }  
   forceinline const Block&
   StringVarImp::operator[](int i) const {
     return ds[i];
@@ -123,12 +119,12 @@ namespace Gecode { namespace String {
   
   forceinline int
   StringVarImp::min_length() const {
-    return ds.min_length();
+    return min_len;
   }
   
   forceinline int
   StringVarImp::max_length() const {
-    return ds.max_length();
+    return max_len;
   }
   
   forceinline double
@@ -158,50 +154,45 @@ namespace Gecode { namespace String {
   
   forceinline ModEvent
   StringVarImp::bnd_length(Space& home, int l, int u) {
-    int lx = min_length(), ux = max_length();
-    if (l <= lx && u >= ux)
+    if (l <= min_len && u >= max_len)
       return ME_STRING_NONE;
-    if (l > ux || u < lx)
+    if (l > max_len || u < min_len)
       return ES_FAILED;
     ModEvent me = ME_STRING_NONE;
-    if (l > lx)
+    if (l > min_len)
       me = min_length(home, l);
     if (me == ME_STRING_FAILED)
       return me;
-    if (u < ux)
+    if (u < max_len)
       me = me_combine(me, max_length(home, u));
     return me;
   }
   
   forceinline ModEvent
   StringVarImp::min_length(Space& home, int l) {
-    if (l > max_length())
+    if (l > max_len)
       return ME_STRING_FAILED;
-    int lx = min_length();
+    int lx = min_len;
     if (l <= lx)
       return ME_STRING_NONE;
-    ds.min_length(home, l);
+    min_len = l;
+    ds.min_length(home, min_len);
     StringDelta d;
     return notify(home, assigned() ? ME_STRING_VAL : ME_STRING_CARD, d);
   }
   
   forceinline ModEvent
   StringVarImp::max_length(Space& home, int u) {
-    if (u < min_length())
+    if (u < min_len)
       return ME_STRING_FAILED;
-    int ux = max_length();
-    if (u >= ux)
+    if (u >= max_len)
       return ME_STRING_NONE;
-    ds.max_length(home, u);
+    max_len = u;
+    ds.max_length(home, max_len);
     StringDelta d;
     return notify(home, assigned() ? ME_STRING_VAL : ME_STRING_CARD, d);
   }
-  
-  forceinline void
-  StringVarImp::sync_length() {
-    ds.sync_length();
-  }
-  
+
   forceinline std::vector<int>
   StringVarImp::val() const {
     return ds.val();
@@ -219,7 +210,8 @@ namespace Gecode { namespace String {
   
   forceinline bool
   StringVarImp::isOK() const {
-    return ds.isOK() && ds.isNorm();
+    return min_len >= ds.lb_sum() && max_len <= ds.ub_sum() 
+        && ds.isOK() && ds.isNorm();
   }
   
   forceinline void

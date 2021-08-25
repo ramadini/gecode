@@ -246,29 +246,29 @@ namespace Gecode { namespace String {
     : VarImpView<StringVar>(y) {}
 
   forceinline void
-  StringView::gets(Space& home, const DashedString& d) {
-    x->gets(home, d);
+  StringView::update(Space& home, const DashedString& d) {
+    x->update(home, d);
   }
   forceinline void
-  StringView::gets(Space& home, const StringView& y) {
-    x->gets(home, *y.x);
+  StringView::update(Space& home, const StringView& y) {
+    x->update(home, *y.x);
   }
   forceinline void
-  StringView::gets(Space& home, const std::vector<int>& w) {
-    x->gets(home, w);
+  StringView::update(Space& home, const std::vector<int>& w) {
+    x->update(home, w);
   }
   forceinline void
-  StringView::gets(Space& home, const ConstStringView& y) {
-    x->gets(home, y.val());
+  StringView::update(Space& home, const ConstStringView& y) {
+    x->update(home, y.val());
   }
   forceinline void
-  StringView::gets(Space& home, const ConcatView& y) {
-    x->gets(home, *y.lhs().x, *y.rhs().x);
+  StringView::update(Space& home, const ConcatView& y) {
+    x->update(home, *y.lhs().x, *y.rhs().x);
   }
   
   forceinline void
-  StringView::gets_rev(Space& home, const StringView& y) {
-    x->gets_rev(home, *y.x);
+  StringView::update_rev(Space& home, const StringView& y) {
+    x->update_rev(home, *y.x);
   }
   
   forceinline ModEvent
@@ -290,10 +290,6 @@ namespace Gecode { namespace String {
     return x->size();
   }
 
-  forceinline Block&
-  StringView::operator[](int i) {
-    return x->operator[](i);
-  }
   forceinline const Block&
   StringView::operator[](int i) const {
     return x->operator[](i);
@@ -723,7 +719,7 @@ namespace Gecode { namespace String {
     s.includeI(home, i);
     bool norm = false;
     int u = bx.ub();
-    x.gets(home, *this);
+    x.update(home, *this);
     if (bx.ub() < max_length())
       x.max_length(home, bx.ub());
     for (int i = 0; i < x.size(); i++) {
@@ -812,18 +808,18 @@ namespace Gecode { namespace String {
     int off = 0, idxOld = 0, idxNew = 0;
     for (int idxU = 0; idxU < uSize; idxU += 2) {
       for (; idxOld < size() && idxOld < U[idxU]; ++idxOld, ++idxNew)
-        d[idxNew].update(home, (*this)[idxOld]);
+        d.updateAt(home, idxNew, (*this)[idxOld]);
       ++idxOld;
       for (int k = 0; k < U[idxU+1]; ++idxNew, ++k)
-        d[idxNew].update(home, newBlocks[k + off]);
+        d.updateAt(home, idxNew, newBlocks[k + off]);
       off += U[idxU+1];
     }
     for (; idxOld < size(); ++idxOld, ++idxNew)
-      d[idxNew].update(home, (*this)[idxOld]);
+      d.updateAt(home, idxNew, (*this)[idxOld]);
     d.normalize(home);
-    if (d.max_length() > max_length())
+    if (d.ub_sum() > max_length())
       d.max_length(home, max_length());    
-    x->gets(home, d);
+    x->update(home, d);
   }
      
 }}

@@ -107,7 +107,7 @@ namespace Gecode { namespace String {
       if (x[i].isFixed())
         continue;
       Position& esp = m[i].ESP, eep = m[i].EEP, lsp = m[i].LSP, lep = m[i].LEP;
-      Block& x_i = x[i];
+      const Block& x_i = x[i];
       int l = x_i.lb(), u = x_i.ub(), l1 = min_len_mand(y, x_i, lsp, eep);
 //      std::cerr << "l'=" << l1 << "\n";
       if (u < l1)
@@ -117,7 +117,7 @@ namespace Gecode { namespace String {
       assert (l1 <= u1);
       if (l1 == 0 || l1 < l || u1 > u) {
         if (u1 == 0) {
-          x_i.nullify(home);
+          x.nullifyAt(home, i);
           changed = true;
           ux -= 2;
           continue;
@@ -131,9 +131,9 @@ namespace Gecode { namespace String {
         }
         // Crushing into a single block
         if (l1 > l)
-          x_i.lb(home, l1);
+          x.lbAt(home, i, l1);
         if (u1 < u)
-          x_i.ub(home, u1);
+          x.ubAt(home, i, u1);
         y.crushBase(home, x_i, esp, lep);
         //FIXME: Add known pref/suff.
         changed |= l < l1 || u > u1 || m > x_i.baseSize();
@@ -152,7 +152,7 @@ namespace Gecode { namespace String {
         }
         assert (np >= 0 && ns >= 0 && np + ns <= l1);
         assert (y.prec(lsp, eep) && (esp == lsp || eep == lep));
-        x_i.updateCard(home, x_i.lb()-ns-np, x_i.ub()-ns-np);
+        x.updateCardAt(home, i, x_i.lb()-ns-np, x_i.ub()-ns-np);
         if (x_i.ub() < l1)
           return false;
       }
@@ -185,16 +185,16 @@ namespace Gecode { namespace String {
       DashedString d(home, mreg, n);
       r1.free();
 //      std::cerr << "d = " << d << ' ' << n << "\n";
-      assert (d.min_length() >= l);
+      assert (d.lb_sum() >= l);
       n = d.size();
       if (n == 1) {
         nBlocks--;
         ux -= 2;
         if (d[0].ub() > u)
-          d[0].ub(home, u);
+          d.ubAt(home, 0, u);
         if (d[0].equals(x_i))
           continue;
-        x_i.update(home, d[0]);
+        x.updateAt(home, i, d[0]);
         changed = true;
         continue;
       }
@@ -204,7 +204,7 @@ namespace Gecode { namespace String {
         newBlocks = r.alloc<Block>(nBlocks);
       for (int j = 0, k = newSize; j < n; ++j,++k) {
         if (d[j].ub() > u)
-          d[j].ub(home, u);
+          d.ubAt(home, j, u);
         newBlocks[k].update(home, d[j]);
       }      
       U[uSize++] = i;
