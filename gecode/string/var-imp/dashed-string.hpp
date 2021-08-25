@@ -918,7 +918,7 @@ namespace Gecode { namespace String {
         throw OutOfLimits("DashedString::DashedString");
       }
       min_len += x[i].lb();
-      max_len = ub_sum(max_len, x[i].ub());      
+      max_len = bounded_sum(max_len, x[i].ub());      
       norm |= x[i].isNull() || x[i].baseEquals(x[i-1]);
     }
     if (n > 1 && max_len == Limits::MAX_STRING_LENGTH) {
@@ -926,7 +926,7 @@ namespace Gecode { namespace String {
       max_len = 0;
       for (int i = 0; i < n; ++i) {
         Block& bi = x[i];
-        int ll = min_len - bi.lb(), uu = ub_sum(bi.ub(), ll);
+        int ll = min_len - bi.lb(), uu = bounded_sum(bi.ub(), ll);
         if (uu == Limits::MAX_STRING_LENGTH) {
           long d = bi.ub() + ll - Limits::MAX_STRING_LENGTH;
           assert (d <= MAX_STRING_LENGTH);
@@ -934,7 +934,7 @@ namespace Gecode { namespace String {
           if (bi.isNull())
             norm = true;
         }
-        max_len = ub_sum(max_len, bi.ub()); 
+        max_len = bounded_sum(max_len, bi.ub()); 
       }
     }
     if (norm)
@@ -1374,7 +1374,7 @@ namespace Gecode { namespace String {
         continue;
       }
       min_len += x[i].lb();
-      max_len = ub_sum(max_len, x[i].ub());
+      max_len = bounded_sum(max_len, x[i].ub());
       // j is the index of the last encountered non-null block.
       if (j != -1 && x[i].baseEquals(x[j])) {
         int u = x[i].ub() + x[j].ub();
@@ -1438,7 +1438,7 @@ namespace Gecode { namespace String {
       if (i > 0 && !x[i].isOK())
         return false;
       l += x[i].lb();
-      u = ub_sum(u, x[i].ub());
+      u = bounded_sum(u, x[i].ub());
     }
     return l <= min_len && u >= max_len;
   }
