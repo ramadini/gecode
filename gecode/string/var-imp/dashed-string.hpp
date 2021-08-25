@@ -218,10 +218,10 @@ namespace Gecode { namespace String {
   
   private:
     // Sum of the lower bounds of each block of the dashed string
-    int min_len;
+    int lb_sum;
     // Minimum between MAX_STRING_LENGTH and the sum of the upper bounds of 
     // each block of the dashed string
-    int max_len;
+    int ub_sum;
   
     // FIXME: Each block of the dashed string is always consistent and normalized,
     // but this does not imply that the dashed string is always normalized. 
@@ -312,8 +312,7 @@ namespace Gecode { namespace String {
     
     /// Check whether the dashed string is normalized
     bool isNorm(void) const;
-    /// Normalize the dashed string, assuming each block already consistent 
-    /// and 0 <= min_len <= max_len <= MAX_STRING_LENGTH.
+    /// Normalize the dashed string, assuming each block already consistent
     void normalize(Space& home);
     
     /// Splits x[i]=S^{k,k} into: {c}^{1,1} S^{k-1,k-1}, if a = 0;
@@ -323,7 +322,7 @@ namespace Gecode { namespace String {
     /// Prints the dashed string \a x
     friend std::ostream& operator<<(std::ostream& os, const DashedString& x);
     
-    /// Check whether each block is consistent and min_len/max_len correspond to
+    /// Check whether each block is consistent and lb_sum/ub_sum correspond to
     /// the sum of each lb/ub
     bool isOK(void) const;
   };
@@ -871,13 +870,13 @@ namespace Gecode { namespace String {
 
   forceinline
   DashedString::DashedString(Space& home) 
-  : DynamicArray(home, 1), min_len(0), max_len(MAX_STRING_LENGTH) {
+  : DynamicArray(home, 1), lb_sum(0), ub_sum(MAX_STRING_LENGTH) {
     x[0].update(home, Block(home));
   }
   
   forceinline
   DashedString::DashedString(Space& home, const Block& block) 
-  : DynamicArray(home, 1), min_len(block.lb()), max_len(block.ub()) {
+  : DynamicArray(home, 1), lb_sum(block.lb()), ub_sum(block.ub()) {
     x[0].update(home, block);
     assert (isOK() && isNorm());
   }
@@ -891,13 +890,13 @@ namespace Gecode { namespace String {
   
   forceinline
   DashedString::DashedString(Space& home, int n) 
-  : DynamicArray(home, n), min_len(0), max_len(0) {
+  : DynamicArray(home, n), lb_sum(0), ub_sum(0) {
     assert (isOK() && (n == 1 || !isNorm()));
   }
   
   forceinline
   DashedString::DashedString(Space& home, int n, const Block& b) 
-  : DynamicArray(home, n), min_len(n*b.lb()), max_len(n*b.ub()) {
+  : DynamicArray(home, n), lb_sum(n*b.lb()), ub_sum(n*b.ub()) {
     for (int i = 0; i < n; ++i)
       x[i].update(home, b);
     assert (isOK() && (n == 1 || !isNorm()));
@@ -905,28 +904,28 @@ namespace Gecode { namespace String {
   
   forceinline
   DashedString::DashedString(Space& home, Block blocks[], int n)
-  : DynamicArray(home, n), min_len(blocks[0].lb()), max_len(blocks[0].ub()) {
+  : DynamicArray(home, n), lb_sum(blocks[0].lb()), ub_sum(blocks[0].ub()) {
     bool norm = blocks[0].isNull();
     x[0].update(home, blocks[0]);
     for (int i = 1; i < n; ++i) {
       x[i].update(home, blocks[i]);
       // NOTE: The sum of the blocks' bounds might overflow.
-      if (min_len > MAX_STRING_LENGTH || min_len + x[i].ub() < min_len) {
+      if (lb_sum > MAX_STRING_LENGTH || lb_sum + x[i].ub() < lb_sum) {
         for (int j = 0; j <= i; ++j)
           x[j].nullify(home);
         a.free(x, n);
         throw OutOfLimits("DashedString::DashedString");
       }
-      min_len += x[i].lb();
-      max_len = bounded_sum(max_len, x[i].ub());      
+      lb_sum += x[i].lb();
+      ub_sum = bounded_sum(ub_sum, x[i].ub());      
       norm |= x[i].isNull() || x[i].baseEquals(x[i-1]);
     }
-    if (n > 1 && max_len == Limits::MAX_STRING_LENGTH) {
+    if (n > 1 && ub_sum == Limits::MAX_STRING_LENGTH) {
       // Possibly refining upper bounds.
-      max_len = 0;
+      ub_sum = 0;
       for (int i = 0; i < n; ++i) {
         Block& bi = x[i];
-        int ll = min_len - bi.lb(), uu = bounded_sum(bi.ub(), ll);
+        int ll = lb_sum - bi.lb(), uu = bounded_sum(bi.ub(), ll);
         if (uu == Limits::MAX_STRING_LENGTH) {
           long d = bi.ub() + ll - Limits::MAX_STRING_LENGTH;
           assert (d <= MAX_STRING_LENGTH);
@@ -934,7 +933,7 @@ namespace Gecode { namespace String {
           if (bi.isNull())
             norm = true;
         }
-        max_len = bounded_sum(max_len, bi.ub()); 
+        ub_sum = bounded_sum(ub_sum, bi.ub()); 
       }
     }
     if (norm)
@@ -943,8 +942,8 @@ namespace Gecode { namespace String {
     assert(isOK());
   }
 
-  forceinline int DashedString::min_length() const { return min_len; }
-  forceinline int DashedString::max_length() const { return max_len; }
+  forceinline int DashedString::min_length() const { return lb_sum; }
+  forceinline int DashedString::max_length() const { return ub_sum; }
   forceinline int DashedString::size() const { return n; }
  
  
@@ -983,7 +982,7 @@ namespace Gecode { namespace String {
   
   forceinline bool
   DashedString::isFixed() const {
-    if (min_len != max_len)
+    if (lb_sum != ub_sum)
       return false;
     for (int i = 0; i < n; ++i)
       if (!x[i].isFixed())
@@ -993,7 +992,7 @@ namespace Gecode { namespace String {
   
   forceinline bool
   DashedString::contains(const DashedString& d) const {
-    if (min_len > d.min_len || max_len < d.max_len)
+    if (lb_sum > d.lb_sum || ub_sum < d.ub_sum)
       return false;
     if (n == 1) {      
       for (int i = 0; i < d.n; ++i)
@@ -1014,7 +1013,7 @@ namespace Gecode { namespace String {
   
   forceinline bool
   DashedString::contains_rev(const DashedString& d) const {
-    if (min_len > d.min_len || max_len < d.max_len)
+    if (lb_sum > d.lb_sum || ub_sum < d.ub_sum)
       return false;
     if (n == 1) { 
       for (int i = 0; i < d.n; ++i)
@@ -1037,7 +1036,7 @@ namespace Gecode { namespace String {
   DashedString::equals(const DashedString& d) const {
     if (this == &d)
       return true;
-    if (n != d.n || min_len != d.min_len || max_len != d.max_len)
+    if (n != d.n || lb_sum != d.lb_sum || ub_sum != d.ub_sum)
       return false;
     for (int i = 0; i < n; ++i)
       if (!x[i].equals(d[i]))
@@ -1049,7 +1048,7 @@ namespace Gecode { namespace String {
   DashedString::equals_rev(const DashedString& d) const {
     if (this == &d)
       return true;
-    if (n != d.n || min_len != d.min_len || max_len != d.max_len)
+    if (n != d.n || lb_sum != d.lb_sum || ub_sum != d.ub_sum)
       return false;
     for (int i = 0; i < n; ++i)
       if (!x[i].equals(d[n-i-1]))
@@ -1079,14 +1078,14 @@ namespace Gecode { namespace String {
       a.free(x+1, n-1);
       n = 1;
     }
-    min_len = max_len = 0;
+    lb_sum = ub_sum = 0;
     assert (isOK());
     assert (isNorm());
   }
   
   forceinline void 
   DashedString::min_length(Space& home, int l) {
-    assert (min_len <= l && l <= max_len);
+    assert (lb_sum <= l && l <= ub_sum);
     int maxl = 0;
     for (int i = 0; i < n; ++i)
       maxl += x[i].ub();
@@ -1096,14 +1095,14 @@ namespace Gecode { namespace String {
       if (li < min_i)
         bi.lb(home, min_i);
     }
-    min_len = l;
+    lb_sum = l;
     assert (isOK());
     assert (isNorm());
   }
   
   forceinline void 
   DashedString::max_length(Space& home, int u) {
-    assert (min_len <= u && u <= max_len);
+    assert (lb_sum <= u && u <= ub_sum);
     bool norm = false;
     int minl = 0;
     for (int i = 0; i < n; ++i)
@@ -1120,7 +1119,7 @@ namespace Gecode { namespace String {
           bi.ub(home, max_i);
       }
     }
-    max_len = u;
+    ub_sum = u;
     if (norm)
       normalize(home);
     assert (isOK());
@@ -1132,23 +1131,23 @@ namespace Gecode { namespace String {
     int k = 0;
     for (int i = 0; i < n; ++i)
       k += (*this)[i].lb();
-    if (k > min_len)
-      min_len = k;
+    if (k > lb_sum)
+      lb_sum = k;
     for (int i = 0, k = 0; i < n; ++i) {      
       k += (*this)[i].ub();
-      if (k >= max_len) {
+      if (k >= ub_sum) {
         assert (isOK());
         return;
       }
     }
-    max_len = k;
+    ub_sum = k;
     assert (isOK());
   }
   
   forceinline void 
   DashedString::update(Space& home, const DashedString& d) {
-    min_len = d.min_len;
-    max_len = d.max_len;
+    lb_sum = d.lb_sum;
+    ub_sum = d.ub_sum;
     if (d.n <= n) {
       for (int i = 0; i < d.n; ++i)
         x[i].update(home, d[i]);
@@ -1173,8 +1172,8 @@ namespace Gecode { namespace String {
   
   forceinline void 
   DashedString::update_rev(Space& home, const DashedString& d) {
-    min_len = d.min_len;
-    max_len = d.max_len;
+    lb_sum = d.lb_sum;
+    ub_sum = d.ub_sum;
     if (d.n <= n) {
       for (int i = 0; i < d.n; ++i)
         x[i].update(home, d[d.n-i-1]);
@@ -1204,8 +1203,8 @@ namespace Gecode { namespace String {
       nullify(home);
       return;
     }
-    min_len = m;
-    max_len = m;    
+    lb_sum = m;
+    ub_sum = m;    
     for (int i = 1; i < (int) w.size(); ++i)
       if (w[i] == w[i-1])
         m--;
@@ -1261,8 +1260,8 @@ namespace Gecode { namespace String {
       x[n0].update(home, x1[0]);
     for (int i = n0+1-norm, j = 1; j < n1; ++i, ++j)
       x[i].update(home, x1[j]);
-    min_len = x0.min_length() + x1.min_length();
-    max_len = x0.max_length() + x1.max_length();
+    lb_sum = x0.min_length() + x1.min_length();
+    ub_sum = x0.max_length() + x1.max_length();
   }
  
   forceinline void
@@ -1364,7 +1363,7 @@ namespace Gecode { namespace String {
   forceinline void
   DashedString::normalize(Space& home) {
 //    std::cerr << "Normalize: " << *this << '\n';
-    min_len = max_len = 0;
+    lb_sum = ub_sum = 0;
     int newSize = n;
     int j = -1;
     // 1st pass: determine new size, settle adjacent blocks with same base
@@ -1373,8 +1372,8 @@ namespace Gecode { namespace String {
         --newSize;
         continue;
       }
-      min_len += x[i].lb();
-      max_len = bounded_sum(max_len, x[i].ub());
+      lb_sum += x[i].lb();
+      ub_sum = bounded_sum(ub_sum, x[i].ub());
       // j is the index of the last encountered non-null block.
       if (j != -1 && x[i].baseEquals(x[j])) {
         int u = x[i].ub() + x[j].ub();
@@ -1426,11 +1425,10 @@ namespace Gecode { namespace String {
   
   forceinline bool
   DashedString::isOK() const {
-    if (n == 0 || min_len < 0 || min_len > max_len 
-    ||  max_len > MAX_STRING_LENGTH)
+    if (n == 0 || lb_sum < 0 || lb_sum > ub_sum ||  ub_sum > MAX_STRING_LENGTH)
       return false;
     if (x[0].isNull())
-      return min_len == 0 && max_len == 0;
+      return lb_sum == 0 && ub_sum == 0;
     if (!x[0].isOK())
       return false;    
     int l =0, u = 0;
@@ -1440,7 +1438,7 @@ namespace Gecode { namespace String {
       l += x[i].lb();
       u = bounded_sum(u, x[i].ub());
     }
-    return l <= min_len && u >= max_len;
+    return l <= lb_sum && u >= ub_sum;
   }
   
   forceinline std::ostream&
