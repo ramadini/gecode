@@ -325,8 +325,8 @@ namespace Gecode { namespace String {
     assert (m[0].LSP == Position(0,0));
     for (int i = 1; i < nx; ++i) {
       m[i].LSP = m[i-1].LEP;
-//      std::cerr << "ESP of " << GBlock(x[i]) << ": " << m[i].ESP << ", " 
-//                << "LSP of " << GBlock(x[i]) << ": " << m[i].LSP << "\n";
+//      std::cerr << "ESP of " << x[i] << ": " << m[i].ESP << ", " 
+//                << "LSP of " << x[i] << ": " << m[i].LSP << "\n";
       if (y.prec(m[i].LSP, m[i].ESP))
         return false;
       assert (m[i].ESP.isNorm(y) && m[i].LSP.isNorm(y));

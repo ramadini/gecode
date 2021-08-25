@@ -238,7 +238,7 @@ namespace Gecode { namespace String {
     /// Creates a dashed string consisting of a copy of \a x \$
     /// Note: if \a x is not normalized, then this won't be normalized.
     DashedString(Space& home, const DashedString& x);\
-    /// Creates a possibly dashed string consisting of \a n > 0 null blocks
+    /// Creates a dashed string consisting of \a n > 0 null blocks
     /// NOTE: If n > 1, the dashed will be _not_ normalized
     DashedString(Space& home, int n);
     /// Creates a dashed string consisting of \a n > 0 copies of b
@@ -279,7 +279,7 @@ namespace Gecode { namespace String {
     /// Test whether the dashed string is a single block {0, \dots, {MAX\_ALPHABET\_SIZE}-1}^{(0,{MAX\_STRING\_LENGTH})
     bool isUniverse(void) const;
     /// Test whether the i-th block of this dashed string contains the i-th block of \d x 
-    /// for \f$ i=1,\dots, size()\$ and the j-th block of this dashed string is null
+    /// for \f$ i=1,\dots, size()\$ and the j-th block of this dashed string is nullable
     /// for \f$ j=b.size()+1,\dots, size()\$
     bool contains(const DashedString& x) const;
     bool contains_rev(const DashedString& x) const;    

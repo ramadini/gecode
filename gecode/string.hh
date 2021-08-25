@@ -349,6 +349,8 @@ namespace Gecode {
   GECODE_STRING_EXPORT void length(Home home, StringVar x, IntVar n);
   GECODE_STRING_EXPORT void concat(Home home, StringVar x,
                                               StringVar y, StringVar z);
+  GECODE_STRING_EXPORT void concat(Home home, StringVar x,
+                                              StringVar y, std::vector<int> w);                                            
   
   /**
    * \defgroup TaskModelStringElement

@@ -487,123 +487,14 @@ namespace Gecode { namespace String {
   /**
    * \brief Reverse view
    */
-  class ReverseView : public VarImpView<StringVar> {
-  protected:
-    StringView& x0;
-    int pivot;
-    int rev_idx(int) const;
-  public:
-    /// \name Constructors and initialization
-    //@{
-    /// Default constructor
-    ReverseView(void);
-    /// Initialize from string variables \a x
-    ReverseView(StringView& x);
-    //@}
-    void gets(Space& home, const StringView& y);
-    template <class T> ModEvent equate(Space& home, const T& y);
-    template <class IterY> Position push(int i, IterY& it) const;
-    template <class IterY> void stretch(int i, IterY& it) const;
-    double logdim(void) const;
-    
-    ModEvent nullify(Space& home);
-    
-    /// \name Sweep iterators
-    //@{
-    SweepFwdIterator<ReverseView> fwd_iterator(void) const;
-    SweepBwdIterator<ReverseView> bwd_iterator(void) const;
-    //@}
-    //@}
-    //@}
-    /// \name Value access
-    //@{
-    /// Return the minimum length for a string in the variable's domain
-    int min_length(void) const;
-    /// Return the maximum length for a string in the variable's domain
-    int max_length(void) const;
-    /// Returns the number of blocks of the domain
-    int size(void) const;
-    /// Returns the i-th block of the domain
-    const Block& operator[](int i) const;
-    Block& operator[](int i);
-    /// Return the value of this string view, if assigned. Otherwise, an
-    /// IllegalOperation exception is thrown.
-    std::vector<int> val(void) const;
-    //@}
-    /// \name Domain tests
-    //@{
-    /// Test whether variable is assigned
-    bool assigned(void) const;
-    /// Consistency checks on the view
-    bool isOK(void) const;
-    bool isNull(void) const;
-
-    /// If this view is equals to y
-    template <class T> bool equals(const T& y) const;
-    template <class T> bool contains(const T& y) const;
-    ModEvent max_length(Space& home, int u) const;
-    //@}
-    /// \name Domain update by cardinality refinement
-    //@{
-    /// Possibly update the upper bound of the blocks, knowing that the minimum 
-    /// length for any string in the domain is \a l and the maximum length for 
-    /// any string in the domain is \a u
-    ModEvent bnd_length(Space& home, int l, int u) const;
-    //@}
-    /// \name Methods for dashed string equation
-    //@{
-    /// Returns true if p and q are the same position in this view.
-    bool equiv(const Position& p, const Position& q) const;
-    /// Returns true if p precedes q according to this view.
-    bool prec(const Position& p, const Position& q) const;
-    ///TODO:
-    int ub_new_blocks(const Matching& m) const;
-    /// TODO:
-    int min_len_mand(const Block& bx, const Position& lsp, 
-                                      const Position& eep) const;
-    /// TODO:
-    int max_len_opt(const Block& bx, const Position& esp, 
-                                     const Position& lep, int l1) const;
-    /// TODO:                             
-    template <class T> void
-    expandBlock(Space& home, const Block& bx, T& x) const;
-    /// TODO:
-    void
-    crushBase(Space& home, Block& bx, const Position& esp, 
-                                      const Position& lep) const;
-    /// TODO:                                   
-    void
-    opt_region(Space& home, const Block& bx, Block& bnew, 
-                            const Position& p, const Position& q, int l1) const;                       
-    
-    /// TODO:                   
-    void
-    mand_region(Space& home, Block& bx, const Position& p, const Position& q) const;
-    /// TODO:                                                     
-    void
-    mand_region(Space& home, Block& bx, Block* bnew, int u,
-                             const Position& p, const Position& q) const;
-    /// TODO:
-    void
-    resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize);
-    /// Normalize this view
-    void normalize(Space& home);
-    
-    int
-    fixed_chars_suff(const Position& p, const Position& q) const;
-    int
-    fixed_chars_pref(const Position& p, const Position& q) const;
-    
-    //@}                   
-    template<class Char, class Traits, class X, class Y>
-    friend std::basic_ostream<Char,Traits>&
-    operator <<(std::basic_ostream<Char,Traits>& os, const ReverseView& z);
+  class ReverseView : public StringView {
+    //TODO
   };
   /**
    * \brief Print string variable view
    * \relates Gecode::String::StringView
    */
-  template<class Char, class Traits, class X, class Y>
+  template<class Char, class Traits>
   std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const ReverseView& z);
   

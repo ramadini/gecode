@@ -34,6 +34,8 @@ namespace Gecode { namespace String { namespace RelOp {
   template<class View0, class View1>
   forceinline ExecStatus
   Reverse<View0,View1>::propagate(Space& home, const ModEventDelta&) {
+    // TODO: Similar to eq. propagator. Instrad of x = y and y = x, propagate 
+    // x = y^-1 and y = x^-1
     GECODE_NEVER;
   }
   

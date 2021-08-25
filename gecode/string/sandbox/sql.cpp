@@ -133,7 +133,8 @@ public:
     Block b[k];
     for (int i = 0; i < k; ++i)
       b[i].update(*this, v[i]);
-    concat(*this, eq, rhs, StringVar(*this, DashedString(*this, b, k)));
+    concat(*this, eq, rhs, StringVar(*this, DashedString(*this, b, k))); //v);
+    //concat(*this, eq, rhs, v);
 
     // Branching.
     lenblock_min_lllm(*this, str_vars);

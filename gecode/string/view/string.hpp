@@ -500,7 +500,7 @@ namespace Gecode { namespace String {
   template <class IterY>
   forceinline Position
   StringView::push(int i, IterY& it) const {
-//    std::cerr << "Pushing " << bx << " from " << *it << '\n';
+//    std::cerr << "Pushing " << (*this)[i] << " from " << *it << '\n';
     Position p = *it;
     // No. of chars. that must be consumed
     const Block& bx = (*this)[i];
@@ -538,7 +538,7 @@ namespace Gecode { namespace String {
   template <class IterY>
   forceinline void
   StringView::stretch(int i, IterY& it) const {
-//    std::cerr << "Streching " << bx << " from " << *it << '\n';
+//    std::cerr << "Streching " << (*this)[i] << " from " << *it << '\n';
     const Block& bx = (*this)[i];
     int k = bx.ub();
     while (it.hasNextBlock()) {
