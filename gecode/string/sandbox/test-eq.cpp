@@ -299,7 +299,6 @@ public:
     for (int i = 0; i < n; ++i)
       cerr << "ESP[ " << vy[i] << " ] = " << m[i].ESP << ", "
            << "LEP[ " << vy[i] << " ] = " << m[i].LEP << "\n";
-    std::cerr << vx << " " << vy << "\n";  
     assert(vx.isOK() && vy.isOK());
   }
   
@@ -356,7 +355,7 @@ public:
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
     assert(vy.equate(*this, vx) == ME_STRING_VAL);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
-    assert(x.val() == y.val());
+    assert(x.val() == y.val());    
     assert(vx.isOK() && vy.isOK());
   }
   

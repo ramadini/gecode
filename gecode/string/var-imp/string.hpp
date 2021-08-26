@@ -9,21 +9,29 @@ namespace Gecode { namespace String {
 
   forceinline
   StringVarImp::StringVarImp(Space& home)
-  : StringVarImpBase(home), ds(home), min_len(0), max_len(MAX_STRING_LENGTH) {}
+  : StringVarImpBase(home), ds(home), min_len(0), max_len(MAX_STRING_LENGTH) {
+    assert (isOK());
+  }
 
   forceinline
   StringVarImp::StringVarImp(Space& home, StringVarImp& x)
   : StringVarImpBase(home, x), ds(home, x.ds), min_len(x.min_len), 
-                                               max_len(x.max_len) {}
+                                               max_len(x.max_len) {
+    assert (isOK());                                             
+  }
   
   forceinline
   StringVarImp::StringVarImp(Space& home, const Block& b)
-  : StringVarImpBase(home), ds(home, b), min_len(b.lb()), max_len(b.ub()) {}
+  : StringVarImpBase(home), ds(home, b), min_len(b.lb()), max_len(b.ub()) {
+    assert (isOK());
+  }
   
   forceinline
   StringVarImp::StringVarImp(Space& home, const DashedString& d)
   : StringVarImpBase(home), ds(home, d), min_len(d.lb_sum()), 
-                                         max_len(d.ub_sum()) {}
+                                         max_len(d.ub_sum()) { 
+    assert (isOK()); 
+  }
   
   forceinline
   StringVarImp::StringVarImp(Space& home, int l, int u)
@@ -32,6 +40,7 @@ namespace Gecode { namespace String {
     ds.min_length(home, l);
     ds.max_length(home, u);
     ds.updateCardAt(home, 0, l, u);
+    assert (isOK());
   }
   
   forceinline
@@ -42,6 +51,7 @@ namespace Gecode { namespace String {
     ds.min_length(home, l);
     ds.max_length(home, u);
     ds.updateAt(home, 0, Block(home, CharSet(home, s), l, u));
+    assert (isOK());
   }  
   
   forceinline void
@@ -58,6 +68,7 @@ namespace Gecode { namespace String {
       notify(home, ME_STRING_CARD, d);
     else
       notify(home, ME_STRING_BASE, d);
+    assert (isOK());  
   }
   
   forceinline void
@@ -74,6 +85,7 @@ namespace Gecode { namespace String {
       notify(home, ME_STRING_CARD, d);
     else
       notify(home, ME_STRING_BASE, d);
+    assert (isOK());
   }
   
   forceinline void
@@ -90,6 +102,7 @@ namespace Gecode { namespace String {
       notify(home, ME_STRING_CARD, d);
     else
       notify(home, ME_STRING_BASE, d);
+    assert (isOK());
   }
   
   forceinline void
@@ -99,6 +112,7 @@ namespace Gecode { namespace String {
     min_len = max_len = w.size();
     StringDelta d;
     notify(home, ME_STRING_VAL, d);
+    assert (isOK());
   }
   
   forceinline void
@@ -106,6 +120,7 @@ namespace Gecode { namespace String {
     ds.update(home, x.ds, y.ds);
     min_len = x.min_length() + y.min_length();
     max_len = x.max_length() + y.max_length();
+    assert (isOK());
   }
   
   forceinline ModEvent
@@ -119,6 +134,7 @@ namespace Gecode { namespace String {
     StringDelta d;
     ds.nullify(home);
     max_len = 0;
+    assert (isOK());
     return notify(home, ME_STRING_VAL, d);    
   }
   
@@ -138,11 +154,13 @@ namespace Gecode { namespace String {
     ds.splitBlock(home, idx, c, a);
     StringDelta d;
     notify(home, assigned() ? ME_STRING_VAL : ME_STRING_CARD, d);
+    assert (isOK());
   }
 
   forceinline void
   StringVarImp::normalize(Space& home) {
     ds.normalize(home);
+    assert (isOK());
   }  
 
   forceinline const Block&
@@ -202,6 +220,7 @@ namespace Gecode { namespace String {
       max_len = u;
       me = me_combine(me, max_length(home, u));
     }
+    assert (isOK());
     return me;
   }
   
@@ -214,6 +233,7 @@ namespace Gecode { namespace String {
       return ME_STRING_NONE;
     min_len = l;
     ds.min_length(home, min_len);
+    assert (isOK());
     StringDelta d;
     return notify(home, assigned() ? ME_STRING_VAL : ME_STRING_CARD, d);
   }
@@ -226,6 +246,7 @@ namespace Gecode { namespace String {
       return ME_STRING_NONE;
     max_len = u;
     ds.max_length(home, max_len);
+    assert (isOK());
     StringDelta d;
     return notify(home, assigned() ? ME_STRING_VAL : ME_STRING_CARD, d);
   }
