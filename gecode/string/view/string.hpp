@@ -658,19 +658,19 @@ namespace Gecode { namespace String {
     const Block& bp = (*this)[p_i];
     int k = bx.ub() - l1;
     if (p_i == q_i)
-      return nabla(bx, bp, std::min(q_o-p_o, bp.lb()+k));
-    int m = nabla(bx, bp, std::min(bp.ub() - p_o, bp.lb()+k));
+      return nabla(bx, bp, std::min(q_o-p_o, bounded_sum(bp.lb(),k)));
+    int m = nabla(bx, bp, std::min(bp.ub() - p_o, bounded_sum(bp.lb(),k)));
     for (int i = p_i+1; i < q_i; i++) {
       const Block& bi = (*this)[i];
-      m = bounded_sum(m, nabla(bx, bi, std::min(bi.ub(), bi.lb()+k)));
+      m = bounded_sum(m, nabla(bx, bi, std::min(bi.ub(), bounded_sum(bi.lb(),k))));
     }
     const Block& bq = (*this)[q_i];
-    return bounded_sum(m, nabla(bx, bq, std::min(q_o, bq.lb()+k)));
+    return bounded_sum(m, nabla(bx, bq, std::min(q_o, bounded_sum(bq.lb(),k))));
   }
   
   forceinline void
   StringView::opt_region(Space& home, const Block& bx, Block& bnew,
-                           const Position& p, const Position& q, int l1) const {
+                         const Position& p, const Position& q, int l1) const {
     assert(prec(p,q));
     int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
         p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
@@ -682,7 +682,7 @@ namespace Gecode { namespace String {
       bnew.update(home, bp);
       bnew.baseIntersect(home, bx);
       if (!bnew.isNull())
-        bnew.updateCard(home, 0, std::min(q_o-p_o, bp.lb()+k));
+        bnew.updateCard(home, 0, std::min(q_o-p_o, bounded_sum(bp.lb(),k)));
       return;
     }
     // More than one block involved
@@ -692,7 +692,7 @@ namespace Gecode { namespace String {
     for (int i = p_i+1; i < q_i; ++i) {
       const Block& bi = (*this)[i];
       bi.includeBaseIn(home, s);
-      u = bounded_sum(u, std::min(bi.ub(), bi.lb()+k));
+      u = bounded_sum(u, std::min(bi.ub(), bounded_sum(bi.lb(), k)));
     }
     const Block& bq = (*this)[q_i];
     bq.includeBaseIn(home, s);
@@ -700,7 +700,7 @@ namespace Gecode { namespace String {
     bnew.baseIntersect(home, s);
     if (!bnew.isNull())
       bnew.updateCard(home, 0, 
-        std::min(bx.ub(), bounded_sum(u, std::min(q_o, bq.lb()+k))));
+        std::min(bx.ub(), bounded_sum(u, std::min(q_o, bounded_sum(bq.lb(), k)))));
   }
   
   template <class T>
