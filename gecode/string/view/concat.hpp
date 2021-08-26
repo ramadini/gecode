@@ -281,10 +281,7 @@ namespace Gecode { namespace String {
 
   forceinline const Block&
   ConcatView::operator[](int i) const {
-    if (i < pivot)
-      return x0[i];
-    else
-      return x1[i-pivot];
+    return i < pivot ? x0[i] : x1[i-pivot];
   }
   
   forceinline std::vector<int> 
@@ -586,35 +583,38 @@ namespace Gecode { namespace String {
   
   forceinline void
   ConcatView::nullifyAt(Space& home, int i) {
-    x->nullifyAt(home, i);
+    i < pivot ? x0.nullifyAt(home, i) : x1.nullifyAt(home, i-pivot);
   }
   forceinline void
   ConcatView::lbAt(Space& home, int i, int l) {
-    x->lbAt(home, i, l);
+    i < pivot ? x0.lbAt(home, i, l) : x1.lbAt(home, i-pivot, l);
   }
   forceinline void
   ConcatView::ubAt(Space& home, int i, int u) {
-    x->ubAt(home, i, u);
+    i < pivot ? x0.ubAt(home, i, u) : x1.lbAt(home, i-pivot, u);
   }
   forceinline void
   ConcatView::updateCardAt(Space& home, int i, int l, int u) {
-    x->updateCardAt(home, i, l, u);
+    i < pivot ? x0.updateCardAt(home, i, l, u) :
+                x1.updateCardAt(home, i-pivot, l, u);
   }
   forceinline void
   ConcatView::updateAt(Space& home, int i, const Block& b) {
-    x->updateAt(home, i, b);
+    i < pivot ? x0.updateAt(home, i, b) : x1.updateAt(home, i-pivot, b);
   }
   forceinline void
-  ConcatView::baseIntersectAt(Space& home, int idx, const Set::BndSet& S) {
-    x->baseIntersectAt(home, idx, S);
+  ConcatView::baseIntersectAt(Space& home, int i, const Set::BndSet& S) {
+    i < pivot ? x0.baseIntersectAt(home, i, S) : 
+                x1.baseIntersectAt(home, i-pivot, S);
   }
   forceinline void
-  ConcatView::baseIntersectAt(Space& home, int idx, const Block& b) {
-    x->baseIntersectAt(home, idx, b);
+  ConcatView::baseIntersectAt(Space& home, int i, const Block& b) {
+    i < pivot ? x0.baseIntersectAt(home, i, b) : 
+                x1.baseIntersectAt(home, i-pivot, b);
   }
   
   template<class Char, class Traits>
-  std::basic_ostream<Char,Traits>&
+  forceinline std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const ConcatView& z) {
     os << z.lhs() << " ++ " << z.rhs();
     return os;

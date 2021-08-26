@@ -232,14 +232,17 @@ namespace Gecode { namespace String {
     ModEvent me = ME_STRING_NONE;
     if (l > min_len) {
       min_len = l;
+      ds.min_length(home, min_len);
       me = min_length(home, l);
     }
     if (me == ME_STRING_FAILED)
       return me;
     if (u < max_len) {
       max_len = u;
+      ds.max_length(home, max_len);
       me = me_combine(me, max_length(home, u));
     }
+    std::cerr << *this << '\n';
     assert (isOK());
     return me;
   }
@@ -252,7 +255,7 @@ namespace Gecode { namespace String {
     if (l <= lx)
       return ME_STRING_NONE;
     min_len = l;
-    ds.min_length(home, min_len, max_len);
+    ds.min_length(home, min_len);
     assert (isOK());
     StringDelta d;
     return notify(home, assigned() ? ME_STRING_VAL : ME_STRING_CARD, d);
@@ -265,7 +268,7 @@ namespace Gecode { namespace String {
     if (u >= max_len)
       return ME_STRING_NONE;
     max_len = u;
-    ds.max_length(home, max_len, min_len);
+    ds.max_length(home, max_len);
     assert (isOK());
     StringDelta d;
     return notify(home, assigned() ? ME_STRING_VAL : ME_STRING_CARD, d);
@@ -343,7 +346,7 @@ namespace Gecode { namespace String {
     assert (isOK());
   }
   forceinline void
-  StringVarImp::baseIntersectAt(Space& home, int i, const Set::BndSet& S) {
+  StringVarImp::baseIntersectAt(Space& home, int i, const Set::BndSet& S) {std::cerr << *this << '\n';
     int u = (*this)[i].ub();
     ds.baseIntersectAt(home, i, S);
     if ((*this)[i].isNull())

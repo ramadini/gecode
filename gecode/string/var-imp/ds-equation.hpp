@@ -93,7 +93,7 @@ namespace Gecode { namespace String {
   forceinline bool 
   refine_x(Space& home, ViewX& x, const ViewY& y, Matching m[], int xFixed,
                                                                 int& nBlocks) {
-//    std::cerr << "Refining " << x << "  vs  " << y << "\nMax. " << nBlocks << " new blocks needed.\n";
+    std::cerr << "Refining " << x << "  vs  " << y << "\nMax. " << nBlocks << " new blocks needed.\n";
     int nx = x.size(), ux = 2*(nx-xFixed);    
     bool changed = false;
     Region r;
@@ -209,7 +209,7 @@ namespace Gecode { namespace String {
       U[uSize++] = n;
       newSize += n;
     }
-    std::cerr << "newSize: " << newSize << ", uSize: " << uSize << ", changed: " << changed << "\n";
+//    std::cerr << "newSize: " << newSize << ", uSize: " << uSize << ", changed: " << changed << "\n";
     if (newSize > 0)
       x.resize(home, newBlocks, newSize, U, uSize);
     else if (changed)

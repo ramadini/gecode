@@ -279,8 +279,9 @@ namespace Gecode { namespace String {
   template<class Char, class Traits>
   forceinline std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const ConstStringView& v) {
-    for (int i = 0; i < v.n; ++i)
-      os << int2str(v._val[i]);
+    std::vector<int> w = v.val();
+    for (int i : w)
+      os << i;
     return os;
   };
   

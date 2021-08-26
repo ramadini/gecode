@@ -291,10 +291,10 @@ namespace Gecode { namespace String {
     void update(Space& home, const DashedString& x, const DashedString& y);
     /// Possibly refine this dashed string given minimum length l.
     /// Pre-condition: lb_sum() <= l <= ub_sum()
-    void min_length(Space& home, int l, int maxl);
+    void min_length(Space& home, int l);
     /// Possibly refine this dashed string given maximum length u.
     /// Pre-condition: lb_sum() <= l <= ub_sum()
-    void max_length(Space& home, int u, int minl);
+    void max_length(Space& home, int u);
     //@}
     
     void lbAt(Space& home, int idx, int l);
@@ -634,7 +634,7 @@ namespace Gecode { namespace String {
   forceinline std::vector<int>
   Block::val() const {
     if (!isFixed())
-      throw IllegalOperation("DashedString::val");
+      throw IllegalOperation("Block::val");
     return std::vector<int>(u, l);
   }
   
@@ -1109,7 +1109,8 @@ namespace Gecode { namespace String {
   }
   
   forceinline void 
-  DashedString::min_length(Space& home, int l, int maxl) {    
+  DashedString::min_length(Space& home, int l) {
+    int maxl = ub_sum();
     for (int i = 0; i < n; ++i) {
       Block& bi = x[i];
       int li = bi.lb(), ui = bi.ub(), min_i = std::min(ui, l - maxl + ui);
@@ -1121,11 +1122,12 @@ namespace Gecode { namespace String {
   }
   
   forceinline void 
-  DashedString::max_length(Space& home, int u, int minl) {
+  DashedString::max_length(Space& home, int u) {
+    int minl = lb_sum();
     bool norm = false;
     for (int i = 0; i < n; ++i) {
       Block& bi = x[i];
-      int li = bi.lb(), ui = bi.ub(), max_i = std::max(li, u - minl + li);      
+      int li = bi.lb(), ui = bi.ub(), max_i = std::max(li, u - minl + li);
       if (ui > max_i) {
         if (max_i == 0) {
           bi.nullify(home);

@@ -345,9 +345,6 @@ namespace Gecode { namespace String {
     void normalize(Space& home);
     ModEvent nullify(Space& home);                            
     //@}
-    template<class Char, class Traits>
-    friend std::basic_ostream<Char,Traits>&
-    operator <<(std::basic_ostream<Char,Traits>& os, const ConstStringView& v);
   };
   /**
    * \brief Print string variable view
@@ -482,16 +479,13 @@ namespace Gecode { namespace String {
     void baseIntersectAt(Space& home, int idx, const Set::BndSet& S);
     void baseIntersectAt(Space& home, int idx, const Block& b);
     
-    //@}                   
-    template<class Char, class Traits, class X, class Y>
-    friend std::basic_ostream<Char,Traits>&
-    operator <<(std::basic_ostream<Char,Traits>& os, const ConcatView& z);
+    //@}
   };
   /**
    * \brief Print string variable view
    * \relates Gecode::String::StringView
    */
-  template<class Char, class Traits, class X, class Y>
+  template<class Char, class Traits>
   std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const ConcatView& z);
   

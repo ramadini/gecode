@@ -390,7 +390,7 @@ namespace Gecode { namespace String {
   template<class Char, class Traits>
   forceinline  std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const StringView& v) {
-    os << *v.varimp() << " |" << v.min_length()<< ".."<< v.max_length() << "|";
+    os << *v.varimp();
     return os;
   };
   
@@ -636,7 +636,9 @@ namespace Gecode { namespace String {
                           const Position& p, const Position& q) const {
     // FIXME: When only block by is involved.
     assert (p.idx == q.idx || (p.idx == q.idx-1 && q.off == 0));
-    const Block& by = (*this)[p.idx]; 
+    std::cerr << *this << ' ' << p.idx << '\n';
+    std::cerr <<(*this)[p.idx]<<'\n';
+    const Block& by = (*this)[p.idx];std::cerr <<by<<'\n';
     x.baseIntersectAt(home, idx, by);
     const Block& bx = x[idx];
     if (!bx.isNull()) {
@@ -840,6 +842,7 @@ namespace Gecode { namespace String {
   }
   forceinline void
   StringView::baseIntersectAt(Space& home, int idx, const Set::BndSet& S) {
+    std::cerr <<idx << ' ' << CharSet(home,S) << '\n';
     x->baseIntersectAt(home, idx, S);
   }
   forceinline void

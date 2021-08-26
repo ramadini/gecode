@@ -363,8 +363,8 @@ public:
     d[1].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 2));
     d[2].update(*this, Block(*this, CharSet(*this, 'b', 'c'), 0, 2));
     DashedString x(*this, d, 3);
-    x[1].lb(*this, 2);
-    x.min_length(*this, x.min_length()+1);
+    x.lbAt(*this, 1, 2);
+//    x.min_length(*this, x.min_length()+1);
     std::cerr << "x = " << x << "\n";
     x.splitBlock(*this, 1, 'b', 0);
     std::cerr << "After split x[1], x = " << x << "\n";
@@ -372,8 +372,8 @@ public:
     x.splitBlock(*this, 2, 'b', 0);
     std::cerr << "After split x[2], x = " << x << "\n";
     assert (vec2str(x[1].val()) == "bb");
-    x[1].lb(*this, 2);
-    x.min_length(*this, x.min_length()+2);
+    x.lbAt(*this, 1, 2);
+//FIXME:    x.min_length(*this, x.min_length()+2);
     x.splitBlock(*this, 2, 'c', 1);
     std::cerr << "After split x[2], x = " << x << "\n";
     assert (vec2str(x[1].val()) == "bbb");
@@ -393,8 +393,8 @@ public:
     x.splitBlock(*this, 1, 'a', 1);
     std::cerr << "After split x[1], x = " << x << "\n";
     assert (x.size() == 2 && x[1].lb() == 1 && x[1].ub() == 3);
-    x[1].ub(*this, 1);
-    x.max_length(*this, x.max_length()-2);
+    x.ubAt(*this, 1, 1);
+//FIXME:    x.max_length(*this, x.max_length()-2);
     std::cerr << "New x = " << x << "\n";
     x.splitBlock(*this, 1, 'b', 1);
     std::cerr << "After split x[1], x = " << x << "\n";
