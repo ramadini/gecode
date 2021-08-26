@@ -222,7 +222,6 @@ namespace Gecode { namespace String {
     /// Normalize this view
     void normalize(Space& home);
     void splitBlock(Space& home, int idx, int c, unsigned a);
-    void sync_length(void);
     
     void nullifyAt(Space& home, int i);
     void lbAt(Space& home, int i, int l);

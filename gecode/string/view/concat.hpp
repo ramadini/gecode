@@ -378,8 +378,6 @@ namespace Gecode { namespace String {
     if (sweep_x(*this, y, m, k, n) && refine_x(home, *this, y, m, k, n)) {
       if (n == -1)
         return ME_STRING_NONE;
-      x0.sync_length();
-      x1.sync_length();
       return StringVarImp::me_combine(me<StringView>(home, x0, lb0, ub0),
                                       me<StringView>(home, x1, lb1, ub1));
     }
@@ -517,14 +515,14 @@ namespace Gecode { namespace String {
     bool norm = false;
     int u = bx.ub();
     x.update(home, *this);
+    if (u < x.max_length())
+      x.varimp()->max_length(home, u, false);
     for (int i = 0; i < x.size(); i++) {
       x.baseIntersectAt(home, i, s);
       norm |= x[i].isNull() || (i > 0 && x[i].baseEquals(x[i-1]));
     }
     if (norm)
       x.normalize(home);
-    if (u < x.max_length())
-      x.max_length(home, u);
   }
 
   template <class ViewX>

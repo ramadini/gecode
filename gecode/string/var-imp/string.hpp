@@ -160,6 +160,7 @@ namespace Gecode { namespace String {
   forceinline void
   StringVarImp::normalize(Space& home) {
     ds.normalize(home);
+    assert (isOK());
   }  
 
   forceinline const Block&
@@ -238,13 +239,14 @@ namespace Gecode { namespace String {
   }
   
   forceinline ModEvent
-  StringVarImp::max_length(Space& home, int u) {
+  StringVarImp::max_length(Space& home, int u, bool dom) {
     if (u < min_len)
       return ME_STRING_FAILED;
     if (u >= max_len)
       return ME_STRING_NONE;
     max_len = u;
-    ds.max_length(home, max_len);
+    if (dom)
+      ds.max_length(home, max_len);
     assert (isOK());
     StringDelta d;
     return notify(home, assigned() ? ME_STRING_VAL : ME_STRING_CARD, d);
@@ -276,8 +278,7 @@ namespace Gecode { namespace String {
   
   forceinline bool
   StringVarImp::isOK() const {
-    return min_len >= ds.lb_sum() && max_len <= ds.ub_sum() 
-        && ds.isOK() && ds.isNorm();
+    return min_len >= ds.lb_sum() && max_len <= ds.ub_sum() && ds.isOK();
   }
   
   forceinline void
@@ -300,30 +301,47 @@ namespace Gecode { namespace String {
   forceinline void
   StringVarImp::nullifyAt(Space& home, int i) {
     ds.nullifyAt(home, i);
+    if (ds.ub_sum() < max_len)
+      max_len = ds.ub_sum();
+    assert (isOK());
   }
   forceinline void
   StringVarImp::lbAt(Space& home, int i, int l) {
     ds.lbAt(home, i, l);
+    if (ds.lb_sum() > min_len)
+      min_len = ds.lb_sum();
+    assert (isOK());
   }
   forceinline void
   StringVarImp::ubAt(Space& home, int i, int u) {
     ds.ubAt(home, i, u);
+    if (ds.ub_sum() < max_len)
+      max_len = ds.ub_sum();
+    assert (isOK());
   }
   forceinline void
   StringVarImp::updateCardAt(Space& home, int i, int l, int u) {
     ds.updateCardAt(home, i, l, u);
+    sync_length();
+    assert (isOK());
   }
   forceinline void
   StringVarImp::updateAt(Space& home, int i, const Block& b) {
     ds.updateAt(home, i, b);
+    sync_length();
+    assert (isOK());
   }
   forceinline void
   StringVarImp::baseIntersectAt(Space& home, int idx, const Set::BndSet& S) {
     ds.baseIntersectAt(home, idx, S);
+    sync_length();
+    assert (isOK());
   }
   forceinline void
   StringVarImp::baseIntersectAt(Space& home, int idx, const Block& b) {
     ds.baseIntersectAt(home, idx, b);
+    sync_length();
+    assert (isOK());
   }
   
   template<class Char, class Traits>

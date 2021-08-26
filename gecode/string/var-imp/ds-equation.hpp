@@ -125,7 +125,7 @@ namespace Gecode { namespace String {
         int m = x_i.baseSize();
         if (nx == 1 && l <= l1 && y.logdim() < x_i.logdim()) {
           // FIXME: x is a single block, so we can expand it into |y| blocks.
-          y.expandBlock(home, x_i, x);
+          y.expandBlock(home, x_i, x); std::cerr << x << '\n';
           changed |= l < l1 || u > u1 || m > x_i.baseSize();
           return true;
         }

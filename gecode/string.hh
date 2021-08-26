@@ -87,8 +87,9 @@ namespace Gecode { namespace String {
   forceinline int 
   bounded_sum(int x, int y) {
     int z = x + y;
-    return z < x || z > Limits::MAX_STRING_LENGTH ? 
-                        Limits::MAX_STRING_LENGTH : z;
+    if (x < 0 || y < 0 || (x <= z && z <= Limits::MAX_STRING_LENGTH))
+      return z;
+    return Limits::MAX_STRING_LENGTH;
   }
 
 }}

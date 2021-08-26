@@ -404,11 +404,6 @@ namespace Gecode { namespace String {
     x->normalize(home);
   }
   
-  forceinline void 
-  StringView::sync_length() {
-    x->sync_length();
-  }
-  
   forceinline SweepFwdIterator<StringView>
   StringView::fwd_iterator(void) const {
     return SweepFwdIterator<StringView>(*this);
@@ -467,15 +462,11 @@ namespace Gecode { namespace String {
       if (n == -1)
         return ME_STRING_NONE;
       StringDelta d;    
-      if (assigned()) {
-        sync_length();
+      if (assigned())
         return x->notify(home, ME_STRING_VAL, d);
-      }
       int ux = max_length();
-      if (min_length() > lb || (ux < ub && ux < MAX_STRING_LENGTH)) {
-        sync_length();
+      if (min_length() > lb || (ux < ub && ux < MAX_STRING_LENGTH))
         return x->notify(home, ME_STRING_CARD, d);
-      }
       if (ux == MAX_STRING_LENGTH && ub > MAX_STRING_LENGTH) {
         long u = 0L;
         for (int i = 0; i < size(); ++i) {
@@ -483,7 +474,6 @@ namespace Gecode { namespace String {
           if (u >= ub)
             return x->notify(home, ME_STRING_BASE, d);
         }
-        sync_length();
         return x->notify(home, ME_STRING_CARD, d);
       }
       else
@@ -723,16 +713,15 @@ namespace Gecode { namespace String {
     bool norm = false;
     int u = bx.ub();
     x.update(home, *this);
-    if (bx.ub() < max_length())
-      x.max_length(home, bx.ub());
+    if (u < max_length())
+      // FIXME: To adjust the max. length without altering the dashed string.
+      x.varimp()->max_length(home, u, false);    
     for (int i = 0; i < x.size(); i++) {
       x.baseIntersectAt(home, i, s);
       norm |= x[i].isNull() || (i > 0 && x[i].baseEquals(x[i-1]));
     }
     if (norm)
       x.normalize(home);
-    if (u < x.max_length())
-      x.max_length(home, u);
   }
 
   template <class ViewX>
