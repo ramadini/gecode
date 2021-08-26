@@ -346,7 +346,7 @@ namespace Gecode { namespace String {
     assert (isOK());
   }
   forceinline void
-  StringVarImp::baseIntersectAt(Space& home, int i, const Set::BndSet& S) {std::cerr << *this << '\n';
+  StringVarImp::baseIntersectAt(Space& home, int i, const Set::BndSet& S) {
     int u = (*this)[i].ub();
     ds.baseIntersectAt(home, i, S);
     if ((*this)[i].isNull())

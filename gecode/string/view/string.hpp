@@ -636,9 +636,7 @@ namespace Gecode { namespace String {
                           const Position& p, const Position& q) const {
     // FIXME: When only block by is involved.
     assert (p.idx == q.idx || (p.idx == q.idx-1 && q.off == 0));
-    std::cerr << *this << ' ' << p.idx << '\n';
-    std::cerr <<(*this)[p.idx]<<'\n';
-    const Block& by = (*this)[p.idx];std::cerr <<by<<'\n';
+    const Block& by = (*this)[p.idx];
     x.baseIntersectAt(home, idx, by);
     const Block& bx = x[idx];
     if (!bx.isNull()) {

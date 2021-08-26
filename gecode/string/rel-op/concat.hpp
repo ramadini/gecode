@@ -36,7 +36,7 @@ namespace Gecode { namespace String { namespace RelOp {
   template<class View0, class View1, class View2>
   forceinline ExecStatus
   Concat<View0,View1,View2>::refine_card(Space& home) {
-    std::cerr << "Before refine_card: " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
+//    std::cerr << "Before refine_card: " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
     int l = std::max(x0.min_length(), x2.min_length() - x1.max_length()),
         u = std::min(x0.max_length(), x2.max_length() - x1.min_length());
     GECODE_ME_CHECK(x0.bnd_length(home, l, u));
@@ -46,7 +46,7 @@ namespace Gecode { namespace String { namespace RelOp {
     l = std::max(x2.min_length(), x0.min_length() + x1.min_length()),
     u = std::min(x2.max_length(), x0.max_length() + x1.max_length());
     GECODE_ME_CHECK(x2.bnd_length(home, l, u));
-    std::cerr << "After refine_card: " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
+//    std::cerr << "After refine_card: " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
     return ES_FIX;
   }
 
@@ -59,12 +59,12 @@ namespace Gecode { namespace String { namespace RelOp {
     if (x0.isNull()) {
       GECODE_REWRITE(*this, 
         (Gecode::String::Rel::Eq<View1,View2>::post(home(*this), x1, x2)));
-      return __ES_SUBSUMED;//__ES_SUBSUMED; //home.ES_SUBSUMED(*this);
+      return __ES_SUBSUMED; //home.ES_SUBSUMED(*this);
     }
     if (x1.isNull()) {
       GECODE_REWRITE(*this, 
         (Gecode::String::Rel::Eq<View1,View2>::post(home(*this), x0, x2)));
-      return __ES_SUBSUMED;//__ES_SUBSUMED; //home.ES_SUBSUMED(*this);
+      return __ES_SUBSUMED; //home.ES_SUBSUMED(*this);
     }
     if (x2.isNull()) {
       GECODE_ME_CHECK(x0.nullify(home));

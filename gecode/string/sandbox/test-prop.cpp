@@ -364,7 +364,7 @@ public:
     d[2].update(*this, Block(*this, CharSet(*this, 'b', 'c'), 0, 2));
     DashedString x(*this, d, 3);
     x.lbAt(*this, 1, 2);
-//    x.min_length(*this, x.min_length()+1);
+    x.updateCardAt(*this, 2, 1, 2);
     std::cerr << "x = " << x << "\n";
     x.splitBlock(*this, 1, 'b', 0);
     std::cerr << "After split x[1], x = " << x << "\n";
@@ -373,7 +373,7 @@ public:
     std::cerr << "After split x[2], x = " << x << "\n";
     assert (vec2str(x[1].val()) == "bb");
     x.lbAt(*this, 1, 2);
-//FIXME:    x.min_length(*this, x.min_length()+2);
+    x.lbAt(*this, 2, 2);
     x.splitBlock(*this, 2, 'c', 1);
     std::cerr << "After split x[2], x = " << x << "\n";
     assert (vec2str(x[1].val()) == "bbb");
@@ -394,7 +394,6 @@ public:
     std::cerr << "After split x[1], x = " << x << "\n";
     assert (x.size() == 2 && x[1].lb() == 1 && x[1].ub() == 3);
     x.ubAt(*this, 1, 1);
-//FIXME:    x.max_length(*this, x.max_length()-2);
     std::cerr << "New x = " << x << "\n";
     x.splitBlock(*this, 1, 'b', 1);
     std::cerr << "After split x[1], x = " << x << "\n";
@@ -409,7 +408,8 @@ public:
     assert (vec2str(x[0].val()) == "cccc");
   }
   
-  void test11() {    
+  void test11() {
+    cerr << "\n*** Test 10 ***" << endl;
     StringVar x(*this, Block(*this, CharSet(*this, ' '), 0, 144));
     StringVar y(*this, Block(*this, CharSet(*this, ' ', 'Y'), 1, 145));
     Block bz[3];
@@ -429,7 +429,7 @@ public:
     std::cerr << "y = " << y << "\n";
     std::cerr << "z = " << z << "\n";
     std::cerr << "After xy = z:\n";
-    assert (xy.equate(*this, vz) >-5);// == ME_STRING_BASE);
+    assert (xy.equate(*this, vz) == ME_STRING_BASE);
     std::cerr << "x = " << x << "\n";
     std::cerr << "y = " << y << "\n";
     std::cerr << "z = " << z << "\n";
