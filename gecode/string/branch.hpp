@@ -15,7 +15,7 @@ namespace Gecode { namespace String { namespace Branch {
   StringBrancher::val_lllm(int pos, Gecode::String::StringView& x) const {
     if (x.min_length() < x.max_length())
       return new PosLevVal(*this, pos, Lev::LENGTH, Val::MIN);
-    Block& b = x[x.leftmost_unfixed_idx()];
+    const Block& b = x[x.leftmost_unfixed_idx()];
     if (b.lb() < b.ub())
       return new PosLevVal(*this, pos, Lev::CARD, Val::MIN);
     else
@@ -26,7 +26,7 @@ namespace Gecode { namespace String { namespace Branch {
   StringBrancher::val_lslm(int pos, Gecode::String::StringView& x) const {
     if (x.min_length() < x.max_length())
       return new PosLevVal(*this, pos, Lev::LENGTH, Val::MIN);
-    Block& b = x[x.smallest_unfixed_idx()];
+    const Block& b = x[x.smallest_unfixed_idx()];
     if (b.lb() < b.ub())
       return new PosLevVal(*this, pos, Lev::CARD, Val::MIN);
     else
@@ -35,7 +35,7 @@ namespace Gecode { namespace String { namespace Branch {
   
   forceinline void
   StringBrancher::commit1(Space& home, StringView& x, Lev lev, Val val, int i) {
-    Block& x_i = x[i];
+    const Block& x_i = x[i];
     switch (lev) {
       case LENGTH: {
         if (x.min_length() == x.max_length()) {
@@ -60,11 +60,11 @@ namespace Gecode { namespace String { namespace Branch {
         }
         switch (val) {
           case MIN:
-             x_i.lb(home, x_i.lb()+1);
+             x.lbAt(home, i, x_i.lb()+1);
              x.min_length(home, x.min_length()+1);
              return;
           case MAX:
-             x_i.ub(home, x_i.ub()-1);
+             x.ubAt(home, i, x_i.ub()-1);
              x.max_length(home, x.max_length()+1);
              return;
           default:
@@ -85,7 +85,7 @@ namespace Gecode { namespace String { namespace Branch {
   
   forceinline void
   StringBrancher::commit0(Space& home, StringView& x, Lev lev, Val val, int i) {
-    Block& x_i = x[i];
+    const Block& x_i = x[i];
     switch (lev) {
       case LENGTH: {
         assert (x.min_length() < x.max_length());
@@ -105,11 +105,11 @@ namespace Gecode { namespace String { namespace Branch {
         assert (k > 0);
         switch (val) {
           case MIN:
-            x_i.ub(home, x_i.lb());
+            x.ubAt(home, i, x_i.lb());
             x.max_length(home, x.max_length()-k);
             return;
           case MAX:
-            x_i.lb(home, x_i.ub());
+            x.lbAt(home, i, x_i.ub());
             x.min_length(home, x.min_length()+k);
             return;
           default:
@@ -127,7 +127,7 @@ namespace Gecode { namespace String { namespace Branch {
   forceinline void
   StringBrancher::splitBlock(Space& home, StringView& x, int i, Val val, 
                                                                 unsigned a) {
-    Block& x_i = x[i];
+    const Block& x_i = x[i];
     int u = x_i.ub();
     assert (u > 0 && x_i.lb() == u && x_i.baseSize() > 1);
     int c;

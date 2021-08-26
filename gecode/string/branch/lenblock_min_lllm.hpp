@@ -55,7 +55,7 @@ namespace Gecode { namespace String { namespace Branch {
         _FIRST = false;
       }
       StringView& vx = x[start];
-      Block& b = vx[vx.smallest_unfixed_idx()];
+      const Block& b = vx[vx.smallest_unfixed_idx()];
       double d = b.logdim();
       int l = b.ub() - b.lb();
       int m = vx.min_length();
@@ -67,10 +67,10 @@ namespace Gecode { namespace String { namespace Branch {
         if (!xi.assigned()) {
           if (xi.degree() == 0) {
 //            std::cerr << "Warning: " << xi << " has degree 0!\n";
-            xi.varimp()->gets(home, std::vector<int>());
+            xi.varimp()->update(home, std::vector<int>());
             continue;
           }
-          Block& bi = xi[xi.leftmost_unfixed_idx()];
+          const Block& bi = xi[xi.leftmost_unfixed_idx()];
           double di = bi.logdim();
           int li = bi.ub() - bi.lb();
           int mi = xi.min_length();
