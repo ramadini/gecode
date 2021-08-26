@@ -946,7 +946,7 @@ namespace Gecode { namespace String {
   forceinline int DashedString::ub_sum() const {
     int u = 0;
     for (int i = 0; i < n; ++i)
-      u += x[i].ub();
+      u = ubounded_sum(u, x[i].ub());
     return u;  
   }
   forceinline int DashedString::size() const { return n; }
