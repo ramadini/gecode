@@ -134,7 +134,7 @@ namespace Gecode { namespace String {
           x.lbAt(home, i, l1);
         if (u1 < u)
           x.ubAt(home, i, u1);
-        y.crushBase(home, x_i, esp, lep);
+        y.crushBase(home, x, i, esp, lep);
         //FIXME: Add known pref/suff.
         changed |= l < l1 || u > u1 || m > x_i.baseSize();
         if (l1 == 0) {
@@ -164,7 +164,7 @@ namespace Gecode { namespace String {
         ux -= 2;
         // No need to unfold x_i.
         n = x_i.baseSize();
-        y.mand_region(home, x_i, lsp, eep);
+        y.mand_region(home, x, i, lsp, eep);
         changed |= l < x_i.lb() || u > x_i.ub() || n > x_i.baseSize();
 //        std::cerr << "x[" << i << "] ref. into " << x_i << "\n";        
         continue;

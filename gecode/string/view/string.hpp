@@ -600,7 +600,7 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  StringView::mand_region(Space& home, Block& bx, Block* bnew, int u,
+  StringView::mand_region(Space& home, const Block& bx, Block* bnew, int u,
                                 const Position& p, const Position& q) const {
     if (!prec(p, q)) {
       assert ((*this)[p.idx].isNull());
@@ -640,17 +640,20 @@ namespace Gecode { namespace String {
       bnew[j].updateCard(home, std::min(bq.lb(), q_o), std::min(u, q_o));
   }
   
+  template <class ViewX>
   forceinline void
-  StringView::mand_region(Space& home, Block& bx, const Position& p, 
-                                                  const Position& q) const {
+  StringView::mand_region(Space& home, ViewX& x, int idx, 
+                          const Position& p, const Position& q) const {
     // FIXME: When only block by is involved.
     assert (p.idx == q.idx || (p.idx == q.idx-1 && q.off == 0));
     const Block& by = (*this)[p.idx]; 
-    bx.baseIntersect(home, by);
+    x.baseIntersectAt(home, idx, by);
+    const Block& bx = x[idx];
     if (!bx.isNull()) {
       int q_off = q.off > 0 ? q.off : (*this)[q.idx-1].ub();
-      bx.updateCard(home, std::max(bx.lb(), std::min(q_off, by.lb()) - p.off),
-                          std::min(bx.ub(), q_off - p.off));
+      x.updateCardAt(home, idx, 
+                     std::max(bx.lb(), std::min(q_off, by.lb()) - p.off),
+                     std::min(bx.ub(), q_off - p.off));
     }
   }
   
@@ -723,7 +726,7 @@ namespace Gecode { namespace String {
     if (bx.ub() < max_length())
       x.max_length(home, bx.ub());
     for (int i = 0; i < x.size(); i++) {
-      x[i].baseIntersect(home, s);
+      x.baseIntersectAt(home, i, s);
       norm |= x[i].isNull() || (i > 0 && x[i].baseEquals(x[i-1]));
     }
     if (norm)
@@ -732,13 +735,14 @@ namespace Gecode { namespace String {
       x.max_length(home, u);
   }
 
+  template <class ViewX>
   forceinline void
-  StringView::crushBase(Space& home, Block& bx, const Position& p, 
-                                                const Position& q) const {
+  StringView::crushBase(Space& home, ViewX& x, int idx, 
+                        const Position& p, const Position& q) const {
     Set::GLBndSet s;
     for (int i = p.idx, j = q.idx - (q.off == 0); i <= j; ++i)
       (*this)[i].includeBaseIn(home, s);
-    bx.baseIntersect(home, s);
+    x.baseIntersectAt(home, idx, s);
   }
   
   forceinline int
@@ -821,6 +825,27 @@ namespace Gecode { namespace String {
       d.max_length(home, max_length());    
     x->update(home, d);
   }
-     
+  
+  forceinline void
+  StringView::nullifyAt(Space& home, int i) {
+    x->nullifyAt(home, i);
+  }
+  forceinline void
+  StringView::lbAt(Space& home, int i, int l) {
+    x->lbAt(home, i, l);
+  }
+  forceinline void
+  StringView::ubAt(Space& home, int i, int u) {
+    x->ubAt(home, i, u);
+  }
+  forceinline void
+  StringView::updateCardAt(Space& home, int i, int l, int u) {
+    x->updateCardAt(home, i, l, u);
+  }
+  forceinline void
+  StringView::updateAt(Space& home, int i, const Block& b) {
+    x->updateAt(home, i, b);
+  }
+  
 }}
 

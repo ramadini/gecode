@@ -77,7 +77,7 @@ namespace Gecode { namespace String { namespace RelOp {
         if (x2.assigned())
           return __ES_SUBSUMED; //home.ES_SUBSUMED(*this);
         if (check_equate_x(xy, x2))
-          x2.gets(home, xy.val());
+          x2.update(home, xy.val());
         else
           return ES_FAILED;
       }

@@ -197,9 +197,9 @@ namespace Gecode { namespace String {
     template <class T> void 
     expandBlock(Space& home, const Block& bx, T& x) const;
     /// TODO:
-    void
-    crushBase(Space& home, Block& bx, const Position& esp, 
-                                      const Position& lep) const;
+    template <class ViewX> void
+    crushBase(Space& home, ViewX& x, int idx, const Position& p,
+                                              const Position& q) const;
     /// TODO:                                   
     void
     opt_region(Space& home, const Block& bx, Block& bnew, 
@@ -207,23 +207,31 @@ namespace Gecode { namespace String {
     
     /// TODO:                   
     void
-    mand_region(Space& home, Block& bx, const Position& p, const Position& q) const;
-    /// TODO:                                                     
-    void
-    mand_region(Space& home, Block& bx, Block* bnew, int u,
+    mand_region(Space& home, const Block& bx, Block* bnew, int u, 
                              const Position& p, const Position& q) const;
+    /// TODO:                                                     
+    template <class ViewX> void
+    mand_region(Space& home, ViewX& x, int idx, const Position& p,
+                                                const Position& q) const;
     /// TODO:
     void
     resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize);
     
-    int
-    fixed_chars_suff(const Position& p, const Position& q) const;
-    int
-    fixed_chars_pref(const Position& p, const Position& q) const;
+    int fixed_chars_suff(const Position& p, const Position& q) const;
+    int fixed_chars_pref(const Position& p, const Position& q) const;
     
     /// Normalize this view
     void normalize(Space& home);
     void splitBlock(Space& home, int idx, int c, unsigned a);
+    
+    void nullifyAt(Space& home, int i);
+    void lbAt(Space& home, int i, int l);
+    void ubAt(Space& home, int i, int u);
+    void updateCardAt(Space& home, int i, int l, int u);
+    void updateAt(Space& home, int i, const Block& b);
+    void baseIntersectAt(Space& home, int idx, const Set::BndSet& S);
+    void baseIntersectAt(Space& home, int idx, const Block& b);
+    
     //@}
   };
   /**
@@ -310,9 +318,9 @@ namespace Gecode { namespace String {
     expandBlock(Space& home, const Block& bx, T& x) const;
     
     /// TODO:
-    void
-    crushBase(Space& home, Block& bx, const Position& esp, 
-                                      const Position& lep) const;
+    template <class ViewX> void
+    crushBase(Space& home, ViewX& x, int idx, const Position& p,
+                                              const Position& q) const;
     /// TODO:                                   
     void
     opt_region(Space& home, const Block& bx, Block& bnew, 
@@ -320,11 +328,12 @@ namespace Gecode { namespace String {
     
     /// TODO:                   
     void
-    mand_region(Space& home, Block& bx,  const Position& p, const Position& q) const;
-    /// TODO:                                                     
-    void
-    mand_region(Space& home, Block& bx, Block* bnew, int u,
+    mand_region(Space& home, const Block& bx, Block* bnew, int u, 
                              const Position& p, const Position& q) const;
+    /// TODO:                                                     
+    template <class ViewX> void
+    mand_region(Space& home, ViewX& x, int idx, const Position& p,
+                                                const Position& q) const;
     void
     resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize) const;
     
@@ -439,9 +448,9 @@ namespace Gecode { namespace String {
     template <class T> void
     expandBlock(Space& home, const Block& bx, T& x) const;
     /// TODO:
-    void
-    crushBase(Space& home, Block& bx, const Position& esp, 
-                                      const Position& lep) const;
+    template <class ViewX> void
+    crushBase(Space& home, ViewX& x, int idx, const Position& p,
+                                              const Position& q) const;
     /// TODO:                                   
     void
     opt_region(Space& home, const Block& bx, Block& bnew, 
@@ -449,11 +458,12 @@ namespace Gecode { namespace String {
     
     /// TODO:                   
     void
-    mand_region(Space& home, Block& bx, const Position& p, const Position& q) const;
-    /// TODO:                                                     
-    void
-    mand_region(Space& home, Block& bx, Block* bnew, int u,
+    mand_region(Space& home, const Block& bx, Block* bnew, int u, 
                              const Position& p, const Position& q) const;
+    /// TODO:                                                     
+    template <class ViewX> void
+    mand_region(Space& home, ViewX& x, int idx, const Position& p,
+                                                const Position& q) const;
     /// TODO:
     void
     resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize);
@@ -464,6 +474,14 @@ namespace Gecode { namespace String {
     fixed_chars_suff(const Position& p, const Position& q) const;
     int
     fixed_chars_pref(const Position& p, const Position& q) const;
+    
+    void nullifyAt(Space& home, int i);
+    void lbAt(Space& home, int i, int l);
+    void ubAt(Space& home, int i, int u);
+    void updateCardAt(Space& home, int i, int l, int u);
+    void updateAt(Space& home, int i, const Block& b);
+    void baseIntersectAt(Space& home, int idx, const Set::BndSet& S);
+    void baseIntersectAt(Space& home, int idx, const Block& b);
     
     //@}                   
     template<class Char, class Traits, class X, class Y>

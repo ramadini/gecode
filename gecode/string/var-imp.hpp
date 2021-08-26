@@ -112,6 +112,14 @@ namespace Gecode { namespace String {
     void update(Space& home, const std::vector<int>& w);
     void update(Space& home, const StringVarImp& x, const StringVarImp& y);
     void update_rev(Space& home, const StringVarImp& y);
+    
+    void nullifyAt(Space& home, int i);
+    void lbAt(Space& home, int i, int l);
+    void ubAt(Space& home, int i, int u);
+    void updateCardAt(Space& home, int i, int l, int u);
+    void updateAt(Space& home, int i, const Block& b);
+    void baseIntersectAt(Space& home, int idx, const Set::BndSet& S);
+    void baseIntersectAt(Space& home, int idx, const Block& b);
 
     /// \name Domain update by cardinality refinement
     //@{

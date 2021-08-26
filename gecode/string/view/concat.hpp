@@ -437,7 +437,7 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  ConcatView::mand_region(Space& home, Block& bx, Block* bnew, int u,
+  ConcatView::mand_region(Space& home, const Block& bx, Block* bnew, int u,
                                 const Position& p, const Position& q) const {
 //    std::cerr << "ConcatView::mand_region" << bx << p << pivot << q << '\n';
     assert (prec(p,q));
@@ -451,14 +451,15 @@ namespace Gecode { namespace String {
     }
   }
   
+  template <class ViewX>
   forceinline void
-  ConcatView::mand_region(Space& home, Block& bx, const Position& p, 
-                                                  const Position& q) const {
+  ConcatView::mand_region(Space& home, ViewX& x, int idx,
+                          const Position& p, const Position& q) const {
     // FIXME: When only block by is involved.
     if (p.idx < pivot)
-      x0.mand_region(home, bx, p, q);
+      x0.mand_region(home, x, idx, p, q);
     else
-      x1.mand_region(home, bx, p-pivot, q-pivot);
+      x1.mand_region(home, x, idx, p-pivot, q-pivot);
   }
   
   forceinline int
@@ -517,7 +518,7 @@ namespace Gecode { namespace String {
     int u = bx.ub();
     x.update(home, *this);
     for (int i = 0; i < x.size(); i++) {
-      x[i].baseIntersect(home, s);
+      x.baseIntersectAt(home, i, s);
       norm |= x[i].isNull() || (i > 0 && x[i].baseEquals(x[i-1]));
     }
     if (norm)
@@ -526,13 +527,14 @@ namespace Gecode { namespace String {
       x.max_length(home, u);
   }
 
+  template <class ViewX>
   forceinline void
-  ConcatView::crushBase(Space& home, Block& bx, const Position& p, 
-                                                const Position& q) const {
+  ConcatView::crushBase(Space& home, ViewX& x, int idx, 
+                        const Position& p, const Position& q) const {
     Set::GLBndSet s;
     for (int i = p.idx, j = q.idx - (q.off == 0); i <= j; ++i)
       (*this)[i].includeBaseIn(home, s);
-    bx.baseIntersect(home, s);
+    x.baseIntersectAt(home, idx, s);
   }
   
   forceinline int

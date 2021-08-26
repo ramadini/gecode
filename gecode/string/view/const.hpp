@@ -395,7 +395,7 @@ namespace Gecode { namespace String {
   }  
   
   forceinline void
-  ConstStringView::mand_region(Space& home, Block&, Block* bnew, int u,
+  ConstStringView::mand_region(Space& home, const Block&, Block* bnew, int u,
                                 const Position& p, const Position& q) const {
     assert (prec(p,q) && u <= n);
     int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1;
@@ -403,10 +403,11 @@ namespace Gecode { namespace String {
       bnew[j].update(home, Block((*this)[i]));
   }
   
+  template <class ViewX>
   forceinline void
-  ConstStringView::mand_region(Space& home, Block& bx, const Position& p, 
-                                                       const Position&) const {
-    bx.update(home, (*this)[p.idx]);
+  ConstStringView::mand_region(Space& home, ViewX& x, int idx, 
+                               const Position& p, const Position&) const {
+    x.updateAt(home, idx, (*this)[p.idx]);
   }
   
   forceinline int
@@ -456,16 +457,17 @@ namespace Gecode { namespace String {
     assert (bx.ub() >= size());
   }
 
+  template <class ViewX>
   forceinline void
-  ConstStringView::crushBase(Space& home, Block& bx, const Position& p, 
-                                                     const Position& q) const {
+  ConstStringView::crushBase(Space& home, ViewX& x, int idx, 
+                        const Position& p, const Position& q) const {
     Set::GLBndSet s;
     for (int i = p.idx, j = q.idx - (q.off == 0); i <= j; ++i) {
       Set::SetDelta d;
       int c = (*this)[i]; 
       s.include(home, c, c, d);
     }
-    bx.baseIntersect(home, s);
+    x.baseIntersectAt(home, idx, s);
   }  
     
   forceinline int
