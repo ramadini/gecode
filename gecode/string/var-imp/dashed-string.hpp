@@ -1450,7 +1450,6 @@ namespace Gecode { namespace String {
       }
     }
     assert(isNorm());
-    assert(isOK());
   }
   
   forceinline bool

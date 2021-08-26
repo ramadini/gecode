@@ -404,6 +404,11 @@ namespace Gecode { namespace String {
     x->normalize(home);
   }
   
+  forceinline void 
+  StringView::sync_length() {
+    x->sync_length();
+  }
+  
   forceinline SweepFwdIterator<StringView>
   StringView::fwd_iterator(void) const {
     return SweepFwdIterator<StringView>(*this);
@@ -463,12 +468,12 @@ namespace Gecode { namespace String {
         return ME_STRING_NONE;
       StringDelta d;    
       if (assigned()) {
-        // FIXME: sync_length();
+        sync_length();
         return x->notify(home, ME_STRING_VAL, d);
       }
       int ux = max_length();
       if (min_length() > lb || (ux < ub && ux < MAX_STRING_LENGTH)) {
-        // FIXME: sync_length();
+        sync_length();
         return x->notify(home, ME_STRING_CARD, d);
       }
       if (ux == MAX_STRING_LENGTH && ub > MAX_STRING_LENGTH) {
@@ -478,7 +483,7 @@ namespace Gecode { namespace String {
           if (u >= ub)
             return x->notify(home, ME_STRING_BASE, d);
         }
-        // FIXME: sync_length();
+        sync_length();
         return x->notify(home, ME_STRING_CARD, d);
       }
       else

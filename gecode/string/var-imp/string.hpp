@@ -160,7 +160,6 @@ namespace Gecode { namespace String {
   forceinline void
   StringVarImp::normalize(Space& home) {
     ds.normalize(home);
-    assert (isOK());
   }  
 
   forceinline const Block&
@@ -249,6 +248,15 @@ namespace Gecode { namespace String {
     assert (isOK());
     StringDelta d;
     return notify(home, assigned() ? ME_STRING_VAL : ME_STRING_CARD, d);
+  }
+
+  forceinline void 
+  StringVarImp::sync_length() {
+    if (ds.lb_sum() > min_len)
+      min_len = ds.lb_sum();
+    if (ds.ub_sum() < max_len)
+      max_len = ds.ub_sum();
+    assert (isOK());
   }
 
   forceinline std::vector<int>

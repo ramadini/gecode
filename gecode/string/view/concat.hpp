@@ -378,8 +378,8 @@ namespace Gecode { namespace String {
     if (sweep_x(*this, y, m, k, n) && refine_x(home, *this, y, m, k, n)) {
       if (n == -1)
         return ME_STRING_NONE;
-      // FIXME: x0.sync_length();
-      // FIXME: x1.sync_length();
+      x0.sync_length();
+      x1.sync_length();
       return StringVarImp::me_combine(me<StringView>(home, x0, lb0, ub0),
                                       me<StringView>(home, x1, lb1, ub1));
     }
