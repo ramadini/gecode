@@ -109,11 +109,11 @@ namespace Gecode { namespace String {
       Position& esp = m[i].ESP, eep = m[i].EEP, lsp = m[i].LSP, lep = m[i].LEP;
       const Block& x_i = x[i];
       int l = x_i.lb(), u = x_i.ub(), l1 = min_len_mand(y, x_i, lsp, eep);
-//      std::cerr << "l'=" << l1 << "\n";
+      std::cerr << "l'=" << l1 << "\n";
       if (u < l1)
         return false;
       int u1 = y.max_len_opt(x_i, esp, lep, l1);
-//      std::cerr << "u'=" << u1 << "\n";
+      std::cerr << "u'=" << u1 << "\n";
       assert (l1 <= u1);
       if (l1 == 0 || l1 < l || u1 > u) {
         if (u1 == 0) {
@@ -135,7 +135,6 @@ namespace Gecode { namespace String {
         if (u1 < u)
           x.ubAt(home, i, u1);
         y.crushBase(home, x, i, esp, lep);
-        //FIXME: Add known pref/suff.
         changed |= l < l1 || u > u1 || m > x_i.baseSize();
         if (l1 == 0) {
 //          std::cerr << "x[" << i << "] ref. into " << x_i << "\n";
@@ -184,14 +183,14 @@ namespace Gecode { namespace String {
         y.opt_region(home, x_i, mreg[n-1], eep, lep, l1);
       DashedString d(home, mreg, n);
       r1.free();
-//      std::cerr << "d = " << d << ' ' << n << "\n";
+      std::cerr << "d = " << d << ' ' << n << "\n";
+      if (d.ub_sum() > u1)
+        d.max_length(home, u1);
       assert (d.lb_sum() >= l);
       n = d.size();
       if (n == 1) {
         nBlocks--;
         ux -= 2;
-        if (d[0].ub() > u)
-          d.ubAt(home, 0, u);
         if (d[0].equals(x_i))
           continue;
         x.updateAt(home, i, d[0]);
@@ -202,16 +201,13 @@ namespace Gecode { namespace String {
         U = r.alloc<int>(ux);
       if (newBlocks == nullptr)
         newBlocks = r.alloc<Block>(nBlocks);
-      for (int j = 0, k = newSize; j < n; ++j,++k) {
-        if (d[j].ub() > u)
-          d.ubAt(home, j, u);
+      for (int j = 0, k = newSize; j < n; ++j,++k)
         newBlocks[k].update(home, d[j]);
-      }      
       U[uSize++] = i;
       U[uSize++] = n;
       newSize += n;
     }
-//    std::cerr << "newSize: " << newSize << ", uSize: " << uSize << ", changed: " << changed << "\n";
+    std::cerr << "newSize: " << newSize << ", uSize: " << uSize << ", changed: " << changed << "\n";
     if (newSize > 0)
       x.resize(home, newBlocks, newSize, U, uSize);
     else if (changed)

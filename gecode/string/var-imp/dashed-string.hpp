@@ -1152,10 +1152,11 @@ namespace Gecode { namespace String {
   
   forceinline void 
   DashedString::updateAt(Space& home, int idx, const Block& b) {
-    std::cerr << *this << " update@" << idx << " with " << b << "\n";
+    std::cerr << *this << " update@" << idx << "("<<x[idx]<<") with "<<b<< "\n";
     lbs += b.lb() - x[idx].lb();
-    ubs = bounded_sum(ubs, b.ub() - x[idx].ub());
+    ubs = bounded_sum(ubs, b.ub() - x[idx].ub());    
     (x + idx)->update(home, b);
+    std::cerr << lbs << ' ' << ubs << '\n';
   }
   
   forceinline void 

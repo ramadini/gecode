@@ -807,12 +807,16 @@ namespace Gecode { namespace String {
         d.updateAt(home, idxNew, newBlocks[k + off]);
       off += U[idxU+1];
     }
-    for (; idxOld < size(); ++idxOld, ++idxNew)
-      d.updateAt(home, idxNew, (*this)[idxOld]);
+    for (; idxOld < size(); ++idxOld, ++idxNew) {
+      const Block& b = (*this)[idxOld];
+      if (!(d[idxNew].equals(b)))
+        d.updateAt(home, idxNew, b);
+    }
+    int u = max_length();
     d.normalize(home);
-    if (d.ub_sum() > max_length())
-      d.max_length(home, max_length());    
     x->update(home, d);
+    if (u < max_length())
+      x->max_length(home, u, false);
   }
   
   forceinline void
