@@ -940,7 +940,7 @@ namespace Gecode { namespace String {
   forceinline int DashedString::lb_sum() const {
     int l = 0;
     for (int i = 0; i < n; ++i)
-      l += x[i].ub();
+      l += x[i].lb();
     return l;  
   }
   forceinline int DashedString::ub_sum() const {
@@ -1075,42 +1075,34 @@ namespace Gecode { namespace String {
   DashedString::lbAt(Space& home, int idx, int l) {
     (x + idx)->lb(home, l);
   }
-  
   forceinline void
   DashedString::ubAt(Space& home, int idx, int u) {
     (x + idx)->ub(home, u);
   }
-  
   forceinline void 
   DashedString::baseIntersectAt(Space& home, int idx, const Set::BndSet& S) {
     (x + idx)->baseIntersect(home, S);
   }
-  
   forceinline void 
   DashedString::baseIntersectAt(Space& home, int idx, const Block& b) {
     (x + idx)->baseIntersect(home, b);
   }
-  
   forceinline void 
   DashedString::baseExcludeAt(Space& home, int idx, const Set::BndSet& S) {
     (x + idx)->baseExclude(home, S);
   }
-
   forceinline void 
   DashedString::baseRemoveAt(Space& home, int idx, int c) {
     (x + idx)->baseRemove(home, c);
   }
-
   forceinline void 
   DashedString::nullifyAt(Space& home, int idx) {
     (x + idx)->nullify(home);
   }
-  
   forceinline void 
   DashedString::updateAt(Space& home, int idx, const Block& b) {
     (x + idx)->update(home, b);
   }
-  
   forceinline void 
   DashedString::updateCardAt(Space& home, int idx, int lb, int ub) {    
     (x + idx)->updateCard(home, lb, ub);

@@ -133,7 +133,7 @@ public:
     b[i++].update(*this, Block(*this, CharSet(*this, IntSet({'!'})), 0, 2));
     DashedString d2(*this, b, i);
     cerr << d2 << '\n';
-    assert (d2.lb_sum() == 4 && d2.size() == 4 && d2.ub_sum() == 9);
+    assert (d2.lb_sum() == d2.size() && d2.ub_sum() == 9);
     assert (d2.logdim() - log(24) < DBL_EPSILON);
     Block b0[2];
     b0[0].update(*this, Block(*this, CharSet(*this, 'r','t'), 1 ,3));
