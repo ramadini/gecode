@@ -927,7 +927,7 @@ namespace Gecode { namespace String {
         throw OutOfLimits("DashedString::DashedString");
       }
       lbs += x[i].lb();
-      ubs = bounded_sum(ubs, x[i].ub());      
+      ubs = ubounded_sum(ubs, x[i].ub());      
       norm |= x[i].isNull() || x[i].baseEquals(x[i-1]);
     }
     if (n > 1 && ubs == Limits::MAX_STRING_LENGTH) {
@@ -935,7 +935,7 @@ namespace Gecode { namespace String {
       ubs = 0;
       for (int i = 0; i < n; ++i) {
         Block& bi = x[i];
-        int ll = lbs - bi.lb(), uu = bounded_sum(bi.ub(), ll);
+        int ll = lbs - bi.lb(), uu = ubounded_sum(bi.ub(), ll);
         if (uu == Limits::MAX_STRING_LENGTH) {
           long d = bi.ub() + ll - Limits::MAX_STRING_LENGTH;
           assert (d <= MAX_STRING_LENGTH);
@@ -943,7 +943,7 @@ namespace Gecode { namespace String {
           if (bi.isNull())
             norm = true;
         }
-        ubs = bounded_sum(ubs, bi.ub()); 
+        ubs = ubounded_sum(ubs, bi.ub()); 
       }
     }
     if (norm)
@@ -1077,7 +1077,7 @@ namespace Gecode { namespace String {
       // A re-check is needed to keep ubs sound.
       ubs = -u;
       for (int i = 0; i < n; ++i) {
-        ubs = bounded_sum(ubs, x[i].ub());
+        ubs = ubounded_sum(ubs, x[i].ub());
         if (ubs == MAX_STRING_LENGTH)
           return;  
       }
@@ -1154,7 +1154,7 @@ namespace Gecode { namespace String {
   DashedString::updateAt(Space& home, int idx, const Block& b) {
     std::cerr << *this << " update@" << idx << "("<<x[idx]<<") with "<<b<< "\n";
     lbs += b.lb() - x[idx].lb();
-    ubs = bounded_sum(ubs, b.ub() - x[idx].ub());    
+    ubs = ubounded_sum(ubs, b.ub() - x[idx].ub());    
     (x + idx)->update(home, b);
     std::cerr << lbs << ' ' << ubs << '\n';
   }
@@ -1162,7 +1162,7 @@ namespace Gecode { namespace String {
   forceinline void 
   DashedString::updateCardAt(Space& home, int idx, int lb, int ub) {
     lbs += lb - x[idx].lb();
-    ubs = bounded_sum(ubs, ub - x[idx].ub());
+    ubs = ubounded_sum(ubs, ub - x[idx].ub());
     (x + idx)->updateCard(home, lb, ub);
   }
   
@@ -1492,7 +1492,7 @@ namespace Gecode { namespace String {
       if (i > 0 && !x[i].isOK())
         return false;
       l += x[i].lb();
-      u = bounded_sum(u, x[i].ub());
+      u = ubounded_sum(u, x[i].ub());
     }
     return l == lbs && u == ubs;
   }

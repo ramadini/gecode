@@ -85,7 +85,7 @@ namespace Gecode { namespace String {
   }
 
   forceinline int 
-  bounded_sum(int x, int y) {
+  ubounded_sum(int x, int y) {
     int z = x + y;
     if (x < 0 || y < 0 || (x <= z && z <= Limits::MAX_STRING_LENGTH))
       return z;

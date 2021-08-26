@@ -501,7 +501,7 @@ namespace Gecode { namespace String {
       bnew1.includeBaseIn(home, s);      
       bnew.update(home, bx);
       bnew.baseIntersect(home, s);
-      bnew.updateCard(home, 0, std::min(bx.ub(),bounded_sum(bnew0.ub(),bnew1.ub())));
+      bnew.updateCard(home, 0, std::min(bx.ub(),ubounded_sum(bnew0.ub(),bnew1.ub())));
     }
   }
   

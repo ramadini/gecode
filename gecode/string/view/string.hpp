@@ -658,14 +658,14 @@ namespace Gecode { namespace String {
     const Block& bp = (*this)[p_i];
     int k = bx.ub() - l1;
     if (p_i == q_i)
-      return nabla(bx, bp, std::min(q_o-p_o, bounded_sum(bp.lb(),k)));
-    int m = nabla(bx, bp, std::min(bp.ub() - p_o, bounded_sum(bp.lb(),k)));
+      return nabla(bx, bp, std::min(q_o-p_o, ubounded_sum(bp.lb(),k)));
+    int m = nabla(bx, bp, std::min(bp.ub() - p_o, ubounded_sum(bp.lb(),k)));
     for (int i = p_i+1; i < q_i; i++) {
       const Block& bi = (*this)[i];
-      m = bounded_sum(m, nabla(bx, bi, std::min(bi.ub(), bounded_sum(bi.lb(),k))));
+      m = ubounded_sum(m, nabla(bx, bi, std::min(bi.ub(), ubounded_sum(bi.lb(),k))));
     }
     const Block& bq = (*this)[q_i];
-    return bounded_sum(m, nabla(bx, bq, std::min(q_o, bounded_sum(bq.lb(),k))));
+    return ubounded_sum(m, nabla(bx, bq, std::min(q_o, ubounded_sum(bq.lb(),k))));
   }
   
   forceinline void
@@ -682,7 +682,7 @@ namespace Gecode { namespace String {
       bnew.update(home, bp);
       bnew.baseIntersect(home, bx);
       if (!bnew.isNull())
-        bnew.updateCard(home, 0, std::min(q_o-p_o, bounded_sum(bp.lb(),k)));
+        bnew.updateCard(home, 0, std::min(q_o-p_o, ubounded_sum(bp.lb(),k)));
       return;
     }
     // More than one block involved
@@ -692,7 +692,7 @@ namespace Gecode { namespace String {
     for (int i = p_i+1; i < q_i; ++i) {
       const Block& bi = (*this)[i];
       bi.includeBaseIn(home, s);
-      u = bounded_sum(u, std::min(bi.ub(), bounded_sum(bi.lb(), k)));
+      u = ubounded_sum(u, std::min(bi.ub(), ubounded_sum(bi.lb(), k)));
     }
     const Block& bq = (*this)[q_i];
     bq.includeBaseIn(home, s);
@@ -700,7 +700,7 @@ namespace Gecode { namespace String {
     bnew.baseIntersect(home, s);
     if (!bnew.isNull())
       bnew.updateCard(home, 0, 
-        std::min(bx.ub(), bounded_sum(u, std::min(q_o, bounded_sum(bq.lb(), k)))));
+        std::min(bx.ub(), ubounded_sum(u, std::min(q_o, ubounded_sum(bq.lb(), k)))));
   }
   
   template <class T>

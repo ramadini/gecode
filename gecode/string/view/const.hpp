@@ -440,14 +440,14 @@ namespace Gecode { namespace String {
     for (int i = p_i+1; i < q_i; ++i) {
       int bi = (*this)[i];
       s.include(home, bi, bi, d);
-      u = bounded_sum(u, std::min(1, k+1));
+      u = ubounded_sum(u, std::min(1, k+1));
     }
     int bq = (*this)[q_i];
     s.include(home, bq, bq, d);
     bnew.update(home, bx);
     bnew.baseIntersect(home, s);    
     if (!bnew.isNull())
-      bnew.updateCard(home, 0, bounded_sum(u, std::min(q_o, k+1)));
+      bnew.updateCard(home, 0, ubounded_sum(u, std::min(q_o, k+1)));
   }
   
   template <class T>
