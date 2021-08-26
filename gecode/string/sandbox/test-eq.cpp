@@ -299,6 +299,7 @@ public:
     for (int i = 0; i < n; ++i)
       cerr << "ESP[ " << vy[i] << " ] = " << m[i].ESP << ", "
            << "LEP[ " << vy[i] << " ] = " << m[i].LEP << "\n";
+    std::cerr << vx << " " << vy << "\n";  
     assert(vx.isOK() && vy.isOK());
   }
   
