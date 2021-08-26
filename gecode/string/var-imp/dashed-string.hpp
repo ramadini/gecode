@@ -885,7 +885,7 @@ namespace Gecode { namespace String {
   forceinline
   DashedString::DashedString(Space& home, const Block& block) 
   : DynamicArray(home, 1), lbs(block.lb()), ubs(block.ub()) {
-    x->update(home, Block(home));
+    x->update(home, block);
     assert (isOK() && isNorm());
   }
   
@@ -916,7 +916,7 @@ namespace Gecode { namespace String {
     bool norm = blocks[0].isNull();
     x->update(home, blocks[0]);
     for (int i = 1; i < n; ++i) {
-      updateAt(home, i, blocks[i]);
+      (x+i)->update(home, blocks[i]);
       // NOTE: The sum of the blocks' bounds might overflow.
       if (lbs > MAX_STRING_LENGTH || lbs + x[i].ub() < lbs) {
         for (int j = 0; j <= i; ++j)
@@ -1420,15 +1420,15 @@ namespace Gecode { namespace String {
         int u = x[i].ub() + x[j].ub();
         if (u > MAX_STRING_LENGTH || u < x[i].ub())
           u = MAX_STRING_LENGTH;
-        updateCardAt(home, j, x[i].lb() + x[j].lb(), u);
-        nullifyAt(home, i);
+        (x+j)->updateCard(home, x[i].lb() + x[j].lb(), u);
+        (x+i)->nullify(home);
         --newSize;
       }
       else if (j < i-1) {
         // x[i] and x[j] have different base, and there is at least a null block
         // x[k] with j < k < i:
-        updateAt(home, ++j, x[i]);
-        nullifyAt(home, i);
+        (x+(++j))->update(home, x[i]);
+        (x+i)->nullify(home);
       }
       else
         j = i;
