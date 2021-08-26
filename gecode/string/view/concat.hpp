@@ -591,7 +591,7 @@ namespace Gecode { namespace String {
   }
   forceinline void
   ConcatView::ubAt(Space& home, int i, int u) {
-    i < pivot ? x0.ubAt(home, i, u) : x1.lbAt(home, i-pivot, u);
+    i < pivot ? x0.ubAt(home, i, u) : x1.ubAt(home, i-pivot, u);
   }
   forceinline void
   ConcatView::updateCardAt(Space& home, int i, int l, int u) {

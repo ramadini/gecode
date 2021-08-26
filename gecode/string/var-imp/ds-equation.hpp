@@ -101,7 +101,7 @@ namespace Gecode { namespace String {
     int* U = nullptr;
     int newSize = 0, uSize = 0;
     for (int i = 0; i < nx; ++i) {
-//      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
+      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
 //      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].LSP << "\nEEP: " 
 //                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
       if (x[i].isFixed())
@@ -137,7 +137,7 @@ namespace Gecode { namespace String {
         y.crushBase(home, x, i, esp, lep);
         changed |= l < l1 || u > u1 || m > x_i.baseSize();
         if (l1 == 0) {
-//          std::cerr << "x[" << i << "] ref. into " << x_i << "\n";
+//          std::cerr << "x[" << i << "] ref. into " << x[i] << "\n";
           ux -= 2;
           continue;
         }
