@@ -166,7 +166,6 @@ namespace Gecode { namespace String {
     template <class IterY> Position push(int i, IterY& it) const;
     template <class IterY> void stretch(int i, IterY& it) const;
     template <class T> ModEvent equate(Space& home, const T& y);
-    void sync_length(void);
     
     ModEvent nullify(Space& home);
     //@}

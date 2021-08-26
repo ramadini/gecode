@@ -231,6 +231,35 @@ namespace Gecode { namespace String {
                     : new (home) StringVarImp(home, *this);
   }
   
+  forceinline void
+  StringVarImp::nullifyAt(Space& home, int i) {
+    ds.nullifyAt(home, i);
+  }
+  forceinline void
+  StringVarImp::lbAt(Space& home, int i, int l) {
+    ds.lbAt(home, i, l);
+  }
+  forceinline void
+  StringVarImp::ubAt(Space& home, int i, int u) {
+    ds.ubAt(home, i, u);
+  }
+  forceinline void
+  StringVarImp::updateCardAt(Space& home, int i, int l, int u) {
+    ds.updateCardAt(home, i, l, u);
+  }
+  forceinline void
+  StringVarImp::updateAt(Space& home, int i, const Block& b) {
+    ds.updateAt(home, i, b);
+  }
+  forceinline void
+  StringVarImp::baseIntersectAt(Space& home, int idx, const Set::BndSet& S) {
+    ds.baseIntersectAt(home, idx, S);
+  }
+  forceinline void
+  StringVarImp::baseIntersectAt(Space& home, int idx, const Block& b) {
+    ds.baseIntersectAt(home, idx, b);
+  }
+  
   template<class Char, class Traits>
   forceinline  std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const StringVarImp& x) {

@@ -378,8 +378,8 @@ namespace Gecode { namespace String {
     if (sweep_x(*this, y, m, k, n) && refine_x(home, *this, y, m, k, n)) {
       if (n == -1)
         return ME_STRING_NONE;
-      x0.sync_length();
-      x1.sync_length();
+      // FIXME: x0.sync_length();
+      // FIXME: x1.sync_length();
       return StringVarImp::me_combine(me<StringView>(home, x0, lb0, ub0),
                                       me<StringView>(home, x1, lb1, ub1));
     }
@@ -585,6 +585,36 @@ namespace Gecode { namespace String {
       x1.normalize(home);
     pivot = x0.size();
   }
+  
+  forceinline void
+  ConcatView::nullifyAt(Space& home, int i) {
+    x->nullifyAt(home, i);
+  }
+  forceinline void
+  ConcatView::lbAt(Space& home, int i, int l) {
+    x->lbAt(home, i, l);
+  }
+  forceinline void
+  ConcatView::ubAt(Space& home, int i, int u) {
+    x->ubAt(home, i, u);
+  }
+  forceinline void
+  ConcatView::updateCardAt(Space& home, int i, int l, int u) {
+    x->updateCardAt(home, i, l, u);
+  }
+  forceinline void
+  ConcatView::updateAt(Space& home, int i, const Block& b) {
+    x->updateAt(home, i, b);
+  }
+  forceinline void
+  ConcatView::baseIntersectAt(Space& home, int idx, const Set::BndSet& S) {
+    x->baseIntersectAt(home, idx, S);
+  }
+  forceinline void
+  ConcatView::baseIntersectAt(Space& home, int idx, const Block& b) {
+    x->baseIntersectAt(home, idx, b);
+  }
+  
   template<class Char, class Traits>
   std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const ConcatView& z) {

@@ -450,11 +450,6 @@ namespace Gecode { namespace String {
     return j;    
   }
   
-  forceinline void
-  StringView::sync_length() {
-    return x->sync_length();
-  }
-  
   template <class T>
   forceinline ModEvent
   StringView::equate(Space& home, const T& y) {
@@ -468,12 +463,12 @@ namespace Gecode { namespace String {
         return ME_STRING_NONE;
       StringDelta d;    
       if (assigned()) {
-        sync_length();
+        // FIXME: sync_length();
         return x->notify(home, ME_STRING_VAL, d);
       }
       int ux = max_length();
       if (min_length() > lb || (ux < ub && ux < MAX_STRING_LENGTH)) {
-        sync_length();
+        // FIXME: sync_length();
         return x->notify(home, ME_STRING_CARD, d);
       }
       if (ux == MAX_STRING_LENGTH && ub > MAX_STRING_LENGTH) {
@@ -483,7 +478,7 @@ namespace Gecode { namespace String {
           if (u >= ub)
             return x->notify(home, ME_STRING_BASE, d);
         }
-        sync_length();
+        // FIXME: sync_length();
         return x->notify(home, ME_STRING_CARD, d);
       }
       else
@@ -845,6 +840,14 @@ namespace Gecode { namespace String {
   forceinline void
   StringView::updateAt(Space& home, int i, const Block& b) {
     x->updateAt(home, i, b);
+  }
+  forceinline void
+  StringView::baseIntersectAt(Space& home, int idx, const Set::BndSet& S) {
+    x->baseIntersectAt(home, idx, S);
+  }
+  forceinline void
+  StringView::baseIntersectAt(Space& home, int idx, const Block& b) {
+    x->baseIntersectAt(home, idx, b);
   }
   
 }}
