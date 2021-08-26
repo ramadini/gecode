@@ -35,8 +35,8 @@ namespace Gecode { namespace String {
     int min_len;
     /// Maximum length for a string in the domain
     int max_len;
-    // FIXME: ds.lb_sum() <= min_len <= max_len <= ds.ub_sum() must hold.
-    void sync_length(void);
+    // // To soundly compute max_len -= u when updating a block;    
+    void decr_max_len(int u);
   protected:
     /// Constructor for cloning \a x
     StringVarImp(Space& home, StringVarImp& x);
@@ -125,9 +125,8 @@ namespace Gecode { namespace String {
     //@{
     /// Updates the minimum length of each string of the domain
     ModEvent min_length(Space& home, int l);
-    /// Updates the maximum length of each string of the domain. If dom = false,
-    /// only updates max_len but not the dashed string.
-    ModEvent max_length(Space& home, int u, bool dom = true);
+    /// Updates the maximum length of each string of the domain
+    ModEvent max_length(Space& home, int u);
     /// Equates with dashed string \a x
     ModEvent bnd_length(Space& home, int l, int u);
     ///     

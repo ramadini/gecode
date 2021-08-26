@@ -714,8 +714,7 @@ namespace Gecode { namespace String {
     int u = bx.ub();
     x.update(home, *this);
     if (u < max_length())
-      // FIXME: To adjust the max. length without altering the dashed string.
-      x.varimp()->max_length(home, u, false);    
+      x.varimp()->max_length(home, u);    
     for (int i = 0; i < x.size(); i++) {
       x.baseIntersectAt(home, i, s);
       norm |= x[i].isNull() || (i > 0 && x[i].baseEquals(x[i-1]));
@@ -816,7 +815,7 @@ namespace Gecode { namespace String {
     d.normalize(home);
     x->update(home, d);
     if (u < max_length())
-      x->max_length(home, u, false);
+      x->max_length(home, u);
   }
   
   forceinline void

@@ -516,7 +516,7 @@ namespace Gecode { namespace String {
     int u = bx.ub();
     x.update(home, *this);
     if (u < x.max_length())
-      x.varimp()->max_length(home, u, false);
+      x.varimp()->max_length(home, u);
     for (int i = 0; i < x.size(); i++) {
       x.baseIntersectAt(home, i, s);
       norm |= x[i].isNull() || (i > 0 && x[i].baseEquals(x[i-1]));
