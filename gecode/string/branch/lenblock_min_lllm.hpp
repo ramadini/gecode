@@ -2,7 +2,7 @@ namespace Gecode { namespace String { namespace Branch {
 
     forceinline
     LenBlock_Min_LLLM::LenBlock_Min_LLLM(Home home, 
-                                           ViewArray<String::StringView>& x0)
+                                         ViewArray<String::StringView>& x0)
     : StringBrancher(home, x0) {};
 
     forceinline 
@@ -23,7 +23,7 @@ namespace Gecode { namespace String { namespace Branch {
 
     forceinline Choice*
     LenBlock_Min_LLLM::choice(Space& home) {
-//      std::cerr << "\nVar. choice\n";      
+      std::cerr << "\nVar. choice\n";      
       if (_FIRST) {
         assert (StringBrancher::_MUST_CHARS.empty());
         Gecode::Set::GLBndSet s;
@@ -94,7 +94,7 @@ namespace Gecode { namespace String { namespace Branch {
           }
         }
       }
-//       std::cerr << "Chosen var. " << x[pos] << " (pos. " << pos << ")\n";
+       std::cerr << "Chosen var. " << x[pos] << " (pos. " << pos << ")\n";
 //       abort();
       return val_lllm(pos, x[pos]);
     }
@@ -102,8 +102,10 @@ namespace Gecode { namespace String { namespace Branch {
     forceinline ExecStatus
     LenBlock_Min_LLLM::commit(Space& home, const Choice& c, unsigned a) {
       const PosLevVal& p = static_cast<const PosLevVal&>(c);
-//      std::cerr << '\n'; this->print(home, c, a, std::cerr); std::cerr << '\n';
-      StringBrancher::commit(home, x[p.pos], p.lev, p.val, Blc::LEFTMOST, a);
+      std::cerr << '\n'; this->print(home, c, a, std::cerr); std::cerr << '\n';
+      GECODE_ME_CHECK(
+        StringBrancher::commit(home, x[p.pos], p.lev, p.val, Blc::LEFTMOST, a)
+      );
       return ES_OK;
     }
 

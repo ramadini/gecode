@@ -60,6 +60,8 @@ namespace Gecode { namespace String {
     
     StringVarImp(Space& home, const IntSet& s, int l, int u);
     
+    StringVarImp(Space& home, int n);
+    
     //@}
     /// \name Value access
     //@{
@@ -104,11 +106,11 @@ namespace Gecode { namespace String {
     
     /// Normalize the domain
     void normalize(Space& home);
-    void splitBlock(Space& home, int idx, int c, unsigned a);
+    ModEvent splitBlock(Space& home, int idx, int c, unsigned a);
     ModEvent nullify(Space& home);
     
     void update(Space& home, const DashedString& d);    
-    void update(Space& home, const StringVarImp& y);
+    void update(Space& home, const StringVarImp& y, bool notif = true);
     void update(Space& home, const std::vector<int>& w);
     void update(Space& home, const StringVarImp& x, const StringVarImp& y);
     void update_rev(Space& home, const StringVarImp& y);

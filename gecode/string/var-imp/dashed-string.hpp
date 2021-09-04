@@ -1227,6 +1227,7 @@ namespace Gecode { namespace String {
       else
         (x+(++j))->update(home, Block(w[i]));
     n = m;
+    std::cerr << *this << '\n';
     assert (isOK());
     assert (isNorm());
   }
@@ -1346,7 +1347,7 @@ namespace Gecode { namespace String {
       }
       else
         alt == 0 ? (x+idx)->update(home,Block(c)) : (x+idx)->baseRemove(home,c);
-    }
+    }    
     assert (isOK());
     assert (isNorm());
   }

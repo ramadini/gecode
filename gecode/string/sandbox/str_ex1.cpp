@@ -48,7 +48,7 @@ public:
     return w;
   }
 
-  // b => x = y; x != ""; y = "Hello world!";
+  // x != "" /\ x != z /\ z :: {a..z}^(2,4) /\ y = "Hello world!" /\ b <=> x = y
   Ex1(const StringOptions& so): Script(so) {
     // Variables.
     BoolVar b(*this, 0, 1);

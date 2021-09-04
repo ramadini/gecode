@@ -62,10 +62,10 @@ namespace Gecode { namespace String { namespace Branch {
     Choice* val_lllm(int pos, Gecode::String::StringView& x) const;
     Choice* val_lslm(int pos, Gecode::String::StringView& x) const;
     
-    static void commit0(Space&, StringView&, Lev, Val, int);
-    static void commit1(Space&, StringView&, Lev, Val, int);
-    static void commit (Space&, StringView&, Lev, Val, Blc, unsigned);
-    static void splitBlock(Space&, StringView&, int, Val, unsigned);
+    static ModEvent commit0(Space&, StringView&, Lev, Val, int);
+    static ModEvent commit1(Space&, StringView&, Lev, Val, int);
+    static ModEvent commit (Space&, StringView&, Lev, Val, Blc, unsigned);
+    static ModEvent splitBlock(Space&, StringView&, int, Val, unsigned);
     
     static std::vector<int> _MUST_CHARS;
   

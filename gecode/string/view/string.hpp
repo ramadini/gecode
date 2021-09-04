@@ -248,14 +248,18 @@ namespace Gecode { namespace String {
   forceinline void
   StringView::update(Space& home, const DashedString& d) {
     x->update(home, d);
-  }
-  forceinline void
-  StringView::update(Space& home, const StringView& y) {
-    x->update(home, *y.x);
-  }
+  }  
   forceinline void
   StringView::update(Space& home, const std::vector<int>& w) {
     x->update(home, w);
+  }
+  forceinline void
+  StringView::update(Space& home, const StringView& y) {
+    if (x == nullptr) {
+      x = new (home) StringVarImp(home, y.size());
+      x->update(home, *y.x, false);
+    }
+    x->update(home, *y.x);
   }
   forceinline void
   StringView::update(Space& home, const ConstStringView& y) {
@@ -394,9 +398,10 @@ namespace Gecode { namespace String {
     return os;
   };
   
-  forceinline void
+  forceinline ModEvent
   StringView::splitBlock(Space& home, int idx, int c, unsigned a) {
-    x->splitBlock(home, idx, c, a);
+    StringDelta d;
+    return x->notify(home, x->splitBlock(home, idx, c, a), d);
   }
   
   forceinline void

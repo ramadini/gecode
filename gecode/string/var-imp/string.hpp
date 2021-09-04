@@ -6,17 +6,24 @@ namespace Gecode { namespace String {
    * Creation of new variable implementations
    *
    */
-
+  
   forceinline
   StringVarImp::StringVarImp(Space& home)
   : StringVarImpBase(home), ds(home), min_len(0), max_len(MAX_STRING_LENGTH) {
     assert (isOK());
   }
+  
+  forceinline
+  StringVarImp::StringVarImp(Space& home, int n)
+  : StringVarImpBase(home), ds(home, n), min_len(0), max_len(0) {
+    assert (isOK());
+  } 
 
   forceinline
   StringVarImp::StringVarImp(Space& home, StringVarImp& x)
-  : StringVarImpBase(home, x), ds(home, x.ds), min_len(x.min_len), 
-                                               max_len(x.max_len) {
+  : StringVarImpBase(home, x), ds(home), min_len(x.min_len), 
+                                         max_len(x.max_len) {
+    ds.update(home, x.ds);
     assert (isOK());                                             
   }
   
@@ -28,8 +35,9 @@ namespace Gecode { namespace String {
   
   forceinline
   StringVarImp::StringVarImp(Space& home, const DashedString& d)
-  : StringVarImpBase(home), ds(home, d), min_len(d.lb_sum()), 
-                                         max_len(d.ub_sum()) { 
+  : StringVarImpBase(home), ds(home), min_len(d.lb_sum()), 
+                                      max_len(d.ub_sum()) {
+    ds.update(home, d);
     assert (isOK()); 
   }
   
@@ -45,7 +53,7 @@ namespace Gecode { namespace String {
   StringVarImp::StringVarImp(Space& home, const IntSet& s, int l, int u)
   : StringVarImpBase(home), ds(home), min_len(l), max_len(u) {
     Limits::check_length(l, u, "StringVarImp::StringVarImp");
-    Limits::check_length(s.min(), s.max(), "StringVarImp::StringVarImp");
+    Limits::check_alphabet(s.min(), s.max(), "StringVarImp::StringVarImp");
     ds.updateAt(home, 0, Block(home, CharSet(home, s), l, u));
     assert (isOK());
   }  
@@ -68,19 +76,25 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  StringVarImp::update(Space& home, const StringVarImp& y) {
-    assert (!assigned());
+  StringVarImp::update(Space& home, const StringVarImp& y, bool notif) {
+    std::cerr << *this << " <== "<< y << '\n';
+    if (assigned() && notif) {
+      assert (ds.equals(y.ds));
+      return;
+    }
     int l = min_length(), u = max_length();    
     ds.update(home, y.ds);
     min_len = y.min_length();
     max_len = y.max_length();
-    StringDelta d;
-    if (assigned())
-      notify(home, ME_STRING_VAL, d);
-    else if (min_length() > l || max_length() < u)
-      notify(home, ME_STRING_CARD, d);
-    else
-      notify(home, ME_STRING_BASE, d);
+    if (notif) {
+      StringDelta d;
+      if (assigned())
+        notify(home, ME_STRING_VAL, d);
+      else if (min_length() > l || max_length() < u)
+        notify(home, ME_STRING_CARD, d);
+      else
+        notify(home, ME_STRING_BASE, d);
+    }
     assert (isOK());
   }
   
@@ -114,6 +128,7 @@ namespace Gecode { namespace String {
   forceinline void
   StringVarImp::update(Space& home, const StringVarImp& x, 
                                     const StringVarImp& y) {
+    assert (!assigned());
     ds.update(home, x.ds, y.ds);
     min_len = x.min_length() + y.min_length();
     max_len = x.max_length() + y.max_length();
@@ -145,13 +160,13 @@ namespace Gecode { namespace String {
     return ds.size();
   }
   
-  forceinline void
+  forceinline ModEvent
   StringVarImp::splitBlock(Space& home, int idx, int c, unsigned a) {
     assert (min_len == max_len);
     ds.splitBlock(home, idx, c, a);
-    StringDelta d;
-    notify(home, assigned() ? ME_STRING_VAL : ME_STRING_CARD, d);
+    std::cerr << "After split: " << *this << '\n';
     assert (isOK());
+    return assigned() ? ME_STRING_VAL : ME_STRING_CARD;
   }
 
   forceinline void

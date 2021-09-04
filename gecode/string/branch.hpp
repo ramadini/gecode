@@ -33,57 +33,49 @@ namespace Gecode { namespace String { namespace Branch {
       return new PosLevVal(*this, pos, Lev::BASE, Val::MUST_MIN);
   }
   
-  forceinline void
+  forceinline ModEvent
   StringBrancher::commit1(Space& home, StringView& x, Lev lev, Val val, int i) {
     const Block& x_i = x[i];
     switch (lev) {
       case LENGTH: {
-        if (x.min_length() == x.max_length()) {
-          home.fail();
-          return;
-        }
+        if (x.min_length() == x.max_length())
+          return ME_STRING_FAILED;
         switch (val) {
           case MIN:
             x.min_length(home, x.min_length() + 1);
-            return;
+            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
           case MAX:
             x.max_length(home, x.max_length() - 1);
-            return;
+            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
           default:
             GECODE_NEVER;
         }
       }
       case CARD: {
-        if (x_i.lb() == x_i.ub()) {
-          home.fail();
-          return;
-        }
+        if (x_i.lb() == x_i.ub())
+          return ME_STRING_FAILED;
         switch (val) {
           case MIN:
              x.lbAt(home, i, x_i.lb()+1);
              x.min_length(home, x.min_length()+1);
-             return;
+             return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
           case MAX:
              x.ubAt(home, i, x_i.ub()-1);
              x.max_length(home, x.max_length()+1);
-             return;
+             return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
           default:
             GECODE_NEVER;
         }
       }
-      case BASE: {
-        if (x_i.baseSize() == 1)
-          home.fail();
-        else
-          splitBlock(home, x, i, val, 1);
-        return;
-      }
+      case BASE:
+        return x_i.baseSize() == 1 ? ME_STRING_FAILED
+                                   : splitBlock(home, x, i, val, 1);
       default:
         GECODE_NEVER;
     }
   }
   
-  forceinline void
+  forceinline ModEvent
   StringBrancher::commit0(Space& home, StringView& x, Lev lev, Val val, int i) {
     const Block& x_i = x[i];
     switch (lev) {
@@ -92,10 +84,10 @@ namespace Gecode { namespace String { namespace Branch {
         switch (val) {
           case MIN:
             x.max_length(home, x.min_length());
-            return;
+            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
           case MAX:
             x.min_length(home, x.max_length());
-            return;
+            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
           default:
             GECODE_NEVER;
         }
@@ -107,24 +99,23 @@ namespace Gecode { namespace String { namespace Branch {
           case MIN:
             x.ubAt(home, i, x_i.lb());
             x.max_length(home, x.max_length()-k);
-            return;
+            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
           case MAX:
             x.lbAt(home, i, x_i.ub());
             x.min_length(home, x.min_length()+k);
-            return;
+            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
           default:
             GECODE_NEVER;
         }
       }
       case BASE:
-        splitBlock(home, x, i, val, 0);
-        return;
+        return splitBlock(home, x, i, val, 0);
       default:
         GECODE_NEVER;
     }
   }
   
-  forceinline void
+  forceinline ModEvent
   StringBrancher::splitBlock(Space& home, StringView& x, int i, Val val, 
                                                                 unsigned a) {
     const Block& x_i = x[i];
@@ -172,10 +163,10 @@ namespace Gecode { namespace String { namespace Branch {
         GECODE_NEVER;
     }
 //    std::cerr << int2str(c) << " chosen\n";
-    x.splitBlock(home, i, c, a);
+    return x.splitBlock(home, i, c, a);
   }
   
-  forceinline void
+  forceinline ModEvent
   StringBrancher::commit(Space& home, StringView& x, Lev l, Val v, Blc b, 
                                                                    unsigned a) {
     int i;
@@ -192,8 +183,7 @@ namespace Gecode { namespace String { namespace Branch {
     default:
       GECODE_NEVER;
     }
-    a == 0 ? commit0(home, x, l, v, i) : commit1(home, x, l, v, i);  
-    assert (x.isOK());
+    return a == 0 ? commit0(home, x, l, v, i) : commit1(home, x, l, v, i);
   }
 
   

@@ -59,7 +59,7 @@ namespace Gecode { namespace String { namespace Rel {
   template<class View0, class View1, class CtrlView, ReifyMode rm> 
   forceinline ExecStatus
   ReEq<View0,View1,CtrlView,rm> ::propagate(Space& home, const ModEventDelta&) {
-    // std::cerr<<"ReEq::propagate "<<b<<" <> "<<x0<<" = "<<x1<<std::endl;
+     std::cerr<<"ReEq::propagate "<<b<<(rm==RM_IMP?" =>":" <=")<<(rm==RM_EQV?"> ":" ")<<x0<<" = "<<x1<<std::endl;
     if (b.zero()) {
       if (rm == RM_IMP)
         return home.ES_SUBSUMED(*this);
@@ -73,15 +73,17 @@ namespace Gecode { namespace String { namespace Rel {
     if (!check_equate_x(x0,x1) || !check_equate_x(x1,x0)) {
       if (rm != RM_PMI)
         GECODE_ME_CHECK(b.zero_none(home));
+      std::cerr<<"propagated: "<<b<<(rm==RM_IMP?" =>":" <=")<<(rm==RM_EQV?"> ":" ")<<x0<<" = "<<x1<<std::endl;
       return home.ES_SUBSUMED(*this);
     }
     else
       if (x0.assigned() && x1.assigned()) {
         if (rm != RM_PMI)
           GECODE_ME_CHECK(b.one_none(home));
+        std::cerr<<"propagated: "<<b<<(rm==RM_IMP?" =>":" <=")<<(rm==RM_EQV?"> ":" ")<<x0<<" = "<<x1<<std::endl;
         return home.ES_SUBSUMED(*this);
       }
-    // std::cerr<<"propagated: "<<b<<" <> "<<x0<<" = "<<x1<<std::endl;
+     std::cerr<<"propagated: "<<b<<(rm==RM_IMP?" =>":" <=")<<(rm==RM_EQV?"> ":" ")<<x0<<" = "<<x1<<std::endl;
     return ES_FIX;
   }
 
