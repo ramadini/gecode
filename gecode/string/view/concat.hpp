@@ -248,7 +248,7 @@ namespace Gecode { namespace String {
   }
   
   template <class T> forceinline void 
-  ConcatView::update(Space&, const T&) const {
+  ConcatView::gets(Space&, const T&) const {
     GECODE_NEVER;
   }
   forceinline ModEvent
@@ -511,7 +511,7 @@ namespace Gecode { namespace String {
     s.includeI(home, i);
     bool norm = false;
     int u = bx.ub();
-    x.update(home, *this);
+    x.gets(home, *this);
     if (u < x.max_length())
       x.varimp()->max_length(home, u);
     for (int i = 0; i < x.size(); i++) {

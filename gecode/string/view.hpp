@@ -156,12 +156,12 @@ namespace Gecode { namespace String {
     /// \name Cloning
     //@{
     /// Update this view to be a clone of view \a y
-    void update(Space& home, const DashedString& d);    
-    void update(Space& home, const StringView& y);
-    void update(Space& home, const ConcatView& y);
-    void update(Space& home, const ConstStringView& y);
-    void update(Space& home, const std::vector<int>& w);
-    void update_rev(Space& home, const StringView& y);
+    void gets(Space& home, const DashedString& d);    
+    void gets(Space& home, const StringView& y);
+    void gets(Space& home, const ConcatView& y);
+    void gets(Space& home, const ConstStringView& y);
+    void gets(Space& home, const std::vector<int>& w);
+    void gets_rev(Space& home, const StringView& y);
     
     template <class IterY> Position push(int i, IterY& it) const;
     template <class IterY> void stretch(int i, IterY& it) const;
@@ -283,7 +283,7 @@ namespace Gecode { namespace String {
     //@{
     SweepFwdIterator<ConstStringView> fwd_iterator(void) const;
     SweepBwdIterator<ConstStringView> bwd_iterator(void) const;
-    template <class T> void update(Space&, const T&) const;
+    template <class T> void gets(Space&, const T&) const;
     template <class T> ModEvent equate(Space& home, const T& y) const;
     template <class IterY> Position push(int i, IterY& it) const;
     template <class IterY> void stretch(int i, IterY& it) const;
@@ -375,7 +375,7 @@ namespace Gecode { namespace String {
     /// Initialize from string variables \a x and \a y
     ConcatView(StringView& x, StringView& y);
     //@}
-    template <class T> void update(Space& home, const T& d) const;
+    template <class T> void gets(Space& home, const T& d) const;
     template <class T> ModEvent equate(Space& home, const T& y);
     template <class IterY> Position push(int i, IterY& it) const;
     template <class IterY> void stretch(int i, IterY& it) const;

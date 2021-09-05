@@ -67,7 +67,7 @@ namespace Gecode { namespace String { namespace Branch {
         if (!xi.assigned()) {
           if (xi.degree() == 0) {
             std::cerr << "Warning: " << xi << " has degree 0!\n";
-            xi.varimp()->update(home, std::vector<int>());
+            xi.gets(home, std::vector<int>());
             continue;
           }
           const Block& bi = xi[xi.smallest_unfixed_idx()];
@@ -92,7 +92,9 @@ namespace Gecode { namespace String { namespace Branch {
     Block_MinDim_LSLM::commit(Space& home, const Choice& c, unsigned a) {
       const PosLevVal& p = static_cast<const PosLevVal&>(c);
       // std::cerr << '\n'; this->print(home, c, a, std::cerr); std::cerr << '\n';
-      StringBrancher::commit(home, x[p.pos], p.lev, p.val, Blc::SMALLEST, a);
+      GECODE_ME_CHECK(
+        StringBrancher::commit(home, x[p.pos], p.lev, p.val, Blc::SMALLEST, a)
+      );
       return ES_OK;
     }
 

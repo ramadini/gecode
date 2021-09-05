@@ -109,11 +109,11 @@ namespace Gecode { namespace String {
     ModEvent splitBlock(Space& home, int idx, int c, unsigned a);
     ModEvent nullify(Space& home);
     
-    void update(Space& home, const DashedString& d);    
-    void update(Space& home, const StringVarImp& y, bool notif = true);
-    void update(Space& home, const std::vector<int>& w);
-    void update(Space& home, const StringVarImp& x, const StringVarImp& y);
-    void update_rev(Space& home, const StringVarImp& y);
+    void gets(Space& home, const DashedString& d);    
+    void gets(Space& home, const StringVarImp& y);
+    void gets(Space& home, const std::vector<int>& w);
+    void gets(Space& home, const StringVarImp& x, const StringVarImp& y);
+    void gets_rev(Space& home, const StringVarImp& y);
     
     void nullifyAt(Space& home, int i);
     void lbAt(Space& home, int i, int l);

@@ -101,7 +101,7 @@ namespace Gecode { namespace String {
     int* U = nullptr;
     int newSize = 0, uSize = 0;
     for (int i = 0; i < nx; ++i) {
-      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
+//      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
 //      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].LSP << "\nEEP: " 
 //                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
       if (x[i].isFixed())
@@ -120,6 +120,7 @@ namespace Gecode { namespace String {
           x.nullifyAt(home, i);
           changed = true;
           ux -= 2;
+          std::cerr << "x[" << i << "] nullified.\n";
           continue;
         }
         int m = x_i.baseSize();
@@ -137,7 +138,7 @@ namespace Gecode { namespace String {
         y.crushBase(home, x, i, esp, lep);
         changed |= l < l1 || u > u1 || m > x_i.baseSize();
         if (l1 == 0) {
-//          std::cerr << "x[" << i << "] ref. into " << x[i] << "\n";
+          std::cerr << "x[" << i << "] ref. into " << x[i] << "\n";
           ux -= 2;
           continue;
         }
@@ -166,14 +167,14 @@ namespace Gecode { namespace String {
         n = xx_i.baseSize();
         y.mand_region(home, x, i, lsp, eep);
         changed |= l < xx_i.lb() || u > xx_i.ub() || n > xx_i.baseSize();
-//        std::cerr << "x[" << i << "] ref. into " << xx_i << "\n";        
+        std::cerr << "x[" << i << "] ref. into " << xx_i << "\n";        
         continue;
       }
       l = xx_i.lb(), u = xx_i.ub();
       // Unfolding xx_i into newBlocks
       Region r1;
       Block* mreg = r1.alloc<Block>(n);
-      std::cerr << "Before unfolding: "  << xx_i << ' ' << l1 << '\n';
+//      std::cerr << "Before unfolding: "  << xx_i << ' ' << l1 << '\n';
       if (esp == lsp)
         y.mand_region(home, xx_i, &mreg[0], u1, lsp, eep);
       else {
@@ -184,7 +185,7 @@ namespace Gecode { namespace String {
         y.opt_region(home, xx_i, mreg[n-1], eep, lep, l1);
       DashedString d(home, mreg, n);
       r1.free();
-//      std::cerr << "d = " << d << ' ' << n << "\n";
+      std::cerr << "d = " << d << ' ' << n << "\n";
       n = d.size();
       if (n == 1) {
         nBlocks--;
@@ -210,7 +211,7 @@ namespace Gecode { namespace String {
       U[uSize++] = n;
       newSize += n;
     }
-//    std::cerr << "newSize: " << newSize << ", uSize: " << uSize << ", changed: " << changed << "\n";
+    std::cerr << "newSize: " << newSize << ", uSize: " << uSize << ", changed: " << changed << "\n";
     if (newSize > 0)
       x.resize(home, newBlocks, newSize, U, uSize);
     else if (changed)

@@ -133,8 +133,8 @@ public:
     Block b[k];
     for (int i = 0; i < k; ++i)
       b[i].update(*this, v[i]);
-    concat(*this, eq, rhs, StringVar(*this, DashedString(*this, b, k))); //v);
-    //concat(*this, eq, rhs, v);
+    concat(*this, eq, rhs, StringVar(*this, DashedString(*this, b, k)));
+    // FIXME: concat(*this, eq, rhs, v);
 
     // Branching.
     lenblock_min_lllm(*this, str_vars);
@@ -173,6 +173,6 @@ int main(int argc, char* argv[]) {
   default:
     assert (Benchmark::sat);
   }
-  using namespace Gecode::String::RelOp;
+//  using namespace Gecode::String::RelOp;
   return 0;
 }

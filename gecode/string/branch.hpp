@@ -34,6 +34,48 @@ namespace Gecode { namespace String { namespace Branch {
   }
   
   forceinline ModEvent
+  StringBrancher::commit0(Space& home, StringView& x, Lev lev, Val val, int i) {
+    const Block& x_i = x[i];
+    switch (lev) {
+      case LENGTH: {
+        assert (x.min_length() < x.max_length());
+        switch (val) {
+          case MIN:
+            x.max_length(home, x.min_length());
+            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
+          case MAX:
+            x.min_length(home, x.max_length());
+            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
+          default:
+            GECODE_NEVER;
+        }
+      }
+      case CARD: {
+        int k = x_i.ub() - x_i.lb();
+        assert (k > 0);
+        switch (val) {
+          case MIN:
+            x.ubAt(home, i, x_i.lb());
+            x.max_length(home, std::max(x.min_length(), x.max_length()-k));
+            if (x_i.isNull())
+              x.normalize(home);
+            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
+          case MAX:
+            x.lbAt(home, i, x_i.ub());
+            x.min_length(home, std::min(x.max_length(), x.min_length()+k));
+            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
+          default:
+            GECODE_NEVER;
+        }
+      }
+      case BASE:
+        return splitBlock(home, x, i, val, 0);
+      default:
+        GECODE_NEVER;
+    }
+  }
+  
+  forceinline ModEvent
   StringBrancher::commit1(Space& home, StringView& x, Lev lev, Val val, int i) {
     const Block& x_i = x[i];
     switch (lev) {
@@ -70,46 +112,6 @@ namespace Gecode { namespace String { namespace Branch {
       case BASE:
         return x_i.baseSize() == 1 ? ME_STRING_FAILED
                                    : splitBlock(home, x, i, val, 1);
-      default:
-        GECODE_NEVER;
-    }
-  }
-  
-  forceinline ModEvent
-  StringBrancher::commit0(Space& home, StringView& x, Lev lev, Val val, int i) {
-    const Block& x_i = x[i];
-    switch (lev) {
-      case LENGTH: {
-        assert (x.min_length() < x.max_length());
-        switch (val) {
-          case MIN:
-            x.max_length(home, x.min_length());
-            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
-          case MAX:
-            x.min_length(home, x.max_length());
-            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
-          default:
-            GECODE_NEVER;
-        }
-      }
-      case CARD: {
-        int k = x_i.ub() - x_i.lb();
-        assert (k > 0);
-        switch (val) {
-          case MIN:
-            x.ubAt(home, i, x_i.lb());
-            x.max_length(home, x.max_length()-k);
-            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
-          case MAX:
-            x.lbAt(home, i, x_i.ub());
-            x.min_length(home, x.min_length()+k);
-            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
-          default:
-            GECODE_NEVER;
-        }
-      }
-      case BASE:
-        return splitBlock(home, x, i, val, 0);
       default:
         GECODE_NEVER;
     }

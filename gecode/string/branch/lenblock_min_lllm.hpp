@@ -23,7 +23,7 @@ namespace Gecode { namespace String { namespace Branch {
 
     forceinline Choice*
     LenBlock_Min_LLLM::choice(Space& home) {
-      std::cerr << "\nVar. choice\n";      
+//      std::cerr << "\nVar. choice\n";      
       if (_FIRST) {
         assert (StringBrancher::_MUST_CHARS.empty());
         Gecode::Set::GLBndSet s;
@@ -67,7 +67,7 @@ namespace Gecode { namespace String { namespace Branch {
         if (!xi.assigned()) {
           if (xi.degree() == 0) {
 //            std::cerr << "Warning: " << xi << " has degree 0!\n";
-            xi.varimp()->update(home, std::vector<int>());
+            xi.gets(home, std::vector<int>());
             continue;
           }
           const Block& bi = xi[xi.leftmost_unfixed_idx()];
@@ -102,10 +102,11 @@ namespace Gecode { namespace String { namespace Branch {
     forceinline ExecStatus
     LenBlock_Min_LLLM::commit(Space& home, const Choice& c, unsigned a) {
       const PosLevVal& p = static_cast<const PosLevVal&>(c);
-      std::cerr << '\n'; this->print(home, c, a, std::cerr); std::cerr << '\n';
+//      std::cerr << '\n'; this->print(home, c, a, std::cerr); std::cerr << '\n';
       GECODE_ME_CHECK(
         StringBrancher::commit(home, x[p.pos], p.lev, p.val, Blc::LEFTMOST, a)
       );
+//      std::cerr << "After commit: " << x[p.pos] << '\n';
       return ES_OK;
     }
 

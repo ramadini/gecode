@@ -246,33 +246,29 @@ namespace Gecode { namespace String {
     : VarImpView<StringVar>(y) {}
 
   forceinline void
-  StringView::update(Space& home, const DashedString& d) {
-    x->update(home, d);
+  StringView::gets(Space& home, const DashedString& d) {
+    x->gets(home, d);
   }  
   forceinline void
-  StringView::update(Space& home, const std::vector<int>& w) {
-    x->update(home, w);
+  StringView::gets(Space& home, const std::vector<int>& w) {
+    x->gets(home, w);
   }
   forceinline void
-  StringView::update(Space& home, const StringView& y) {
-    if (x == nullptr) {
-      x = new (home) StringVarImp(home, y.size());
-      x->update(home, *y.x, false);
-    }
-    x->update(home, *y.x);
+  StringView::gets(Space& home, const StringView& y) {
+    x->gets(home, *y.x);
   }
   forceinline void
-  StringView::update(Space& home, const ConstStringView& y) {
-    x->update(home, y.val());
+  StringView::gets(Space& home, const ConstStringView& y) {
+    x->gets(home, y.val());
   }
   forceinline void
-  StringView::update(Space& home, const ConcatView& y) {
-    x->update(home, *y.lhs().x, *y.rhs().x);
+  StringView::gets(Space& home, const ConcatView& y) {
+    x->gets(home, *y.lhs().x, *y.rhs().x);
   }
   
   forceinline void
-  StringView::update_rev(Space& home, const StringView& y) {
-    x->update_rev(home, *y.x);
+  StringView::gets_rev(Space& home, const StringView& y) {
+    x->gets_rev(home, *y.x);
   }
   
   forceinline ModEvent
@@ -618,6 +614,8 @@ namespace Gecode { namespace String {
         bnew[0].updateCard(home, std::max(0, bp.lb()-p_o), 
                                  std::min(u, bp.ub()-p_o));
     }
+    else if (p_i == q_i)
+      return;
     // Central part of the region.
     int j = 1;
     for (int i = p_i+1; i < q_i; ++i, ++j) {
@@ -717,7 +715,7 @@ namespace Gecode { namespace String {
     s.includeI(home, i);
     bool norm = false;
     int u = bx.ub();
-    x.update(home, *this);
+    x.gets(home, *this);
     if (u < max_length())
       x.varimp()->max_length(home, u);    
     for (int i = 0; i < x.size(); i++) {
@@ -732,9 +730,11 @@ namespace Gecode { namespace String {
   forceinline void
   StringView::crushBase(Space& home, ViewX& x, int idx, 
                         const Position& p, const Position& q) const {
+    std::cerr << "Crushing " << *this << " from " << p << " to " << q << "\n";
     Set::GLBndSet s;
     for (int i = p.idx, j = q.idx - (q.off == 0); i <= j; ++i)
       (*this)[i].includeBaseIn(home, s);
+    std::cerr << x[idx] << "\n";
     x.baseIntersectAt(home, idx, s);
   }
   
@@ -818,7 +818,7 @@ namespace Gecode { namespace String {
     }
     int u = max_length();
     d.normalize(home);
-    x->update(home, d);
+    x->gets(home, d);
     if (u < max_length())
       x->max_length(home, u);
   }
@@ -845,7 +845,6 @@ namespace Gecode { namespace String {
   }
   forceinline void
   StringView::baseIntersectAt(Space& home, int idx, const Set::BndSet& S) {
-    std::cerr <<idx << ' ' << CharSet(home,S) << '\n';
     x->baseIntersectAt(home, idx, S);
   }
   forceinline void

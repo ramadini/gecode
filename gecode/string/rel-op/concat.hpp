@@ -53,37 +53,37 @@ namespace Gecode { namespace String { namespace RelOp {
   template<class View0, class View1, class View2>
   forceinline ExecStatus
   Concat<View0,View1,View2>::propagate(Space& home, const ModEventDelta&) {
-//    std::cerr << "\n" << this << "::Concat::propagate " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
+    std::cerr << "\n" << this << "::Concat::propagate " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
     GECODE_ME_CHECK(refine_card(home));    
     //FIXME: Seg. fault in SQL 12 if these checks are moved above.
     if (x0.isNull()) {
       GECODE_REWRITE(*this, 
         (Gecode::String::Rel::Eq<View1,View2>::post(home(*this), x1, x2)));
-      return __ES_SUBSUMED; //home.ES_SUBSUMED(*this);
+      return home.ES_SUBSUMED(*this);
     }
     if (x1.isNull()) {
       GECODE_REWRITE(*this, 
         (Gecode::String::Rel::Eq<View1,View2>::post(home(*this), x0, x2)));
-      return __ES_SUBSUMED; //home.ES_SUBSUMED(*this);
+      return home.ES_SUBSUMED(*this);
     }
     if (x2.isNull()) {
       GECODE_ME_CHECK(x0.nullify(home));
       GECODE_ME_CHECK(x1.nullify(home));
-      return __ES_SUBSUMED; //home.ES_SUBSUMED(*this);
+      return home.ES_SUBSUMED(*this);
     }    
     if (x0.assigned() && x1.assigned()) {
       ConcatView xy(x0,x1);
       if (check_equate_x(x2, xy)) {
         if (x2.assigned())
-          return __ES_SUBSUMED; //home.ES_SUBSUMED(*this);
+          return home.ES_SUBSUMED(*this);
         if (check_equate_x(xy, x2))
-          x2.update(home, xy.val());
+          x2.gets(home, xy.val());
         else
           return ES_FAILED;
       }
       else
         return ES_FAILED;
-      return __ES_SUBSUMED; //home.ES_SUBSUMED(*this);
+      return home.ES_SUBSUMED(*this);
     }
     int a;
     do {
@@ -100,7 +100,7 @@ namespace Gecode { namespace String { namespace RelOp {
         GECODE_ME_CHECK(refine_card(home));
       a = x0.assigned() + x1.assigned() + x2.assigned();
     } while (a == 2);
-//    std::cerr << "After Concat::propagate " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
+    std::cerr << "After Concat::propagate " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
     return a == 3 ? home.ES_SUBSUMED(*this) : ES_FIX;
   }
   
