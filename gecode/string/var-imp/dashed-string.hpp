@@ -213,11 +213,15 @@ namespace Gecode { namespace String {
    *
    * \ingroup TaskModelStringBranch
    */  
-  struct GECODE_STRING_EXPORT DashedString : 
+  class GECODE_STRING_EXPORT DashedString : 
   public Gecode::Support::DynamicArray<Block, Space> {
   // FIXME: Each block of the dashed string is always consistent and normalized,
   // but this does not imply that the whole dashed string is always normalized. 
   // This is to avoid too many resizing due to eager normalization.
+  private:
+    int lbs;
+    long ubs;
+  public:
     /// \name Constructors and initialization
     //@{
     /// Creates a dashed string consisting of one block 
@@ -246,7 +250,7 @@ namespace Gecode { namespace String {
     /// Returns the sum of the lower bounds
     int lb_sum(void) const;
     /// Returns the sum of the upper bounds
-    int ub_sum(void) const;    
+    long ub_sum(void) const;    
     /// Returns the number of blocks of the dashed string
     int size(void) const;
     /// Returns the natural logarithm of the dimension of this dashed string
@@ -866,33 +870,35 @@ namespace Gecode { namespace String {
   using namespace Limits;
 
   forceinline
-  DashedString::DashedString(Space& home) : DynamicArray(home, 1) {
+  DashedString::DashedString(Space& home) 
+  : DynamicArray(home, 1), lbs(0), ubs(MAX_STRING_LENGTH) {
     x->update(home, Block(home));
     assert (isOK() && isNorm());
   }
   
   forceinline
   DashedString::DashedString(Space& home, const Block& block) 
-  : DynamicArray(home, 1) {
+  : DynamicArray(home, 1), lbs(block.lb()), ubs(block.ub()) {
     x->update(home, block);
     assert (isOK() && isNorm());
   }
   
   forceinline
   DashedString::DashedString(Space& home, const DashedString& d) 
-  : DynamicArray(home, d.size()) {
+  : DynamicArray(home, d.size()), lbs(d.lbs), ubs(d.ubs) {
     update(home, d);
     assert (isOK() && (isNorm() || !d.isNorm()));
   }
   
   forceinline
-  DashedString::DashedString(Space& home, int n) : DynamicArray(home, n) {
+  DashedString::DashedString(Space& home, int n) 
+  : DynamicArray(home, n), lbs(0), ubs(0) {
     assert (isOK() && (n == 1 || !isNorm()));
   }
   
   forceinline
   DashedString::DashedString(Space& home, int n, const Block& b) 
-  : DynamicArray(home, n) {
+  : DynamicArray(home, n), lbs(n*b.lb()), ubs(n*b.ub()) {
     for (int i = 0; i < n; ++i)
       (x+i)->update(home, b);
     assert (isOK() && (n == 1 || !isNorm()));
@@ -903,29 +909,30 @@ namespace Gecode { namespace String {
   : DynamicArray(home, n) {
     bool norm = blocks[0].isNull();
     x->update(home, blocks[0]);
-    int l = 0, u = 0;
+    lbs = blocks[0].lb(), ubs = blocks[0].ub();
     for (int i = 1; i < n; ++i) {
       (x+i)->update(home, blocks[i]);
+      lbs += x[i].lb();
+      ubs += x[i].ub();
       // NOTE: The sum of the blocks' bounds might overflow.
-      if (l > MAX_STRING_LENGTH || l + x[i].ub() < l) {
+      if (lbs > MAX_STRING_LENGTH || lbs + x[i].ub() < lbs) {
         for (int j = 0; j <= i; ++j)
           x[j].nullify(home);
         a.free(x, n);
         throw OutOfLimits("DashedString::DashedString");
-      }
-      l += x[i].lb();
-      u += ubounded_sum(u, x[i].ub());   
+      }      
       norm |= x[i].isNull() || x[i].baseEquals(x[i-1]);
     }
-    if (n > 1 && u == Limits::MAX_STRING_LENGTH) {
+    if (ubs > Limits::MAX_STRING_LENGTH) {
       // Possibly refining upper bounds.
       for (int i = 0; i < n; ++i) {
         Block& bi = x[i];
-        int ll = l - bi.lb(), uu = ubounded_sum(bi.ub(), ll);
+        int ll = lbs - bi.lb(), uu = ubounded_sum(bi.ub(), ll);
         if (uu == Limits::MAX_STRING_LENGTH) {
           long d = bi.ub() + ll - Limits::MAX_STRING_LENGTH;
           assert (d <= MAX_STRING_LENGTH);
           bi.ub(home, bi.ub() - d);
+          ubs -= d;
           if (bi.isNull())
             norm = true;
         }
@@ -933,21 +940,16 @@ namespace Gecode { namespace String {
     }
     if (norm)
       normalize(home);
+    std::cerr << *this << '\n';
     assert(isNorm());
     assert(isOK());
   }
 
   forceinline int DashedString::lb_sum() const {
-    int l = 0;
-    for (int i = 0; i < n; ++i)
-      l += x[i].lb();
-    return l;  
+    return lbs;  
   }
-  forceinline int DashedString::ub_sum() const {
-    int u = 0;
-    for (int i = 0; i < n; ++i)
-      u = ubounded_sum(u, x[i].ub());
-    return u;  
+  forceinline long DashedString::ub_sum() const {
+    return ubs;  
   }
   forceinline int DashedString::size() const { return n; }
  
@@ -970,7 +972,7 @@ namespace Gecode { namespace String {
   
   forceinline bool
   DashedString::isNull() const {
-    return n == 1 && x[0].isNull();
+    return ubs == 0;
   }
   
   forceinline bool
@@ -980,6 +982,8 @@ namespace Gecode { namespace String {
   
   forceinline bool
   DashedString::isFixed() const {
+    if (lbs != ubs)
+      return false;
     for (int i = 0; i < n; ++i)
       if (!x[i].isFixed())
         return false;
@@ -988,6 +992,8 @@ namespace Gecode { namespace String {
   
   forceinline bool
   DashedString::contains(const DashedString& d) const {
+    if (lbs > d.lbs || ubs < d.ubs)
+      return false;
     if (n == 1) {      
       for (int i = 0; i < d.n; ++i)
         if (!x[0].contains(d[i]))
@@ -1007,6 +1013,8 @@ namespace Gecode { namespace String {
   
   forceinline bool
   DashedString::contains_rev(const DashedString& d) const {
+    if (lbs > d.lbs || ubs < d.ubs)
+      return false;
     if (n == 1) { 
       for (int i = 0; i < d.n; ++i)
         if (!x[0].contains(d[i]))
@@ -1028,7 +1036,7 @@ namespace Gecode { namespace String {
   DashedString::equals(const DashedString& d) const {
     if (this == &d)
       return true;
-    if (n != d.n)
+    if (n != d.n || lbs != d.lbs || ubs != d.ubs)
       return false;
     for (int i = 0; i < n; ++i)
       if (!x[i].equals(d[i]))
@@ -1040,7 +1048,7 @@ namespace Gecode { namespace String {
   DashedString::equals_rev(const DashedString& d) const {
     if (this == &d)
       return true;
-    if (n != d.n)
+    if (n != d.n || lbs != d.lbs || ubs != d.ubs)
       return false;
     for (int i = 0; i < n; ++i)
       if (!x[i].equals(d[n-i-1]))
@@ -1067,55 +1075,78 @@ namespace Gecode { namespace String {
       n = 1;
     }
     x[0].nullify(home);
+    lbs = ubs = 0;
     assert (isOK());
     assert (isNorm());
   }
   
   forceinline void 
   DashedString::lbAt(Space& home, int idx, int l) {
+    lbs += l - x[idx].lb();
     (x + idx)->lb(home, l);
   }
   forceinline void
   DashedString::ubAt(Space& home, int idx, int u) {
+    ubs += u - x[idx].ub();
     (x + idx)->ub(home, u);
   }
   forceinline void 
   DashedString::baseIntersectAt(Space& home, int idx, const Set::BndSet& S) {
+    int u = x[idx].ub();
     (x + idx)->baseIntersect(home, S);
+    if (x[idx].isNull())
+      ubs -= u;
   }
   forceinline void 
   DashedString::baseIntersectAt(Space& home, int idx, const Block& b) {
+    int u = x[idx].ub();
     (x + idx)->baseIntersect(home, b);
+    if (x[idx].isNull())
+      ubs -= u;
   }
   forceinline void 
   DashedString::baseExcludeAt(Space& home, int idx, const Set::BndSet& S) {
+    int u = x[idx].ub();
     (x + idx)->baseExclude(home, S);
+    if (x[idx].isNull())
+      ubs -= u;
   }
   forceinline void 
   DashedString::baseRemoveAt(Space& home, int idx, int c) {
+    int u = x[idx].ub();
     (x + idx)->baseRemove(home, c);
+    if (x[idx].isNull())
+      ubs -= u;
   }
   forceinline void 
   DashedString::nullifyAt(Space& home, int idx) {
+    lbs -= x[idx].lb();
+    ubs -= x[idx].ub();
     (x + idx)->nullify(home);
   }
   forceinline void 
   DashedString::updateAt(Space& home, int idx, const Block& b) {
+    lbs += b.lb() - x[idx].lb();
+    ubs += b.ub() - x[idx].ub();
     (x + idx)->update(home, b);
   }
   forceinline void 
   DashedString::updateCardAt(Space& home, int idx, int lb, int ub) {    
+    lbs += lb - x[idx].lb();
+    ubs += ub - x[idx].ub();
     (x + idx)->updateCard(home, lb, ub);
   }
   
   forceinline void 
   DashedString::min_length(Space& home, int l) {
-    int maxl = ub_sum();
     for (int i = 0; i < n; ++i) {
       Block& bi = x[i];
-      int li = bi.lb(), ui = bi.ub(), min_i = std::min(ui, l - maxl + ui);
-      if (li < min_i)
+      int li = bi.lb();
+      long ui = bi.ub(), min_i = std::min(ui, l - ubs + ui);
+      if (li < min_i) {
         bi.lb(home, min_i);
+        lbs += min_i - li;  
+      }
     }
     assert (isOK());
     assert (isNorm());
@@ -1123,11 +1154,10 @@ namespace Gecode { namespace String {
   
   forceinline void 
   DashedString::max_length(Space& home, int u) {
-    int minl = lb_sum();
     bool norm = false;
     for (int i = 0; i < n; ++i) {
       Block& bi = x[i];
-      int li = bi.lb(), ui = bi.ub(), max_i = std::max(li, u - minl + li);
+      int li = bi.lb(), ui = bi.ub(), max_i = std::max(li, u - lbs + li);
       if (ui > max_i) {
         if (max_i == 0) {
           bi.nullify(home);
@@ -1135,6 +1165,7 @@ namespace Gecode { namespace String {
         }
         else
           bi.ub(home, max_i);
+        ubs += max_i - ui;
       }
     }
     if (norm)
@@ -1145,6 +1176,8 @@ namespace Gecode { namespace String {
   
   forceinline void 
   DashedString::update(Space& home, const DashedString& d) {
+    lbs = d.lbs;
+    ubs = d.ubs;
     if (d.n <= n) {
       for (int i = 0; i < d.n; ++i)
         (x+i)->update(home, d[i]);
@@ -1153,7 +1186,7 @@ namespace Gecode { namespace String {
           (x+i)->nullify(home);
         a.free(x + d.n, n - d.n);
       }
-      n = d.n;
+      n = d.n;      
       return;
     }
     for (int i = 0; i < n; ++i)
@@ -1169,6 +1202,8 @@ namespace Gecode { namespace String {
   
   forceinline void 
   DashedString::update_rev(Space& home, const DashedString& d) {
+    lbs = d.lbs;
+    ubs = d.ubs;
     if (d.n <= n) {
       for (int i = 0; i < d.n; ++i)
         (x+i)->update(home, d[d.n-i-1]);
@@ -1194,6 +1229,7 @@ namespace Gecode { namespace String {
   forceinline void 
   DashedString::update(Space& home, const std::vector<int>& w) {
     int m = w.size();
+    lbs = ubs = m;
     if (m == 0) {
       nullify(home);
       return;
@@ -1235,6 +1271,8 @@ namespace Gecode { namespace String {
   forceinline void
   DashedString::update(Space& home, const DashedString& x0, 
                                     const DashedString& x1) {
+    lbs = x0.lbs + x1.lbs;
+    ubs = x0.ubs + x1.ubs;
     int n0 = x0.size(), n1 = x1.size();
     bool norm = x0[n0-1].equals(x1[0]);
     int m = n0 + n1 - norm;
@@ -1258,7 +1296,7 @@ namespace Gecode { namespace String {
  
   forceinline void
   DashedString::splitBlock(Space& home, int idx, int c, unsigned alt) {
-//    std::cerr <<"split"<<alt<<"["<<idx<<"]: "<<*this<<" <- "<<int2str(c)<<"\n"; 
+    std::cerr <<"split"<<alt<<"["<<idx<<"]: "<<*this<<" <- "<<int2str(c)<<"\n"; 
     Block& x_i = x[idx];
     int k = x_i.lb();
     assert (!x_i.isFixed() && x_i.ub() == k);
@@ -1290,39 +1328,39 @@ namespace Gecode { namespace String {
         rnorm = x_i.baseEquals(s);
       }
     }
-//    std::cerr << lnorm << ' ' << rnorm << '\n';
+    std::cerr << lnorm << ' ' << rnorm << '\n';
     if (lnorm) {
       Block& x_prev = x[idx-1];
       if (rnorm) {
         Block& x_next = x[idx+1];
-        updateCardAt(home, idx-1, x_prev.lb() + 1 + x_next.lb(), 
-                                  x_prev.ub() + 1 + x_next.ub());
+        (x+idx-1)->updateCard(home, x_prev.lb() + 1 + x_next.lb(), 
+                                    x_prev.ub() + 1 + x_next.ub());
         for (int j = idx; j < n-2; ++j)
-          updateAt(home, j, x[j+2]);
+          (x+j)->update(home, x[j+2]);
         a.free(x+n-2, 2);
         n -= 2;
       }
       else {
-        updateCardAt(home, idx-1, x_prev.lb() + 1, x_prev.ub() + 1);
+        (x+idx-1)->updateCard(home, x_prev.lb() + 1, x_prev.ub() + 1);
         if (k == 1) {
           for (int j = idx; j < n-1; ++j)
-            updateAt(home, j, x[j+1]);
+            (x+j)->update(home, x[j+1]);
           a.free(x+n-1, 1);
           --n;
         }
         else {
           --k;
-          updateCardAt(home, idx, k, k);
+          (x+idx)->updateCard(home, k, k);
         }
       }
     }
     else if (rnorm) {
       Block& x_next = x[idx+1];
-      updateCardAt(home, idx, x_next.lb() + 1, x_next.ub() + 1);
+      (x+idx)->updateCard(home, x_next.lb() + 1, x_next.ub() + 1);
       if (alt == 1)
-        baseRemoveAt(home, idx, c);
+        (x+idx)->baseRemove(home, c);
       for (int j = idx+1; j < n-1; ++j)
-        updateAt(home, j, x[j+1]);
+        (x+j)->update(home, x[j+1]);
       a.free(x+n-1, 1);
       --n;
     }
@@ -1347,7 +1385,8 @@ namespace Gecode { namespace String {
       }
       else
         alt == 0 ? (x+idx)->update(home,Block(c)) : (x+idx)->baseRemove(home,c);
-    }    
+    }
+    std::cerr << "After splitBlock: " << *this << "\n";
     assert (isOK());
     assert (isNorm());
   }
@@ -1398,6 +1437,7 @@ namespace Gecode { namespace String {
       }
     }
     assert(isNorm());
+//    std::cerr << *this << '\n';
     assert(isOK());
   }
   
@@ -1415,14 +1455,14 @@ namespace Gecode { namespace String {
   DashedString::isOK() const {
     if (n == 0)
       return false;
-    int l =0, u = 0;
+    int l = 0; long u = 0;
     for (int i = 0; i < n; i++) {
       if (i > 0 && !x[i].isOK())
         return false;
       l += x[i].lb();
-      u = ubounded_sum(u, x[i].ub());
+      u += x[i].ub();
     }
-    return true;
+    return l == lbs && u == ubs;
   }
   
   forceinline std::ostream&
@@ -1439,7 +1479,7 @@ namespace Gecode { namespace String {
         os << d[i] << " + ";
       os << d[n-1];
     }
-    return os;
+    return os << " <" << d.lbs << ".." << d.ubs << ">";
   }
 
 }}

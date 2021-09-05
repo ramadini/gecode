@@ -35,9 +35,9 @@ namespace Gecode { namespace String {
   
   forceinline
   StringVarImp::StringVarImp(Space& home, const DashedString& d)
-  : StringVarImpBase(home), ds(home), min_len(d.lb_sum()), 
-                                      max_len(d.ub_sum()) {
+  : StringVarImpBase(home), ds(home), min_len(d.lb_sum()) {
     ds.update(home, d);
+    max_len = std::min((long) MAX_STRING_LENGTH, d.ub_sum()); 
     assert (isOK()); 
   }
   
