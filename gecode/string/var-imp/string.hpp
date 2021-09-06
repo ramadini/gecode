@@ -219,6 +219,8 @@ namespace Gecode { namespace String {
   
   forceinline ModEvent
   StringVarImp::bnd_length(Space& home, int l, int u) {
+    if (l > u)
+      return ME_STRING_FAILED;
     return me_combine(min_length(home, l), max_length(home, u));
   }
   
@@ -240,12 +242,12 @@ namespace Gecode { namespace String {
   }
   
   forceinline ModEvent
-  StringVarImp::max_length(Space& home, int u) {std::cerr << u << '\n';
+  StringVarImp::max_length(Space& home, int u) {
     if (u < min_len)
       return ME_STRING_FAILED;
     if (u < max_len) {
       max_len = u;
-      ds.max_length(home, max_len);
+      ds.max_length(home, u);
     }
     else if (u < ds.ub_sum())
       ds.max_length(home, u);

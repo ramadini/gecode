@@ -93,7 +93,7 @@ namespace Gecode { namespace String {
   forceinline bool 
   refine_x(Space& home, ViewX& x, const ViewY& y, Matching m[], int xFixed,
                                                                 int& nBlocks) {
-    std::cerr << "Refining " << x << "  vs  " << y << "\nMax. " << nBlocks << " new blocks needed.\n";
+//    std::cerr << "Refining " << x << "  vs  " << y << "\nMax. " << nBlocks << " new blocks needed.\n";
     int nx = x.size(), ux = 2*(nx-xFixed);    
     bool changed = false;
     Region r;
@@ -101,19 +101,19 @@ namespace Gecode { namespace String {
     int* U = nullptr;
     int newSize = 0, uSize = 0;
     for (int i = 0; i < nx; ++i) {
-      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
-      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].LSP << "\nEEP: " 
-                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
+//      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
+//      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].LSP << "\nEEP: " 
+//                           << m[i].EEP << "\nLEP: " << m[i].LEP << "\n";
       if (x[i].isFixed())
         continue;
       Position& esp = m[i].ESP, eep = m[i].EEP, lsp = m[i].LSP, lep = m[i].LEP;
       const Block& x_i = x[i];
       int l = x_i.lb(), u = x_i.ub(), l1 = min_len_mand(y, x_i, lsp, eep);
-      std::cerr << "l'=" << l1 << "\n";
+//      std::cerr << "l'=" << l1 << "\n";
       if (u < l1)
         return false;
       int u1 = y.max_len_opt(x_i, esp, lep, l1);
-      std::cerr << "u'=" << u1 << "\n";
+//      std::cerr << "u'=" << u1 << "\n";
       assert (l1 <= u1);
       if (l1 == 0 || l1 < l || u1 > u) {
         if (u1 == 0) {
@@ -167,7 +167,7 @@ namespace Gecode { namespace String {
         n = xx_i.baseSize();
         y.mand_region(home, x, i, lsp, eep);
         changed |= l < xx_i.lb() || u > xx_i.ub() || n > xx_i.baseSize();
-        std::cerr << "x[" << i << "] ref. into " << xx_i << "\n";        
+//        std::cerr << "x[" << i << "] ref. into " << xx_i << "\n";        
         continue;
       }
       l = xx_i.lb(), u = xx_i.ub();
@@ -185,7 +185,7 @@ namespace Gecode { namespace String {
         y.opt_region(home, xx_i, mreg[n-1], eep, lep, l1);
       DashedString d(home, mreg, n);
       r1.free();
-      std::cerr << "d = " << d << ' ' << n << "\n";
+//      std::cerr << "d = " << d << ' ' << n << "\n";
       n = d.size();
       if (n == 1) {
         nBlocks--;

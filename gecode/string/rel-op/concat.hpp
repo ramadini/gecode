@@ -73,17 +73,17 @@ namespace Gecode { namespace String { namespace RelOp {
     }    
     if (x0.assigned() && x1.assigned()) {
       ConcatView xy(x0,x1);
-      if (check_equate_x(x2, xy)) {
-        if (x2.assigned())
-          return home.ES_SUBSUMED(*this);
-        if (check_equate_x(xy, x2))
-          x2.gets(home, xy.val());
-        else
-          return ES_FAILED;
+      if (check_equate_x(x2, xy)) {std::cerr << "Here\n";
+        if (!x2.assigned()) {
+          if (check_equate_x(xy, x2))
+            x2.gets(home, xy.val());
+          else
+            return ES_FAILED;
+        }
+        return home.ES_SUBSUMED(*this);
       }
       else
         return ES_FAILED;
-      return home.ES_SUBSUMED(*this);
     }
     int a;
     do {
@@ -98,6 +98,7 @@ namespace Gecode { namespace String { namespace RelOp {
       if (me0 == ME_STRING_VAL || me0 == ME_STRING_CARD
       ||  me1 == ME_STRING_VAL || me1 == ME_STRING_CARD)
         GECODE_ME_CHECK(refine_card(home));
+      std::cerr << me0 << ' ' << me1 << "\n";
       a = x0.assigned() + x1.assigned() + x2.assigned();
     } while (a == 2);
     std::cerr << "After Concat::propagate " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
