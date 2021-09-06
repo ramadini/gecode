@@ -32,14 +32,14 @@ namespace Gecode { namespace String { namespace Int {
   template<class View>
   ExecStatus
   Length<View>::propagate(Space& home, const ModEventDelta&) {
-    std::cerr << "\n" << this << "::Length::propagate |" <<x0<< "| = " <<x1<< "\n";
+//    std::cerr << "\n" << this << "::Length::propagate |" <<x0<< "| = " <<x1<< "\n";
     int x1min, x1max;
     x1min = x1.min();
     x1max = x1.max();
     GECODE_ME_CHECK(x0.bnd_length(home, x1min, x1max));
     GECODE_ME_CHECK(x1.gq(home, x0.min_length()));
     GECODE_ME_CHECK(x1.lq(home, x0.max_length()));
-    std::cerr << "Length::propagated |" <<x0<< "| = " <<x1<< "\n";
+//    std::cerr << "Length::propagated |" <<x0<< "| = " <<x1<< "\n";
     if (x1.assigned())
       return home.ES_SUBSUMED(*this);    
     return ES_FIX;

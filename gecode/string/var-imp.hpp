@@ -99,6 +99,8 @@ namespace Gecode { namespace String {
     /// If this domain is null
     bool isNull(void) const;
     double logdim(void) const;
+    int lb_sum(void) const;
+    long ub_sum(void) const;
     
     //@}
     

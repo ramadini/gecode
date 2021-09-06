@@ -122,8 +122,8 @@ namespace Gecode { namespace String {
     int min_length(void) const;
     /// Return the maximum length for a string in the variable's domain
     int max_length(void) const;
-    /// Return the sum of the upper bounds
-    long ubounds_sum(void) const;
+    int lb_sum(void) const;
+    long ub_sum(void) const;
     /// Returns the number of blocks of the domain
     int size(void) const;
     /// Returns the i-th block of the domain
@@ -366,7 +366,6 @@ namespace Gecode { namespace String {
     StringView& x0;
     StringView& x1;
     int pivot;
-    template <class T> ModEvent me(Space&, const T& xk, int lb, int ub) const;
   public:
     /// \name Constructors and initialization
     //@{
@@ -413,6 +412,9 @@ namespace Gecode { namespace String {
     /// Consistency checks on the view
     bool isOK(void) const;
     bool isNull(void) const;
+    
+    int lb_sum(void) const;
+    long ub_sum(void) const;
 
     /// If this view is equals to y
     template <class T> bool equals(const T& y) const;

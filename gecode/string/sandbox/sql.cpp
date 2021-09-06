@@ -173,6 +173,5 @@ int main(int argc, char* argv[]) {
   default:
     assert (Benchmark::sat);
   }
-//  using namespace Gecode::String::RelOp;
   return 0;
 }

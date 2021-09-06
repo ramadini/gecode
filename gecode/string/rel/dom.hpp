@@ -27,7 +27,7 @@ namespace Gecode { namespace String { namespace Rel {
   template<class View0, class View1>
   ExecStatus
   Dom<View0,View1>::propagate(Space& home, const ModEventDelta&) {
-    std::cerr<<"\n"<<this<<"::Dom::propagate" << x0 << "  vs  " << x1 << "\n";
+//    std::cerr<<"\n"<<this<<"::Dom::propagate" << x0 << "  vs  " << x1 << "\n";
     GECODE_ME_CHECK(x0.bnd_length(home, 
       std::max(x0.min_length(), x1.min_length()),
       std::min(x0.max_length(), x1.max_length())
@@ -52,7 +52,7 @@ namespace Gecode { namespace String { namespace Rel {
     }
     if (!check_equate_x(x1,x0))
       return ES_FAILED;
-     std::cerr<<"Dom::propagated" << x0 << "  vs  " << x1 << "\n";
+//     std::cerr<<"Dom::propagated" << x0 << "  vs  " << x1 << "\n";
     return x0.assigned() ? home.ES_SUBSUMED(*this) : ES_FIX;
   }
 

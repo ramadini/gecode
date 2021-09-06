@@ -315,15 +315,14 @@ namespace Gecode { namespace String {
     return x->logdim();
   }
   
+  forceinline int
+  StringView::lb_sum() const {
+    return x->lb_sum();
+  }
+  
   forceinline long
-  StringView::ubounds_sum() const {
-    long ub = max_length();
-    if (ub == Limits::MAX_STRING_LENGTH && min_length() < ub && size() > 1) {
-      ub = 0;
-      for (int i = 0; i < size(); ++i)
-        ub += (*this)[i].ub();
-    }
-    return ub;
+  StringView::ub_sum() const {
+    return x->ub_sum();
   }
   
   forceinline bool
@@ -454,31 +453,20 @@ namespace Gecode { namespace String {
   template <class T>
   forceinline ModEvent
   StringView::equate(Space& home, const T& y) {
-    assert (!assigned() || !y.assigned());
-    int lb = min_length();
-    long ub = this->ubounds_sum();
+    assert (!assigned());
+    int lbs = lb_sum();
+    long ubs = ub_sum();
     Matching m[size()];
-    int n, k;
+    int n, k, s = size();
     if (sweep_x(*this, y, m, k, n) && refine_x(home, *this, y, m, k, n)) {
       if (n == -1)
-        return ME_STRING_NONE;
-      StringDelta d;    
+        return ME_STRING_NONE;      
+      StringDelta d;
+      int lbs0 = lb_sum(); long ubs0 = ub_sum();     
       if (assigned())
         return x->notify(home, ME_STRING_VAL, d);
-      int ux = max_length();
-      if (min_length() > lb || (ux < ub && ux < MAX_STRING_LENGTH))
-        return x->notify(home, ME_STRING_CARD, d);
-      if (ux == MAX_STRING_LENGTH && ub > MAX_STRING_LENGTH) {
-        long u = 0L;
-        for (int i = 0; i < size(); ++i) {
-          u += (*this)[i].ub();
-          if (u >= ub)
-            return x->notify(home, ME_STRING_BASE, d);
-        }
-        return x->notify(home, ME_STRING_CARD, d);
-      }
-      else
-        return x->notify(home, ME_STRING_BASE, d);
+      return x->notify(home, lbs0 > lbs || ubs0 < ubs || size() != s? 
+                             ME_STRING_CARD : ME_STRING_BASE, d);
     }
     else
       return ME_STRING_FAILED;  
@@ -733,7 +721,6 @@ namespace Gecode { namespace String {
     Set::GLBndSet s;
     for (int i = p.idx, j = q.idx - (q.off == 0); i <= j; ++i)
       (*this)[i].includeBaseIn(home, s);
-    std::cerr << x[idx] << "\n";
     x.baseIntersectAt(home, idx, s);
   }
   

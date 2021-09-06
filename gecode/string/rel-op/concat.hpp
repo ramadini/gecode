@@ -39,12 +39,15 @@ namespace Gecode { namespace String { namespace RelOp {
 //    std::cerr << "Before refine_card: " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
     int l = std::max(x0.min_length(), x2.min_length() - x1.max_length()),
         u = std::min(x0.max_length(), x2.max_length() - x1.min_length());
+//    std::cerr << "x0) " << l << " " << u << "\n";
     GECODE_ME_CHECK(x0.bnd_length(home, l, u));
     l = std::max(x1.min_length(), x2.min_length() - x0.max_length()),
     u = std::min(x1.max_length(), x2.max_length() - x0.min_length());
+//    std::cerr << "x1) " << l << " " << u << "\n";
     GECODE_ME_CHECK(x1.bnd_length(home, l, u));
     l = std::max(x2.min_length(), x0.min_length() + x1.min_length()),
     u = std::min(x2.max_length(), x0.max_length() + x1.max_length());
+//    std::cerr << "x2) " << l << " " << u << "\n";
     GECODE_ME_CHECK(x2.bnd_length(home, l, u));
 //    std::cerr << "After refine_card: " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
     return ES_FIX;
@@ -53,9 +56,7 @@ namespace Gecode { namespace String { namespace RelOp {
   template<class View0, class View1, class View2>
   forceinline ExecStatus
   Concat<View0,View1,View2>::propagate(Space& home, const ModEventDelta&) {
-    std::cerr << "\n" << this << "::Concat::propagate " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
-    GECODE_ME_CHECK(refine_card(home));    
-    //FIXME: Seg. fault in SQL 12 if these checks are moved above.
+//    std::cerr << "\n" << this << "::Concat::propagate " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";   
     if (x0.isNull()) {
       GECODE_REWRITE(*this, 
         (Gecode::String::Rel::Eq<View1,View2>::post(home(*this), x1, x2)));
@@ -70,10 +71,11 @@ namespace Gecode { namespace String { namespace RelOp {
       GECODE_ME_CHECK(x0.nullify(home));
       GECODE_ME_CHECK(x1.nullify(home));
       return home.ES_SUBSUMED(*this);
-    }    
+    }
+    GECODE_ME_CHECK(refine_card(home));
     if (x0.assigned() && x1.assigned()) {
       ConcatView xy(x0,x1);
-      if (check_equate_x(x2, xy)) {std::cerr << "Here\n";
+      if (check_equate_x(x2, xy)) {
         if (!x2.assigned()) {
           if (check_equate_x(xy, x2))
             x2.gets(home, xy.val());
@@ -98,10 +100,10 @@ namespace Gecode { namespace String { namespace RelOp {
       if (me0 == ME_STRING_VAL || me0 == ME_STRING_CARD
       ||  me1 == ME_STRING_VAL || me1 == ME_STRING_CARD)
         GECODE_ME_CHECK(refine_card(home));
-      std::cerr << me0 << ' ' << me1 << "\n";
+//      std::cerr << me0 << ' ' << me1 << "\n";
       a = x0.assigned() + x1.assigned() + x2.assigned();
     } while (a == 2);
-    std::cerr << "After Concat::propagate " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
+//    std::cerr << "After Concat::propagate " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
     return a == 3 ? home.ES_SUBSUMED(*this) : ES_FIX;
   }
   

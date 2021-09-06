@@ -163,10 +163,8 @@ namespace Gecode { namespace String {
   }
 
   forceinline void
-  StringVarImp::normalize(Space& home) {std::cerr << *this << '\n';
+  StringVarImp::normalize(Space& home) {
     ds.normalize(home);
-    std::cerr << *this << '\n';
-    assert (isOK());
   }  
 
   forceinline const Block&
@@ -228,34 +226,42 @@ namespace Gecode { namespace String {
   StringVarImp::min_length(Space& home, int l) {
     if (l > max_len)
       return ME_STRING_FAILED;
+    bool ch = false;
     if (l > min_len) {
       min_len = l;
-      ds.min_length(home, min_len);      
+      ch = true;
     }
-    else if (l > ds.lb_sum())
+    int lbs = ds.lb_sum();
+    if (l > lbs) {
       ds.min_length(home, l);
-    else
-      return ME_STRING_NONE;
-    assert (isOK());
-    StringDelta d;
-    return notify(home, assigned() ? ME_STRING_VAL : ME_STRING_CARD, d);
+      ch = lbs < ds.lb_sum();
+    }
+    if (ch) {
+      StringDelta d;
+      return notify(home, assigned() ? ME_STRING_VAL : ME_STRING_CARD, d);
+    }
+    return ME_STRING_NONE;
   }
   
   forceinline ModEvent
   StringVarImp::max_length(Space& home, int u) {
     if (u < min_len)
       return ME_STRING_FAILED;
+    bool ch = false;
     if (u < max_len) {
       max_len = u;
-      ds.max_length(home, u);
+      ch = true;
     }
-    else if (u < ds.ub_sum())
+    long ubs = ds.ub_sum();
+    if (u < ubs) {
       ds.max_length(home, u);
-    else
-      return ME_STRING_NONE;
-    assert (isOK());
-    StringDelta d;
-    return notify(home, assigned() ? ME_STRING_VAL : ME_STRING_CARD, d);
+      ch = ds.ub_sum() < ubs;
+    }
+    if (ch) {
+      StringDelta d;
+      return notify(home, assigned() ? ME_STRING_VAL : ME_STRING_CARD, d);
+    }
+    return ME_STRING_NONE;
   }
 
   forceinline std::vector<int>
@@ -270,7 +276,17 @@ namespace Gecode { namespace String {
    
   forceinline const DashedString&
   StringVarImp::dom() const {
-    return ds;  
+    return ds;
+  }
+  
+  forceinline int
+  StringVarImp::lb_sum() const {
+    return ds.lb_sum();
+  }
+  
+  forceinline long
+  StringVarImp::ub_sum() const {
+    return ds.ub_sum();
   }
   
   forceinline bool
@@ -290,7 +306,7 @@ namespace Gecode { namespace String {
   }
   
   forceinline StringVarImp*
-  StringVarImp::copy(Space& home) {std::cerr<<*this <<'\n';
+  StringVarImp::copy(Space& home) {
     return copied() ? static_cast<StringVarImp*>(forward())
                     : new (home) StringVarImp(home, *this);
   }
@@ -301,26 +317,40 @@ namespace Gecode { namespace String {
     return bnd_length(home, min_len, std::min((long) max_len, ds.ub_sum()));
   }
   forceinline ModEvent
-  StringVarImp::lbAt(Space& home, int i, int l) {std::cerr<<"lbAt "<<*this<< ' ' << i << ' ' << l << '\n';
+  StringVarImp::lbAt(Space& home, int i, int l) {
     ds.lbAt(home, i, l);
     return bnd_length(home, std::max(min_len, ds.lb_sum()), max_len);
   }
   forceinline ModEvent
-  StringVarImp::ubAt(Space& home, int i, int u) {std::cerr<<"ubAt "<<*this<< ' ' << i << ' ' << u << '\n';
+  StringVarImp::ubAt(Space& home, int i, int u) {
     ds.ubAt(home, i, u);
     return bnd_length(home, min_len, std::min((long) max_len, ds.ub_sum()));
   }  
   forceinline ModEvent
   StringVarImp::baseIntersectAt(Space& home, int i, const Set::BndSet& S) {
+    int m = ds[i].baseSize();
     ds.baseIntersectAt(home, i, S);
-    return bnd_length(home, std::max(min_len, ds.lb_sum()), 
-                            std::min((long) max_len, ds.ub_sum()));
+    if (ds[i].isNull())
+      return bnd_length(home, min_len, std::min((long) max_len, ds.ub_sum()));
+    else if (ds[i].baseSize() != m) {
+      StringDelta d;
+      return notify(home, ME_STRING_BASE, d);
+    }
+    else
+      return ME_STRING_NONE;
   }
   forceinline ModEvent
   StringVarImp::baseIntersectAt(Space& home, int i, const Block& b) {
+    int m = ds[i].baseSize();
     ds.baseIntersectAt(home, i, b);
-    return bnd_length(home, std::max(min_len, ds.lb_sum()), 
-                            std::min((long) max_len, ds.ub_sum()));
+    if (ds[i].isNull())
+      return bnd_length(home, min_len, std::min((long) max_len, ds.ub_sum()));
+    else if (ds[i].baseSize() != m) {
+      StringDelta d;
+      return notify(home, ME_STRING_BASE, d);
+    }
+    else
+      return ME_STRING_NONE;
   }
   forceinline void
   StringVarImp::updateCardAt(Space& home, int i, int l, int u) {

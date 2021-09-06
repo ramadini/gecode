@@ -409,7 +409,7 @@ public:
   }
   
   void test11() {
-    cerr << "\n*** Test 10 ***" << endl;
+    cerr << "\n*** Test 11 ***" << endl;
     StringVar x(*this, Block(*this, CharSet(*this, ' '), 0, 144));
     StringVar y(*this, Block(*this, CharSet(*this, ' ', 'Y'), 1, 145));
     Block bz[3];
@@ -429,7 +429,7 @@ public:
     std::cerr << "y = " << y << "\n";
     std::cerr << "z = " << z << "\n";
     std::cerr << "After xy = z:\n";
-    assert (xy.equate(*this, vz) == ME_STRING_BASE);
+    assert (xy.equate(*this, vz) == ME_STRING_CARD);
     std::cerr << "x = " << x << "\n";
     std::cerr << "y = " << y << "\n";
     std::cerr << "z = " << z << "\n";

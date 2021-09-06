@@ -737,7 +737,7 @@ public:
     assert (vx.equate(*this, vy) == ME_STRING_CARD);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (vy.equate(*this, vx) == ME_STRING_BASE);
+    assert (vy.equate(*this, vx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
     assert (vx.size() == 2 && y.max_length() == 2000);
     assert(vx.isOK() && vy.isOK());

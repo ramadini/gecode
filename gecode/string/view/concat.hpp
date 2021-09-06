@@ -320,6 +320,16 @@ namespace Gecode { namespace String {
     return x0.isNull() && x1.isNull();
   }
   
+  forceinline int
+  ConcatView::lb_sum() const {
+    return x0.lb_sum() + x1.lb_sum();
+  }
+  
+  forceinline long
+  ConcatView::ub_sum() const {
+    return x0.ub_sum() + x1.lb_sum();
+  }
+  
   forceinline ModEvent
   ConcatView::nullify(Space& home) {
     if (x0.nullify(home) == ME_STRING_FAILED)
@@ -345,38 +355,40 @@ namespace Gecode { namespace String {
   
   template <class T>
   forceinline ModEvent
-  ConcatView::me(Space& home, const T& xk, int lb, int ub) const {
-    int ux = xk.max_length();
-    StringDelta d;
-    if (xk.min_length() > lb || (ux < ub && ux < MAX_STRING_LENGTH))
-      return xk.varimp()->notify(home, ME_STRING_CARD, d);
-    if (ux == MAX_STRING_LENGTH && ub > MAX_STRING_LENGTH) {
-      long u = 0L;
-      for (int i = 0; i < xk.size(); ++i) {
-        u += xk[i].ub();
-        if (u >= ub)
-          return xk.varimp()->notify(home, ME_STRING_BASE, d);
-      }
-      return xk.varimp()->notify(home, ME_STRING_CARD, d);
-    }
-    else
-      return xk.varimp()->notify(home, ME_STRING_BASE, d);
-  }
-  
-  template <class T>
-  forceinline ModEvent
   ConcatView::equate(Space& home, const T& y) {
-    if (assigned())
-      return check_equate_x(*this,y) ? ME_STRING_NONE : ME_STRING_FAILED;
-    int lb0 = x0.min_length(), lb1 = x1.min_length();
-    long ub0 = x0.ubounds_sum(), ub1 = x1.ubounds_sum();
+    assert (!assigned());
+    int lbs0 = x0.lb_sum(), lbs1 = x1.lb_sum(), n0 = x0.size(), n1 = x1.size();    
+    bool a0 = x0.assigned(), a1 = x1.assigned();
+    long ubs0 = x0.ub_sum(), ubs1 = x1.ub_sum();
+    // FIXME: logdim is avoidable if we pass the pivot to sweep_x, and we add an
+    //        extra parameter to refine_x to discriminate between x0/x1.
+    double ld0 = x0.logdim(), ld1 = x1.logdim();
     Matching m[size()];
     int n, k;
     if (sweep_x(*this, y, m, k, n) && refine_x(home, *this, y, m, k, n)) {
       if (n == -1)
         return ME_STRING_NONE;
-      return StringVarImp::me_combine(me<StringView>(home, x0, lb0, ub0),
-                                      me<StringView>(home, x1, lb1, ub1));
+      StringDelta d;
+      ModEvent me0 = ME_STRING_NONE;
+      if (!a0 && x0.assigned())
+        me0 = x0.varimp()->notify(home, ME_STRING_VAL, d);
+      else if (x0.lb_sum() > lbs0 || x0.ub_sum() < ubs0 || size() != n0)
+        me0 = x0.varimp()->notify(home, ME_STRING_CARD, d);
+      else if (x0.logdim() < ld0)
+        me0 = x0.varimp()->notify(home, ME_STRING_BASE, d);
+      ModEvent me1 = ME_STRING_NONE;
+      if (!a1 && x1.assigned())
+        me1 = x1.varimp()->notify(home, ME_STRING_VAL, d);
+      else if (x1.lb_sum() > lbs1 || x1.ub_sum() < ubs1 || size() != n1)
+        me1 = x1.varimp()->notify(home, ME_STRING_CARD, d);
+      else if (x1.logdim() < ld1)
+        me1 = x1.varimp()->notify(home, ME_STRING_BASE, d);
+//      std::cerr << me0 << ' ' << me1 << '\n';
+      if (me0 == ME_STRING_VAL)
+        return me1 == ME_STRING_VAL ? me0 : ME_STRING_CARD;
+      if (me1 == ME_STRING_VAL)
+        return me0 == ME_STRING_VAL ? me1 : ME_STRING_CARD;
+      return StringVarImp::me_combine(me0, me1);
     }
     else
       return ME_STRING_FAILED;  

@@ -21,7 +21,7 @@ class Ex3 : public IntMaximizeScript {
 public:
   
   static string S;
-  static const int M = 200;
+  static const int M = 100;
 
   Ex3(Ex3& s): IntMaximizeScript(s) {
     int_vars.update(*this, s.int_vars);
@@ -89,7 +89,7 @@ int main() {
   StringOptions opt("*** Ex3 ***");
   opt.solutions(0);
   IntMaximizeScript::run<Ex3, BAB, StringOptions>(opt);
-  assert (Ex3::S != string(Ex3::M, 'a'));
+  assert (Ex3::S == string(Ex3::M-1, 'a') + "b");
   std::cout<<"==========\n";
   return 0;
 }

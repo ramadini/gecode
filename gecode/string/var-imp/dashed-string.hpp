@@ -940,7 +940,7 @@ namespace Gecode { namespace String {
     }
     if (norm)
       normalize(home);
-    std::cerr << *this << '\n';
+//    std::cerr << *this << '\n';
     assert(isNorm());
     assert(isOK());
   }
@@ -1263,7 +1263,7 @@ namespace Gecode { namespace String {
       else
         (x+(++j))->update(home, Block(w[i]));
     n = m;
-    std::cerr << *this << '\n';
+//    std::cerr << *this << '\n';
     assert (isOK());
     assert (isNorm());
   }
@@ -1296,7 +1296,7 @@ namespace Gecode { namespace String {
  
   forceinline void
   DashedString::splitBlock(Space& home, int idx, int c, unsigned alt) {
-    std::cerr <<"split"<<alt<<"["<<idx<<"]: "<<*this<<" <- "<<int2str(c)<<"\n"; 
+//    std::cerr <<"split"<<alt<<"["<<idx<<"]: "<<*this<<" <- "<<int2str(c)<<"\n"; 
     Block& x_i = x[idx];
     int k = x_i.lb();
     assert (!x_i.isFixed() && x_i.ub() == k);
@@ -1328,7 +1328,7 @@ namespace Gecode { namespace String {
         rnorm = x_i.baseEquals(s);
       }
     }
-    std::cerr << lnorm << ' ' << rnorm << '\n';
+//    std::cerr << lnorm << ' ' << rnorm << '\n';
     if (lnorm) {
       Block& x_prev = x[idx-1];
       if (rnorm) {
@@ -1386,7 +1386,7 @@ namespace Gecode { namespace String {
       else
         alt == 0 ? (x+idx)->update(home,Block(c)) : (x+idx)->baseRemove(home,c);
     }
-    std::cerr << "After splitBlock: " << *this << "\n";
+//    std::cerr << "After splitBlock: " << *this << "\n";
     assert (isOK());
     assert (isNorm());
   }
