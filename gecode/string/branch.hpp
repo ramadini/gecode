@@ -4,8 +4,8 @@ namespace Gecode { namespace String { namespace Branch {
   StringBrancher::val_llll(int pos, Gecode::String::StringView& x) const {
     if (x.min_length() < x.max_length())
       return new PosLevVal(*this, pos, Lev::LENGTH, Val::MIN);
-//    Block& b = x[x.leftmost_unfixed_idx()];
-    if (x[x.leftmost_unfixed_idx()].lb() < x[x.leftmost_unfixed_idx()].ub())
+    const Block& b = x[x.leftmost_unfixed_idx()];
+    if (b.lb() < b.ub())
       return new PosLevVal(*this, pos, Lev::CARD, Val::MIN);
     else
       return new PosLevVal(*this, pos, Lev::BASE, Val::MIN);
@@ -41,29 +41,21 @@ namespace Gecode { namespace String { namespace Branch {
         assert (x.min_length() < x.max_length());
         switch (val) {
           case MIN:
-            x.max_length(home, x.min_length());
-            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
+            return x.max_length(home, x.min_length());
           case MAX:
-            x.min_length(home, x.max_length());
-            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
+            return x.min_length(home, x.max_length());
           default:
             GECODE_NEVER;
         }
       }
       case CARD: {
         int k = x_i.ub() - x_i.lb();
-        assert (k > 0);
+        assert (k > 0 && x.min_length() == x.max_length());
         switch (val) {
           case MIN:
-            x.ubAt(home, i, x_i.lb());
-            x.max_length(home, std::max(x.min_length(), x.max_length()-k));
-            if (x_i.isNull())
-              x.normalize(home);
-            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
+            return x.ubAt(home, i, x_i.lb());
           case MAX:
-            x.lbAt(home, i, x_i.ub());
-            x.min_length(home, std::min(x.max_length(), x.min_length()+k));
-            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
+            return x.lbAt(home, i, x_i.ub());
           default:
             GECODE_NEVER;
         }
@@ -84,11 +76,9 @@ namespace Gecode { namespace String { namespace Branch {
           return ME_STRING_FAILED;
         switch (val) {
           case MIN:
-            x.min_length(home, x.min_length() + 1);
-            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
+            return x.min_length(home, x.min_length() + 1);
           case MAX:
-            x.max_length(home, x.max_length() - 1);
-            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
+            return x.max_length(home, x.max_length() - 1);
           default:
             GECODE_NEVER;
         }
@@ -98,13 +88,9 @@ namespace Gecode { namespace String { namespace Branch {
           return ME_STRING_FAILED;
         switch (val) {
           case MIN:
-             x.lbAt(home, i, x_i.lb()+1);
-             x.min_length(home, x.min_length()+1);
-             return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
+             return x.lbAt(home, i, x_i.lb() + 1);
           case MAX:
-             x.ubAt(home, i, x_i.ub()-1);
-             x.max_length(home, x.max_length()+1);
-             return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
+             return x.ubAt(home, i, x_i.ub() - 1);
           default:
             GECODE_NEVER;
         }

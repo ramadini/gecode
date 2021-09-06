@@ -163,8 +163,9 @@ namespace Gecode { namespace String {
   }
 
   forceinline void
-  StringVarImp::normalize(Space& home) {
+  StringVarImp::normalize(Space& home) {std::cerr << *this << '\n';
     ds.normalize(home);
+    std::cerr << *this << '\n';
     assert (isOK());
   }  
 
@@ -216,67 +217,40 @@ namespace Gecode { namespace String {
     return ds.contains_rev(y.ds);
   }
   
-  forceinline void
-  StringVarImp::decr_max_len(int u) {
-    if (size() > 1 && max_len == MAX_STRING_LENGTH) {
-      // A re-check is needed to keep max_len sound.
-      max_len = -u;
-      for (int i = 0; i < size(); ++i) {
-        max_len = ubounded_sum(max_len, (*this)[i].ub());
-        if (max_len == MAX_STRING_LENGTH)
-          return;  
-      }
-    }
-    else
-      max_len -= u;      
-  }
-  
   forceinline ModEvent
   StringVarImp::bnd_length(Space& home, int l, int u) {
-    if (l <= min_len && u >= max_len)
-      return ME_STRING_NONE;
-    if (l > max_len || u < min_len)
-      return ES_FAILED;
-    ModEvent me = ME_STRING_NONE;
-    if (l > min_len) {
-      min_len = l;
-      ds.min_length(home, min_len);
-      me = min_length(home, l);
-    }
-    if (me == ME_STRING_FAILED)
-      return me;
-    if (u < max_len) {
-      max_len = u;
-      ds.max_length(home, max_len);
-      me = me_combine(me, max_length(home, u));
-    }
-    std::cerr << *this << '\n';
-    assert (isOK());
-    return me;
+    return me_combine(min_length(home, l), max_length(home, u));
   }
   
   forceinline ModEvent
   StringVarImp::min_length(Space& home, int l) {
     if (l > max_len)
       return ME_STRING_FAILED;
-    int lx = min_len;
-    if (l < lx)
+    if (l > min_len) {
+      min_len = l;
+      ds.min_length(home, min_len);      
+    }
+    else if (l > ds.lb_sum())
+      ds.min_length(home, l);
+    else
       return ME_STRING_NONE;
-    min_len = l;
-    ds.min_length(home, min_len);
     assert (isOK());
     StringDelta d;
     return notify(home, assigned() ? ME_STRING_VAL : ME_STRING_CARD, d);
   }
   
   forceinline ModEvent
-  StringVarImp::max_length(Space& home, int u) {
+  StringVarImp::max_length(Space& home, int u) {std::cerr << u << '\n';
     if (u < min_len)
       return ME_STRING_FAILED;
-    if (u > max_len)
+    if (u < max_len) {
+      max_len = u;
+      ds.max_length(home, max_len);
+    }
+    else if (u < ds.ub_sum())
+      ds.max_length(home, u);
+    else
       return ME_STRING_NONE;
-    max_len = u;
-    ds.max_length(home, max_len);
     assert (isOK());
     StringDelta d;
     return notify(home, assigned() ? ME_STRING_VAL : ME_STRING_CARD, d);
@@ -314,60 +288,51 @@ namespace Gecode { namespace String {
   }
   
   forceinline StringVarImp*
-  StringVarImp::copy(Space& home) {
+  StringVarImp::copy(Space& home) {std::cerr<<*this <<'\n';
     return copied() ? static_cast<StringVarImp*>(forward())
                     : new (home) StringVarImp(home, *this);
   }
   
-  forceinline void
+  forceinline ModEvent
   StringVarImp::nullifyAt(Space& home, int i) {
-    decr_max_len((*this)[i].ub());
     ds.nullifyAt(home, i);
-    assert (isOK());
+    return bnd_length(home, min_len, std::min((long) max_len, ds.ub_sum()));
   }
-  forceinline void
-  StringVarImp::lbAt(Space& home, int i, int l) {
-    if (l > (*this)[i].lb())
-      min_len += l - (*this)[i].lb();
+  forceinline ModEvent
+  StringVarImp::lbAt(Space& home, int i, int l) {std::cerr<<"lbAt "<<*this<< ' ' << i << ' ' << l << '\n';
     ds.lbAt(home, i, l);
-    assert (isOK());
+    return bnd_length(home, std::max(min_len, ds.lb_sum()), max_len);
   }
-  forceinline void
-  StringVarImp::ubAt(Space& home, int i, int u) {
-    if (u < (*this)[i].ub())
-      decr_max_len((*this)[i].ub() - u);
+  forceinline ModEvent
+  StringVarImp::ubAt(Space& home, int i, int u) {std::cerr<<"ubAt "<<*this<< ' ' << i << ' ' << u << '\n';
     ds.ubAt(home, i, u);
-    assert (isOK());
+    return bnd_length(home, min_len, std::min((long) max_len, ds.ub_sum()));
+  }  
+  forceinline ModEvent
+  StringVarImp::baseIntersectAt(Space& home, int i, const Set::BndSet& S) {
+    ds.baseIntersectAt(home, i, S);
+    return bnd_length(home, std::max(min_len, ds.lb_sum()), 
+                            std::min((long) max_len, ds.ub_sum()));
+  }
+  forceinline ModEvent
+  StringVarImp::baseIntersectAt(Space& home, int i, const Block& b) {
+    ds.baseIntersectAt(home, i, b);
+    return bnd_length(home, std::max(min_len, ds.lb_sum()), 
+                            std::min((long) max_len, ds.ub_sum()));
   }
   forceinline void
   StringVarImp::updateCardAt(Space& home, int i, int l, int u) {
-    min_len += l - (*this)[i].lb();
-    max_len = ubounded_sum(max_len, u - (*this)[i].ub());
+    min_len += l - ds[i].lb();
+    max_len  = ds.ub_sum() < MAX_STRING_LENGTH ? max_len + u - ds[i].ub()
+                                               : MAX_STRING_LENGTH;
     ds.updateCardAt(home, i, l, u);
-    assert (isOK());
   }
   forceinline void
   StringVarImp::updateAt(Space& home, int i, const Block& b) {
-    min_len += b.lb() - (*this)[i].lb();
-    max_len = ubounded_sum(max_len, b.ub() - (*this)[i].ub());    
+    min_len += b.lb() - ds[i].lb();
+    max_len  = ds.ub_sum() < MAX_STRING_LENGTH ? max_len + b.ub() - ds[i].ub()
+                                               : MAX_STRING_LENGTH;
     ds.updateAt(home, i, b);
-    assert (isOK());
-  }
-  forceinline void
-  StringVarImp::baseIntersectAt(Space& home, int i, const Set::BndSet& S) {
-    int u = (*this)[i].ub();
-    ds.baseIntersectAt(home, i, S);
-    if ((*this)[i].isNull())
-      decr_max_len(u);
-    assert (isOK());
-  }
-  forceinline void
-  StringVarImp::baseIntersectAt(Space& home, int i, const Block& b) {
-    int u = (*this)[i].ub();
-    ds.baseIntersectAt(home, i, b);
-    if ((*this)[i].isNull())
-      decr_max_len(u);
-    assert (isOK());
   }
   
   template<class Char, class Traits>

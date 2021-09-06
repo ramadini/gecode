@@ -644,9 +644,8 @@ namespace Gecode { namespace String {
     const Block& bx = x[idx];
     if (!bx.isNull()) {
       int q_off = q.off > 0 ? q.off : (*this)[q.idx-1].ub();
-      x.updateCardAt(home, idx, 
-                     std::max(bx.lb(), std::min(q_off, by.lb()) - p.off),
-                     std::min(bx.ub(), q_off - p.off));
+      x.lbAt(home, idx, std::max(bx.lb(), std::min(q_off, by.lb()) - p.off)),
+      x.ubAt(home, idx, std::min(bx.ub(), q_off - p.off));
     }
   }
   
@@ -730,7 +729,7 @@ namespace Gecode { namespace String {
   forceinline void
   StringView::crushBase(Space& home, ViewX& x, int idx, 
                         const Position& p, const Position& q) const {
-    std::cerr << "Crushing " << *this << " from " << p << " to " << q << "\n";
+//    std::cerr << "Crushing " << *this << " from " << p << " to " << q << "\n";
     Set::GLBndSet s;
     for (int i = p.idx, j = q.idx - (q.off == 0); i <= j; ++i)
       (*this)[i].includeBaseIn(home, s);
@@ -823,17 +822,25 @@ namespace Gecode { namespace String {
       x->max_length(home, u);
   }
   
-  forceinline void
+  forceinline ModEvent
   StringView::nullifyAt(Space& home, int i) {
-    x->nullifyAt(home, i);
+    return x->nullifyAt(home, i);
   }
-  forceinline void
+  forceinline ModEvent
   StringView::lbAt(Space& home, int i, int l) {
-    x->lbAt(home, i, l);
+    return x->lbAt(home, i, l);
   }
-  forceinline void
+  forceinline ModEvent
   StringView::ubAt(Space& home, int i, int u) {
-    x->ubAt(home, i, u);
+    return x->ubAt(home, i, u);
+  }  
+  forceinline ModEvent
+  StringView::baseIntersectAt(Space& home, int idx, const Set::BndSet& S) {
+    return x->baseIntersectAt(home, idx, S);
+  }
+  forceinline ModEvent
+  StringView::baseIntersectAt(Space& home, int idx, const Block& b) {
+    return x->baseIntersectAt(home, idx, b);
   }
   forceinline void
   StringView::updateCardAt(Space& home, int i, int l, int u) {
@@ -842,14 +849,6 @@ namespace Gecode { namespace String {
   forceinline void
   StringView::updateAt(Space& home, int i, const Block& b) {
     x->updateAt(home, i, b);
-  }
-  forceinline void
-  StringView::baseIntersectAt(Space& home, int idx, const Set::BndSet& S) {
-    x->baseIntersectAt(home, idx, S);
-  }
-  forceinline void
-  StringView::baseIntersectAt(Space& home, int idx, const Block& b) {
-    x->baseIntersectAt(home, idx, b);
   }
   
 }}

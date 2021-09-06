@@ -1139,6 +1139,7 @@ namespace Gecode { namespace String {
   
   forceinline void 
   DashedString::min_length(Space& home, int l) {
+    assert (lbs <= l && l <= ubs);
     for (int i = 0; i < n; ++i) {
       Block& bi = x[i];
       int li = bi.lb();
@@ -1149,29 +1150,23 @@ namespace Gecode { namespace String {
       }
     }
     assert (isOK());
-    assert (isNorm());
   }
   
   forceinline void 
-  DashedString::max_length(Space& home, int u) {
-    bool norm = false;
+  DashedString::max_length(Space& home, int u) {std::cerr << *this << ' ' << u << '\n';
+    assert (lbs <= u && u <= ubs);
     for (int i = 0; i < n; ++i) {
       Block& bi = x[i];
       int li = bi.lb(), ui = bi.ub(), max_i = std::max(li, u - lbs + li);
       if (ui > max_i) {
-        if (max_i == 0) {
+        if (max_i == 0)
           bi.nullify(home);
-          norm = true;
-        }
         else
           bi.ub(home, max_i);
         ubs += max_i - ui;
       }
     }
-    if (norm)
-      normalize(home);
     assert (isOK());
-    assert (isNorm());
   }
   
   forceinline void 

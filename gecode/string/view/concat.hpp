@@ -581,36 +581,36 @@ namespace Gecode { namespace String {
     pivot = x0.size();
   }
   
-  forceinline void
+  forceinline ModEvent
   ConcatView::nullifyAt(Space& home, int i) {
-    i < pivot ? x0.nullifyAt(home, i) : x1.nullifyAt(home, i-pivot);
+    return i < pivot ? x0.nullifyAt(home, i) : x1.nullifyAt(home, i-pivot);
   }
-  forceinline void
+  forceinline ModEvent
   ConcatView::lbAt(Space& home, int i, int l) {
-    i < pivot ? x0.lbAt(home, i, l) : x1.lbAt(home, i-pivot, l);
+    return i < pivot ? x0.lbAt(home, i, l) : x1.lbAt(home, i-pivot, l);
   }
-  forceinline void
+  forceinline ModEvent
   ConcatView::ubAt(Space& home, int i, int u) {
-    i < pivot ? x0.ubAt(home, i, u) : x1.ubAt(home, i-pivot, u);
+    return i < pivot ? x0.ubAt(home, i, u) : x1.ubAt(home, i-pivot, u);
+  }  
+  forceinline ModEvent
+  ConcatView::baseIntersectAt(Space& home, int i, const Set::BndSet& S) {
+    return i < pivot ? x0.baseIntersectAt(home, i, S) : 
+                       x1.baseIntersectAt(home, i-pivot, S);
+  }
+  forceinline ModEvent
+  ConcatView::baseIntersectAt(Space& home, int i, const Block& b) {
+    return i < pivot ? x0.baseIntersectAt(home, i, b) : 
+                       x1.baseIntersectAt(home, i-pivot, b);
   }
   forceinline void
   ConcatView::updateCardAt(Space& home, int i, int l, int u) {
     i < pivot ? x0.updateCardAt(home, i, l, u) :
-                x1.updateCardAt(home, i-pivot, l, u);
+                       x1.updateCardAt(home, i-pivot, l, u);
   }
   forceinline void
   ConcatView::updateAt(Space& home, int i, const Block& b) {
     i < pivot ? x0.updateAt(home, i, b) : x1.updateAt(home, i-pivot, b);
-  }
-  forceinline void
-  ConcatView::baseIntersectAt(Space& home, int i, const Set::BndSet& S) {
-    i < pivot ? x0.baseIntersectAt(home, i, S) : 
-                x1.baseIntersectAt(home, i-pivot, S);
-  }
-  forceinline void
-  ConcatView::baseIntersectAt(Space& home, int i, const Block& b) {
-    i < pivot ? x0.baseIntersectAt(home, i, b) : 
-                x1.baseIntersectAt(home, i-pivot, b);
   }
   
   template<class Char, class Traits>

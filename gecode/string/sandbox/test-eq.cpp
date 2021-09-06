@@ -169,7 +169,7 @@ public:
     p = b.push(0, fwd_it1);
     cerr << "\n...ESP = " << p << ", EEP = " << *fwd_it1 << endl;
     assert (p == *fwd_it1 && p == Position(y.varimp()->size(), 0));
-    
+
     b.updateAt(*this, 0, Block(*this, CharSet(*this, 'c', 'd'), 1 ,2));
     SweepBwdIterator<StringView> bwd_it0 = vy.bwd_iterator();
     cerr << "Pushing backward " << b << " in " << y << " from " << *bwd_it0;

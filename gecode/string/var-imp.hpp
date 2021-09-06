@@ -35,8 +35,6 @@ namespace Gecode { namespace String {
     int min_len;
     /// Maximum length for a string in the domain
     int max_len;
-    // // To soundly compute max_len -= u when updating a block;    
-    void decr_max_len(int u);
   protected:
     /// Constructor for cloning \a x
     StringVarImp(Space& home, StringVarImp& x);
@@ -115,13 +113,13 @@ namespace Gecode { namespace String {
     void gets(Space& home, const StringVarImp& x, const StringVarImp& y);
     void gets_rev(Space& home, const StringVarImp& y);
     
-    void nullifyAt(Space& home, int i);
-    void lbAt(Space& home, int i, int l);
-    void ubAt(Space& home, int i, int u);
+    ModEvent nullifyAt(Space& home, int i);
+    ModEvent lbAt(Space& home, int i, int l);
+    ModEvent ubAt(Space& home, int i, int u);    
+    ModEvent baseIntersectAt(Space& home, int idx, const Set::BndSet& S);
+    ModEvent baseIntersectAt(Space& home, int idx, const Block& b);
     void updateCardAt(Space& home, int i, int l, int u);
     void updateAt(Space& home, int i, const Block& b);
-    void baseIntersectAt(Space& home, int idx, const Set::BndSet& S);
-    void baseIntersectAt(Space& home, int idx, const Block& b);
 
     /// \name Domain update by cardinality refinement
     //@{
