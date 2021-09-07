@@ -137,7 +137,7 @@ namespace Gecode { namespace String {
           x.ubAt(home, i, u1);
         y.crushBase(home, x, i, esp, lep);
         changed |= l < l1 || u > u1 || m > x_i.baseSize();
-        if (l1 == 0) {
+        if (l1 == 0 || x[i].baseSize() == 1) {
 //          std::cerr << "x[" << i << "] ref. into " << x[i] << "\n";
           ux -= 2;
           continue;
@@ -152,9 +152,30 @@ namespace Gecode { namespace String {
         }
         assert (np >= 0 && ns >= 0 && np + ns <= l1);
         assert (y.prec(lsp, eep) && (esp == lsp || eep == lep));
-//        x.updateCardAt(home, i, x[i].lb()-ns-np, x[i].ub()-ns-np);
         if (x[i].ub()-ns-np < l1)
           return false;
+        if (U == nullptr)
+          U = r.alloc<int>(ux);
+        if (newBlocks == nullptr)
+          newBlocks = r.alloc<Block>(nBlocks);
+        int j = 1;
+        if (np > 0) {
+          std::vector<int> v = y.fixed_pref(lsp, eep);
+          j += v.size();
+          for (auto c : v)
+            newBlocks[newSize++].update(home, c);
+        }
+        newBlocks[newSize].update(home, x[i]);
+        newBlocks[newSize++].updateCard(home, x[i].lb()-ns-np, x[i].ub()-ns-np);
+        if (ns > 0) {
+          std::vector<int> v = y.fixed_suff(lsp, eep);
+          j += v.size();
+          for (auto c : v)
+            newBlocks[newSize++].update(home, c);
+        }
+        U[uSize++] = i;
+        U[uSize++] = j;
+        continue;
       }
       const Block& xx_i = x[i];
       assert (l1 > 0);

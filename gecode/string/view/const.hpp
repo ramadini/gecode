@@ -485,6 +485,17 @@ namespace Gecode { namespace String {
     return fixed_chars_pref(p,q);
   }
   
+  forceinline std::vector<int>
+  ConstStringView::fixed_pref(const Position& p, const Position& q) const {
+    return std::vector<int>(_val + (p.off == 0 ? p.idx : p.idx + 1), 
+                            _val + (q.off == 0 ? q.idx : q.idx + 1));
+  }
+  
+  forceinline std::vector<int>
+  ConstStringView::fixed_suff(const Position& p, const Position& q) const {
+    return fixed_pref(p, q);
+  }
+  
   forceinline double
   ConstStringView::logdim() const {
     return 0;

@@ -217,7 +217,11 @@ namespace Gecode { namespace String {
     resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize);
     
     int fixed_chars_suff(const Position& p, const Position& q) const;
-    int fixed_chars_pref(const Position& p, const Position& q) const;
+    int fixed_chars_pref(const Position& p, const Position& q) const;    
+    forceinline std::vector<int> fixed_pref(const Position& p, 
+                                            const Position& q) const;
+    forceinline std::vector<int> fixed_suff(const Position& p,
+                                            const Position& q) const;
     
     /// Normalize this view
     void normalize(Space& home);
@@ -340,6 +344,10 @@ namespace Gecode { namespace String {
     fixed_chars_suff(const Position& p, const Position& q) const;
     int
     fixed_chars_pref(const Position& p, const Position& q) const;
+    std::vector<int> fixed_pref(const Position& p, 
+                                            const Position& q) const;
+    std::vector<int> fixed_suff(const Position& p,
+                                            const Position& q) const;
     
     /// Normalize this view
     void normalize(Space& home);
@@ -472,6 +480,10 @@ namespace Gecode { namespace String {
     fixed_chars_suff(const Position& p, const Position& q) const;
     int
     fixed_chars_pref(const Position& p, const Position& q) const;
+    std::vector<int> fixed_pref(const Position& p, 
+                                            const Position& q) const;
+    std::vector<int> fixed_suff(const Position& p,
+                                            const Position& q) const;
     
     ModEvent nullifyAt(Space& home, int i);
     ModEvent lbAt(Space& home, int i, int l);

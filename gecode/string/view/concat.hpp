@@ -546,6 +546,7 @@ namespace Gecode { namespace String {
   
   forceinline int
   ConcatView::fixed_chars_pref(const Position& p, const Position& q) const {
+//    std::cerr << *this << ' ' << p << ' ' << q << '\n';
     if (q.idx < pivot)
       return x0.fixed_chars_pref(p,q);
     else if (p.idx >= pivot)
@@ -553,6 +554,22 @@ namespace Gecode { namespace String {
     else {
       int k = x0.fixed_chars_pref(p,Position(pivot,0));
       return k == 0 ? 0 : k + x1.fixed_chars_pref(Position(0,0),q-pivot);
+    }
+  }
+  
+  forceinline std::vector<int>
+  ConcatView::fixed_pref(const Position& p, const Position& q) const {
+    if (q.idx < pivot)
+      return x0.fixed_pref(p,q);
+    else if (p.idx >= pivot)
+      return x1.fixed_pref(p-pivot,q-pivot);
+    else {
+      std::vector<int> v = x0.fixed_pref(p,Position(pivot,0));
+      if (!v.empty()) {
+        std::vector<int> w = x1.fixed_pref(Position(0,0),q-pivot);
+        v.insert(v.end(), w.begin(), w.end());
+      }
+      return v;
     }
   }
   
@@ -565,6 +582,22 @@ namespace Gecode { namespace String {
     else {
       int k = x1.fixed_chars_suff(Position(0,0),q-pivot);
       return k == 0 ? 0 : k + x0.fixed_chars_suff(p,Position(pivot,0));
+    }
+  }
+  
+  forceinline std::vector<int>
+  ConcatView::fixed_suff(const Position& p, const Position& q) const {
+    if (q.idx < pivot)
+      return x0.fixed_suff(p,q);
+    else if (p.idx >= pivot)
+      return x1.fixed_suff(p-pivot,q-pivot);
+    else {
+      std::vector<int> v = x1.fixed_suff(Position(0,0),q-pivot);
+      if (!v.empty()) {
+        std::vector<int> w = x0.fixed_suff(p,Position(pivot,0));
+        v.insert(v.end(), w.begin(), w.end());
+      }
+      return v;
     }
   }
   
