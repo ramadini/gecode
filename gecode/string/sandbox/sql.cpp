@@ -19,7 +19,7 @@ public:
     case 11:
       SQL = "A=B=C = B=C";
       break;
-    case 12:
+    case 13:
       SQL = "+;+*=!'*I =*I";
       break;
     case 100:
@@ -133,8 +133,14 @@ public:
     Block b[k];
     for (int i = 0; i < k; ++i)
       b[i].update(*this, v[i]);
-    concat(*this, eq, rhs, StringVar(*this, DashedString(*this, b, k)));
-    // FIXME: concat(*this, eq, rhs, v);
+//    concat(*this, eq, rhs, StringVar(*this, DashedString(*this, b, k)));
+    // FIXME: 
+    concat(*this, eq, rhs, v);
+
+DashedString d(*this, 2);
+d.updateAt(*this, 0, Block('*'));
+d.updateAt(*this, 1, Block(*this));
+rel(*this, expr, STRT_EQ, StringVar(*this,d));
 
     // Branching.
     lenblock_min_lllm(*this, str_vars);

@@ -351,7 +351,11 @@ namespace Gecode { namespace String {
     
     /// Normalize this view
     void normalize(Space& home);
-    ModEvent nullify(Space& home);                            
+    ModEvent nullify(Space& home);
+    
+    /// Update this view to be a clone of view \a y
+    void update(Space& home, ConstStringView& y);
+                                
     //@}
   };
   /**

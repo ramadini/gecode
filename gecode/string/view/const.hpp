@@ -216,7 +216,7 @@ namespace Gecode { namespace String {
 namespace Gecode { namespace String {
 
   forceinline ConstStringView::ConstStringView() : _val(), n(0) {};
-  
+
   forceinline
   ConstStringView::ConstStringView(Space& home, int w[], int k) {
     if (k > Limits::MAX_STRING_LENGTH)
@@ -280,9 +280,10 @@ namespace Gecode { namespace String {
   forceinline std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const ConstStringView& v) {
     std::vector<int> w = v.val();
+    os << "";
     for (int i : w)
-      os << i;
-    return os;
+      os << int2str(i);
+    return os << "";
   };
   
   template <class T>
@@ -514,6 +515,17 @@ namespace Gecode { namespace String {
     return ME_STRING_NONE;
   }
   forceinline void ConstStringView::normalize(Space&) { GECODE_NEVER; }
+  
+  forceinline void
+  ConstStringView::update(Space& home, ConstStringView& w) {
+    ConstView<StringView>::update(home, w);
+    // dispose old ranges
+    assert (n == 0 && _val == NULL);
+    n = w.n;
+    _val = home.alloc<int>(n);
+    for (int i = 0; i < n; ++i)
+      _val[i] = w[i];
+  }
      
 }}
 

@@ -227,7 +227,7 @@ namespace Gecode { namespace String {
         if (d[j].ub() > u)
           d.ubAt(home, j, u);
         newBlocks[k].update(home, d[j]);
-      }      
+      }
       U[uSize++] = i;
       U[uSize++] = n;
       newSize += n;

@@ -815,7 +815,7 @@ namespace Gecode { namespace String {
   
   forceinline std::vector<int>
   StringView::fixed_suff(const Position& p, const Position& q) const {
-//    std::cerr << "fixed_suff of " << *this << "between" << p << " and " << q << "\n"; 
+    std::cerr << "fixed_suff of " << *this << "between" << p << " and " << q << "\n"; 
     std::vector<int> v;
     if (!prec(p,q))
       return v;
