@@ -37,22 +37,23 @@ namespace Gecode { namespace String { namespace RelOp {
   forceinline ExecStatus
   Concat<View0,View1,View2>::refine_card(Space& home) {
 //    std::cerr << "Before refine_card: " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
-    int l = std::max(x0.min_length(), x2.min_length() - x1.max_length()),
-        u = std::min(x0.max_length(), x2.max_length() - x1.min_length());
+    int l = x2.min_length() - x1.max_length();
+    int u = x2.max_length() - x1.min_length();
 //    std::cerr << "x0) " << l << " " << u << "\n";
-    GECODE_ME_CHECK(x0.bnd_length(home, l, u));
-    l = std::max(x1.min_length(), x2.min_length() - x0.max_length()),
-    u = std::min(x1.max_length(), x2.max_length() - x0.min_length());
-//    std::cerr << "x1) " << l << " " << u << "\n";
-    GECODE_ME_CHECK(x1.bnd_length(home, l, u));
-    l = std::max(x2.min_length(), x0.min_length() + x1.min_length()),
-    u = std::min(x2.max_length(), x0.max_length() + x1.max_length());
-//    std::cerr << "x2) " << l << " " << u << "\n";
-    GECODE_ME_CHECK(x2.bnd_length(home, l, u));
+    if (l > x0.min_length()) GECODE_ME_CHECK(x0.min_length(home, l));
+    if (u < x0.max_length()) GECODE_ME_CHECK(x0.max_length(home, u));
+    l = x2.min_length() - x0.max_length();
+    u = x2.max_length() - x0.min_length();
+    if (l > x1.min_length()) GECODE_ME_CHECK(x1.min_length(home, l));
+    if (u < x1.max_length()) GECODE_ME_CHECK(x1.max_length(home, u));
+    l = x0.min_length() + x1.min_length();
+    u = x0.max_length() + x1.max_length();
+    if (l > x2.min_length()) GECODE_ME_CHECK(x2.min_length(home, l));
+    if (u < x2.max_length()) GECODE_ME_CHECK(x2.max_length(home, u));
 //    std::cerr << "After refine_card: " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
     return ES_FIX;
   }
-
+  
   template<class View0, class View1, class View2>
   forceinline ExecStatus
   Concat<View0,View1,View2>::propagate(Space& home, const ModEventDelta&) {

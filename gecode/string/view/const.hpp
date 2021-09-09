@@ -146,6 +146,12 @@ namespace Gecode { namespace String {
   
   template <>
   forceinline bool
+  SweepBwdIterator<ConstStringView>::disj(int k) const {
+    return sv[pos.off > 0 ? pos.idx : pos.idx-1] != k;
+  }
+  
+  template <>
+  forceinline bool
   SweepBwdIterator<ConstStringView>::operator()(void) const {
     return sv.prec(Position(0,0), pos);
   }
@@ -259,6 +265,16 @@ namespace Gecode { namespace String {
   forceinline int
   ConstStringView::ubounds_sum() const {
     return n;
+  }
+  
+  forceinline ModEvent
+  ConstStringView::min_length(Space&, int l) {
+    return l == n ? ME_STRING_NONE : ME_STRING_FAILED;
+  }
+  
+  forceinline ModEvent
+  ConstStringView::max_length(Space&, int u) {
+    return u == n ? ME_STRING_NONE : ME_STRING_FAILED;
   }
   
   forceinline ModEvent

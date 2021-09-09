@@ -355,6 +355,9 @@ namespace Gecode { namespace String {
     
     /// Update this view to be a clone of view \a y
     void update(Space& home, ConstStringView& y);
+    
+    ModEvent min_length(Space& home, int l);
+    ModEvent max_length(Space& home, int u);
                                 
     //@}
   };

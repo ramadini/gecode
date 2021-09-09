@@ -49,8 +49,7 @@ namespace Gecode { namespace String { namespace Branch {
         }
       }
       case CARD: {
-        int k = x_i.ub() - x_i.lb();
-        assert (k > 0 && x.min_length() == x.max_length());
+        assert (x_i.ub() - x_i.lb() > 0 && x.min_length() == x.max_length());
         switch (val) {
           case MIN:
             return x.ubAt(home, i, x_i.lb());
