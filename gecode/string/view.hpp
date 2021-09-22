@@ -273,8 +273,6 @@ namespace Gecode { namespace String {
     int min_length(void) const;
     /// Return the length of the string (for compatibility with other views)
     int max_length(void) const;
-    /// Return the sum of the upper bounds
-    int ubounds_sum(void) const;
     /// Return the length of the string
     int size(void) const;
     /// Return true iff the view is on the empty string
@@ -517,7 +515,96 @@ namespace Gecode { namespace String {
    * \brief Reverse view
    */
   class ReverseView : public StringView {
-    //TODO
+  protected:
+    /// We never refine the blocks of sv.
+    const StringView& sv;
+  public:
+    /// Construct with empty string
+    ReverseView(void);
+    /// Construct
+    ReverseView(const StringView& x);
+    /// 
+    int min_length(void) const;
+    /// 
+    int max_length(void) const;
+    /// 
+    int size(void) const;
+    /// 
+    bool isNull(void) const;
+    /// 
+    const Block& operator[](int i) const;
+    /// Return the value of this view
+    std::vector<int> val(void) const;
+    /// \name Sweep iterators
+    //@{
+    SweepBwdIterator<StringView> fwd_iterator(void) const;
+    SweepFwdIterator<StringView> bwd_iterator(void) const;
+    template <class IterY> Position push(int i, IterY& it) const;
+    template <class IterY> void stretch(int i, IterY& it) const;
+    double logdim(void) const;
+    //@}
+    /// Always returns true (for compatibility with other views)
+    bool assigned(void) const;
+    /// Checks length bounds (for compatibility with other views)
+    ModEvent bnd_length(Space& home, int l, int u) const;
+    /// If this view contains y
+    template <class T> bool contains(const T& y) const;
+    /// If this view is equals to y
+    template <class T> bool equals(const T& y) const;
+    /// Returns true if p and q are the same position in this view.
+    bool equiv(const Position& p, const Position& q) const;
+    /// Returns true if p precedes q according to this view.
+    bool prec(const Position& p, const Position& q) const;
+    /// \name Methods for dashed string equation
+    //@{
+    ///TODO:
+    int ub_new_blocks(const Matching& m) const;
+    
+    /// TODO:
+    int min_len_mand(const Block& bx, const Position& lsp, 
+                                      const Position& eep) const;
+    /// TODO:
+    int max_len_opt(const Block& bx, const Position& esp, 
+                                     const Position& lep, int l1) const;
+    /// TODO:                             
+    template <class T> void
+    expandBlock(Space& home, const Block& bx, T& x) const;
+    
+    /// TODO:
+    template <class ViewX> void
+    crushBase(Space& home, ViewX& x, int idx, const Position& p,
+                                              const Position& q) const;
+    /// TODO:                                   
+    void
+    opt_region(Space& home, const Block& bx, Block& bnew, 
+                            const Position& p, const Position& q, int l1) const;                       
+    
+    /// TODO:                   
+    void
+    mand_region(Space& home, const Block& bx, Block* bnew, int u, 
+                             const Position& p, const Position& q) const;
+    /// TODO:                                                     
+    template <class ViewX> void
+    mand_region(Space& home, ViewX& x, int idx, const Position& p,
+                                                const Position& q) const;
+    void
+    resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize) const;
+    
+    int
+    fixed_chars_suff(const Position& p, const Position& q) const;
+    int
+    fixed_chars_pref(const Position& p, const Position& q) const;
+    std::vector<int> fixed_pref(const Position& p, 
+                                            const Position& q) const;
+    std::vector<int> fixed_suff(const Position& p,
+                                            const Position& q) const;
+    
+    /// Normalize this view
+//    void normalize(Space& home);
+//    ModEvent nullify(Space& home);
+    
+//    ModEvent min_length(Space& home, int l);
+//    ModEvent max_length(Space& home, int u);
   };
   /**
    * \brief Print string variable view

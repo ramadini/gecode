@@ -262,11 +262,6 @@ namespace Gecode { namespace String {
     return n;
   }
   
-  forceinline int
-  ConstStringView::ubounds_sum() const {
-    return n;
-  }
-  
   forceinline ModEvent
   ConstStringView::min_length(Space&, int l) {
     return l == n ? ME_STRING_NONE : ME_STRING_FAILED;
