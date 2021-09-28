@@ -167,6 +167,17 @@ namespace Gecode { namespace String {
     }
     assert (isOK());
   }
+  
+  template <>
+  forceinline bool
+  SweepIterator<SweepBwd,ReverseView>::disj(const Block& b) const {
+    return sv[pos.idx].baseDisjoint(b);
+  }  
+  template <>
+  forceinline bool
+  SweepIterator<SweepBwd,ReverseView>::disj(int c) const {
+    return !sv[pos.idx].baseContains(c);
+  }
 
 }}
 
