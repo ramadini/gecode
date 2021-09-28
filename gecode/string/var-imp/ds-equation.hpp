@@ -1,8 +1,9 @@
 namespace Gecode { namespace String {
 
   struct Position;
-  template <class T> class SweepFwdIterator;
-  template <class T> class SweepBwdIterator;
+  class SweepFwd;
+  class SweepBwd;
+  template <class D,class V> class SweepIterator;
 
   /// Auxiliary functions
   forceinline int
@@ -255,8 +256,8 @@ namespace Gecode { namespace String {
         m[i+1].ESP = m[i].ESP;
       return true;
     }
-    SweepFwdIterator<ViewY> q(y, m[i].ESP);
-    SweepFwdIterator<ViewY> p(y, x.push(i, q));
+    SweepIterator<SweepFwd,ViewY> q(y, m[i].ESP);
+    SweepIterator<SweepFwd,ViewY> p(y, x.push(i, q));
     if (!p())
       return false;
     if (i < n-1 && y.prec(m[i+1].ESP, *q))
@@ -279,8 +280,8 @@ namespace Gecode { namespace String {
         m[i-1].LEP = m[i].LEP;
       return true;
     }
-    SweepBwdIterator<ViewY> p(y, m[i].LEP);
-    SweepBwdIterator<ViewY> q(y, x.push(i, p));
+    SweepIterator<SweepBwd,ViewY> p(y, m[i].LEP);
+    SweepIterator<SweepBwd,ViewY> q(y, x.push(i, p));
 //    std::cerr << "p = " << *p << ", q = " << *q << "\n";
     if (!q())
       return false;
@@ -298,7 +299,7 @@ namespace Gecode { namespace String {
   forceinline bool
   init_x(ViewX x, const ViewY& y, Matching m[]) {
 //    std::cerr << "Init: " << x << "  vs  " << y << "\n";
-    SweepFwdIterator<ViewY> fwd_it = y.fwd_iterator();
+    SweepIterator<SweepFwd,ViewY> fwd_it = y.fwd_iterator();
     int nx = x.size();
     for (int i = 0; i < nx; ++i) {
       x.stretch(i, fwd_it);
@@ -312,7 +313,7 @@ namespace Gecode { namespace String {
     }
     if (fwd_it())
       return false;
-    SweepBwdIterator<ViewY> bwd_it = y.bwd_iterator();
+    SweepIterator<SweepBwd,ViewY> bwd_it = y.bwd_iterator();
     for (int i = nx-1; i >= 0; --i) {
       x.stretch(i, bwd_it);
       m[i].ESP = *bwd_it;

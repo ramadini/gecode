@@ -1,10 +1,15 @@
 namespace Gecode { namespace String {
-
-  /// Abstract class for iterating views, used to push/stretch blocks in dashed 
-  /// string equation.
-  /// FIXME: The current position of the iterator must always be normalized 
-  ///        w.r.t. its view.
-  template <class View>
+  
+  //FIXME: Implement this:
+  
+  struct SweepFwd {};
+  struct SweepBwd {};
+  
+  /// Iterator used by sweep-based equation algorithms for pushing/stretching 
+  /// a block against the specified View in the specified direction Dir.
+  /// FIXME: The current position of the iterator _must always_ be normalized 
+  ///        w.r.t. the view regardless of the direction.
+  template <class Dir, class View>
   class SweepIterator {
   protected:
     /// The view on which we iterate
@@ -14,67 +19,35 @@ namespace Gecode { namespace String {
     /// Check if the iterator position is in a consistent state;
     bool isOK(void) const;
   public:
-    /// Constructor
+    /// Constructors
+    SweepIterator(const View& x);
     SweepIterator(const View& x, const Position& p);
     /// Move iterator to the beginning of the next block (if possible)
-    virtual void nextBlock(void) = 0;
+    void nextBlock(void);
     /// Test whether iterator is still within the dashed string or done
-    virtual bool hasNextBlock(void) const = 0;
+    bool hasNextBlock(void) const;
     /// Min. no. of chars that must be consumed from current position within current block
-    virtual int must_consume(void) const = 0;
+    int must_consume(void) const;
     /// Max. no. of chars that may be consumed from current position within current block
-    virtual int may_consume(void) const = 0;
+    int may_consume(void) const;
     /// Consume \a k characters from current position within current block
-    virtual void consume(int k) = 0;
+    void consume(int k);
     /// Consume \a k mandatory characters from current position within current block
-    virtual void consumeMand(int k) = 0;
+    void consumeMand(int k);
     /// Returns const reference to the current position
-    const Position& operator *(void);
-    /// Return the lower bound of the current block
+    const Position& operator *(void) const;
+    /// Returns true iff we are not done in the iteration.
+    bool operator()(void) const;
+    /// Returns the lower bound of the current block
     int lb(void) const;
-    /// Return the upper bound of the current block
+    /// Returns the upper bound of the current block
     int ub(void) const;
     /// Check if the base of the current block is disjoint with that of \a b
     bool disj(const Block& b) const;
+    /// Check if the base of the current block is disjoint with singleton {c}
     bool disj(int c) const;
   };
   
-  /// Iterator for pushing/stretching forward.
-  template <class View>
-  struct SweepFwdIterator : public SweepIterator<View> {
-    using SweepIterator<View>::sv;
-    using SweepIterator<View>::pos;
-    SweepFwdIterator(const View& x);
-    SweepFwdIterator(const View& x, const Position& p);
-    void nextBlock(void);
-    bool hasNextBlock(void) const;
-    void consume(int k);
-    void consumeMand(int k);
-    int must_consume(void) const;
-    int may_consume(void) const;
-    bool operator()(void) const;
-  };
-  
-  /// Iterator for pushing/stretching backward.
-  template <class View>
-  struct SweepBwdIterator : public SweepIterator<View> {
-    using SweepIterator<View>::sv;
-    using SweepIterator<View>::pos;
-    SweepBwdIterator(const View& x);
-    SweepBwdIterator(const View& x, const Position& p);
-    bool disj(const Block& b) const;
-    bool disj(int c) const;
-    void nextBlock(void);
-    bool hasNextBlock(void) const;
-    void consume(int k);
-    void consumeMand(int k);
-    int must_consume(void) const;
-    int may_consume(void) const;
-    bool operator()(void) const;
-    int lb(void) const;
-    int ub(void) const;
-  };  
-    
     
 }}
 
@@ -107,8 +80,8 @@ namespace Gecode { namespace String {
     //@}
     /// \name Sweep iterators
     //@{
-    SweepFwdIterator<StringView> fwd_iterator(void) const;
-    SweepBwdIterator<StringView> bwd_iterator(void) const;
+    SweepIterator<SweepFwd,StringView> fwd_iterator(void) const;
+    SweepIterator<SweepBwd,StringView> bwd_iterator(void) const;
     //@}
     //@}
     
@@ -283,8 +256,8 @@ namespace Gecode { namespace String {
     std::vector<int> val(void) const;
     /// \name Sweep iterators
     //@{
-    SweepFwdIterator<ConstStringView> fwd_iterator(void) const;
-    SweepBwdIterator<ConstStringView> bwd_iterator(void) const;
+    SweepIterator<SweepFwd,ConstStringView> fwd_iterator(void) const;
+    SweepIterator<SweepBwd,ConstStringView> bwd_iterator(void) const;
     template <class T> void gets(Space&, const T&) const;
     template <class T> ModEvent equate(Space& home, const T& y) const;
     template <class IterY> Position push(int i, IterY& it) const;
@@ -397,8 +370,8 @@ namespace Gecode { namespace String {
     
     /// \name Sweep iterators
     //@{
-    SweepFwdIterator<ConcatView> fwd_iterator(void) const;
-    SweepBwdIterator<ConcatView> bwd_iterator(void) const;
+    SweepIterator<SweepFwd,ConcatView> fwd_iterator(void) const;
+    SweepIterator<SweepBwd,ConcatView> bwd_iterator(void) const;
     //@}
     //@}
     //@}
@@ -537,8 +510,8 @@ namespace Gecode { namespace String {
     std::vector<int> val(void) const;
     /// \name Sweep iterators
     //@{
-    SweepBwdIterator<StringView> fwd_iterator(void) const;
-    SweepFwdIterator<StringView> bwd_iterator(void) const;
+    SweepIterator<SweepFwd,ReverseView> fwd_iterator(void) const;
+    SweepIterator<SweepBwd,ReverseView> bwd_iterator(void) const;
     template <class IterY> Position push(int i, IterY& it) const;
     template <class IterY> void stretch(int i, IterY& it) const;
     double logdim(void) const;

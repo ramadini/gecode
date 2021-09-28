@@ -1,5 +1,177 @@
 namespace Gecode { namespace String {
 
+  template <>
+  forceinline SweepIterator<SweepFwd,ReverseView>::
+  SweepIterator(const ReverseView& x) : SweepIterator(x, Position(x.size(), 0)) {};
+  
+  template <>
+  forceinline int
+  SweepIterator<SweepFwd,ReverseView>::lb() const {
+    return sv[pos.off > 0 ? pos.idx : pos.idx-1].lb();
+  }
+  
+  template <>
+  forceinline int
+  SweepIterator<SweepFwd,ReverseView>::ub() const {
+    return sv[pos.off > 0 ? pos.idx : pos.idx-1].ub();
+  }
+  
+  template <>
+  forceinline bool
+  SweepIterator<SweepFwd,ReverseView>::disj(const Block& b) const {
+    return  sv[pos.off > 0 ? pos.idx : pos.idx-1].baseDisjoint(b);
+  }
+  template <>
+  forceinline bool
+  SweepIterator<SweepFwd,ReverseView>::disj(int c) const {
+    return !(sv[pos.off > 0 ? pos.idx : pos.idx-1].baseContains(c));
+  }
+  
+  template <>
+  forceinline bool
+  SweepIterator<SweepFwd,ReverseView>::operator()(void) const {
+    return sv.prec(Position(0,0), pos);
+  }
+  
+  template <>
+  forceinline void
+  SweepIterator<SweepFwd,ReverseView>::nextBlock() {
+    if (pos.idx == 0 && pos.off == 0)
+      return;
+    if (pos.off > 0)
+      pos.off = 0;
+    else
+      pos.idx--;
+    assert (isOK() || sv[pos.idx].isNull());
+  }
+  
+  template <>
+  forceinline bool
+  SweepIterator<SweepFwd,ReverseView>::hasNextBlock(void) const {
+    return pos.idx > 0 || pos.off > 0;
+  }
+  
+  template <>
+  forceinline int
+  SweepIterator<SweepFwd,ReverseView>::must_consume() const {
+    return (pos.idx > 0 && pos.off == 0) ? sv[pos.idx-1].lb() 
+                                         : std::min(pos.off, sv[pos.idx].lb());
+  }
+  
+  template <>
+  forceinline int
+  SweepIterator<SweepFwd,ReverseView>::may_consume() const {
+    return (pos.idx > 0 && pos.off == 0) ? sv[pos.idx-1].ub() : pos.off;
+  }
+  
+  template <>
+  forceinline void
+  SweepIterator<SweepFwd,ReverseView>::consume(int k) {
+    if (k == 0)
+      return;
+    if (pos.off == 0 && pos.idx > 0) {
+      pos.idx--;
+      pos.off = sv[pos.idx].ub() - k;
+    }
+    else
+      pos.off -= k;
+    if (pos.off < 0)
+      throw OutOfLimits("SweepIterator<SweepBwd,ReverseView>::consume");
+    assert (isOK());
+  }
+  
+  template <>
+  forceinline void
+  SweepIterator<SweepFwd,ReverseView>::consumeMand(int k) {
+    if (k == 0)
+      return;
+    if (pos.off == 0 && pos.idx > 0) {
+      pos.idx--;
+      pos.off = sv[pos.idx].lb() - k;
+    }
+    else
+      pos.off = std::min(pos.off, sv[pos.idx].lb()) - k;
+    if (pos.off < 0)
+      throw OutOfLimits("SweepIterator<SweepBwd,ReverseView>::consumeMand");
+    assert (isOK());
+  }
+
+}}
+
+namespace Gecode { namespace String {
+
+  template <>
+  forceinline SweepIterator<SweepBwd,ReverseView>::
+  SweepIterator(const ReverseView& x) : SweepIterator(x, Position(0,0)) {};
+  
+  template <>
+  forceinline bool
+  SweepIterator<SweepBwd,ReverseView>::operator()(void) const {
+    return sv.prec(pos, Position(sv.size(),0));
+  }
+  
+  template <>
+  forceinline void
+  SweepIterator<SweepBwd,ReverseView>::nextBlock() {
+    if (pos.idx >= sv.size())
+      return;
+    pos.idx++;
+    pos.off = 0;
+    assert (isOK() || sv[pos.idx].isNull());
+  };
+  
+  template <>
+  forceinline bool
+  SweepIterator<SweepBwd,ReverseView>::hasNextBlock(void) const {
+    return pos.idx < sv.size();
+  };
+  
+  template <>
+  forceinline int
+  SweepIterator<SweepBwd,ReverseView>::may_consume() const {
+    return ub() - pos.off;
+  }
+  
+  template <>
+  forceinline int
+  SweepIterator<SweepBwd,ReverseView>::must_consume() const {
+    return std::max(0, lb() - pos.off);
+  }
+  
+  template <>
+  forceinline void
+  SweepIterator<SweepBwd,ReverseView>::consume(int k) {
+    if (k == 0)
+      return;
+    pos.off += k;
+    if (pos.off >= sv[pos.idx].ub()) {
+      if (pos.off > sv[pos.idx].ub())
+        throw OutOfLimits("StringView::SweepBwdIterator::consume");
+      pos.idx++;
+      pos.off = 0;
+    }
+    assert (isOK());
+  }
+  
+  template <>
+  forceinline void
+  SweepIterator<SweepBwd,ReverseView>::consumeMand(int k) {
+    if (k == 0)
+      return;
+    pos.off += k; 
+    if (pos.off > sv[pos.idx].lb())
+      throw OutOfLimits("StringView::SweepBwdIterator::consume");
+    if (pos.off == sv[pos.idx].ub()) {
+      pos.idx++;
+      pos.off = 0;
+    }
+    assert (isOK());
+  }
+
+}}
+
+namespace Gecode { namespace String {
+
   forceinline ReverseView::ReverseView() : sv(*(new StringView())) {
     GECODE_NEVER;
   }
@@ -62,14 +234,14 @@ namespace Gecode { namespace String {
     return false;
   }
   
-  forceinline SweepBwdIterator<StringView>
+  forceinline SweepIterator<SweepFwd,ReverseView>
   ReverseView::fwd_iterator(void) const {
-    return sv.bwd_iterator();
+    return SweepIterator<SweepFwd,ReverseView>(*this);
   }
   
-  forceinline SweepFwdIterator<StringView>
+  forceinline SweepIterator<SweepBwd,ReverseView>
   ReverseView::bwd_iterator(void) const {
-    return sv.fwd_iterator();
+    return SweepIterator<SweepBwd,ReverseView>(*this);
   }
   
   template <class IterY>
