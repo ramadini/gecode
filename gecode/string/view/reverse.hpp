@@ -388,7 +388,21 @@ namespace Gecode { namespace String {
   template <class T>
   forceinline void
   ReverseView::expandBlock(Space& home, const Block& bx, T& x) const {
-    GECODE_NEVER;//sv.expandBlock(home, bx, x);
+    assert (!bx.isFixed());
+    Set::GLBndSet s;
+    Set::BndSetRanges i(bx.ranges());
+    s.includeI(home, i);
+    bool norm = false;
+    int u = bx.ub();
+    x.gets_rev(home, *this);
+    if (u < max_length())
+      x.varimp()->max_length(home, u);    
+    for (int i = 0; i < x.size(); i++) {
+      x.baseIntersectAt(home, i, s);
+      norm |= x[i].isNull() || (i > 0 && x[i].baseEquals(x[i-1]));
+    }
+    if (norm)
+      x.normalize(home);
   }
 
   template <class ViewX>
