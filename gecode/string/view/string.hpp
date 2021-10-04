@@ -465,9 +465,9 @@ namespace Gecode { namespace String {
   forceinline Position
   StringView::push(int i, IterY& it) const {
 //    std::cerr << "Pushing " << (*this)[i] << " from " << *it << '\n';
-    Position p = *it;
-    // No. of chars. that must be consumed
+    Position p = *it;    
     const Block& bx = (*this)[i];
+    // No. of chars. that must be consumed
     int k = bx.lb(); 
     while (k > 0) {
 //      std::cerr << "p=" << p << ", it=" << *it << ", k=" << k << std::endl;
@@ -488,6 +488,7 @@ namespace Gecode { namespace String {
         int m = it.may_consume();
         if (k <= m) {
           it.consume(k);
+//          std::cerr << "p=" << p << ", it=" << *it << "\n";
           return p;
         }
         else {

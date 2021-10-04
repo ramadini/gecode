@@ -228,8 +228,10 @@ namespace Gecode { namespace String {
   template<class Char, class Traits>
   forceinline std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const ReverseView& v) {
-    // FIXME: Rewrite this.
-    os << "( " << v << " )^-1";
+    int n = v.size();
+    for (int i = 0; i < n-1; ++i)
+      os << v[i] << " + ";
+    return os << v[n-1];
   };
   
   template <class T>
@@ -274,14 +276,14 @@ namespace Gecode { namespace String {
   
   forceinline bool
   ReverseView::prec(const Position& p, const Position& q) const {
-    return sv.prec(q, p);
+    return sv.prec(p, q);
   }
   
   forceinline int
   ReverseView::ub_new_blocks(const Matching& m) const {
-    if (prec(m.LSP, m.EEP))
-      return prec(m.ESP, m.LSP) + m.EEP.idx - m.LSP.idx + (m.EEP.off > 0)
-           + prec(m.EEP, m.LEP);
+    if (prec(m.EEP, m.LSP))
+      return prec(m.LSP, m.ESP) + m.LSP.idx - m.EEP.idx + (m.LSP.off > 0)
+           + prec(m.LEP, m.EEP);
     else
       return 0;
   }
@@ -289,13 +291,50 @@ namespace Gecode { namespace String {
   forceinline int
   ReverseView::min_len_mand(const Block& b, const Position& p,
                                             const Position& q) const {
-    return min_len_mand(b, q, p);
+    return sv.min_len_mand(b, q, p);
   }  
   
   forceinline void
-  ReverseView::mand_region(Space& home, const Block& b, Block* bnew, int u,
+  ReverseView::mand_region(Space& home, const Block& bx, Block* bnew, int u,
                            const Position& p, const Position& q) const {
-    return sv.mand_region(home, b, bnew, u, q, p);
+    if (!prec(q,p)) {
+      assert ((*this)[q.idx].isNull());
+      return;
+    };
+    int q_i = q.idx, p_i = p.off > 0 ? p.idx : p.idx-1, 
+        q_o = q.off, p_o = p.off > 0 ? p.off : (*this)[p_i].ub();
+//    std::cerr << "LSP=(" << p_i << "," << p_o << "), EEP=(" << q_i << "," << q_o << ")\n";
+    const Block& bq = (*this)[q_i];
+    // Head of the region.    
+    bnew[0].update(home, bq);
+    bnew[0].baseIntersect(home, bx);    
+    if (!bnew[0].isNull()) {
+      if (p_i == q_i) {
+        bnew[0].updateCard(home, std::max(0, std::min(p_o, bq.lb()) - q_o), 
+                                 std::min(u, p_o-q_o));    
+        return;
+      }
+      else
+        bnew[0].updateCard(home, std::max(0, bq.lb()-q_o), 
+                                 std::min(u, bq.ub()-q_o));
+    }
+    else if (p_i == q_i)
+      return;
+    // Central part of the region.
+    int j = 1;
+    for (int i = q_i+1; i < p_i; ++i, ++j) {
+      Block& bj = bnew[j];
+      bj.update(home, (*this)[i]);
+      bj.baseIntersect(home, bx);
+      if (!bj.isNull() && bj.ub() > u)
+        bj.ub(home, u);
+    }
+    // Tail of the region.
+    const Block& bp = (*this)[p_i];
+    bnew[j].update(home, bp);
+    bnew[j].baseIntersect(home, bx);
+    if (!bnew[j].isNull())
+      bnew[j].updateCard(home, std::min(bp.lb(), p_o), std::min(u, p_o));
   }
   
   template <class ViewX>
@@ -307,20 +346,49 @@ namespace Gecode { namespace String {
   
   forceinline int
   ReverseView::max_len_opt(const Block& bx, const Position& esp, 
-                                            const Position& lep, int) const {
-    return sv.min_len_mand(bx, lep, esp);
+                                            const Position& lep, int i) const {
+    return sv.max_len_opt(bx, lep, esp, i);
   }
   
   forceinline void
   ReverseView::opt_region(Space& home, const Block& bx, Block& bnew,
                            const Position& p, const Position& q, int l1) const {
-    return sv.opt_region(home, bx, bnew, q, p, l1);
+    assert(prec(q,p));
+    int q_i = q.idx, p_i = p.off > 0 ? p.idx : p.idx-1, 
+        q_o = q.off, p_o = p.off > 0 ? p.off : (*this)[p_i].ub();
+//    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
+    // Only one block involved
+    const Block& bq = (*this)[q_i];
+    int k = bx.ub() - l1;
+    if (q_i == p_i) {
+      bnew.update(home, bq);
+      bnew.baseIntersect(home, bx);
+      if (!bnew.isNull())
+        bnew.updateCard(home, 0, std::min(p_o-q_o, ubounded_sum(bq.lb(),k)));
+      return;
+    }
+    // More than one block involved
+    Set::GLBndSet s;
+    bq.includeBaseIn(home, s);
+    int u = bq.ub() - q_o;
+    for (int i = q_i+1; i < p_i; ++i) {
+      const Block& bi = (*this)[i];
+      bi.includeBaseIn(home, s);
+      u = ubounded_sum(u, std::min(bi.ub(), ubounded_sum(bi.lb(), k)));
+    }
+    const Block& bp = (*this)[p_i];
+    bp.includeBaseIn(home, s);
+    bnew.update(home, bx);
+    bnew.baseIntersect(home, s);
+    if (!bnew.isNull())
+      bnew.updateCard(home, 0, std::min(bx.ub(), 
+                     ubounded_sum(u, std::min(p_o, ubounded_sum(bp.lb(), k)))));
   }
   
   template <class T>
   forceinline void
   ReverseView::expandBlock(Space& home, const Block& bx, T& x) const {
-    sv.expandBlock(home, bx, x);
+    GECODE_NEVER;//sv.expandBlock(home, bx, x);
   }
 
   template <class ViewX>
@@ -332,53 +400,28 @@ namespace Gecode { namespace String {
     
   forceinline int
   ReverseView::fixed_chars_pref(const Position& p, const Position& q) const {
-    return sv.fixed_chars_pref(q, p);
+    return sv.fixed_chars_suff(q, p);
   }
   
   forceinline int
   ReverseView::fixed_chars_suff(const Position& p, const Position& q) const {
-    return sv.fixed_chars_suff(q, p);
+    return sv.fixed_chars_pref(q, p);
   }
   
   forceinline std::vector<int>
   ReverseView::fixed_pref(const Position& p, const Position& q) const {
-    return sv.fixed_pref(q, p);
+    return sv.fixed_suff(q, p);
   }
   
   forceinline std::vector<int>
   ReverseView::fixed_suff(const Position& p, const Position& q) const {
-    return sv.fixed_suff(q, p);
+    return sv.fixed_pref(q, p);
   }
   
   forceinline double
   ReverseView::logdim() const {
     return sv.logdim();
-  }  
-    
-//  template <class T> forceinline void 
-//  ReverseView::gets(Space&, const T&) const {
-//    GECODE_NEVER;
-//  }
-//  forceinline void
-//  ReverseView::resize(Space&, Block[], int, int[], int) const {
-//    GECODE_NEVER;                                                                
-//  }
-//  forceinline ModEvent ReverseView::nullify(Space&) { 
-//    GECODE_NEVER; 
-//    return ME_STRING_NONE;
-//  }
-//  forceinline void ReverseView::normalize(Space&) { GECODE_NEVER; }
-//  
-//  forceinline void
-//  ReverseView::update(Space& home, ReverseView& w) {
-//    ConstView<StringView>::update(home, w);
-//    // dispose old ranges
-//    assert (n == 0 && _val == NULL);
-//    n = w.n;
-//    _val = home.alloc<int>(n);
-//    for (int i = 0; i < n; ++i)
-//      _val[i] = w[i];
-//  }
+  }
      
 }}
 

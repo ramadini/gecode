@@ -571,13 +571,6 @@ namespace Gecode { namespace String {
                                             const Position& q) const;
     std::vector<int> fixed_suff(const Position& p,
                                             const Position& q) const;
-    
-    /// Normalize this view
-//    void normalize(Space& home);
-//    ModEvent nullify(Space& home);
-    
-//    ModEvent min_length(Space& home, int l);
-//    ModEvent max_length(Space& home, int u);
   };
   /**
    * \brief Print string variable view
