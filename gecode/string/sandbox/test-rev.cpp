@@ -56,49 +56,42 @@ public:
     assert(y.val() == vector<int>({'m', 'o', 'o', 'b'}));
     delete rx;
   }
-//  
-//  void test10() {
-//    cerr << "\n*** Test 10 ***" << endl;
-//    Block bv[9];
-//    bv[0].update(*this, Block(*this, CharSet(*this, 'B'), 0, 1));
-//    bv[1].update(*this, Block(*this, CharSet(*this, '='), 0, 1));
-//    bv[2].update(*this, Block(*this, CharSet(*this, 'C'), 0, 1));
-//    bv[3].update(*this, Block(*this, CharSet(*this, ' '), 0, 1));
-//    bv[4].update(*this, Block(*this, CharSet(*this, '='), 0, 1));
-//    bv[5].update(*this, Block(*this, CharSet(*this, ' '), 0, 1));
-//    bv[6].update(*this, Block(*this, CharSet(*this, 'B'), 0, 1));
-//    bv[7].update(*this, Block(*this, CharSet(*this, '='), 0, 1));
-//    bv[8].update(*this, Block(*this, CharSet(*this, 'C'), 1, 1));
-//    StringVar x(*this, DashedString(*this, bv, 9));
-//    StringVar y(*this, Block(*this, CharSet(*this, '=')));    
-//    StringView vx(x), vy(y);    
-//    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-//    assert(vx.equate(*this, vy) == ME_STRING_FAILED);
-//    assert(vy.equate(*this, vx) == ME_STRING_FAILED);
-//    cerr << "Unsat!\n";
-//    
-//    StringVar z(*this, Block(*this, CharSet(*this, ' ', '~')));
-//    StringView vz(z);
-//    cerr << "Equate y = " << y << "  vs  z = " << z << "\n";
-//    assert(vy.equate(*this, vz) == ME_STRING_NONE);
-//    cerr << "After equate: y = " << y << "  vs  z = " << z << "\n";    
-//    cerr << "Equate z = " << z << "  vs  y = " << y << "\n";
-//    assert(vz.equate(*this, vy) == ME_STRING_BASE);
-//    cerr << "After equate: z = " << z << "  vs  y = " << y << "\n";
-//    
-//    StringVar t(*this, DashedString(*this, bv, 8));
-//    StringView vt(t);
-//    cerr << "Equate z = " << z << "  vs  t = " << t << "\n";
-//    assert(vz.equate(*this, vt) == ME_STRING_CARD);
-//    cerr << "After equate: z = " << z << "  vs  t = " << t << "\n";
+  
+  void test02() {
+    cerr << "\n*** Test 02 ***" << endl;
+    Block bv[9];
+    bv[0].update(*this, Block(*this, CharSet(*this, 'B'), 0, 1));
+    bv[1].update(*this, Block(*this, CharSet(*this, '='), 0, 1));
+    bv[2].update(*this, Block(*this, CharSet(*this, 'C'), 0, 1));
+    bv[3].update(*this, Block(*this, CharSet(*this, ' '), 0, 1));
+    bv[4].update(*this, Block(*this, CharSet(*this, '='), 0, 1));
+    bv[5].update(*this, Block(*this, CharSet(*this, ' '), 0, 1));
+    bv[6].update(*this, Block(*this, CharSet(*this, 'B'), 0, 1));
+    bv[7].update(*this, Block(*this, CharSet(*this, '='), 0, 1));
+    bv[8].update(*this, Block(*this, CharSet(*this, 'C'), 1, 1));
+    StringVar x(*this, DashedString(*this, bv, 9));
+    StringVar y(*this, Block(*this, CharSet(*this, '=')));    
+    StringView vx(x);
+    ReverseView ry(y);    
+    cerr << "Equate " << x << "  vs  " << ry << "\n";
+    assert(vx.equate(*this, ry) == ME_STRING_FAILED);
+    cerr << "Unsat!\n";
+    
+    StringVar z(*this, Block(*this, CharSet(*this, ' ', '~')));
+    StringView vz(z);
+    StringVar t(*this, DashedString(*this, bv, 8));
+    ReverseView rt(t);
+    cerr << "Equate z = " << z << "  vs  " << rt << "\n";
+    assert(vz.equate(*this, rt) == ME_STRING_CARD);
+    cerr << "After equate: z = " << z << "\n";
 //    cerr << "Equate t = " << t << "  vs  z = " << z << "\n";
 //    assert(vt.equate(*this, vz) == ME_STRING_CARD);
 //    cerr << "After equate: t = " << t << "  vs  z = " << z << "\n";
 //    double lt = t.varimp()->dom().logdim();
 //    assert (lt == z.varimp()->dom().logdim() && lt == log(4));
 //    assert(vx.isOK() && vy.isOK());
-//  }
-//  
+  }
+  
 //  void test11() {
 //    cerr << "\n*** Test 11 ***" << endl;
 //    Block bv[3];
@@ -698,7 +691,7 @@ public:
 int main() {
   StrTest* home = new StrTest();
   home->test01();
-////  home->test02();
+  home->test02();
 ////  home->test03();
 ////  home->test04();
 ////  home->test05();
