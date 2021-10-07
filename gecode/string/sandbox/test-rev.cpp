@@ -89,27 +89,26 @@ public:
     cerr << "After equate: z = " << z << "\n";
   }
   
-//  void test11() {
-//    cerr << "\n*** Test 11 ***" << endl;
-//    Block bv[3];
-//    bv[0].update(*this, Block('z'));
-//    bv[1].update(*this, Block('b'));
-//    bv[2].update(*this, Block(*this, CharSet(*this, 0, 1000), 0, 9));
-//    StringVar x(*this, DashedString(*this, bv, 3));
-//    StringView vx(x);
-//    bv[0].update(*this, Block(*this, CharSet(*this, 0, 1000), 0, 10));
-//    bv[1].update(*this, Block(*this, CharSet(*this,IntSet{'a','c','z'}), 1, 1));
-//    bv[2].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 10));
-//    StringVar y(*this, DashedString(*this, bv, 3));
-//    StringView vy(y);
-//    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-//    assert (vx.equate(*this, vy) == ME_STRING_NONE);
-//    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
-//    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-//    assert(vy.equate(*this, vx) == ME_STRING_NONE);
-//    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
-//    assert(vx.isOK() && vy.isOK());
-//  }
+  void test03() {
+    cerr << "\n*** Test 03 ***" << endl;
+    Block bx[3];
+    bx[2].update(*this, Block('z'));
+    bx[1].update(*this, Block('b'));
+    bx[0].update(*this, Block(*this, CharSet(*this, 0, 1000), 0, 9));
+    StringVar x(*this, DashedString(*this, bx, 3));
+    StringView vx(x);
+    ReverseView rx(vx);
+    Block by[3];
+    by[0].update(*this, Block(*this, CharSet(*this, 0, 1000), 0, 10));
+    by[1].update(*this, Block(*this, CharSet(*this,IntSet{'a','c','z'}), 1, 1));
+    by[2].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 10));
+    StringVar y(*this, DashedString(*this, by, 3));
+    StringView vy(y);
+    cerr << "Equate y = " << y << "  vs  x = " << rx << "\n";
+    assert(vy.equate(*this, rx) != ME_STRING_NONE);
+    cerr << "After equate: y = " << y << "  vs  x = " << rx << "\n";
+    assert(rx.isOK() && vy.isOK());
+  }
 //  
 //  void test12() {
 //    cerr << "\n*** Test 12 ***" << endl;
@@ -689,6 +688,7 @@ int main() {
   StrTest* home = new StrTest();
   home->test01();
   home->test02();
+  home->test03();
   delete home;
   cerr << "\n----- test-rev.cpp passes -----\n\n";
   return 0;

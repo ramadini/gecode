@@ -571,6 +571,9 @@ namespace Gecode { namespace String {
                                             const Position& q) const;
     std::vector<int> fixed_suff(const Position& p,
                                             const Position& q) const;
+                                            
+    bool isOK(void) const;
+    StringView x(void) const;
   };
   /**
    * \brief Print string variable view

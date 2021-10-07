@@ -30,7 +30,7 @@ namespace Gecode { namespace String {
   template <>
   forceinline bool
   SweepIterator<SweepFwd,ReverseView>::operator()(void) const {
-    return sv.prec(Position(0,0), pos);
+    return sv.prec(pos, Position(0,0));
   }
   
   template <>
@@ -107,7 +107,7 @@ namespace Gecode { namespace String {
   template <>
   forceinline bool
   SweepIterator<SweepBwd,ReverseView>::operator()(void) const {
-    return sv.prec(pos, Position(sv.size(),0));
+    return sv.prec(Position(sv.size(),0), pos);
   }
   
   template <>
@@ -225,13 +225,15 @@ namespace Gecode { namespace String {
     return sv[sv.size()-i-1];
   }
 
+  forceinline StringView
+  ReverseView::x() const {
+    return sv;
+  }
+
   template<class Char, class Traits>
   forceinline std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const ReverseView& v) {
-    int n = v.size();
-    for (int i = 0; i < n-1; ++i)
-      os << v[i] << " + ";
-    return os << v[n-1];
+    return os << "( " << v.x() << " )^-1"; 
   };
   
   template <class T>
@@ -271,19 +273,19 @@ namespace Gecode { namespace String {
   
   forceinline bool
   ReverseView::equiv(const Position& p, const Position& q) const {
-    return sv.equiv(p, q);
+    return sv.equiv(q,p);
   }
   
   forceinline bool
   ReverseView::prec(const Position& p, const Position& q) const {
-    return sv.prec(p, q);
+    return sv.prec(q,p);
   }
   
   forceinline int
   ReverseView::ub_new_blocks(const Matching& m) const {
-    if (prec(m.EEP, m.LSP))
-      return prec(m.LSP, m.ESP) + m.LSP.idx - m.EEP.idx + (m.LSP.off > 0)
-           + prec(m.LEP, m.EEP);
+    if (sv.prec(m.EEP, m.LSP))
+      return sv.prec(m.LSP, m.ESP) + m.LSP.idx - m.EEP.idx + (m.LSP.off > 0)
+           + sv.prec(m.LEP, m.EEP);
     else
       return 0;
   }
@@ -297,7 +299,7 @@ namespace Gecode { namespace String {
   forceinline void
   ReverseView::mand_region(Space& home, const Block& bx, Block* bnew, int u,
                            const Position& p, const Position& q) const {
-    if (!prec(q,p)) {
+    if (!prec(p,q)) {
       assert ((*this)[q.idx].isNull());
       return;
     };
@@ -353,7 +355,7 @@ namespace Gecode { namespace String {
   forceinline void
   ReverseView::opt_region(Space& home, const Block& bx, Block& bnew,
                            const Position& p, const Position& q, int l1) const {
-    assert(prec(q,p));
+    assert(prec(p,q));
     int q_i = q.idx, p_i = p.off > 0 ? p.idx : p.idx-1, 
         q_o = q.off, p_o = p.off > 0 ? p.off : (*this)[p_i].ub();
 //    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
@@ -437,6 +439,11 @@ namespace Gecode { namespace String {
   ReverseView::logdim() const {
     return sv.logdim();
   }
-     
+  
+  forceinline bool
+  ReverseView::isOK() const {
+    return sv.isOK();
+  }
+  
 }}
 
