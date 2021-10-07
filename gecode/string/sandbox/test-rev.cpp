@@ -83,13 +83,10 @@ public:
     ReverseView rt(t);
     cerr << "Equate z = " << z << "  vs  " << rt << "\n";
     assert(vz.equate(*this, rt) == ME_STRING_CARD);
+    assert(vz.size() == 8);
+    for (int i = 0; i < 4; ++i)
+      assert (vz[i].equals(bv[7-i]));
     cerr << "After equate: z = " << z << "\n";
-//    cerr << "Equate t = " << t << "  vs  z = " << z << "\n";
-//    assert(vt.equate(*this, vz) == ME_STRING_CARD);
-//    cerr << "After equate: t = " << t << "  vs  z = " << z << "\n";
-//    double lt = t.varimp()->dom().logdim();
-//    assert (lt == z.varimp()->dom().logdim() && lt == log(4));
-//    assert(vx.isOK() && vy.isOK());
   }
   
 //  void test11() {
@@ -692,40 +689,6 @@ int main() {
   StrTest* home = new StrTest();
   home->test01();
   home->test02();
-////  home->test03();
-////  home->test04();
-////  home->test05();
-////  home->test06();
-////  home->test07();
-////  home->test08();
-////  home->test09();
-////  home->test10();
-////  home->test11();
-////  home->test12();
-////  home->test13();
-////  home->test14();
-////  home->test15();
-////  home->test16();
-////  home->test17();
-////  home->test18();
-////  home->test19();
-////  home->test20();
-////  home->test21();
-////  home->test22();
-////  home->test23();
-////  home->test24();
-////  home->test25();
-////  home->test26();
-////  home->test27();
-////  home->test28();
-////  home->test29();
-////  home->test30();
-////  home->test31();
-////  home->test32();
-////  home->test33();
-////  home->test34();
-////  home->test35();
-////  home->test36();
   delete home;
   cerr << "\n----- test-rev.cpp passes -----\n\n";
   return 0;

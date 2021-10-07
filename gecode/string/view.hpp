@@ -487,7 +487,7 @@ namespace Gecode { namespace String {
   /**
    * \brief Reverse view
    */
-  class ReverseView : public StringView {
+  class ReverseView : public VarImpView<StringVar> {
   protected:
     /// We never refine the blocks of sv.
     const StringView& sv;

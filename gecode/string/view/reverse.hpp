@@ -388,13 +388,14 @@ namespace Gecode { namespace String {
   template <class T>
   forceinline void
   ReverseView::expandBlock(Space& home, const Block& bx, T& x) const {
+//    std::cerr << "Expand" << x << " to " << *this <<"\n";
     assert (!bx.isFixed());
     Set::GLBndSet s;
     Set::BndSetRanges i(bx.ranges());
     s.includeI(home, i);
     bool norm = false;
     int u = bx.ub();
-    x.gets_rev(home, *this);
+    x.gets_rev(home, sv);
     if (u < max_length())
       x.varimp()->max_length(home, u);    
     for (int i = 0; i < x.size(); i++) {
