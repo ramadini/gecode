@@ -7,30 +7,30 @@ namespace Gecode { namespace String {
   template <>
   forceinline int
   SweepIterator<SweepFwd,ReverseView>::lb() const {
-    return sv[pos.off > 0 ? pos.idx : pos.idx-1].lb();
+    return (*p_view)[pos.off > 0 ? pos.idx : pos.idx-1].lb();
   }
   
   template <>
   forceinline int
   SweepIterator<SweepFwd,ReverseView>::ub() const {
-    return sv[pos.off > 0 ? pos.idx : pos.idx-1].ub();
+    return (*p_view)[pos.off > 0 ? pos.idx : pos.idx-1].ub();
   }
   
   template <>
   forceinline bool
   SweepIterator<SweepFwd,ReverseView>::disj(const Block& b) const {
-    return  sv[pos.off > 0 ? pos.idx : pos.idx-1].baseDisjoint(b);
+    return  (*p_view)[pos.off > 0 ? pos.idx : pos.idx-1].baseDisjoint(b);
   }
   template <>
   forceinline bool
   SweepIterator<SweepFwd,ReverseView>::disj(int c) const {
-    return !(sv[pos.off > 0 ? pos.idx : pos.idx-1].baseContains(c));
+    return !((*p_view)[pos.off > 0 ? pos.idx : pos.idx-1].baseContains(c));
   }
   
   template <>
   forceinline bool
   SweepIterator<SweepFwd,ReverseView>::operator()(void) const {
-    return sv.prec(pos, Position(0,0));
+    return p_view->prec(pos, Position(0,0));
   }
   
   template <>
@@ -42,7 +42,7 @@ namespace Gecode { namespace String {
       pos.off = 0;
     else
       pos.idx--;
-    assert (isOK() || sv[pos.idx].isNull());
+    assert (isOK() || (*p_view)[pos.idx].isNull());
   }
   
   template <>
@@ -54,14 +54,14 @@ namespace Gecode { namespace String {
   template <>
   forceinline int
   SweepIterator<SweepFwd,ReverseView>::must_consume() const {
-    return (pos.idx > 0 && pos.off == 0) ? sv[pos.idx-1].lb() 
-                                         : std::min(pos.off, sv[pos.idx].lb());
+    return (pos.idx > 0 && pos.off == 0) ? (*p_view)[pos.idx-1].lb() 
+                                         : std::min(pos.off, (*p_view)[pos.idx].lb());
   }
   
   template <>
   forceinline int
   SweepIterator<SweepFwd,ReverseView>::may_consume() const {
-    return (pos.idx > 0 && pos.off == 0) ? sv[pos.idx-1].ub() : pos.off;
+    return (pos.idx > 0 && pos.off == 0) ? (*p_view)[pos.idx-1].ub() : pos.off;
   }
   
   template <>
@@ -71,7 +71,7 @@ namespace Gecode { namespace String {
       return;
     if (pos.off == 0 && pos.idx > 0) {
       pos.idx--;
-      pos.off = sv[pos.idx].ub() - k;
+      pos.off = (*p_view)[pos.idx].ub() - k;
     }
     else
       pos.off -= k;
@@ -87,10 +87,10 @@ namespace Gecode { namespace String {
       return;
     if (pos.off == 0 && pos.idx > 0) {
       pos.idx--;
-      pos.off = sv[pos.idx].lb() - k;
+      pos.off = (*p_view)[pos.idx].lb() - k;
     }
     else
-      pos.off = std::min(pos.off, sv[pos.idx].lb()) - k;
+      pos.off = std::min(pos.off, (*p_view)[pos.idx].lb()) - k;
     if (pos.off < 0)
       throw OutOfLimits("SweepIterator<SweepBwd,ReverseView>::consumeMand");
     assert (isOK());
@@ -107,23 +107,23 @@ namespace Gecode { namespace String {
   template <>
   forceinline bool
   SweepIterator<SweepBwd,ReverseView>::operator()(void) const {
-    return sv.prec(Position(sv.size(),0), pos);
+    return p_view->prec(Position(p_view->size(),0), pos);
   }
   
   template <>
   forceinline void
   SweepIterator<SweepBwd,ReverseView>::nextBlock() {
-    if (pos.idx >= sv.size())
+    if (pos.idx >= p_view->size())
       return;
     pos.idx++;
     pos.off = 0;
-    assert (isOK() || sv[pos.idx].isNull());
+    assert (isOK() || (*p_view)[pos.idx].isNull());
   };
   
   template <>
   forceinline bool
   SweepIterator<SweepBwd,ReverseView>::hasNextBlock(void) const {
-    return pos.idx < sv.size();
+    return pos.idx < p_view->size();
   };
   
   template <>
@@ -144,8 +144,8 @@ namespace Gecode { namespace String {
     if (k == 0)
       return;
     pos.off += k;
-    if (pos.off >= sv[pos.idx].ub()) {
-      if (pos.off > sv[pos.idx].ub())
+    if (pos.off >= (*p_view)[pos.idx].ub()) {
+      if (pos.off > (*p_view)[pos.idx].ub())
         throw OutOfLimits("StringView::SweepBwdIterator::consume");
       pos.idx++;
       pos.off = 0;
@@ -159,9 +159,9 @@ namespace Gecode { namespace String {
     if (k == 0)
       return;
     pos.off += k; 
-    if (pos.off > sv[pos.idx].lb())
+    if (pos.off > (*p_view)[pos.idx].lb())
       throw OutOfLimits("StringView::SweepBwdIterator::consume");
-    if (pos.off == sv[pos.idx].ub()) {
+    if (pos.off == (*p_view)[pos.idx].ub()) {
       pos.idx++;
       pos.off = 0;
     }
@@ -171,69 +171,69 @@ namespace Gecode { namespace String {
   template <>
   forceinline bool
   SweepIterator<SweepBwd,ReverseView>::disj(const Block& b) const {
-    return sv[pos.idx].baseDisjoint(b);
+    return (*p_view)[pos.idx].baseDisjoint(b);
   }  
   template <>
   forceinline bool
   SweepIterator<SweepBwd,ReverseView>::disj(int c) const {
-    return !sv[pos.idx].baseContains(c);
+    return !(*p_view)[pos.idx].baseContains(c);
   }
 
 }}
 
 namespace Gecode { namespace String {
 
-  forceinline ReverseView::ReverseView() : sv(*(new StringView())) {
+  forceinline ReverseView::ReverseView() : x0(*(new StringView())) {
     GECODE_NEVER;
   }
   
   forceinline
-  ReverseView::ReverseView(const StringView& x) : sv(x) {}
+  ReverseView::ReverseView(const StringView& x) : x0(x) {}
   
   forceinline bool
   ReverseView::isNull() const {
-    return sv.isNull();
+    return x0.isNull();
   }
   
   forceinline int 
   ReverseView::size() const {
-    return sv.size();
+    return x0.size();
   }
  
   forceinline std::vector<int> 
   ReverseView::val(void) const {
-    return sv.val();
+    return x0.val();
   }
   
   forceinline int
   ReverseView::max_length() const {
-    return sv.max_length();
+    return x0.max_length();
   }
   
   forceinline int
   ReverseView::min_length() const {
-    return sv.min_length();
+    return x0.min_length();
   }
   
   forceinline bool
   ReverseView::assigned() const {
-    return sv.assigned();
+    return x0.assigned();
   }
   
   forceinline const Block&
   ReverseView::operator[](int i) const {
-    return sv[sv.size()-i-1];
+    return x0[x0.size()-i-1];
   }
 
   forceinline StringView
-  ReverseView::x() const {
-    return sv;
+  ReverseView::baseView() const {
+    return x0;
   }
 
   template<class Char, class Traits>
   forceinline std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const ReverseView& v) {
-    return os << "( " << v.x() << " )^-1"; 
+    return os << "( " << v.baseView() << " )^-1"; 
   };
   
   template <class T>
@@ -262,30 +262,30 @@ namespace Gecode { namespace String {
   template <class IterY>
   forceinline Position
   ReverseView::push(int i, IterY& it) const {
-    return sv.push(i, it);
+    return x0.push(i, it);
   }
   
   template <class IterY>
   forceinline void
   ReverseView::stretch(int i, IterY& it) const {
-    sv.stretch(i, it);
+    x0.stretch(i, it);
   };
   
   forceinline bool
   ReverseView::equiv(const Position& p, const Position& q) const {
-    return sv.equiv(q,p);
+    return x0.equiv(q,p);
   }
   
   forceinline bool
   ReverseView::prec(const Position& p, const Position& q) const {
-    return sv.prec(q,p);
+    return x0.prec(q,p);
   }
   
   forceinline int
   ReverseView::ub_new_blocks(const Matching& m) const {
-    if (sv.prec(m.EEP, m.LSP))
-      return sv.prec(m.LSP, m.ESP) + m.LSP.idx - m.EEP.idx + (m.LSP.off > 0)
-           + sv.prec(m.LEP, m.EEP);
+    if (x0.prec(m.EEP, m.LSP))
+      return x0.prec(m.LSP, m.ESP) + m.LSP.idx - m.EEP.idx + (m.LSP.off > 0)
+           + x0.prec(m.LEP, m.EEP);
     else
       return 0;
   }
@@ -293,7 +293,7 @@ namespace Gecode { namespace String {
   forceinline int
   ReverseView::min_len_mand(const Block& b, const Position& p,
                                             const Position& q) const {
-    return sv.min_len_mand(b, q, p);
+    return x0.min_len_mand(b, q, p);
   }  
   
   forceinline void
@@ -343,13 +343,13 @@ namespace Gecode { namespace String {
   forceinline void
   ReverseView::mand_region(Space& home, ViewX& x, int idx, 
                                const Position& p, const Position& q) const {
-    return sv.mand_region(home, x, idx, q, p);
+    return x0.mand_region(home, x, idx, q, p);
   }
   
   forceinline int
   ReverseView::max_len_opt(const Block& bx, const Position& esp, 
                                             const Position& lep, int i) const {
-    return sv.max_len_opt(bx, lep, esp, i);
+    return x0.max_len_opt(bx, lep, esp, i);
   }
   
   forceinline void
@@ -397,7 +397,7 @@ namespace Gecode { namespace String {
     s.includeI(home, i);
     bool norm = false;
     int u = bx.ub();
-    x.gets_rev(home, sv);
+    x.gets_rev(home, x0);
     if (u < max_length())
       x.varimp()->max_length(home, u);    
     for (int i = 0; i < x.size(); i++) {
@@ -412,37 +412,37 @@ namespace Gecode { namespace String {
   forceinline void
   ReverseView::crushBase(Space& home, ViewX& x, int idx, 
                         const Position& p, const Position& q) const {
-    sv.crushBase(home, x, idx, q, p);
+    x0.crushBase(home, x, idx, q, p);
   }  
     
   forceinline int
   ReverseView::fixed_chars_pref(const Position& p, const Position& q) const {
-    return sv.fixed_chars_suff(q, p);
+    return x0.fixed_chars_suff(q, p);
   }
   
   forceinline int
   ReverseView::fixed_chars_suff(const Position& p, const Position& q) const {
-    return sv.fixed_chars_pref(q, p);
+    return x0.fixed_chars_pref(q, p);
   }
   
   forceinline std::vector<int>
   ReverseView::fixed_pref(const Position& p, const Position& q) const {
-    return sv.fixed_suff(q, p);
+    return x0.fixed_suff(q, p);
   }
   
   forceinline std::vector<int>
   ReverseView::fixed_suff(const Position& p, const Position& q) const {
-    return sv.fixed_pref(q, p);
+    return x0.fixed_pref(q, p);
   }
   
   forceinline double
   ReverseView::logdim() const {
-    return sv.logdim();
+    return x0.logdim();
   }
   
   forceinline bool
   ReverseView::isOK() const {
-    return sv.isOK();
+    return x0.isOK();
   }
   
 }}

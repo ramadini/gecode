@@ -2,8 +2,8 @@ namespace Gecode { namespace String {
   
   //FIXME: Implement this:
   
-  struct SweepFwd {};
-  struct SweepBwd {};
+  struct SweepFwd;
+  struct SweepBwd;
   
   /// Iterator used by sweep-based equation algorithms for pushing/stretching 
   /// a block against the specified View in the specified direction Dir.
@@ -13,7 +13,10 @@ namespace Gecode { namespace String {
   class SweepIterator {
   protected:
     /// The view on which we iterate
-    const View& sv;
+    union {
+      const View* p_view;
+      const StringView* p_rev; 
+    };
     /// The current position on the view, always normalized w.r.t. sv
     Position pos;
     /// Check if the iterator position is in a consistent state;
@@ -489,8 +492,8 @@ namespace Gecode { namespace String {
    */
   class ReverseView : public VarImpView<StringVar> {
   protected:
-    /// We never refine the blocks of sv.
-    const StringView& sv;
+    /// We never refine the blocks of x0.
+    const StringView& x0;
   public:
     /// Construct with empty string
     ReverseView(void);
@@ -573,7 +576,7 @@ namespace Gecode { namespace String {
                                             const Position& q) const;
                                             
     bool isOK(void) const;
-    StringView x(void) const;
+    StringView baseView(void) const;
   };
   /**
    * \brief Print string variable view
