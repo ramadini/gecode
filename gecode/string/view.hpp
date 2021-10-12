@@ -14,8 +14,8 @@ namespace Gecode { namespace String {
   protected:
     /// The view on which we iterate
     union {
-      const View* p_view;
-      const StringView* p_rev; 
+      std::reference_wrapper<const View> view_ref;
+      std::reference_wrapper<const StringView> base_ref; 
     };
     /// The current position on the view, always normalized w.r.t. sv
     Position pos;
@@ -576,7 +576,7 @@ namespace Gecode { namespace String {
                                             const Position& q) const;
                                             
     bool isOK(void) const;
-    StringView baseView(void) const;
+    const StringView& baseView(void) const;
   };
   /**
    * \brief Print string variable view

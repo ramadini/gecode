@@ -43,18 +43,18 @@ public:
     bv[3].update(*this, Block(*this, CharSet(*this, '!'), 0, 3));
     StringVar x(*this, DashedString(*this, bv, 4));
     StringVar y(*this, Block(*this, CharSet(*this,IntSet({'b','o','m'})),0,4));    
-    StringView vx(x), vy(y);    
-    cerr << "Equate x = " << x << "  vs  y = " << ReverseView(vy) << "\n";
-    assert(vx.equate(*this, ReverseView(vy)) == ME_STRING_VAL);
+    StringView vx(x), vy(y);
+    ReverseView ry(vy);
+    cerr << "Equate x = " << x << "  vs  y = " << ry << "\n";
+    assert(vx.equate(*this, ry) == ME_STRING_VAL);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     assert(x.val() == vector<int>({'b', 'o', 'o', 'm'}));
-    ReverseView* rx = new ReverseView(x);
-    cerr << "Equate y = " << y << "  vs  x = " << *rx << "\n";
-    assert(vy.equate(*this, *rx) == ME_STRING_VAL);
-    cerr << "After equate: y = " << y << "  vs  x = " << *rx << "\n";
+    ReverseView rx(vx);
+    cerr << "Equate y = " << y << "  vs  x = " << rx << "\n";
+    assert(vy.equate(*this, rx) == ME_STRING_VAL);
+    cerr << "After equate: y = " << y << "  vs  x = " << rx << "\n";
     assert(x.val() == rev(y.val()) && vx.isOK() && vy.isOK());
     assert(y.val() == vector<int>({'m', 'o', 'o', 'b'}));
-    delete rx;
   }
   
   void test02() {
@@ -71,8 +71,8 @@ public:
     bv[8].update(*this, Block(*this, CharSet(*this, 'C'), 1, 1));
     StringVar x(*this, DashedString(*this, bv, 9));
     StringVar y(*this, Block(*this, CharSet(*this, '=')));    
-    StringView vx(x);
-    ReverseView ry(y);    
+    StringView vx(x), vy(y);
+    ReverseView ry(vy);    
     cerr << "Equate " << x << "  vs  " << ry << "\n";
     assert(vx.equate(*this, ry) == ME_STRING_FAILED);
     cerr << "Unsat!\n";
