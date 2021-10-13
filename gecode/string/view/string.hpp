@@ -464,13 +464,13 @@ namespace Gecode { namespace String {
   template <class IterY>
   forceinline Position
   StringView::push(int i, IterY& it) const {
-    std::cerr << "Pushing " << (*this)[i] << " from " << *it << '\n';
+//    std::cerr << "Pushing " << (*this)[i] << " from " << *it << '\n';
     Position p = *it;    
     const Block& bx = (*this)[i];
     // No. of chars. that must be consumed
     int k = bx.lb(); 
     while (k > 0) {
-      std::cerr << "p=" << p << ", it=" << *it << ", k=" << k << std::endl;
+//      std::cerr << "p=" << p << ", it=" << *it << ", k=" << k << std::endl;
       if (!it.hasNextBlock())
         return *it;
       if (it.disj(bx)) {
@@ -488,7 +488,7 @@ namespace Gecode { namespace String {
         int m = it.may_consume();
         if (k <= m) {
           it.consume(k);
-          std::cerr << "p=" << p << ", it=" << *it << "\n";
+//          std::cerr << "p=" << p << ", it=" << *it << "\n";
           return p;
         }
         else {
@@ -503,7 +503,7 @@ namespace Gecode { namespace String {
   template <class IterY>
   forceinline void
   StringView::stretch(int i, IterY& it) const {
-    std::cerr << "Streching " << (*this)[i] << " from " << *it << '\n';
+//    std::cerr << "Streching " << (*this)[i] << " from " << *it << '\n';
     const Block& bx = (*this)[i];
     int k = bx.ub();
     while (it.hasNextBlock()) {

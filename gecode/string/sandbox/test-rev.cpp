@@ -105,7 +105,7 @@ public:
     StringVar y(*this, DashedString(*this, by, 3));
     StringView vy(y);
     cerr << "Equate y = " << y << "  vs  x = " << rx << "\n";
-    assert(vy.equate(*this, rx) != ME_STRING_NONE);
+    assert(vy.equate(*this, rx) == ME_STRING_NONE);
     cerr << "After equate: y = " << y << "  vs  x = " << rx << "\n";
     assert(rx.isOK() && vy.isOK());
   }

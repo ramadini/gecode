@@ -3,6 +3,7 @@ namespace Gecode { namespace String {
   struct Position;
   class SweepFwd;
   class SweepBwd;
+  class ReverseView;
   template <class D,class V> class SweepIterator;
 
   /// Auxiliary functions
@@ -57,12 +58,13 @@ namespace Gecode { namespace String {
     /// {(i,j) | 0 <= i < |y|, 0 <= j < ub(y)} U {(|y|,0)}
     template <class View>
     forceinline bool
-    isNorm(View& y) const {
+    isNorm(const View& y) const {
       int n = y.size();
       return (0 <= idx && idx < n && 0 <= off && (ubound(y[idx]) == 0 
-                            || off < ubound(y[idx]))) || (idx == n && off == 0);
+                   || off < ubound(y[idx]))) || (idx == n && off == 0);
     }
   };
+  
   forceinline std::ostream&
   operator<<(std::ostream& os, const Position& p) {
     os << "(" << p.idx << "," << p.off << ")";
@@ -247,7 +249,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool
   pushESP(const ViewX& x, const ViewY& y, Matching m[], int i) {
-    std::cerr << "Pushing ESP of " << x[i] << " from " << m[i].ESP << '\n';
+//    std::cerr << "Pushing ESP of " << x[i] << " from " << m[i].ESP << '\n';
     int n = x.size();
     if (lbound(x[i]) == 0) {
       // x[i] nullable, not pushing ESP[i]
@@ -258,7 +260,7 @@ namespace Gecode { namespace String {
     }
     SweepIterator<SweepFwd,ViewY> q(y, m[i].ESP);
     SweepIterator<SweepFwd,ViewY> p(y, x.push(i,q));
-    std::cerr << *p << ", " << *q << ' ' << p() << "\n";
+//    std::cerr << *p << ", " << *q << ' ' << p() << "\n";
     if (!p())
       return false;
     if (i < n-1 && y.prec(m[i+1].ESP, *q))
@@ -267,7 +269,7 @@ namespace Gecode { namespace String {
     if (y.prec(m[i].ESP, *p))
       // Pushing ESP forward.
       m[i].ESP = *p;
-    std::cerr << "ESP of " << x[i] << ": " << m[i].ESP << '\n';
+//    std::cerr << "ESP of " << x[i] << ": " << m[i].ESP << '\n';
     return true;
   }
  
@@ -275,7 +277,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool
   pushLEP(const ViewX& x, const ViewY& y, Matching m[], int i) {
-    std::cerr << "Pushing LEP of " << x[i] << " from " << m[i].LEP << '\n';
+//    std::cerr << "Pushing LEP of " << x[i] << " from " << m[i].LEP << '\n';
     if (lbound(x[i]) == 0) {
       // x[i] nullable, not pushing LEP[i]
       if (i > 0 && y.prec(m[i].LEP, m[i-1].LEP))
@@ -332,7 +334,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool
   sweep_x(ViewX& x, const ViewY& y, Matching m[], int& xFixed, int& n) {
-    std::cerr << "sweep_x: " << x << "  vs  " << y << "\n";
+//    std::cerr << "sweep_x: " << x << "  vs  " << y << "\n";
     if (!init_x(x, y, m))
       return false;
     if (x.assigned() && y.assigned())
@@ -341,34 +343,34 @@ namespace Gecode { namespace String {
     for (int i = 0; i < nx; ++i) {
       if (!pushESP<ViewX,ViewY>(x, y, m, i))
         return false;
-      std::cerr << "ESP of " << x[i] << ": " << m[i].ESP << "\n";
+//      std::cerr << "ESP of " << x[i] << ": " << m[i].ESP << "\n";
     }
     for (int i = nx-1; i >= 0; --i) {
       if (!pushLEP<ViewX,ViewY>(x, y, m, i))
         return false;
-      std::cerr << "LEP of " << x[i] << ": " << m[i].LEP << "\n";
+//      std::cerr << "LEP of " << x[i] << ": " << m[i].LEP << "\n";
     }
     m[0].LSP = m[0].ESP;
     for (int i = 1; i < nx; ++i) {
       m[i].LSP = m[i-1].LEP;
-      std::cerr << "LSP of " << x[i] << ": " << m[i].LSP << "\n";      
+//      std::cerr << "LSP of " << x[i] << ": " << m[i].LSP << "\n";      
       if (y.prec(m[i].LSP, m[i].ESP))
         return false;
-      assert (m[i].ESP.isNorm(y) && m[i].LSP.isNorm(y));
+//      assert (m[i].ESP.isNorm(y) && m[i].LSP.isNorm(y));
     }
     m[nx-1].EEP = m[nx-1].LEP;    
     xFixed = x[nx-1].isFixed();
     n = xFixed ? 0 : y.ub_new_blocks(m[nx-1]);
     for (int i = nx-2; i >= 0; --i) {
       m[i].EEP = m[i+1].ESP;
-      std::cerr << "EEP of " << x[i] << ": " << m[i].EEP << "\n";
+//      std::cerr << "EEP of " << x[i] << ": " << m[i].EEP << "\n";
       if (y.prec(m[i].LEP, m[i].EEP))
         return false;
       if (x[i].isFixed())
         xFixed++;
       else
         n += y.ub_new_blocks(m[i]);
-      assert (m[i].EEP.isNorm(y) && m[i].LEP.isNorm(y));
+//      assert (m[i].EEP.isNorm(y) && m[i].LEP.isNorm(y));
     }
     return true;
   }
