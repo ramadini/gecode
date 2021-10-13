@@ -52,7 +52,7 @@ namespace Gecode { namespace String {
   template <>
   forceinline bool
   SweepIterator<SweepFwd,ReverseView>::operator()(void) const {
-    return base_ref.get().prec(pos, Position(0,0));
+    return base_ref.get().prec(Position(0,0), pos);
   }
   
   template <>
@@ -149,9 +149,21 @@ namespace Gecode { namespace String {
   : SweepIterator(x.baseView(), Position(0,0)) {};
   
   template <>
+  forceinline int
+  SweepIterator<SweepBwd,ReverseView>::lb() const {
+    return base_ref.get()[pos.idx].lb();
+  }
+  
+  template <>
+  forceinline int
+  SweepIterator<SweepBwd,ReverseView>::ub() const {
+    return base_ref.get()[pos.idx].ub();
+  }
+  
+  template <>
   forceinline bool
   SweepIterator<SweepBwd,ReverseView>::operator()(void) const {
-    return base_ref.get().prec(Position(base_ref.get().size(),0), pos);
+    return base_ref.get().prec(pos, Position(base_ref.get().size(),0));
   }
   
   template <>
