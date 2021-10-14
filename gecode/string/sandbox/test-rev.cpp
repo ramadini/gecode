@@ -165,43 +165,40 @@ public:
     assert (vx.equate(*this, vy) == ME_STRING_FAILED);
     cerr << "Unsat!\n";
     cerr << "Equate y = " << ry << "  vs  x = " << x << "\n";
-    assert (!check_equate_x(vx, vy));
+    assert (!check_equate_x(vx, ry));
     cerr << "Unsat!\n";
-    assert(vx.isOK() && vy.isOK());
+    assert(vx.isOK() && ry.isOK());
   }
   
-//  void test14() {
-//    cerr << "\n*** Test 14 ***" << endl;
-//    string wx = "axb_xyz";
-//    string wy = "_..xy...";
-//    int nx = wx.size(), ny = wy.size();
-//    Block bx[nx], by[ny];
-//    str2blocks(wx, bx, nx);
-//    str2blocks(wy, by, ny);
-//    for (int i = 0; i < nx; ++i)
-//      if (wx[i] == '_')
-//        bx[i].update(*this, Block(*this, CharSet(*this), 1, 1));
-//      else if (wx[i] == '.')
-//        bx[i].update(*this, Block(*this, CharSet(*this), 0, 1));
-//    StringVar x(*this, DashedString(*this, bx, nx));
-//    StringView vx(x);
-//    for (int i = 0; i < ny; ++i)
-//      if (wy[i] == '_')
-//        by[i].update(*this, Block(*this, CharSet(*this), 1, 1));
-//      else if (wy[i] == '.')
-//        by[i].update(*this, Block(*this, CharSet(*this), 0, 1));
-//    StringVar y(*this, DashedString(*this, by, ny));
-//    StringView vy(y);
-//    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-//    assert (vx.equate(*this, vy) == ME_STRING_FAILED);
-//    cerr << "Unsat!\n";
-//    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-//    assert (vy.equate(*this, vx) == ME_STRING_FAILED);
-//    cerr << "Unsat!\n";
-//    assert (!check_equate_x(vx, vy) && !check_equate_x(vy, vx));
-//    assert(vx.isOK() && vy.isOK());
-//  }
-//  
+  void test06() {
+    cerr << "\n*** Test 06 ***" << endl;
+    string wx = "axb_xyz";
+    string wy = "...yx.._";
+    int nx = wx.size(), ny = wy.size();
+    Block bx[nx], by[ny];
+    str2blocks(wx, bx, nx);
+    str2blocks(wy, by, ny);
+    for (int i = 0; i < nx; ++i)
+      if (wx[i] == '_')
+        bx[i].update(*this, Block(*this, CharSet(*this), 1, 1));
+      else if (wx[i] == '.')
+        bx[i].update(*this, Block(*this, CharSet(*this), 0, 1));
+    StringVar x(*this, DashedString(*this, bx, nx));
+    StringView vx(x);
+    for (int i = 0; i < ny; ++i)
+      if (wy[i] == '_')
+        by[i].update(*this, Block(*this, CharSet(*this), 1, 1));
+      else if (wy[i] == '.')
+        by[i].update(*this, Block(*this, CharSet(*this), 0, 1));
+    StringVar y(*this, DashedString(*this, by, ny));
+    StringView vy(y);
+    ReverseView ry(vy);
+    cerr << "Equate x = " << x << "  vs " << ry << "\n";
+    assert (vx.equate(*this, ry) == ME_STRING_FAILED);
+    cerr << "Unsat!\n";
+    assert (!check_equate_x(vx, ry));
+  }
+  
 //  void test15() {
 //    cerr << "\n*** Test 15 ***" << endl;
 //    StringVar x(*this, Block(*this, CharSet(*this, 'a', 'b'), 0, 4));
@@ -695,6 +692,7 @@ int main() {
   home->test03();
   home->test04();
   home->test05();
+  home->test06();
   delete home;
   cerr << "\n----- test-rev.cpp passes -----\n\n";
   return 0;

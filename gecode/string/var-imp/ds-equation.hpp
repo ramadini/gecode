@@ -390,21 +390,21 @@ namespace Gecode { namespace String {
       if (!pushLEP<ViewX,ViewY>(x, y, m, i))
         return false;
     m[0].LSP = m[0].ESP;
-    assert (m[0].LSP == Position(0,0));
+//    assert (m[0].LSP == Position(0,0));
     for (int i = 1; i < nx; ++i) {
       m[i].LSP = m[i-1].LEP;
       if (y.prec(m[i].LSP, m[i].ESP))
         return false;
-      assert (m[i].ESP.isNorm(y) && m[i].LSP.isNorm(y));
+//      assert (m[i].ESP.isNorm(y) && m[i].LSP.isNorm(y));
     }
     m[nx-1].EEP = m[nx-1].LEP;
     for (int i = nx-2; i >= 0; --i) {
       m[i].EEP = m[i+1].ESP;
       if (y.prec(m[i].LEP, m[i].EEP))
         return false;
-      assert (m[i].EEP.isNorm(y) && m[i].LEP.isNorm(y));
+//      assert (m[i].EEP.isNorm(y) && m[i].LEP.isNorm(y));
     }
-    assert (m[nx-1].EEP == Position(y.size(),0));
+//    assert (m[nx-1].EEP == Position(y.size(),0));
     for (int i = 0; i < nx; ++i) {
 //      std::cerr << "Checking x[" << i << "] = " << x[i] << "\n";
 //      std::cerr << "ESP: " << m[i].ESP << "\nLSP: " << m[i].LSP << "\nEEP: " 
