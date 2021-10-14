@@ -140,35 +140,36 @@ public:
     for (int i = 0, ny = vy.size(); i < n1; ++i)
       assert(w1[i] == vy[ny-i-1].val()[0]);
   }
-//  
-//  void test13() {
-//    cerr << "\n*** Test 13 ***" << endl;
-//    IntSet s({'B', 'C', ' ', '='});
-//    Block bx[9];
-//    bx[0].update(*this, Block('A'));
-//    bx[1].update(*this, Block('='));
-//    bx[2].update(*this, Block('B'));
-//    bx[3].update(*this, Block(*this, CharSet(*this, s), 0, 5));
-//    bx[4].update(*this, Block('C'));
-//    bx[5].update(*this, Block('='));
-//    bx[6].update(*this, Block(*this, CharSet(*this, s), 0, 5));
-//    bx[4].update(*this, Block('C'));
-//    StringVar x(*this, DashedString(*this, bx, 9));
-//    StringView vx(x);
-//    string w = "A=B=C = B=C"; 
-//    Block by[w.size()];
-//    str2blocks(w, by, w.size());
-//    StringVar y(*this, DashedString(*this, by, w.size()));
-//    StringView vy(y);
-//    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-//    assert (vx.equate(*this, vy) == ME_STRING_FAILED);
-//    cerr << "Unsat!\n";
-//    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-//    assert (!check_equate_x(vx, vy));
-//    cerr << "Unsat!\n";
-//    assert(vx.isOK() && vy.isOK());
-//  }
-//  
+  
+  void test05() {
+    cerr << "\n*** Test 05 ***" << endl;
+    IntSet s({'B', 'C', ' ', '='});
+    Block bx[9];
+    bx[0].update(*this, Block('A'));
+    bx[1].update(*this, Block('='));
+    bx[2].update(*this, Block('B'));
+    bx[3].update(*this, Block(*this, CharSet(*this, s), 0, 5));
+    bx[4].update(*this, Block('C'));
+    bx[5].update(*this, Block('='));
+    bx[6].update(*this, Block(*this, CharSet(*this, s), 0, 5));
+    bx[4].update(*this, Block('C'));
+    StringVar x(*this, DashedString(*this, bx, 9));
+    StringView vx(x);
+    string w = "A=B=C = B=C"; 
+    Block by[w.size()];
+    str2blocks(w, by, w.size());
+    StringVar y(*this, DashedString(*this, by, w.size()));
+    StringView vy(y);
+    ReverseView ry(y);
+    cerr << "Equate x = " << x << "  vs  y = " << ry << "\n";
+    assert (vx.equate(*this, vy) == ME_STRING_FAILED);
+    cerr << "Unsat!\n";
+    cerr << "Equate y = " << ry << "  vs  x = " << x << "\n";
+    assert (!check_equate_x(vx, vy));
+    cerr << "Unsat!\n";
+    assert(vx.isOK() && vy.isOK());
+  }
+  
 //  void test14() {
 //    cerr << "\n*** Test 14 ***" << endl;
 //    string wx = "axb_xyz";
@@ -693,6 +694,7 @@ int main() {
   home->test02();
   home->test03();
   home->test04();
+  home->test05();
   delete home;
   cerr << "\n----- test-rev.cpp passes -----\n\n";
   return 0;
