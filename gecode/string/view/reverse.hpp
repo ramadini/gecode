@@ -4,7 +4,7 @@ namespace Gecode { namespace String {
   forceinline SweepIterator<SweepFwd,ReverseView>::
   SweepIterator(const ReverseView& x, const Position& p) 
   : base_ref(x.baseView()), pos(p) {
-    if (!p.isNorm(x)) {
+    if (!p.isNorm(x.baseView())) {
       if (p.off == base_ref.get()[p.idx].ub()) {
         pos.idx++;
         pos.off = 0;
