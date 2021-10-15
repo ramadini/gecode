@@ -126,7 +126,7 @@ namespace Gecode { namespace String {
   forceinline SweepIterator<SweepBwd,ReverseView>::
   SweepIterator(const ReverseView& x, const Position& p) 
   : base_ref(x.baseView()), pos(p) {
-    if (!p.isNorm(x)) {
+    if (!p.isNorm(x.baseView())) {
       if (p.off == base_ref.get()[p.idx].ub()) {
         pos.idx++;
         pos.off = 0;
@@ -363,40 +363,39 @@ namespace Gecode { namespace String {
     int q_i = q.idx, p_i = p.off > 0 ? p.idx : p.idx-1, 
         q_o = q.off, p_o = p.off > 0 ? p.off : x0[p_i].ub();
     std::cerr << "LSP=(" << p_i << "," << p_o << "), EEP=(" << q_i << "," << q_o << "), u = "<<u<<"\n";
-    const Block& bq = p_i == q_i ? x0[q_i] : (*this)[q_i];
-    std::cerr << "bq: " << bq << "\n";
+    const Block& bp = x0[p_i];
+    std::cerr << "bp: " << bp << "\n";
     // Head of the region.    
-    bnew[0].update(home, bq);
+    bnew[0].update(home, bp);
     bnew[0].baseIntersect(home, bx);    
     if (!bnew[0].isNull()) {
       if (p_i == q_i) {
-        bnew[0].updateCard(home, std::max(0, std::min(p_o, bq.lb())-q_o), 
+        bnew[0].updateCard(home, std::max(0, std::min(p_o, bp.lb())-q_o), 
                                  std::min(u, p_o-q_o));
         return;
       }
       else
-        bnew[0].updateCard(home, std::max(0, bq.lb()-q_o), 
-                                 std::min(u, bq.ub()-q_o));
+        bnew[0].updateCard(home, std::min(bp.lb(), p_o), std::min(u, p_o));
     }
     else if (p_i == q_i)
       return;
     // Central part of the region.
     int j = 1;
-    for (int i = q_i+1; i < p_i; ++i, ++j) {
+    for (int i = p_i-1; i > q_i; --i, ++j) {
       Block& bj = bnew[j];
-      bj.update(home, (*this)[i]);
+      bj.update(home, x0[i]);
       bj.baseIntersect(home, bx);
       if (!bj.isNull() && bj.ub() > u)
         bj.ub(home, u);
     }
     // Tail of the region.
-    const Block& bp = p_i == q_i ? x0[p_i] : (*this)[p_i];
-    std::cerr << "bp: " << bp << "\n";
-    bnew[j].update(home, bp);
+    const Block& bq = x0[q_i];
+    std::cerr << "bq: " << bq << "\n";
+    bnew[j].update(home, bq);
     bnew[j].baseIntersect(home, bx);
     if (!bnew[j].isNull())
-      bnew[j].updateCard(home, std::min(bp.lb(), std::max(bp.lb(), p_o)), 
-                   std::min(bp.ub(), std::min(u, std::max(p_o,bp.ub()))));
+      bnew[j].updateCard(home, std::max(0, bq.lb()-q_o), 
+                               std::min(u, bq.ub()-q_o));
   }
   
   template <class ViewX>

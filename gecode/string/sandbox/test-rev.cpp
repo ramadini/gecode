@@ -466,23 +466,24 @@ public:
   
   void test19() {
     std::cerr << "\n*** Test 19 ***" << std::endl;
-//    Block bx[3];
-//    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 0, 6));
-//    bx[1].update(*this, Block('c'));
-//    bx[2].update(*this, Block('d'));
-//    Block by[2];
-//    by[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 5));
-//    by[1].update(*this, Block(*this, CharSet(*this, 'd'), 0, 1));
-//    StringVar x(*this, DashedString(*this, bx, 3));
-//    StringVar y(*this, DashedString(*this, by, 2));
-//    StringView vx(x), vy(y);
-//    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-//    assert (vx.equate(*this, vy) == ME_STRING_CARD);
-//    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
-//    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-//    assert (vy.equate(*this, vx) == ME_STRING_CARD);
-//    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
-//    assert(vx.isOK() && vy.isOK());
+    Block bx[3];
+    bx[2].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 0, 6));
+    bx[1].update(*this, Block('c'));
+    bx[0].update(*this, Block('d'));
+    Block by[2];
+    by[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 5));
+    by[1].update(*this, Block(*this, CharSet(*this, 'd'), 0, 1));
+    StringVar x(*this, DashedString(*this, bx, 3));
+    StringVar y(*this, DashedString(*this, by, 2));
+    StringView vx(x), vy(y);
+    ReverseView rx(vx), ry(vy);
+    cerr << "Equate x = " << x << "  vs  " << ry << "\n";
+    assert (vx.equate(*this, ry) == ME_STRING_CARD);
+    cerr << "After equate: x = " << x << "\n";
+    cerr << "Equate y = " << y << "  vs  " << rx << "\n";
+    assert (vy.equate(*this, rx) == ME_STRING_CARD);
+    cerr << "After equate: y = " << y << "\n";
+    assert(rx.isOK() && ry.isOK());
   }
 //  
 //  void test20() {
