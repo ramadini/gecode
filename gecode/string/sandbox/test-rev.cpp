@@ -456,16 +456,16 @@ public:
     cerr << "Equate x = " << x << "  vs  " << ry << "\n";
     assert (vx.equate(*this, ry) == ME_STRING_CARD);
     cerr << "After equate: x = " << x << "\n";
-//    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-//    assert (vy.equate(*this, vx) == ME_STRING_BASE);
-//    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
-//    assert (vx.varimp()->dom().contains(vy.varimp()->dom()));
-//    assert (vy.varimp()->dom().contains(vx.varimp()->dom()));
-//    assert(vx.isOK() && vy.isOK());
+    cerr << "Equate y = " << y << "  vs  " << rx << "\n";
+    assert (vy.equate(*this, rx) == ME_STRING_BASE);
+    cerr << "After equate: y = " << y << "\n";
+    assert (vx.varimp()->dom().contains_rev(vy.varimp()->dom()));
+    assert (vy.varimp()->dom().contains_rev(vx.varimp()->dom()));
+    assert(vx.isOK() && vy.isOK());
   }
   
-//  void test19() {
-//    std::cerr << "\n*** Test 19 ***" << std::endl;
+  void test19() {
+    std::cerr << "\n*** Test 19 ***" << std::endl;
 //    Block bx[3];
 //    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 0, 6));
 //    bx[1].update(*this, Block('c'));
@@ -483,7 +483,7 @@ public:
 //    assert (vy.equate(*this, vx) == ME_STRING_CARD);
 //    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
 //    assert(vx.isOK() && vy.isOK());
-//  }
+  }
 //  
 //  void test20() {
 //    std::cerr << "\n*** Test 20 ***" << std::endl;
@@ -719,7 +719,7 @@ int main() {
   home->test16();
   home->test17();
   home->test18();
-//  home->test19();
+  home->test19();
 //  home->test20();
 //  home->test21();
 //  home->test22();
