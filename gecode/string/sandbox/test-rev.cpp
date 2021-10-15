@@ -433,7 +433,7 @@ public:
     StringView vx(x), vy(y);
     ReverseView rx(vx), ry(vy);
     cerr << "Equate x = " << x << "  vs  " << ry << "\n";
-    assert (vx.equate(*this, vy) == ME_STRING_CARD);
+    assert (vx.equate(*this, ry) == ME_STRING_CARD);
     cerr << "After equate: x = " << x << "\n";
     cerr << "Equate y = " << y << "  vs  " << rx << "\n";
     assert (vy.equate(*this, rx) == ME_STRING_CARD);
@@ -445,16 +445,17 @@ public:
   
   void test18() {
     std::cerr << "\n*** Test 18 ***" << std::endl;
-//    int M = Limits::MAX_STRING_LENGTH;
-//    StringVar x(*this, Block(*this, CharSet(*this, 'a', 'b'), 0, M));
-//    Block by[2];
-//    by[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, M));
-//    by[1].update(*this, Block('b'));
-//    StringVar y(*this, DashedString(*this, by, 2));
-//    StringView vx(x), vy(y);
-//    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-//    assert (vx.equate(*this, vy) == ME_STRING_CARD);
-//    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
+    int M = Limits::MAX_STRING_LENGTH;
+    StringVar x(*this, Block(*this, CharSet(*this, 'a', 'b'), 0, M));
+    Block by[2];
+    by[1].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, M));
+    by[0].update(*this, Block('b'));
+    StringVar y(*this, DashedString(*this, by, 2));
+    StringView vx(x), vy(y);
+    ReverseView rx(vx), ry(vy);
+    cerr << "Equate x = " << x << "  vs  " << ry << "\n";
+    assert (vx.equate(*this, ry) == ME_STRING_CARD);
+    cerr << "After equate: x = " << x << "\n";
 //    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
 //    assert (vy.equate(*this, vx) == ME_STRING_BASE);
 //    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
