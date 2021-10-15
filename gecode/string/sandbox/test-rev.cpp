@@ -378,34 +378,35 @@ public:
     assert(rx.isOK() && ry.isOK());
   }
   
-//  void test23() {
-//    std::cerr << "\n*** Test 23 ***" << std::endl;
-//    Block bx[4];
-//    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 400));
-//    bx[1].update(*this, Block(*this, CharSet(*this, 'b', 'c'), 3, 3));
-//    bx[2].update(*this, Block(*this, CharSet(*this, 'b', 'c'), 0, 97));
-//    bx[3].update(*this, Block(*this, CharSet(*this, 
-//                                              IntSet({'a','d','e',})), 0, 300));
-//    Block by[2];
-//    by[0].update(*this, Block(*this, CharSet(*this, 
-//                                              IntSet({'a','b','d',})), 0, 900));
-//    by[1].update(*this, Block(*this, CharSet(*this, 'c', 'd'), 0, 900));
-//    StringVar x(*this, DashedString(*this, bx, 4));
-//    StringVar y(*this, DashedString(*this, by, 2));
-//    StringView vx(x), vy(y);
-//    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-//    assert (vx.equate(*this, vy) == ME_STRING_BASE);
-//    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";     
-//    assert (vx[2].baseMin() == 'a' && vx[2].baseMax() == 'd');
-//    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-//    assert (vy.equate(*this, vx) == ME_STRING_CARD);
-//    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
-//    assert(vy[1].ub() == 800);
-//    assert(vx.isOK() && vy.isOK());
-//  }
-//  
-//  void test24() {
-//    std::cerr << "\n*** Test 24 ***" << std::endl;
+  void test15() {
+    std::cerr << "\n*** Test 15 ***" << std::endl;
+    Block bx[4];
+    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 400));
+    bx[1].update(*this, Block(*this, CharSet(*this, 'b', 'c'), 3, 3));
+    bx[2].update(*this, Block(*this, CharSet(*this, 'b', 'c'), 0, 97));
+    bx[3].update(*this, Block(*this, CharSet(*this, 
+                                              IntSet({'a','d','e',})), 0, 300));
+    Block by[2];
+    by[1].update(*this, Block(*this, CharSet(*this, 
+                                              IntSet({'a','b','d',})), 0, 900));
+    by[0].update(*this, Block(*this, CharSet(*this, 'c', 'd'), 0, 900));
+    StringVar x(*this, DashedString(*this, bx, 4));
+    StringVar y(*this, DashedString(*this, by, 2));
+    StringView vx(x), vy(y);
+    ReverseView rx(vx), ry(vy);
+    cerr << "Equate x = " << x << "  vs " << ry << "\n";
+    assert (vx.equate(*this, ry) == ME_STRING_BASE);
+    cerr << "After equate: x = " << x << "\n";     
+    assert (vx[2].baseMin() == 'a' && vx[2].baseMax() == 'd');
+    cerr << "Equate y = " << y << "  vs " << rx << "\n";
+    assert (vy.equate(*this, rx) == ME_STRING_CARD);
+    cerr << "After equate: y = " << y << "\n";
+    assert(ry[1].ub() == 800);
+    assert(rx.isOK() && ry.isOK());
+  }
+  
+  void test16() {
+    std::cerr << "\n*** Test 16 ***" << std::endl;
 //    StringVar x(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 400));
 //    StringVar y(*this, Block(*this, CharSet(*this, 'd'), 0, 900));
 //    StringView vx(x), vy(y);
@@ -416,7 +417,7 @@ public:
 //    assert (vy.equate(*this, vx) == ME_STRING_VAL);
 //    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
 //    assert (x.val().empty() == y.val().empty());
-//  }
+  }
 //  
 //  void test25() {
 //    std::cerr << "\n*** Test 25 ***" << std::endl;
@@ -710,8 +711,8 @@ int main() {
   home->test12();
   home->test13();
   home->test14();
-//  home->test15();
-//  home->test16();
+  home->test15();
+  home->test16();
 //  home->test17();
 //  home->test18();
 //  home->test19();
