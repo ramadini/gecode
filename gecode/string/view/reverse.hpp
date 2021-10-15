@@ -355,17 +355,16 @@ namespace Gecode { namespace String {
   forceinline void
   ReverseView::mand_region(Space& home, const Block& bx, Block* bnew, int u,
                            const Position& p, const Position& q) const {
-    std::cerr << "p: " << p << ", q: " << q << '\n';
+//    std::cerr << "p: " << p << ", q: " << q << '\n';
     if (!prec(p,q)) {
       assert ((*this)[q.idx].isNull());
       return;
     };
     int q_i = q.idx, p_i = p.off > 0 ? p.idx : p.idx-1, 
         q_o = q.off, p_o = p.off > 0 ? p.off : x0[p_i].ub();
-    std::cerr << "LSP=(" << p_i << "," << p_o << "), EEP=(" << q_i << "," << q_o << "), u = "<<u<<"\n";
-    std::cerr << x0[q_i] << "\n";
+//    std::cerr << "LSP=(" << p_i << "," << p_o << "), EEP=(" << q_i << "," << q_o << "), u = "<<u<<"\n";
     const Block& bq = p_i == q_i ? x0[q_i] : (*this)[q_i];
-    std::cerr << "bq: " << bq << "\n";
+//    std::cerr << "bq: " << bq << "\n";
     // Head of the region.    
     bnew[0].update(home, bq);
     bnew[0].baseIntersect(home, bx);    
@@ -392,13 +391,12 @@ namespace Gecode { namespace String {
     }
     // Tail of the region.
     const Block& bp = p_i == q_i ? x0[p_i] : (*this)[p_i];
-    std::cerr << "bp: " << bp << "\n";
+//    std::cerr << "bp: " << bp << "\n";
     bnew[j].update(home, bp);
     bnew[j].baseIntersect(home, bx);
     if (!bnew[j].isNull())
       bnew[j].updateCard(home, std::max(bp.lb(), p_o), 
                                std::min(u, std::max(p_o,bp.ub())));
-    for (int i = 0;i <= j;++i)std::cerr<<bnew[i]<<',';std::cerr<<'\n';
   }
   
   template <class ViewX>
