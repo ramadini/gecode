@@ -355,16 +355,16 @@ namespace Gecode { namespace String {
   forceinline void
   ReverseView::mand_region(Space& home, const Block& bx, Block* bnew, int u,
                            const Position& p, const Position& q) const {
-    std::cerr << "p: " << p << ", q: " << q << '\n';
+//    std::cerr << "p: " << p << ", q: " << q << '\n';
     if (!prec(p,q)) {
       assert ((*this)[q.idx].isNull());
       return;
     };
     int q_i = q.idx, p_i = p.off > 0 ? p.idx : p.idx-1, 
         q_o = q.off, p_o = p.off > 0 ? p.off : x0[p_i].ub();
-    std::cerr << "LSP=(" << p_i << "," << p_o << "), EEP=(" << q_i << "," << q_o << "), u = "<<u<<"\n";
+//    std::cerr << "LSP=(" << p_i << "," << p_o << "), EEP=(" << q_i << "," << q_o << "), u = "<<u<<"\n";
     const Block& bp = x0[p_i];
-    std::cerr << "bp: " << bp << "\n";
+//    std::cerr << "bp: " << bp << "\n";
     // Head of the region.    
     bnew[0].update(home, bp);
     bnew[0].baseIntersect(home, bx);    
@@ -390,7 +390,7 @@ namespace Gecode { namespace String {
     }
     // Tail of the region.
     const Block& bq = x0[q_i];
-    std::cerr << "bq: " << bq << "\n";
+//    std::cerr << "bq: " << bq << "\n";
     bnew[j].update(home, bq);
     bnew[j].baseIntersect(home, bx);
     if (!bnew[j].isNull())
@@ -417,33 +417,34 @@ namespace Gecode { namespace String {
     assert(prec(p,q));
     int q_i = q.idx, p_i = p.off > 0 ? p.idx : p.idx-1, 
         q_o = q.off, p_o = p.off > 0 ? p.off : x0[p_i].ub();
-//    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
+//    std::cerr << "ESP: (" << p_i << "," << p_o << "), LEP=(" << q_i << "," << q_o << ")\n";
     // Only one block involved
-    const Block& bq = p_i == q_i ? x0[q_i] : (*this)[q_i];
+    const Block& bp = x0[p_i];
+//    std::cerr << "bp: " << bp << "\n";
     int k = bx.ub() - l1;
     if (q_i == p_i) {
-      bnew.update(home, bq);
+      bnew.update(home, bp);
       bnew.baseIntersect(home, bx);
       if (!bnew.isNull())
-        bnew.updateCard(home, 0, std::min(p_o-q_o, ubounded_sum(bq.lb(),k)));
+        bnew.updateCard(home, 0, std::min(p_o-q_o, ubounded_sum(bp.lb(), k)));
       return;
     }
     // More than one block involved
     Set::GLBndSet s;
-    bq.includeBaseIn(home, s);
-    int u = bq.ub() - q_o;
-    for (int i = q_i+1; i < p_i; ++i) {
-      const Block& bi = (*this)[i];
+    bp.includeBaseIn(home, s);
+    int u = std::min(bx.ub(), std::min(p_o, ubounded_sum(bp.lb(), k)));
+    for (int i = p_i-1; i > q_i; --i) {
+      const Block& bi = x0[i];
       bi.includeBaseIn(home, s);
       u = ubounded_sum(u, std::min(bi.ub(), ubounded_sum(bi.lb(), k)));
     }
-    const Block& bp = p_i == q_i ? x0[p_i] : (*this)[p_i];
-    bp.includeBaseIn(home, s);
+    const Block& bq = x0[q_i];
+//    std::cerr << "bq: " << bq << "\n";
+    bq.includeBaseIn(home, s);
     bnew.update(home, bx);
     bnew.baseIntersect(home, s);
     if (!bnew.isNull())
-      bnew.updateCard(home, 0, std::min(bx.ub(), 
-                     ubounded_sum(u, std::min(p_o, ubounded_sum(bp.lb(), k)))));
+      bnew.updateCard(home, 0, ubounded_sum(u, std::min(bx.ub(), bq.ub()-q_o)));
   }
   
   template <class T>
