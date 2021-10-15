@@ -235,24 +235,25 @@ public:
     assert (vx.size() == 4 && vx[3].val()[0] == 'f');
     assert(vx.isOK() && ry.isOK());
   }
-//  
-//  void test17() {
-//    std::cerr << "\n*** Test 17 ***" << std::endl;
-//    Block bx[2];
-//    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 300));
-//    bx[1].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 1));
-//    Block by[2];
-//    by[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 300));
-//    by[1].update(*this, Block(*this, CharSet(*this, 'b', 'c'), 0, 200));
-//    StringVar x(*this, DashedString(*this, bx, 2));
-//    StringVar y(*this, DashedString(*this, by, 2));
-//    StringView vx(x), vy(y);
-//    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-//    assert (vx.equate(*this, vy) == ME_STRING_NONE);
-//    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
-//    assert(vx.isOK() && vy.isOK());
-//  }
-//  
+  
+  void test09() {
+    std::cerr << "\n*** Test 09 ***" << std::endl;
+    Block bx[2];
+    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 300));
+    bx[1].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 1));
+    Block by[2];
+    by[1].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 300));
+    by[0].update(*this, Block(*this, CharSet(*this, 'b', 'c'), 0, 200));
+    StringVar x(*this, DashedString(*this, bx, 2));
+    StringVar y(*this, DashedString(*this, by, 2));
+    StringView vx(x), vy(y);
+    ReverseView ry(vy);
+    cerr << "Equate x = " << x << "  vs " << ry << "\n";
+    assert (vx.equate(*this, ry) == ME_STRING_NONE);
+    cerr << "After equate: x = " << x << "\n";
+    assert(vx.isOK() && ry.isOK());
+  }
+  
 //  void test18() {
 //    std::cerr << "\n*** Test 18 ***" << std::endl;
 //    Block bx[3];
@@ -693,6 +694,7 @@ int main() {
   home->test06();
   home->test07();
   home->test08();
+  home->test09();
   delete home;
   cerr << "\n----- test-rev.cpp passes -----\n\n";
   return 0;
