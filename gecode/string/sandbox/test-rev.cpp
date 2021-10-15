@@ -594,38 +594,38 @@ public:
     StringVar x(*this, DashedString(*this, bx, n));
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vx(x), vy(y);
-    assert (check_equate_x(vx, vy));
     ReverseView rx(vx), ry(vy);
+    assert (check_equate_x(vx, ry));
     cerr << "Equate y = " << y << "  vs " << rx << "\n";
     assert (vy.equate(*this, rx) == ME_STRING_CARD);
     cerr << "After equate: y = " << y << "\n";
     assert (vy.size() == 2 && vy[0].val()[0] == '6');
-    assert(vx.isOK() && vy.isOK());
+    assert (vx.isOK() && vy.isOK());
   }
   
   void test25() {
     std::cerr << "\n*** Test 25 ***" << std::endl;
-//    string w = "ab =ab";
-//    int n = w.size();
-//    Block bx[n]; 
-//    str2blocks(w, bx, n);
-//    Block by[n + 1];
-//    w = "ab =";
-//    str2blocks(w, by, n+1);
-//    by[4].update(*this, Block(*this, CharSet(*this, '0'), 0, 2));
-//    by[5].update(*this, Block('a'));
-//    by[6].update(*this, Block('b'));
-//    StringVar x(*this, DashedString(*this, bx, n));
-//    StringVar y(*this, DashedString(*this, by, n+1));
-//    StringView vx(x), vy(y);
-//    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-//    assert (check_equate_x(vx, vy));
-//    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
-//    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-//    assert (vy.equate(*this, vx) == ME_STRING_VAL);
-//    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
-//    assert (y.val() == vector<int>({'a','b',' ','=','a','b'}));
-//    assert(vx.isOK() && vy.isOK());
+    string w = "ab =ab";
+    reverse(w.begin(), w.end());
+    int n = w.size();
+    Block bx[n]; 
+    str2blocks(w, bx, n);
+    Block by[n + 1];
+    w = "ab =";
+    str2blocks(w, by, n+1);
+    by[4].update(*this, Block(*this, CharSet(*this, '0'), 0, 2));
+    by[5].update(*this, Block('a'));
+    by[6].update(*this, Block('b'));
+    StringVar x(*this, DashedString(*this, bx, n));
+    StringVar y(*this, DashedString(*this, by, n+1));
+    StringView vx(x), vy(y);
+    ReverseView rx(vx), ry(vy);
+    assert (check_equate_x(vx, ry));
+    cerr << "Equate y = " << y << "  vs " << rx << "\n";
+    assert (vy.equate(*this, rx) == ME_STRING_VAL);
+    cerr << "After equate: y = " << y << "\n";
+    assert (y.val() == vector<int>({'a','b',' ','=','a','b'}));
+    assert (rx.isOK() && ry.isOK());
   }
   
   void test26() {
@@ -727,7 +727,7 @@ int main() {
   home->test22();
   home->test23();
   home->test24();
-//  home->test25();
+  home->test25();
 //  home->test26();
 //  home->test28();
 //  home->test29();
