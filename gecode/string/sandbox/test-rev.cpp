@@ -217,7 +217,7 @@ public:
   
   void test08() {
     std::cerr << "\n*** Test 08 ***" << std::endl;
-    int n = 10;
+    int n = 1;
     Block bx[3];
     bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 30*n));
     bx[1].update(*this, Block('d', 5*n));

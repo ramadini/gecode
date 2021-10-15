@@ -355,21 +355,24 @@ namespace Gecode { namespace String {
   forceinline void
   ReverseView::mand_region(Space& home, const Block& bx, Block* bnew, int u,
                            const Position& p, const Position& q) const {
+    std::cerr << "p: " << p << ", q: " << q << '\n';
     if (!prec(p,q)) {
       assert ((*this)[q.idx].isNull());
       return;
     };
     int q_i = q.idx, p_i = p.off > 0 ? p.idx : p.idx-1, 
-        q_o = q.off, p_o = p.off > 0 ? p.off : (*this)[p_i].ub();
-//    std::cerr << "LSP=(" << p_i << "," << p_o << "), EEP=(" << q_i << "," << q_o << ")\n";
-    const Block& bq = (*this)[q_i];
+        q_o = q.off, p_o = p.off > 0 ? p.off : x0[p_i].ub();
+    std::cerr << "LSP=(" << p_i << "," << p_o << "), EEP=(" << q_i << "," << q_o << "), u = "<<u<<"\n";
+    std::cerr << x0[q_i] << "\n";
+    const Block& bq = p_i == q_i ? x0[q_i] : (*this)[q_i];
+    std::cerr << "bq: " << bq << "\n";
     // Head of the region.    
     bnew[0].update(home, bq);
     bnew[0].baseIntersect(home, bx);    
     if (!bnew[0].isNull()) {
       if (p_i == q_i) {
-        bnew[0].updateCard(home, std::max(0, std::min(p_o, bq.lb()) - q_o), 
-                                 std::min(u, p_o-q_o));    
+        bnew[0].updateCard(home, std::max(0, std::min(p_o, bq.lb())-q_o), 
+                                 std::min(u, p_o-q_o));
         return;
       }
       else
@@ -388,11 +391,14 @@ namespace Gecode { namespace String {
         bj.ub(home, u);
     }
     // Tail of the region.
-    const Block& bp = (*this)[p_i];
+    const Block& bp = p_i == q_i ? x0[p_i] : (*this)[p_i];
+    std::cerr << "bp: " << bp << "\n";
     bnew[j].update(home, bp);
     bnew[j].baseIntersect(home, bx);
     if (!bnew[j].isNull())
-      bnew[j].updateCard(home, std::min(bp.lb(), p_o), std::min(u, p_o));
+      bnew[j].updateCard(home, std::max(bp.lb(), p_o), 
+                               std::min(u, std::max(p_o,bp.ub())));
+    for (int i = 0;i <= j;++i)std::cerr<<bnew[i]<<',';std::cerr<<'\n';
   }
   
   template <class ViewX>
@@ -413,10 +419,10 @@ namespace Gecode { namespace String {
                            const Position& p, const Position& q, int l1) const {
     assert(prec(p,q));
     int q_i = q.idx, p_i = p.off > 0 ? p.idx : p.idx-1, 
-        q_o = q.off, p_o = p.off > 0 ? p.off : (*this)[p_i].ub();
+        q_o = q.off, p_o = p.off > 0 ? p.off : x0[p_i].ub();
 //    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
     // Only one block involved
-    const Block& bq = (*this)[q_i];
+    const Block& bq = p_i == q_i ? x0[q_i] : (*this)[q_i];
     int k = bx.ub() - l1;
     if (q_i == p_i) {
       bnew.update(home, bq);
@@ -434,7 +440,7 @@ namespace Gecode { namespace String {
       bi.includeBaseIn(home, s);
       u = ubounded_sum(u, std::min(bi.ub(), ubounded_sum(bi.lb(), k)));
     }
-    const Block& bp = (*this)[p_i];
+    const Block& bp = p_i == q_i ? x0[p_i] : (*this)[p_i];
     bp.includeBaseIn(home, s);
     bnew.update(home, bx);
     bnew.baseIntersect(home, s);
