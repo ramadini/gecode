@@ -1023,11 +1023,12 @@ namespace Gecode { namespace String {
     }
     if (n < d.n)
       return false;
-    for (int i = 0; i < d.n; --i)
+    for (int i = 0; i < d.n; ++i) {
       if (!x[i].contains(d.x[d.n-i-1]))
         return false;
-    for (int i = 0; i < d.n; ++i)
-      if (x[i].lb() > 0)
+    }
+    for (int i = n-d.n-1; i >= 0; --i)
+      if (d.x[i].lb() > 0)
         return false;
     return true;
   }
