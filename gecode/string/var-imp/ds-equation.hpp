@@ -310,6 +310,7 @@ namespace Gecode { namespace String {
     for (int i = 0; i < nx; ++i) {
       x.stretch(i, fwd_it);
       m[i].LEP = *fwd_it;
+//      std::cerr << i << ") LEP of " << x[i] << ": " << m[i].LEP << "\n";
       if (!fwd_it.hasNextBlock()) {
         for (int j = i+1; j < nx; ++j)
           m[j].LEP = *fwd_it;
@@ -322,6 +323,7 @@ namespace Gecode { namespace String {
     for (int i = nx-1; i >= 0; --i) {
       x.stretch(i, bwd_it);
       m[i].ESP = *bwd_it;
+//      std::cerr << i << ") ESP of " << x[i] << ": " << m[i].ESP << "\n";
       if (!bwd_it.hasNextBlock()) {
         for (int j = i-1; j >= 0; --j)
           m[j].ESP = *bwd_it;
@@ -344,17 +346,18 @@ namespace Gecode { namespace String {
     for (int i = 0; i < nx; ++i) {
       if (!pushESP<ViewX,ViewY>(x, y, m, i))
         return false;
-//      std::cerr << "ESP of " << x[i] << ": " << m[i].ESP << "\n";
+//      std::cerr << i << ") ESP of " << x[i] << ": " << m[i].ESP << "\n";
     }
     for (int i = nx-1; i >= 0; --i) {
       if (!pushLEP<ViewX,ViewY>(x, y, m, i))
         return false;
-//      std::cerr << "LEP of " << x[i] << ": " << m[i].LEP << "\n";
+//      std::cerr << i << ") LEP of " << x[i] << ": " << m[i].LEP << "\n";
     }
     m[0].LSP = m[0].ESP;
     for (int i = 1; i < nx; ++i) {
       m[i].LSP = m[i-1].LEP;
-//      std::cerr << "LSP of " << x[i] << ": " << m[i].LSP << "\n";      
+//      std::cerr << i << ") ESP of " << x[i] << ": " << m[i].LSP << "\n";
+//      std::cerr << i << ") LSP of " << x[i] << ": " << m[i].LSP << "\n";      
       if (y.prec(m[i].LSP, m[i].ESP))
         return false;
 //      assert (m[i].ESP.isNorm(y) && m[i].LSP.isNorm(y));
@@ -364,7 +367,8 @@ namespace Gecode { namespace String {
     n = xFixed ? 0 : y.ub_new_blocks(m[nx-1]);
     for (int i = nx-2; i >= 0; --i) {
       m[i].EEP = m[i+1].ESP;
-//      std::cerr << "EEP of " << x[i] << ": " << m[i].EEP << "\n";
+//      std::cerr << i << ") EEP of " << x[i] << ": " << m[i].EEP << "\n";
+//      std::cerr << i << ") LEP of " << x[i] << ": " << m[i].EEP << "\n";
       if (y.prec(m[i].LEP, m[i].EEP))
         return false;
       if (x[i].isFixed())

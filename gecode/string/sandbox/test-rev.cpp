@@ -254,30 +254,32 @@ public:
     assert(vx.isOK() && ry.isOK());
   }
   
-//  void test18() {
-//    std::cerr << "\n*** Test 18 ***" << std::endl;
-//    Block bx[3];
-//    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 1));
-//    bx[1].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 1));
-//    bx[2].update(*this, Block(*this, CharSet(*this, 'c', 'd'), 1, 1));
-//    Block by[2];
-//    by[0].update(*this, Block(*this, CharSet(*this, 'a', 'a'), 0, 2));
-//    by[1].update(*this, Block(*this, CharSet(*this, 'd', 'd'), 1, 1));
-//    StringVar x(*this, DashedString(*this, bx, 3));
-//    StringVar y(*this, DashedString(*this, by, 2));
-//    StringView vx(x), vy(y);
-//    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-//    assert (vx.equate(*this, vy) == ME_STRING_VAL);
-//    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
-//    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-//    assert (vy.equate(*this, vx) == ME_STRING_VAL);
-//    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
-//    assert (x.val() == y.val());
-//    assert(vx.isOK() && vy.isOK());
-//  }
-//  
-//  void test19() {
-//    std::cerr << "\n*** Test 19 ***" << std::endl;
+  void test10() {
+    std::cerr << "\n*** Test 10 ***" << std::endl;
+    Block bx[3];
+    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 1));
+    bx[1].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 1));
+    bx[2].update(*this, Block(*this, CharSet(*this, 'c', 'd'), 1, 1));
+    Block by[2];
+    by[1].update(*this, Block(*this, CharSet(*this, 'a', 'a'), 0, 2));
+    by[0].update(*this, Block(*this, CharSet(*this, 'd', 'd'), 1, 1));
+    StringVar x(*this, DashedString(*this, bx, 3));
+    StringVar y(*this, DashedString(*this, by, 2));
+    StringView vx(x), vy(y);
+    ReverseView ry(vy);
+    cerr << "Equate x = " << x << "  vs " << ry << "\n";
+    assert (vx.equate(*this, ry) == ME_STRING_VAL);
+    cerr << "After equate: x = " << x << "\n";
+    ReverseView rx(vx);
+    cerr << "Equate y = " << y << "  vs  x = " << rx << "\n";
+    assert (vy.equate(*this, rx) == ME_STRING_VAL);
+    cerr << "After equate: y = " << y << " \n";
+    assert (x.val() == rev(y.val()) && y.val() == rev(x.val()));
+    assert(vx.isOK() && vy.isOK());
+  }
+  
+  void test11() {
+    std::cerr << "\n*** Test 11 ***" << std::endl;
 //    Block bx[3];
 //    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 1));
 //    bx[1].update(*this, Block(*this, CharSet(*this, 'e', 'f'), 1, 1));
@@ -296,8 +298,8 @@ public:
 //    cerr << "Unsat!\n";
 //    assert (!check_equate_x(vx, vy) && !check_equate_x(vy, vx));
 //    assert(vx.isOK() && vy.isOK());
-//  }
-//  
+  }
+  
 //  void test20() {
 //    std::cerr << "\n*** Test 20 ***" << std::endl;
 //    Block bx[3];
@@ -695,6 +697,8 @@ int main() {
   home->test07();
   home->test08();
   home->test09();
+  home->test10();
+  home->test11();
   delete home;
   cerr << "\n----- test-rev.cpp passes -----\n\n";
   return 0;
