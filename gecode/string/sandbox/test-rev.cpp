@@ -485,52 +485,54 @@ public:
     cerr << "After equate: y = " << y << "\n";
     assert(rx.isOK() && ry.isOK());
   }
-//  
-//  void test20() {
-//    std::cerr << "\n*** Test 20 ***" << std::endl;
-//    StringVar x(*this, 
-//                 DashedString(*this, Block(*this, CharSet(*this, 'a'), 0, 6)));
-//    Block by[3];
-//    by[0].update(*this, Block(*this, CharSet(*this, 'a'), 0, 5));
-//    by[1].update(*this, Block('a'));
-//    by[2].update(*this, Block(*this, CharSet(*this, 'a'), 0, 5));
-//    StringVar y(*this, DashedString(*this, by, 3));
-//    StringView vx(x), vy(y);
-//    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-//    assert (vx.equate(*this, vy) == ME_STRING_CARD);
-//    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
-//    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-//    assert (vy.equate(*this, vx) == ME_STRING_CARD);
-//    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
-//    assert (vx.varimp()->dom().contains(vy.varimp()->dom()));
-//    assert (vy.varimp()->dom().contains(vx.varimp()->dom()));
-//    assert(vx.isOK() && vy.isOK());
-//  }
-//  
-//  void test21() {
-//    std::cerr << "\n*** Test 21 ***" << std::endl;
-//    Block bx[3];
-//    bx[0].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 3));
-//    bx[1].update(*this, Block(*this, CharSet(*this, 'd', 'd'), 1, 1));
-//    bx[2].update(*this, Block(*this, CharSet(*this, 'c', 'f'), 0, 2));
-//    Block by[2];
-//    by[0].update(*this, Block(*this, CharSet(*this, 'b', 'd'), 0, 3));
-//    by[1].update(*this, Block('f'));
-//    StringVar x(*this, DashedString(*this, bx, 3));
-//    StringVar y(*this, DashedString(*this, by, 2));
-//    StringView vx(x), vy(y);
-//    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-//    assert (vx.equate(*this, vy) == ME_STRING_CARD);
-//    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
-//    assert(vx[0].ub() == 2 && vx[1].val() == std::vector<int>({'d'}));
-//    assert(vx[2].ub() == 1 && vx[3].val() == std::vector<int>({'f'}));
-//    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-//    assert (vy.equate(*this, vx) == ME_STRING_CARD);
-//    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
-//    assert(vy[0].lb() == 1 && vy[1].val() == std::vector<int>({'f'}));
-//    assert(vx.isOK() && vy.isOK());
-//  }
-//  
+  
+  void test20() {
+    std::cerr << "\n*** Test 20 ***" << std::endl;
+    StringVar x(*this, 
+                 DashedString(*this, Block(*this, CharSet(*this, 'a'), 0, 6)));
+    Block by[3];
+    by[2].update(*this, Block(*this, CharSet(*this, 'a'), 0, 5));
+    by[1].update(*this, Block('a'));
+    by[0].update(*this, Block(*this, CharSet(*this, 'a'), 0, 5));
+    StringVar y(*this, DashedString(*this, by, 3));
+    StringView vx(x), vy(y);
+    ReverseView rx(vx), ry(vy);
+    cerr << "Equate x = " << x << "  vs  " << ry << "\n";
+    assert (vx.equate(*this, ry) == ME_STRING_CARD);
+    cerr << "After equate: x = " << x << "\n";
+    cerr << "Equate y = " << y << "  vs  " << rx << "\n";
+    assert (vy.equate(*this, rx) == ME_STRING_CARD);
+    cerr << "After equate: y = " << y << "\n";
+    assert (vx.varimp()->dom().contains(vy.varimp()->dom()));
+    assert (vy.varimp()->dom().contains(vx.varimp()->dom()));
+    assert(vx.isOK() && vy.isOK());
+  }
+  
+  void test21() {
+    std::cerr << "\n*** Test 21 ***" << std::endl;
+    Block bx[3];
+    bx[2].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 3));
+    bx[1].update(*this, Block(*this, CharSet(*this, 'd', 'd'), 1, 1));
+    bx[0].update(*this, Block(*this, CharSet(*this, 'c', 'f'), 0, 2));
+    Block by[2];
+    by[0].update(*this, Block(*this, CharSet(*this, 'b', 'd'), 0, 3));
+    by[1].update(*this, Block('f'));
+    StringVar x(*this, DashedString(*this, bx, 3));
+    StringVar y(*this, DashedString(*this, by, 2));
+    StringView vx(x), vy(y);
+    ReverseView rx(vx), ry(vy);
+    cerr << "Equate x = " << x << "  vs  " << ry << "\n";
+    assert (vx.equate(*this, ry) == ME_STRING_CARD);
+    cerr << "After equate: x = " << x << "\n";
+    cerr << "Equate y = " << y << "  vs  " << rx << "\n";
+    assert (vy.equate(*this, rx) == ME_STRING_CARD);
+    cerr << "After equate: y = " << y << "\n";
+    assert(rx[0].ub() == 2 && rx[1].val() == std::vector<int>({'d'}));
+    assert(rx[2].ub() == 1 && rx[3].val() == std::vector<int>({'f'}));
+    assert(vy[0].lb() == 1 && vy[1].val() == std::vector<int>({'f'}));
+    assert(rx.isOK() && ry.isOK());
+  }
+  
 //  void test22() {
 //    std::cerr << "\n*** Test 22 ***" << std::endl;
 //    int N = Limits::MAX_ALPHABET_SIZE-1;
@@ -721,8 +723,8 @@ int main() {
   home->test17();
   home->test18();
   home->test19();
-//  home->test20();
-//  home->test21();
+  home->test20();
+  home->test21();
 //  home->test22();
 //  home->test23();
 //  home->test24();
