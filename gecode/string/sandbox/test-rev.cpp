@@ -407,16 +407,17 @@ public:
   
   void test16() {
     std::cerr << "\n*** Test 16 ***" << std::endl;
-//    StringVar x(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 400));
-//    StringVar y(*this, Block(*this, CharSet(*this, 'd'), 0, 900));
-//    StringView vx(x), vy(y);
-//    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-//    assert (vx.equate(*this, vy) == ME_STRING_VAL);
-//    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
-//    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-//    assert (vy.equate(*this, vx) == ME_STRING_VAL);
-//    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
-//    assert (x.val().empty() == y.val().empty());
+    StringVar x(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 400));
+    StringVar y(*this, Block(*this, CharSet(*this, 'd'), 0, 900));
+    StringView vx(x), vy(y);
+    ReverseView rx(vx), ry(vy);
+    cerr << "Equate x = " << x << "  vs  " << ry << "\n";
+    assert (vx.equate(*this, ry) == ME_STRING_VAL);
+    cerr << "After equate: x = " << x << "\n";
+    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
+    assert (vy.equate(*this, rx) == ME_STRING_VAL);
+    cerr << "After equate: y = " << y << "\n";
+    assert (x.val().empty() == y.val().empty());
   }
 //  
 //  void test25() {
