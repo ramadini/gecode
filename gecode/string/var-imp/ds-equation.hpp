@@ -104,19 +104,19 @@ namespace Gecode { namespace String {
     int* U = nullptr;
     int newSize = 0, uSize = 0;
     for (int i = 0; i < nx; ++i) {
-      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";      
+//      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";      
       if (x[i].isFixed())
         continue;
       Position& esp = m[i].ESP, eep = m[i].EEP, lsp = m[i].LSP, lep = m[i].LEP;
-      std::cerr << "ESP: " << esp << "\nLSP: " << lsp << "\nEEP: " 
-                           << eep << "\nLEP: " << lep << "\n";
+//      std::cerr << "ESP: " << esp << "\nLSP: " << lsp << "\nEEP: " 
+//                           << eep << "\nLEP: " << lep << "\n";
       const Block& x_i = x[i];
       int l = x_i.lb(), u = x_i.ub(), l1 = min_len_mand(y, x_i, lsp, eep);
-      std::cerr << "l'=" << l1 << "\n";
+//      std::cerr << "l'=" << l1 << "\n";
       if (u < l1)
         return false;
       int u1 = y.max_len_opt(x_i, esp, lep, l1);
-      std::cerr << "u'=" << u1 << "\n";
+//      std::cerr << "u'=" << u1 << "\n";
       assert (l1 <= u1);
       if (l1 == 0 || l1 < l || u1 > u) {
         if (u1 == 0) {
@@ -209,7 +209,7 @@ namespace Gecode { namespace String {
         y.opt_region(home, xx_i, mreg[n-1], eep, lep, l1);
       DashedString d(home, mreg, n);
       r1.free();
-      std::cerr << "d = " << d << ' ' << n << "\n";
+//      std::cerr << "d = " << d << ' ' << n << "\n";
       n = d.size();
       if (n == 1) {
         nBlocks--;
@@ -304,13 +304,13 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool
   init_x(ViewX x, const ViewY& y, Matching m[]) {
-    std::cerr << "Init: " << x << "  vs  " << y << "\n";
+//    std::cerr << "Init: " << x << "  vs  " << y << "\n";
     SweepIterator<SweepFwd,ViewY> fwd_it = y.fwd_iterator();
     int nx = x.size();
     for (int i = 0; i < nx; ++i) {
       x.stretch(i, fwd_it);
       m[i].LEP = *fwd_it;
-      std::cerr << i << ") LEP of " << x[i] << ": " << m[i].LEP << "\n";
+//      std::cerr << i << ") LEP of " << x[i] << ": " << m[i].LEP << "\n";
       if (!fwd_it.hasNextBlock()) {
         for (int j = i+1; j < nx; ++j)
           m[j].LEP = *fwd_it;
@@ -323,7 +323,7 @@ namespace Gecode { namespace String {
     for (int i = nx-1; i >= 0; --i) {
       x.stretch(i, bwd_it);
       m[i].ESP = *bwd_it;
-      std::cerr << i << ") ESP of " << x[i] << ": " << m[i].ESP << "\n";
+//      std::cerr << i << ") ESP of " << x[i] << ": " << m[i].ESP << "\n";
       if (!bwd_it.hasNextBlock()) {
         for (int j = i-1; j >= 0; --j)
           m[j].ESP = *bwd_it;

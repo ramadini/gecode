@@ -630,73 +630,82 @@ public:
   
   void test26() {
     std::cerr << "\n*** Test 26 ***" << std::endl;
-//    int N = 5, M = 10;
-//    Block bx[N];
-//    for (int i = 0; i < N; ++i)
-//      bx[i].update(*this, Block(*this, CharSet(*this, 'a'+i), 1, N));
-//    Block by[M];
-//    for (int i = 0; i < M; ++i)
-//      by[i].update(*this, Block(*this, CharSet(*this, 'a'+i, 'a'+M-1), 0, M));
-//    StringVar x(*this, DashedString(*this, bx, N));
-//    StringVar y(*this, DashedString(*this, by, M));
-//    StringView vx(x), vy(y);
-//    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-//    assert (vx.equate(*this, vy) == ME_STRING_NONE);
-//    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
-//    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-//    assert (vy.equate(*this, vx) == ME_STRING_CARD);
-//    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
-//    assert (vy[0].equals(Block(*this, CharSet(*this, 'a'), 1, 5)));
-//    for (int i = 1; i < N; ++i)
-//      assert(vy[i].baseMin() == 'a'+i && vy[i].baseMax() == 'a'+N-1);
-//    assert(vx.isOK() && vy.isOK());
+    int N = 5, M = 10;
+    Block bx[N];
+    for (int i = N-1; i >= 0; --i)
+      bx[N-i-1].update(*this, Block(*this, CharSet(*this, 'a'+i), 1, N));
+    Block by[M];
+    for (int i = M-1; i >= 0; --i)
+      by[i].update(*this, Block(*this, CharSet(*this, 'a'+i, 'a'+M-1), 0, M));
+    StringVar x(*this, DashedString(*this, bx, N));
+    StringVar y(*this, DashedString(*this, by, M));
+    StringView vx(x), vy(y);
+    ReverseView rx(vx), ry(vy);
+    cerr << "Equate x = " << x << "  vs  " << ry << "\n";
+    assert (vx.equate(*this, ry) == ME_STRING_NONE);
+    cerr << "After equate: x = " << x << "\n";
+    cerr << "Equate y = " << y << "  vs  x = " << rx << "\n";
+    assert (vy.equate(*this, rx) == ME_STRING_CARD);
+    cerr << "After equate: y = " << y << "\n";
+    assert (vy[0].val()[0] == 'a');
+    for (int i = 1; i < N; ++i)
+      assert(vy[i].baseMin() == 'a'+i-1 && vy[i].baseMax() == 'a'+N-1);
+    assert (rx.isOK() && ry.isOK());
   }
   
   void test27() {
     std::cerr << "\n*** Test 27 ***" << std::endl;
-//    Block bx[2];
-//    bx[0].update(*this, Block(*this, CharSet(*this, 'a'), 1, 2));
-//    bx[1].update(*this, Block('b'));
-//    Block by[2];
-//    by[0].update(*this, Block('a'));
-//    by[1].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 2, 3));
-//    StringVar x(*this, DashedString(*this, bx, 2));
-//    StringVar y(*this, DashedString(*this, by, 2));
-//    StringView vx(x), vy(y);
-//    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-//    assert (vx.equate(*this, vy) == ME_STRING_VAL);
-//    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
-//    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-//    assert (vy.equate(*this, vx) == ME_STRING_VAL);
-//    cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
-//    assert(vx.isOK() && vy.isOK());
+    Block bx[2];
+    bx[0].update(*this, Block(*this, CharSet(*this, 'a'), 1, 2));
+    bx[1].update(*this, Block('b'));
+    Block by[2];
+    by[1].update(*this, Block('a'));
+    by[0].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 2, 3));
+    StringVar x(*this, DashedString(*this, bx, 2));
+    StringVar y(*this, DashedString(*this, by, 2));
+    StringView vx(x), vy(y);
+    ReverseView rx(vx), ry(vy);
+    cerr << "Equate x = " << x << "  vs  " << ry << "\n";
+    assert (vx.equate(*this, ry) == ME_STRING_VAL);
+    cerr << "After equate: x = " << x << " \n";
+    cerr << "Equate y = " << y << "  vs  " << rx << "\n";
+    assert (vy.equate(*this, rx) == ME_STRING_VAL);
+    cerr << "After equate: y = " << y << "\n";
+    assert (rx.isOK() && ry.isOK());
   }
   
   void test28() {
     std::cerr << "\n*** Test 28 ***" << std::endl;
-//    string wx = " bT]?e]qCu|B,LSV!W( ";
-//    int nx = wx.size();
-//    Block bx[nx];
-//    str2blocks(wx, bx, nx);
-//    bx[0].update(*this, Block(*this, CharSet(*this), 43, 74));
-//    bx[nx-1].update(*this, Block(*this, CharSet(*this), 0, 31));
-//    string wy = ":?@NbT;^AZR3IuW3ee:)DpBr%&C]=x=BqcG8[Pe.Uj` ]c4]?e]qCu|B,LSV!W(e: ";
-//    int ny = wy.size()-1;
-//    Block by[ny];
-//    str2blocks(wy, by, ny);
-//    by[wy.find(' ')].update(*this, Block(*this, CharSet(*this), 11, 11));
-//    by[ny-1].update(*this, Block(*this, CharSet(*this), 0, 17));    
-//    StringVar x(*this, DashedString(*this, bx, nx)); 
-//    StringVar y(*this, DashedString(*this, by, ny));
-//    StringView vx(x), vy(y);
-//    // NOTE: x and y are not equatable.
-//    cerr << "Equate x = " << x << "  vs  y = " << y << "\n";
-//    assert (vx.equate(*this, vy) == ME_STRING_CARD);    
-//    cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
-//    cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-//    assert (vy.equate(*this, vx) == ME_STRING_FAILED);
-//    cerr << "Unsat!\n";
-//    assert (!check_equate_x(vx, vy) && !check_equate_x(vy, vx));
+    string wx = " bT]?e]qCu|B,LSV!W( ";
+    int nx = wx.size();
+    Block bx[nx];
+    str2blocks(wx, bx, nx);
+    bx[0].update(*this, Block(*this, CharSet(*this), 43, 74));
+    bx[nx-1].update(*this, Block(*this, CharSet(*this), 0, 31));
+    string wy = ":?@NbT;^AZR3IuW3ee:)DpBr%&C]=x=BqcG8[Pe.Uj` ]c4]?e]qCu|B,LSV!W(e: ";
+    int ny = wy.size()-1;
+    Block by[ny];
+    str2blocks(wy, by, ny);
+    by[wy.find(' ')].update(*this, Block(*this, CharSet(*this), 11, 11));
+    by[ny-1].update(*this, Block(*this, CharSet(*this), 0, 17));    
+    for (int i = 0; i < ny/2; ++i) {
+      Block z;
+      z.update(*this, by[i]);
+      by[i].update(*this, by[ny-i-1]);
+      by[ny-i-1].update(*this, z);
+    }
+    StringVar x(*this, DashedString(*this, bx, nx)); 
+    StringVar y(*this, DashedString(*this, by, ny));
+    StringView vx(x), vy(y);
+    ReverseView rx(vx), ry(vy);
+    // NOTE: x and y are not equatable.
+    cerr << "Equate x = " << x << "  vs  " << ry << "\n";
+    assert (vx.equate(*this, ry) == ME_STRING_CARD);    
+    cerr << "After equate: x = " << x << "\n";
+    cerr << "Equate y = " << y << "  vs  " << rx << "\n";
+    assert (vy.equate(*this, rx) == ME_STRING_FAILED);
+    cerr << "Unsat!\n";
+    assert (!check_equate_x(vx, ry) && !check_equate_x(vy, rx));
   }
   
 };
@@ -728,9 +737,9 @@ int main() {
   home->test23();
   home->test24();
   home->test25();
-//  home->test26();
-//  home->test28();
-//  home->test29();
+  home->test26();
+  home->test27();
+  home->test28();
   delete home;
   cerr << "\n----- test-rev.cpp passes -----\n\n";
   return 0;
