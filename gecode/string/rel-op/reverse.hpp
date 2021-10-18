@@ -6,13 +6,11 @@ namespace Gecode { namespace String { namespace RelOp {
   forceinline ExecStatus
   Reverse<View0,View1>::post(Home home, View0 x0, View1 x1) {
     if (x0.same(x1)) {
-      StringVar y(home, x1);
-      (void) new (home) Gecode::String::Rel::Eq<View0,ReverseView>
-                                               (home, x0, ReverseView(y));
-      rel(home, x1, STRT_EQ, y);
+      StringView y1(x1);
+      Reverse<View0,View1>::post(home, x0, y1);
     }
     else
-      (void) new (home) Reverse(home, x0, ReverseView(x1));
+      (void) new (home) Reverse(home, x0, x1);
     return ES_OK;
   }
   
