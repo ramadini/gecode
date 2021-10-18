@@ -6,8 +6,11 @@ namespace Gecode { namespace String { namespace RelOp {
   forceinline ExecStatus
   Reverse<View0,View1>::post(Home home, View0 x0, View1 x1) {
     if (x0.same(x1)) {
-      StringView y1(x1);
-      Reverse<View0,View1>::post(home, x0, y1);
+      StringVar y1(home);
+      StringView v1(y1);
+      v1.gets_rev(home, x0);
+      eq(home, v1, x1);
+      (void) new (home) Reverse(home, x0, v1);
     }
     else
       (void) new (home) Reverse(home, x0, x1);
@@ -42,7 +45,7 @@ namespace Gecode { namespace String { namespace RelOp {
   template<class View0, class View1>
   forceinline ExecStatus
   Reverse<View0,View1>::propagate(Space& home, const ModEventDelta&) {
-    // std::cerr<<"\n"<<this<<"::Rev::propagate" << x0 << "  vs  " << x1 << "\n";
+//    std::cerr<<"\n"<<this<<"::Rev::propagate " << x0 << "  vs  " << x1 << "\n";
     refine_card(home);
     if (x0.assigned()) {
       if (x0.isNull()) {
@@ -88,7 +91,7 @@ namespace Gecode { namespace String { namespace RelOp {
       if (me0 + me1 != ME_STRING_NONE)
         refine_card(home);
     } while (x0.assigned() + x1.assigned() == 1);
-//    std::cerr << "Rev::propagated.\n";
+//    std::cerr << "Rev::propagated "<< x0 << "  vs  " << x1 << "\n";
     return x0.assigned() ? home.ES_SUBSUMED(*this) : ES_FIX;
   }
   

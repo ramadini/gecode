@@ -1,5 +1,6 @@
 #include <gecode/string.hh>
 #include <gecode/string/rel.hh>
+//#include <gecode/string/rel-op.hh>
 
 
 namespace Gecode { namespace String {
@@ -8,6 +9,7 @@ namespace Gecode { namespace String {
   void
   rel_post(Home home, View0 x0, StringRelType r, View1 x1) {
     using namespace String::Rel;
+//    using namespace String::RelOp;
     GECODE_POST;
     switch (r) {
     case STRT_EQ:

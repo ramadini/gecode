@@ -83,7 +83,7 @@ namespace Gecode { namespace String { namespace Rel {
       if (me0 + me1 != ME_STRING_NONE)
         refine_card(home);
     } while (x0.assigned() + x1.assigned() == 1);
-//    std::cerr << "Eq::propagated.\n";
+//    std::cerr << "Eq::propagated << x0 << "  vs  " << x1 << "\n";
     return x0.assigned() ? home.ES_SUBSUMED(*this) : ES_FIX;
   }
 
