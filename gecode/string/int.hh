@@ -60,6 +60,8 @@ namespace Gecode { namespace String { namespace Int {
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator for \f$ y = x^n \f$
     static ExecStatus post(Home home, View0 s, Gecode::Int::IntView n, View1 y);
+  private:
+    ExecStatus refine_card(Space& home);
   };
 
 }}}

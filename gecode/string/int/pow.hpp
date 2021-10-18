@@ -33,7 +33,12 @@ namespace Gecode { namespace String { namespace Int {
     return new (home) Pow(home,*this);
   }
 
-  
+  template<class View0, class View1>
+  forceinline ExecStatus
+  Pow<View0,View1>::refine_card(Space& home) {
+    //TODO:
+    return ES_OK;
+  }
 
   template<class View0,class View1>
   forceinline ExecStatus
@@ -70,20 +75,14 @@ namespace Gecode { namespace String { namespace Int {
         }
         return ES_FIX;
       }
-      // General case.
-//    NSBlocks xn = x.pow(n1);
-//    int u = min(_MAX_STR_LENGTH, long(x._max_length) * (n2 - n1));
-//    xn.concat(NSBlocks(1, NSBlock(x.may_chars(), 0, u)), xn);
-//    xn.normalize();
-////    std::cerr << "xn: " << xn << "\n";
-//    if (!sweep_equate(h, *this, xn))
-//      return false;    
-//    if (!refine_card_pow(h, x, n1, n2))
-//      return false;
-//    return true;
-//        GECODE_ME_CHECK(x1.gq(home, l));
-//        GECODE_ME_CHECK(x1.lq(home, u));
-      //  assert (x0.pdomain()->is_normalized() && x2.pdomain()->is_normalized());      
+      int n0 = x0.size(), m = n0 == 1 ? n0 : n0*l;
+      Block xn[m+1];
+      int uu = std::min(long(MAX_STRING_LENGTH), n0 * long(u - l));
+      //FIXME: Implement may_chars -> xn[m].update(Block(x0.may_chars(), 0, uu));
+      DashedString d0(home, xn, m+1);
+      //FIXME: Implement DashedView(const DashedString& x) and change dom propagator too.
+      //       GECODE_ME_CHECK(x0.equate(home, d0)); 
+      GECODE_ME_CHECK(refine_card(home));
       a = x0.assigned() + x1.assigned() + x2.assigned();
       switch (a) {
       case 3:
