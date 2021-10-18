@@ -24,13 +24,13 @@ namespace Gecode { namespace String { namespace Int {
     Gecode::Int::IntView,Gecode::Int::PC_INT_BND> (home, p) {}
 
   template<class View>
-  Actor*
+  forceinline Actor*
   Length<View>::copy(Space& home) {
     return new (home) Length(home,*this);
   }
 
   template<class View>
-  ExecStatus
+  forceinline ExecStatus
   Length<View>::propagate(Space& home, const ModEventDelta&) {
 //    std::cerr << "\n" << this << "::Length::propagate |" <<x0<< "| = " <<x1<< "\n";
     int x1min, x1max;

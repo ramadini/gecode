@@ -13,7 +13,7 @@ namespace Gecode { namespace String { namespace Rel {
     : MixBinaryPropagator<View0,PC_STRING_VAL,View1,PC_STRING_VAL>(home,p) {}
 
   template<class View0, class View1>
-  ExecStatus
+  forceinline ExecStatus
   Nq<View0,View1>::post(Home home, View0 x, View1 y) {
     if (!x.same(y))
       (void) new (home) Nq(home,x,y);
@@ -21,13 +21,13 @@ namespace Gecode { namespace String { namespace Rel {
   }
 
   template<class View0, class View1>
-  Actor*
+  forceinline Actor*
   Nq<View0,View1>::copy(Space& home) {
     return new (home) Nq(home,*this);
   }
 
   template<class View0, class View1>
-  ExecStatus
+  forceinline ExecStatus
   Nq<View0,View1>::propagate(Space& home, const ModEventDelta&) {
 //    std::cerr << "Prop. Nq " << x0 << "  vs  " << x1 << "\n";
     if (x0.min_length() > x1.max_length() || x0.max_length() < x1.min_length())

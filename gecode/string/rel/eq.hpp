@@ -11,7 +11,7 @@ namespace Gecode { namespace String { namespace Rel {
     : MixBinaryPropagator<View0,PC_STRING_ANY,View1,PC_STRING_ANY>(home,p) {}
 
   template<class View0, class View1>
-  ExecStatus
+  forceinline ExecStatus
   Eq<View0,View1>::post(Home home, View0 x, View1 y) {
     if (!x.same(y))
       (void) new (home) Eq(home,x,y);
@@ -19,13 +19,13 @@ namespace Gecode { namespace String { namespace Rel {
   }
 
   template<class View0, class View1>
-  Actor*
+  forceinline Actor*
   Eq<View0,View1>::copy(Space& home) {
     return new (home) Eq(home,*this);
   }
 
   template<class View0, class View1>
-  ExecStatus
+  forceinline ExecStatus
   Eq<View0,View1>::refine_card(Space& home) {
     int l = std::max(x0.min_length(), x1.min_length()),
         u = std::min(x0.max_length(), x1.max_length());
@@ -35,19 +35,19 @@ namespace Gecode { namespace String { namespace Rel {
   }
 
   template<class View0, class View1>
-  ExecStatus
+  forceinline ExecStatus
   Eq<View0,View1>::propagate(Space& home, const ModEventDelta&) {
 //    std::cerr<<"\n"<<this<<"::Eq::propagate" << x0 << "  vs  " << x1 << "\n";
     refine_card(home);
     if (x0.assigned()) {
       if (x0.isNull()) {
         GECODE_ME_CHECK(x1.nullify(home));
-        return __ES_SUBSUMED; //home.ES_SUBSUMED(*this);
+        return home.ES_SUBSUMED(*this);
       }
       if (check_equate_x(x1,x0)) {
         if (!x1.assigned())
             x1.gets(home, x0);
-        return __ES_SUBSUMED; //home.ES_SUBSUMED(*this);
+        return home.ES_SUBSUMED(*this);
       }
       else
         return ES_FAILED;
@@ -55,11 +55,11 @@ namespace Gecode { namespace String { namespace Rel {
     if (x1.assigned()) {
       if (x1.isNull()) {
         GECODE_ME_CHECK(x0.nullify(home));
-        return __ES_SUBSUMED; //home.ES_SUBSUMED(*this);
+        return home.ES_SUBSUMED(*this);
       }
       if (check_equate_x(x0,x1)) {
         x0.gets(home, x1);
-        return __ES_SUBSUMED; //FIXME: with home.ES_SUBSUMED(*this), seg.fault in SQL 12
+        return home.ES_SUBSUMED(*this);
       }
       else
         return ES_FAILED;
