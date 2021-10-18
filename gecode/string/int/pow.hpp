@@ -1,4 +1,5 @@
 #include <gecode/int.hh>
+#include <gecode/string/rel.hh>
 
 namespace Gecode { namespace String { namespace Int {
 
@@ -32,6 +33,8 @@ namespace Gecode { namespace String { namespace Int {
     return new (home) Pow(home,*this);
   }
 
+  
+
   template<class View0,class View1>
   forceinline ExecStatus
   Pow<View0,View1>::propagate(Space& home, const ModEventDelta&) {
@@ -40,10 +43,46 @@ namespace Gecode { namespace String { namespace Int {
     int a;
     do {
       //FIXME: Use a privete method of this class instead of:
-        int l = x1.min(), u = x1.max();
-      //  GECODE_ME_CHECK(x2.pow(home, x0, l, u));
-        GECODE_ME_CHECK(x1.gq(home, l));
-        GECODE_ME_CHECK(x1.lq(home, u));
+      int l = x1.min(), u = x1.max();
+      if (l == u && u == 1)
+        GECODE_REWRITE(*this, (Gecode::String::Rel::Eq<View0,View1>
+          ::post(home(*this), x0, x2)));
+      // n == 0 \/ epsilon^n.
+      if (u == 0 || x0.isNull()) {
+        if (x2.isNull())
+          return home.ES_SUBSUMED(*this);
+        if (x2.min_length() > 0)
+          return ES_FAILED;
+        x2.nullify(home);
+        return home.ES_SUBSUMED(*this);
+      }
+      // x^n = epsilon
+      if (x2.isNull()) {
+        if (l > 0) {
+          if (x0.min_length() > 0)
+            return ES_FAILED;
+          x0.nullify(home);
+          return home.ES_SUBSUMED(*this);
+        }
+        else if (x0.min_length() > 0) {
+          x1.lq(home, 0);
+          return home.ES_SUBSUMED(*this);  
+        }
+        return ES_FIX;
+      }
+      // General case.
+//    NSBlocks xn = x.pow(n1);
+//    int u = min(_MAX_STR_LENGTH, long(x._max_length) * (n2 - n1));
+//    xn.concat(NSBlocks(1, NSBlock(x.may_chars(), 0, u)), xn);
+//    xn.normalize();
+////    std::cerr << "xn: " << xn << "\n";
+//    if (!sweep_equate(h, *this, xn))
+//      return false;    
+//    if (!refine_card_pow(h, x, n1, n2))
+//      return false;
+//    return true;
+//        GECODE_ME_CHECK(x1.gq(home, l));
+//        GECODE_ME_CHECK(x1.lq(home, u));
       //  assert (x0.pdomain()->is_normalized() && x2.pdomain()->is_normalized());      
       a = x0.assigned() + x1.assigned() + x2.assigned();
       switch (a) {

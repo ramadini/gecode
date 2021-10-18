@@ -76,13 +76,12 @@ namespace Gecode { namespace String { namespace Rel {
 //      std::cerr<<"propagated: "<<b<<(rm==RM_IMP?" =>":" <=")<<(rm==RM_EQV?"> ":" ")<<x0<<" = "<<x1<<std::endl;
       return home.ES_SUBSUMED(*this);
     }
-    else
-      if (x0.assigned() && x1.assigned()) {
-        if (rm != RM_PMI)
-          GECODE_ME_CHECK(b.one_none(home));
+    else if (x0.assigned() && x1.assigned()) {
+      if (rm != RM_PMI)
+        GECODE_ME_CHECK(b.one_none(home));
 //        std::cerr<<"propagated: "<<b<<(rm==RM_IMP?" =>":" <=")<<(rm==RM_EQV?"> ":" ")<<x0<<" = "<<x1<<std::endl;
-        return home.ES_SUBSUMED(*this);
-      }
+      return home.ES_SUBSUMED(*this);
+    }
 //     std::cerr<<"propagated: "<<b<<(rm==RM_IMP?" =>":" <=")<<(rm==RM_EQV?"> ":" ")<<x0<<" = "<<x1<<std::endl;
     return ES_FIX;
   }
