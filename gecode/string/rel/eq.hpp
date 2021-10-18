@@ -46,7 +46,7 @@ namespace Gecode { namespace String { namespace Rel {
       }
       if (check_equate_x(x1,x0)) {
         if (!x1.assigned())
-            x1.gets(home, x0);
+          x1.gets(home, x0);
         return home.ES_SUBSUMED(*this);
       }
       else
