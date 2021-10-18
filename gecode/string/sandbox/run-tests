@@ -4,7 +4,7 @@ TEST_DIR="${0%/*}"
 TEST_CMD=$TEST_DIR/test_cpp.sh
 declare -a TESTS=(
   'test-eq.cpp' 'test-prop.cpp' 'test-rev.cpp' \
-  'str_ex1.cpp' 'str_ex2.cpp' 'str_ex3.cpp' \
+  'str_ex1.cpp' 'str_ex2.cpp' 'str_ex3.cpp' 'str_ex4.cpp' \
   'anbn.cpp' 'chunk_split.cpp' 'hamming_mod.cpp' 'levenshtein.cpp' \
   'string_replace.cpp'
 )

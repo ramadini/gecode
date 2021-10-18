@@ -1,0 +1,3 @@
+#!/bin/bash
+grep -nR cerr gecode/string/ | grep -v Binary | grep -v // | grep -v sandbox | grep cerr
+
