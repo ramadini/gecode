@@ -353,6 +353,7 @@ namespace Gecode {
                                            const String::Block& b);
   GECODE_STRING_EXPORT void dom(Home home, StringVar x, 
                                            const String::DashedString& d);
+  GECODE_STRING_EXPORT void pow(Home home, StringVar x, IntVar n, StringVar y);
   GECODE_STRING_EXPORT void length(Home home, StringVar x, IntVar n);
   GECODE_STRING_EXPORT void reverse(Home home, StringVar x, StringVar y);
   GECODE_STRING_EXPORT void concat(Home home, StringVar x,

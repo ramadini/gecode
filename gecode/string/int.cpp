@@ -6,7 +6,14 @@ namespace Gecode {
   length(Home home, StringVar x, IntVar n) {
     using namespace String;
     GECODE_POST;
-    GECODE_ES_FAIL(String::Int::Length<String::StringView>::post(home, x, n));
+    GECODE_ES_FAIL(String::Int::Length<StringView>::post(home, x, n));
+  }
+  
+  void
+  pow(Home home, StringVar x, IntVar n, StringVar y) {
+    using namespace String;
+    GECODE_POST;
+    GECODE_ES_FAIL((String::Int::Pow<StringView,StringView>::post(home,x,n,y)));
   }
   
   /*
