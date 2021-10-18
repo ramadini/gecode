@@ -1329,7 +1329,7 @@ namespace Gecode { namespace String {
         rnorm = x_i.baseEquals(s);
       }
     }
-//    std::cerr << lnorm << ' ' << rnorm << '\n';
+//    std::cerr << (*this)[idx] << ' ' << lnorm << ' ' << rnorm << '\n';
     if (lnorm) {
       Block& x_prev = x[idx-1];
       if (rnorm) {
@@ -1357,9 +1357,11 @@ namespace Gecode { namespace String {
     }
     else if (rnorm) {
       Block& x_next = x[idx+1];
-      (x+idx)->updateCard(home, x_next.lb() + 1, x_next.ub() + 1);
       if (alt == 1)
         (x+idx)->baseRemove(home, c);
+      else if (x_i.baseSize() > 1)
+        (x+idx)->update(home, c);
+      (x+idx)->updateCard(home, x_next.lb() + 1, x_next.ub() + 1);
       for (int j = idx+1; j < n-1; ++j)
         (x+j)->update(home, x[j+1]);
       a.free(x+n-1, 1);

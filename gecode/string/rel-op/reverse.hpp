@@ -45,7 +45,7 @@ namespace Gecode { namespace String { namespace RelOp {
   template<class View0, class View1>
   forceinline ExecStatus
   Reverse<View0,View1>::propagate(Space& home, const ModEventDelta&) {
-//    std::cerr<<"\n"<<this<<"::Rev::propagate " << x0 << "  vs  " << x1 << "\n";
+    std::cerr<<"\n"<<this<<"::Rev::propagate " << x0 << "  vs  " << x1 << "\n";
     refine_card(home);
     if (x0.assigned()) {
       if (x0.isNull()) {
@@ -54,7 +54,7 @@ namespace Gecode { namespace String { namespace RelOp {
       }
       if (check_equate_x(x1,ReverseView(x0))) {
         if (!x1.assigned())
-          x1.gets_rev(home, x0);
+          x1.gets_rev(home, x0);std::cerr<<"\n"<<this<<"::Rev::propagate57 " << x0 << "  vs  " << x1 << "\n";
         return home.ES_SUBSUMED(*this);
       }
       else
@@ -91,7 +91,7 @@ namespace Gecode { namespace String { namespace RelOp {
       if (me0 + me1 != ME_STRING_NONE)
         refine_card(home);
     } while (x0.assigned() + x1.assigned() == 1);
-//    std::cerr << "Rev::propagated "<< x0 << "  vs  " << x1 << "\n";
+    std::cerr << "Rev::propagated "<< x0 << "  vs  " << x1 << "\n";
     return x0.assigned() ? home.ES_SUBSUMED(*this) : ES_FIX;
   }
   
