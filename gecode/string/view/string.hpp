@@ -759,12 +759,14 @@ namespace Gecode { namespace String {
       return v;  
     }    
     for (int i = 0; i < bp.lb() - p_o; ++i) {
-      assert (bp.baseSize() == 1);
+      if (bp.baseSize() > 1)
+        return v;
       v.push_back(k);
     }
     for (int i = p_i+1; i < q_i; ++i) {
       const Block& bi = (*this)[i];
-      assert (bi.baseSize() == 1);
+      if (bi.baseSize() == 1)
+        return v;
       k = bi.baseMin();
       for (int j = 0; j < bi.lb(); ++j)
         v.push_back(k);
@@ -821,7 +823,8 @@ namespace Gecode { namespace String {
     for (int i = 0; i < std::min(bq.lb(), q_o); ++i)
       v.push_back(k);
     for (int i = q_i-1; i > p_i; --i) {
-      assert ((*this)[i].baseSize() == 1);
+      if ((*this)[i].baseSize() > 1)
+        return v;
       k = (*this)[i].baseMin();
       for (int j = 0; j < (*this)[i].lb(); ++j)
         v.push_back(k);
@@ -829,7 +832,8 @@ namespace Gecode { namespace String {
     const Block& bp = (*this)[p_i];
     k = bp.baseMin();
     for (int j = 0; j < bp.lb() - p_o; ++j) {
-      assert ((*this)[q_i].baseSize() == 1);
+      if ((*this)[q_i].baseSize() > 1)
+        return v;
       v.push_back(k);
     }
     return v;

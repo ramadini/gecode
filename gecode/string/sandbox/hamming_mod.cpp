@@ -99,8 +99,7 @@ public:
     b1[2].update(*this, Block(*this, CharSet(*this, 'b'), 0, so.N));
     b1[3].update(*this, Block(*this, az, 1, 1));
     DashedString d1(*this, b1, 4);
-//FIXME: It should be pow(*this, StringVar(*this, v1, 3, so.N), n, expr_1);
-    eq(*this, StringVar(*this, d1), expr_1); 
+    pow(*this, StringVar(*this, d1), n, expr_1);
     eq(*this, var_5z6, expr_1);
 
     // var_5 ++ "z" ++ var_6 IN ((("z" | "b") ++ ("a" ++ ("z" | "b" | "a"))))* ++ "a"
@@ -109,8 +108,9 @@ public:
     b2[1].update(*this, Block('a'));
     b2[2].update(*this, Block(*this, abz, 1, 1));
     DashedString d2(*this, b2, 3);
-//FIXME: It should be pow(*this, StringVar(*this, v2, 3, 3), m, expr_2);
-    eq(*this, StringVar(*this, d2), expr_2);
+//FIXME: It should be 
+    pow(*this, StringVar(*this, d2), m, expr_2);
+//    eq(*this, StringVar(*this, d2), expr_2);
     concat(*this, expr_2, StringVar(*this, Block('a')), var_5z6);
 
     // var_5 ++ "z" ++ var_6 IN ((("z" | "b") ++ ("a" ++ ("z" | "a"))))* ++ "a"

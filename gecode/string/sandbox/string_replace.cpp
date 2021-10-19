@@ -94,8 +94,7 @@ public:
                        CharSet(*this, IntSet({'a','c','z'})), 1, 1));
     d[1].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, so.N));
     d[2].update(*this, 'z');
-//FIXME: It should be: pow(*this, StringVar(*this, v, 2, so.N), m, expr_2);
-//    dom(*this, expr_2, DashedString(*this, d, 3));
+    pow(*this, StringVar(*this, DashedString(*this, d, 3)), m, expr_2);
     concat(*this, expr_2, StringVar(*this,DashedString(*this, d, 2)), var_5zb6);
 
     DashedString dx(*this, 

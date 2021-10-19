@@ -55,6 +55,11 @@ namespace Gecode { namespace String { namespace Int {
     n1 = std::max(n1, int(div_l(ly,ux))), n2 = std::min(n2, int(div_u(uy,lx)));
     if (n1 > n2 || lx > ux || ly > uy)
       return ES_FAILED;
+    if (ly > 0) {
+      GECODE_ME_CHECK(x1.gq(home, 1));
+      GECODE_ME_CHECK(x0.min_length(home, 1));
+    }
+    GECODE_ME_CHECK(x1.gq(home, ly > 0));
     if (lx > x0.min_length()) GECODE_ME_CHECK(x0.min_length(home, lx));
     if (ux < x0.max_length()) GECODE_ME_CHECK(x0.max_length(home, ux));
     if (n1 > x1.min())        GECODE_ME_CHECK(x1.gq(home, n1));
@@ -100,9 +105,7 @@ namespace Gecode { namespace String { namespace Int {
       }
       // General case
       int n0 = x0.size();
-      bool norm = x0[0].equals(x0[n0-1]);
-      int m0 = n0 < 2 ? 0 : l*(n0-2*norm);
-      if (m0 == 0) {
+      if (n0 < 2) {
         if (!x0[0].isUniverse()) {
           Block bx;
           bx.update(home, x0[0]);
@@ -116,11 +119,15 @@ namespace Gecode { namespace String { namespace Int {
         }
       }
       else {
+        bool norm = l > 0 && n0 > 1 && x0[0].equals(x0[n0-1]);
+        int m0 = l*(n0-2*norm) + 1;
+        std::cerr << "m0: " << m0 << "\n";
         Region r1;
-        Block* d0 = r1.alloc<Block>(m0+1);
+        Block* d0 = r1.alloc<Block>(m0);
         Set::GLBndSet s;
         for (int i = 0; i < n0; ++i) {
-          d0[i].update(home, x0[i]);
+          if (l > 0)
+            d0[i].update(home, x0[i]);
           x0[i].includeBaseIn(home, s);
         }
         int l0, u0;
@@ -135,12 +142,14 @@ namespace Gecode { namespace String { namespace Int {
             d0[i*n0].updateCard(home, l0, u0);
         }
         u0 = std::min(long(MAX_STRING_LENGTH), x0.max_length()*long(u-l));
-        if (d0[m0-1].baseEquals(s)) {
+        std::cerr << "u0: " << u0 << "\n";
+        if (m0 > 1 && d0[m0-1].baseEquals(s)) {
           m0--;
           d0[m0].updateCard(home, d0[m0].lb(), ubounded_sum(d0[m0].ub(), u0));
         }
-        else if (u0 > 0)
-          d0[m0].update(home, Block(home, CharSet(home, s), 0, u0));
+        else
+          d0[m0-1].update(home, Block(home, CharSet(home, s), 0, u0));
+        std::cerr << "d0: " << ConstDashedView(d0[0], m0) << "\n";
         if (x2.assigned()) {
           if (!check_equate_x(x2, ConstDashedView(d0[0], m0)))
             return ES_FAILED;
