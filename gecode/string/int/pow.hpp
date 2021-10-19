@@ -72,7 +72,7 @@ namespace Gecode { namespace String { namespace Int {
   template<class View0,class View1>
   forceinline ExecStatus
   Pow<View0,View1>::propagate(Space& home, const ModEventDelta&) {
-    std::cerr <<"\n"<< this << "::Pow::propagate "<< x2 << " = " << x0 << " ^(" << x1 << ")\n";
+//    std::cerr <<"\n"<< this << "::Pow::propagate "<< x2 << " = " << x0 << " ^(" << x1 << ")\n";
     refine_card(home);
     int a;
     do {
@@ -121,7 +121,7 @@ namespace Gecode { namespace String { namespace Int {
       else {
         bool norm = l > 0 && n0 > 1 && x0[0].equals(x0[n0-1]);
         int m0 = l*(n0-2*norm) + 1;
-        std::cerr << "m0: " << m0 << "\n";
+//        std::cerr << "m0: " << m0 << "\n";
         Region r1;
         Block* d0 = r1.alloc<Block>(m0);
         Set::GLBndSet s;
@@ -142,14 +142,14 @@ namespace Gecode { namespace String { namespace Int {
             d0[i*n0].updateCard(home, l0, u0);
         }
         u0 = std::min(long(MAX_STRING_LENGTH), x0.max_length()*long(u-l));
-        std::cerr << "u0: " << u0 << "\n";
+//        std::cerr << "u0: " << u0 << "\n";
         if (m0 > 1 && d0[m0-1].baseEquals(s)) {
           m0--;
           d0[m0].updateCard(home, d0[m0].lb(), ubounded_sum(d0[m0].ub(), u0));
         }
         else
           d0[m0-1].update(home, Block(home, CharSet(home, s), 0, u0));
-        std::cerr << "d0: " << ConstDashedView(d0[0], m0) << "\n";
+//        std::cerr << "d0: " << ConstDashedView(d0[0], m0) << "\n";
         if (x2.assigned()) {
           if (!check_equate_x(x2, ConstDashedView(d0[0], m0)))
             return ES_FAILED;
@@ -181,7 +181,7 @@ namespace Gecode { namespace String { namespace Int {
         break;
       }
     } while (a == 2);
-    std::cerr << "After pow: " << x2 << " = " << x0 << " ^(" << x1 << ")\n";
+//    std::cerr << "After pow: " << x2 << " = " << x0 << " ^(" << x1 << ")\n";
     return ES_FIX;
   }
 

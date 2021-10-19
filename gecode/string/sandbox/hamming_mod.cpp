@@ -108,9 +108,7 @@ public:
     b2[1].update(*this, Block('a'));
     b2[2].update(*this, Block(*this, abz, 1, 1));
     DashedString d2(*this, b2, 3);
-//FIXME: It should be 
     pow(*this, StringVar(*this, d2), m, expr_2);
-//    eq(*this, StringVar(*this, d2), expr_2);
     concat(*this, expr_2, StringVar(*this, Block('a')), var_5z6);
 
     // var_5 ++ "z" ++ var_6 IN ((("z" | "b") ++ ("a" ++ ("z" | "a"))))* ++ "a"
@@ -118,8 +116,8 @@ public:
     b3[0].update(*this, Block('b'));
     b3[1].update(*this, Block('a'));
     b3[2].update(*this, Block(*this, az, 1, 1));
-    DashedString d3(*this, b3, 3);    
-//FIXME: It should be pow(*this, StringVar(*this, v3, 3, 3), l, expr_3);
+    DashedString d3(*this, b3, 3);
+    pow(*this, StringVar(*this, d3), l, expr_3);
     concat(*this, expr_3, StringVar(*this, Block('a')), var_5z6);
 
     // Branching.
