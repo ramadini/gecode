@@ -588,6 +588,100 @@ namespace Gecode { namespace String {
   
 }}
 
+namespace Gecode { namespace String {  
+  
+  /**
+   * \brief ConstDashed view
+   */
+  class ConstDashedView : public ConstView<StringView> {
+  // FIXME: Is really the template argument a StringView?
+  // FIXME: Remove unnecessary methods from here, ReverseView and ConstStringView
+  protected:
+    /// We never refine the blocks
+    const Block& b0;
+    int n;
+  public:
+    ConstDashedView(void);
+    ConstDashedView(const Block& b, int n);
+    /// 
+    int size(void) const;
+    /// 
+    bool isNull(void) const;
+    /// 
+    const Block& operator[](int i) const;
+    //@{
+    SweepIterator<SweepFwd,ConstDashedView> fwd_iterator(void) const;
+    SweepIterator<SweepBwd,ConstDashedView> bwd_iterator(void) const;
+    template <class IterY> Position push(int i, IterY& it) const;
+    template <class IterY> void stretch(int i, IterY& it) const;
+    //@}
+    /// Always returns true (for compatibility with other views)
+    bool assigned(void) const;
+    /// Checks length bounds (for compatibility with other views)
+    ModEvent bnd_length(Space& home, int l, int u) const;
+    /// If this view contains y
+    template <class T> bool contains(const T& y) const;
+    /// If this view is equals to y
+    template <class T> bool equals(const T& y) const;
+    /// Returns true if p and q are the same position in this view.
+    bool equiv(const Position& p, const Position& q) const;
+    /// Returns true if p precedes q according to this view.
+    bool prec(const Position& p, const Position& q) const;
+    /// \name Methods for dashed string equation
+    //@{
+    ///TODO:
+    int ub_new_blocks(const Matching& m) const;
+    
+    /// TODO:
+    int min_len_mand(const Block& bx, const Position& lsp, 
+                                      const Position& eep) const;
+    /// TODO:
+    int max_len_opt(const Block& bx, const Position& esp, 
+                                     const Position& lep, int l1) const;
+    /// TODO:                             
+    template <class T> void
+    expandBlock(Space& home, const Block& bx, T& x) const;
+    
+    /// TODO:
+    template <class ViewX> void
+    crushBase(Space& home, ViewX& x, int idx, const Position& p,
+                                              const Position& q) const;
+    /// TODO:                                   
+    void
+    opt_region(Space& home, const Block& bx, Block& bnew, 
+                            const Position& p, const Position& q, int l1) const;                       
+    
+    /// TODO:                   
+    void
+    mand_region(Space& home, const Block& bx, Block* bnew, int u, 
+                             const Position& p, const Position& q) const;
+    /// TODO:                                                     
+    template <class ViewX> void
+    mand_region(Space& home, ViewX& x, int idx, const Position& p,
+                                                const Position& q) const;
+    void
+    resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize) const;
+    
+    int
+    fixed_chars_suff(const Position& p, const Position& q) const;
+    int
+    fixed_chars_pref(const Position& p, const Position& q) const;
+    std::vector<int> fixed_pref(const Position& p, 
+                                const Position& q) const;
+    std::vector<int> fixed_suff(const Position& p,
+                                const Position& q) const;
+    bool isOK(void) const;
+  };
+  /**
+   * \brief Print string variable view
+   * \relates Gecode::String::StringView
+   */
+  template<class Char, class Traits>
+  std::basic_ostream<Char,Traits>&
+  operator <<(std::basic_ostream<Char,Traits>& os, const ConstDashedView& z);
+  
+}}
+
 #include <gecode/string/var/string.hpp>
 #include <gecode/string/view/string.hpp>
 #include <gecode/string/view/const.hpp>

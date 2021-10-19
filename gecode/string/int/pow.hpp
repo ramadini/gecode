@@ -109,6 +109,7 @@ namespace Gecode { namespace String { namespace Int {
         }          
       }
       else {
+        //FIXME: Region?
         Block d0[m0+1];
         Set::GLBndSet s;
         for (int i = 0; i < n0; ++i) {
