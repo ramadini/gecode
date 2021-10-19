@@ -61,6 +61,8 @@ namespace Gecode { namespace String { namespace Int {
     /// Post propagator for \f$ y = x^n \f$
     static ExecStatus post(Home home, View0 s, Gecode::Int::IntView n, View1 y);
   private:
+    static long div_l(long x, long y);
+    static long div_u(long x, long y);
     ExecStatus refine_card(Space& home);
   };
 

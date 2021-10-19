@@ -32,11 +32,33 @@ namespace Gecode { namespace String { namespace Int {
   Pow<View0,View1>::copy(Space& home) {
     return new (home) Pow(home,*this);
   }
+  
+  template<class View0, class View1>
+  forceinline long
+  Pow<View0,View1>::div_l(long a, long b) {
+    return b == 0 ? 0 : a / b;
+  }
+  template<class View0, class View1>
+  forceinline long
+  Pow<View0,View1>::div_u(long a, long b) {
+    return b == 0 ? MAX_STRING_LENGTH : ceil(a / b);
+  }
 
   template<class View0, class View1>
   forceinline ExecStatus
   Pow<View0,View1>::refine_card(Space& home) {
-    //TODO:
+    long n1 = x1.min(), n2 = x1.max(),
+         lx = x0.min_length(), ly = std::max(lx * n1, long(x2.min_length())),
+         ux = x0.max_length(), uy = std::min(ux * n2, long(x2.max_length()));
+    ly = std::max(ly, lx * n1), uy = std::min(uy, ux * n2),
+    lx = std::max(lx, div_l(ly, n2)), ux = std::min(ux, div_u(uy, n1)),
+    n1 = std::max(n1, div_l(ly, ux)), n2 = std::min(n2, div_u(uy, lx));
+    if (n1 > n2 || lx > ux || ly > uy)
+      return ES_FAILED;
+    if (lx > x0.min_length()) GECODE_ME_CHECK(x0.min_length(home, lx));
+    if (ux < x0.max_length()) GECODE_ME_CHECK(x0.max_length(home, ux));
+    if (ly > x2.min_length()) GECODE_ME_CHECK(x2.min_length(home, ly));
+    if (uy < x2.max_length()) GECODE_ME_CHECK(x2.max_length(home, uy));
     return ES_OK;
   }
 
@@ -47,7 +69,6 @@ namespace Gecode { namespace String { namespace Int {
     GECODE_ME_CHECK(x1.gq(home, x2.min_length() > 0));
     int a;
     do {
-      //FIXME: Use a privete method of this class instead of:
       int l = x1.min(), u = x1.max();
       if (l == u && u == 1)
         GECODE_REWRITE(*this, (Gecode::String::Rel::Eq<View0,View1>
@@ -75,13 +96,53 @@ namespace Gecode { namespace String { namespace Int {
         }
         return ES_FIX;
       }
-      int n0 = x0.size(), m = n0 == 1 ? n0 : n0*l;
-      Block xn[m+1];
-      int uu = std::min(long(MAX_STRING_LENGTH), n0 * long(u - l));
-      //FIXME: Implement may_chars -> xn[m].update(Block(x0.may_chars(), 0, uu));
-      DashedString d0(home, xn, m+1);
-      //FIXME: Implement DashedView(const DashedString& x) and change dom propagator too.
-      //       GECODE_ME_CHECK(x0.equate(home, d0)); 
+      // General case
+      int n0 = x0.size();
+      bool norm = x0[0].equals(x0[n0-1]);
+      int m0 = n0 < 2 ? 0 : l*(n0-2*norm);
+      if (m0 == 0) {
+        if (!x0[0].isUniverse()) {
+          Block bx;
+          bx.update(home, x0[0]);
+          bx.updateCard(home, 0, MAX_STRING_LENGTH);
+//          GECODE_ME_CHECK(x2.equate(home, ConstDashedView(home, bx, 1)));
+        }          
+      }
+      else {
+        Block d0[m0+1];
+        Set::GLBndSet s;
+        for (int i = 0; i < n0; ++i) {
+          d0[i].update(home, x0[i]);
+          x0[i].includeBaseIn(home, s);
+        }
+        int l0, u0;
+        if (norm) {
+          l0 = ubounded_sum(x0[0].lb(), x0[n0-1].lb()); 
+          u0 = ubounded_sum(x0[0].ub(), x0[n0-1].ub());
+        }
+        for (int i = 1; i < l; ++i) {
+          for (int j = norm; j < n0; ++j)
+            d0[i*n0+j].update(home, x0[j]);
+          if (norm)
+            d0[i*n0].updateCard(home, l0, u0);
+        }
+        u0 = std::min(long(MAX_STRING_LENGTH), x0.max_length()*long(u-l));
+        //FIXME: Implement ConstDashedView(const Block& b0, int n) and change dom propagator too.
+        if (d0[m0-1].baseEquals(s)) {
+          m0--;
+          d0[m0].updateCard(home, d0[m0].lb(), ubounded_sum(d0[m0].ub(), u0));
+        }
+        else
+          d0[m0].update(home, Block(home, CharSet(home, s), 0, u0));
+//      GECODE_ME_CHECK(x2.equate(home, ConstDashedView(home, d0, m0)));
+      }
+      if (l > 0) {
+        Set::GLBndSet s;
+        for (int i = 0; i < x2.size(); ++i)
+          x2[i].includeBaseIn(home, s);
+        Block by(home, CharSet(home, s), x2.min_length(), x2.max_length());
+//        GECODE_ME_CHECK(x0.equate(home, ConstDashedView(home, by, 1)));
+      }
       GECODE_ME_CHECK(refine_card(home));
       a = x0.assigned() + x1.assigned() + x2.assigned();
       switch (a) {
@@ -94,7 +155,7 @@ namespace Gecode { namespace String { namespace Int {
         break;
       }
     } while (a == 2);
-    std::cerr << "After pow: " << x2 << " = " << x0 << " ** " << x1 << '\n';
+    std::cerr << "After pow: " << x2 << " = " << x0 << " ^ " << x1 << '\n';
     return ES_FIX;
   }
 
