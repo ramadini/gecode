@@ -243,7 +243,7 @@ namespace Gecode { namespace String {
     /// - IllegalOperation, if \a blocks is empty
     /// - OutOfLimits, if the sum of lower bounds of blocks is bigger than
     ///                MAX_STRING_LENGTH
-    DashedString(Space& home, Block b[], int n);
+    DashedString(Space& home, const Block b[], int n);
     
     /// \name Dashed string access
     //@{
@@ -905,7 +905,7 @@ namespace Gecode { namespace String {
   }
   
   forceinline
-  DashedString::DashedString(Space& home, Block blocks[], int n)
+  DashedString::DashedString(Space& home, const Block blocks[], int n)
   : DynamicArray(home, n) {
     bool norm = blocks[0].isNull();
     x->update(home, blocks[0]);

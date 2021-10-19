@@ -105,12 +105,12 @@ namespace Gecode { namespace String { namespace Int {
           Block bx;
           bx.update(home, x0[0]);
           bx.updateCard(home, 0, MAX_STRING_LENGTH);
-//          GECODE_ME_CHECK(x2.equate(home, ConstDashedView(home, bx, 1)));
+          GECODE_ME_CHECK(x2.equate(home, ConstDashedView(bx, 1)));
         }          
       }
       else {
-        //FIXME: Region?
-        Block d0[m0+1];
+        Region r1;
+        Block* d0 = r1.alloc<Block>(m0+1);
         Set::GLBndSet s;
         for (int i = 0; i < n0; ++i) {
           d0[i].update(home, x0[i]);
@@ -128,21 +128,21 @@ namespace Gecode { namespace String { namespace Int {
             d0[i*n0].updateCard(home, l0, u0);
         }
         u0 = std::min(long(MAX_STRING_LENGTH), x0.max_length()*long(u-l));
-        //FIXME: Implement ConstDashedView(const Block& b0, int n) and change dom propagator too.
+        //FIXME: Change dom propagator with ConstDashedView.
         if (d0[m0-1].baseEquals(s)) {
           m0--;
           d0[m0].updateCard(home, d0[m0].lb(), ubounded_sum(d0[m0].ub(), u0));
         }
         else
           d0[m0].update(home, Block(home, CharSet(home, s), 0, u0));
-//      GECODE_ME_CHECK(x2.equate(home, ConstDashedView(home, d0, m0)));
+      GECODE_ME_CHECK(x2.equate(home, ConstDashedView(d0[0], m0)));
       }
       if (l > 0) {
         Set::GLBndSet s;
         for (int i = 0; i < x2.size(); ++i)
           x2[i].includeBaseIn(home, s);
         Block by(home, CharSet(home, s), x2.min_length(), x2.max_length());
-//        GECODE_ME_CHECK(x0.equate(home, ConstDashedView(home, by, 1)));
+        GECODE_ME_CHECK(x0.equate(home, ConstDashedView(by, 1)));
       }
       GECODE_ME_CHECK(refine_card(home));
       a = x0.assigned() + x1.assigned() + x2.assigned();

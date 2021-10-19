@@ -194,6 +194,14 @@ namespace Gecode { namespace String {
     return n;
   }
 
+  forceinline bool
+  ConstDashedView::assigned() const {
+    for (int i = 0; i < n; ++i)
+      if (!b0[i].isFixed())
+        return false;
+    return true;
+  }
+
   forceinline const Block&
   ConstDashedView::operator[](int i) const {
     return *(b0+i);
@@ -211,6 +219,17 @@ namespace Gecode { namespace String {
     for (int i = 0; i < n; i++)
       if (!b0[i].isOK())
         return false;
+  }
+  
+  forceinline double
+  ConstDashedView::logdim() const {
+    double d = 0.0;
+    for (int i = 0; i < n; ++i) {
+      d += b0[i].logdim();
+      if (std::isinf(d))
+        return d;
+    }
+    return d;
   }
 
   template<class Char, class Traits>
@@ -399,7 +418,7 @@ namespace Gecode { namespace String {
     s.includeI(home, i);
     bool norm = false;
     int u = bx.ub();
-    x.gets(home, *this);
+    x.gets(home, DashedString(home, b0, n));
     int maxl = 0;
     for (int i = 0; i < n; ++i)
       maxl = ubounded_sum(maxl, x[i].ub());

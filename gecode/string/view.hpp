@@ -616,6 +616,7 @@ namespace Gecode { namespace String {
     template <class T> bool contains(const T& y) const;
     /// If this view is equals to y
     template <class T> bool equals(const T& y) const;
+    double logdim(void) const;
     /// Returns true if p and q are the same position in this view.
     bool equiv(const Position& p, const Position& q) const;
     /// Returns true if p precedes q according to this view.
