@@ -47,16 +47,18 @@ namespace Gecode { namespace String { namespace Int {
   template<class View0, class View1>
   forceinline ExecStatus
   Pow<View0,View1>::refine_card(Space& home) {
-    long n1 = x1.min(), n2 = x1.max(),
-         lx = x0.min_length(), ly = std::max(lx * n1, long(x2.min_length())),
-         ux = x0.max_length(), uy = std::min(ux * n2, long(x2.max_length()));
+    int n1 = x1.min(), n2 = x1.max();
+    long lx = x0.min_length(), ly = std::max(lx*n1, long(x2.min_length())),
+         ux = x0.max_length(), uy = std::min(ux*n2, long(x2.max_length()));
     ly = std::max(ly, lx * n1), uy = std::min(uy, ux * n2),
     lx = std::max(lx, div_l(ly, n2)), ux = std::min(ux, div_u(uy, n1)),
-    n1 = std::max(n1, div_l(ly, ux)), n2 = std::min(n2, div_u(uy, lx));
+    n1 = std::max(n1, int(div_l(ly,ux))), n2 = std::min(n2, int(div_u(uy,lx)));
     if (n1 > n2 || lx > ux || ly > uy)
       return ES_FAILED;
     if (lx > x0.min_length()) GECODE_ME_CHECK(x0.min_length(home, lx));
     if (ux < x0.max_length()) GECODE_ME_CHECK(x0.max_length(home, ux));
+    if (n1 > x1.min())        GECODE_ME_CHECK(x1.gq(home, n1));
+    if (n2 < x1.max())        GECODE_ME_CHECK(x1.lq(home, n2));
     if (ly > x2.min_length()) GECODE_ME_CHECK(x2.min_length(home, ly));
     if (uy < x2.max_length()) GECODE_ME_CHECK(x2.max_length(home, uy));
     return ES_OK;
@@ -65,8 +67,8 @@ namespace Gecode { namespace String { namespace Int {
   template<class View0,class View1>
   forceinline ExecStatus
   Pow<View0,View1>::propagate(Space& home, const ModEventDelta&) {
-    std::cerr <<"\n"<< this << "::Pow::propagate "<<x1<<" =  "<<x0<<"\n";
-    GECODE_ME_CHECK(x1.gq(home, x2.min_length() > 0));
+    std::cerr <<"\n"<< this << "::Pow::propagate "<< x2 << " = " << x0 << " ^(" << x1 << ")\n";
+    refine_card(home);
     int a;
     do {
       int l = x1.min(), u = x1.max();
@@ -105,8 +107,13 @@ namespace Gecode { namespace String { namespace Int {
           Block bx;
           bx.update(home, x0[0]);
           bx.updateCard(home, 0, MAX_STRING_LENGTH);
-          GECODE_ME_CHECK(x2.equate(home, ConstDashedView(bx, 1)));
-        }          
+          if (x2.assigned()) {
+            if (!check_equate_x(x2, ConstDashedView(bx, 1)))
+              return ES_FAILED;
+          }
+          else
+            GECODE_ME_CHECK(x2.equate(home, ConstDashedView(bx, 1)));
+        }
       }
       else {
         Region r1;
@@ -132,16 +139,26 @@ namespace Gecode { namespace String { namespace Int {
           m0--;
           d0[m0].updateCard(home, d0[m0].lb(), ubounded_sum(d0[m0].ub(), u0));
         }
-        else
+        else if (u0 > 0)
           d0[m0].update(home, Block(home, CharSet(home, s), 0, u0));
-      GECODE_ME_CHECK(x2.equate(home, ConstDashedView(d0[0], m0)));
+        if (x2.assigned()) {
+          if (!check_equate_x(x2, ConstDashedView(d0[0], m0)))
+            return ES_FAILED;
+        }
+        else
+          GECODE_ME_CHECK(x2.equate(home, ConstDashedView(d0[0], m0)));
       }
       if (l > 0) {
         Set::GLBndSet s;
         for (int i = 0; i < x2.size(); ++i)
           x2[i].includeBaseIn(home, s);
         Block by(home, CharSet(home, s), x2.min_length(), x2.max_length());
-        GECODE_ME_CHECK(x0.equate(home, ConstDashedView(by, 1)));
+        if (x0.assigned()) {
+          if (!check_equate_x(x0, ConstDashedView(by, 1)))
+            return ES_FAILED;
+        }
+        else
+          GECODE_ME_CHECK(x0.equate(home, ConstDashedView(by, 1)));
       }
       GECODE_ME_CHECK(refine_card(home));
       a = x0.assigned() + x1.assigned() + x2.assigned();
@@ -155,7 +172,7 @@ namespace Gecode { namespace String { namespace Int {
         break;
       }
     } while (a == 2);
-    std::cerr << "After pow: " << x2 << " = " << x0 << " ^ " << x1 << '\n';
+    std::cerr << "After pow: " << x2 << " = " << x0 << " ^(" << x1 << ")\n";
     return ES_FIX;
   }
 
