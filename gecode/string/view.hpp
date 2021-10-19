@@ -15,7 +15,7 @@ namespace Gecode { namespace String {
     /// The view on which we iterate
     union {
       std::reference_wrapper<const View> view_ref;
-      std::reference_wrapper<const StringView> base_ref; 
+      std::reference_wrapper<const StringView> base_ref;
     };
     /// The current position on the view, always normalized w.r.t. sv
     Position pos;
@@ -594,7 +594,6 @@ namespace Gecode { namespace String {
    * \brief ConstDashed view
    */
   class ConstDashedView : public ConstView<StringView> {
-  // FIXME: Is really the template argument a StringView?
   // FIXME: Remove unnecessary methods from here, ReverseView and ConstStringView
   protected:
     /// We never refine the blocks
@@ -684,6 +683,7 @@ namespace Gecode { namespace String {
 
 #include <gecode/string/var/string.hpp>
 #include <gecode/string/view/string.hpp>
-#include <gecode/string/view/const.hpp>
 #include <gecode/string/view/concat.hpp>
 #include <gecode/string/view/reverse.hpp>
+#include <gecode/string/view/const-string.hpp>
+#include <gecode/string/view/const-dashed.hpp>
