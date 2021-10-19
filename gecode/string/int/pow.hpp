@@ -128,7 +128,6 @@ namespace Gecode { namespace String { namespace Int {
             d0[i*n0].updateCard(home, l0, u0);
         }
         u0 = std::min(long(MAX_STRING_LENGTH), x0.max_length()*long(u-l));
-        //FIXME: Change dom propagator with ConstDashedView.
         if (d0[m0-1].baseEquals(s)) {
           m0--;
           d0[m0].updateCard(home, d0[m0].lb(), ubounded_sum(d0[m0].ub(), u0));
