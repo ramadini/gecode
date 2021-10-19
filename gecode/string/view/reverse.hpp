@@ -255,12 +255,7 @@ namespace Gecode { namespace String {
   ReverseView::size() const {
     return x0.size();
   }
- 
-  forceinline std::vector<int> 
-  ReverseView::val(void) const {
-    return x0.val();
-  }
-  
+
   forceinline int
   ReverseView::max_length() const {
     return x0.max_length();
@@ -314,19 +309,7 @@ namespace Gecode { namespace String {
   ReverseView::bwd_iterator(void) const {
     return SweepIterator<SweepBwd,ReverseView>(*this);
   }
-  
-  template <class IterY>
-  forceinline Position
-  ReverseView::push(int i, IterY& it) const {
-    return x0.push(i, it);
-  }
-  
-  template <class IterY>
-  forceinline void
-  ReverseView::stretch(int i, IterY& it) const {
-    x0.stretch(i, it);
-  };
-  
+
   forceinline bool
   ReverseView::equiv(const Position& p, const Position& q) const {
     return x0.equiv(q,p);

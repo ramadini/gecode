@@ -509,14 +509,10 @@ namespace Gecode { namespace String {
     bool isNull(void) const;
     /// 
     const Block& operator[](int i) const;
-    /// Return the value of this view
-    std::vector<int> val(void) const;
     /// \name Sweep iterators
     //@{
     SweepIterator<SweepFwd,ReverseView> fwd_iterator(void) const;
     SweepIterator<SweepBwd,ReverseView> bwd_iterator(void) const;
-    template <class IterY> Position push(int i, IterY& it) const;
-    template <class IterY> void stretch(int i, IterY& it) const;
     double logdim(void) const;
     //@}
     /// Always returns true (for compatibility with other views)
@@ -563,8 +559,6 @@ namespace Gecode { namespace String {
     template <class ViewX> void
     mand_region(Space& home, ViewX& x, int idx, const Position& p,
                                                 const Position& q) const;
-    void
-    resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize) const;
     
     int
     fixed_chars_suff(const Position& p, const Position& q) const;
