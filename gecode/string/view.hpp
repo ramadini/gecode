@@ -597,7 +597,7 @@ namespace Gecode { namespace String {
   // FIXME: Remove unnecessary methods from here, ReverseView and ConstStringView
   protected:
     /// We never refine the blocks
-    const Block& b0;
+    const Block* b0;
     int n;
   public:
     ConstDashedView(void);

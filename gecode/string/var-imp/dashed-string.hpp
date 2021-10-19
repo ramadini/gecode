@@ -1460,7 +1460,7 @@ namespace Gecode { namespace String {
       return false;
     int l = 0; long u = 0;
     for (int i = 0; i < n; i++) {
-      if (i > 0 && !x[i].isOK())
+      if (!x[i].isOK())
         return false;
       l += x[i].lb();
       u += x[i].ub();
