@@ -31,7 +31,7 @@ namespace Gecode { namespace String { namespace Branch {
       int m = vx.min_length();
       int pos = start;      
       // std::cerr<<x[start]<<" (pos. "<<start<<", dim. "<<s<<")\n";
-      if (_FIRST) {        
+      if (_FIRST) {
         assert (StringBrancher::_MUST_CHARS.empty());
         Gecode::Set::GLBndSet s;
         for (int i = 0; i < x.size(); ++i) {

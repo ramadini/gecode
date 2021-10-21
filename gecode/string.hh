@@ -283,17 +283,6 @@ namespace Gecode {
     StringVarArray(Space& home, const StringVarArgs&);
     /// Allocate array for \a n string variables (variables are uninitialized)
     GECODE_STRING_EXPORT StringVarArray(Space& home, int n);
-    // TODO: Same as above.
-//////    /**
-//////     * \brief Create an array of size \a n.
-//////     *
-//////     * Each variable is initialized with the bounds and cardinality as
-//////     * given by the arguments.
-//////     */
-//////    GECODE_STRING_EXPORT
-//////    StringVarArray(Space& home,int n,int glbMin,int glbMax,int lubMin,int lubMax,
-//////                unsigned int minCard = 0,
-//////                unsigned int maxCard = String::Limits::card);
     //@}s
   };
 
@@ -538,9 +527,9 @@ namespace Gecode {
   public:
     /// Which variable selection
     enum Select {
-      STR_NONE = 0,      ///< First unassigned
-      STR_LEFTBLOCK_MIN, ///< With leftmost unfixed block with least dimension
-      STR_BLOCK_MIN,     ///< With unfixed block having least dimension
+      STR_NONE = 0,     ///< First unassigned
+      STR_LENBLOCK_MIN, ///< With smallest max(|x|)-min(|x|). Tie-breaking with size of leftmost unfixed block b, ub(b)-lb(b) and min(|x|)
+      STR_BLOCKDIM_MIN, ///< With smallest block size. Tie-breaking with ub(b)-lb(b) and min(|x|)
 // TODO: Add heuristics
     };
   protected:

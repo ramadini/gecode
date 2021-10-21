@@ -64,7 +64,7 @@ namespace Gecode {
         if (vals.select() == StringValBranch::Select::STR_LLLL)
           none_llll(home, x);
         return;
-      case StringVarBranch::Select::STR_LEFTBLOCK_MIN:
+      case StringVarBranch::Select::STR_LENBLOCK_MIN:
         if (vals.select() == StringValBranch::Select::STR_LLLM)
           lenblock_min_lllm(home, x);
         else if (vals.select() == StringValBranch::Select::STR_LSLM)

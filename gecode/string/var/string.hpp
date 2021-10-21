@@ -21,7 +21,11 @@ namespace Gecode {
     
   forceinline StringVar::StringVar(Space& home, const String::DashedString& d)
     : VarImpVar<String::StringVarImp>(new (home) String::StringVarImp(home, d)) {}
-    
+  
+  forceinline StringVar::StringVar(Space& home, const std::vector<int>& v)
+    : VarImpVar<String::StringVarImp>(new (home) 
+      String::StringVarImp(home, Gecode::String::DashedString(home, v[0], v.size()))) {}
+  
   forceinline StringVar::StringVar(Space& home, int l, int u)
     : VarImpVar<String::StringVarImp>(new (home) String::StringVarImp(home, l, u)) {}  
     

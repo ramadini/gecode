@@ -46,7 +46,7 @@ namespace Gecode { namespace String { namespace Branch {
         _FIRST = false;
       }
       StringView& vx = x[start];
-      const Block& b = vx[vx.smallest_unfixed_idx()];
+      const Block& b = vx[vx.leftmost_unfixed_idx()];
       double d = b.logdim();
       int l = b.ub() - b.lb();
       int m = vx.min_length();
