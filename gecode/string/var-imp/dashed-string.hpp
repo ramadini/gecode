@@ -371,6 +371,46 @@ namespace Gecode { namespace String {
     GECODE_NEVER;
   }
 
+  forceinline std::string 
+  vec2str(const std::vector<int>& v) {
+    std::string s = "";
+    for (auto i : v)
+      s += int2str(i);
+    return s;
+  }
+  
+  forceinline int
+  str2int_unspec(char c) {
+    return (int) c;
+  }
+  
+  forceinline int
+  str2int(const std::string& s) {
+    switch (CHAR_ENCODING) {
+      case UNSPEC:
+        return str2int_unspec(s[0]);
+      // TODO:
+      case ASCII:
+      case EASCII:
+      case UTF_8:
+      case UTF_16:
+      case UTF_32:
+      default:
+        return str2int_unspec(s[0]);
+    }
+    GECODE_NEVER;
+  }
+  
+  forceinline std::vector<int>
+  str2vec(const std::string& s) {
+    //FIXME: This assumes that each character of s maps to an integer. If an 
+    // integer maps to more than one character we need to tokenize s.
+    std::vector<int> v;
+    for (auto c : s)
+      v.push_back(str2int(std::string(1,c)));
+    return v;
+  }
+
 }}
 
 /*** CharSet ***/
