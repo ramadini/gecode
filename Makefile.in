@@ -891,14 +891,13 @@ export FLATZINCLIB		= $(LIBPREFIX)@FLATZINC@$(LIBSUFFIX)
 export LINKFLATZINC		= $(LINKPREFIX)@FLATZINC@$(LINKSUFFIX)
 export FLATZINCMZNLIB		= gecode/flatzinc/mznlib
 FLATZINCEXE	= tools/flatzinc/fzn-gecode$(EXESUFFIX)
-#FIXME:
-#ifeq "@enable_string_vars@" "yes"
-#FZNSTR = fzn-gstrings
-#MZNSTR = mzn-gstrings
-#MZNFZNSTR = mzn2fzn-gstrings
-#MZNFZNSTREXE = mzn2fzn-str
-#MZNFZNSTRTGZ = tools/flatzinc/mzn2fzn-str.tar.gz
-#endif
+ifeq "@enable_string_vars@" "yes"
+FZNSTR = fzn-gstrings
+MZNSTR = mzn-gstrings
+MZNFZNSTR = mzn2fzn-gstrings
+MZNFZNSTREXE = mzn2fzn-str
+MZNFZNSTRTGZ = tools/flatzinc/mzn2fzn-str.tar.gz
+endif
 ifeq "@need_soname@" "yes"
 export FLATZINCSONAME = @WLSONAME@$(LIBPREFIX)@FLATZINC@$(SOSUFFIX)
 else
@@ -1142,9 +1141,10 @@ endif
 
 ifeq "@enable_string_vars@" "yes"
 EXETARGETS = $(FLATZINCEXE) tools/flatzinc/mzn-gecode@BATCHFILE@
-#FIXME:  
-#  tools/flatzinc/$(FZNSTR) tools/flatzinc/$(MZNSTR) tools/flatzinc/$(MZNFZNSTR)\
-#  tools/flatzinc/$(MZNFZNSTREXE)
+ifeq "@enable_flatzinc@" "yes"
+EXETARGETS = tools/flatzinc/$(FZNSTR) tools/flatzinc/$(MZNSTR) tools/flatzinc/$(MZNFZNSTR)\
+tools/flatzinc/$(MZNFZNSTREXE)
+endif
 else
 EXETARGETS = $(FLATZINCEXE) tools/flatzinc/mzn-gecode@BATCHFILE@ 
 endif
@@ -2067,10 +2067,9 @@ ifeq "@BUILD_MACOS_FRAMEWORK@" "yes"
 install: installframework
 else
 
-#FIXME: 
-#ifeq "@enable_string_vars@" "yes"
-#install: installlibstr
-#else
+ifeq "@enable_string_vars@" "yes"
+install: installlibstr
+else
 
 ifeq "@enable_examples@" "yes"
 install: installlib installexamples
@@ -2078,12 +2077,17 @@ install: installlib installexamples
 else
 install: installlib
 
-#FIXME: endif
+endif
 endif
 endif
 
 
 doinstallheaders: $(ALLHDR:%=$(top_srcdir)/%) $(EXTRA_HEADERS) $(VARIMPHDR)
+ifeq "@enable_flatzinc@" "yes"
+	cp -R $(top_srcdir)/gecode/flatzinc/javascript $(DESTDIR)$(datadir)/gecode && \
+	cp -R $(top_srcdir)/gecode/flatzinc/string $(DESTDIR)$(datadir)/gecode && \
+	cp -R $(top_srcdir)/gecode/flatzinc/std $(DESTDIR)$(datadir)/gecode
+endif
 	mkdir -p $(DESTDIR)$(includedir) && \
 	(cd $(top_srcdir) && tar cf - $(ALLHDR)) | \
 	  (cd $(DESTDIR)$(includedir) && tar xf -) && \
@@ -2098,11 +2102,6 @@ doinstallheaders: $(ALLHDR:%=$(top_srcdir)/%) $(EXTRA_HEADERS) $(VARIMPHDR)
 		mkdir -p $(DESTDIR)$(datadir)/gecode/mznlib; \
 		cp $(top_srcdir)/$$f/*.mzn \
 		  $(DESTDIR)$(datadir)/gecode/mznlib; done
-#FIXME:
-#cp -R $(top_srcdir)/gecode/flatzinc/javascript $(DESTDIR)$(datadir)/gecode && \
-#cp -R $(top_srcdir)/gecode/flatzinc/string $(DESTDIR)$(datadir)/gecode && \
-#cp -R $(top_srcdir)/gecode/flatzinc/std $(DESTDIR)$(datadir)/gecode
-  
 
 doinstalllib:
 	mkdir -p $(DESTDIR)$(sharedlibdir) && \
@@ -2137,7 +2136,9 @@ installlib: compilelib
 	$(MAKE) installsubdirs
 	
 installlibstr: compilelib
-	#FIXME: $(MAKE) domznfznstr
+ifeq "@enable_flatzinc@" "yes"
+	$(MAKE) domznfznstr
+endif
 	$(MAKE) doinstalllib
 	$(MAKE) doinstallheaders
 	$(MAKE) ranliblib
@@ -2207,10 +2208,11 @@ clean: cleannostr
 endif
 
 cleanstr:
-#FIXME:
-#rm -f $(DESTDIR)$(bindir)/$(FZNSTR) $(DESTDIR)$(bindir)/$(MZNSTR) \
-#    $(DESTDIR)$(bindir)/$(MZNFZNSTR) $(DESTDIR)$(bindir)/$(MZNFZNSTREXE) \
-#    tools/flatzinc/$(MZNFZNSTREXE)
+ifeq "@enable_flatzinc@" "yes"
+	rm -f $(DESTDIR)$(bindir)/$(FZNSTR) $(DESTDIR)$(bindir)/$(MZNSTR) \
+	$(DESTDIR)$(bindir)/$(MZNFZNSTR) $(DESTDIR)$(bindir)/$(MZNFZNSTREXE) \
+	tools/flatzinc/$(MZNFZNSTREXE)
+endif
 
 cleannostr:
 	$(RMF) *.stackdump core gmon.out \
