@@ -2470,31 +2470,23 @@ namespace Gecode { namespace FlatZinc {
     return d;
   }
 #ifdef GECODE_HAS_STRING_VARS
-  std::vector<std::string>
-  FlatZincSpace::arg2stringvec(AST::Node* arg) {
-    AST::Array* a = arg->getArray();
-    std::vector<std::string> v;
-    for (auto x : a->a)
-      v.push_back(x->getString());
-    return v;
-  }
   StringVar
   FlatZincSpace::arg2StringVar(AST::Node* n) {
     StringVar x0;
     if (!n->isStringVar()) {
       if (n->isString()) {
-        std::string s = n->getString();
+        std::vector<int> v = n->getString();
         std::vector<int> w;
-        int n = s.size();
+        int n = v.size();
         for (int i = 0; i < n; ++i) {
-          w.push_back(Gecode::String::str2int(std::string(s[i],1)));
-          if (s[i] == '\\') {
+          w.push_back(v[i]);
+          if (v[i] == '\\') {
             if (n > 1) {
               if (i < n - 1) {
-                if (s[i + 1] == '\\')
+                if (v[i + 1] == '\\')
                   ++i;
-                else if (s[i + 1] != '"') {
-                  if (s[i + 1] != '0')
+                else if (v[i + 1] != '"') {
+                  if (v[i + 1] != '0')
                     throw std::runtime_error("Malformed escape sequence!");
                   else {
                     w.clear();
@@ -2577,7 +2569,7 @@ namespace Gecode { namespace FlatZinc {
         ta[i+offset] = tv;
       }
       else if (a->a[i]->isString()) {
-        std::vector<int> value = Gecode::String::str2vec(a->a[i]->getString());
+        std::vector<int> value = a->a[i]->getString();
         StringVar tv(*this, value);
         ta[i+offset] = tv;
       }
@@ -2873,7 +2865,7 @@ namespace Gecode { namespace FlatZinc {
 #ifdef GECODE_HAS_STRING_VARS
     } else if (ai->isStringVar()) {
       if (tv[ai->getStringVar()].assigned())
-        out << Gecode::String::vec2strvec2str(tv[ai->getStringVar()].val());
+        out << Gecode::String::vec2str(tv[ai->getStringVar()].val());
       else
         out << tv[ai->getStringVar()];
 #endif
@@ -2890,7 +2882,7 @@ namespace Gecode { namespace FlatZinc {
         }
       }
     } else if (ai->isString()) {
-      std::string s = ai->getString();
+      std::string s = Gecode::String::vec2str(ai->getString());
       for (unsigned int i=0; i<s.size(); i++) {
         if (s[i] == '\\' && i<s.size()-1) {
           switch (s[i+1]) {

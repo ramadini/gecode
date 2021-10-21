@@ -230,7 +230,7 @@ namespace Gecode { namespace FlatZinc {
     std::vector<int> arrays;
     std::vector<AST::SetLit> setvals;
     std::vector<double> floatvals;
-    std::vector<std::string> stringvals;
+    std::vector<std::vector<int>> stringvals;
     std::vector<ConExpr*> constraints;
 
     std::vector<ConExpr*> domainConstraints;

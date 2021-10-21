@@ -254,7 +254,7 @@ void addDomainConstraint(ParserState* pp, AST::Node* var,
   else if (dom.some()->c == NULL) {
     AST::Array* args = new AST::Array(2);
     args->a[0] = var;
-    args->a[1] = new AST::String(dom.some()->s);
+    args->a[1] = new AST::String(dom.some()->v);
     pp->domainConstraints.push_back(new ConExpr("str_eq", args, NULL));
   }
 }
@@ -312,14 +312,14 @@ int getBaseStringVar(ParserState* pp, int i) {
 
 void initfg(ParserState* pp) {
   if (!pp->hadError) {
-    // Unfolding regular expressions.
-    for (auto x : REGEX)
-      x.second->add(x.first, pp);
-    pp->fg->init(pp->intvars.size(),
-                 pp->boolvars.size(),
-                 pp->setvars.size(),
-                 pp->floatvars.size(),
-                 pp->stringvars.size());
+    //TODO: Unfolding regular expressions.
+//    for (auto x : REGEX)
+//      x.second->add(x.first, pp);
+//    pp->fg->init(pp->intvars.size(),
+//                 pp->boolvars.size(),
+//                 pp->setvars.size(),
+//                 pp->floatvars.size(),
+//                 pp->stringvars.size());
   }
   for (unsigned int i=0; i<pp->intvars.size(); i++) {
     if (!pp->hadError) {
@@ -464,7 +464,7 @@ AST::Node* arrayOutput(AST::Call* ann) {
 namespace Gecode { namespace FlatZinc {
 
   FlatZincSpace* parse(const std::string& filename, Printer& p, 
-                       const FlatZincOptions& opt, std::ostream& err,
+                       const FlatZincOptions&, std::ostream& err,
                        FlatZincSpace* fzs, Rnd& rnd) {
 #ifdef HAVE_MMAP
     int fd;
@@ -506,17 +506,6 @@ namespace Gecode { namespace FlatZinc {
     yylex_init(&pp.yyscanner);
     yyset_extra(&pp, pp.yyscanner);
     
-    int n = opt.max_length();
-    if (n < Gecode::String::DashedString::_MAX_STR_LENGTH) {
-      assert (n >= 0);
-      Gecode::String::DashedString::_MAX_STR_LENGTH = n;
-    }
-    n = opt.max_alpha();
-    if (n < Gecode::String::DashedString::_MAX_STR_ALPHA) {
-      assert (n >= 0);
-      Gecode::String::DashedString::_MAX_STR_ALPHA = n;
-    }
-    
     // yydebug = 1;
     yyparse(&pp);
     fillPrinter(pp, p);
@@ -526,7 +515,7 @@ namespace Gecode { namespace FlatZinc {
     return pp.hadError ? NULL : pp.fg;
   }
 
-  FlatZincSpace* parse(std::istream& is, Printer& p, const FlatZincOptions& opt, 
+  FlatZincSpace* parse(std::istream& is, Printer& p, const FlatZincOptions&, 
                        std::ostream& err, FlatZincSpace* fzs, Rnd& rnd) {
     std::string s = string(istreambuf_iterator<char>(is),
                            istreambuf_iterator<char>());
@@ -537,18 +526,7 @@ namespace Gecode { namespace FlatZinc {
     ParserState pp(s, err, fzs);
     yylex_init(&pp.yyscanner);
     yyset_extra(&pp, pp.yyscanner);
-    
-    int n = opt.max_length();
-    if (n < Gecode::String::DashedString::_MAX_STR_LENGTH) {
-      assert (n >= 0);
-      Gecode::String::DashedString::_MAX_STR_LENGTH = n;
-    }
-    n = opt.max_alpha();
-    if (n < Gecode::String::DashedString::_MAX_STR_ALPHA) {
-      assert (n >= 0);
-      Gecode::String::DashedString::_MAX_STR_ALPHA = n;
-    }
-    
+
     // yydebug = 1;
     yyparse(&pp);
     fillPrinter(pp, p);
@@ -912,7 +890,7 @@ vardecl_item:
                 Alias(arg->getStringVar()),introduced,funcDep)));
           } else if (arg->isStringDom()) {
             pp->stringvars.push_back(varspec($4,
-              new StringVarSpec(arg->getStringDom()->s,introduced,funcDep)));
+              new StringVarSpec(arg->getStringDom()->v,introduced,funcDep)));
           }
           else {
             yyassert(pp, false, "Invalid var string initializer");
@@ -1417,7 +1395,7 @@ vardecl_item:
            pp->arrays.push_back($14->size());
            pp->arrays.push_back(pp->stringvals.size());
            for (unsigned int i=0; i<$14->size(); i++)
-             pp->stringvals.push_back((*$14)[i]);
+             pp->stringvals.push_back(str2vec((*$14)[i]));
            yyassert(pp,
              pp->symbols.put($10, se_ta(ta)),
              "Duplicate symbol");
@@ -1649,7 +1627,7 @@ set_var_array_literal : '[' set_init_list ']'
 
 string_init :
      FZ_STRING_LIT
-     { $$ = new StringVarSpec($1,false,false); }
+     { $$ = new StringVarSpec(str2vec($1),false,false); }
    | var_par_id
      {
        SymbolEntry e;
@@ -1863,22 +1841,22 @@ constraint_item :
           } else if ( cid=="set_in" && ($4->a[0]->isSet() || $4->a[1]->isSet()) ) {
             pp->domainConstraints.push_back(new ConExpr($2, $4, $6));
           } 
-          else if (cid=="str_reg" && DashedString::_DECOMP_REGEX && $4->a[0]->isStringVar()) {
-            // FIXME: RegEx will be computed twice!
-            RegEx* r = RegExParser($4->a[1]->getString()).parse();
-            //std::cerr << "Expression: " << r->str() << '\n';
-            //std::cerr << "DFA: " << r->dfa() << '\n';
-            //std::cerr << "Reg.: " << r->reg() << '\n';
-            //std::cerr << "Dec: " << r->decomp() << '\n';
-            //std::cerr << "_DEC:" << Gecode::String::DashedString::_DECOMP_REGEX << '\n';
-            //std::cerr << r->intro_vars() << "\n";
-            if (r->intro_vars()) {
-              AST::StringVar* x = dynamic_cast<AST::StringVar*>($4->a[0]);
-              REGEX.push_back(pair<AST::StringVar*, RegEx*>(x, r));
-            }
-            else
-              pp->constraints.push_back(new ConExpr($2, $4, $6));
-          }
+//TODO:          else if (cid=="str_reg" && DashedString::_DECOMP_REGEX && $4->a[0]->isStringVar()) {
+//            // FIXME: RegEx will be computed twice!
+//            RegEx* r = RegExParser($4->a[1]->getString()).parse();
+//            //std::cerr << "Expression: " << r->str() << '\n';
+//            //std::cerr << "DFA: " << r->dfa() << '\n';
+//            //std::cerr << "Reg.: " << r->reg() << '\n';
+//            //std::cerr << "Dec: " << r->decomp() << '\n';
+//            //std::cerr << "_DEC:" << Gecode::String::DashedString::_DECOMP_REGEX << '\n';
+//            //std::cerr << r->intro_vars() << "\n";
+//            if (r->intro_vars()) {
+//              AST::StringVar* x = dynamic_cast<AST::StringVar*>($4->a[0]);
+//              REGEX.push_back(pair<AST::StringVar*, RegEx*>(x, r));
+//            }
+//            else
+//              pp->constraints.push_back(new ConExpr($2, $4, $6));
+//          }
           else {
             pp->constraints.push_back(new ConExpr($2, $4, $6));
           }
@@ -2027,10 +2005,8 @@ set_literal_list_head :
       { $$ = $1; $$->push_back(*$3); delete $3; }
    
 charset_literal :
-    '{' string_list '}'
-    { $$ = new AST::CharSetLit(*$2); }
-    | FZ_STRING_LIT FZ_DOTDOT FZ_STRING_LIT
-    { $$ = new AST::CharSetLit($1, $3); }
+      FZ_STRING_LIT FZ_DOTDOT FZ_STRING_LIT
+      { $$ = new AST::CharSetLit(IntSet($1[0], $3[0])); }
 
 /********************************/
 /* constraint expressions       */
@@ -2074,7 +2050,7 @@ non_array_expr :
     | FZ_FLOAT_LIT
       { $$ = new AST::FloatLit($1); }
     | FZ_STRING_LIT
-      { $$ = new AST::StringDom($1); }
+      { $$ = new AST::StringDom(str2vec($1)); }
     | set_literal
       { $$ = $1; }
     | charset_literal
@@ -2350,7 +2326,7 @@ ann_non_array_expr :
     | FZ_FLOAT_LIT
       { $$ = new AST::FloatLit($1); }
     | FZ_STRING_LIT
-      { $$ = new AST::StringDom($1); }
+      { $$ = new AST::StringDom(str2vec($1)); }
     | set_literal
       { $$ = $1; }
     | var_par_id /* variable, possibly array */
