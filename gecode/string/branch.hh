@@ -67,9 +67,9 @@ namespace Gecode { namespace String { namespace Branch {
     static ModEvent commit (Space&, StringView&, Lev, Val, Blc, unsigned);
     static ModEvent splitBlock(Space&, StringView&, int, Val, unsigned);
     
-    static std::vector<int> _MUST_CHARS;
-  
   public:    
+
+    static std::vector<int> _MUST_CHARS;
 
     StringBrancher(Home home, ViewArray<String::StringView>& x0)
     : Brancher(home), x(x0), start(0) {};

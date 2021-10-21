@@ -136,6 +136,10 @@ namespace Gecode {
      * \brief Initialize variable's domain with dashed string \a d
      */
     GECODE_STRING_EXPORT StringVar(Space& home, const String::DashedString& S);
+    /**
+     * \brief Fix the variable's domain with value v \a d
+     */
+    GECODE_STRING_EXPORT StringVar(Space& home, const std::vector<int>& v);
     
     /**
      * \brief Initialize variable's domain with block \f$ [0, MAX\_ALPHABET\_SIZE)^{(l,u)} \f$
@@ -600,6 +604,15 @@ namespace Gecode {
   block_mindim_lslm(Home home, const StringVarArray& x);
   GECODE_STRING_EXPORT void
   block_mindim_lslm(Home home, const StringVarArgs& x);
+  
+  StringVarBranch STRING_VAR_NONE(void);
+  StringVarBranch STRING_VAR_LENBLOCK_MIN(void);
+  StringVarBranch STRING_VAR_BLOCK_MINDIM(void);
+
+  StringValBranch STRING_VAL_LLLL(void);
+  StringValBranch STRING_VAL_LLLM(void);
+  StringValBranch STRING_VAL_LSLM(void);
+  
 
   /**
    * \brief Branch over \a x with variable selection \a vars and value selection \a vals

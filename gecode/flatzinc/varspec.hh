@@ -162,6 +162,38 @@ namespace Gecode { namespace FlatZinc {
     }
   };
 
+ 	/// Specification for string variables
+ 	class StringVarSpec : public VarSpec {
+ 	public:
+ 		Option<AST::StringDom*> domain;
+ 		StringVarSpec(const Option<AST::StringDom*>& s, bool introduced, 
+ 		                                                bool funcDep)
+ 		: VarSpec(introduced, funcDep) { 
+ 			alias = false; assigned = false;
+ 			domain = s;
+ 		}
+ 		StringVarSpec(AST::StringDom* s, bool introduced, bool funcDep)
+ 		: VarSpec(introduced, funcDep) {
+ 			alias = false; assigned = true;
+ 			domain = Option<AST::StringDom*>::some(s);
+ 		}
+ 		StringVarSpec(std::string s, bool introduced, bool funcDep)
+ 		: VarSpec(introduced, funcDep) {
+ 			alias = false; assigned = true;
+ 			domain = Option<AST::StringDom*>::some(
+ 			  new AST::StringDom(Gecode::String::str2vec(s))
+ 			);
+ 		}
+ 		StringVarSpec(const Alias& eq, bool introduced, bool funcDep)
+ 		: VarSpec(introduced, funcDep) {
+ 			alias = true; i = eq.v;
+ 		}
+ 		~StringVarSpec(void) {
+ 			if (!alias && domain())
+ 				delete domain.some();
+ 		}
+ 	};
+
 }}
 
 #endif

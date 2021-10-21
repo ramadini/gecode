@@ -87,18 +87,22 @@ namespace Gecode { namespace FlatZinc {
     ST_BOOLVAR,       //< Boolean variable
     ST_FLOATVAR,      //< Float variable
     ST_SETVAR,        //< Set variable
+    ST_STRINGVAR,     //< String variable
     ST_INTVARARRAY,   //< Integer variable array
     ST_BOOLVARARRAY,  //< Boolean variable array
     ST_SETVARARRAY,   //< Set variable array
+    ST_STRINGVARARRAY,//< String variable array
     ST_FLOATVARARRAY, //< Float variable array
     ST_INTVALARRAY,   //< Integer array
     ST_BOOLVALARRAY,  //< Boolean array
     ST_SETVALARRAY,   //< Set array
     ST_FLOATVALARRAY, //< Float array
+    ST_STRINGVALARRAY,//< String array
     ST_INT,           //< Integer
     ST_BOOL,          //< Boolean
     ST_SET,           //< Set
-    ST_FLOAT          //< Float
+    ST_FLOAT,         //< Float
+    ST_STRING,        //< String
   };
 
   /// Entries in the symbol table
@@ -128,6 +132,11 @@ namespace Gecode { namespace FlatZinc {
   forceinline SymbolEntry se_sv(int i) {
     return SymbolEntry(ST_SETVAR, i);
   }
+  /// Construct string variable entry
+  forceinline SymbolEntry se_tv(int i) {
+    return SymbolEntry(ST_STRINGVAR, i);
+  }
+  
 
   /// Construct integer variable array entry
   forceinline SymbolEntry se_iva(int i) {
@@ -144,6 +153,10 @@ namespace Gecode { namespace FlatZinc {
   /// Construct set variable array entry
   forceinline SymbolEntry se_sva(int i) {
     return SymbolEntry(ST_SETVARARRAY, i);
+  }
+  /// Construct set variable array entry
+	forceinline SymbolEntry se_tva(int i) {
+    return SymbolEntry(ST_STRINGVARARRAY, i);
   }
 
   /// Construct integer entry
@@ -162,6 +175,10 @@ namespace Gecode { namespace FlatZinc {
   forceinline SymbolEntry se_f(int i) {
     return SymbolEntry(ST_FLOAT, i);
   }
+  /// Construct string entry
+  forceinline SymbolEntry se_t(int i) {
+    return SymbolEntry(ST_STRING, i);
+  }
 
   /// Construct integer array entry
   forceinline SymbolEntry se_ia(int i) {
@@ -178,6 +195,10 @@ namespace Gecode { namespace FlatZinc {
   /// Construct float array entry
   forceinline SymbolEntry se_fa(int i) {
     return SymbolEntry(ST_FLOATVALARRAY, i);
+  }
+  /// Construct string array entry
+  forceinline SymbolEntry se_ta(int i) {
+    return SymbolEntry(ST_STRINGVALARRAY, i);
   }
 
   /// %State of the %FlatZinc parser
@@ -205,9 +226,11 @@ namespace Gecode { namespace FlatZinc {
     std::vector<varspec> boolvars;
     std::vector<varspec> setvars;
     std::vector<varspec> floatvars;
+    std::vector<varspec> stringvars;
     std::vector<int> arrays;
     std::vector<AST::SetLit> setvals;
     std::vector<double> floatvals;
+    std::vector<std::string> stringvals;
     std::vector<ConExpr*> constraints;
 
     std::vector<ConExpr*> domainConstraints;
