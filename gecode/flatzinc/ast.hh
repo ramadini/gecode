@@ -51,6 +51,7 @@ namespace Gecode { namespace FlatZinc { namespace AST {
   class Array;
   class Atom;
   class SetLit;
+  class StringLit;
   class StringDom;
   class CharSetLit;
   class DFA;
@@ -115,7 +116,8 @@ namespace Gecode { namespace FlatZinc { namespace AST {
     double getFloat(void);
     /// Cast this node to a set literal node
     SetLit *getSet(void);
-
+    /// Cast this node to a string literal node
+    std::string getStringLit(void);
     /// Cast this node to a string node
     std::vector<int> getString(void);
     /// Cast this node to a string domain node
@@ -141,6 +143,8 @@ namespace Gecode { namespace FlatZinc { namespace AST {
     bool isBool(void);
     /// Test if node is a string node
     bool isString(void);
+    /// Test if node is a string literal node
+    bool isStringLit(void);
     /// Test if node is an array node
     bool isArray(void);
     /// Test if node is a set literal node
@@ -386,6 +390,16 @@ namespace Gecode { namespace FlatZinc { namespace AST {
       os << "s(\"" << Gecode::String::vec2str(v) << "\")";
     }
   };
+  
+  /// %String node
+  class GECODE_VTABLE_EXPORT StringLit : public Node {
+  public:
+    std::string s;
+    StringLit(const std::string& s0) : s(s0) {}
+    virtual void print(std::ostream& os) {
+      os << s;
+    }
+  };
 
   inline
   Node::~Node(void) {}
@@ -553,6 +567,12 @@ namespace Gecode { namespace FlatZinc { namespace AST {
       return a;
     throw TypeError("set literal expected");
   }
+  inline std::string
+  Node::getStringLit(void) {
+    if (StringLit* a = dynamic_cast<StringLit*>(this))
+      return a->s;
+    throw TypeError("string literal expected");
+  }
   inline std::vector<int>
   Node::getString(void) {
     if (String* a = dynamic_cast<String*>(this))
@@ -614,6 +634,10 @@ namespace Gecode { namespace FlatZinc { namespace AST {
   inline bool
   Node::isString(void) {
     return (dynamic_cast<String*>(this) != NULL);
+  }
+  inline bool
+  Node::isStringLit(void) {
+    return (dynamic_cast<StringLit*>(this) != NULL);
   }
   inline bool
   Node::isArray(void) {

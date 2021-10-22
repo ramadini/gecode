@@ -2881,8 +2881,8 @@ namespace Gecode { namespace FlatZinc {
           out << s->s[i] << (i < s->s.size()-1 ? ", " : "}");
         }
       }
-    } else if (ai->isString()) {
-      std::string s = Gecode::String::vec2str(ai->getString());
+    } else if (ai->isStringLit()) {
+      std::string s = ai->getStringLit();
       for (unsigned int i=0; i<s.size(); i++) {
         if (s[i] == '\\' && i<s.size()-1) {
           switch (s[i+1]) {

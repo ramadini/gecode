@@ -256,7 +256,8 @@ namespace Gecode { namespace FlatZinc {
       std::sort(_output.begin(),_output.end(),oo);
       AST::Array* a = new AST::Array();
       for (unsigned int i=0; i<_output.size(); i++) {
-        a->a.push_back(new AST::String(_output[i].first+" = "));
+        bool sv = _output[i].second->isStringVar();
+        a->a.push_back(new AST::StringLit(_output[i].first+(sv?" = \"":" = ")));
         if (_output[i].second->isArray()) {
           AST::Array* oa = _output[i].second->getArray();
           for (unsigned int j=0; j<oa->a.size(); j++) {
@@ -267,7 +268,7 @@ namespace Gecode { namespace FlatZinc {
         } else {
           a->a.push_back(_output[i].second);
         }
-        a->a.push_back(new AST::String(";\n"));
+        a->a.push_back(new AST::StringLit(sv ? "\";\n" : ";\n"));
       }
       return a;
     }
