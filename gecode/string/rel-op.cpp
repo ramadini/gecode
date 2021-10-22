@@ -5,7 +5,7 @@ namespace Gecode { namespace String {
 
   template<class View0, class View1, class View2>
   void
-  rel_op_post(Home home, StringRelOpType r, View0 x0, View1 x1, View2 x2) {
+  rel_op_post(Home home, StringOpType r, View0 x0, View1 x1, View2 x2) {
     using namespace String::RelOp;
     GECODE_POST;
     switch (r) {
@@ -19,7 +19,7 @@ namespace Gecode { namespace String {
   
   template<class View0, class View1>
   void
-  rel_op_post(Home home, StringRelOpType r, View0 x0, View1 x1) {
+  rel_op_post(Home home, StringOpType r, View0 x0, View1 x1) {
     using namespace String::RelOp;
     GECODE_POST;
     switch (r) {
@@ -36,13 +36,13 @@ namespace Gecode { namespace String {
 namespace Gecode {
 
   void
-  rel(Home home, StringRelOpType r, StringVar x, StringVar y,  StringVar z) {
+  rel(Home home, StringOpType r, StringVar x, StringVar y,  StringVar z) {
     using namespace String;
     rel_op_post<StringView,StringView,StringView>(home, r, x, y, z);
   }
   
   void
-  rel(Home home, StringRelOpType r, StringVar x, StringVar y) {
+  rel(Home home, StringOpType r, StringVar x, StringVar y) {
     using namespace String;
     rel_op_post<StringView,StringView>(home, r, x, y);
   }

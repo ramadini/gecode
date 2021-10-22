@@ -2503,7 +2503,7 @@ namespace Gecode { namespace FlatZinc {
         }
         x0 = StringVar(*this, w);
       }
-      else if (n->isStringDom()) { 
+      else if (n->isStringDom()) {
         AST::StringDom* sl = n->getStringDom();
         if (sl->u != -1)
           x0 = StringVar(*this, 0, sl->u);

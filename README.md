@@ -44,12 +44,12 @@ strings, please see [2]).
 You can solve a MiniZinc model with strings ```M.mzn``` (together with optional 
 data ```D.dzn```) in one step:
 
-    $ mzn-gstrings M.mzn [D.dzn]       (1)
+    $ mzn-dashed M.mzn [D.dzn]       (1)
    
 or in two steps:
    
-    $ mzn2fzn-gstrings M.mzn [D.dzn]   (2)
-    $ fzn-gstrings M.fzn
+    $ mzn2fzn-dashed M.mzn [D.dzn]   (2)
+    $ fzn-dashed M.fzn
 
 In particular, (2) converts ```M.mzn``` into a FlatZinc instance ```M.fzn``` 
 (this is the _F^{str}_ conversion described in [2]). If you wish to decompose 

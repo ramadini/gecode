@@ -46,6 +46,9 @@
 #ifdef GECODE_HAS_FLOAT_VARS
 #include <gecode/float.hh>
 #endif
+#ifdef GECODE_HAS_STRING_VARS
+#include <gecode/string.hh>
+#endif
 #include <gecode/flatzinc.hh>
 
 namespace Gecode { namespace FlatZinc {
@@ -2202,6 +2205,322 @@ namespace Gecode { namespace FlatZinc {
 #endif
       }
     } __float_poster;
+#endif
+
+#ifdef GECODE_HAS_STRING_VARS
+
+  void p_str_rel(FlatZincSpace& s, StringRelType srt, const ConExpr& ce) {
+    rel(s, s.arg2StringVar(ce[0]), srt, s.arg2StringVar(ce[1]));
+  }
+
+  void p_str_eq(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+    p_str_rel(s, STRT_EQ, ce);
+  }
+
+  void p_str_ne(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+    p_str_rel(s, STRT_NQ, ce);
+  }
+
+//  void p_str_lt(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//    p_str_rel(s, STRT_LEXLT, ce);
+//  }
+
+//  void p_str_le(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//    p_str_rel(s, STRT_LEXLQ, ce);
+//  }
+
+  void p_str_rel_reif(FlatZincSpace& s, StringRelType srt, const ConExpr& ce) {
+    rel(s, s.arg2StringVar(ce[0]), srt, s.arg2StringVar(ce[1]),
+           s.arg2BoolVar(ce[2]));
+  }
+
+  void p_str_eq_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+    p_str_rel_reif(s, STRT_EQ, ce);
+  }
+
+//  void p_str_lt_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//    p_str_rel_reif(s, STRT_LEXLT, ce);
+//  }
+
+//  void p_str_le_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//    p_str_rel_reif(s, STRT_LEXLQ, ce);
+//  }
+
+  void p_str_ne_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+    p_str_rel_reif(s, STRT_NQ, ce);
+  }
+
+  void p_str_op1(FlatZincSpace& s, StringOpType sot, const ConExpr& ce) {
+    rel(s, sot, s.arg2StringVar(ce[0]), s.arg2StringVar(ce[1]));
+  }
+
+  void p_str_op2(FlatZincSpace& s, StringOpType sot, const ConExpr& ce) {
+    rel(s, sot, s.arg2StringVar(ce[0]), s.arg2StringVar(ce[1]),
+                s.arg2StringVar(ce[2]));
+  }
+  
+//  void p_str_op3(FlatZincSpace& s, StringOpType sot, const ConExpr& ce) {
+//    rel(s, sot, s.arg2StringVar(ce[0]), s.arg2StringVar(ce[1]),
+//                s.arg2StringVar(ce[2]), s.arg2StringVar(ce[3]));
+//  }
+
+  void p_str_rev(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+    p_str_op1(s, STRT_REV, ce);
+  }
+
+//  void
+//  p_str_lcase(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//    p_str_op1(s, STRT_LCASE, ce);
+//  }
+
+//  void
+//  p_str_ucase(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//    p_str_op1(s, STRT_UCASE, ce);
+//  }
+
+  void p_str_concat(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+  	p_str_op2(s, STRT_CAT, ce);
+  }
+
+  void p_str_pow(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+  	pow(s, s.arg2StringVar(ce[0]), s.arg2IntVar(ce[1]), s.arg2StringVar(ce[2]));
+  }
+
+  void p_str_len(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+	  if (ce[1]->isSet()) {
+      const IntSet& d(s.arg2intset(ce[1]));
+      length(s, s.arg2StringVar(ce[0]), IntVar(s, d));
+    }
+	  else {//std::cerr << '|' << s.arg2StringVar(ce[0]) << "| = " << s.arg2IntVar(ce[1]) << '\n'; 
+	    length(s, s.arg2StringVar(ce[0]), s.arg2IntVar(ce[1]));}
+  }
+
+  void p_str_chars(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+    IntSet base;
+    int u = Gecode::String::Limits::MAX_STRING_LENGTH;
+    if (ce[1]->isStringDom()) {
+      AST::StringDom* sl = ce[1]->getStringDom();
+	    if (sl->c)
+        base = sl->c->s;
+	    else {
+	      base = IntSet(0, Gecode::String::Limits::MAX_ALPHABET_SIZE-1);
+	      u = sl->u;  
+	    }
+    }
+    else
+      base = ce[1]->getCharSet()->s;
+    Gecode::String::Block b(s, Gecode::String::CharSet(s, base), 0, u);
+	  dom(s, s.arg2StringVar(ce[0]), b);
+  }
+
+  void p_str_range(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+  	IntSet base = Gecode::IntSet(ce[1]->getString()[0], ce[2]->getString()[0]);
+  	Gecode::String::Block b(s, Gecode::String::CharSet(s, base), 0, 
+  	                           Gecode::String::Limits::MAX_STRING_LENGTH);
+  	dom(s, s.arg2StringVar(ce[0]), b);
+  }
+
+  void p_str_char_at(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+  	substr(s, s.arg2StringVar(ce[0]), s.arg2IntVar(ce[1]), s.arg2IntVar(ce[1]),
+              s.arg2StringVar(ce[2]));
+  }
+
+  void p_str_sub(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+    substr(s, s.arg2StringVar(ce[0]), s.arg2IntVar(ce[1]), s.arg2IntVar(ce[2]),
+    	   s.arg2StringVar(ce[3]));
+  }
+
+//  void p_str_char2code(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//    char2code(s, s.arg2StringVar(ce[0]), s.arg2IntVar(ce[1]));
+//  }
+
+//  void p_str_find(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//    find(s, s.arg2StringVar(ce[0]), s.arg2StringVar(ce[1]), s.arg2IntVar(ce[2]));
+//  }
+
+//  void p_str_rfind(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//    rfind(s, s.arg2StringVar(ce[0]), s.arg2StringVar(ce[1]), s.arg2IntVar(ce[2]));
+//  }
+
+//  void p_str_replace(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//    p_str_op3(s, STRT_REP, ce);
+//  }
+//  
+//  void p_str_replace_all(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//    p_str_op3(s, STRT_REPALL, ce);
+//  }
+//  
+//  void p_str_replace_last(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//    p_str_op3(s, STRT_REPLST, ce);
+//  }
+
+//  void p_str_contains(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//    contains(s, s.arg2StringVar(ce[0]), s.arg2StringVar(ce[1]));
+//  }
+
+//  void p_str_contains_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//	contains(s, s.arg2StringVar(ce[0]), s.arg2StringVar(ce[1]),
+//                s.arg2BoolVar(ce[2]));
+//  }
+
+//  void p_str_gcc(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//	  std::vector<string> v = s.arg2stringvec(ce[1]);
+//	  IntArgs a;
+//	  for (auto c : v)
+//	    a << String::char2int(c[0]);
+//    gcc(s, s.arg2StringVar(ce[0]), a, s.arg2intvarargs(ce[2]));
+//  }
+
+//  void p_str_gconcat(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//    gconcat(s, s.arg2stringvarargs(ce[0]), s.arg2StringVar(ce[1]));
+//  }
+
+//  DFA
+//  toDFA(FlatZincSpace& s, const ConExpr& ce) {
+//    int q = ce[1]->getInt();
+//    AST::CharSetLit* S = ce[2]->getCharSet();
+//    IntArgs d = s.arg2intargs(ce[3]);
+//    int q0 = ce[4]->getInt();
+//    AST::SetLit* F = ce[5]->getSet();
+//    int noOfTrans = 0, symbols = S->s.size();
+//    for (int i = 0; i < q; ++i)
+//      for (int j = 0; j < symbols; j++)
+//        if (d[i * symbols + j] > 0)
+//	  	    noOfTrans++;
+//    // Transitions.
+//    Region re;
+//    DFA::Transition* t = re.alloc<DFA::Transition>(noOfTrans + 1);
+//    noOfTrans = 0;
+//    for (int i = 0; i < q; i++)
+//      for (int j = 0; j < symbols; j++)
+//        if (d[i * symbols + j] > 0) {
+//          t[noOfTrans].i_state = i + 1;
+//          t[noOfTrans].symbol  = S->s.nth(j + 1);
+//          t[noOfTrans].o_state = d[i * symbols + j];
+//          noOfTrans++;
+//        }
+//    t[noOfTrans].i_state = -1;
+//    // Final states.
+//    int* f;
+// 	  if (F->interval) {
+//      f = static_cast<int*>(malloc(sizeof(int)*(F->max - F->min + 2)));
+//      for (int i= F->min; i <= F->max; i++)
+//        f[i - F->min] = i;
+//      f[F->max - F->min + 1] = -1;
+//    }
+//  	else {
+//      f = static_cast<int*>(malloc(sizeof(int)*(F->s.size() + 1)));
+//      for (int j = F->s.size(); j--; )
+//        f[j] = F->s[j];
+//      f[F->s.size()] = -1;
+//    }
+//  	DFA dfa(q0,t,f);
+//    free(f);
+//    return dfa;
+//  }
+
+//  void 
+//  p_str_dfa(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//	  if (ce[1]->isDFA())
+//	    extensional(s, s.arg2StringVar(ce[0]), ce[1]->getDFA()->d);
+//	  else
+//	    extensional(s, s.arg2StringVar(ce[0]), toDFA(s, ce));
+//  }
+
+//  void p_str_nfa(FlatZincSpace&, const ConExpr&, AST::Node *) {
+//	  std::cerr << "NFA propagator not yet implemented!\n";
+//  }
+
+//  void p_str_reg(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//	  extensional(s, s.arg2StringVar(ce[0]), ce[1]->getString());
+//  }
+
+//  void
+//  p_array_var_str_element(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
+//    element(
+//      s, s.arg2stringvarargs(ce[1]), s.arg2IntVar(ce[0]), s.arg2StringVar(ce[2])
+//	  );
+//  }
+
+//  void
+//  p_array_str_element(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
+//    StringVarArgs a;
+//    for (auto x : s.arg2stringvec(ce[1]))
+//      a << StringVar(s, x);
+//    element(s, a, s.arg2IntVar(ce[0]), s.arg2StringVar(ce[2]));
+//  }
+
+//  void
+//  p_str_reg_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//    extensional(s, s.arg2StringVar(ce[0]), ce[1]->getString(),
+//                   s.arg2BoolVar(ce[2]), RM_EQV);
+//  }
+
+//  void
+//  p_str_dfa_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//    extensional(s, s.arg2StringVar(ce[0]), toDFA(s, ce),
+//    		       s.arg2BoolVar(ce[2]), RM_EQV);
+//  }
+
+//  void
+//  p_str2nat(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//    str2nat(s, s.arg2StringVar(ce[0]), s.arg2IntVar(ce[1]));
+//  }
+
+//  void
+//  p_nat2str(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//    nat2str(s, s.arg2IntVar(ce[0]), s.arg2StringVar(ce[1]));
+//  }
+
+  class StringPoster {
+    public:
+      StringPoster(void) {
+    	  registry().add("str_eq", &p_str_eq);
+    	  registry().add("str_eq_c", &p_str_eq);
+    	  registry().add("str_ne", &p_str_ne);
+    	  registry().add("str_pow", &p_str_pow);
+    	  registry().add("str_pow_c", &p_str_pow);
+    	  registry().add("str_rev", &p_str_rev);
+    	  registry().add("str_rev_c", &p_str_rev);
+    	  registry().add("str_len", &p_str_len);
+//    	  registry().add("str_lt", &p_str_lt);
+//    	  registry().add("str_le", &p_str_le);
+    	  registry().add("str_sub", &p_str_sub);
+//    	  registry().add("str_lcase", &p_str_lcase);
+//    	  registry().add("str_ucase", &p_str_ucase);
+//    	  registry().add("str_gcc", &p_str_gcc);
+    	  registry().add("str_chars", &p_str_chars);
+    	  registry().add("str_char_at", &p_str_char_at);
+    	  registry().add("str_range", &p_str_range);
+//    	  registry().add("str_char2code", &p_str_char2code);
+//    	  registry().add("str_find", &p_str_find);
+//    	  registry().add("str_rfind", &p_str_rfind);
+//    	  registry().add("str_replace", &p_str_replace);
+//    	  registry().add("str_replace_all", &p_str_replace_all);
+//    	  registry().add("str_replace_last", &p_str_replace_last);
+    	  registry().add("str_concat", &p_str_concat);
+    	  registry().add("str_concat_c", &p_str_concat);
+//    	  registry().add("str_gconcat", &p_str_gconcat);
+    	  registry().add("str_eq_reif", &p_str_eq_reif);
+    	  registry().add("str_eq_c_reif", &p_str_eq_reif);
+    	  registry().add("str_ne_reif", &p_str_ne_reif);
+//    	  registry().add("str_le_reif", &p_str_le_reif);
+//    	  registry().add("str_lt_reif", &p_str_lt_reif);
+//    	  registry().add("str_contains", &p_str_contains);
+//    	  registry().add("str_contains_reif", &p_str_contains_reif);
+//    	  registry().add("str_dfa", &p_str_dfa);
+//    	  registry().add("str_nfa", &p_str_nfa);
+//    	  registry().add("str_reg", &p_str_reg);
+//    	  registry().add("array_string_element", &p_array_str_element);
+//        registry().add("array_var_string_element", &p_array_var_str_element);
+//        registry().add("str_reg_reif", &p_str_reg_reif);
+//        registry().add("str_dfa_reif", &p_str_dfa_reif);
+//        registry().add("str2nat", &p_str2nat);
+//        registry().add("nat2str", &p_nat2str);
+      }
+  };
+	StringPoster __string_poster;
+
 #endif
 
   }

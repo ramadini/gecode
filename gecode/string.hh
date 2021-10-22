@@ -306,7 +306,7 @@ namespace Gecode {
     STRT_LEXGQ, ///< Lexicographic greater or equal
   };
   
-  enum StringRelOpType {
+  enum StringOpType {
     STRT_CAT,  ///< Concatenation
     STRT_REV,  ///< String reversal
   };
@@ -322,10 +322,10 @@ namespace Gecode {
   rel(Home home, StringVar x, StringRelType r, StringVar y);
   /// Post propagator for \f$ y = \sim_r x \f$
   GECODE_STRING_EXPORT void
-  rel(Home home, StringRelOpType r, StringVar x, StringVar y);  
+  rel(Home home, StringOpType r, StringVar x, StringVar y);  
   /// Post propagator for \f$ z = x \sim_r y\f$
   GECODE_STRING_EXPORT void
-  rel(Home home, StringRelOpType r, StringVar x, StringVar y, StringVar z);  
+  rel(Home home, StringOpType r, StringVar x, StringVar y, StringVar z);  
   /// Post propagator for \f$ (x \sim_{rt} y) \equiv r\f$
   GECODE_STRING_EXPORT void
   rel(Home home, StringVar x, StringRelType rt, StringVar y, Reify r);

@@ -1,6 +1,6 @@
 #!/bin/sh
 
 FZN=$(mktemp)
-mzn2fzn-gstrings "$@" -o $FZN
-fzn-gstrings $FZN
+mzn2fzn-dashed "$@" -o $FZN
+fzn-dashed $FZN
 rm $FZN 2>/dev/null
