@@ -61,6 +61,6 @@ then
   exit 1
 else
   cat $X
-  rm $X $Y $Z
+  rm $X $Z
 fi &&
 echo "===== All tests pass! ====="
