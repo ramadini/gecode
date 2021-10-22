@@ -315,11 +315,11 @@ void initfg(ParserState* pp) {
     //TODO: Unfolding regular expressions.
 //    for (auto x : REGEX)
 //      x.second->add(x.first, pp);
-//    pp->fg->init(pp->intvars.size(),
-//                 pp->boolvars.size(),
-//                 pp->setvars.size(),
-//                 pp->floatvars.size(),
-//                 pp->stringvars.size());
+    pp->fg->init(pp->intvars.size(),
+                 pp->boolvars.size(),
+                 pp->setvars.size(),
+                 pp->floatvars.size(),
+                 pp->stringvars.size());
   }
   for (unsigned int i=0; i<pp->intvars.size(); i++) {
     if (!pp->hadError) {
@@ -2005,9 +2005,16 @@ set_literal_list_head :
       { $$ = $1; $$->push_back(*$3); delete $3; }
    
 charset_literal :
-      FZ_STRING_LIT FZ_DOTDOT FZ_STRING_LIT
+      '{' string_list '}'
+      { 
+        int n = $2->size(), a[n];
+        for (int i = 0; i < n; ++i)
+          a[i] = str2int((*$2)[i]);
+        $$ = new AST::CharSetLit(IntSet(a,n)); 
+      }
+    | FZ_STRING_LIT FZ_DOTDOT FZ_STRING_LIT
       { $$ = new AST::CharSetLit(IntSet($1[0], $3[0])); }
-
+      
 /********************************/
 /* constraint expressions       */
 /********************************/

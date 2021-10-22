@@ -1,4 +1,4 @@
-%include "replace.mzn";
+include "replace.mzn";
 var string: x;
 var string(5): y;
 var string of {"a", "b", "e"}: z;
