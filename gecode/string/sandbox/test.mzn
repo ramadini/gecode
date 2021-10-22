@@ -7,8 +7,8 @@ var string of {"a", "b", "c"}: u;
 var string of {"a", "b"}: v;
 var string: x1;
 var string: x2;
-%var string: r;
-%var string: s;
+var string: r;
+var string: s;
 %var string: d;
 %var string: z1;
 %var string: z2;
@@ -45,20 +45,19 @@ constraint str_len(x1) = 1;
 constraint str_range(x2, "1", "5");
 constraint str_len(x2) > 3;
 constraint str_char_at(x2, 2) = "2";
-%constraint str_sub(t, 3, 4) = "gg";
+constraint str_sub(t, 3, 4) = "gg";
 
-solve satisfy;
 %constraint str_gcc(z, ["a", "b", "c"], [a, b, c]);
 %constraint [x, y, z][i] = "abb";
 %constraint i >= a;
-%constraint str_len(r) > 2;
+constraint str_len(r) > 2;
 %constraint str_contains(r, "]");
 %constraint str_reg(r, "(\(|\[)(\**)(\\|\])");
 %array[1..4, 1..3] of int: delta = [|
 %  2, 0, 3 | 0, 4, 0 | 2, 0, 3 | 2, 0, 3
 %|];
 %constraint str_dfa(s, 4, {"a", "b", "c"}, delta, 1, {1, 3, 4});
-%constraint str_len(s) > 1;
+constraint str_len(s) > 1;
 %constraint if z > y then
 %  v > u
 %else
@@ -82,4 +81,4 @@ solve satisfy;
 %constraint z5 = str_replace(z4, "BB", z6) /\ z4 < z5;
 %constraint str_replace_last(z1, "G", z6) > z1;
 
-%solve maximize str_len(t);
+solve maximize str_len(t);

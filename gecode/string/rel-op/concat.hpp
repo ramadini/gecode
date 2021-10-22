@@ -37,17 +37,22 @@ namespace Gecode { namespace String { namespace RelOp {
   forceinline ExecStatus
   Concat<View0,View1,View2>::refine_card(Space& home) {
 //    std::cerr << "Before refine_card: " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
-    int l = x2.min_length() - x1.max_length();
+    int l = std::max(0, x2.min_length()-x1.max_length());
     int u = x2.max_length() - x1.min_length();
+    if (u < 0)
+      return ES_FAILED;
 //    std::cerr << "x0) " << l << " " << u << "\n";
     if (l > x0.min_length()) GECODE_ME_CHECK(x0.min_length(home, l));
     if (u < x0.max_length()) GECODE_ME_CHECK(x0.max_length(home, u));
-    l = x2.min_length() - x0.max_length();
+    l = std::max(0, x2.min_length() - x0.max_length());
     u = x2.max_length() - x0.min_length();
     if (l > x1.min_length()) GECODE_ME_CHECK(x1.min_length(home, l));
     if (u < x1.max_length()) GECODE_ME_CHECK(x1.max_length(home, u));
-    l = x0.min_length() + x1.min_length();
-    u = x0.max_length() + x1.max_length();
+    long n = x0.min_length() + x1.min_length();
+    if (n > MAX_STRING_LENGTH)
+      return ES_FAILED;
+    l = (int) n;
+    u = ubounded_sum(x0.max_length(), x1.max_length());
     if (l > x2.min_length()) GECODE_ME_CHECK(x2.min_length(home, l));
     if (u < x2.max_length()) GECODE_ME_CHECK(x2.max_length(home, u));
 //    std::cerr << "After refine_card: " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
@@ -91,6 +96,7 @@ namespace Gecode { namespace String { namespace RelOp {
     int a;
     do {
       ConcatView xy(x0,x1);
+//      std::cerr << "xy: " << xy << "\n";
       ModEvent me0 = ME_STRING_NONE;
       if (!x2.assigned()) {
         me0 = x2.equate(home, xy);

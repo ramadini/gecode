@@ -232,7 +232,7 @@ namespace Gecode { namespace String {
 
   forceinline int 
   ConcatView::size() const {
-    return x0.size() + x1.size();
+    return ubounded_sum(x0.size(), x1.size());
   }
 
   forceinline const Block&
@@ -252,13 +252,13 @@ namespace Gecode { namespace String {
   
   forceinline int
   ConcatView::max_length() const {
-    return x0.max_length() + x1.max_length();
+    return ubounded_sum(x0.max_length(), x1.max_length());
   }
   
   
   forceinline int
   ConcatView::min_length() const {
-    return x0.min_length() + x1.min_length();
+    return ubounded_sum(x0.min_length(), x1.min_length());
   }
   
   forceinline bool
@@ -278,12 +278,12 @@ namespace Gecode { namespace String {
   
   forceinline int
   ConcatView::lb_sum() const {
-    return x0.lb_sum() + x1.lb_sum();
+    return ubounded_sum(x0.lb_sum(), x1.lb_sum());
   }
   
   forceinline long
   ConcatView::ub_sum() const {
-    return x0.ub_sum() + x1.lb_sum();
+    return ubounded_sum(x0.ub_sum(), x1.lb_sum());
   }
   
   forceinline ModEvent
@@ -395,8 +395,8 @@ namespace Gecode { namespace String {
     else if (p.idx >= pivot)
       return x1.min_len_mand(bx, p-pivot, q-pivot);
     else
-      return x0.min_len_mand(bx, p, Position(pivot,0)) 
-           + x1.min_len_mand(bx, Position(0,0), q-pivot);
+      return ubounded_sum(x0.min_len_mand(bx, p, Position(pivot,0)),
+                          x1.min_len_mand(bx, Position(0,0), q-pivot));
   }
   
   forceinline void
@@ -436,8 +436,8 @@ namespace Gecode { namespace String {
     else if (esp.idx >= pivot)
       return x1.max_len_opt(bx, esp-pivot, lep-pivot, l1);
     else
-      return x0.max_len_opt(bx, esp, Position(pivot,0), l1) 
-           + x1.max_len_opt(bx, Position(0,0), lep-pivot, l1);
+      return ubounded_sum(x0.max_len_opt(bx, esp, Position(pivot,0), l1),
+                          x1.max_len_opt(bx, Position(0,0), lep-pivot, l1));
   }
   
   forceinline void

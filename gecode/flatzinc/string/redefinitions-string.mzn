@@ -10,38 +10,6 @@ let {
   var 1..length(D): i;
 } in array_string_element(i, D, x);
 
-predicate str_eq_c(var string: x, var string: y);
-predicate str_eq_c_reif(var string: x, var string: y, var bool: b);
-predicate 
-str_eq(var string: x, var string: y) = 
-let {
-  constraint str_len(x) = str_len(y);
-} in str_eq_c(x, y);
-
-function var string: str_rev_c(var string: x) ::promise_total;
-function var string:
-str_rev(var string: x) ::promise_total = 
-let {
-  var string: y = str_rev_c(x);
-  constraint str_len(x) = str_len(y);
-} in y;
-
-function var string: str_pow_c(var string: x, var int: n) ::promise_total;
-function var string:
-str_pow(var string: x, var int: n) ::promise_total = 
-let {
-  var string: y = str_pow_c(x, n);
-  constraint str_len(y) = str_len(x) * n;
-} in y;
-
-function var string: str_concat_c(var string: x, var string: y) ::promise_total;
-function var string:
-str_concat(var string: x, var string: y) ::promise_total = 
-let {
-  var string: z = str_concat_c(x, y);
-  constraint str_len(z) = str_len(x) + str_len(y);
-} in z;
-
 function var int: 
 str_find(var string: x, var string: y) ::promise_total =
 let {
@@ -71,16 +39,6 @@ str_find_offset(var string: x, var string: y, var int: n, var int: i) =
   else
     str_find(x, str_sub(y, i, str_len(y)), n)
   endif;
-
-function var string:
-str_code2char(var int: n) ::promise_total = 
-let {
-  var string(1): x;
-  constraint n = str_char2code(x);
-} in x;
-
-function var int:
-str_code_at(var string: x, var int: i) = str_char2code(str_char_at(x, i)); 
 
 predicate str_startswith(var string: x, var string: y) =
   str_len(x) >= str_len(y) /\ str_find(y, x) = 1;
@@ -186,48 +144,23 @@ function var string:
 str_char_at(var string: x, var int: i) :: promise_total = let {
   var int: lx = str_len(x);
   constraint i >= 1 /\ i <= lx;
-  var string: xs;
-  var string: xs;
-  var string: c;
-  constraint str_len(c) = 1 /\ x = xs ++ c ++ xs;
+  var string(ub(i-1)): xp;
+  var string(ub(lx-i)): xs;
+  var string(1): c;
+  constraint str_len(c) = 1 /\ str_len(xp) = i-1 /\ x = xp ++ c ++ xs;
 } in c;
 
 function var string: nat2str(var int: n);
 function var int: str2nat(var string: x);
 
-function array[int] of var string:
-str_split(var string: x, int: len) = [x];
-
-function array[int] of var string: 
-str_split(var string: x, var string: sep, int: len) :: promise_total = 
-let {
-  constraint assert(len >= 0, "Invalid array length!");
-  var int: lx = str_len(x);
-  int: n = min(len, ub(lx));
-  array[1..n] of var int: A;
-  array[1..n] of var string: B;
-  var string: xsep = x ++ sep;
-  constraint if sep = "" then
-    forall (i in 1..n) (B[i] = [str_char_at(x, i), "\\x00"][(i > lx) + 1])
-  else
-    A[1] = str_find(sep, xsep) /\ B[1] = str_sub(x, 1, A[1] - 1) /\
-    forall (i in 2..n) (
-      A[i] = A[i - 1] + str_find(sep, str_sub(xsep, A[i - 1] + 1, lx + 1)) /\
-      B[i] = [str_sub(x, A[i-1] + 1, A[i] - 1), "\\x00"][(A[i-1] + 1 > lx) + 1]
-    )
-  endif;
-} in B;
-
 annotation none;
-annotation lenmin;
-annotation lenmax;
-annotation sizemin;
-annotation blockmin;
-annotation lenblockmin;
+annotation blockdim_min;
+annotation lenblock_min;
 
 annotation llll;
-annotation llul;
 annotation lllm;
+annotation lslm;
+
 
 annotation string_search(
   array[int] of var string: vars, ann: hvar, ann: hval, ann: comp

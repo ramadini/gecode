@@ -2471,12 +2471,9 @@ namespace Gecode { namespace FlatZinc {
     public:
       StringPoster(void) {
     	  registry().add("str_eq", &p_str_eq);
-    	  registry().add("str_eq_c", &p_str_eq);
     	  registry().add("str_ne", &p_str_ne);
     	  registry().add("str_pow", &p_str_pow);
-    	  registry().add("str_pow_c", &p_str_pow);
     	  registry().add("str_rev", &p_str_rev);
-    	  registry().add("str_rev_c", &p_str_rev);
     	  registry().add("str_len", &p_str_len);
 //    	  registry().add("str_lt", &p_str_lt);
 //    	  registry().add("str_le", &p_str_le);
@@ -2492,10 +2489,8 @@ namespace Gecode { namespace FlatZinc {
 //    	  registry().add("str_replace_all", &p_str_replace_all);
 //    	  registry().add("str_replace_last", &p_str_replace_last);
     	  registry().add("str_concat", &p_str_concat);
-    	  registry().add("str_concat_c", &p_str_concat);
 //    	  registry().add("str_gconcat", &p_str_gconcat);
     	  registry().add("str_eq_reif", &p_str_eq_reif);
-    	  registry().add("str_eq_c_reif", &p_str_eq_reif);
     	  registry().add("str_ne_reif", &p_str_ne_reif);
 //    	  registry().add("str_le_reif", &p_str_le_reif);
 //    	  registry().add("str_lt_reif", &p_str_lt_reif);
