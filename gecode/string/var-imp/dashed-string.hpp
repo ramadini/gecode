@@ -244,6 +244,8 @@ namespace Gecode { namespace String {
     /// - OutOfLimits, if the sum of lower bounds of blocks is bigger than
     ///                MAX_STRING_LENGTH
     DashedString(Space& home, const Block b[], int n);
+    /// TODO
+    DashedString(Space& home, const std::vector<int>& v);
     
     /// \name Dashed string access
     //@{
@@ -983,6 +985,13 @@ namespace Gecode { namespace String {
 //    std::cerr << *this << '\n';
     assert(isNorm());
     assert(isOK());
+  }
+  
+  forceinline
+  DashedString::DashedString(Space& home, const std::vector<int>& v)
+  : DynamicArray(home) {
+    assert (n > 0);
+    update(home, v);
   }
 
   forceinline int DashedString::lb_sum() const {
