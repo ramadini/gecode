@@ -876,7 +876,7 @@ FLATZINCOBJ = \
 	$(FLATZINCSRC:%.cpp=%$(OBJSUFFIX)) \
 	$(FLATZINC_GENSRC:%.cpp=%$(OBJSUFFIX))
 
-FLATZINCEXESRC0 = fzn-gecode.cpp
+FLATZINCEXESRC0 = fzn-gstrings.cpp
 FLATZINCEXESRC  = $(FLATZINCEXESRC0:%=tools/flatzinc/%)
 FLATZINCEXEOBJ  = $(FLATZINCEXESRC:%.cpp=%$(OBJSUFFIX))
 
@@ -890,9 +890,8 @@ export FLATZINCSTATICLIB	= $(LIBPREFIX)@FLATZINC@$(STATICLIBSUFFIX)
 export FLATZINCLIB		= $(LIBPREFIX)@FLATZINC@$(LIBSUFFIX)
 export LINKFLATZINC		= $(LINKPREFIX)@FLATZINC@$(LINKSUFFIX)
 export FLATZINCMZNLIB		= gecode/flatzinc/mznlib
-FLATZINCEXE	= tools/flatzinc/fzn-gecode$(EXESUFFIX)
+FLATZINCEXE	= tools/flatzinc/fzn-gstrings$(EXESUFFIX)
 ifeq "@enable_string_vars@" "yes"
-FZNSTR = fzn-gstrings
 MZNSTR = mzn-gstrings
 MZNFZNSTR = mzn2fzn-gstrings
 MZNFZNSTREXE = mzn2fzn-str
@@ -1139,12 +1138,9 @@ LIBLIBTARGETS =
 PDBTARGETS =
 endif
 
-ifeq "@enable_string_vars@" "yes"
-EXETARGETS = $(FLATZINCEXE) tools/flatzinc/mzn-gecode@BATCHFILE@
 ifeq "@enable_flatzinc@" "yes"
-EXETARGETS = tools/flatzinc/$(FZNSTR) tools/flatzinc/$(MZNSTR) tools/flatzinc/$(MZNFZNSTR)\
+EXETARGETS = $(FLATZINCEXE) tools/flatzinc/$(MZNSTR) tools/flatzinc/$(MZNFZNSTR)\
 tools/flatzinc/$(MZNFZNSTREXE)
-endif
 else
 EXETARGETS = $(FLATZINCEXE) tools/flatzinc/mzn-gecode@BATCHFILE@ 
 endif
@@ -2209,7 +2205,7 @@ endif
 
 cleanstr:
 ifeq "@enable_flatzinc@" "yes"
-	rm -f $(DESTDIR)$(bindir)/$(FZNSTR) $(DESTDIR)$(bindir)/$(MZNSTR) \
+	rm -f $(DESTDIR)$(bindir)/$(MZNSTR) \
 	$(DESTDIR)$(bindir)/$(MZNFZNSTR) $(DESTDIR)$(bindir)/$(MZNFZNSTREXE) \
 	tools/flatzinc/$(MZNFZNSTREXE)
 endif

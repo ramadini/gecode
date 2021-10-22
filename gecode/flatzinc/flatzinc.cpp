@@ -1879,7 +1879,7 @@ namespace Gecode { namespace FlatZinc {
     static void explore(S* root, const FlatZincOptions& opt,
                         Gist::Inspector* i, Gist::Comparator* c) {
       Gecode::Gist::Options o;
-      o.c_d = opt.c_d(); o.a_d = opt.a_d();
+      o.c_d = 1; /*FIXME opt.c_d(); */ o.a_d = opt.a_d();
       o.inspect.click(i);
       o.inspect.compare(c);
       (void) Gecode::Gist::dfs(root, o);
@@ -1893,7 +1893,7 @@ namespace Gecode { namespace FlatZinc {
     static void explore(S* root, const FlatZincOptions& opt,
                         Gist::Inspector* i, Gist::Comparator* c) {
       Gecode::Gist::Options o;
-      o.c_d = opt.c_d(); o.a_d = opt.a_d();
+      o.c_d = 1; /*FIXME opt.c_d(); */ o.a_d = opt.a_d();
       o.inspect.click(i);
       o.inspect.compare(c);
       (void) Gecode::Gist::bab(root, o);
@@ -2081,7 +2081,7 @@ namespace Gecode { namespace FlatZinc {
     Search::Options o;
     o.stop = Driver::CombinedStop::create(opt.node(), opt.fail(), opt.time(),
                                           true);
-    o.c_d = opt.c_d();
+    o.c_d = 1; //FIXME: opt.c_d();
     o.a_d = opt.a_d();
 
 #ifdef GECODE_HAS_CPPROFILER

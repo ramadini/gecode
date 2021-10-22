@@ -440,9 +440,9 @@ endif ()
 add_executable(gecode-test EXCLUDE_FROM_ALL ${TESTSRC} ${TESTHDR})
 target_link_libraries(gecode-test gecodeflatzinc gecodeminimodel)
 
-add_executable(fzn-gecode ${FLATZINCEXESRC})
-target_link_libraries(fzn-gecode gecodeflatzinc gecodeminimodel gecodedriver)
-list(APPEND GECODE_INSTALL_TARGETS fzn-gecode)
+add_executable(fzn-gstrings ${FLATZINCEXESRC})
+target_link_libraries(fzn-gstrings gecodeflatzinc gecodeminimodel gecodedriver)
+list(APPEND GECODE_INSTALL_TARGETS fzn-gstrings)
 
 set(prefix ${CMAKE_INSTALL_PREFIX})
 set(datarootdir \${prefix}/share)
