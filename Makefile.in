@@ -876,7 +876,7 @@ FLATZINCOBJ = \
 	$(FLATZINCSRC:%.cpp=%$(OBJSUFFIX)) \
 	$(FLATZINC_GENSRC:%.cpp=%$(OBJSUFFIX))
 
-FLATZINCEXESRC0 = fzn-gstrings.cpp
+FLATZINCEXESRC0 = fzn-dashed.cpp
 FLATZINCEXESRC  = $(FLATZINCEXESRC0:%=tools/flatzinc/%)
 FLATZINCEXEOBJ  = $(FLATZINCEXESRC:%.cpp=%$(OBJSUFFIX))
 
@@ -890,10 +890,10 @@ export FLATZINCSTATICLIB	= $(LIBPREFIX)@FLATZINC@$(STATICLIBSUFFIX)
 export FLATZINCLIB		= $(LIBPREFIX)@FLATZINC@$(LIBSUFFIX)
 export LINKFLATZINC		= $(LINKPREFIX)@FLATZINC@$(LINKSUFFIX)
 export FLATZINCMZNLIB		= gecode/flatzinc/mznlib
-FLATZINCEXE	= tools/flatzinc/fzn-gstrings$(EXESUFFIX)
+FLATZINCEXE	= tools/flatzinc/fzn-dashed$(EXESUFFIX)
 ifeq "@enable_string_vars@" "yes"
-MZNSTR = mzn-gstrings
-MZNFZNSTR = mzn2fzn-gstrings
+MZNSTR = mzn-dashed
+MZNFZNSTR = mzn2fzn-dashed
 MZNFZNSTREXE = mzn2fzn-str
 MZNFZNSTRTGZ = tools/flatzinc/mzn2fzn-str.tar.gz
 endif
