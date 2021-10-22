@@ -171,7 +171,7 @@ let {
   var string: y2;
   var 1..ub(i): n = max(1, i);
   var min(lb(str_len(x)), lb(j))..min(ub(str_len(x)), ub(j)): m = 
-    min(str_len(x), j);
+      min(str_len(x), j);
   constraint if i > j \/ i > str_len(x) \/ j < 1 \/ x = "" then
     y = ""
   else
@@ -183,7 +183,14 @@ let {
 } in y;
 
 function var string:
-str_char_at(var string: x, var int: i) = str_sub(x, i, i);
+str_char_at(var string: x, var int: i) :: promise_total = let {
+  var int: lx = str_len(x);
+  constraint i >= 1 /\ i <= lx;
+  var string: xs;
+  var string: xs;
+  var string: c;
+  constraint str_len(c) = 1 /\ x = xs ++ c ++ xs;
+} in c;
 
 function var string: nat2str(var int: n);
 function var int: str2nat(var string: x);

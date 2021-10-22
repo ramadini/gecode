@@ -2320,15 +2320,10 @@ namespace Gecode { namespace FlatZinc {
   	dom(s, s.arg2StringVar(ce[0]), b);
   }
 
-  void p_str_char_at(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-  	substr(s, s.arg2StringVar(ce[0]), s.arg2IntVar(ce[1]), s.arg2IntVar(ce[1]),
-              s.arg2StringVar(ce[2]));
-  }
-
-  void p_str_sub(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-    substr(s, s.arg2StringVar(ce[0]), s.arg2IntVar(ce[1]), s.arg2IntVar(ce[2]),
-    	   s.arg2StringVar(ce[3]));
-  }
+//  void p_str_sub(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+//    substr(s, s.arg2StringVar(ce[0]), s.arg2IntVar(ce[1]), s.arg2IntVar(ce[2]),
+//    	   s.arg2StringVar(ce[3]));
+//  }
 
 //  void p_str_char2code(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
 //    char2code(s, s.arg2StringVar(ce[0]), s.arg2IntVar(ce[1]));
@@ -2485,12 +2480,10 @@ namespace Gecode { namespace FlatZinc {
     	  registry().add("str_len", &p_str_len);
 //    	  registry().add("str_lt", &p_str_lt);
 //    	  registry().add("str_le", &p_str_le);
-    	  registry().add("str_sub", &p_str_sub);
 //    	  registry().add("str_lcase", &p_str_lcase);
 //    	  registry().add("str_ucase", &p_str_ucase);
 //    	  registry().add("str_gcc", &p_str_gcc);
     	  registry().add("str_chars", &p_str_chars);
-    	  registry().add("str_char_at", &p_str_char_at);
     	  registry().add("str_range", &p_str_range);
 //    	  registry().add("str_char2code", &p_str_char2code);
 //    	  registry().add("str_find", &p_str_find);
