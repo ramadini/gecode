@@ -15,6 +15,7 @@ gecode/support/config.hpp
 tools/flatzinc/mzn-gecode.bat
 tools/flatzinc/fzn-dashed
 tools/flatzinc/mzn-gecode
+tools/flatzinc/mzn2fzn-str
 gecode/gist/moc_*.*
 *.o
 *.s
