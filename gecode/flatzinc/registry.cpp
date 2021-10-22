@@ -2291,8 +2291,8 @@ namespace Gecode { namespace FlatZinc {
       const IntSet& d(s.arg2intset(ce[1]));
       length(s, s.arg2StringVar(ce[0]), IntVar(s, d));
     }
-	  else {//std::cerr << '|' << s.arg2StringVar(ce[0]) << "| = " << s.arg2IntVar(ce[1]) << '\n'; 
-	    length(s, s.arg2StringVar(ce[0]), s.arg2IntVar(ce[1]));}
+	  else
+	    length(s, s.arg2StringVar(ce[0]), s.arg2IntVar(ce[1]));
   }
 
   void p_str_chars(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {

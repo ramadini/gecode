@@ -1,6 +1,6 @@
 %include "replace.mzn";
 var string: x;
-%var string(5): y;
+var string(5): y;
 %var string of {"a", "b", "e"}: z;
 %var string(5) of {"d", "e", "g"}: t;
 %var string of {"a", "b", "c"}: u;
