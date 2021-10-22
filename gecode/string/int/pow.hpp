@@ -53,6 +53,9 @@ namespace Gecode { namespace String { namespace Int {
     ly = std::max(ly, lx * n1), uy = std::min(uy, ux * n2),
     lx = std::max(lx, div_l(ly, n2)), ux = std::min(ux, div_u(uy, n1)),
     n1 = std::max(n1, int(div_l(ly,ux))), n2 = std::min(n2, int(div_u(uy,lx)));
+//    std::cerr << "x in " << lx << ".." << ux << '\n';
+//    std::cerr << "n in " << n1 << ".." << n2 << '\n';
+//    std::cerr << "y in " << ly << ".." << uy << '\n';
     if (n1 > n2 || lx > ux || ly > uy)
       return ES_FAILED;
     if (ly > 0) {
@@ -107,15 +110,17 @@ namespace Gecode { namespace String { namespace Int {
       int n0 = x0.size();
       if (n0 < 2) {
         if (!x0[0].isUniverse()) {
-          Block bx;
-          bx.update(home, x0[0]);
-          bx.updateCard(home, 0, MAX_STRING_LENGTH);
+          Block by;
+          by.update(home, x0[0]);
+          by.updateCard(home, x0.min_length()*l, 
+                              l == 0 ? MAX_STRING_LENGTH : x0.max_length()*u );
+//          std::cerr << "by: " << by << "\n";
           if (x2.assigned()) {
-            if (!check_equate_x(x2, ConstDashedView(bx, 1)))
+            if (!check_equate_x(x2, ConstDashedView(by, 1)))
               return ES_FAILED;
           }
           else
-            GECODE_ME_CHECK(x2.equate(home, ConstDashedView(bx, 1)));
+            GECODE_ME_CHECK(x2.equate(home, ConstDashedView(by, 1)));
         }
       }
       else {
@@ -161,13 +166,15 @@ namespace Gecode { namespace String { namespace Int {
         Set::GLBndSet s;
         for (int i = 0; i < x2.size(); ++i)
           x2[i].includeBaseIn(home, s);
-        Block by(home, CharSet(home, s), x2.min_length(), x2.max_length());
+        Block bx(home, CharSet(home, s), div_l(x2.min_length(), l), 
+                                         div_u(x2.max_length(), l));
+//        std::cerr << "bx: " << bx << "\n";
         if (x0.assigned()) {
-          if (!check_equate_x(x0, ConstDashedView(by, 1)))
+          if (!check_equate_x(x0, ConstDashedView(bx, 1)))
             return ES_FAILED;
         }
         else
-          GECODE_ME_CHECK(x0.equate(home, ConstDashedView(by, 1)));
+          GECODE_ME_CHECK(x0.equate(home, ConstDashedView(bx, 1)));
       }
       GECODE_ME_CHECK(refine_card(home));
       a = x0.assigned() + x1.assigned() + x2.assigned();
