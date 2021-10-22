@@ -353,6 +353,8 @@ namespace Gecode {
                                               StringVar y, StringVar z);
   GECODE_STRING_EXPORT void concat(Home home, StringVar x,
                                               StringVar y, std::vector<int> w);
+  GECODE_STRING_EXPORT void substr(Home home, StringVar x, IntVar i, 
+                                              IntVar j, StringVar y);
   /**
    * \defgroup TaskModelStringElement
    * \ingroup TaskModelString

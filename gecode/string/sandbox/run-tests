@@ -8,6 +8,9 @@ declare -a TESTS=(
   'anbn.cpp' 'chunk_split.cpp' 'hamming_mod.cpp' 'levenshtein.cpp' \
   'string_replace.cpp'
 )
+X=$TEST_DIR/x
+Y=$TEST_DIR/y
+Z=$TEST_DIR/z
 
 if
   [[ $1 == "dep" ]]
@@ -15,33 +18,49 @@ then
   make depend
 fi &&
 make -j 4 && sudo make install &&
-
-for t in "${TESTS[@]}"
-do
-  echo "===== Testing $t ====="
-  $TEST_CMD $TEST_DIR/$t $1 $2
-  if
-    [ $? -ne 0 ]
-  then
-    exit 1
-  fi
-done &&
-for i in 11 13 100 200 250 300 400 500
-    do
-      $TEST_CMD $TEST_DIR/sql.cpp $i $1
-      if
-        [ $? -ne 0 ]
-      then
-        exit 1
-      fi
-    done &&
-    for i in 1000 2500 5000 10000
-    do
-      $TEST_CMD $TEST_DIR/sql.cpp $i
-      if
-        [ $? -ne 0 ]
-      then
-        exit 1
-      fi
-    done &&    
+if
+  [[ $1 != "mzn" ]]
+then
+  for t in "${TESTS[@]}"
+  do
+    echo "===== Testing $t ====="
+    $TEST_CMD $TEST_DIR/$t $1 $2
+    if
+      [ $? -ne 0 ]
+    then
+      exit 1
+    fi
+  done &&
+  for i in 11 13 100 200 250 300 400 500
+      do
+        $TEST_CMD $TEST_DIR/sql.cpp $i $1
+        if
+          [ $? -ne 0 ]
+        then
+          exit 1
+        fi
+      done &&
+      for i in 1000 2500 5000 10000
+      do
+        $TEST_CMD $TEST_DIR/sql.cpp $i
+        if
+          [ $? -ne 0 ]
+        then
+          exit 1
+        fi
+      done
+fi &&
+mzn-dashed $TEST_DIR/test.mzn > $X
+Y=$TEST_DIR/output_mzn;
+diff $X $Y > $Z
+if
+  [ -s $Z ]
+then
+  echo "Error! MZN output not expected!"
+  cat $Z
+  exit 1
+else
+  cat $X
+  rm $X $Y $Z
+fi &&
 echo "===== All tests pass! ====="
