@@ -71,7 +71,7 @@ namespace Gecode { namespace String { namespace RelOp {
     }
     if (x1.isNull()) {
       GECODE_REWRITE(*this, 
-        (Gecode::String::Rel::Eq<View1,View2>::post(home(*this), x0, x2)));
+        (Gecode::String::Rel::Eq<View0,View2>::post(home(*this), x0, x2)));
       return home.ES_SUBSUMED(*this);
     }
     if (x2.isNull()) {
