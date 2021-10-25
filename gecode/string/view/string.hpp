@@ -265,15 +265,11 @@ namespace Gecode { namespace String {
     return x->nullify(home);
   }
   
+  template <class T>
   forceinline bool
-  StringView::same(const StringView& y) const {
+  StringView::same(const T& y) const {
     return varimp() == y.varimp();
   }
-  forceinline bool
-  StringView::same(const ConstStringView&) const {
-    return false;
-  }
-
   forceinline int 
   StringView::size() const {
     return x->size();

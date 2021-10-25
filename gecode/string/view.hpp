@@ -117,8 +117,7 @@ namespace Gecode { namespace String {
     /// Consistency checks on the view
     bool isOK(void) const;
     /// If this view and y are the same
-    bool same(const StringView& y) const;
-    bool same(const ConstStringView& y) const;
+    template <class T> bool same(const T& y) const;
     /// If this view contains y
     bool contains(const StringView& y) const;
     bool contains_rev(const StringView& y) const;
