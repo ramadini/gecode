@@ -509,7 +509,9 @@ namespace Gecode { namespace String {
       return x1.fixed_chars_pref(p-pivot,q-pivot);
     else {
       int k = x0.fixed_chars_pref(p,Position(pivot,0));
-      return k == 0 ? 0 : k + x1.fixed_chars_pref(Position(0,0),q-pivot);
+      const Block& b = x0[x0.size()-1];
+      return k < x0.min_length() || b.baseSize() > 1 || !b.baseEquals(x1[0]) ? 
+             k : k + x1.fixed_chars_pref(Position(0,0),q-pivot);
     }
   }
   
@@ -521,7 +523,9 @@ namespace Gecode { namespace String {
       return x1.fixed_pref(p-pivot,q-pivot);
     else {
       std::vector<int> v = x0.fixed_pref(p,Position(pivot,0));
-      if (!v.empty()) {
+      const Block& b = x0[x0.size()-1];
+      if ((int) v.size() < x0.min_length() || b.baseSize() > 1 
+                                           || !b.baseEquals(x1[0])) {
         std::vector<int> w = x1.fixed_pref(Position(0,0),q-pivot);
         v.insert(v.end(), w.begin(), w.end());
       }
@@ -537,7 +541,10 @@ namespace Gecode { namespace String {
       return x1.fixed_chars_suff(p-pivot,q-pivot);
     else {
       int k = x1.fixed_chars_suff(Position(0,0),q-pivot);
-      return k == 0 ? 0 : k + x0.fixed_chars_suff(p,Position(pivot,0));
+      const Block& b = x1[0];
+      return k < x1.min_length() || b.baseSize() > 1 
+                                 || !b.baseEquals(x0[x0.size()-1]) ?
+             k : k + x0.fixed_chars_suff(p,Position(pivot,0));
     }
   }
   
@@ -549,10 +556,12 @@ namespace Gecode { namespace String {
       return x1.fixed_suff(p-pivot,q-pivot);
     else {
       std::vector<int> v = x1.fixed_suff(Position(0,0),q-pivot);
-      if (!v.empty()) {
-        std::vector<int> w = x0.fixed_suff(p,Position(pivot,0));
-        v.insert(v.end(), w.begin(), w.end());
-      }
+      const Block& b = x1[0];
+      if ((int) v.size() < x1.min_length() || b.baseSize() > 1 
+                                           || !b.baseEquals(x0[x0.size()-1]))
+        return v;
+      std::vector<int> w = x0.fixed_suff(p,Position(pivot,0));
+      v.insert(v.end(), w.begin(), w.end());
       return v;
     }
   }
