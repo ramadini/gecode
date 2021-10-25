@@ -1,0 +1,70 @@
+var string: B;
+var string: F;
+var string: E;
+var string: D;
+constraint (("bc") ++ (F) ++ ("cb")) = (("bcb") ++ (D) ++ ("cb"));
+constraint
+  (("a") ++ (D) ++ ("db") ++ (D) ++ ("c")) = ((D) ++ (D) ++ ("d") ++ (B));
+constraint (("cabcad") ++ ("")) = (("c") ++ (D) ++ ("bcad"));
+constraint (("dbdc") ++ (F)) = (("dbdc") ++ (F));
+constraint (("bdaabd") ++ ("")) = (("bd") ++ (D) ++ ("abd"));
+constraint (("cdacaa") ++ ("")) = (("cd") ++ (D) ++ ("c") ++ (D) ++ (D));
+constraint (("bca") ++ (F) ++ ("b")) = (("bcabab") ++ (""));
+constraint
+  (("dc") ++ (D) ++ ("bc") ++ (D)) = (("dc") ++ (D) ++ ("bc") ++ (D));
+constraint (("b") ++ (D) ++ ("dcbd")) = ((F) ++ ("dcbd") ++ (""));
+constraint (("d") ++ (D) ++ ("dccb")) = (("d") ++ (D) ++ ("dccb"));
+constraint (("dac") ++ (D) ++ ("cb")) = (("d") ++ (D) ++ ("c") ++ (E));
+constraint (("dcca") ++ (D) ++ ("d")) = (("dcc") ++ (D) ++ ("ad"));
+constraint (("dbbc") ++ (D) ++ ("a")) = (("dbbc") ++ (D) ++ ("a"));
+constraint (("bc") ++ (F) ++ (F)) = (("bc") ++ (F) ++ ("ba"));
+constraint ((D) ++ (D) ++ ("dbbc")) = (("a") ++ (D) ++ ("dbbc"));
+constraint ((D) ++ ("b") ++ (D) ++ ("bbc")) = ((D) ++ (F) ++ ("bbc"));
+constraint (("bcd") ++ (F) ++ ("d")) = (("bcdb") ++ (D) ++ ("d"));
+constraint (("adca") ++ (D) ++ ("b")) = (("adc") ++ (D) ++ (D) ++ ("b"));
+constraint (("dcbdad") ++ ("")) = (("dcbd") ++ (D) ++ ("d"));
+constraint ((D) ++ ("ccdbd") ++ ("")) = ((D) ++ ("ccdbd") ++ (""));
+constraint ((D) ++ (D) ++ ("dbcd")) = ((D) ++ ("adbcd") ++ (""));
+constraint ((D) ++ ("ccbbb") ++ ("")) = ((D) ++ ("ccbbb") ++ (""));
+constraint (("adc") ++ (F) ++ ("b")) = ((D) ++ ("dcb") ++ (D) ++ ("b"));
+constraint (("dd") ++ (F) ++ ("ab")) = (("dd") ++ (F) ++ (D) ++ ("b"));
+constraint (("c") ++ (D) ++ ("dddc")) = (("cadddc") ++ (""));
+constraint (("bb") ++ (F) ++ ("aa")) = (("bb") ++ (F) ++ ("aa"));
+constraint (("c") ++ (D) ++ ("bbdb")) = (("cabbdb") ++ (""));
+constraint ((D) ++ ("cdb") ++ (D) ++ ("d")) = (("acd") ++ (F) ++ ("d"));
+constraint (("bddd") ++ (D) ++ ("a")) = (("bddd") ++ (D) ++ (D));
+constraint (("babdd") ++ (D)) = ((F) ++ ("bdd") ++ (D));
+constraint (("dd") ++ (F) ++ (D) ++ ("d")) = (("ddba") ++ (D) ++ ("d"));
+constraint
+  (("d") ++ (D) ++ (D) ++ ("db") ++ (D)) = (("d") ++ (D) ++ (D) ++ ("dba"));
+constraint (("cddcda") ++ ("")) = (("cddcd") ++ (D));
+constraint (("ad") ++ (D) ++ (D) ++ ("cc")) = (("ada") ++ (D) ++ ("cc"));
+constraint (("bdcdac") ++ ("")) = (("bdcd") ++ (D) ++ ("c"));
+constraint (("caaccb") ++ ("")) = (("c") ++ (D) ++ ("accb"));
+constraint ((F) ++ ("bbc") ++ (D)) = (("babbc") ++ (D));
+constraint (("cdb") ++ (F) ++ ("d")) = (("cdb") ++ (F) ++ ("d"));
+constraint (("bdccca") ++ ("")) = (("bdccc") ++ (D));
+constraint (("bbdbb") ++ (D)) = (("bbdbba") ++ (""));
+constraint (("bc") ++ (D) ++ ("bcc")) = (("bcabcc") ++ (""));
+constraint ((D) ++ ("bdbd") ++ (D)) = (("abdbd") ++ (D));
+constraint
+  ((D) ++ ("bcd") ++ (D) ++ ("c")) = ((D) ++ ("bcd") ++ (D) ++ ("c"));
+constraint
+  (("ac") ++ (D) ++ ("ac") ++ (D)) = (("ac") ++ (D) ++ (D) ++ ("ca"));
+constraint (("d") ++ (D) ++ ("dbbd")) = (("dadbbd") ++ (""));
+constraint (("cdbbd") ++ (D)) = (("cdbbda") ++ (""));
+constraint (("daddbb") ++ ("")) = (("d") ++ (D) ++ ("ddbb"));
+constraint (("c") ++ (D) ++ ("dbbd")) = (("c") ++ (D) ++ ("dbbd"));
+constraint ((D) ++ ("bbbcb") ++ ("")) = ((D) ++ ("bbbcb") ++ (""));
+constraint (("bbaacc") ++ ("")) = (("b") ++ (F) ++ ("acc"));
+constraint
+  (("ca") ++ (F) ++ (D) ++ ("a")) = (("c") ++ (D) ++ (F) ++ (D) ++ (D));
+constraint (("abdbda") ++ ("")) = ((D) ++ ("bdbd") ++ (D));
+constraint (("cb") ++ (F) ++ ("bd")) = (("cbbabd") ++ (""));
+constraint (("bc") ++ (D) ++ ("bdb")) = (("bc") ++ (D) ++ ("bdb"));
+constraint (("bbbcda") ++ ("")) = (("bbbcd") ++ (D));
+constraint (("bd") ++ (F) ++ ("bb")) = (("bd") ++ (F) ++ ("bb"));
+constraint ((D) ++ (D) ++ ("bbdc")) = ((D) ++ ("abbdc") ++ (""));
+constraint ((D) ++ ("dacbb") ++ ("")) = ((D) ++ ("d") ++ (D) ++ ("cbb"));
+constraint (("dd") ++ (D) ++ ("cd") ++ (D)) = (("ddacd") ++ (D));
+solve satisfy;
