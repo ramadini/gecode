@@ -10,7 +10,7 @@ namespace Gecode { namespace String {
     GECODE_POST;
     switch (r) {
     case STRT_CAT:
-      GECODE_ES_FAIL((Concat<View0,View1,View2>::post(home, x0, x1, x2)));
+      concat(home, x0, x1, x2);
       break;
     default:
       throw UnknownRelation("String::rel_op_post");
@@ -24,7 +24,7 @@ namespace Gecode { namespace String {
     GECODE_POST;
     switch (r) {
     case STRT_REV:
-      GECODE_ES_FAIL((Reverse<View0,View1>::post(home,x0,x1)));
+      reverse(home,x0,x1);
       break;
     default:
       throw UnknownRelation("String::rel_op_post");
@@ -50,6 +50,10 @@ namespace Gecode {
   void
   concat(Home home, StringVar x, StringVar y, StringVar z) {
     using namespace String;
+    if (z.assigned()) {
+      concat(home, x, y, z.val());
+      return;
+    }
     GECODE_POST;
     GECODE_ES_FAIL((RelOp::Concat<StringView,StringView,StringView>
       ::post(home,x,y,z)));
@@ -67,8 +71,32 @@ namespace Gecode {
   void
   reverse(Home home, StringVar x, StringVar y) {
     using namespace String;
+    if (x.assigned()) {
+      eq(home, y, x.val());
+      return;
+    }
+    else if (y.assigned()) {
+      eq(home, x, y.val());
+      return;
+    }
     GECODE_POST;
     GECODE_ES_FAIL((RelOp::Reverse<StringView,StringView>::post(home,x,y)));
+  }
+  
+  void
+  reverse(Home home, StringVar x, std::vector<int> w) {
+    using namespace String;
+    StringView vx(x);
+    GECODE_POST;
+    if (w.empty()) {
+      ConstStringView vw;
+      GECODE_ES_FAIL((Rel::Eq<StringView,ConstStringView>::post(home, vx, vw)));
+    }
+    else {
+      std::reverse(std::begin(w), std::end(w));
+      ConstStringView vw(home, &w[0], w.size());
+      GECODE_ES_FAIL((Rel::Eq<StringView,ConstStringView>::post(home, vx, vw)));
+    }
   }
   
 }

@@ -1,6 +1,5 @@
 #include <gecode/string.hh>
 #include <gecode/string/rel.hh>
-//#include <gecode/string/rel-op.hh>
 
 
 namespace Gecode { namespace String {
@@ -9,14 +8,13 @@ namespace Gecode { namespace String {
   void
   rel_post(Home home, View0 x0, StringRelType r, View1 x1) {
     using namespace String::Rel;
-//    using namespace String::RelOp;
     GECODE_POST;
     switch (r) {
     case STRT_EQ:
-      GECODE_ES_FAIL((Eq<View0,View1>::post(home,x0,x1)));
+      eq(home,x0,x1);
       break;
     case STRT_NQ:
-      GECODE_ES_FAIL((Nq<View0,View1>::post(home,x0,x1)));
+      nq(home,x0,x1);
       break;
     default:
       throw UnknownRelation("String::rel");
@@ -27,12 +25,11 @@ namespace Gecode { namespace String {
   void
   rel_re(Home home, View0 x, StringRelType r, View1 y, BoolVar b) {
     using namespace String::Rel;
-//    using namespace String::RelOp;
     GECODE_POST;
     switch (r) {
     case STRT_EQ:
       GECODE_ES_FAIL((ReEq<View0,View1,Gecode::Int::BoolView,rm>
-                      ::post(home, x,y,b)));
+                      ::post(home, x, y, b)));
       break;
     case STRT_NQ:
       {
@@ -89,10 +86,17 @@ namespace Gecode {
   void
   eq(Home home, StringVar x, StringVar y) {
     using namespace String;
+    if (x.assigned()) {
+      eq(home, y, x.val());
+      return;
+    }
+    else if (y.assigned()) {
+      eq(home, x, y.val());
+      return;
+    }
     GECODE_POST;
     GECODE_ES_FAIL((Rel::Eq<StringView,StringView>::post(home, x, y)));
   }
-  //FIXME: Not sure about this:
   void
   eq(Home home, StringVar x, std::vector<int> w) {
     using namespace String;
@@ -116,11 +120,18 @@ namespace Gecode {
   void
   nq(Home home, StringVar x, StringVar y) {
     using namespace String;
+    if (x.assigned()) {
+      nq(home, y, x.val());
+      return; 
+    }
+    else if (y.assigned()) {
+      nq(home, x, y.val());
+      return;  
+    }
     GECODE_POST;
     GECODE_ES_FAIL((Rel::Nq<StringView,StringView>::post(home, x, y)));
   }
-  
-  //FIXME: Not sure about this:
+
   void
   nq(Home home, StringVar x, std::vector<int> w) {
     using namespace String;
@@ -156,10 +167,4 @@ namespace Gecode {
   }
   
 }
-
-
-
-
-
-
 
