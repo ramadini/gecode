@@ -226,11 +226,8 @@ namespace Gecode { namespace String {
         U = r.alloc<int>(ux);
       if (newBlocks == nullptr)
         newBlocks = r.alloc<Block>(nBlocks);
-      for (int j = 0, k = newSize; j < n; ++j,++k) {
-        if (d[j].ub() > u)
-          d.ubAt(home, j, u);
+      for (int j = 0, k = newSize; j < n; ++j,++k)
         newBlocks[k].update(home, d[j]);
-      }
       U[uSize++] = i;
       U[uSize++] = n;
       newSize += n;
