@@ -232,8 +232,8 @@ namespace Gecode { namespace FlatZinc { namespace AST {
     StringDom(int u0) : u(u0), v(), c(NULL) {}
     StringDom(const std::vector<int>&  v0) : u(-1), v(v0), c(NULL) {}
     StringDom(CharSetLit* c0) : u(-1), v(), c(c0) {}
-    StringDom(const IntSet s0) : u(-1), v(),
-      c(new CharSetLit(s0)) {}
+    StringDom(const IntSet s0) : u(-1), v(), c(new CharSetLit(s0)) {}
+    StringDom(int u0, const IntSet s0) : u(u0), v(), c(new CharSetLit(s0)) {}
     StringDom(int u0, CharSetLit* c0) : u(u0), v(), c(c0) {}
     explicit StringDom(StringDom* s0) : u(s0->u), v(s0->v), c(s0->c) {}
     virtual void print(std::ostream& os) {

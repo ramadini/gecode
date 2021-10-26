@@ -116,6 +116,8 @@ namespace Gecode { namespace String {
         return false;
       int u1 = y.max_len_opt(x_i, esp, lep, l1);
 //      std::cerr << "u'=" << u1 << "\n";
+      if (l > u1)
+        return false;
       assert (l1 <= u1);
       if (l1 == 0 || l1 < l || u1 > u) {
         if (u1 == 0) {
@@ -158,6 +160,7 @@ namespace Gecode { namespace String {
           if (u1 < u)
             x.ubAt(home, i, u1);
           ux -= 2;
+//          std::cerr << "x[" << i << "] ref. into " << x[i] << "\n";
           continue;
         }
         assert (np >= 0 && ns >= 0 && np + ns <= l1);

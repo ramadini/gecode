@@ -1941,8 +1941,20 @@ string_ti_expr_tail :
       { $$ = Option<AST::StringDom*>::some(new AST::StringDom($3)); }
       | FZ_STRING FZ_OF charset_literal
       { $$ = Option<AST::StringDom*>::some(new AST::StringDom($3)); }
+//      | FZ_STRING FZ_OF FZ_STRING_LIT FZ_DOTDOT FZ_STRING_LIT
+//      { 
+//        $$ = Option<AST::StringDom*>::some(
+//          new AST::StringDom(IntSet(str2int($3), str2int($5)))
+//        );
+//      }
       | FZ_STRING '(' FZ_INT_LIT ')' FZ_OF charset_literal
       { $$ = Option<AST::StringDom*>::some(new AST::StringDom($3, $6)); }
+//      | FZ_STRING '(' FZ_INT_LIT ')' FZ_OF FZ_STRING_LIT FZ_DOTDOT FZ_STRING_LIT
+//      { 
+//        $$ = Option<AST::StringDom*>::some(
+//          new AST::StringDom($3, IntSet(str2int($6), str2int($8)))
+//        );
+//      }
 
 /********************************/
 /* literals                     */
