@@ -838,7 +838,9 @@ namespace Gecode { namespace String {
   forceinline void
   StringView::resize(Space& home, Block newBlocks[], int newSize, int U[], 
                                                                   int uSize) {
-    DashedString d(home, size()+newSize-uSize/2);
+    Region r;
+    int n = size()+newSize-uSize/2;
+    Block* d = r.alloc<Block>(n);
 //    for (int i = 0; i < uSize; i ++)
 //      std::cerr << "U[" << i << "] = " << U[i] << "\n"; 
 //    for (int i = 0; i < newSize; i ++)
@@ -846,20 +848,19 @@ namespace Gecode { namespace String {
     int off = 0, idxOld = 0, idxNew = 0;
     for (int idxU = 0; idxU < uSize; idxU += 2) {
       for (; idxOld < size() && idxOld < U[idxU]; ++idxOld, ++idxNew)
-        d.updateAt(home, idxNew, (*this)[idxOld]);
+        d[idxNew].update(home, (*this)[idxOld]);
       ++idxOld;
       for (int k = 0; k < U[idxU+1]; ++idxNew, ++k)
-        d.updateAt(home, idxNew, newBlocks[k + off]);
+        d[idxNew].update(home, newBlocks[k + off]);
       off += U[idxU+1];
     }
     for (; idxOld < size(); ++idxOld, ++idxNew) {
       const Block& b = (*this)[idxOld];
       if (!(d[idxNew].equals(b)))
-        d.updateAt(home, idxNew, b);
+        d[idxNew].update(home, b);
     }
     int u = max_length();
-    d.normalize(home);
-    x->gets(home, d);
+    x->gets(home, DashedString(home, d, n));
     if (u < max_length())
       x->max_length(home, u);
   }

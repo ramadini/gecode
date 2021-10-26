@@ -127,8 +127,8 @@ namespace Gecode { namespace String { namespace Int {
         bool norm = l > 0 && n0 > 1 && x0[0].equals(x0[n0-1]);
         int m0 = l*(n0-2*norm) + 1;
 //        std::cerr << "m0: " << m0 << "\n";
-        Region r1;
-        Block* d0 = r1.alloc<Block>(m0);
+        Region r;
+        Block* d0 = r.alloc<Block>(m0);
         Set::GLBndSet s;
         for (int i = 0; i < n0; ++i) {
           if (l > 0)
