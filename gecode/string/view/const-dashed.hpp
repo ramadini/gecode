@@ -340,7 +340,7 @@ namespace Gecode { namespace String {
   template <class ViewX>
   forceinline void
   ConstDashedView::mand_region(Space& home, ViewX& x, int idx, 
-                          const Position& p, const Position& q) const {
+                               const Position& p, const Position& q) const {
     // FIXME: When only block by is involved.
     assert (p.idx == q.idx || (p.idx == q.idx-1 && q.off == 0));
     const Block& by = b0[p.idx];
@@ -355,7 +355,7 @@ namespace Gecode { namespace String {
   
   forceinline int
   ConstDashedView::max_len_opt(const Block& bx, const Position& esp, 
-                                           const Position& lep, int l1) const {
+                               const Position& lep, int l1) const {
     if (equiv(esp,lep))
       return 0;
     assert(!prec(lep, esp));
@@ -376,7 +376,7 @@ namespace Gecode { namespace String {
   
   forceinline void
   ConstDashedView::opt_region(Space& home, const Block& bx, Block& bnew,
-                         const Position& p, const Position& q, int l1) const {
+                        const Position& p, const Position& q, int l1) const {
     assert(prec(p,q));
     int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
         p_o = p.off, q_o = q.off > 0 ? q.off : b0[q_i].ub();

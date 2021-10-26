@@ -64,51 +64,51 @@ else
 fi &&
 # FIXME: Timeout depends on the target machine.
 TOUT=2
-for m in `ls $TEST_DIR/woorpje/01_track_*.mzn | sort`
-do
-  timeout $TOUT mzn-dashed $m > $X
-  ret=$?
-  if
-    [[ `grep "\----------" $X` ]]
-  then
-    echo "$m sat"
-#    m=`basename $m`
-#    res=`grep $m $TEST_DIR/pisa/pisa_check.txt | awk '{print $2}'`
+#for m in `ls $TEST_DIR/woorpje/01_track_*.mzn | sort`
+#do
+#  timeout $TOUT mzn-dashed $m > $X
+#  ret=$?
+#  if
+#    [[ `grep "\----------" $X` ]]
+#  then
+#    echo "$m sat"
+##    m=`basename $m`
+##    res=`grep $m $TEST_DIR/pisa/pisa_check.txt | awk '{print $2}'`
+##    if
+##      [[ $res == "sat" ]]
+##    then
+##      echo "Solved $m!"
+##    else
+##      echo "Error! $m not sound."
+##      rm $X
+##      exit 1
+##    fi
+#  elif 
+#    [[ `grep "=====UNSATISFIABLE=====" $X` ]]
+#  then
+#    echo "$m unsat"
+##    m=`basename $m`
+##    res=`grep $m $TEST_DIR/pisa/pisa_check.txt | awk '{print $2}'`
+##    if
+##      [[ $res == "uns" ]]
+##    then
+##      echo "Solved $m!"
+##    else
+##      echo "Error! $m not sound."
+##      rm $X
+##      exit 1
+##    fi
+#  else
 #    if
-#      [[ $res == "sat" ]]
+#      [[ $ret -eq 124 ]]
 #    then
-#      echo "Solved $m!"
+#      echo "$m timeout"
 #    else
-#      echo "Error! $m not sound."
-#      rm $X
-#      exit 1
+#      echo "$m not sound"
+##    rm $X
+##    exit 1
 #    fi
-  elif 
-    [[ `grep "=====UNSATISFIABLE=====" $X` ]]
-  then
-    echo "$m unsat"
-#    m=`basename $m`
-#    res=`grep $m $TEST_DIR/pisa/pisa_check.txt | awk '{print $2}'`
-#    if
-#      [[ $res == "uns" ]]
-#    then
-#      echo "Solved $m!"
-#    else
-#      echo "Error! $m not sound."
-#      rm $X
-#      exit 1
-#    fi
-  else
-    if
-      [[ $ret -eq 124 ]]
-    then
-      echo "$m timeout"
-    else
-      echo "$m not sound"
-#    rm $X
-#    exit 1
-    fi
-  fi
-done &&
+#  fi
+#done &&
 echo "===== All tests pass! ====="
 rm $X

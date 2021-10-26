@@ -132,16 +132,15 @@ namespace Gecode { namespace String {
           y.expandBlock(home, x_i, x);
           changed |= l < l1 || u > u1 || m > x_i.baseSize();
           return true;
-        }
-        // Crushing into a single block
-        if (l1 > l)
-          x.lbAt(home, i, l1);
-        if (u1 < u)
-          x.ubAt(home, i, u1);
+        }        
         y.crushBase(home, x, i, esp, lep);
         changed |= l < l1 || u > u1 || m > x_i.baseSize();
         if (l1 == 0 || x[i].baseSize() == 1) {
 //          std::cerr << "x[" << i << "] ref. into " << x[i] << "\n";
+          if (l1 > l)
+            x.lbAt(home, i, l1);
+          if (u1 < u)
+            x.ubAt(home, i, u1);
           ux -= 2;
           continue;
         }
@@ -150,6 +149,10 @@ namespace Gecode { namespace String {
 //        std::cerr << x[i] << ' ' <<  np << ' ' << ns << '\n';
         if (np == 0 && ns == 0) {
           nBlocks--;
+          if (l1 > l)
+            x.lbAt(home, i, l1);
+          if (u1 < u)
+            x.ubAt(home, i, u1);
           ux -= 2;
           continue;
         }
@@ -169,7 +172,7 @@ namespace Gecode { namespace String {
             newBlocks[newSize++].update(home, c);
         }
         newBlocks[newSize].update(home, x[i]);
-        newBlocks[newSize++].updateCard(home, x[i].lb()-ns-np, x[i].ub()-ns-np);
+        newBlocks[newSize++].updateCard(home, l1-ns-np, u1-ns-np);
         if (ns > 0) {
           std::vector<int> v = y.fixed_suff(lsp, eep);
           j += v.size();
