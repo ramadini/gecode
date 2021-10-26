@@ -500,67 +500,41 @@ namespace Gecode { namespace String {
     x.baseIntersectAt(home, idx, s);
   }
   
-  forceinline int
-  ConcatView::fixed_chars_pref(const Position& p, const Position& q) const {
-//    std::cerr << *this << ' ' << p << ' ' << q << '\n';
-    if (q.idx < pivot)
-      return x0.fixed_chars_pref(p,q);
-    else if (p.idx >= pivot)
-      return x1.fixed_chars_pref(p-pivot,q-pivot);
-    else {
-      int k = x0.fixed_chars_pref(p,Position(pivot,0));
-      const Block& b = x0[x0.size()-1];
-      return k < x0.min_length() || b.baseSize() > 1 || !b.baseEquals(x1[0]) ? 
-             k : k + x1.fixed_chars_pref(Position(0,0),q-pivot);
-    }
-  }
-  
   forceinline std::vector<int>
-  ConcatView::fixed_pref(const Position& p, const Position& q) const {
+  ConcatView::fixed_pref(const Position& p, const Position& q, int& np) const {
     if (q.idx < pivot)
-      return x0.fixed_pref(p,q);
+      return x0.fixed_pref(p,q,np);
     else if (p.idx >= pivot)
-      return x1.fixed_pref(p-pivot,q-pivot);
+      return x1.fixed_pref(p-pivot,q-pivot,np);
     else {
-      std::vector<int> v = x0.fixed_pref(p,Position(pivot,0));
+      std::vector<int> v = x0.fixed_pref(p,Position(pivot,0),np);
       const Block& b = x0[x0.size()-1];
       if ((int) v.size() < x0.min_length() || b.baseSize() > 1 
                                            || !b.baseEquals(x1[0])) {
-        std::vector<int> w = x1.fixed_pref(Position(0,0),q-pivot);
+        int ns;
+        std::vector<int> w = x1.fixed_pref(Position(0,0),q-pivot,ns);
+        np += ns;
         v.insert(v.end(), w.begin(), w.end());
       }
       return v;
     }
   }
   
-  forceinline int
-  ConcatView::fixed_chars_suff(const Position& p, const Position& q) const {
-    if (q.idx < pivot)
-      return x0.fixed_chars_suff(p,q);
-    else if (p.idx >= pivot)
-      return x1.fixed_chars_suff(p-pivot,q-pivot);
-    else {
-      int k = x1.fixed_chars_suff(Position(0,0),q-pivot);
-      const Block& b = x1[0];
-      return k < x1.min_length() || b.baseSize() > 1 
-                                 || !b.baseEquals(x0[x0.size()-1]) ?
-             k : k + x0.fixed_chars_suff(p,Position(pivot,0));
-    }
-  }
-  
   forceinline std::vector<int>
-  ConcatView::fixed_suff(const Position& p, const Position& q) const {
+  ConcatView::fixed_suff(const Position& p, const Position& q, int& ns) const {
     if (q.idx < pivot)
-      return x0.fixed_suff(p,q);
+      return x0.fixed_suff(p,q,ns);
     else if (p.idx >= pivot)
-      return x1.fixed_suff(p-pivot,q-pivot);
+      return x1.fixed_suff(p-pivot,q-pivot,ns);
     else {
-      std::vector<int> v = x1.fixed_suff(Position(0,0),q-pivot);
+      std::vector<int> v = x1.fixed_suff(Position(0,0),q-pivot,ns);
       const Block& b = x1[0];
       if ((int) v.size() < x1.min_length() || b.baseSize() > 1 
                                            || !b.baseEquals(x0[x0.size()-1]))
         return v;
-      std::vector<int> w = x0.fixed_suff(p,Position(pivot,0));
+      int np;
+      std::vector<int> w = x0.fixed_suff(p,Position(pivot,0),np);
+      ns += np;
       v.insert(v.end(), w.begin(), w.end());
       return v;
     }

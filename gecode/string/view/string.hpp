@@ -710,141 +710,97 @@ namespace Gecode { namespace String {
     x.baseIntersectAt(home, idx, s);
   }
   
-  forceinline int
-  StringView::fixed_chars_pref(const Position& p, const Position& q) const {
-    if (!prec(p,q))
-      return 0;
-    int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
-        p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
-//    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
-    const Block& bp = (*this)[p_i];
-    if (p_o > bp.lb() || bp.baseSize() > 1)
-      return 0;
-    if (p_i == q_i)
-      return std::max(0, std::min(bp.lb(), q_o) - p_o);
-    int k = bp.lb() - p_o;
-    if (bp.lb() < bp.ub())
-      return k;
-    for (int i = p_i+1; i < q_i; ++i) {
-      const Block& bi = (*this)[i];
-      if (bi.baseSize() > 1)
-        return k;
-      k += bi.lb();
-      if (bi.ub() > bi.lb())
-        return k;
-    }
-    const Block& bq = (*this)[q_i];
-    if (bq.baseSize() > 1)
-      return k;
-    return k + std::min(bq.lb(), q_o);
-  }
-  
   forceinline std::vector<int>
-  StringView::fixed_pref(const Position& p, const Position& q) const {
-//    std::cerr << "fixed_pref of " << *this << "between" << p << " and " << q << "\n"; 
+  StringView::fixed_pref(const Position& p, const Position& q, int& np) const {
+    std::cerr << "fixed_pref of " << *this << " between " << p << " and " << q << "\n"; 
+    np = 0;
     std::vector<int> v;
     if (!prec(p,q))
       return v;
     int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
         p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
+    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
     const Block& bp = (*this)[p_i];
-    int k = bp.baseMin();
+    if (bp.lb() == 0 || p_o > bp.lb() || bp.baseSize() > 1)
+      return v;
+    v.push_back(bp.baseMin());
     if (p_i == q_i) {
-      for (int i = 0; i < std::min(bp.lb(), q_o) - p_o; i++) 
-        v.push_back(k);
-      return v;  
-    }    
-    for (int i = 0; i < bp.lb() - p_o; ++i) {
-      if (bp.baseSize() > 1)
-        return v;
-      v.push_back(k);
+      np = std::max(0, std::min(bp.lb(), q_o) - p_o);
+      v.push_back(np);
+      return v;
     }
+    np = bp.lb() - p_o;
+    v.push_back(np);
+    if (bp.lb() < bp.ub())
+      return v;
     for (int i = p_i+1; i < q_i; ++i) {
       const Block& bi = (*this)[i];
-      if (bi.baseSize() == 1)
+      int l = bi.lb();
+      if (l == 0 || bi.baseSize() > 1)
         return v;
-      k = bi.baseMin();
-      for (int j = 0; j < bi.lb(); ++j)
-        v.push_back(k);
+      v.push_back(bi.baseMin());
+      v.push_back(l);
+      np += l;
     }
     const Block& bq = (*this)[q_i];
-    k = bq.baseMin();
-    for (int j = 0; j < std::min(bq.lb(), q_o); ++j)
-      v.push_back(k);
+    int l = std::min(bq.lb(), q_o);
+    if (l == 0 || bq.baseSize() > 1)
+      return v;
+    v.push_back(bq.baseMin());
+    v.push_back(l);
+    np += l;
     return v;
   }
-  
-  forceinline int
-  StringView::fixed_chars_suff(const Position& p, const Position& q) const {
-    if (!prec(p,q))
-      return 0;
-    int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
-        p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();    
-//    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
-    const Block& bq = (*this)[q_i];
-    if (bq.baseSize() > 1)
-      return 0;
-    if (p_i == q_i)
-      return std::max(0, std::min(bq.lb(), q_o) - p_o);
-    int k = std::min(bq.lb(), q_o);
-    for (int i = q_i-1; i > p_i; --i) {
-      const Block& bi = (*this)[i];
-      if (bi.baseSize() > 1)
-        return k;
-      k += bi.lb();
-      if (bi.ub() > bi.lb())
-        return k;
-    }
-    const Block& bp = (*this)[p_i];
-    if (p_o > bp.lb() || bp.baseSize() > 1)
-      return k;
-    return k + bp.lb() - p_o;
-  }
-  
+
   forceinline std::vector<int>
-  StringView::fixed_suff(const Position& p, const Position& q) const {
-//    std::cerr << "fixed_suff of " << *this << "between" << p << " and " << q << "\n"; 
+  StringView::fixed_suff(const Position& p, const Position& q, int& ns) const {
+    std::cerr << "fixed_suff of " << *this << " between" << p << " and " << q << "\n"; 
+    ns = 0;
     std::vector<int> v;
     if (!prec(p,q))
       return v;
     int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
         p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
+    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
     const Block& bq = (*this)[q_i];
-    int k = bq.baseMin();
+    if (bq.lb() == 0 || bq.baseSize() > 1)
+      return v;
+    v.push_back(bq.baseMin());
     if (p_i == q_i) {
-      for (int i = 0; i < std::min(bq.lb(), q_o) - p_o; i++)
-        v.push_back(k);
-      return v;  
-    }    
-    for (int i = 0; i < std::min(bq.lb(), q_o); ++i)
-      v.push_back(k);
+      ns = std::max(0, std::min(bq.lb(), q_o) - p_o);
+      v.push_back(ns);
+      return v;
+    }
+    ns = std::min(bq.lb(), q_o);
+    v.push_back(ns);
     for (int i = q_i-1; i > p_i; --i) {
-      if ((*this)[i].baseSize() > 1)
+      const Block& bi = (*this)[i];
+      int l = bi.lb();
+      if (l == 0 || bi.baseSize() > 1)
         return v;
-      k = (*this)[i].baseMin();
-      for (int j = 0; j < (*this)[i].lb(); ++j)
-        v.push_back(k);
+      v.push_back(bi.baseMin());
+      v.push_back(l);
+      ns += l;
     }
     const Block& bp = (*this)[p_i];
-    k = bp.baseMin();
-    for (int j = 0; j < bp.lb() - p_o; ++j) {
-      if ((*this)[q_i].baseSize() > 1)
-        return v;
-      v.push_back(k);
-    }
+    int l = bp.lb() - p_o;
+    if (l == 0 || bp.baseSize() > 1)
+      return v;
+    v.push_back(bp.baseMin());
+    v.push_back(l);
+    ns += l;
     return v;
   }
   
   forceinline void
   StringView::resize(Space& home, Block newBlocks[], int newSize, int U[], 
                                                                   int uSize) {
+    std::cerr << "Resizing " << *this << '\n';
+    for (int i = 0; i < uSize; i ++) std::cerr << "U[" << i << "] = " << U[i] << "\n"; 
+    for (int i = 0; i < newSize; i ++) std::cerr << "newBlocks[" << i << "] = " << newBlocks[i] << "\n";
     Region r;
     int n = size()+newSize-uSize/2;
     Block* d = r.alloc<Block>(n);
-//    for (int i = 0; i < uSize; i ++)
-//      std::cerr << "U[" << i << "] = " << U[i] << "\n"; 
-//    for (int i = 0; i < newSize; i ++)
-//      std::cerr << "newBlocks[" << i << "] = " << newBlocks[i] << "\n"; 
     int off = 0, idxOld = 0, idxNew = 0;
     for (int idxU = 0; idxU < uSize; idxU += 2) {
       for (; idxOld < size() && idxOld < U[idxU]; ++idxOld, ++idxNew)

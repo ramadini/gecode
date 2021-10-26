@@ -37,7 +37,7 @@ namespace Gecode { namespace String { namespace Rel {
   template<class View0, class View1>
   forceinline ExecStatus
   Eq<View0,View1>::propagate(Space& home, const ModEventDelta&) {
-//    std::cerr<<"\n"<<this<<"::Eq::propagate" << x0 << "  vs  " << x1 << "\n";
+//    std::cerr<<"\n"<<this<<"::Eq::propagate " << x0 << "  vs  " << x1 << "\n";
     refine_card(home);
     if (x0.assigned()) {
       if (x0.isNull()) {
@@ -83,7 +83,7 @@ namespace Gecode { namespace String { namespace Rel {
       if (me0 + me1 != ME_STRING_NONE)
         refine_card(home);
     } while (x0.assigned() + x1.assigned() == 1);
-//    std::cerr << "Eq::propagated << x0 << "  vs  " << x1 << "\n";
+//    std::cerr << "Eq::propagated " << x0 << "  vs  " << x1 << "\n";
     return x0.assigned() ? home.ES_SUBSUMED(*this) : ES_FIX;
   }
 

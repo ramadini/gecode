@@ -473,31 +473,26 @@ namespace Gecode { namespace String {
       s.include(home, c, c, d);
     }
     x.baseIntersectAt(home, idx, s);
-  }  
-    
-  forceinline int
-  ConstStringView::fixed_chars_pref(const Position& p, const Position& q) const {
-    assert(prec(p,q));
+  }
+  
+  forceinline std::vector<int>
+  ConstStringView::fixed_pref(const Position& p, 
+                              const Position& q, int& np) const {
     int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
         p_o = p.off, q_o = q.off > 0 ? q.off : 1;
     assert (p_i != q_i);
-    return (1 - p_o) + std::max(0, q_i - p_i - 1) + q_o;
-  }
-  
-  forceinline int
-  ConstStringView::fixed_chars_suff(const Position& p, const Position& q) const {
-    return fixed_chars_pref(p,q);
-  }
-  
-  forceinline std::vector<int>
-  ConstStringView::fixed_pref(const Position& p, const Position& q) const {
-    return std::vector<int>(_val + (p.off == 0 ? p.idx : p.idx + 1), 
-                            _val + (q.off == 0 ? q.idx : q.idx + 1));
+    np = (1 - p_o) + std::max(0, q_i - p_i - 1) + q_o;
+    int i0 = p.off == 0 ? p.idx : p.idx+1, i1 = q.off == 0 ? q.idx : q.idx+1;
+    std::vector<int> w(i1-i0, 1);
+    for (int i = i0; i < i1; ++i)
+      w[i] = _val[i];
+    return w;
   }
   
   forceinline std::vector<int>
-  ConstStringView::fixed_suff(const Position& p, const Position& q) const {
-    return fixed_pref(p, q);
+  ConstStringView::fixed_suff(const Position& p, 
+                              const Position& q, int& ns) const {
+    return fixed_pref(p, q, ns);
   }
   
   forceinline double

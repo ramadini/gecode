@@ -52,7 +52,7 @@ namespace Gecode { namespace String { namespace Branch {
       int m = vx.min_length();
       int f = Limits::MAX_STRING_LENGTH;
       int pos = start;
-//      std::cerr<<x[start]<<" (pos. "<<start<<", dim. "<<d<<")\n";
+      std::cerr<<x[start]<<" (pos. "<<start<<", dim. "<<d<<")\n";
       for (int i = start + 1; i < x.size(); ++i) {
         StringView& xi = x[i];
         if (!xi.assigned()) {
@@ -66,7 +66,7 @@ namespace Gecode { namespace String { namespace Branch {
           int li = bi.ub() - bi.lb();
           int mi = xi.min_length();
           int fi = xi.max_length() - mi;
-//          std::cerr<<x[i]<<" (pos. "<<i<<", dim. "<<di<<")\n";
+          std::cerr<<x[i]<<" (pos. "<<i<<", dim. "<<di<<")\n";
           if (fi > 0) {
             if (fi < f) {
               f = fi;

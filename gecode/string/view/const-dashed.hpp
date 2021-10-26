@@ -443,124 +443,83 @@ namespace Gecode { namespace String {
     x.baseIntersectAt(home, idx, s);
   }
   
-  forceinline int
-  ConstDashedView::fixed_chars_pref(const Position& p, const Position& q) const {
-    if (!prec(p,q))
-      return 0;
-    int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
-        p_o = p.off, q_o = q.off > 0 ? q.off : b0[q_i].ub();
-//    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
-    const Block& bp = b0[p_i];
-    if (p_o > bp.lb() || bp.baseSize() > 1)
-      return 0;
-    if (p_i == q_i)
-      return std::max(0, std::min(bp.lb(), q_o) - p_o);
-    int k = bp.lb() - p_o;
-    if (bp.lb() < bp.ub())
-      return k;
-    for (int i = p_i+1; i < q_i; ++i) {
-      const Block& bi = b0[i];
-      if (bi.baseSize() > 1)
-        return k;
-      k += bi.lb();
-      if (bi.ub() > bi.lb())
-        return k;
-    }
-    const Block& bq = b0[q_i];
-    if (bq.baseSize() > 1)
-      return k;
-    return k + std::min(bq.lb(), q_o);
-  }
-  
   forceinline std::vector<int>
-  ConstDashedView::fixed_pref(const Position& p, const Position& q) const {
-//    std::cerr << "fixed_pref of " << *this << "between" << p << " and " << q << "\n"; 
+  ConstDashedView::fixed_pref(const Position& p, const Position& q, int& np) const {
+    std::cerr << "fixed_pref of " << *this << " between " << p << " and " << q << "\n"; 
+    assert (prec(p,q));
+    np = 0;
     std::vector<int> v;
-    if (!prec(p,q))
-      return v;
     int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
-        p_o = p.off, q_o = q.off > 0 ? q.off : b0[q_i].ub();
-    const Block& bp = b0[p_i];
-    int k = bp.baseMin();
+        p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
+    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
+    const Block& bp = (*this)[p_i];
+    if (bp.lb() == 0 || p_o > bp.lb() || bp.baseSize() > 1)
+      return v;
+    v.push_back(bp.baseMin());
     if (p_i == q_i) {
-      for (int i = 0; i < std::min(bp.lb(), q_o) - p_o; i++) 
-        v.push_back(k);
-      return v;  
-    }    
-    for (int i = 0; i < bp.lb() - p_o; ++i) {
-      assert (bp.baseSize() == 1);
-      v.push_back(k);
+      np = std::max(0, std::min(bp.lb(), q_o) - p_o);
+      v.push_back(np);
+      return v;
     }
+    np = bp.lb() - p_o;
+    v.push_back(np);
+    if (bp.lb() < bp.ub())
+      return v;
     for (int i = p_i+1; i < q_i; ++i) {
-      const Block& bi = b0[i];
-      assert (bi.baseSize() == 1);
-      k = bi.baseMin();
-      for (int j = 0; j < bi.lb(); ++j)
-        v.push_back(k);
+      const Block& bi = (*this)[i];
+      int l = bi.lb();
+      if (l == 0 || bi.baseSize() > 1)
+        return v;
+      v.push_back(bi.baseMin());
+      v.push_back(l);
+      np += l;
     }
-    const Block& bq = b0[q_i];
-    k = bq.baseMin();
-    for (int j = 0; j < std::min(bq.lb(), q_o); ++j)
-      v.push_back(k);
+    const Block& bq = (*this)[q_i];
+    int l = std::min(bq.lb(), q_o);
+    if (l == 0 || bq.baseSize() > 1)
+      return v;
+    v.push_back(bq.baseMin());
+    v.push_back(l);
+    np += l;
     return v;
   }
-  
-  forceinline int
-  ConstDashedView::fixed_chars_suff(const Position& p, const Position& q) const {
-    if (!prec(p,q))
-      return 0;
-    int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
-        p_o = p.off, q_o = q.off > 0 ? q.off : b0[q_i].ub();    
-//    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
-    const Block& bq = b0[q_i];
-    if (bq.baseSize() > 1)
-      return 0;
-    if (p_i == q_i)
-      return std::max(0, std::min(bq.lb(), q_o) - p_o);
-    int k = std::min(bq.lb(), q_o);
-    for (int i = q_i-1; i > p_i; --i) {
-      const Block& bi = b0[i];
-      if (bi.baseSize() > 1)
-        return k;
-      k += bi.lb();
-      if (bi.ub() > bi.lb())
-        return k;
-    }
-    const Block& bp = b0[p_i];
-    if (p_o > bp.lb() || bp.baseSize() > 1)
-      return k;
-    return k + bp.lb() - p_o;
-  }
-  
+
   forceinline std::vector<int>
-  ConstDashedView::fixed_suff(const Position& p, const Position& q) const {
-//    std::cerr << "fixed_suff of " << *this << "between" << p << " and " << q << "\n"; 
+  ConstDashedView::fixed_suff(const Position& p, const Position& q, int& ns) const {
+    std::cerr << "fixed_suff of " << *this << " between" << p << " and " << q << "\n"; 
+    assert (prec(p,q));
+    ns = 0;
     std::vector<int> v;
-    if (!prec(p,q))
-      return v;
     int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
-        p_o = p.off, q_o = q.off > 0 ? q.off : b0[q_i].ub();
-    const Block& bq = b0[q_i];
-    int k = bq.baseMin();
+        p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
+    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
+    const Block& bq = (*this)[q_i];
+    if (bq.lb() == 0 || bq.baseSize() > 1)
+      return v;
+    v.push_back(bq.baseMin());
     if (p_i == q_i) {
-      for (int i = 0; i < std::min(bq.lb(), q_o) - p_o; i++)
-        v.push_back(k);
-      return v;  
-    }    
-    for (int i = 0; i < std::min(bq.lb(), q_o); ++i)
-      v.push_back(k);
+      ns = std::max(0, std::min(bq.lb(), q_o) - p_o);
+      v.push_back(ns);
+      return v;
+    }
+    ns = std::min(bq.lb(), q_o);
+    v.push_back(ns);
     for (int i = q_i-1; i > p_i; --i) {
-      assert (b0[i].baseSize() == 1);
-      k = b0[i].baseMin();
-      for (int j = 0; j < b0[i].lb(); ++j)
-        v.push_back(k);
+      const Block& bi = (*this)[i];
+      int l = bi.lb();
+      if (l == 0 || bi.baseSize() > 1)
+        return v;
+      v.push_back(bi.baseMin());
+      v.push_back(l);
+      ns += l;
     }
-    const Block& bp = b0[p_i];
-    k = bp.baseMin();
-    for (int j = 0; j < bp.lb() - p_o; ++j) {
-      assert (b0[q_i].baseSize() == 1);
-      v.push_back(k);
-    }
+    const Block& bp = (*this)[p_i];
+    int l = bp.lb() - p_o;
+    if (l == 0 || bp.baseSize() > 1)
+      return v;
+    v.push_back(bp.baseMin());
+    v.push_back(l);
+    ns += l;
     return v;
   }
   

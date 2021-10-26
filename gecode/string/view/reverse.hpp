@@ -456,26 +456,16 @@ namespace Gecode { namespace String {
   ReverseView::crushBase(Space& home, ViewX& x, int idx, 
                         const Position& p, const Position& q) const {
     x0.crushBase(home, x, idx, q, p);
-  }  
-    
-  forceinline int
-  ReverseView::fixed_chars_pref(const Position& p, const Position& q) const {
-    return x0.fixed_chars_suff(q, p);
-  }
-  
-  forceinline int
-  ReverseView::fixed_chars_suff(const Position& p, const Position& q) const {
-    return x0.fixed_chars_pref(q, p);
   }
   
   forceinline std::vector<int>
-  ReverseView::fixed_pref(const Position& p, const Position& q) const {
-    return x0.fixed_suff(q, p);
+  ReverseView::fixed_pref(const Position& p, const Position& q, int& n) const {
+    return x0.fixed_suff(q, p, n);
   }
   
   forceinline std::vector<int>
-  ReverseView::fixed_suff(const Position& p, const Position& q) const {
-    return x0.fixed_pref(q, p);
+  ReverseView::fixed_suff(const Position& p, const Position& q, int& n) const {
+    return x0.fixed_pref(q, p, n);
   }
   
   forceinline double
