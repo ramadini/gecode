@@ -982,7 +982,7 @@ namespace Gecode { namespace String {
     }
     if (norm)
       normalize(home);
-//    std::cerr << *this << '\n';
+//    std::cerr << *this << ' ' << lbs << ' ' << ubs << '\n';
     assert(isNorm());
     assert(isOK());
   }
@@ -1456,9 +1456,9 @@ namespace Gecode { namespace String {
       }
       // j is the index of the last encountered non-null block.
       if (j != -1 && x[i].baseEquals(x[j])) {
-        int u = x[i].ub() + x[j].ub();
-        if (u > MAX_STRING_LENGTH || u < x[i].ub())
-          u = MAX_STRING_LENGTH;
+        int u = ubounded_sum(x[i].ub(), x[j].ub());
+        if (u == MAX_STRING_LENGTH)
+          ubs = ubs - x[i].ub() - x[j].ub() + u;
         (x+j)->updateCard(home, x[i].lb() + x[j].lb(), u);
         (x+i)->nullify(home);
         --newSize;
