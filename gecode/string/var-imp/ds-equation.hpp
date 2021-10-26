@@ -96,7 +96,7 @@ namespace Gecode { namespace String {
   forceinline bool 
   refine_x(Space& home, ViewX& x, const ViewY& y, Matching m[], int xFixed,
                                                                 int& nBlocks) {
-    std::cerr << "Refining " << x << "  vs  " << y << "\nMax. " << nBlocks << " new blocks needed.\n";
+//    std::cerr << "Refining " << x << "  vs  " << y << "\nMax. " << nBlocks << " new blocks needed.\n";
     int nx = x.size(), ux = 2*(nx-xFixed);    
     bool changed = false;
     Region r;
@@ -104,18 +104,18 @@ namespace Gecode { namespace String {
     int* U = nullptr;
     int newSize = 0, uSize = 0;
     for (int i = 0; i < nx; ++i) {
-      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
+//      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
       if (x[i].isFixed())
         continue;
       Position& esp = m[i].ESP, eep = m[i].EEP, lsp = m[i].LSP, lep = m[i].LEP;
-      std::cerr<<"ESP: "<<esp<<"\nLSP: "<<lsp <<"\nEEP: "<<eep<<"\nLEP: "<<lep<< "\n";      
+//      std::cerr<<"ESP: "<<esp<<"\nLSP: "<<lsp <<"\nEEP: "<<eep<<"\nLEP: "<<lep<< "\n";      
       const Block& x_i = x[i];
       int l = x_i.lb(), u = x_i.ub(), l1 = min_len_mand(y, x_i, lsp, eep);
-      std::cerr << "l'=" << l1 << "\n";
+//      std::cerr << "l'=" << l1 << "\n";
       if (u < l1)
         return false;
       int u1 = y.max_len_opt(x_i, esp, lep, l1);
-      std::cerr << "u'=" << u1 << "\n";
+//      std::cerr << "u'=" << u1 << "\n";
       assert (l1 <= u1);
       if (l1 == 0 || l1 < l || u1 > u) {
         if (u1 == 0) {
@@ -149,7 +149,7 @@ namespace Gecode { namespace String {
           vp = y.fixed_pref(lsp, eep, np);
         if (eep == lep)
           vs = y.fixed_suff(lsp, eep, ns);
-        std::cerr<<np<<' '<<vp.size()<<' '<<ns<<' '<<vs.size()<<'\n';
+//        std::cerr<<np<<' '<<vp.size()<<' '<<ns<<' '<<vs.size()<<'\n';
         assert (vp.size() % 2 == 0 && vs.size() % 2 == 0);
         if (np == 0 && ns == 0) {
           nBlocks--;
@@ -169,13 +169,13 @@ namespace Gecode { namespace String {
         if (newBlocks == nullptr)
           newBlocks = r.alloc<Block>(nBlocks);        
         int zp = vp.size();
-        std::cerr << "Pref: " << np << ' ' << vec2str(vp) << '\n';
+//        std::cerr << "Pref: " << np << ' ' << vec2str(vp) << '\n';
         for (int i = 0; i < zp-1; i += 2)
           newBlocks[newSize++].update(home, Block(vp[i], vp[i+1]));
         newBlocks[newSize].update(home, x[i]);
         newBlocks[newSize++].updateCard(home, l1-ns-np, u1-ns-np);
         int zs = vs.size();
-        std::cerr << "Suff: " << ns << ' ' << vec2str(vs) << '\n';
+//        std::cerr << "Suff: " << ns << ' ' << vec2str(vs) << '\n';
         for (int i = 0; i < zs-1; i += 2)
           newBlocks[newSize++].update(home, Block(vs[i], vs[i+1]));
         U[uSize++] = i;

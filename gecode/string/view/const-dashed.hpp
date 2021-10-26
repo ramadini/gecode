@@ -445,13 +445,13 @@ namespace Gecode { namespace String {
   
   forceinline std::vector<int>
   ConstDashedView::fixed_pref(const Position& p, const Position& q, int& np) const {
-    std::cerr << "fixed_pref of " << *this << " between " << p << " and " << q << "\n"; 
+//    std::cerr << "fixed_pref of " << *this << " between " << p << " and " << q << "\n"; 
     assert (prec(p,q));
     np = 0;
     std::vector<int> v;
     int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
         p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
-    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
+//    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
     const Block& bp = (*this)[p_i];
     if (bp.lb() == 0 || p_o > bp.lb() || bp.baseSize() > 1)
       return v;
@@ -486,13 +486,13 @@ namespace Gecode { namespace String {
 
   forceinline std::vector<int>
   ConstDashedView::fixed_suff(const Position& p, const Position& q, int& ns) const {
-    std::cerr << "fixed_suff of " << *this << " between" << p << " and " << q << "\n"; 
+//    std::cerr << "fixed_suff of " << *this << " between" << p << " and " << q << "\n"; 
     assert (prec(p,q));
     ns = 0;
     std::vector<int> v;
     int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
         p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
-    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
+//    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
     const Block& bq = (*this)[q_i];
     if (bq.lb() == 0 || bq.baseSize() > 1)
       return v;
