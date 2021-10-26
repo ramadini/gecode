@@ -509,13 +509,14 @@ namespace Gecode { namespace String {
     else {
       std::vector<int> v = x0.fixed_pref(p,Position(pivot,0),np);
       const Block& b = x0[x0.size()-1];
-      if ((int) v.size() < x0.min_length() || b.baseSize() > 1 
-                                           || !b.baseEquals(x1[0])) {
-        int ns;
-        std::vector<int> w = x1.fixed_pref(Position(0,0),q-pivot,ns);
-        np += ns;
-        v.insert(v.end(), w.begin(), w.end());
-      }
+      //FIXME: This check is sound but not complete. We must check that the end
+      //       of x0 has been actually reached.
+      if (b.baseSize() > 1 || !b.baseEquals(x1[0]))
+        return v;
+      int ns;
+      std::vector<int> w = x1.fixed_pref(Position(0,0),q-pivot,ns);
+      np += ns;
+      v.insert(v.end(), w.begin(), w.end());
       return v;
     }
   }
@@ -529,8 +530,9 @@ namespace Gecode { namespace String {
     else {
       std::vector<int> v = x1.fixed_suff(Position(0,0),q-pivot,ns);
       const Block& b = x1[0];
-      if ((int) v.size() < x1.min_length() || b.baseSize() > 1 
-                                           || !b.baseEquals(x0[x0.size()-1]))
+      //FIXME: This check is sound but not complete. We must check that the
+      //       beginning of x1 has been actually reached.
+      if (b.baseSize() > 1 || !b.baseEquals(x0[x0.size()-1]))
         return v;
       int np;
       std::vector<int> w = x0.fixed_suff(p,Position(pivot,0),np);

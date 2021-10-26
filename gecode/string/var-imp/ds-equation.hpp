@@ -104,11 +104,10 @@ namespace Gecode { namespace String {
     int* U = nullptr;
     int newSize = 0, uSize = 0;
     for (int i = 0; i < nx; ++i) {
-//      std::cerr << "Ref. x[" << i << "] = " << x[i] << "\n";
       if (x[i].isFixed())
         continue;
       Position& esp = m[i].ESP, eep = m[i].EEP, lsp = m[i].LSP, lep = m[i].LEP;
-//      std::cerr<<"ESP: "<<esp<<"\nLSP: "<<lsp <<"\nEEP: "<<eep<<"\nLEP: "<<lep<< "\n";      
+//      std::cerr<<"Ref. x[" << i << "] = " << x[i] <<"\tESP: "<<esp<<"\tLSP: "<<lsp <<"\tEEP: "<<eep<<"\tLEP: "<<lep<< "\n";      
       const Block& x_i = x[i];
       int l = x_i.lb(), u = x_i.ub(), l1 = min_len_mand(y, x_i, lsp, eep);
 //      std::cerr << "l'=" << l1 << "\n";
@@ -151,8 +150,9 @@ namespace Gecode { namespace String {
           vp = y.fixed_pref(lsp, eep, np);
         if (eep == lep)
           vs = y.fixed_suff(lsp, eep, ns);
-//        std::cerr<<np<<' '<<vp.size()<<' '<<ns<<' '<<vs.size()<<'\n';
+//        std::cerr << "Pref: " << np << ' ' << vec2str(vp) << ", Suff: " << ns << ' ' << vec2str(vs) << '\n';
         assert (vp.size() % 2 == 0 && vs.size() % 2 == 0);
+        assert (np >= 0 && ns >= 0 && np + ns <= l1);
         if (np == 0 && ns == 0) {
           nBlocks--;
           if (l1 > l)
@@ -163,20 +163,19 @@ namespace Gecode { namespace String {
 //          std::cerr << "x[" << i << "] ref. into " << x[i] << "\n";
           continue;
         }
-        assert (np >= 0 && ns >= 0 && np + ns <= l1);
         assert (y.prec(lsp, eep) && (esp == lsp || eep == lep));
         if (U == nullptr)
           U = r.alloc<int>(ux);
         if (newBlocks == nullptr)
           newBlocks = r.alloc<Block>(nBlocks);        
         int zp = vp.size();
-//        std::cerr << "Pref: " << np << ' ' << vec2str(vp) << '\n';
+        
         for (int i = 0; i < zp-1; i += 2)
           newBlocks[newSize++].update(home, Block(vp[i], vp[i+1]));
         newBlocks[newSize].update(home, x[i]);
         newBlocks[newSize++].updateCard(home, l1-ns-np, u1-ns-np);
         int zs = vs.size();
-//        std::cerr << "Suff: " << ns << ' ' << vec2str(vs) << '\n';
+
         for (int i = zs-1; i > 0; i -= 2)
           newBlocks[newSize++].update(home, Block(vs[i-1], vs[i]));
         U[uSize++] = i;
