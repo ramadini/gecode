@@ -135,11 +135,11 @@ namespace Gecode { namespace String {
         y.crushBase(home, x, i, esp, lep);
         changed |= l < l1 || u > u1 || m > x_i.baseSize();
         if (l1 == 0 || x[i].baseSize() == 1) {
-//          std::cerr << "x[" << i << "] ref. into " << x[i] << "\n";
           if (l1 > l)
             x.lbAt(home, i, l1);
           if (u1 < u)
             x.ubAt(home, i, u1);
+//          std::cerr << "x[" << i << "] ref. into " << x[i] << "\n";
           ux -= 2;
           continue;
         }
@@ -176,8 +176,8 @@ namespace Gecode { namespace String {
         newBlocks[newSize++].updateCard(home, l1-ns-np, u1-ns-np);
         int zs = vs.size();
 //        std::cerr << "Suff: " << ns << ' ' << vec2str(vs) << '\n';
-        for (int i = 0; i < zs-1; i += 2)
-          newBlocks[newSize++].update(home, Block(vs[i], vs[i+1]));
+        for (int i = zs-1; i > 0; i -= 2)
+          newBlocks[newSize++].update(home, Block(vs[i-1], vs[i]));
         U[uSize++] = i;
         U[uSize++] = zp/2 + zs/2 + 1;
         continue;

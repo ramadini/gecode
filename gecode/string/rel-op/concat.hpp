@@ -41,7 +41,6 @@ namespace Gecode { namespace String { namespace RelOp {
     int u = x2.max_length() - x1.min_length();
     if (u < 0)
       return ES_FAILED;
-//    std::cerr << "x0) " << l << " " << u << "\n";
     if (l > x0.min_length()) GECODE_ME_CHECK(x0.min_length(home, l));
     if (u < x0.max_length()) GECODE_ME_CHECK(x0.max_length(home, u));
     l = std::max(0, x2.min_length() - x0.max_length());
@@ -96,18 +95,18 @@ namespace Gecode { namespace String { namespace RelOp {
     int a;
     do {
       ConcatView xy(x0,x1);
-//      std::cerr << "xy: " << xy << "\n";
       ModEvent me0 = ME_STRING_NONE;
       if (!x2.assigned()) {
         me0 = x2.equate(home, xy);
         GECODE_ME_CHECK(me0);
+//        std::cerr << "me0: " << me0 << ", x2: " << x2 << '\n';
       }
       ModEvent me1 = xy.equate(home, x2);
+//      std::cerr << "me1: " << me1 << ", xy: " << xy << '\n';
       GECODE_ME_CHECK(me1);
       if (me0 == ME_STRING_VAL || me0 == ME_STRING_CARD
       ||  me1 == ME_STRING_VAL || me1 == ME_STRING_CARD)
-        GECODE_ME_CHECK(refine_card(home));
-//      std::cerr << me0 << ' ' << me1 << "\n";
+        GECODE_ME_CHECK(refine_card(home));      
       a = x0.assigned() + x1.assigned() + x2.assigned();
     } while (a == 2);
 //    std::cerr << "After Concat::propagate " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
