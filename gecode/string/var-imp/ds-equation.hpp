@@ -165,8 +165,6 @@ namespace Gecode { namespace String {
         }
         assert (np >= 0 && ns >= 0 && np + ns <= l1);
         assert (y.prec(lsp, eep) && (esp == lsp || eep == lep));
-        if (x[i].ub()-ns-np < l1)
-          return false;
         if (U == nullptr)
           U = r.alloc<int>(ux);
         if (newBlocks == nullptr)
