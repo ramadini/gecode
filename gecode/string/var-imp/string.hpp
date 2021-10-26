@@ -64,7 +64,7 @@ namespace Gecode { namespace String {
     int l = min_length(), u = max_length();    
     ds.update(home, dy);
     min_len = dy.lb_sum();
-    max_len = dy.ub_sum();
+    max_len = std::min((long) MAX_STRING_LENGTH, dy.ub_sum());
     StringDelta d;
     if (assigned())
       notify(home, ME_STRING_VAL, d);
@@ -121,11 +121,11 @@ namespace Gecode { namespace String {
   
   forceinline void
   StringVarImp::gets(Space& home, const StringVarImp& x, 
-                                    const StringVarImp& y) {
+                                  const StringVarImp& y) {
     assert (!assigned());
     ds.update(home, x.ds, y.ds);
     min_len = x.min_length() + y.min_length();
-    max_len = x.max_length() + y.max_length();
+    max_len = ubounded_sum(x.max_length(), y.max_length());
     assert (isOK());
   }
   

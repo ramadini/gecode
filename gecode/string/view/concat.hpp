@@ -313,7 +313,7 @@ namespace Gecode { namespace String {
   forceinline ModEvent
   ConcatView::equate(Space& home, const T& y) {
     assert (!assigned());
-    int lbs0 = x0.lb_sum(), lbs1 = x1.lb_sum(), n0 = x0.size(), n1 = x1.size();    
+    int lbs0 = x0.lb_sum(), lbs1 = x1.lb_sum(), n0 = x0.size(), n1 = x1.size();
     bool a0 = x0.assigned(), a1 = x1.assigned();
     long ubs0 = x0.ub_sum(), ubs1 = x1.ub_sum();
     // FIXME: logdim is avoidable if we pass the pivot to sweep_x, and we add an
@@ -573,7 +573,7 @@ namespace Gecode { namespace String {
   
   forceinline void
   ConcatView::resize(Space& home, Block newBlocks[], int newSize,
-                                                          int U[],  int uSize) {
+                                            int U[], int uSize) {
     int i, j;
     for (i = 0, j = 0; i < uSize && U[i] < pivot; i += 2)
       j += U[i+1];
@@ -616,7 +616,7 @@ namespace Gecode { namespace String {
   forceinline void
   ConcatView::updateCardAt(Space& home, int i, int l, int u) {
     i < pivot ? x0.updateCardAt(home, i, l, u) :
-                       x1.updateCardAt(home, i-pivot, l, u);
+                x1.updateCardAt(home, i-pivot, l, u);
   }
   forceinline void
   ConcatView::updateAt(Space& home, int i, const Block& b) {
