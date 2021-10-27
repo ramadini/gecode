@@ -234,7 +234,7 @@ namespace Gecode { namespace String {
     int lbs = ds.lb_sum();
     if (l > lbs) {
       ds.min_length(home, l);
-      ch = lbs < ds.lb_sum();
+      ch |= lbs < ds.lb_sum();
     }
     if (ch) {
       StringDelta d;
@@ -255,7 +255,7 @@ namespace Gecode { namespace String {
     long ubs = ds.ub_sum();
     if (u < ubs) {
       ds.max_length(home, u);
-      ch = ds.ub_sum() < ubs;
+      ch |= ds.ub_sum() < ubs;
     }
     if (ch) {
       StringDelta d;
@@ -365,7 +365,7 @@ namespace Gecode { namespace String {
   template<class Char, class Traits>
   forceinline  std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const StringVarImp& x) {
-    os << x.dom() << " |" << x.min_length() << ".." << x.max_length() << "|";
+    os << "Var. " << &x << ": " << x.dom() << " |" << x.min_length() << ".." << x.max_length() << "|";
     return os;
   };
    

@@ -129,7 +129,7 @@ namespace Gecode { namespace String { namespace RelOp {
       ||  me1 == ME_STRING_VAL || me1 == ME_STRING_CARD)
         GECODE_ME_CHECK(refine_card(home));
       a = x0.assigned() + x1.assigned() + x2.assigned();
-//      std::cerr << "After Concat::propagate " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
+//      std::cerr << "\nConcat::propagated " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
     } while (a == 2);
     return a == 3 ? home.ES_SUBSUMED(*this) : ES_FIX;
   }
