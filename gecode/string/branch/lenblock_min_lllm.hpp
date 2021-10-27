@@ -98,6 +98,7 @@ namespace Gecode { namespace String { namespace Branch {
         StringBrancher::commit(home, x[p.pos], p.lev, p.val, Blc::LEFTMOST, a)
       );
 //      std::cerr << "After commit: " << x[p.pos] << '\n';
+//      abort();
       return ES_OK;
     }
 

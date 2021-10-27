@@ -63,36 +63,53 @@ namespace Gecode { namespace String { namespace RelOp {
   Concat<View0,View1,View2>::propagate(Space& home, const ModEventDelta&) {
 //    std::cerr << "\n" << this << "::Concat::propagate " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
     GECODE_ME_CHECK(refine_card(home));
-    int a;
+    int a = x0.assigned() + x1.assigned() + x2.assigned();
     do {
-      if (x0.isNull()) {
-        GECODE_REWRITE(*this, 
-          (Gecode::String::Rel::Eq<View1,View2>::post(home(*this), x1, x2)));
-        return home.ES_SUBSUMED(*this);
-      }
-      if (x1.isNull()) {
-        GECODE_REWRITE(*this, 
-          (Gecode::String::Rel::Eq<View0,View2>::post(home(*this), x0, x2)));
-        return home.ES_SUBSUMED(*this);
-      }
-      if (x2.isNull()) {
-        GECODE_ME_CHECK(x0.nullify(home));
-        GECODE_ME_CHECK(x1.nullify(home));
-        return home.ES_SUBSUMED(*this);
+      if (a == 1) {
+        if (x0.isNull()) {
+          GECODE_REWRITE(*this, 
+            (Gecode::String::Rel::Eq<View1,View2>::post(home(*this), x1, x2)));
+          return home.ES_SUBSUMED(*this);
+        }
+        if (x1.isNull()) {
+          GECODE_REWRITE(*this, 
+            (Gecode::String::Rel::Eq<View0,View2>::post(home(*this), x0, x2)));
+          return home.ES_SUBSUMED(*this);
+        }
+        if (x2.isNull()) {
+          GECODE_ME_CHECK(x0.nullify(home));
+          GECODE_ME_CHECK(x1.nullify(home));
+          return home.ES_SUBSUMED(*this);
+        }
       }
       ConcatView xy(x0,x1);
-      if (xy.assigned()) {
-          if (check_equate_x(x2, xy)) {
-          if (!x2.assigned()) {
-            if (check_equate_x(xy, x2))
-              x2.gets(home, xy.val());
+      if (a >= 2) {
+        if (!check_equate_x(x2, xy))
+          return ES_FAILED;
+        if (a == 3)
+          return home.ES_SUBSUMED(*this);
+        if (xy.assigned()) {
+          if (check_equate_x(xy, x2))
+            x2.gets(home, xy.val());
+          else
+            return ES_FAILED;          
+        }
+        else {
+          std::vector<int> v = x2.val();
+          if (x0.assigned()) {
+            if (x1.lb_sum() == x1.ub_sum() || check_equate_x(x2, xy))
+              x1.gets(home, std::vector<int>(v.begin() + x0.lb_sum(), v.end()));
             else
               return ES_FAILED;
           }
-          return home.ES_SUBSUMED(*this);
+          else {
+            if (x0.lb_sum() == x0.ub_sum() || check_equate_x(x2, xy))
+              x0.gets(home, std::vector<int>(v.begin(), v.end() - x1.lb_sum()));
+            else
+              return ES_FAILED;
+          }
         }
-        else
-          return ES_FAILED;
+        return home.ES_SUBSUMED(*this);
       }
       ModEvent me0 = ME_STRING_NONE;
       if (!x2.assigned()) {
