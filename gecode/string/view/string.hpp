@@ -618,7 +618,7 @@ namespace Gecode { namespace String {
     const Block& bx = x[idx];
     if (!bx.isNull()) {
       int q_off = q.off > 0 ? q.off : (*this)[q.idx-1].ub();
-      x.lbAt(home, idx, std::max(bx.lb(), std::min(q_off, by.lb()) - p.off)),
+      x.lbAt(home, idx, std::max(bx.lb(), std::min(q_off, by.lb()) - p.off));
       x.ubAt(home, idx, std::min(bx.ub(), q_off - p.off));
     }
   }
@@ -726,31 +726,48 @@ namespace Gecode { namespace String {
     v.push_back(bp.baseMin());
     if (p_i == q_i) {
       np = std::max(0, std::min(bp.lb(), q_o) - p_o);
+      assert (np > 0);
       v.push_back(np);
+      if (p_i < size()-1)
+        np = -np;
       return v;
     }
     np = bp.lb() - p_o;
     v.push_back(np);
-    if (bp.lb() < bp.ub())
+    if (bp.lb() < bp.ub()) {
+      if (p_i < size()-1)
+        np = -np;
       return v;
+    }
     for (int i = p_i+1; i < q_i; ++i) {
       const Block& bi = (*this)[i];
       int l = bi.lb();
-      if (l == 0 || bi.baseSize() > 1)
+      if (l == 0 || bi.baseSize() > 1) {
+        if (p_i < size()-1)
+          np = -np;
         return v;
+      }
       v.push_back(bi.baseMin());
       v.push_back(l);
       np += l;
-      if (l < bi.ub())
+      if (l < bi.ub()) {
+        if (i < size()-1)
+          np = -np;
         return v;
+      }
     }
     const Block& bq = (*this)[q_i];
     int l = std::min(bq.lb(), q_o);
-    if (l == 0 || bq.baseSize() > 1)
+    if (l == 0 || bq.baseSize() > 1) {
+      if (p_i < size()-1)
+        np = -np;
       return v;
+    }
     v.push_back(bq.baseMin());
     v.push_back(l);
     np += l;
+    if (q_i < size()-1)
+      np = -np;
     return v;
   }
 
@@ -771,30 +788,46 @@ namespace Gecode { namespace String {
     if (p_i == q_i) {
       ns = std::max(0, std::min(bq.lb(), q_o) - p_o);
       v.push_back(ns);
+      if (q_i < size()-1)
+        ns = -ns;
       return v;
     }
     ns = std::min(bq.lb(), q_o);
     v.push_back(ns);
-    if (bq.lb() < bq.ub())
+    if (bq.lb() < bq.ub()) {
+      if (q_i < size()-1)
+        ns = -ns;
       return v;
+    }
     for (int i = q_i-1; i > p_i; --i) {
       const Block& bi = (*this)[i];
       int l = bi.lb();
-      if (l == 0 || bi.baseSize() > 1)
+      if (l == 0 || bi.baseSize() > 1) {        
+        if (i < size()-1)
+          ns = -ns;
         return v;
+      }
       v.push_back(bi.baseMin());
       v.push_back(l);
       ns += l;
-      if (l < bi.ub())
-        return v;
+      if (l < bi.ub()) {
+        if (i < size()-1)
+          ns = -ns;
+        return v;        
+      }
     }
     const Block& bp = (*this)[p_i];
     int l = bp.lb() - p_o;
-    if (l == 0 || bp.baseSize() > 1)
+    if (l == 0 || bp.baseSize() > 1) {
+      if (p_i < size()-1)
+        ns = -ns;
       return v;
+    }
     v.push_back(bp.baseMin());
     v.push_back(l);
     ns += l;
+    if (p_i < size()-1)
+      ns = -ns;
     return v;
   }
   

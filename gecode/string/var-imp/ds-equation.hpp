@@ -140,7 +140,7 @@ namespace Gecode { namespace String {
             x.lbAt(home, i, l1);
           if (u1 < u)
             x.ubAt(home, i, u1);
-//          std::cerr << "x[" << i << "] ref. into " << x[i] << "\n";
+//          std::cerr << "0) x[" << i << "] ref. into " << x[i] << "\n";
           ux -= 2;
           continue;
         }
@@ -150,9 +150,10 @@ namespace Gecode { namespace String {
           vp = y.fixed_pref(lsp, eep, np);
         if (eep == lep)
           vs = y.fixed_suff(lsp, eep, ns);
+         np = np < 0 ? -np : np;
+         ns = ns < 0 ? -ns : ns;
 //        std::cerr << "Pref: " << np << ' ' << vec2str(vp) << ", Suff: " << ns << ' ' << vec2str(vs) << '\n';
-        assert (vp.size() % 2 == 0 && vs.size() % 2 == 0);
-        assert (np >= 0 && ns >= 0 && np + ns <= l1);
+        assert (vp.size() % 2 == 0 && vs.size() % 2 == 0 && np + ns <= l1);
         if (np == 0 && ns == 0) {
           nBlocks--;
           if (l1 > l)
@@ -160,7 +161,7 @@ namespace Gecode { namespace String {
           if (u1 < u)
             x.ubAt(home, i, u1);
           ux -= 2;
-//          std::cerr << "x[" << i << "] ref. into " << x[i] << "\n";
+//          std::cerr << "1) x[" << i << "] ref. into " << x[i] << "\n";
           continue;
         }
         assert (y.prec(lsp, eep) && (esp == lsp || eep == lep));
@@ -169,13 +170,11 @@ namespace Gecode { namespace String {
         if (newBlocks == nullptr)
           newBlocks = r.alloc<Block>(nBlocks);        
         int zp = vp.size();
-        
         for (int i = 0; i < zp-1; i += 2)
           newBlocks[newSize++].update(home, Block(vp[i], vp[i+1]));
         newBlocks[newSize].update(home, x[i]);
         newBlocks[newSize++].updateCard(home, l1-ns-np, u1-ns-np);
         int zs = vs.size();
-
         for (int i = zs-1; i > 0; i -= 2)
           newBlocks[newSize++].update(home, Block(vs[i-1], vs[i]));
         U[uSize++] = i;
@@ -193,7 +192,7 @@ namespace Gecode { namespace String {
         n = xx_i.baseSize();
         y.mand_region(home, x, i, lsp, eep);
         changed |= l < xx_i.lb() || u > xx_i.ub() || n > xx_i.baseSize();
-//        std::cerr << "x[" << i << "] ref. into " << xx_i << "\n";        
+//        std::cerr << "2) x[" << i << "] ref. into " << xx_i << "\n";
         continue;
       }
       l = xx_i.lb(), u = xx_i.ub();
@@ -222,6 +221,7 @@ namespace Gecode { namespace String {
           continue;
         x.updateAt(home, i, d[0]);
         changed = true;
+//        std::cerr << "3) x[" << i << "] ref. into " << xx_i << "\n";
         continue;
       }
       if (U == nullptr)

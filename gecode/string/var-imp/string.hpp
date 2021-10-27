@@ -314,17 +314,21 @@ namespace Gecode { namespace String {
   forceinline ModEvent
   StringVarImp::nullifyAt(Space& home, int i) {
     ds.nullifyAt(home, i);
-    return bnd_length(home, min_len, std::min((long) max_len, ds.ub_sum()));
+    max_len = std::min((long) max_len, ds.ub_sum());
+    return ME_STRING_NONE; //FIXME
   }
   forceinline ModEvent
   StringVarImp::lbAt(Space& home, int i, int l) {
     ds.lbAt(home, i, l);
-    return bnd_length(home, std::max(min_len, ds.lb_sum()), max_len);
+    min_len = std::max(min_len, ds.lb_sum());
+    return ME_STRING_NONE; //FIXME
   }
   forceinline ModEvent
   StringVarImp::ubAt(Space& home, int i, int u) {
     ds.ubAt(home, i, u);
-    return bnd_length(home, min_len, std::min((long) max_len, ds.ub_sum()));
+    min_len = std::max(min_len, ds.lb_sum());
+    max_len = std::min((long) max_len, ds.ub_sum());
+    return ME_STRING_NONE; //FIXME
   }  
   forceinline ModEvent
   StringVarImp::baseIntersectAt(Space& home, int i, const Set::BndSet& S) {

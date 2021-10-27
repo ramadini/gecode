@@ -418,7 +418,7 @@ namespace Gecode { namespace String {
   forceinline void
   ConcatView::mand_region(Space& home, ViewX& x, int idx,
                           const Position& p, const Position& q) const {
-    // FIXME: When only block by is involved.
+    // When only block by is involved.
     if (p.idx < pivot)
       x0.mand_region(home, x, idx, p, q);
     else
@@ -508,6 +508,8 @@ namespace Gecode { namespace String {
       return x1.fixed_pref(p-pivot,q-pivot,np);
     else {
       std::vector<int> v = x0.fixed_pref(p,Position(pivot,0),np);
+      if (np < 0)
+        return v;
       const Block& b = x0[x0.size()-1];
       //FIXME: This check is sound but not complete. We must check that the end
       //       of x0 has been actually reached.
@@ -529,6 +531,8 @@ namespace Gecode { namespace String {
       return x1.fixed_suff(p-pivot,q-pivot,ns);
     else {
       std::vector<int> v = x1.fixed_suff(Position(0,0),q-pivot,ns);
+      if (ns < 0)
+        return v;
       const Block& b = x1[0];
       //FIXME: This check is sound but not complete. We must check that the
       //       beginning of x1 has been actually reached.

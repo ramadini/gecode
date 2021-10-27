@@ -446,9 +446,10 @@ namespace Gecode { namespace String {
   forceinline std::vector<int>
   ConstDashedView::fixed_pref(const Position& p, const Position& q, int& np) const {
 //    std::cerr << "fixed_pref of " << *this << " between " << p << " and " << q << "\n"; 
-    assert (prec(p,q));
     np = 0;
     std::vector<int> v;
+    if (!prec(p,q))
+      return v;
     int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
         p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
 //    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
@@ -458,38 +459,58 @@ namespace Gecode { namespace String {
     v.push_back(bp.baseMin());
     if (p_i == q_i) {
       np = std::max(0, std::min(bp.lb(), q_o) - p_o);
+      assert (np > 0);
       v.push_back(np);
+      if (p_i < size()-1)
+        np = -np;
       return v;
     }
     np = bp.lb() - p_o;
     v.push_back(np);
-    if (bp.lb() < bp.ub())
+    if (bp.lb() < bp.ub()) {
+      if (p_i < size()-1)
+        np = -np;
       return v;
+    }
     for (int i = p_i+1; i < q_i; ++i) {
       const Block& bi = (*this)[i];
       int l = bi.lb();
-      if (l == 0 || bi.baseSize() > 1)
+      if (l == 0 || bi.baseSize() > 1) {
+        if (p_i < size()-1)
+          np = -np;
         return v;
+      }
       v.push_back(bi.baseMin());
       v.push_back(l);
       np += l;
+      if (l < bi.ub()) {
+        if (i < size()-1)
+          np = -np;
+        return v;
+      }
     }
     const Block& bq = (*this)[q_i];
     int l = std::min(bq.lb(), q_o);
-    if (l == 0 || bq.baseSize() > 1)
+    if (l == 0 || bq.baseSize() > 1) {
+      if (p_i < size()-1)
+        np = -np;
       return v;
+    }
     v.push_back(bq.baseMin());
     v.push_back(l);
     np += l;
+    if (q_i < size()-1)
+      np = -np;
     return v;
   }
 
   forceinline std::vector<int>
   ConstDashedView::fixed_suff(const Position& p, const Position& q, int& ns) const {
 //    std::cerr << "fixed_suff of " << *this << " between" << p << " and " << q << "\n"; 
-    assert (prec(p,q));
     ns = 0;
     std::vector<int> v;
+    if (!prec(p,q))
+      return v;
     int p_i = p.idx, q_i = q.off > 0 ? q.idx : q.idx-1, 
         p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
 //    std::cerr << "p=(" << p_i << "," << p_o << "), q=(" << q_i << "," << q_o << ")\n";
@@ -500,26 +521,46 @@ namespace Gecode { namespace String {
     if (p_i == q_i) {
       ns = std::max(0, std::min(bq.lb(), q_o) - p_o);
       v.push_back(ns);
+      if (q_i < size()-1)
+        ns = -ns;
       return v;
     }
     ns = std::min(bq.lb(), q_o);
     v.push_back(ns);
+    if (bq.lb() < bq.ub()) {
+      if (q_i < size()-1)
+        ns = -ns;
+      return v;
+    }
     for (int i = q_i-1; i > p_i; --i) {
       const Block& bi = (*this)[i];
       int l = bi.lb();
-      if (l == 0 || bi.baseSize() > 1)
+      if (l == 0 || bi.baseSize() > 1) {        
+        if (i < size()-1)
+          ns = -ns;
         return v;
+      }
       v.push_back(bi.baseMin());
       v.push_back(l);
       ns += l;
+      if (l < bi.ub()) {
+        if (i < size()-1)
+          ns = -ns;
+        return v;        
+      }
     }
     const Block& bp = (*this)[p_i];
     int l = bp.lb() - p_o;
-    if (l == 0 || bp.baseSize() > 1)
+    if (l == 0 || bp.baseSize() > 1) {
+      if (p_i < size()-1)
+        ns = -ns;
       return v;
+    }
     v.push_back(bp.baseMin());
     v.push_back(l);
     ns += l;
+    if (p_i < size()-1)
+      ns = -ns;
     return v;
   }
   
