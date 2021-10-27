@@ -39,43 +39,43 @@ namespace Gecode { namespace String { namespace Rel {
   Eq<View0,View1>::propagate(Space& home, const ModEventDelta&) {
 //    std::cerr<<"\n"<<this<<"::Eq::propagate " << x0 << "  vs  " << x1 << "\n";
     refine_card(home);
-    if (x0.assigned()) {
-      if (x0.isNull()) {
-        GECODE_ME_CHECK(x1.nullify(home));
-        return home.ES_SUBSUMED(*this);
-      }
-      if (check_equate_x(x1,x0)) {
-        if (!x1.assigned())
-          x1.gets(home, x0);
-        return home.ES_SUBSUMED(*this);
-      }
-      else
-        return ES_FAILED;
-    }
-    if (x1.assigned()) {
-      if (x1.isNull()) {
-        GECODE_ME_CHECK(x0.nullify(home));
-        return home.ES_SUBSUMED(*this);
-      }
-      if (check_equate_x(x0,x1)) {
-        x0.gets(home, x1);
-        return home.ES_SUBSUMED(*this);
-      }
-      else
-        return ES_FAILED;
-    }
-    if (x0.contains(x1)) {
-      if (x0.equals(x1))
-        return ES_FIX;
-      x0.gets(home, x1);
-      return ES_FIX;
-    }
-    if (x1.contains(x0)) {
-      x1.gets(home, x0);
-      return ES_FIX;
-    }
-    ModEvent me0;
     do {
+      if (x0.assigned()) {
+        if (x0.isNull()) {
+          GECODE_ME_CHECK(x1.nullify(home));
+          return home.ES_SUBSUMED(*this);
+        }
+        if (check_equate_x(x1,x0)) {
+          if (!x1.assigned())
+            x1.gets(home, x0);
+          return home.ES_SUBSUMED(*this);
+        }
+        else
+          return ES_FAILED;
+      }
+      if (x1.assigned()) {
+        if (x1.isNull()) {
+          GECODE_ME_CHECK(x0.nullify(home));
+          return home.ES_SUBSUMED(*this);
+        }
+        if (check_equate_x(x0,x1)) {
+          x0.gets(home, x1);
+          return home.ES_SUBSUMED(*this);
+        }
+        else
+          return ES_FAILED;
+      }
+      if (x0.contains(x1)) {
+        if (x0.equals(x1))
+          return ES_FIX;
+        x0.gets(home, x1);
+        return ES_FIX;
+      }
+      if (x1.contains(x0)) {
+        x1.gets(home, x0);
+        return ES_FIX;
+      }
+      ModEvent me0;
       me0 = x0.equate(home, x1);
       GECODE_ME_CHECK(me0);
       ModEvent me1 = x1.equate(home, x0);
