@@ -221,7 +221,7 @@ namespace Gecode { namespace String {
           continue;
         x.updateAt(home, i, d[0]);
         changed = true;
-//        std::cerr << "3) x[" << i << "] ref. into " << xx_i << "\n";
+//        std::cerr << "3) x[" << i << "] ref. into " << d[0] << "\n";
         continue;
       }
       if (U == nullptr)

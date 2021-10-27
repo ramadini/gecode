@@ -323,7 +323,7 @@ namespace Gecode { namespace String {
   }
   forceinline void
   StringVarImp::ubAt(Space& home, int i, int u) {
-    ds.ubAt(home, i, u);
+    ds.ubAt(home, i, u);    
     min_len = std::max(min_len, ds.lb_sum());
     max_len = std::min((long) max_len, ds.ub_sum());
   }  
@@ -351,17 +351,15 @@ namespace Gecode { namespace String {
   }
   forceinline void
   StringVarImp::updateCardAt(Space& home, int i, int l, int u) {
-    min_len += l - ds[i].lb();
-    max_len  = ds.ub_sum() < MAX_STRING_LENGTH ? max_len + u - ds[i].ub()
-                                               : MAX_STRING_LENGTH;
     ds.updateCardAt(home, i, l, u);
+    min_len = std::max(min_len, ds.lb_sum());
+    max_len = std::min((long) max_len, ds.ub_sum());
   }
   forceinline void
   StringVarImp::updateAt(Space& home, int i, const Block& b) {
-    min_len += b.lb() - ds[i].lb();
-    max_len  = ds.ub_sum() < MAX_STRING_LENGTH ? max_len + b.ub() - ds[i].ub()
-                                               : MAX_STRING_LENGTH;
     ds.updateAt(home, i, b);
+    min_len = std::max(min_len, ds.lb_sum());
+    max_len = std::min((long) max_len, ds.ub_sum());
   }
   
   template<class Char, class Traits>
