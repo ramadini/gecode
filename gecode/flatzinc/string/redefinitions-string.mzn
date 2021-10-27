@@ -142,11 +142,10 @@ let {
 
 function var string:
 str_char_at(var string: x, var int: i) :: promise_total = let {
-  var int: lx = str_len(x);
-  constraint i >= 1 /\ i <= lx;
-  var string(ub(i-1)): xp;
-  var string(ub(lx-i)): xs;
-  var string(1): c;
+  constraint i >= 1 /\ i <= str_len(x);
+  var string: xp;
+  var string: xs;
+  var string: c;
   constraint str_len(c) = 1 /\ str_len(xp) = i-1 /\ x = xp ++ c ++ xs;
 } in c;
 

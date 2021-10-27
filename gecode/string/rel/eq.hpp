@@ -37,6 +37,7 @@ namespace Gecode { namespace String { namespace Rel {
   template<class View0, class View1>
   forceinline ExecStatus
   Eq<View0,View1>::propagate(Space& home, const ModEventDelta&) {
+    assert (x0.varimp() != x1.varimp());
 //    std::cerr<<"\n"<<this<<"::Eq::propagate " << x0 << "  vs  " << x1 << "\n";
     refine_card(home);
     do {
@@ -65,16 +66,8 @@ namespace Gecode { namespace String { namespace Rel {
         else
           return ES_FAILED;
       }
-      if (x0.contains(x1)) {
-        if (x0.equals(x1))
-          return ES_FIX;
-        x0.gets(home, x1);
+      if (x0.equals(x1))
         return ES_FIX;
-      }
-      if (x1.contains(x0)) {
-        x1.gets(home, x0);
-        return ES_FIX;
-      }
       ModEvent me0;
       me0 = x0.equate(home, x1);
       GECODE_ME_CHECK(me0);
@@ -83,7 +76,7 @@ namespace Gecode { namespace String { namespace Rel {
       if (me0 + me1 != ME_STRING_NONE)
         refine_card(home);
     } while (x0.assigned() + x1.assigned() == 1);
-//    std::cerr << "Eq::propagated " << x0 << "  vs  " << x1 << "\n";
+//    std::cerr << "\nEq::propagated " << x0 << "  vs  " << x1 << "\n";
     return x0.assigned() ? home.ES_SUBSUMED(*this) : ES_FIX;
   }
 

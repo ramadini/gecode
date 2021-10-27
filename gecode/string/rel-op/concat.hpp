@@ -41,10 +41,12 @@ namespace Gecode { namespace String { namespace RelOp {
     int u = x2.max_length() - x1.min_length();
     if (u < 0)
       return ES_FAILED;
+//    std::cerr << "|x0| in " << l << ".." << u <<'\n';
     if (l > x0.min_length()) GECODE_ME_CHECK(x0.min_length(home, l));
     if (u < x0.max_length()) GECODE_ME_CHECK(x0.max_length(home, u));
     l = std::max(0, x2.min_length() - x0.max_length());
     u = x2.max_length() - x0.min_length();
+//    std::cerr << "|x1| in " << l << ".." << u <<'\n';
     if (l > x1.min_length()) GECODE_ME_CHECK(x1.min_length(home, l));
     if (u < x1.max_length()) GECODE_ME_CHECK(x1.max_length(home, u));
     long n = x0.min_length() + x1.min_length();
@@ -52,6 +54,7 @@ namespace Gecode { namespace String { namespace RelOp {
       return ES_FAILED;
     l = (int) n;
     u = ubounded_sum(x0.max_length(), x1.max_length());
+//    std::cerr << "|x2| in " << l << ".." << u <<'\n';
     if (l > x2.min_length()) GECODE_ME_CHECK(x2.min_length(home, l));
     if (u < x2.max_length()) GECODE_ME_CHECK(x2.max_length(home, u));
 //    std::cerr << "After refine_card: " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
@@ -65,6 +68,7 @@ namespace Gecode { namespace String { namespace RelOp {
     GECODE_ME_CHECK(refine_card(home));
     int a = x0.assigned() + x1.assigned() + x2.assigned();
     do {
+//      std::cerr << a << '\n';
       if (a == 1) {
         if (x0.isNull()) {
           GECODE_REWRITE(*this, 
@@ -109,6 +113,7 @@ namespace Gecode { namespace String { namespace RelOp {
               return ES_FAILED;
           }
         }
+//        std::cerr << "After Concat::propagate " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
         return home.ES_SUBSUMED(*this);
       }
       ModEvent me0 = ME_STRING_NONE;
@@ -124,8 +129,8 @@ namespace Gecode { namespace String { namespace RelOp {
       ||  me1 == ME_STRING_VAL || me1 == ME_STRING_CARD)
         GECODE_ME_CHECK(refine_card(home));
       a = x0.assigned() + x1.assigned() + x2.assigned();
+//      std::cerr << "After Concat::propagate " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
     } while (a == 2);
-//    std::cerr << "After Concat::propagate " <<x2<<" = "<<x0<< " ++ " <<x1<<"\n";
     return a == 3 ? home.ES_SUBSUMED(*this) : ES_FIX;
   }
   
