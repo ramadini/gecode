@@ -50,7 +50,7 @@ namespace Gecode { namespace String { namespace Branch {
       double d = b.logdim();
       int l = b.ub() - b.lb();
       int m = vx.min_length();
-      int f = Limits::MAX_STRING_LENGTH;
+      int f = vx.max_length() - m;
       int pos = start;
 //      std::cerr<<x[start]<<" (pos. "<<start<<", dim. "<<d<<")\n";
       for (int i = start + 1; i < x.size(); ++i) {
