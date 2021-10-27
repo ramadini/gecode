@@ -316,9 +316,6 @@ namespace Gecode { namespace String {
     int lbs0 = x0.lb_sum(), lbs1 = x1.lb_sum(), n0 = x0.size(), n1 = x1.size();
     bool a0 = x0.assigned(), a1 = x1.assigned();
     long ubs0 = x0.ub_sum(), ubs1 = x1.ub_sum();
-    // FIXME: logdim is avoidable if we pass the pivot to sweep_x, and we add an
-    //        extra parameter to refine_x to discriminate between x0/x1.
-    double ld0 = x0.logdim(), ld1 = x1.logdim();
     Matching m[size()];
     int n, k;
     if (sweep_x(*this, y, m, k, n) && refine_x(home, *this, y, m, k, n)) {
@@ -330,16 +327,11 @@ namespace Gecode { namespace String {
         me0 = x0.varimp()->notify(home, ME_STRING_VAL, d);
       else if (x0.lb_sum() > lbs0 || x0.ub_sum() < ubs0 || size() != n0)
         me0 = x0.varimp()->notify(home, ME_STRING_CARD, d);
-      else if (x0.logdim() < ld0)
-        me0 = x0.varimp()->notify(home, ME_STRING_BASE, d);
       ModEvent me1 = ME_STRING_NONE;
       if (!a1 && x1.assigned())
         me1 = x1.varimp()->notify(home, ME_STRING_VAL, d);
       else if (x1.lb_sum() > lbs1 || x1.ub_sum() < ubs1 || size() != n1)
         me1 = x1.varimp()->notify(home, ME_STRING_CARD, d);
-      else if (x1.logdim() < ld1)
-        me1 = x1.varimp()->notify(home, ME_STRING_BASE, d);
-//      std::cerr << me0 << ' ' << me1 << '\n';
       if (me0 == ME_STRING_VAL)
         return me1 == ME_STRING_VAL ? me0 : ME_STRING_CARD;
       if (me1 == ME_STRING_VAL)
@@ -571,27 +563,27 @@ namespace Gecode { namespace String {
     pivot = x0.size();
   }
   
-  forceinline ModEvent
+  forceinline void
   ConcatView::nullifyAt(Space& home, int i) {
-    return i < pivot ? x0.nullifyAt(home, i) : x1.nullifyAt(home, i-pivot);
+    i < pivot ? x0.nullifyAt(home, i) : x1.nullifyAt(home, i-pivot);
   }
-  forceinline ModEvent
+  forceinline void
   ConcatView::lbAt(Space& home, int i, int l) {
-    return i < pivot ? x0.lbAt(home, i, l) : x1.lbAt(home, i-pivot, l);
+    i < pivot ? x0.lbAt(home, i, l) : x1.lbAt(home, i-pivot, l);
   }
-  forceinline ModEvent
+  forceinline void
   ConcatView::ubAt(Space& home, int i, int u) {
-    return i < pivot ? x0.ubAt(home, i, u) : x1.ubAt(home, i-pivot, u);
+    i < pivot ? x0.ubAt(home, i, u) : x1.ubAt(home, i-pivot, u);
   }  
-  forceinline ModEvent
+  forceinline void
   ConcatView::baseIntersectAt(Space& home, int i, const Set::BndSet& S) {
-    return i < pivot ? x0.baseIntersectAt(home, i, S) : 
-                       x1.baseIntersectAt(home, i-pivot, S);
+    i < pivot ? x0.baseIntersectAt(home, i, S) :
+                x1.baseIntersectAt(home, i-pivot, S);
   }
-  forceinline ModEvent
+  forceinline void
   ConcatView::baseIntersectAt(Space& home, int i, const Block& b) {
-    return i < pivot ? x0.baseIntersectAt(home, i, b) : 
-                       x1.baseIntersectAt(home, i-pivot, b);
+    i < pivot ? x0.baseIntersectAt(home, i, b) : 
+                x1.baseIntersectAt(home, i-pivot, b);
   }
   forceinline void
   ConcatView::updateCardAt(Space& home, int i, int l, int u) {

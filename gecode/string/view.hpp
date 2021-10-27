@@ -200,11 +200,11 @@ namespace Gecode { namespace String {
     void normalize(Space& home);
     ModEvent splitBlock(Space& home, int idx, int c, unsigned a);
     
-    ModEvent nullifyAt(Space& home, int i);
-    ModEvent lbAt(Space& home, int i, int l);
-    ModEvent ubAt(Space& home, int i, int u);
-    ModEvent baseIntersectAt(Space& home, int idx, const Set::BndSet& S);
-    ModEvent baseIntersectAt(Space& home, int idx, const Block& b);
+    void nullifyAt(Space& home, int i);
+    void lbAt(Space& home, int i, int l);
+    void ubAt(Space& home, int i, int u);
+    void baseIntersectAt(Space& home, int idx, const Set::BndSet& S);
+    void baseIntersectAt(Space& home, int idx, const Block& b);
     void updateCardAt(Space& home, int i, int l, int u);
     void updateAt(Space& home, int i, const Block& b);
     
@@ -455,11 +455,11 @@ namespace Gecode { namespace String {
     std::vector<int> fixed_suff(const Position& p,
                                 const Position& q, int & np) const;
     
-    ModEvent nullifyAt(Space& home, int i);
-    ModEvent lbAt(Space& home, int i, int l);
-    ModEvent ubAt(Space& home, int i, int u);    
-    ModEvent baseIntersectAt(Space& home, int idx, const Set::BndSet& S);
-    ModEvent baseIntersectAt(Space& home, int idx, const Block& b);
+    void nullifyAt(Space& home, int i);
+    void lbAt(Space& home, int i, int l);
+    void ubAt(Space& home, int i, int u);    
+    void baseIntersectAt(Space& home, int idx, const Set::BndSet& S);
+    void baseIntersectAt(Space& home, int idx, const Block& b);
     void updateCardAt(Space& home, int i, int l, int u);
     void updateAt(Space& home, int i, const Block& b);    
     //@}

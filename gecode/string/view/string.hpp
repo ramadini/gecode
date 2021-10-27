@@ -860,25 +860,25 @@ namespace Gecode { namespace String {
       x->max_length(home, u);
   }
   
-  forceinline ModEvent
+  forceinline void
   StringView::nullifyAt(Space& home, int i) {
-    return x->nullifyAt(home, i);
+    x->nullifyAt(home, i);
   }
-  forceinline ModEvent
+  forceinline void
   StringView::lbAt(Space& home, int i, int l) {
-    return x->lbAt(home, i, l);
+    x->lbAt(home, i, l);
   }
-  forceinline ModEvent
+  forceinline void
   StringView::ubAt(Space& home, int i, int u) {
-    return x->ubAt(home, i, u);
+    x->ubAt(home, i, u);
   }  
-  forceinline ModEvent
+  forceinline void
   StringView::baseIntersectAt(Space& home, int idx, const Set::BndSet& S) {
-    return x->baseIntersectAt(home, idx, S);
+    x->baseIntersectAt(home, idx, S);
   }
-  forceinline ModEvent
+  forceinline void
   StringView::baseIntersectAt(Space& home, int idx, const Block& b) {
-    return x->baseIntersectAt(home, idx, b);
+    x->baseIntersectAt(home, idx, b);
   }
   forceinline void
   StringView::updateCardAt(Space& home, int i, int l, int u) {

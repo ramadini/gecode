@@ -311,50 +311,43 @@ namespace Gecode { namespace String {
                     : new (home) StringVarImp(home, *this);
   }
   
-  forceinline ModEvent
+  forceinline void
   StringVarImp::nullifyAt(Space& home, int i) {
     ds.nullifyAt(home, i);
     max_len = std::min((long) max_len, ds.ub_sum());
-    return ME_STRING_NONE; //FIXME
   }
-  forceinline ModEvent
+  forceinline void
   StringVarImp::lbAt(Space& home, int i, int l) {
     ds.lbAt(home, i, l);
     min_len = std::max(min_len, ds.lb_sum());
-    return ME_STRING_NONE; //FIXME
   }
-  forceinline ModEvent
+  forceinline void
   StringVarImp::ubAt(Space& home, int i, int u) {
     ds.ubAt(home, i, u);
     min_len = std::max(min_len, ds.lb_sum());
     max_len = std::min((long) max_len, ds.ub_sum());
-    return ME_STRING_NONE; //FIXME
   }  
-  forceinline ModEvent
+  forceinline void
   StringVarImp::baseIntersectAt(Space& home, int i, const Set::BndSet& S) {
     int m = ds[i].baseSize();
     ds.baseIntersectAt(home, i, S);
     if (ds[i].isNull())
-      return bnd_length(home, min_len, std::min((long) max_len, ds.ub_sum()));
+      max_len = std::min((long) max_len, ds.ub_sum());
     else if (ds[i].baseSize() != m) {
       StringDelta d;
-      return notify(home, ME_STRING_BASE, d);
+      notify(home, ME_STRING_BASE, d);
     }
-    else
-      return ME_STRING_NONE;
   }
-  forceinline ModEvent
+  forceinline void
   StringVarImp::baseIntersectAt(Space& home, int i, const Block& b) {
     int m = ds[i].baseSize();
     ds.baseIntersectAt(home, i, b);
     if (ds[i].isNull())
-      return bnd_length(home, min_len, std::min((long) max_len, ds.ub_sum()));
+      max_len = std::min((long) max_len, ds.ub_sum());
     else if (ds[i].baseSize() != m) {
       StringDelta d;
-      return notify(home, ME_STRING_BASE, d);
+      notify(home, ME_STRING_BASE, d);
     }
-    else
-      return ME_STRING_NONE;
   }
   forceinline void
   StringVarImp::updateCardAt(Space& home, int i, int l, int u) {

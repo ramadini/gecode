@@ -41,9 +41,11 @@ namespace Gecode { namespace String { namespace Branch {
         assert (x.min_length() < x.max_length());
         switch (val) {
           case MIN:
-            return x.max_length(home, x.min_length());
+            x.max_length(home, x.min_length());
+            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
           case MAX:
-            return x.min_length(home, x.max_length());
+            x.min_length(home, x.max_length());
+            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
           default:
             GECODE_NEVER;
         }
@@ -52,9 +54,11 @@ namespace Gecode { namespace String { namespace Branch {
         assert (x_i.ub() - x_i.lb() > 0 && x.min_length() == x.max_length());
         switch (val) {
           case MIN:
-            return x.ubAt(home, i, x_i.lb());
+            x.ubAt(home, i, x_i.lb());
+            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
           case MAX:
-            return x.lbAt(home, i, x_i.ub());
+            x.lbAt(home, i, x_i.ub());
+            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
           default:
             GECODE_NEVER;
         }
@@ -75,9 +79,11 @@ namespace Gecode { namespace String { namespace Branch {
           return ME_STRING_FAILED;
         switch (val) {
           case MIN:
-            return x.min_length(home, x.min_length() + 1);
+            x.min_length(home, x.min_length() + 1);
+            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
           case MAX:
-            return x.max_length(home, x.max_length() - 1);
+            x.max_length(home, x.max_length() - 1);
+            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
           default:
             GECODE_NEVER;
         }
@@ -87,9 +93,11 @@ namespace Gecode { namespace String { namespace Branch {
           return ME_STRING_FAILED;
         switch (val) {
           case MIN:
-             return x.lbAt(home, i, x_i.lb() + 1);
+             x.lbAt(home, i, x_i.lb() + 1);
+             return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
           case MAX:
-             return x.ubAt(home, i, x_i.ub() - 1);
+             x.ubAt(home, i, x_i.ub() - 1);
+             return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
           default:
             GECODE_NEVER;
         }
