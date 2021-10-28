@@ -21,6 +21,10 @@ namespace Gecode { namespace String { namespace Branch {
       (void) new (home) Block_MinDim_LSLM(home, x);
     }
 
+    /* Pick the variable x with unfixed block of minimal dimension, tie-breaking with:
+       - min. ub(bx)-lb(bx)
+       - min. lb(|x|)
+    */
     forceinline Choice*
     Block_MinDim_LSLM::choice(Space& home) {
       // std::cerr << "\nVar. choice\n";
@@ -65,12 +69,11 @@ namespace Gecode { namespace String { namespace Branch {
           int li = bi.ub() - bi.lb();
           int mi = xi.min_length();
           // std::cerr<<x[i]<<" (pos. "<<i<<", deg. "<<di<<", dim. "<<si<<")\n";
-          if (di < d || (di == d && li < l) || (di == d && li == l && mi < m)) {
-            d = di;   
-            l = li;
-            m = mi;
-            pos = i;
-          }
+          if (di < d) { d = di, l = li, m = mi, pos = i; continue; }
+          else if (di > d) continue;
+          if (li < l) { l = li, m = mi, pos = i; continue; }
+          else if (li > l) continue;
+          if (mi < m) m = mi, pos = i;
         }
       }
       // std::cerr << "Chosen var. " << x[pos] << " (pos. " << pos << ")\n";
