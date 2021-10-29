@@ -150,10 +150,12 @@ namespace Gecode { namespace String {
           vp = y.fixed_pref(lsp, eep, np);
         if (eep == lep)
           vs = y.fixed_suff(lsp, eep, ns);
-         np = np < 0 ? -np : np;
-         ns = ns < 0 ? -ns : ns;
+        np = np < 0 ? -np : np;
+        ns = ns < 0 ? -ns : ns;
 //        std::cerr << "Pref: " << np << ' ' << vec2str(vp) << ", Suff: " << ns << ' ' << vec2str(vs) << '\n';
-        assert (vp.size() % 2 == 0 && vs.size() % 2 == 0 && np + ns <= l1);
+        if (np + ns > l1)
+          return false;
+        assert (vp.size() % 2 == 0 && vs.size() % 2 == 0 && np + ns <= u1);
         if (np == 0 && ns == 0) {
           nBlocks--;
           if (l1 > l)
@@ -173,7 +175,8 @@ namespace Gecode { namespace String {
         for (int i = 0; i < zp-1; i += 2)
           newBlocks[newSize++].update(home, Block(vp[i], vp[i+1]));
         newBlocks[newSize].update(home, x[i]);
-        newBlocks[newSize++].updateCard(home, l1-ns-np, u1-ns-np);
+        newBlocks[newSize++].updateCard(home, std::max(x_i.lb(),l1)-ns-np, 
+                                              std::min(x_i.ub(),u1)-ns-np);
         int zs = vs.size();
         for (int i = zs-1; i > 0; i -= 2)
           newBlocks[newSize++].update(home, Block(vs[i-1], vs[i]));

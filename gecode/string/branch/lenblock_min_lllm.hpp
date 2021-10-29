@@ -57,7 +57,7 @@ namespace Gecode { namespace String { namespace Branch {
       int m = vx.min_length();
       int f = vx.max_length() - m;
       int pos = start;
-//      std::cerr<<x[start]<<" (pos. "<<start<<", dim. "<<d<<")\n";
+//      std::cerr<<'\n'<<x[start]<<" (pos. "<<start<<", dim. "<<d<<")\n";
       for (int i = start + 1; i < x.size(); ++i) {
         StringView& xi = x[i];
         if (!xi.assigned()) {
@@ -89,7 +89,7 @@ namespace Gecode { namespace String { namespace Branch {
     forceinline ExecStatus
     LenBlock_Min_LLLM::commit(Space& home, const Choice& c, unsigned a) {
       const PosLevVal& p = static_cast<const PosLevVal&>(c);
-//      std::cerr << '\n'; this->print(home, c, a, std::cerr); std::cerr << '\n';
+//      this->print(home, c, a, std::cerr); std::cerr<<'\n';
       GECODE_ME_CHECK(
         StringBrancher::commit(home, x[p.pos], p.lev, p.val, Blc::LEFTMOST, a)
       );

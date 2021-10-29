@@ -64,10 +64,10 @@ namespace Gecode { namespace String {
   /// Numerical limits for string variables
   namespace Limits {
     /// Upper bound on the string length. It has to be in \f$[1, 2^31)\f$, otherwise the behaviour is undefined.
-    const int MAX_STRING_LENGTH = 2147483647;
+    const int MAX_STRING_LENGTH = 65535;
     /// Upper bound on the alphabet size. It has to be in \f$[1, 2^31]\f$, otherwise the behaviour is undefined.
-    /// The alphabet of each string variable is \f$\{0, 1, \dots, MAX\_ALPHABET\_SIZE\}\f$
-    const int MAX_ALPHABET_SIZE = 65536;
+    /// The alphabet of each string variable is \f$\{0, 1, \dots, MAX\_ALPHABET\_SIZE-1\}\f$
+    const int MAX_ALPHABET_SIZE = 255;
     /// Check whether \f$ n \in [0, MAX\_STRING\_LENGTH]\f$, otherwise throw overflow exception with location \a l
     void check_length(int n, const char* l);
     /// Check whether \f$ [n,m] \subseteq [0, MAX\_STRING\_LENGTH]\f$. The following exceptions might be thrown:

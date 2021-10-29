@@ -112,8 +112,8 @@ namespace Gecode { namespace String { namespace Int {
         if (!x0[0].isUniverse()) {
           Block by;
           by.update(home, x0[0]);
-          by.updateCard(home, x0.min_length()*l, 
-                              l == 0 ? MAX_STRING_LENGTH : x0.max_length()*u );
+          by.updateCard(home, x0.min_length()*l, l == 0 ? MAX_STRING_LENGTH : 
+                                 std::min(MAX_STRING_LENGTH,x0.max_length()*u));
 //          std::cerr << "by: " << by << "\n";
           if (x2.assigned()) {
             if (!check_equate_x(x2, ConstDashedView(by, 1)))

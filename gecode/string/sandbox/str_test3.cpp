@@ -157,8 +157,9 @@ public:
     );
     ConstStringView vz(*this, &w[0], w.size());
     Block c[2];
+    int A = MAX_ALPHABET_SIZE-2;
     c[0].update(*this, Block(*this, CharSet(*this), 3, 31));
-    c[1].update(*this, Block(*this, CharSet(*this, 0, 1000), 2, 50));
+    c[1].update(*this, Block(*this, CharSet(*this, 0, A), 2, 50));
     d.update(*this, DashedString(*this, c, 2));
     StringVar t(*this, d);
     std::cerr << "t = " << t << "\n";

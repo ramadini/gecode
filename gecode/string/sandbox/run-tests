@@ -108,8 +108,8 @@ do
 #      X=$X.fzn
 #      mzn2fzn-dashed $m -o $X
 #      gdb --args fzn-dashed $X
-#      rm $X
-#      exit 1
+      rm $X
+      exit 1
     fi
   fi
 done &&

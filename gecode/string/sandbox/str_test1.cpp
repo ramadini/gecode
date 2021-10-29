@@ -403,13 +403,14 @@ public:
   
   void test11() {
     cerr << "\n*** Test 11 ***" << endl;
+    int A = MAX_ALPHABET_SIZE-1;
     Block bv[3];
     bv[0].update(*this, Block('z'));
     bv[1].update(*this, Block('b'));
-    bv[2].update(*this, Block(*this, CharSet(*this, 0, 1000), 0, 9));
+    bv[2].update(*this, Block(*this, CharSet(*this, 0, A), 0, 9));
     StringVar x(*this, DashedString(*this, bv, 3));
     StringView vx(x);
-    bv[0].update(*this, Block(*this, CharSet(*this, 0, 1000), 0, 10));
+    bv[0].update(*this, Block(*this, CharSet(*this, 0, A), 0, 10));
     bv[1].update(*this, Block(*this, CharSet(*this,IntSet{'a','c','z'}), 1, 1));
     bv[2].update(*this, Block(*this, CharSet(*this, 'a', 'c'), 0, 10));
     StringVar y(*this, DashedString(*this, bv, 3));
@@ -425,6 +426,7 @@ public:
   
   void test12() {
     cerr << "\n*** Test 12 ***" << endl;
+    int A = MAX_ALPHABET_SIZE-1;
     string w1 = "+C<*@?OB+>9MW?,2U','/YBRO%ZAFAZ;+*"; // |w1| = 34
     string w2 = "=UOL1%!'Z7*I "; // |w2| = 13
     int n1 = w1.size(), n2 = w2.size();
@@ -436,7 +438,7 @@ public:
     StringVar x(*this, DashedString(*this, bx, n1+n2));
     StringView vx(x);
     Block by[2];
-    by[0].update(*this, Block(*this, CharSet(*this, 0, 1000), 1, 49));
+    by[0].update(*this, Block(*this, CharSet(*this, 0, A), 1, 49));
     by[1].update(*this, Block(*this, CharSet(*this, ' '), 0, 48));
     StringVar y(*this, DashedString(*this, by, 2));
     StringView vy(y);

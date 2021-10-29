@@ -66,8 +66,10 @@ namespace Gecode { namespace String { namespace Rel {
         else
           return ES_FAILED;
       }
-      if (x0.equals(x1))
+      if (x0.equals(x1)) {
+//        std::cerr << "\nEq::propagated " << x0 << "  vs  " << x1 << "\n";
         return ES_FIX;
+      }
       ModEvent me0;
       me0 = x0.equate(home, x1);
       GECODE_ME_CHECK(me0);
