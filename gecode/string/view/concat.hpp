@@ -278,12 +278,15 @@ namespace Gecode { namespace String {
   
   forceinline int
   ConcatView::lb_sum() const {
+    assert (x0.lb_sum() + x1.lb_sum() < MAX_STRING_LENGTH);
     return ubounded_sum(x0.lb_sum(), x1.lb_sum());
   }
   
   forceinline long
   ConcatView::ub_sum() const {
-    return ubounded_sum(x0.ub_sum(), x1.lb_sum());
+    long s = x0.ub_sum() + x1.ub_sum();
+    assert (s >= x0.ub_sum() && s >= x1.ub_sum());
+    return s;
   }
   
   forceinline ModEvent
@@ -417,7 +420,7 @@ namespace Gecode { namespace String {
       x1.mand_region(home, x, idx, p-pivot, q-pivot);
   }
   
-  forceinline int
+  forceinline long
   ConcatView::max_len_opt(const Block& bx, const Position& esp, 
                                            const Position& lep, int l1) const {
     if (equiv(esp,lep))
@@ -427,9 +430,11 @@ namespace Gecode { namespace String {
       return x0.max_len_opt(bx, esp, lep, l1);
     else if (esp.idx >= pivot)
       return x1.max_len_opt(bx, esp-pivot, lep-pivot, l1);
-    else
-      return ubounded_sum(x0.max_len_opt(bx, esp, Position(pivot,0), l1),
-                          x1.max_len_opt(bx, Position(0,0), lep-pivot, l1));
+    else {
+      int s0 = x0.max_len_opt(bx, esp, Position(pivot,0), l1),
+          s1 = x1.max_len_opt(bx, Position(0,0), lep-pivot, l1);
+      return long(s0) + s1;
+    }
   }
   
   forceinline void

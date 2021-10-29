@@ -189,30 +189,22 @@ namespace Gecode { namespace String {
   
   forceinline bool
   StringVarImp::contains(const StringVarImp& y) const {
-    if (min_len > y.min_len || max_len < y.max_len)
-      return false;
-    return ds.contains(y.ds);
+    return min_len <= y.min_len && max_len >= y.max_len && ds.contains(y.ds);
   }
   
   forceinline bool
   StringVarImp::equals(const StringVarImp& y) const {
-    if (min_len != y.min_len || max_len != y.max_len)
-      return false;
-    return ds.equals(y.ds);
+    return min_len == y.min_len && max_len == y.max_len && ds.equals(y.ds);
   }
   
   forceinline bool
   StringVarImp::equals_rev(const StringVarImp& y) const {
-    if (min_len != y.min_len || max_len != y.max_len)
-      return false;
-    return ds.equals_rev(y.ds);
+    return min_len == y.min_len && max_len == y.max_len && ds.equals_rev(y.ds);
   }
   
   forceinline bool
   StringVarImp::contains_rev(const StringVarImp& y) const {
-     if (min_len > y.min_len || max_len < y.max_len)
-      return false;
-    return ds.contains_rev(y.ds);
+    return min_len <= y.min_len && max_len >= y.max_len && ds.contains_rev(y.ds);
   }
   
   forceinline ModEvent

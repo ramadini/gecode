@@ -422,8 +422,8 @@ namespace Gecode { namespace String {
     int min_len_mand(const Block& bx, const Position& lsp, 
                                       const Position& eep) const;
     /// TODO:
-    int max_len_opt(const Block& bx, const Position& esp, 
-                                     const Position& lep, int l1) const;
+    long max_len_opt(const Block& bx, const Position& esp, 
+                                      const Position& lep, int l1) const;
     /// TODO:                             
     template <class T> void
     expandBlock(Space& home, const Block& bx, T& x) const;

@@ -103,6 +103,7 @@ namespace Gecode { namespace String {
     Block* newBlocks = nullptr;
     int* U = nullptr;
     int newSize = 0, uSize = 0;
+    int MIL = x.min_length(), MAL = x.max_length(), LBS = x.lb_sum(), UBS = x.ub_sum(); double DIM = x.logdim();
     for (int i = 0; i < nx; ++i) {
       if (x[i].isFixed())
         continue;
@@ -113,7 +114,7 @@ namespace Gecode { namespace String {
 //      std::cerr << "l'=" << l1 << "\n";
       if (u < l1)
         return false;
-      int u1 = y.max_len_opt(x_i, esp, lep, l1);
+      long u1 = y.max_len_opt(x_i, esp, lep, l1);
 //      std::cerr << "u'=" << u1 << "\n";
       if (l > u1)
         return false;
@@ -127,12 +128,6 @@ namespace Gecode { namespace String {
           continue;
         }
         int m = x_i.baseSize();
-        if (nx == 1 && l <= l1 && y.logdim() < x_i.logdim()) {
-          // FIXME: x is a single block, so we can expand it into |y| blocks.
-          y.expandBlock(home, x_i, x);
-          changed |= l < l1 || u > u1 || m > x_i.baseSize();
-          return true;
-        }        
         y.crushBase(home, x, i, esp, lep);
         changed |= l < l1 || u > u1 || m > x_i.baseSize();
         if (l1 == 0 || x[i].baseSize() == 1) {
@@ -176,7 +171,7 @@ namespace Gecode { namespace String {
           newBlocks[newSize++].update(home, Block(vp[i], vp[i+1]));
         newBlocks[newSize].update(home, x[i]);
         newBlocks[newSize++].updateCard(home, std::max(x_i.lb(),l1)-ns-np, 
-                                              std::min(x_i.ub(),u1)-ns-np);
+                                              std::min(long(x_i.ub()),u1)-ns-np);
         int zs = vs.size();
         for (int i = zs-1; i > 0; i -= 2)
           newBlocks[newSize++].update(home, Block(vs[i-1], vs[i]));
@@ -212,6 +207,8 @@ namespace Gecode { namespace String {
       if (eep != lep)
         y.opt_region(home, xx_i, mreg[n-1], eep, lep, l1);
       DashedString d(home, mreg, n);
+      if (d.ub_sum() > u1)
+        d.max_length(home, u1);
       r1.free();
 //      std::cerr << "d = " << d << ' ' << n << "\n";
       n = d.size();
@@ -237,7 +234,7 @@ namespace Gecode { namespace String {
       U[uSize++] = n;
       newSize += n;
     }
-//    std::cerr << "newSize: " << newSize << ", uSize: " << uSize << ", changed: " << changed << "\n";
+//    std::cerr << "newSize: " << newSize << ", uSize: " << uSize << ", changed: " << changed << "\n";    
     if (newSize > 0)
       x.resize(home, newBlocks, newSize, U, uSize);
     else if (changed)
@@ -245,7 +242,16 @@ namespace Gecode { namespace String {
     else
       // No modifications.
       nBlocks = -1;
-//    std::cerr << "x: " << x << "\n";
+    if (MIL > x.min_length() || MAL < x.max_length() || LBS > x.lb_sum() || UBS < x.ub_sum() || DIM < x.logdim()) {
+      std::cerr << "Wrong refine: " << x << "\n";
+      std::cerr << "MIL > x.min_length(): " << MIL << " -> " << x.min_length() << '\n';
+      std::cerr << "MAL < x.max_length(): " << MAL << " -> " << x.max_length()  << '\n';
+      std::cerr << "LBS > x.lb_sum(): " << LBS << " -> " << x.lb_sum() << '\n';
+      std::cerr << "UBS < x.ub_sum(): " << UBS << " -> " << x.ub_sum() << '\n';
+      std::cerr << "DIM < x.logdim(): " << DIM << " -> " << x.logdim() << '\n';
+      GECODE_NEVER;
+    };
+//    std::cerr << "After refine: " << x << "\n";
     return true;
   }
     
