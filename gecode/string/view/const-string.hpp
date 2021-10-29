@@ -454,13 +454,6 @@ namespace Gecode { namespace String {
     if (!bnew.isNull())
       bnew.updateCard(home, 0, ubounded_sum(u, std::min(q_o, k+1)));
   }
-  
-  template <class T>
-  forceinline void
-  ConstStringView::expandBlock(Space& home, const Block& bx, T& x) const {
-    x.gets(home, *this);
-    assert (bx.ub() >= size());
-  }
 
   template <class ViewX>
   forceinline void

@@ -678,26 +678,6 @@ namespace Gecode { namespace String {
       bnew.updateCard(home, 0, 
         std::min(bx.ub(), ubounded_sum(u, std::min(q_o, ubounded_sum(bq.lb(), k)))));
   }
-  
-  template <class T>
-  forceinline void
-  StringView::expandBlock(Space& home, const Block& bx, T& x) const {
-    assert (!bx.isFixed());
-    Set::GLBndSet s;
-    Set::BndSetRanges i(bx.ranges());
-    s.includeI(home, i);
-    bool norm = false;
-    int u = bx.ub();
-    x.gets(home, *this);
-    if (u < max_length())
-      x.varimp()->max_length(home, u);    
-    for (int i = 0; i < x.size(); i++) {
-      x.baseIntersectAt(home, i, s);
-      norm |= x[i].isNull() || (i > 0 && x[i].baseEquals(x[i-1]));
-    }
-    if (norm)
-      x.normalize(home);
-  }
 
   template <class ViewX>
   forceinline void

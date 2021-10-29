@@ -103,7 +103,6 @@ namespace Gecode { namespace String {
     Block* newBlocks = nullptr;
     int* U = nullptr;
     int newSize = 0, uSize = 0;
-    int MIL = x.min_length(), MAL = x.max_length(), LBS = x.lb_sum(), UBS = x.ub_sum(); double DIM = x.logdim();
     for (int i = 0; i < nx; ++i) {
       if (x[i].isFixed())
         continue;
@@ -242,16 +241,8 @@ namespace Gecode { namespace String {
     else
       // No modifications.
       nBlocks = -1;
-    if (MIL > x.min_length() || MAL < x.max_length() || LBS > x.lb_sum() || UBS < x.ub_sum() || DIM < x.logdim()) {
-      std::cerr << "Wrong refine: " << x << "\n";
-      std::cerr << "MIL > x.min_length(): " << MIL << " -> " << x.min_length() << '\n';
-      std::cerr << "MAL < x.max_length(): " << MAL << " -> " << x.max_length()  << '\n';
-      std::cerr << "LBS > x.lb_sum(): " << LBS << " -> " << x.lb_sum() << '\n';
-      std::cerr << "UBS < x.ub_sum(): " << UBS << " -> " << x.ub_sum() << '\n';
-      std::cerr << "DIM < x.logdim(): " << DIM << " -> " << x.logdim() << '\n';
-      GECODE_NEVER;
-    };
 //    std::cerr << "After refine: " << x << "\n";
+    assert (x.isOK());
     return true;
   }
     

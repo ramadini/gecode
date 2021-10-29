@@ -167,9 +167,6 @@ namespace Gecode { namespace String {
     /// TODO:
     int max_len_opt(const Block& bx, const Position& esp, 
                                      const Position& lep, int l1) const;
-    /// TODO:                             
-    template <class T> void 
-    expandBlock(Space& home, const Block& bx, T& x) const;
     /// TODO:
     template <class ViewX> void
     crushBase(Space& home, ViewX& x, int idx, const Position& p,
@@ -287,10 +284,6 @@ namespace Gecode { namespace String {
     /// TODO:
     int max_len_opt(const Block& bx, const Position& esp, 
                                      const Position& lep, int l1) const;
-    /// TODO:                             
-    template <class T> void
-    expandBlock(Space& home, const Block& bx, T& x) const;
-    
     /// TODO:
     template <class ViewX> void
     crushBase(Space& home, ViewX& x, int idx, const Position& p,
@@ -424,9 +417,6 @@ namespace Gecode { namespace String {
     /// TODO:
     long max_len_opt(const Block& bx, const Position& esp, 
                                       const Position& lep, int l1) const;
-    /// TODO:                             
-    template <class T> void
-    expandBlock(Space& home, const Block& bx, T& x) const;
     /// TODO:
     template <class ViewX> void
     crushBase(Space& home, ViewX& x, int idx, const Position& p,
@@ -526,11 +516,7 @@ namespace Gecode { namespace String {
                                       const Position& eep) const;
     /// TODO:
     int max_len_opt(const Block& bx, const Position& esp, 
-                                     const Position& lep, int l1) const;
-    /// TODO:                             
-    template <class T> void
-    expandBlock(Space& home, const Block& bx, T& x) const;
-    
+                                     const Position& lep, int l1) const;    
     /// TODO:
     template <class ViewX> void
     crushBase(Space& home, ViewX& x, int idx, const Position& p,
@@ -617,9 +603,6 @@ namespace Gecode { namespace String {
     /// TODO:
     int max_len_opt(const Block& bx, const Position& esp, 
                                      const Position& lep, int l1) const;
-    /// TODO:                             
-    template <class T> void
-    expandBlock(Space& home, const Block& bx, T& x) const;
     
     /// TODO:
     template <class ViewX> void
