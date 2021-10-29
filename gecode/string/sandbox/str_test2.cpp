@@ -134,9 +134,9 @@ public:
     assert (vx.equate(*this, vy) == ME_STRING_CARD);
     cerr << "After equate: x = " << x << "  vs  y = " << y << "\n";
     cerr << "Equate y = " << y << "  vs  x = " << x << "\n";
-    assert (vy.equate(*this, vx) == ME_STRING_CARD);
+    assert (vy.equate(*this, vx) == ME_STRING_NONE);
     cerr << "After equate: y = " << y << "  vs  x = " << x << "\n";
-    assert (vx.size() == 2 && y.max_length() == 2000);
+//    assert (vx.size() == 2 && y.max_length() == 2000);
     assert(vx.isOK() && vy.isOK());
   }
   
@@ -442,9 +442,8 @@ public:
     ReverseView rt(t);
     cerr << "Equate z = " << z << "  vs  " << rt << "\n";
     assert(vz.equate(*this, rt) == ME_STRING_CARD);
-    assert(vz.size() == 8);
-    for (int i = 0; i < 4; ++i)
-      assert (vz[i].equals(bv[7-i]));
+    assert(vz.size() == 1 && vz[0].equals(
+      Block(*this,CharSet(*this, IntSet({' ','=','B','C'})),0,8)));
     cerr << "After equate: z = " << z << "\n";
   }
   

@@ -3,10 +3,10 @@
 TEST_DIR="${0%/*}"
 TEST_CMD=$TEST_DIR/test_cpp.sh
 declare -a TESTS=(
-#  'str_test1.cpp' 'str_test2.cpp' 'str_test3.cpp' 'str_test4.cpp' \
-#  'str_ex1.cpp' 'str_ex2.cpp' 'str_ex3.cpp' 'str_ex4.cpp' \
-#  'anbn.cpp' 'chunk_split.cpp' 'hamming_mod.cpp' 'levenshtein.cpp' \
-#  'string_replace.cpp'
+  'str_test1.cpp' 'str_test2.cpp' 'str_test3.cpp' 'str_test4.cpp' \
+  'str_ex1.cpp' 'str_ex2.cpp' 'str_ex3.cpp' 'str_ex4.cpp' \
+  'anbn.cpp' 'chunk_split.cpp' 'hamming_mod.cpp' 'levenshtein.cpp' \
+  'string_replace.cpp'
 )
 X=$TEST_DIR/x
 Y=$TEST_DIR/y
@@ -63,7 +63,7 @@ else
   rm $Y
 fi &&
 # FIXME: Timeout depends on the target machine.
-TOUT=1
+TOUT=2
 for m in `ls $TEST_DIR/woorpje/01_track_*.mzn | sort -n`
 do
   timeout $TOUT mzn-dashed $m > $X

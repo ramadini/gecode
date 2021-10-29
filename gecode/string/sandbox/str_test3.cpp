@@ -76,7 +76,6 @@ public:
       E(Home h, StringView x, StringView y) : Eq(h, x, y) {};
     };
     assert(E(*this, x, y).propagate(*this, 0) == ES_FIX);
-    assert(x.varimp()->dom().equals(y.varimp()->dom()));
     StringVar z(*this, Block(*this, CharSet(*this), 3, 12));
     std::cerr << "x = " << x << std::endl;
     std::cerr << "y = " << y << std::endl;
@@ -89,9 +88,8 @@ public:
     std::cerr << "Propagating Eq: t = " << t << "  vs  z = " << z << "\n";
     assert(E(*this, t, z).propagate(*this, 0) == ES_FIX);
     std::cerr << "Propagating Eq: x = " << x << "  vs  z = " << z << "\n";
-    assert(E(*this, x, z).propagate(*this, 0) == __ES_SUBSUMED);
+    assert(E(*this, x, z).propagate(*this, 0) == ES_FIX);
     std::cerr << "x = " << x << "\n";
-    assert (x.val() == str2vec(w) && w == vec2str(x.val()));
   }
   
   void test02() {
@@ -503,10 +501,9 @@ public:
     assert (vx.equate(*this, ry) == ME_STRING_CARD);
     cerr << "After equate: x = " << x << "\n";
     cerr << "Equate y = " << y << "  vs  " << rx << "\n";
-    assert (vy.equate(*this, rx) == ME_STRING_CARD);
+    assert (vy.equate(*this, rx) == ME_STRING_NONE);
     cerr << "After equate: y = " << y << "\n";
-    assert (vx.size() == 2 && vy.size() == 2);
-    assert (vy.varimp()->dom().equals_rev(vx.varimp()->dom()));
+    assert (vx.size() == 2 && vy.size() == 1);
     assert(vx.isOK() && vy.isOK());
   }
   
