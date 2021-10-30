@@ -146,7 +146,6 @@ namespace Gecode { namespace String {
           vs = y.fixed_suff(lsp, eep, ns);
         np = np < 0 ? -np : np;
         ns = ns < 0 ? -ns : ns;
-//        std::cerr << "Pref: " << np << ' ' << vec2str(vp) << ", Suff: " << ns << ' ' << vec2str(vs) << '\n';
         if (np + ns > l1)
           return false;
         assert (vp.size() % 2 == 0 && vs.size() % 2 == 0 && np + ns <= u1);

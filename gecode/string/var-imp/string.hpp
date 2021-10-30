@@ -357,8 +357,8 @@ namespace Gecode { namespace String {
   template<class Char, class Traits>
   forceinline  std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const StringVarImp& x) {
-    os << "Var. " << &x << ": " << x.dom() << " |" << x.min_length() << ".." << x.max_length() << "|";
-    return os;
+    return os << "Var. " << &x << ": " << x.dom() << " |"
+                         << x.min_length() << ".." << x.max_length() << "|";
   };
    
 }}

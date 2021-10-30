@@ -67,7 +67,7 @@ namespace Gecode { namespace String { namespace Rel {
           return ES_FAILED;
       }
       if (x0.equals(x1)) {
-//        std::cerr << "\nEq::propagated " << x0 << "  vs  " << x1 << "\n";
+//        std::cerr << x0 << "  and  " << x1 << " equals!\n";
         return ES_FIX;
       }
       ModEvent me0;

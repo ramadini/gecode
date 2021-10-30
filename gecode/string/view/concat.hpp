@@ -230,7 +230,7 @@ namespace Gecode { namespace String {
     return ME_STRING_NONE;
   }
 
-  forceinline int 
+  forceinline int
   ConcatView::size() const {
     return ubounded_sum(x0.size(), x1.size());
   }
@@ -485,7 +485,7 @@ namespace Gecode { namespace String {
       return x1.fixed_pref(p-pivot,q-pivot,np);
     else {
       std::vector<int> v = x0.fixed_pref(p,Position(pivot,0),np);
-      if (np < 0)
+      if (np <= 0)
         return v;
       const Block& b = x0[x0.size()-1];
       //FIXME: This check is sound but not complete. We must check that the end
@@ -508,7 +508,7 @@ namespace Gecode { namespace String {
       return x1.fixed_suff(p-pivot,q-pivot,ns);
     else {
       std::vector<int> v = x1.fixed_suff(Position(0,0),q-pivot,ns);
-      if (ns < 0)
+      if (ns <= 0)
         return v;
       const Block& b = x1[0];
       //FIXME: This check is sound but not complete. We must check that the

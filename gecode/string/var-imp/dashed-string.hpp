@@ -1526,10 +1526,29 @@ namespace Gecode { namespace String {
       os << "\"";
     }
     else {
-      int n = d.size();
-      for (int i = 0; i < n - 1; ++i)
-        os << d[i] << " + ";
-      os << d[n-1];
+      int n = d.size()-1;
+      for (int i = 0; i < n; ++i) {
+        if (d[i].isFixed()) {
+          if (i == 0 || !d[i-1].isFixed())
+            os << "\"";
+          os << vec2str(d[i].val());
+        }
+        else {
+          if (i > 0 && d[i-1].isFixed())
+            os << "\" + ";
+          os << d[i] << " + ";
+        }
+      }
+      if (d[n].isFixed()) {
+        if (!d[n-1].isFixed())
+          os << "\"";
+        os << vec2str(d[n].val()) << "\"";
+      }
+      else {
+        if (n > 0 && d[n-1].isFixed())
+          os << "\" + ";
+        os << d[n];
+      }
     }
     return os << " <" << d.lbs << ".." << d.ubs << ">";
   }
