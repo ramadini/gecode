@@ -107,7 +107,7 @@ namespace Gecode { namespace String {
       if (x[i].isFixed())
         continue;
       Position& esp = m[i].ESP, eep = m[i].EEP, lsp = m[i].LSP, lep = m[i].LEP;
-//      std::cerr<<"Ref. x[" << i << "] = " << x[i] <<"\tESP: "<<esp<<"\tLSP: "<<lsp <<"\tEEP: "<<eep<<"\tLEP: "<<lep<< "\n";      
+//      std::cerr<<"Ref. x[" << i << "] = " << x[i] <<"\tESP: "<<esp<<"\tLSP: "<<lsp <<"\tEEP: "<<eep<<"\tLEP: "<<lep<< "\n";
       const Block& x_i = x[i];
       int l = x_i.lb(), u = x_i.ub(), l1 = min_len_mand(y, x_i, lsp, eep);
 //      std::cerr << "l'=" << l1 << "\n";
@@ -159,6 +159,10 @@ namespace Gecode { namespace String {
 //          std::cerr << "1) x[" << i << "] ref. into " << x[i] << "\n";
           continue;
         }
+//        std::cerr<<"x: " << x << "\ny: "<< y << "\ni: "<<i<<", x[i]: "<<x[i]
+//        <<"\nESP: "<<esp<<"\tLSP: "<<lsp <<"\tEEP: "<<eep<<"\tLEP: "<<lep
+//        << "\nPref: " << vec2str(vp) << " ; Suff: " << vec2str(vs)
+//        << "\nnp: "<<np<<" ; ns: "<<ns<<"\n";
         assert (y.prec(lsp, eep) && (esp == lsp || eep == lep));
         if (U == nullptr)
           U = r.alloc<int>(ux);
@@ -168,7 +172,7 @@ namespace Gecode { namespace String {
         for (int i = 0; i < zp-1; i += 2)
           newBlocks[newSize++].update(home, Block(vp[i], vp[i+1]));
         newBlocks[newSize].update(home, x[i]);
-        newBlocks[newSize++].updateCard(home, std::max(x_i.lb(),l1)-ns-np, 
+        newBlocks[newSize++].updateCard(home, std::max(x_i.lb(),l1)-ns-np,
                                               std::min(long(x_i.ub()),u1)-ns-np);
         int zs = vs.size();
         for (int i = zs-1; i > 0; i -= 2)

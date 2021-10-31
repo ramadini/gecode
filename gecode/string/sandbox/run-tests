@@ -64,7 +64,7 @@ else
 fi &&
 # FIXME: Timeout depends on the target machine.
 TOUT=2
-for m in `ls $TEST_DIR/woorpje/01_track_*.mzn | sort -n`
+for m in `ls $TEST_DIR/woorpje/*.mzn | sort -n`
 do
   timeout $TOUT mzn-dashed $m > $X
   ret=$?

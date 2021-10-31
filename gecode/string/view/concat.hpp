@@ -494,7 +494,7 @@ namespace Gecode { namespace String {
         return v;
       int ns;
       std::vector<int> w = x1.fixed_pref(Position(0,0),q-pivot,ns);
-      np += ns;
+      np = ns < 0 ? ns-np : ns+np;
       v.insert(v.end(), w.begin(), w.end());
       return v;
     }
@@ -517,7 +517,7 @@ namespace Gecode { namespace String {
         return v;
       int np;
       std::vector<int> w = x0.fixed_suff(p,Position(pivot,0),np);
-      ns += np;
+      ns = np < 0 ? np-ns : np+ns;
       v.insert(v.end(), w.begin(), w.end());
       return v;
     }
