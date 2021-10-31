@@ -2489,7 +2489,6 @@ namespace Gecode { namespace FlatZinc {
 //    	  registry().add("str_replace_all", &p_str_replace_all);
 //    	  registry().add("str_replace_last", &p_str_replace_last);
     	  registry().add("str_concat", &p_str_concat);
-    	  registry().add("str_concat_c", &p_str_concat);
 //    	  registry().add("str_gconcat", &p_str_gconcat);
     	  registry().add("str_eq_reif", &p_str_eq_reif);
     	  registry().add("str_ne_reif", &p_str_ne_reif);

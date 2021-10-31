@@ -9,17 +9,6 @@ predicate str_dom(var string: x, array[int] of string: D) =
 let {
   var 1..length(D): i;
 } in array_string_element(i, D, x);
-  
-%function var string:
-%str_concat(var string: x, var string: y) ::promise_total = 
-%let {
-%  var string: z = str_concat_c(x, y);
-%  constraint str_len(z) = str_len(x) + str_len(y);
-%} in z;
-%predicate
-%str_concat(var string: x, var string: y, var string: z) ::promise_total = 
-%  z = str_concat(x,y);
-%function var string: str_concat_c(var string: x, var string: y) ::promise_total;
 
 function var int: 
 str_find(var string: x, var string: y) ::promise_total =
