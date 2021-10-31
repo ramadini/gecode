@@ -10,16 +10,16 @@ let {
   var 1..length(D): i;
 } in array_string_element(i, D, x);
   
-function var string:
-str_concat(var string: x, var string: y) ::promise_total = 
-let {
-  var string: z = str_concat_c(x, y);
-  constraint str_len(z) = str_len(x) + str_len(y);
-} in z;
-predicate
-str_concat(var string: x, var string: y, var string: z) ::promise_total = 
-  z = str_concat(x,y);
-function var string: str_concat_c(var string: x, var string: y) ::promise_total;
+%function var string:
+%str_concat(var string: x, var string: y) ::promise_total = 
+%let {
+%  var string: z = str_concat_c(x, y);
+%  constraint str_len(z) = str_len(x) + str_len(y);
+%} in z;
+%predicate
+%str_concat(var string: x, var string: y, var string: z) ::promise_total = 
+%  z = str_concat(x,y);
+%function var string: str_concat_c(var string: x, var string: y) ::promise_total;
 
 function var int: 
 str_find(var string: x, var string: y) ::promise_total =
@@ -166,13 +166,14 @@ function var int: str2nat(var string: x);
 annotation none;
 annotation blockdim_min;
 annotation lenblock_min;
+annotation dimdeg_lenblock_min;
 
 annotation llll;
 annotation lllm;
 annotation lslm;
 
-
 annotation string_search(
   array[int] of var string: vars, ann: hvar, ann: hval, ann: comp
 );
 annotation string_default_search(array[int] of var string: vars);
+

@@ -57,24 +57,56 @@ namespace Gecode {
   }
   
   void
+  dimdeg_lenblock_min_lllm(Home home, const StringVarArgs& x) {
+    if (home.failed())
+      return;
+    ViewArray<String::StringView> y(home, x);
+    String::Branch::DimDeg_LenBlock_Min_LLLM::post(home, y);
+  }
+  void
+  dimdeg_lenblock_min_lllm(Home home, const StringVarArray& x) {
+    if (home.failed())
+      return;
+    StringVarArgs y(x.size());
+    for (int i = 0; i < x.size(); ++i)
+      y[i] = x[i];
+    ViewArray<String::StringView> z(home, y);
+    String::Branch::DimDeg_LenBlock_Min_LLLM::post(home, z);
+  }
+  
+  void
   branch(Home home, const StringVarArgs& x,
                           StringVarBranch vars, StringValBranch vals) {
     switch (vars.select()) {
       case StringVarBranch::Select::STR_NONE:
-        if (vals.select() == StringValBranch::Select::STR_LLLL)
+        if (vals.select() == StringValBranch::Select::STR_LLLL) {
           none_llll(home, x);
-        return;
+          return;
+        }
+        break;
       case StringVarBranch::Select::STR_LENBLOCK_MIN:
-        if (vals.select() == StringValBranch::Select::STR_LLLM)
+        if (vals.select() == StringValBranch::Select::STR_LLLM) {
           lenblock_min_lllm(home, x);
-        else if (vals.select() == StringValBranch::Select::STR_LSLM)
+          return;
+        }
+        break;
+      case StringVarBranch::Select::STR_BLOCKDIM_MIN:
+        if (vals.select() == StringValBranch::Select::STR_LSLM) {
           block_mindim_lslm(home, x);
-        return;
+          return;
+        }
+        break;
+      case StringVarBranch::Select::STR_DIMDEG_LENBLOCK_MIN:
+        if (vals.select() == StringValBranch::Select::STR_LLLM) {
+          dimdeg_lenblock_min_lllm(home, x);
+          return;
+        }
+        break;
       default:
         GECODE_NEVER;
     }
-    std::cerr << "Undefined search heuristics. Using lenblock_min_lllm.";
-    lenblock_min_lllm(home, x);
+    std::cerr << "Undefined search heuristics. Using dimdeg_lenblock_min_lllm.";
+    dimdeg_lenblock_min_lllm(home, x);
   };
 
 }

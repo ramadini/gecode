@@ -181,4 +181,29 @@ namespace Gecode { namespace String { namespace Branch {
 }}}
 #include <gecode/string/branch/lenblock_min_lllm.hpp>
 
+namespace Gecode { namespace String { namespace Branch {
+
+  struct DimDeg_LenBlock_Min_LLLM: public StringBrancher {
+
+    DimDeg_LenBlock_Min_LLLM(Home home, ViewArray<String::StringView>& x0);
+
+    DimDeg_LenBlock_Min_LLLM(Home home, DimDeg_LenBlock_Min_LLLM& b);
+
+    Actor* copy(Space& home);
+
+    static void post(Home home, ViewArray<String::StringView>& x);
+
+    Choice* choice(Space&);
+
+    ExecStatus commit(Space& home, const Choice& c, unsigned a);
+    
+    static bool _FIRST;
+
+  };
+  
+  bool DimDeg_LenBlock_Min_LLLM::_FIRST = true;
+
+}}}
+#include <gecode/string/branch/dimdeg_lenblock_min_lllm.hpp>
+
 #endif

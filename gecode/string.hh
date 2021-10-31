@@ -530,7 +530,7 @@ namespace Gecode {
       STR_NONE = 0,     ///< First unassigned
       STR_LENBLOCK_MIN, ///< With smallest max(|x|)-min(|x|). Tie-breaking with size of leftmost unfixed block b, ub(b)-lb(b) and min(|x|)
       STR_BLOCKDIM_MIN, ///< With smallest block size. Tie-breaking with ub(b)-lb(b) and min(|x|)
-// TODO: Add heuristics
+      STR_DIMDEG_LENBLOCK_MIN, ///< With smallest ration log(dimension)/degree. Tie-breaking with lenblock_min
     };
   protected:
     /// Which variable to select
@@ -561,7 +561,6 @@ namespace Gecode {
       STR_LLLL, ///< Least length, leftmost block, least cardinality, least char in base
       STR_LLLM, ///< Least length, leftmost block, least cardinality, "must char" heuristics
       STR_LSLM, ///< Least length, smallest block, least cardinality, "must char" heuristics
-      // TODO: Add heuristics
     };
   protected:
     /// Which value to select
@@ -594,9 +593,15 @@ namespace Gecode {
   GECODE_STRING_EXPORT void
   block_mindim_lslm(Home home, const StringVarArgs& x);
   
+  GECODE_STRING_EXPORT void
+  dimdeg_lenblock_min_lllm(Home home, const StringVarArray& x);
+  GECODE_STRING_EXPORT void
+  dimdeg_lenblock_min_lllm(Home home, const StringVarArgs& x);
+  
   StringVarBranch STRING_VAR_NONE(void);
   StringVarBranch STRING_VAR_LENBLOCK_MIN(void);
   StringVarBranch STRING_VAR_BLOCK_MINDIM(void);
+  StringVarBranch STRING_VAR_DIMDEG_BLOCK_MINDIM(void);
 
   StringValBranch STRING_VAL_LLLL(void);
   StringValBranch STRING_VAL_LLLM(void);

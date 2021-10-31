@@ -722,12 +722,14 @@ namespace Gecode { namespace FlatZinc {
         return STRING_VAR_LENBLOCK_MIN();
       if (s->id == "block_mindim")
         return STRING_VAR_BLOCK_MINDIM();
+      if (s->id == "dimdeg_lenblock_min")
+        return STRING_VAR_DIMDEG_LENBLOCK_MIN();
     }
     std::cerr << "Warning, ignored search annotation: ";
     ann->print(std::cerr);
     std::cerr << std::endl;
-    std::cerr << "Using blockmin\n";
-    return STRING_VAR_LENBLOCK_MIN();
+    std::cerr << "Using dimdeg_lenblock_min\n";
+    return STRING_VAR_DIMDEG_LENBLOCK_MIN();
   }
   
   StringValBranch ann2tvalsel(AST::Node* ann) {
@@ -1183,7 +1185,7 @@ namespace Gecode { namespace FlatZinc {
     std::string def_float_rel_right = ">";
 #endif
 #ifdef GECODE_HAS_STRING_VARS
-    StringVarBranch def_string_varsel = STRING_VAR_LENBLOCK_MIN();
+    StringVarBranch def_string_varsel = STRING_VAR_DIMDEG_LENBLOCK_MIN();
     StringValBranch def_string_valsel = STRING_VAL_LLLM();
     std::string def_string_rel_left = "<=";
     std::string def_string_rel_right = ">";

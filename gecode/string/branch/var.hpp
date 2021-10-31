@@ -28,5 +28,10 @@ namespace Gecode {
     return StringVarBranch(StringVarBranch::STR_LENBLOCK_MIN);
   }
   
+  forceinline StringVarBranch
+  STRING_VAR_DIMDEG_LENBLOCK_MIN(void) { 
+    return StringVarBranch(StringVarBranch::STR_DIMDEG_LENBLOCK_MIN);
+  }
+  
 
 }
