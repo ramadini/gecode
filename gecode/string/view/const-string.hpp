@@ -509,8 +509,6 @@ namespace Gecode { namespace String {
   
   forceinline void
   ConstStringView::update(Space& home, ConstStringView& w) {
-    ConstView<StringView>::update(home, w);
-    // dispose old ranges
     assert (n == 0 && _val == NULL);
     n = w.n;
     _val = home.alloc<int>(n);

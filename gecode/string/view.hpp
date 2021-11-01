@@ -336,7 +336,7 @@ namespace Gecode { namespace String {
   /**
    * \brief Concat view
    */
-  class ConcatView : public VarImpView<StringVar> {
+  class ConcatView {
   protected:
     StringView& x0;
     StringView& x1;
@@ -469,7 +469,7 @@ namespace Gecode { namespace String {
   /**
    * \brief Reverse view
    */
-  class ReverseView : public VarImpView<StringVar> {
+  class ReverseView {
   protected:
     /// We never refine the blocks of x0.
     const StringView& x0;
@@ -553,12 +553,12 @@ namespace Gecode { namespace String {
   
 }}
 
-namespace Gecode { namespace String {  
-  
+namespace Gecode { namespace String {
+
   /**
    * \brief ConstDashed view
    */
-  class ConstDashedView : public ConstView<StringView> {
+  class ConstDashedView {
   // FIXME: Remove unnecessary methods from here, ReverseView and ConstStringView
   protected:
     /// We never refine the blocks
