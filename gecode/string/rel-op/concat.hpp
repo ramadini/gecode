@@ -9,7 +9,13 @@ namespace Gecode { namespace String { namespace RelOp {
       GECODE_ME_CHECK(x1.nullify(home));
     else if (x1.same(x2))
       GECODE_ME_CHECK(x0.nullify(home));
-    // FIXME: if x0.same(x1) then x2 = x0^2?
+    else if (x0.same(x1)) {
+      StringVar y(home);
+      StringView v(y);
+      v.gets(home, x0);
+      eq(home, x0, y);
+      (void) new (home) Concat(home, x0, v, x2);
+    }
     else
       (void) new (home) Concat(home, x0, x1, x2);
     return ES_OK;

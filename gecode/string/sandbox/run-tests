@@ -71,18 +71,17 @@ do
   if
     [[ `grep "\----------" $X` ]]
   then
-    echo "$m sat"
-#    m=`basename $m`
-#    res=`grep $m $TEST_DIR/pisa/pisa_check.txt | awk '{print $2}'`
-#    if
-#      [[ $res == "sat" ]]
-#    then
-#      echo "Solved $m!"
-#    else
-#      echo "Error! $m not sound."
-#      rm $X
-#      exit 1
-#    fi
+    cat $X | grep -v "\----------" > $Y.dzn
+    mzn-dashed $m $Y.dzn > $X
+    if
+      [[ `grep "\----------" $X` ]]
+    then
+      echo "$m sat"
+      rm $Y.dzn
+    else
+      echo "Error! $m incorrect"
+      exit 1
+    fi
   elif 
     [[ `grep "=====UNSATISFIABLE=====" $X` ]]
   then

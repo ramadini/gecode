@@ -611,14 +611,14 @@ namespace Gecode { namespace String {
   StringView::mand_region(Space& home, ViewX& x, int idx, 
                           const Position& p, const Position& q) const {
     // FIXME: When only block by is involved.
-    assert (p.idx == q.idx || (p.idx == q.idx-1 && q.off == 0));
-    const Block& by = (*this)[p.idx];
+    int q_i = q.off > 0 ? q.idx : q.idx-1;
+    const Block& by = (*this)[q_i];
     x.baseIntersectAt(home, idx, by);
     const Block& bx = x[idx];
     if (!bx.isNull()) {
-      int q_off = q.off > 0 ? q.off : (*this)[q.idx-1].ub();
-      x.lbAt(home, idx, std::max(bx.lb(), std::min(q_off, by.lb()) - p.off));
-      x.ubAt(home, idx, std::min(bx.ub(), q_off - p.off));
+      int p_o = p.off, q_o = q.off > 0 ? q.off : (*this)[q_i].ub();
+      x.lbAt(home, idx, std::max(bx.lb(), std::min(q_o, by.lb()) - p_o));
+      x.ubAt(home, idx, std::min(bx.ub(), q_o - p_o));
     }
   }
   
