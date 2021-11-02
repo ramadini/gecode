@@ -68,35 +68,34 @@ for m in `ls $TEST_DIR/woorpje/*.mzn | sort -n`
 do
   timeout $TOUT mzn-dashed $m > $X
   ret=$?
+  m=`basename $m`
   if
     [[ `grep "\----------" $X` ]]
   then
-    cat $X | grep -v "\----------" > $Y.dzn
-    mzn-dashed $m $Y.dzn > $X
+#    cat $X | grep -v "\----------" > $Y.dzn
+    res=`grep $m $TEST_DIR/woorpje/woorpje_res.csv | awk '{print $2}'`
     if
-      [[ `grep "\----------" $X` ]]
+      [[ $res == "SAT" ]]
     then
       echo "$m sat"
-      rm $Y.dzn
     else
-      echo "Error! $m incorrect"
+      echo "Error! $m incorrect."
+      rm $X
       exit 1
     fi
   elif 
     [[ `grep "=====UNSATISFIABLE=====" $X` ]]
   then
-    echo "$m unsat"
-#    m=`basename $m`
-#    res=`grep $m $TEST_DIR/pisa/pisa_check.txt | awk '{print $2}'`
-#    if
-#      [[ $res == "uns" ]]
-#    then
-#      echo "Solved $m!"
-#    else
-#      echo "Error! $m not sound."
-#      rm $X
-#      exit 1
-#    fi
+    res=`grep $m $TEST_DIR/woorpje/woorpje_res.csv | awk '{print $2}'`
+    if
+      [[ $res == "UNSAT" ]]
+    then
+      echo "$m unsat"
+    else
+      echo "Error! $m incorrect."
+      rm $X
+      exit 1
+    fi
   else
     if
       [[ $ret -eq 124 ]]
@@ -104,9 +103,6 @@ do
       echo "$m timeout"
     else
       echo "$m unknown"
-#      X=$X.fzn
-#      mzn2fzn-dashed $m -o $X
-#      gdb --args fzn-dashed $X
       rm $X
       exit 1
     fi

@@ -17,7 +17,7 @@ namespace Gecode { namespace String {
       std::reference_wrapper<const View> view_ref;
       std::reference_wrapper<const StringView> base_ref;
     };
-    /// The current position on the view, always normalized w.r.t. sv
+    /// The current position on the view, always normalized w.r.t. it
     Position pos;
     /// Check if the iterator position is in a consistent state;
     bool isOK(void) const;
@@ -50,7 +50,6 @@ namespace Gecode { namespace String {
     /// Check if the base of the current block is disjoint with singleton {c}
     bool disj(int c) const;
   };
-  
     
 }}
 
