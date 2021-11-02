@@ -155,7 +155,7 @@ public:
     bv[4].update(*this, Block(*this, CharSet(*this, 'a'), 3, 4));
     StringVar y(*this, DashedString(*this, bv, 5));
     StringView vy(y);
-    SweepIterator<SweepFwd,StringView> fwd_it0(vy, Position(0,1));
+    SweepFwdIterator<StringView> fwd_it0(vy, Position(0,1));
     StringView b(StringVar(*this, DashedString(*this, 
       Block(*this, CharSet(*this, 'a', 'b'), 3 ,4))));
     cerr << "Pushing forward " << b << " in " << y << " from " << *fwd_it0;
@@ -164,21 +164,21 @@ public:
     assert (p == Position(2,0) && *fwd_it0 == Position(4,2));
     
     b.updateAt(*this, 0, Block(*this, CharSet(*this, 'c', 'z'), 3 ,4));
-    SweepIterator<SweepFwd,StringView> fwd_it1 = vy.fwd_iterator();
+    SweepFwdIterator<StringView> fwd_it1 = vy.fwd_iterator();
     cerr << "Pushing forward " << b << " in " << y << " from " << *fwd_it1;
     p = b.push(0, fwd_it1);
     cerr << "\n...ESP = " << p << ", EEP = " << *fwd_it1 << endl;
     assert (p == *fwd_it1 && p == Position(y.varimp()->size(), 0));
 
     b.updateAt(*this, 0, Block(*this, CharSet(*this, 'c', 'd'), 1 ,2));
-    SweepIterator<SweepBwd,StringView> bwd_it0 = vy.bwd_iterator();
+    SweepBwdIterator<StringView> bwd_it0 = vy.bwd_iterator();
     cerr << "Pushing backward " << b << " in " << y << " from " << *bwd_it0;
     p = b.push(0, bwd_it0);
     cerr << "\n...LSP = " << *bwd_it0 << ", LEP = " << p << endl;
     assert (*bwd_it0 == Position(3,1) && p == Position(4,0));
     
     b.updateAt(*this, 0, Block('b',2));
-    SweepIterator<SweepBwd,StringView> bwd_it1(vy, Position(4,4));
+    SweepBwdIterator<StringView> bwd_it1(vy, Position(4,4));
     cerr << "Pushing backward " << b << " in " << y << " from " << *bwd_it1;
     p = b.push(0, bwd_it1);
     cerr << "\n...LSP = " << *bwd_it1 << ", LEP = " << p << endl;
@@ -196,7 +196,7 @@ public:
     bv[4].update(*this, Block(*this, CharSet(*this, 'a'), 3, 4));
     StringVar y(*this, DashedString(*this, bv, 5));
     StringView vy(y);
-    SweepIterator<SweepFwd,StringView> fwd_it0(vy, Position(0,1));
+    SweepFwdIterator<StringView> fwd_it0(vy, Position(0,1));
     StringView b(StringVar(*this, DashedString(*this, 
       Block(*this, CharSet(*this, 'a', 'b'), 3 ,4))));
     cerr << "Streching forward " << b << " in " << y << " from " << *fwd_it0;
@@ -204,20 +204,20 @@ public:
     cerr << "\n...to " << *fwd_it0 << endl;
     assert (*fwd_it0 == Position(1,0));
 
-    SweepIterator<SweepFwd,StringView> fwd_it1(vy, Position(1,1));
+    SweepFwdIterator<StringView> fwd_it1(vy, Position(1,1));
     cerr << "Streching forward " << b << " in " << y << " from " << *fwd_it1;
     b.stretch(0, fwd_it1);
     cerr << "\n...to " << *fwd_it1 << endl;
     assert (*fwd_it1 == Position(5,0));
 
     b.updateAt(*this, 0, Block(*this, CharSet(*this, 'a', 'c'), 0, 3));
-    SweepIterator<SweepBwd,StringView> bwd_it0(vy, Position(3, 1));
+    SweepBwdIterator<StringView> bwd_it0(vy, Position(3, 1));
     cerr << "Stretching backward " << b << " in " << y << " from " << *bwd_it0;
     b.stretch(0, bwd_it0);
     cerr << "\n...to " << *bwd_it0 << endl;
     assert (*bwd_it0 == Position(0,1));
         
-    SweepIterator<SweepBwd,StringView> bwd_it1 = vy.bwd_iterator();
+    SweepBwdIterator<StringView> bwd_it1 = vy.bwd_iterator();
     cerr << "Stretching backward " << b << " in " << y << " from " << *bwd_it1;
     b.stretch(0, bwd_it1);
     cerr << "\n...to " << *bwd_it1 << endl;
@@ -233,7 +233,7 @@ public:
     bv[3].update(*this, Block(*this, CharSet(*this, '!'), 0 ,3));
     StringVar y(*this, DashedString(*this, bv, 5));
     StringView vy(y);
-    SweepIterator<SweepFwd,StringView> fwd_it0(vy, Position(2,0));
+    SweepFwdIterator<StringView> fwd_it0(vy, Position(2,0));
     StringView b(StringVar(*this, DashedString(*this, 
       Block(*this, CharSet(*this, 'm'), 1 ,2))));
     cerr << "Pushing forward " << b[0] << " in " << y << " from " << *fwd_it0;
@@ -241,26 +241,26 @@ public:
     cerr << "\n...ESP = " << p << ", EEP = " << *fwd_it0 << endl;
     assert (p == Position(2,0) && *fwd_it0 == Position(3,0));
     
-    SweepIterator<SweepFwd,StringView> fwd_it1(vy, Position(2,1));
+    SweepFwdIterator<StringView> fwd_it1(vy, Position(2,1));
     cerr << "Pushing forward " << b << " in " << y << " from " << *fwd_it1;
     p = b.push(0, fwd_it1);
     cerr << "\n...ESP = " << p << ", EEP = " << *fwd_it1 << endl;
     assert (p == *fwd_it1 && p == Position(4,0));
     
     b.updateAt(*this, 0, Block(*this, CharSet(*this, IntSet({'o','m','g'})),1,8));
-    SweepIterator<SweepFwd,StringView> fwd_it2(vy, Position(1,1));
+    SweepFwdIterator<StringView> fwd_it2(vy, Position(1,1));
     cerr << "Streching forward " << b << " in " << y << " from " << *fwd_it2;
     b.stretch(0, fwd_it2);
     cerr << "\n...to " << *fwd_it2 << endl;
     assert (*fwd_it2 == Position(4,0));
     
-    SweepIterator<SweepBwd,StringView> bwd_it0(vy, Position(1,1));
+    SweepBwdIterator<StringView> bwd_it0(vy, Position(1,1));
     cerr << "Streching backward " << b << " in " << y << " from " << *bwd_it0;
     b.stretch(0, bwd_it0);
     cerr << "\n...to " << *bwd_it0 << endl;
     assert (*bwd_it0 == Position(1,0));
     
-    SweepIterator<SweepBwd,StringView> bwd_it1(vy, *bwd_it0);
+    SweepBwdIterator<StringView> bwd_it1(vy, *bwd_it0);
     cerr << "Pushing backward " << b << " in " << y << " from " << *bwd_it1;
     p = b.push(0, bwd_it1);
     cerr << "\n...LSP = " << *bwd_it1 << ", LEP = " << p << endl;

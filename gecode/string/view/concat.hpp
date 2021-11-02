@@ -117,14 +117,14 @@ namespace Gecode { namespace String {
     x1.normalize(home);
   }
   
-  forceinline SweepIterator<SweepFwd,ConcatView>
+  forceinline SweepFwdIterator<ConcatView>
   ConcatView::fwd_iterator(void) const {
-    return SweepIterator<SweepFwd,ConcatView>(*this);
+    return SweepFwdIterator<ConcatView>(*this);
   }
   
-  forceinline SweepIterator<SweepBwd,ConcatView>
+  forceinline SweepBwdIterator<ConcatView>
   ConcatView::bwd_iterator(void) const {
-    return SweepIterator<SweepBwd,ConcatView>(*this);
+    return SweepBwdIterator<ConcatView>(*this);
   }
   
   template <class T>

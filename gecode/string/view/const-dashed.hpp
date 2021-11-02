@@ -59,14 +59,14 @@ namespace Gecode { namespace String {
     return os;
   };
 
-  forceinline SweepIterator<SweepFwd,ConstDashedView>
+  forceinline SweepFwdIterator<ConstDashedView>
   ConstDashedView::fwd_iterator(void) const {
-    return SweepIterator<SweepFwd,ConstDashedView>(*this);
+    return SweepFwdIterator<ConstDashedView>(*this);
   }
   
-  forceinline SweepIterator<SweepBwd,ConstDashedView>
+  forceinline SweepBwdIterator<ConstDashedView>
   ConstDashedView::bwd_iterator(void) const {
-    return SweepIterator<SweepBwd,ConstDashedView>(*this);
+    return SweepBwdIterator<ConstDashedView>(*this);
   }
 
   forceinline bool

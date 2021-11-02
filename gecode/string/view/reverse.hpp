@@ -61,14 +61,14 @@ namespace Gecode { namespace String {
     return false;
   }
   
-  forceinline SweepIterator<SweepFwd,ReverseView>
+  forceinline SweepFwdIterator<ReverseView>
   ReverseView::fwd_iterator(void) const {
-    return SweepIterator<SweepFwd,ReverseView>(*this);
+    return SweepFwdIterator<ReverseView>(*this);
   }
   
-  forceinline SweepIterator<SweepBwd,ReverseView>
+  forceinline SweepBwdIterator<ReverseView>
   ReverseView::bwd_iterator(void) const {
-    return SweepIterator<SweepBwd,ReverseView>(*this);
+    return SweepBwdIterator<ReverseView>(*this);
   }
 
   forceinline bool

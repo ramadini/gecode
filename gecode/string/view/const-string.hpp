@@ -89,14 +89,14 @@ namespace Gecode { namespace String {
     return false;
   }
   
-  forceinline SweepIterator<SweepFwd,ConstStringView>
+  forceinline SweepFwdIterator<ConstStringView>
   ConstStringView::fwd_iterator(void) const {
-    return SweepIterator<SweepFwd,ConstStringView>(*this);
+    return SweepFwdIterator<ConstStringView>(*this);
   }
   
-  forceinline SweepIterator<SweepBwd,ConstStringView>
+  forceinline SweepBwdIterator<ConstStringView>
   ConstStringView::bwd_iterator(void) const {
-    return SweepIterator<SweepBwd,ConstStringView>(*this);
+    return SweepBwdIterator<ConstStringView>(*this);
   }
   
   template <class T>

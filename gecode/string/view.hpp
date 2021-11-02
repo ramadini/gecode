@@ -2,7 +2,7 @@ namespace Gecode { namespace String {
 
   class ConcatView;
   class ConstStringView;
-  template <class D,class V> class SweepIterator;
+  template <class T> class SweepIterator;
 
   /**
    * \defgroup TaskActorStringView String views
@@ -27,8 +27,8 @@ namespace Gecode { namespace String {
     //@}
     /// \name Sweep iterators
     //@{
-    SweepIterator<SweepFwd,StringView> fwd_iterator(void) const;
-    SweepIterator<SweepBwd,StringView> bwd_iterator(void) const;
+    SweepFwdIterator<StringView> fwd_iterator(void) const;
+    SweepBwdIterator<StringView> bwd_iterator(void) const;
     //@}
     //@}
     
@@ -197,8 +197,8 @@ namespace Gecode { namespace String {
     std::vector<int> val(void) const;
     /// \name Sweep iterators
     //@{
-    SweepIterator<SweepFwd,ConstStringView> fwd_iterator(void) const;
-    SweepIterator<SweepBwd,ConstStringView> bwd_iterator(void) const;
+    SweepFwdIterator<ConstStringView> fwd_iterator(void) const;
+    SweepBwdIterator<ConstStringView> bwd_iterator(void) const;
     template <class T> void gets(Space&, const T&) const;
     template <class T> ModEvent equate(Space& home, const T& y) const;
     template <class IterY> Position push(int i, IterY& it) const;
@@ -303,8 +303,8 @@ namespace Gecode { namespace String {
     
     /// \name Sweep iterators
     //@{
-    SweepIterator<SweepFwd,ConcatView> fwd_iterator(void) const;
-    SweepIterator<SweepBwd,ConcatView> bwd_iterator(void) const;
+    SweepFwdIterator<ConcatView> fwd_iterator(void) const;
+    SweepBwdIterator<ConcatView> bwd_iterator(void) const;
     //@}
     //@}
     //@}
@@ -434,8 +434,8 @@ namespace Gecode { namespace String {
     const Block& operator[](int i) const;
     /// \name Sweep iterators
     //@{
-    SweepIterator<SweepFwd,ReverseView> fwd_iterator(void) const;
-    SweepIterator<SweepBwd,ReverseView> bwd_iterator(void) const;
+    SweepFwdIterator<ReverseView> fwd_iterator(void) const;
+    SweepBwdIterator<ReverseView> bwd_iterator(void) const;
     double logdim(void) const;
     //@}
     /// Always returns true (for compatibility with other views)
@@ -518,8 +518,8 @@ namespace Gecode { namespace String {
     /// 
     const Block& operator[](int i) const;
     //@{
-    SweepIterator<SweepFwd,ConstDashedView> fwd_iterator(void) const;
-    SweepIterator<SweepBwd,ConstDashedView> bwd_iterator(void) const;
+    SweepFwdIterator<ConstDashedView> fwd_iterator(void) const;
+    SweepBwdIterator<ConstDashedView> bwd_iterator(void) const;
     template <class IterY> Position push(int i, IterY& it) const;
     template <class IterY> void stretch(int i, IterY& it) const;
     //@}

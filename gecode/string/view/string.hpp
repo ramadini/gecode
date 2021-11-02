@@ -163,14 +163,14 @@ namespace Gecode { namespace String {
     x->normalize(home);
   }
   
-  forceinline SweepIterator<SweepFwd,StringView>
+  forceinline SweepFwdIterator<StringView>
   StringView::fwd_iterator(void) const {
-    return SweepIterator<SweepFwd,StringView>(*this);
+    return SweepFwdIterator<StringView>(*this);
   }
   
-  forceinline SweepIterator<SweepBwd,StringView>
+  forceinline SweepBwdIterator<StringView>
   StringView::bwd_iterator(void) const {
-    return SweepIterator<SweepBwd,StringView>(*this);
+    return SweepBwdIterator<StringView>(*this);
   }
   
   forceinline int
