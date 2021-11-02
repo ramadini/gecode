@@ -1,63 +1,8 @@
 namespace Gecode { namespace String {
-  
-  //FIXME: Implement this:
-  
-  struct SweepFwd;
-  struct SweepBwd;
-  
-  /// Iterator used by sweep-based equation algorithms for pushing/stretching 
-  /// a block against the specified View in the specified direction Dir.
-  /// FIXME: The current position of the iterator _must always_ be normalized 
-  ///        w.r.t. the view regardless of the direction.
-  template <class Dir, class View>
-  class SweepIterator {
-  protected:
-    /// The view on which we iterate
-    union {
-      std::reference_wrapper<const View> view_ref;
-      std::reference_wrapper<const StringView> base_ref;
-    };
-    /// The current position on the view, always normalized w.r.t. it
-    Position pos;
-    /// Check if the iterator position is in a consistent state;
-    bool isOK(void) const;
-  public:
-    /// Constructors
-    SweepIterator(const View& x);
-    SweepIterator(const View& x, const Position& p);
-    /// Move iterator to the beginning of the next block (if possible)
-    void nextBlock(void);
-    /// Test whether iterator is still within the dashed string or done
-    bool hasNextBlock(void) const;
-    /// Min. no. of chars that must be consumed from current position within current block
-    int must_consume(void) const;
-    /// Max. no. of chars that may be consumed from current position within current block
-    int may_consume(void) const;
-    /// Consume \a k characters from current position within current block
-    void consume(int k);
-    /// Consume \a k mandatory characters from current position within current block
-    void consumeMand(int k);
-    /// Returns const reference to the current position
-    const Position& operator *(void) const;
-    /// Returns true iff we are not done in the iteration.
-    bool operator()(void) const;
-    /// Returns the lower bound of the current block
-    int lb(void) const;
-    /// Returns the upper bound of the current block
-    int ub(void) const;
-    /// Check if the base of the current block is disjoint with that of \a b
-    bool disj(const Block& b) const;
-    /// Check if the base of the current block is disjoint with singleton {c}
-    bool disj(int c) const;
-  };
-    
-}}
-
-
-namespace Gecode { namespace String {
 
   class ConcatView;
   class ConstStringView;
+  template <class D,class V> class SweepIterator;
 
   /**
    * \defgroup TaskActorStringView String views
@@ -640,6 +585,7 @@ namespace Gecode { namespace String {
 }}
 
 #include <gecode/string/var/string.hpp>
+#include <gecode/string/view/ds-iterators.hpp>
 #include <gecode/string/view/string.hpp>
 #include <gecode/string/view/concat.hpp>
 #include <gecode/string/view/reverse.hpp>
