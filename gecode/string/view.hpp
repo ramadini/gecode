@@ -3,6 +3,41 @@ namespace Gecode { namespace String {
   class ConcatView;
   class ConstStringView;
   template <class T> class SweepIterator;
+  
+  template <class T>
+  struct DashedViewBase {
+    int size(void) const;
+    const Block& operator[](int i) const;
+    template <class IterY> Position push(int i, IterY& it) const;
+    template <class IterY> void stretch(int i, IterY& it) const;
+    bool equiv(const Position& p, const Position& q) const;
+    bool prec(const Position& p, const Position& q) const;
+    int ub_new_blocks(const Matching& m) const;
+    int min_len_mand(const Block& bx, const Position& lsp, 
+                                      const Position& eep) const;
+    int max_len_opt(const Block& bx, const Position& esp, 
+                                     const Position& lep, int l1) const;
+    template <class ViewX> void
+    crushBase(Space& home, ViewX& x, int idx, const Position& p,
+                                              const Position& q) const;
+    void
+    opt_region(Space& home, const Block& bx, Block& bnew, 
+                            const Position& p, const Position& q, int l1) const;  
+    void
+    mand_region(Space& home, const Block& bx, Block* bnew, int u, 
+                             const Position& p, const Position& q) const;
+    template <class ViewX> void
+    mand_region(Space& home, ViewX& x, int idx, const Position& p,
+                                                const Position& q) const;
+    void
+    resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize) const;
+    
+    std::vector<int> fixed_pref(const Position& p, 
+                                const Position& q, int & np) const;
+    std::vector<int> fixed_suff(const Position& p,
+                                const Position& q, int & ns) const;
+    bool isOK(void) const;
+  };
 
   /**
    * \defgroup TaskActorStringView String views
@@ -522,46 +557,22 @@ namespace Gecode { namespace String {
     SweepBwdIterator<ConstDashedView> bwd_iterator(void) const;
     template <class IterY> Position push(int i, IterY& it) const;
     template <class IterY> void stretch(int i, IterY& it) const;
-    //@}
-    /// Always returns true (for compatibility with other views)
-    bool assigned(void) const;
-    /// Checks length bounds (for compatibility with other views)
-    ModEvent bnd_length(Space& home, int l, int u) const;
-    /// If this view contains y
-    template <class T> bool contains(const T& y) const;
-    /// If this view is equals to y
-    template <class T> bool equals(const T& y) const;
-    double logdim(void) const;
-    /// Returns true if p and q are the same position in this view.
     bool equiv(const Position& p, const Position& q) const;
-    /// Returns true if p precedes q according to this view.
     bool prec(const Position& p, const Position& q) const;
-    /// \name Methods for dashed string equation
-    //@{
-    ///TODO:
     int ub_new_blocks(const Matching& m) const;
-    
-    /// TODO:
     int min_len_mand(const Block& bx, const Position& lsp, 
                                       const Position& eep) const;
-    /// TODO:
     int max_len_opt(const Block& bx, const Position& esp, 
                                      const Position& lep, int l1) const;
-    
-    /// TODO:
     template <class ViewX> void
     crushBase(Space& home, ViewX& x, int idx, const Position& p,
                                               const Position& q) const;
-    /// TODO:                                   
     void
     opt_region(Space& home, const Block& bx, Block& bnew, 
-                            const Position& p, const Position& q, int l1) const;                       
-    
-    /// TODO:                   
+                            const Position& p, const Position& q, int l1) const; 
     void
     mand_region(Space& home, const Block& bx, Block* bnew, int u, 
                              const Position& p, const Position& q) const;
-    /// TODO:                                                     
     template <class ViewX> void
     mand_region(Space& home, ViewX& x, int idx, const Position& p,
                                                 const Position& q) const;

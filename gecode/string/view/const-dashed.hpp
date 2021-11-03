@@ -10,23 +10,10 @@ namespace Gecode { namespace String {
   ConstDashedView::size() const {
     return n;
   }
-
-  forceinline bool
-  ConstDashedView::assigned() const {
-    for (int i = 0; i < n; ++i)
-      if (!b0[i].isFixed())
-        return false;
-    return true;
-  }
-
+  
   forceinline const Block&
   ConstDashedView::operator[](int i) const {
     return *(b0+i);
-  }
-
-  forceinline bool
-  ConstDashedView::isNull() const {
-    return n == 1 && b0[0].isNull();
   }
   
   forceinline bool
@@ -37,27 +24,6 @@ namespace Gecode { namespace String {
       if (!b0[i].isOK())
         return false;
   }
-  
-  forceinline double
-  ConstDashedView::logdim() const {
-    double d = 0.0;
-    for (int i = 0; i < n; ++i) {
-      d += b0[i].logdim();
-      if (std::isinf(d))
-        return d;
-    }
-    return d;
-  }
-
-  template<class Char, class Traits>
-  forceinline  std::basic_ostream<Char,Traits>&
-  operator <<(std::basic_ostream<Char,Traits>& os, const ConstDashedView& d) {
-    int n = d.size();
-    for (int i = 0; i < n - 1; ++i)
-      os << d[i] << " + ";
-    os << d[n-1];
-    return os;
-  };
 
   forceinline SweepFwdIterator<ConstDashedView>
   ConstDashedView::fwd_iterator(void) const {
@@ -357,6 +323,16 @@ namespace Gecode { namespace String {
       ns = -ns;
     return v;
   }
+  
+  template<class Char, class Traits>
+  forceinline  std::basic_ostream<Char,Traits>&
+  operator <<(std::basic_ostream<Char,Traits>& os, const ConstDashedView& d) {
+    int n = d.size();
+    for (int i = 0; i < n - 1; ++i)
+      os << d[i] << " + ";
+    os << d[n-1];
+    return os;
+  };
   
 }}
 

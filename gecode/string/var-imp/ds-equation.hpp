@@ -340,8 +340,6 @@ namespace Gecode { namespace String {
 //    std::cerr << "sweep_x: " << x << "  vs  " << y << "\n";
     if (!init_x(x, y, m))
       return false;
-    if (x.assigned() && y.assigned())
-      return true;
     int nx = x.size(); 
     for (int i = 0; i < nx; ++i) {
       if (!pushESP<ViewX,ViewY>(x, y, m, i))
