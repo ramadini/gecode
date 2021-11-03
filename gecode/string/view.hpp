@@ -17,7 +17,7 @@ namespace Gecode { namespace String {
     bool prec(const Position& p, const Position& q) const;
     template <class IterY> Position push(int i, IterY& it) const;
     template <class IterY> void stretch(int i, IterY& it) const;
-    int ub_new_blocks(const Matching& m) const;
+    int max_new_blocks(const Matching& m) const;
     int min_len_mand(const Block& bx, const Position& lsp, 
                                       const Position& eep) const;
     int max_len_opt(const Block& bx, const Position& esp, 
@@ -211,7 +211,7 @@ namespace Gecode { namespace String {
     /// \name Methods for dashed string equation
     //@{
     ///TODO:
-    int ub_new_blocks(const Matching& m) const;
+    int max_new_blocks(const Matching& m) const;
     
     /// TODO:
     int min_len_mand(const Block& bx, const Position& lsp, 
@@ -305,7 +305,7 @@ namespace Gecode { namespace String {
     /// Returns true if p precedes q according to this view.
     bool prec(const Position& p, const Position& q) const;
     ///TODO:
-    int ub_new_blocks(const Matching& m) const;
+    int max_new_blocks(const Matching& m) const;
     /// TODO:
     int min_len_mand(const Block& bx, const Position& lsp, 
                                       const Position& eep) const;
@@ -374,7 +374,7 @@ namespace Gecode { namespace String {
     
     bool equiv(const Position& p, const Position& q) const;
     bool prec(const Position& p, const Position& q) const;
-    int ub_new_blocks(const Matching& m) const;
+    int max_new_blocks(const Matching& m) const;
     int min_len_mand(const Block& bx, const Position& lsp, 
                                       const Position& eep) const;
     int max_len_opt(const Block& bx, const Position& esp, 

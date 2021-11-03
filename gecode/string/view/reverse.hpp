@@ -46,7 +46,7 @@ namespace Gecode { namespace String {
   }
   
   forceinline int
-  ReverseView::ub_new_blocks(const Matching& m) const {
+  ReverseView::max_new_blocks(const Matching& m) const {
     if (ptr->prec(m.EEP, m.LSP))
       return ptr->prec(m.LSP, m.ESP) + m.LSP.idx - m.EEP.idx + (m.LSP.off > 0)
            + ptr->prec(m.LEP, m.EEP);

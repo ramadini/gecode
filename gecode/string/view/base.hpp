@@ -100,7 +100,7 @@ namespace Gecode { namespace String {
   
   template <class T>
   forceinline int
-  DashedViewBase<T>::ub_new_blocks(const Matching& m) const {    
+  DashedViewBase<T>::max_new_blocks(const Matching& m) const {    
     if (prec(m.LSP, m.EEP))
       return prec(m.ESP, m.LSP) + m.EEP.idx - m.LSP.idx + (m.EEP.off > 0)
            + prec(m.EEP, m.LEP);

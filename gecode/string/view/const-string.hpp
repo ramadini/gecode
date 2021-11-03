@@ -157,7 +157,7 @@ namespace Gecode { namespace String {
   }
   
   forceinline int
-  ConstStringView::ub_new_blocks(const Matching& m) const {
+  ConstStringView::max_new_blocks(const Matching& m) const {
     if (prec(m.LSP, m.EEP))
       return prec(m.ESP, m.LSP) + m.EEP.idx - m.LSP.idx + (m.EEP.off > 0)
            + prec(m.EEP, m.LEP);

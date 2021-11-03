@@ -181,7 +181,7 @@ namespace Gecode { namespace String {
       }
       const Block& xx_i = x[i];
       assert (l1 > 0);
-      int n = y.ub_new_blocks(m[i]);
+      int n = y.max_new_blocks(m[i]);
       assert (n > 0);
       if (n == 1) {
         nBlocks--;
@@ -362,7 +362,7 @@ namespace Gecode { namespace String {
     }
     m[nx-1].EEP = m[nx-1].LEP;    
     xFixed = x[nx-1].isFixed();
-    n = xFixed ? 0 : y.ub_new_blocks(m[nx-1]);
+    n = xFixed ? 0 : y.max_new_blocks(m[nx-1]);
     for (int i = nx-2; i >= 0; --i) {
       m[i].EEP = m[i+1].ESP;
 //      std::cerr << i << ") EEP of " << x[i] << ": " << m[i].EEP << "\n";
@@ -372,7 +372,7 @@ namespace Gecode { namespace String {
       if (x[i].isFixed())
         xFixed++;
       else
-        n += y.ub_new_blocks(m[i]);
+        n += y.max_new_blocks(m[i]);
 //      assert (m[i].EEP.isNorm(y) && m[i].LEP.isNorm(y));
     }
     return true;
