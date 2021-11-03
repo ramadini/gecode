@@ -100,8 +100,6 @@ namespace Gecode { namespace String { namespace Branch {
       o << "Alt. " << a << " -- Var. " << p.pos << " -- Lev. " << p.lev
         << " -- Val. " << p.val << " of " << x[p.pos];
     }
-    
-    
 
   };
   std::vector<int> StringBrancher::_MUST_CHARS;

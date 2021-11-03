@@ -5,13 +5,19 @@ namespace Gecode { namespace String {
   template <class T> class SweepIterator;
   
   template <class T>
-  struct DashedViewBase {
+  class DashedViewBase {
+  protected:
+    const T* ptr;
+  public:
+    DashedViewBase(void);
+    DashedViewBase(const T* x);
+    T* get(void) const;
     int size(void) const;
     const Block& operator[](int i) const;
-    template <class IterY> Position push(int i, IterY& it) const;
-    template <class IterY> void stretch(int i, IterY& it) const;
     bool equiv(const Position& p, const Position& q) const;
     bool prec(const Position& p, const Position& q) const;
+    template <class IterY> Position push(int i, IterY& it) const;
+    template <class IterY> void stretch(int i, IterY& it) const;
     int ub_new_blocks(const Matching& m) const;
     int min_len_mand(const Block& bx, const Position& lsp, 
                                       const Position& eep) const;
@@ -21,22 +27,18 @@ namespace Gecode { namespace String {
     crushBase(Space& home, ViewX& x, int idx, const Position& p,
                                               const Position& q) const;
     void
-    opt_region(Space& home, const Block& bx, Block& bnew, 
-                            const Position& p, const Position& q, int l1) const;  
+    opt_region(Space& home, const Block& bx, Block& bnew,
+                            const Position& p, const Position& q, int l1) const;
     void
     mand_region(Space& home, const Block& bx, Block* bnew, int u, 
                              const Position& p, const Position& q) const;
     template <class ViewX> void
     mand_region(Space& home, ViewX& x, int idx, const Position& p,
                                                 const Position& q) const;
-    void
-    resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize) const;
-    
     std::vector<int> fixed_pref(const Position& p, 
                                 const Position& q, int & np) const;
-    std::vector<int> fixed_suff(const Position& p,
+    std::vector<int> fixed_suff(const Position& p, 
                                 const Position& q, int & ns) const;
-    bool isOK(void) const;
   };
 
   /**
@@ -47,8 +49,9 @@ namespace Gecode { namespace String {
    * string constants, and TODO: ....
    * \ingroup TaskActorString
    */
-  class StringView : public VarImpView<StringVar> {
-  protected:
+  class StringView : public VarImpView<StringVar>,
+                     public DashedViewBase<StringVarImp> {
+  public:
     using VarImpView<StringVar>::x;
   public:
     /// \name Constructors and initialization
@@ -59,57 +62,41 @@ namespace Gecode { namespace String {
     StringView(const StringVar& y);
     /// Initialize from string variable implementation \a y
     StringView(StringVarImp* y);
-    //@}
-    /// \name Sweep iterators
-    //@{
+    
     SweepFwdIterator<StringView> fwd_iterator(void) const;
     SweepBwdIterator<StringView> bwd_iterator(void) const;
-    //@}
-    //@}
+    
+    int min_length(void) const;
+    int max_length(void) const;
+    int lb_sum(void) const;
+    long ub_sum(void) const;
+    double logdim(void) const;
     
     int leftmost_unfixed_idx(void) const;
     int rightmost_unfixed_idx(void) const;
     int smallest_unfixed_idx(void) const;
     
-    /// \name Value access
-    //@{
-    /// Return the minimum length for a string in the variable's domain
-    int min_length(void) const;
-    /// Return the maximum length for a string in the variable's domain
-    int max_length(void) const;
-    int lb_sum(void) const;
-    long ub_sum(void) const;
-    /// Returns the number of blocks of the domain
-    int size(void) const;
-    /// Returns the i-th block of the domain
-    const Block& operator[](int i) const;
-    /// Return the value of this string view, if assigned. Otherwise, an
-    /// IllegalOperation exception is thrown.
-    std::vector<int> val(void) const;
-    //@}
-    /// \name Domain tests
-    //@{
-    /// Test whether variable is assigned
-    bool assigned(void) const;
-    /// Test whether the view is null
-    bool isNull(void) const;
-    /// Consistency checks on the view
     bool isOK(void) const;
-    /// If this view and y are the same
+    bool isNull(void) const;
+    bool assigned(void) const;
+    std::vector<int> val(void) const;
+    
     template <class T> bool same(const T& y) const;
-    /// If this view contains y
-    bool contains(const StringView& y) const;
-    bool contains_rev(const StringView& y) const;
-    template <class T> bool contains(const T& y) const;
-    /// If this view is equals to y
     bool equals(const StringView& y) const;
     bool equals_rev(const StringView& y) const;
     template <class T> bool equals(const T& y) const;
-    double logdim(void) const;
-    //@}
-    /// \name Cloning
-    //@{
-    /// Update this view to be a clone of view \a y
+    bool contains(const StringView& y) const;
+    bool contains_rev(const StringView& y) const;
+    template <class T> bool contains(const T& y) const;
+    
+    template <class T> ModEvent equate(Space& home, const T& y);
+    ModEvent nullify(Space& home);
+    ModEvent bnd_length(Space& home, int l, int u);
+    ModEvent min_length(Space& home, int l);
+    ModEvent max_length(Space& home, int u);
+    ModEvent splitBlock(Space& home, int idx, int c, unsigned a);
+    
+    void update(Space& home, StringView& y);
     void gets(Space& home, const DashedString& d);    
     void gets(Space& home, const StringView& y);
     void gets(Space& home, const ConcatView& y);
@@ -117,65 +104,7 @@ namespace Gecode { namespace String {
     void gets(Space& home, const std::vector<int>& w);
     void gets_rev(Space& home, const StringView& y);
     
-    template <class IterY> Position push(int i, IterY& it) const;
-    template <class IterY> void stretch(int i, IterY& it) const;
-    template <class T> ModEvent equate(Space& home, const T& y);
-    
-    ModEvent nullify(Space& home);
-    //@}
-    /// \name Domain update by cardinality refinement
-    //@{
-    /// Possibly update the upper bound of the blocks, knowing that the minimum 
-    /// length for any string in the domain is \a l and the maximum length for 
-    /// any string in the domain is \a u
-    ModEvent bnd_length(Space& home, int l, int u);
-    ModEvent min_length(Space& home, int l);
-    ModEvent max_length(Space& home, int u);
-    //@}
-    /// \name Methods for dashed string equation
-    //@{
-    /// Returns true if p and q are the same position in this view.
-    bool equiv(const Position& p, const Position& q) const;
-    /// Returns true if p precedes q according to this view.
-    bool prec(const Position& p, const Position& q) const;
-    ///TODO:
-    int ub_new_blocks(const Matching& m) const;
-    /// TODO:
-    int min_len_mand(const Block& bx, const Position& lsp, 
-                                      const Position& eep) const;
-    /// TODO:
-    int max_len_opt(const Block& bx, const Position& esp, 
-                                     const Position& lep, int l1) const;
-    /// TODO:
-    template <class ViewX> void
-    crushBase(Space& home, ViewX& x, int idx, const Position& p,
-                                              const Position& q) const;
-    /// TODO:                                   
-    void
-    opt_region(Space& home, const Block& bx, Block& bnew, 
-                            const Position& p, const Position& q, int l1) const;                       
-    
-    /// TODO:                   
-    void
-    mand_region(Space& home, const Block& bx, Block* bnew, int u, 
-                             const Position& p, const Position& q) const;
-    /// TODO:                                                     
-    template <class ViewX> void
-    mand_region(Space& home, ViewX& x, int idx, const Position& p,
-                                                const Position& q) const;
-    /// TODO:
-    void
-    resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize);
-    
-    std::vector<int> fixed_pref(const Position& p, 
-                                const Position& q, int & np) const;
-    std::vector<int> fixed_suff(const Position& p,
-                                const Position& q, int & np) const;
-    
-    /// Normalize this view
     void normalize(Space& home);
-    ModEvent splitBlock(Space& home, int idx, int c, unsigned a);
-    
     void nullifyAt(Space& home, int i);
     void lbAt(Space& home, int i, int l);
     void ubAt(Space& home, int i, int u);
@@ -183,8 +112,7 @@ namespace Gecode { namespace String {
     void baseIntersectAt(Space& home, int idx, const Block& b);
     void updateCardAt(Space& home, int i, int l, int u);
     void updateAt(Space& home, int i, const Block& b);
-    
-    //@}
+    void resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize);    
   };
   /**
    * \brief Print string variable view
@@ -194,6 +122,66 @@ namespace Gecode { namespace String {
   std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const StringView& x);
 
+}}
+
+namespace Gecode { namespace String {
+
+  /**
+   * \brief ConstDashed view
+   */
+  class ConstDashedView : DashedViewBase<Block> {
+  protected:
+    /// We never refine the blocks
+    const Block* b0;
+    int n;
+  public:
+    ConstDashedView(void);
+    ConstDashedView(const Block& b, int n);
+    /// 
+    int size(void) const;
+    /// 
+    bool isNull(void) const;
+    /// 
+    const Block& operator[](int i) const;
+    //@{
+    SweepFwdIterator<ConstDashedView> fwd_iterator(void) const;
+    SweepBwdIterator<ConstDashedView> bwd_iterator(void) const;
+    template <class IterY> Position push(int i, IterY& it) const;
+    template <class IterY> void stretch(int i, IterY& it) const;
+    bool equiv(const Position& p, const Position& q) const;
+    bool prec(const Position& p, const Position& q) const;
+    int ub_new_blocks(const Matching& m) const;
+    int min_len_mand(const Block& bx, const Position& lsp, 
+                                      const Position& eep) const;
+    int max_len_opt(const Block& bx, const Position& esp, 
+                                     const Position& lep, int l1) const;
+    template <class ViewX> void
+    crushBase(Space& home, ViewX& x, int idx, const Position& p,
+                                              const Position& q) const;
+    void
+    opt_region(Space& home, const Block& bx, Block& bnew, 
+                            const Position& p, const Position& q, int l1) const; 
+    void
+    mand_region(Space& home, const Block& bx, Block* bnew, int u, 
+                             const Position& p, const Position& q) const;
+    template <class ViewX> void
+    mand_region(Space& home, ViewX& x, int idx, const Position& p,
+                                                const Position& q) const;
+    
+    std::vector<int> fixed_pref(const Position& p, 
+                                const Position& q, int & np) const;
+    std::vector<int> fixed_suff(const Position& p,
+                                const Position& q, int & np) const;
+    bool isOK(void) const;
+  };
+  /**
+   * \brief Print string variable view
+   * \relates Gecode::String::StringView
+   */
+  template<class Char, class Traits>
+  std::basic_ostream<Char,Traits>&
+  operator <<(std::basic_ostream<Char,Traits>& os, const ConstDashedView& z);
+  
 }}
 
 namespace Gecode { namespace String {  
@@ -280,21 +268,14 @@ namespace Gecode { namespace String {
     template <class ViewX> void
     mand_region(Space& home, ViewX& x, int idx, const Position& p,
                                                 const Position& q) const;
-    void
-    resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize) const;
-    
+                                                
     std::vector<int> fixed_pref(const Position& p, 
                                 const Position& q, int & np) const;
     std::vector<int> fixed_suff(const Position& p,
-                                const Position& q, int & np) const;
-    
-    /// Normalize this view
-    void normalize(Space& home);
-    ModEvent nullify(Space& home);
-    
+                                const Position& q, int & np) const;    
     /// Update this view to be a clone of view \a y
     void update(Space& home, ConstStringView& y);
-    
+    ModEvent nullify(Space& home);
     ModEvent min_length(Space& home, int l);
     ModEvent max_length(Space& home, int u);
                                 
@@ -532,71 +513,9 @@ namespace Gecode { namespace String {
   
 }}
 
-namespace Gecode { namespace String {
-
-  /**
-   * \brief ConstDashed view
-   */
-  class ConstDashedView {
-  // FIXME: Remove unnecessary methods from here, ReverseView and ConstStringView
-  protected:
-    /// We never refine the blocks
-    const Block* b0;
-    int n;
-  public:
-    ConstDashedView(void);
-    ConstDashedView(const Block& b, int n);
-    /// 
-    int size(void) const;
-    /// 
-    bool isNull(void) const;
-    /// 
-    const Block& operator[](int i) const;
-    //@{
-    SweepFwdIterator<ConstDashedView> fwd_iterator(void) const;
-    SweepBwdIterator<ConstDashedView> bwd_iterator(void) const;
-    template <class IterY> Position push(int i, IterY& it) const;
-    template <class IterY> void stretch(int i, IterY& it) const;
-    bool equiv(const Position& p, const Position& q) const;
-    bool prec(const Position& p, const Position& q) const;
-    int ub_new_blocks(const Matching& m) const;
-    int min_len_mand(const Block& bx, const Position& lsp, 
-                                      const Position& eep) const;
-    int max_len_opt(const Block& bx, const Position& esp, 
-                                     const Position& lep, int l1) const;
-    template <class ViewX> void
-    crushBase(Space& home, ViewX& x, int idx, const Position& p,
-                                              const Position& q) const;
-    void
-    opt_region(Space& home, const Block& bx, Block& bnew, 
-                            const Position& p, const Position& q, int l1) const; 
-    void
-    mand_region(Space& home, const Block& bx, Block* bnew, int u, 
-                             const Position& p, const Position& q) const;
-    template <class ViewX> void
-    mand_region(Space& home, ViewX& x, int idx, const Position& p,
-                                                const Position& q) const;
-    void
-    resize(Space& home, Block newBlocks[], int newSize, int U[], int uSize) const;
-    
-    std::vector<int> fixed_pref(const Position& p, 
-                                const Position& q, int & np) const;
-    std::vector<int> fixed_suff(const Position& p,
-                                const Position& q, int & np) const;
-    bool isOK(void) const;
-  };
-  /**
-   * \brief Print string variable view
-   * \relates Gecode::String::StringView
-   */
-  template<class Char, class Traits>
-  std::basic_ostream<Char,Traits>&
-  operator <<(std::basic_ostream<Char,Traits>& os, const ConstDashedView& z);
-  
-}}
-
 #include <gecode/string/var/string.hpp>
 #include <gecode/string/view/ds-iterators.hpp>
+#include <gecode/string/view/base.hpp>
 #include <gecode/string/view/string.hpp>
 #include <gecode/string/view/concat.hpp>
 #include <gecode/string/view/reverse.hpp>
