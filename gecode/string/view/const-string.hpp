@@ -284,14 +284,10 @@ namespace Gecode { namespace String {
   ConstStringView::gets(Space&, const T&) const {
     GECODE_NEVER;
   }
-//  forceinline void
-//  ConstStringView::resize(Space&, Block[], int, int[], int) const {
-//    GECODE_NEVER;                                                                
-//  }
+  
   forceinline ModEvent ConstStringView::nullify(Space&) {
     return n == 0 ? ME_STRING_NONE : ME_STRING_FAILED;
   }
-//  forceinline void ConstStringView::normalize(Space&) { GECODE_NEVER; }
   
   forceinline void
   ConstStringView::update(Space& home, ConstStringView& w) {
