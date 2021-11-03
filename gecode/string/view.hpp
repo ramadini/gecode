@@ -136,41 +136,10 @@ namespace Gecode { namespace String {
   public:
     ConstDashedView(void);
     ConstDashedView(const Block& b, int n);
-    /// 
     int size(void) const;
-    /// 
-//    bool isNull(void) const;
-    /// 
     const Block& operator[](int i) const;
-    //@{
     SweepFwdIterator<ConstDashedView> fwd_iterator(void) const;
     SweepBwdIterator<ConstDashedView> bwd_iterator(void) const;
-//    template <class IterY> Position push(int i, IterY& it) const;
-//    template <class IterY> void stretch(int i, IterY& it) const;
-//    bool equiv(const Position& p, const Position& q) const;
-//    bool prec(const Position& p, const Position& q) const;
-//    int ub_new_blocks(const Matching& m) const;
-//    int min_len_mand(const Block& bx, const Position& lsp, 
-//                                      const Position& eep) const;
-//    int max_len_opt(const Block& bx, const Position& esp, 
-//                                     const Position& lep, int l1) const;
-//    template <class ViewX> void
-//    crushBase(Space& home, ViewX& x, int idx, const Position& p,
-//                                              const Position& q) const;
-//    void
-//    opt_region(Space& home, const Block& bx, Block& bnew, 
-//                            const Position& p, const Position& q, int l1) const; 
-//    void
-//    mand_region(Space& home, const Block& bx, Block* bnew, int u, 
-//                             const Position& p, const Position& q) const;
-//    template <class ViewX> void
-//    mand_region(Space& home, ViewX& x, int idx, const Position& p,
-//                                                const Position& q) const;
-//    
-//    std::vector<int> fixed_pref(const Position& p, 
-//                                const Position& q, int & np) const;
-//    std::vector<int> fixed_suff(const Position& p,
-//                                const Position& q, int & np) const;
     bool isOK(void) const;
   };
   /**

@@ -44,9 +44,10 @@ namespace Gecode { namespace String {
     bool disj(int c) const;
   };
   
-  template <class View> struct SweepFwdIterator : public SweepIterator<View> {
+  template <class View> class SweepFwdIterator : public SweepIterator<View> {  
     using SweepIterator<View>::pos;
     using SweepIterator<View>::view_ref;
+  public:
     SweepFwdIterator(const View& x);
     SweepFwdIterator(const View& x, const Position& p);
     void nextBlock(void);
@@ -62,9 +63,10 @@ namespace Gecode { namespace String {
     bool disj(int c) const;
     bool isOK(void) const;
   };
-  template <class View> struct SweepBwdIterator : public SweepIterator<View> {
+  template <class View> class SweepBwdIterator : public SweepIterator<View> {
     using SweepIterator<View>::pos;
     using SweepIterator<View>::view_ref;
+  public:
     SweepBwdIterator(const View& x);
     SweepBwdIterator(const View& x, const Position& p);
     void nextBlock(void);
