@@ -4,10 +4,10 @@ namespace Gecode { namespace String {
   StringView::StringView(void) {}
   forceinline
   StringView::StringView(const StringVar& y)
-    : VarImpView<StringVar>(y.varimp()), DashedViewBase(y.varimp()) {}
+    : VarImpView<StringVar>(y.varimp()), DashedViewBase(&(y.varimp()->dom())) {}
   forceinline
   StringView::StringView(StringVarImp* y)
-    : VarImpView<StringVar>(y), DashedViewBase(y) {}
+    : VarImpView<StringVar>(y), DashedViewBase(&(y->dom())) {}
 
   forceinline void
   StringView::gets(Space& home, const DashedString& d) {
@@ -283,7 +283,7 @@ namespace Gecode { namespace String {
   forceinline void
   StringView::update(Space& home, StringView& y) {
     VarImpView<StringVar>::update(home,y);
-    DashedViewBase::ptr = x;
+    DashedViewBase::ptr = &(x->dom());
   }
   
 }}

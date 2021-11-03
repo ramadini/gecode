@@ -11,7 +11,6 @@ namespace Gecode { namespace String {
   public:
     DashedViewBase(void);
     DashedViewBase(const T* x);
-    T* get(void) const;
     int size(void) const;
     const Block& operator[](int i) const;
     bool equiv(const Position& p, const Position& q) const;
@@ -50,7 +49,7 @@ namespace Gecode { namespace String {
    * \ingroup TaskActorString
    */
   class StringView : public VarImpView<StringVar>,
-                     public DashedViewBase<StringVarImp> {
+                     public DashedViewBase<DashedString> {
   public:
     using VarImpView<StringVar>::x;
   public:
@@ -129,7 +128,7 @@ namespace Gecode { namespace String {
   /**
    * \brief ConstDashed view
    */
-  class ConstDashedView : DashedViewBase<Block> {
+  class ConstDashedView {
   protected:
     /// We never refine the blocks
     const Block* b0;
