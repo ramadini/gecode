@@ -276,18 +276,11 @@ namespace Gecode { namespace String {
     template <class IterY> Position push(int i, IterY& it) const;
     template <class IterY> void stretch(int i, IterY& it) const;
     double logdim(void) const;
-    
     ModEvent nullify(Space& home);
-    
     /// \name Sweep iterators
     //@{
     SweepFwdIterator<ConcatView> fwd_iterator(void) const;
     SweepBwdIterator<ConcatView> bwd_iterator(void) const;
-    //@}
-    //@}
-    //@}
-    /// \name Value access
-    //@{
     /// Return the minimum length for a string in the variable's domain
     int min_length(void) const;
     /// Return the maximum length for a string in the variable's domain
@@ -301,32 +294,12 @@ namespace Gecode { namespace String {
     std::vector<int> val(void) const;
     StringView lhs(void) const;
     StringView rhs(void) const;
-    //@}
-    /// \name Domain tests
-    //@{
-    /// Test whether variable is assigned
     bool assigned(void) const;
     /// Consistency checks on the view
     bool isOK(void) const;
     bool isNull(void) const;
-    
     int lb_sum(void) const;
     long ub_sum(void) const;
-
-    /// If this view is equals to y
-    template <class T> bool equals(const T& y) const;
-    template <class T> bool contains(const T& y) const;
-    ModEvent max_length(Space& home, int u) const;
-    //@}
-    /// \name Domain update by cardinality refinement
-    //@{
-    /// Possibly update the upper bound of the blocks, knowing that the minimum 
-    /// length for any string in the domain is \a l and the maximum length for 
-    /// any string in the domain is \a u
-    ModEvent bnd_length(Space& home, int l, int u) const;
-    //@}
-    /// \name Methods for dashed string equation
-    //@{
     /// Returns true if p and q are the same position in this view.
     bool equiv(const Position& p, const Position& q) const;
     /// Returns true if p precedes q according to this view.

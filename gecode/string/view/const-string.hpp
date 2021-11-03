@@ -41,21 +41,6 @@ namespace Gecode { namespace String {
     return n;
   }
   
-  forceinline ModEvent
-  ConstStringView::min_length(Space&, int l) {
-    return l == n ? ME_STRING_NONE : ME_STRING_FAILED;
-  }
-  
-  forceinline ModEvent
-  ConstStringView::max_length(Space&, int u) {
-    return u == n ? ME_STRING_NONE : ME_STRING_FAILED;
-  }
-  
-  forceinline ModEvent
-  ConstStringView::bnd_length(Space&, int l, int u) const {
-    return l == u && u == n ? ME_STRING_NONE : ME_STRING_FAILED;
-  }
-  
   forceinline bool
   ConstStringView::assigned() const {
     return true;
@@ -283,6 +268,21 @@ namespace Gecode { namespace String {
   template <class T> forceinline void 
   ConstStringView::gets(Space&, const T&) const {
     GECODE_NEVER;
+  }
+  
+  forceinline ModEvent
+  ConstStringView::min_length(Space&, int l) {
+    return l == n ? ME_STRING_NONE : ME_STRING_FAILED;
+  }
+  
+  forceinline ModEvent
+  ConstStringView::max_length(Space&, int u) {
+    return u == n ? ME_STRING_NONE : ME_STRING_FAILED;
+  }
+  
+  forceinline ModEvent
+  ConstStringView::bnd_length(Space&, int l, int u) const {
+    return l == u && u == n ? ME_STRING_NONE : ME_STRING_FAILED;
   }
   
   forceinline ModEvent ConstStringView::nullify(Space&) {

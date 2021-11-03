@@ -13,33 +13,6 @@ namespace Gecode { namespace String {
   ConcatView::rhs() const {
     return x1;  
   }
-  
-  template <class T> forceinline void 
-  ConcatView::gets(Space&, const T&) const {
-    GECODE_NEVER;
-  }
-  forceinline ModEvent
-  ConcatView::bnd_length(Space&, int, int) const {
-    GECODE_NEVER;
-    return ME_STRING_NONE;
-  }
-  template <class T>
-  forceinline bool
-  ConcatView::contains(const T&) const {
-    GECODE_NEVER
-    return false;
-  }  
-  template <class T>
-  forceinline bool
-  ConcatView::equals(const T&) const {
-    GECODE_NEVER
-    return false;
-  }
-  forceinline ModEvent
-  ConcatView::max_length(Space&, int) const {
-    GECODE_NEVER;
-    return ME_STRING_NONE;
-  }
 
   forceinline int
   ConcatView::size() const {
