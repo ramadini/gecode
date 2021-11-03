@@ -19,7 +19,7 @@ namespace Gecode { namespace String {
     SweepIterator(const View& x);
     SweepIterator(const View& x, const Position& p);
     /// Move iterator to the beginning of the next block (if possible)
-    void nextBlock(void);
+    virtual void nextBlock(void) = 0;
     /// Test whether iterator is still within the dashed string or done
     bool hasNextBlock(void) const;
     /// Min. no. of chars that must be consumed from current position within current block
@@ -44,7 +44,7 @@ namespace Gecode { namespace String {
     bool disj(int c) const;
   };
   
-  template <class View> struct SweepFwdIterator : SweepIterator<View> {
+  template <class View> struct SweepFwdIterator : public SweepIterator<View> {
     using SweepIterator<View>::pos;
     using SweepIterator<View>::view_ref;
     SweepFwdIterator(const View& x);
@@ -62,7 +62,7 @@ namespace Gecode { namespace String {
     bool disj(int c) const;
     bool isOK(void) const;
   };
-  template <class View> struct SweepBwdIterator : SweepIterator<View> {
+  template <class View> struct SweepBwdIterator : public SweepIterator<View> {
     using SweepIterator<View>::pos;
     using SweepIterator<View>::view_ref;
     SweepBwdIterator(const View& x);
