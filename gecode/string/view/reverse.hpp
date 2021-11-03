@@ -1,45 +1,22 @@
 namespace Gecode { namespace String {
-
-  forceinline ReverseView::ReverseView() : x0(*(new StringView())) {
-    GECODE_NEVER;
-  }
   
   forceinline
-  ReverseView::ReverseView(const StringView& x) : x0(x) {}
-  
-  forceinline bool
-  ReverseView::isNull() const {
-    return x0.isNull();
-  }
+  ReverseView::ReverseView(const StringView& x) 
+  : DashedViewBase(&x) {}
   
   forceinline int 
   ReverseView::size() const {
-    return x0.size();
-  }
-
-  forceinline int
-  ReverseView::max_length() const {
-    return x0.max_length();
-  }
-  
-  forceinline int
-  ReverseView::min_length() const {
-    return x0.min_length();
-  }
-  
-  forceinline bool
-  ReverseView::assigned() const {
-    return x0.assigned();
+    return ptr->size();
   }
   
   forceinline const Block&
   ReverseView::operator[](int i) const {
-    return x0[x0.size()-i-1];
+    return (*ptr)[ptr->size()-i-1];
   }
 
   forceinline const StringView&
   ReverseView::baseView() const {
-    return x0;
+    return *ptr;
   }
 
   template<class Char, class Traits>
@@ -47,19 +24,6 @@ namespace Gecode { namespace String {
   operator <<(std::basic_ostream<Char,Traits>& os, const ReverseView& v) {
     return os << "( " << v.baseView() << " )^-1"; 
   };
-  
-  template <class T>
-  forceinline bool
-  ReverseView::contains(const T&) const {
-    GECODE_NEVER
-    return false;
-  }
-  template <class T>
-  forceinline bool
-  ReverseView::equals(const T&) const {
-    GECODE_NEVER
-    return false;
-  }
   
   forceinline SweepFwdIterator<ReverseView>
   ReverseView::fwd_iterator(void) const {
@@ -73,19 +37,19 @@ namespace Gecode { namespace String {
 
   forceinline bool
   ReverseView::equiv(const Position& p, const Position& q) const {
-    return x0.equiv(q,p);
+    return ptr->equiv(q,p);
   }
   
   forceinline bool
   ReverseView::prec(const Position& p, const Position& q) const {
-    return x0.prec(q,p);
+    return ptr->prec(q,p);
   }
   
   forceinline int
   ReverseView::ub_new_blocks(const Matching& m) const {
-    if (x0.prec(m.EEP, m.LSP))
-      return x0.prec(m.LSP, m.ESP) + m.LSP.idx - m.EEP.idx + (m.LSP.off > 0)
-           + x0.prec(m.LEP, m.EEP);
+    if (ptr->prec(m.EEP, m.LSP))
+      return ptr->prec(m.LSP, m.ESP) + m.LSP.idx - m.EEP.idx + (m.LSP.off > 0)
+           + ptr->prec(m.LEP, m.EEP);
     else
       return 0;
   }
@@ -93,7 +57,7 @@ namespace Gecode { namespace String {
   forceinline int
   ReverseView::min_len_mand(const Block& b, const Position& p,
                                             const Position& q) const {
-    return x0.min_len_mand(b, q, p);
+    return ptr->min_len_mand(b, q, p);
   }  
   
   forceinline void
@@ -105,9 +69,9 @@ namespace Gecode { namespace String {
       return;
     };
     int q_i = q.idx, p_i = p.off > 0 ? p.idx : p.idx-1, 
-        q_o = q.off, p_o = p.off > 0 ? p.off : x0[p_i].ub();
+        q_o = q.off, p_o = p.off > 0 ? p.off : (*ptr)[p_i].ub();
 //    std::cerr << "LSP=(" << p_i << "," << p_o << "), EEP=(" << q_i << "," << q_o << "), u = "<<u<<"\n";
-    const Block& bp = x0[p_i];
+    const Block& bp = (*ptr)[p_i];
 //    std::cerr << "bp: " << bp << "\n";
     // Head of the region.    
     bnew[0].update(home, bp);
@@ -127,13 +91,13 @@ namespace Gecode { namespace String {
     int j = 1;
     for (int i = p_i-1; i > q_i; --i, ++j) {
       Block& bj = bnew[j];
-      bj.update(home, x0[i]);
+      bj.update(home, (*ptr)[i]);
       bj.baseIntersect(home, bx);
       if (!bj.isNull() && bj.ub() > u)
         bj.ub(home, u);
     }
     // Tail of the region.
-    const Block& bq = x0[q_i];
+    const Block& bq = (*ptr)[q_i];
 //    std::cerr << "bq: " << bq << "\n";
     bnew[j].update(home, bq);
     bnew[j].baseIntersect(home, bx);
@@ -146,13 +110,13 @@ namespace Gecode { namespace String {
   forceinline void
   ReverseView::mand_region(Space& home, ViewX& x, int idx, 
                                const Position& p, const Position& q) const {
-    return x0.mand_region(home, x, idx, q, p);
+    return ptr->mand_region(home, x, idx, q, p);
   }
   
   forceinline int
   ReverseView::max_len_opt(const Block& bx, const Position& esp, 
                                             const Position& lep, int i) const {
-    return x0.max_len_opt(bx, lep, esp, i);
+    return ptr->max_len_opt(bx, lep, esp, i);
   }
   
   forceinline void
@@ -160,10 +124,10 @@ namespace Gecode { namespace String {
                            const Position& p, const Position& q, int l1) const {
     assert(prec(p,q));
     int q_i = q.idx, p_i = p.off > 0 ? p.idx : p.idx-1, 
-        q_o = q.off, p_o = p.off > 0 ? p.off : x0[p_i].ub();
+        q_o = q.off, p_o = p.off > 0 ? p.off : (*ptr)[p_i].ub();
 //    std::cerr << "ESP: (" << p_i << "," << p_o << "), LEP=(" << q_i << "," << q_o << ")\n";
     // Only one block involved
-    const Block& bp = x0[p_i];
+    const Block& bp = (*ptr)[p_i];
 //    std::cerr << "bp: " << bp << "\n";
     int k = bx.ub() - l1;
     if (q_i == p_i) {
@@ -178,11 +142,11 @@ namespace Gecode { namespace String {
     bp.includeBaseIn(home, s);
     int u = std::min(bx.ub(), std::min(p_o, ubounded_sum(bp.lb(), k)));
     for (int i = p_i-1; i > q_i; --i) {
-      const Block& bi = x0[i];
+      const Block& bi = (*ptr)[i];
       bi.includeBaseIn(home, s);
       u = ubounded_sum(u, std::min(bi.ub(), ubounded_sum(bi.lb(), k)));
     }
-    const Block& bq = x0[q_i];
+    const Block& bq = (*ptr)[q_i];
 //    std::cerr << "bq: " << bq << "\n";
     bq.includeBaseIn(home, s);
     bnew.update(home, bx);
@@ -195,27 +159,22 @@ namespace Gecode { namespace String {
   forceinline void
   ReverseView::crushBase(Space& home, ViewX& x, int idx, 
                         const Position& p, const Position& q) const {
-    x0.crushBase(home, x, idx, q, p);
+    ptr->crushBase(home, x, idx, q, p);
   }
   
   forceinline std::vector<int>
   ReverseView::fixed_pref(const Position& p, const Position& q, int& n) const {
-    return x0.fixed_suff(q, p, n);
+    return ptr->fixed_suff(q, p, n);
   }
   
   forceinline std::vector<int>
   ReverseView::fixed_suff(const Position& p, const Position& q, int& n) const {
-    return x0.fixed_pref(q, p, n);
-  }
-  
-  forceinline double
-  ReverseView::logdim() const {
-    return x0.logdim();
+    return ptr->fixed_pref(q, p, n);
   }
   
   forceinline bool
   ReverseView::isOK() const {
-    return x0.isOK();
+    return ptr->isOK();
   }
   
 }}

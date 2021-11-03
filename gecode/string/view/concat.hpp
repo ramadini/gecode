@@ -1,9 +1,5 @@
 namespace Gecode { namespace String {
 
-  forceinline 
-  ConcatView::ConcatView(void) 
-  : x0(*(new StringView())), x1(*(new StringView())), pivot(0) { GECODE_NEVER; }
-  
   forceinline
   ConcatView::ConcatView(StringView& x, StringView& y)
   : x0(x), x1(y), pivot(x.size()) {}

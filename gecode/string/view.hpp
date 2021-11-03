@@ -270,13 +270,7 @@ namespace Gecode { namespace String {
     StringView& x1;
     int pivot;
   public:
-    /// \name Constructors and initialization
-    //@{
-    /// Default constructor
-    ConcatView(void);
-    /// Initialize from string variables \a x and \a y
     ConcatView(StringView& x, StringView& y);
-    //@}
     template <class T> void gets(Space& home, const T& d) const;
     template <class T> ModEvent equate(Space& home, const T& y);
     template <class IterY> Position push(int i, IterY& it) const;
@@ -397,77 +391,37 @@ namespace Gecode { namespace String {
   /**
    * \brief Reverse view
    */
-  class ReverseView {
-  protected:
-    /// We never refine the blocks of x0.
-    const StringView& x0;
+  class ReverseView : public DashedViewBase<StringView> {
   public:
-    /// Construct with empty string
-    ReverseView(void);
-    /// Construct
     ReverseView(const StringView& x);
-    /// 
-    int min_length(void) const;
-    /// 
-    int max_length(void) const;
-    /// 
     int size(void) const;
-    /// 
-    bool isNull(void) const;
-    /// 
     const Block& operator[](int i) const;
-    /// \name Sweep iterators
-    //@{
     SweepFwdIterator<ReverseView> fwd_iterator(void) const;
     SweepBwdIterator<ReverseView> bwd_iterator(void) const;
-    double logdim(void) const;
-    //@}
-    /// Always returns true (for compatibility with other views)
-    bool assigned(void) const;
-    /// Checks length bounds (for compatibility with other views)
-    ModEvent bnd_length(Space& home, int l, int u) const;
-    /// If this view contains y
-    template <class T> bool contains(const T& y) const;
-    /// If this view is equals to y
-    template <class T> bool equals(const T& y) const;
-    /// Returns true if p and q are the same position in this view.
-    bool equiv(const Position& p, const Position& q) const;
-    /// Returns true if p precedes q according to this view.
-    bool prec(const Position& p, const Position& q) const;
-    /// \name Methods for dashed string equation
-    //@{
-    ///TODO:
-    int ub_new_blocks(const Matching& m) const;
     
-    /// TODO:
+    bool equiv(const Position& p, const Position& q) const;
+    bool prec(const Position& p, const Position& q) const;
+    int ub_new_blocks(const Matching& m) const;
     int min_len_mand(const Block& bx, const Position& lsp, 
                                       const Position& eep) const;
-    /// TODO:
     int max_len_opt(const Block& bx, const Position& esp, 
-                                     const Position& lep, int l1) const;    
-    /// TODO:
+                                     const Position& lep, int l1) const;
     template <class ViewX> void
     crushBase(Space& home, ViewX& x, int idx, const Position& p,
                                               const Position& q) const;
-    /// TODO:                                   
     void
     opt_region(Space& home, const Block& bx, Block& bnew, 
-                            const Position& p, const Position& q, int l1) const;                       
-    
-    /// TODO:                   
+                            const Position& p, const Position& q, int l1) const;
     void
     mand_region(Space& home, const Block& bx, Block* bnew, int u, 
                              const Position& p, const Position& q) const;
-    /// TODO:                                                     
     template <class ViewX> void
     mand_region(Space& home, ViewX& x, int idx, const Position& p,
                                                 const Position& q) const;
-    
     std::vector<int> fixed_pref(const Position& p, 
                                 const Position& q, int & np) const;
     std::vector<int> fixed_suff(const Position& p,
                                 const Position& q, int & np) const;
-                                            
     bool isOK(void) const;
     const StringView& baseView(void) const;
   };
