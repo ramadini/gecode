@@ -355,49 +355,8 @@ namespace Gecode {
                                               StringVar y, std::vector<int> w);
   GECODE_STRING_EXPORT void substr(Home home, StringVar x, IntVar i, 
                                               IntVar j, StringVar y);
-  /**
-   * \defgroup TaskModelStringElement
-   * \ingroup TaskModelString
-   *
-   * An element constraint selects zero, one or more elements out of a
-   * sequence. We write \f$ \langle x_0,\dots, x_{n-1} \rangle \f$ for the
-   * sequence, and \f$ [y] \f$ for the index variable.
-   *
-   * string element constraints are closely related to the ::element constraint
-   * on integer variables.
-   */
-  //@{
-  /**
-   * \brief Post propagator for \f$ z=\diamond_{\mathit{op}}\langle x_0,\dots,x_{n-1}\rangle[y] \f$
-   *
-   * If \a y is the empty string, the usual conventions for string operations apply:
-   * an empty union is empty, while an empty intersection is the universe,
-   * which can be given as the optional parameter \a u.
-   *
-   * The indices for \a y start at 0.
-   */
-  
-  //@}
-
-
-// FIXME: Do we need wait/when functions?
-  /**
-   * \defgroup TaskModelStringExec Synchronized execution
-   * \ingroup TaskModelString
-   *
-   * Synchronized execution executes a function or a static member function
-   * when a certain event happends.
-   *
-   * \ingroup TaskModelString
-   */
-  //@{
-  // Execute \a c when \a x becomes assigned
-  GECODE_STRING_EXPORT void
-  wait(Home home, StringVar x, std::function<void(Space& home)> c);
-  // Execute \a c when all variables in \a x become assigned
-  GECODE_STRING_EXPORT void
-  wait(Home home, const StringVarArgs& x, std::function<void(Space& home)> c);
-  //@}
+  GECODE_STRING_EXPORT void element(Home home, StringVarArgs x, IntVar i, 
+                                                             StringVar y);
 }
 
 

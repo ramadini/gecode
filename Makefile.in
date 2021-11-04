@@ -544,7 +544,7 @@ FLOATBUILDDIRS	= \
 #
 
 STRINGSRC0 = \
-  exception.cpp rel.cpp rel-op.cpp int.cpp branch.cpp array.cpp
+  exception.cpp rel.cpp rel-op.cpp int.cpp branch.cpp array.cpp globals.cpp
 
 STRINGHDR0 = \
   limits.hpp exception.hpp array-traits.hpp array.hpp var-imp.hpp view.hpp \
@@ -557,7 +557,7 @@ STRINGHDR0 = \
   branch/block_mindim_lslm.hpp branch/none_llll.hpp \
   rel.hh rel/eq.hpp rel/nq.hpp rel/re-eq.hpp rel/dom.hpp \
   rel-op.hh rel-op/concat.hpp rel-op/reverse.hpp \
-  int.hh int/length.hpp int/pow.hpp
+  int.hh int/length.hpp int/pow.hpp globals.hh globals/element.hpp
 
 STRINGSRC	= $(STRINGSRC0:%=gecode/string/%)
 STRINGHDR	= gecode/string.hh $(STRINGHDR0:%=gecode/string/%)
