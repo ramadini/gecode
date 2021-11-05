@@ -10,9 +10,16 @@ namespace Gecode { namespace String { namespace Globals {
 
   template<class View>
   forceinline ExecStatus
-  Element<View>::post(Home home, ViewArray<View> x, Gecode::Int::IntView n, 
+  Element<View>::post(Home home, ViewArray<View> x, Gecode::Int::IntView i, 
                                                                     View y) {
-    //TODO
+    int n = x.size();
+    ViewArray<StringView> v(home, n+1);
+    v[0] = y;
+    for (int j = 0; j < n; ++j)
+      v[j+1] = x[j];
+    rel(home, i, IRT_GQ, 1);
+    rel(home, i, IRT_LQ, x.size());
+    (void) new (home) Element(home, x, i);
     return ES_OK;
   }
 
@@ -31,9 +38,28 @@ namespace Gecode { namespace String { namespace Globals {
   template<class View>
   forceinline ExecStatus
   Element<View>::propagate(Space& home, const ModEventDelta&) {
-//    std::cerr << TODO
-
-//    std::cerr << TODO
+    std::cerr << "Element::propagate "<<x<<"[" << y << "][1:] = "<<x[0]<< "\n";
+    if (y.assigned()) {
+      rel(home, x[0], STRT_EQ, x[y.val()]);
+      return home.ES_SUBSUMED(*this);
+    }
+    Set::GLBndSet s;
+    int l = MAX_STRING_LENGTH, u = 0;
+    for (IntVarValues i(y); i(); ++i) {
+      View& vi = x[i.val()];
+      // std::cerr << "x["<< i.val() << "] = " << vi << "\n";
+      if (check_equate_x(x[0],vi)) {
+        Set::SetDelta d;
+//TODO        s.include(home, m, m, d);
+        int li = vi.min_length(), ui = vi.max_length();
+        if (li < l) l = li;
+        if (ui > u) u = ui;
+      }
+      else
+        GECODE_ME_CHECK(0); //TODO
+    }
+    //TODO
+    std::cerr << "Element::propagated "<<x<<"[" << y << "] = "<<x[0]<< "\n";
     return ES_FIX;
   }
 
