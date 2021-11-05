@@ -61,11 +61,6 @@ public:
     IntVarArgs iva;
     iva << l_3 << l_4;
     int_vars = IntVarArray(*this, iva);
-    BoolVar b1(*this, 0, 1);
-    BoolVar b2(*this, 0, 1);
-    BoolVarArgs bva;
-    bva << b1 << b2;
-    bool_vars = BoolVarArray(*this, bva);
     // Constraints.
     length(*this, var_3, l_3);
     length(*this, var_4, l_4);
@@ -74,17 +69,11 @@ public:
     rel(*this, l_3 + (-1) <= 0);
     rel(*this, 0 <= l_3 + (-1));
     concat(*this, var_3, var_4, var_34);
-    Block bb1[2];
-    bb1[0].update(*this, 'a');
-    bb1[1].update(*this, 'b');
-    Block bb2[2];
-    bb2[0].update(*this, 'b');
-    bb2[1].update(*this, 'a');
-    DashedString d1(*this, bb1, 2);
-    DashedString d2(*this, bb2, 2);
-    rel(*this, var_34, STRT_EQ, StringVar(*this, d1), Reify(b1));
-    rel(*this, var_34, STRT_EQ, StringVar(*this, d2), Reify(b2));
-    rel(*this, b1 + b2 == 1);
+    StringVarArgs var_3or4;    
+    var_3or4 << StringVar(*this, str2vec("ab")) 
+             << StringVar(*this, str2vec("ba"));
+    IntVar i(*this, 1, 2);
+    element(*this, var_3or4, i, var_34);
     // Branching.
     block_mindim_lslm(*this, str_vars);
   }
@@ -111,7 +100,7 @@ string Benchmark::s = "";
 int main(int argc, char* argv[]) {
   int n = argc == 1 ? 5000 : atoi(argv[1]);
   StringOptions opt("*** levenshtein ***", n);
-  opt.solutions(0);
+  opt.solutions(4);
   Script::run<Benchmark, DFS, StringOptions>(opt);
   assert (Benchmark::s == "abba");
   return 0;
