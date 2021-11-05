@@ -2430,12 +2430,12 @@ namespace Gecode { namespace FlatZinc {
 //	  extensional(s, s.arg2StringVar(ce[0]), ce[1]->getString());
 //  }
 
-//  void
-//  p_array_var_str_element(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-//    element(
-//      s, s.arg2stringvarargs(ce[1]), s.arg2IntVar(ce[0]), s.arg2StringVar(ce[2])
-//	  );
-//  }
+  void
+  p_array_var_str_element(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
+    element(
+      s, s.arg2stringvarargs(ce[1]), s.arg2IntVar(ce[0]), s.arg2StringVar(ce[2])
+	  );
+  }
 
 //  void
 //  p_array_str_element(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
@@ -2500,7 +2500,7 @@ namespace Gecode { namespace FlatZinc {
 //    	  registry().add("str_nfa", &p_str_nfa);
 //    	  registry().add("str_reg", &p_str_reg);
 //    	  registry().add("array_string_element", &p_array_str_element);
-//        registry().add("array_var_string_element", &p_array_var_str_element);
+        registry().add("array_var_string_element", &p_array_var_str_element);
 //        registry().add("str_reg_reif", &p_str_reg_reif);
 //        registry().add("str_dfa_reif", &p_str_dfa_reif);
 //        registry().add("str2nat", &p_str2nat);

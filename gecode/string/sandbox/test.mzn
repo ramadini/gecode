@@ -27,7 +27,7 @@ var 0..1: b1;
 %var int: a;
 %var int: b;
 %var int: c;
-%var int: i;
+var int: i;
 %var int: j;
 
 constraint x = y;
@@ -48,7 +48,7 @@ constraint str_char_at(x2, 2) = "2";
 constraint str_sub(t, 3, 4) = "gg";
 
 %constraint str_gcc(z, ["a", "b", "c"], [a, b, c]);
-%constraint [x, y, z][i] = "abb";
+constraint [x, y, z][i] = "abb";
 %constraint i >= a;
 constraint str_len(r) > 2;
 %constraint str_contains(r, "]");
