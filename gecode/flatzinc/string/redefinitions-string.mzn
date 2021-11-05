@@ -34,23 +34,19 @@ let {
 } in n;
 predicate 
 str_find_offset(var string: x, var string: y, var int: n, var int: i) =
-  if (i <= 1) then
-    str_find(x, y, n)
-  else
-    str_find(x, str_sub(y, i, str_len(y)), n)
-  endif;
+  str_find(if i <= 1 then x else str_sub(x, i, str_len(x)) endif, y, n);
 
 predicate str_startswith(var string: x, var string: y) =
-  str_len(x) >= str_len(y) /\ str_find(y, x) = 1;
+  str_len(x) >= str_len(y) /\ str_find(x, y) = 1;
    
 predicate str_endswith(var string: x, var string: y) = 
-  str_len(x) >= str_len(y) /\ str_rfind(y, x) = str_len(x) - str_len(y) + 1;
+  str_len(x) >= str_len(y) /\ str_rfind(x, y) = str_len(x) - str_len(y) + 1;
   
 predicate str_prefixof(var string: x, var string: y) = str_startswith(y, x);
 
 predicate str_suffixof(var string: x, var string: y) = str_endswith(y, x);
 
-predicate str_contains(var string: x, var string: y) = str_find(y, x) > 0;
+predicate str_contains(var string: x, var string: y) = str_find(x, y) > 0;
 
 predicate str_gcc(
   var string: x, array[int] of string: a, array[int] of var int: c
@@ -119,7 +115,7 @@ function var string:
 str_replace_last(var string: x, var string: x1, var string: y);
 
 predicate
-str_sub(var string: x, var string: y) = str_find(x, y) > 0;
+str_sub(var string: x, var string: y) = str_find(y, x) > 0;
 
 function var string:
 str_sub(var string: x, var int : i, var int: j) :: promise_total = 

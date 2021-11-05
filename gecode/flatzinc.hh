@@ -702,7 +702,7 @@ namespace Gecode { namespace FlatZinc {
 #endif
 #ifdef GECODE_HAS_STRING_VARS
     /// Convert \a n to a vector of strings.
-    std::vector<std::string> arg2stringvec(AST::Node* arg);
+    std::vector<std::vector<int>> arg2stringvec(AST::Node* arg);
     /// Convert \a n to SetVar
     StringVar arg2StringVar(AST::Node* n);
     /// Convert \a n to SetVarArgs

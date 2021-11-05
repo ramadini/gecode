@@ -2472,6 +2472,14 @@ namespace Gecode { namespace FlatZinc {
     return d;
   }
 #ifdef GECODE_HAS_STRING_VARS
+  std::vector<std::vector<int>>
+  FlatZincSpace::arg2stringvec(AST::Node* arg) {
+    AST::Array* a = arg->getArray();
+    std::vector<std::vector<int>> v;
+    for (auto x : a->a)
+      v.push_back(x->getString());
+    return v;
+  }
   StringVar
   FlatZincSpace::arg2StringVar(AST::Node* n) {
     StringVar x0;

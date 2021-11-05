@@ -65,11 +65,43 @@ namespace Gecode { namespace String { namespace Int {
     static long div_u(long x, long y);
     ExecStatus refine_card(Space& home);
   };
+  
+  /**
+   * \brief %Propagator for string find.
+   *
+   */
+  template<class View0,class View1>
+  class Find :
+    public MixTernaryPropagator<View0, PC_STRING_CARD, View1, PC_STRING_CARD, 
+    Gecode::Int::IntView, Gecode::Int::PC_INT_BND> {
+  protected:
+    using MixTernaryPropagator<View0, PC_STRING_CARD, 
+      View1, PC_STRING_CARD, Gecode::Int::IntView, Gecode::Int::PC_INT_BND>
+        ::x0;
+    using MixTernaryPropagator<View0, PC_STRING_CARD, 
+      View1, PC_STRING_CARD, Gecode::Int::IntView, Gecode::Int::PC_INT_BND>
+        ::x1;
+    using MixTernaryPropagator<View0, PC_STRING_CARD, 
+      View1, PC_STRING_CARD, Gecode::Int::IntView, Gecode::Int::PC_INT_BND>
+        ::x2;
+    /// Constructor for cloning \a p
+    Find(Space& home, Find& p);
+    /// Constructor for posting
+    Find(Home home, View0, View1, Gecode::Int::IntView);
+  public:
+    /// Copy propagator during cloning
+    virtual Actor* copy(Space& home);
+    /// Perform propagation
+    virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
+    /// Post propagator for \f n = find(x, y) \f$
+    static ExecStatus post(Home, View0, View1, Gecode::Int::IntView);
+  };
 
 }}}
 
 #include <gecode/string/int/length.hpp>
 #include <gecode/string/int/pow.hpp>
+#include <gecode/string/int/find.hpp>
 #endif
 
 // STATISTICS: string-prop

@@ -357,8 +357,9 @@ namespace Gecode {
                                               IntVar j, StringVar y);
   GECODE_STRING_EXPORT void element(Home home, StringVarArgs x, IntVar i, 
                                                              StringVar y);
+  GECODE_STRING_EXPORT void  find(Home home, StringVar x, StringVar y, IntVar i);
+  GECODE_STRING_EXPORT void rfind(Home home, StringVar x, StringVar y, IntVar i);                                                             
 }
-
 
 namespace Gecode {
 

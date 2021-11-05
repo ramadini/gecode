@@ -2329,13 +2329,13 @@ namespace Gecode { namespace FlatZinc {
 //    char2code(s, s.arg2StringVar(ce[0]), s.arg2IntVar(ce[1]));
 //  }
 
-//  void p_str_find(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-//    find(s, s.arg2StringVar(ce[0]), s.arg2StringVar(ce[1]), s.arg2IntVar(ce[2]));
-//  }
+  void p_str_find(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+    find(s, s.arg2StringVar(ce[0]), s.arg2StringVar(ce[1]), s.arg2IntVar(ce[2]));
+  }
 
-//  void p_str_rfind(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-//    rfind(s, s.arg2StringVar(ce[0]), s.arg2StringVar(ce[1]), s.arg2IntVar(ce[2]));
-//  }
+  void p_str_rfind(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+    rfind(s, s.arg2StringVar(ce[0]), s.arg2StringVar(ce[1]), s.arg2IntVar(ce[2]));
+  }
 
 //  void p_str_replace(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
 //    p_str_op3(s, STRT_REP, ce);
@@ -2437,13 +2437,13 @@ namespace Gecode { namespace FlatZinc {
 	  );
   }
 
-//  void
-//  p_array_str_element(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-//    StringVarArgs a;
-//    for (auto x : s.arg2stringvec(ce[1]))
-//      a << StringVar(s, x);
-//    element(s, a, s.arg2IntVar(ce[0]), s.arg2StringVar(ce[2]));
-//  }
+  void
+  p_array_str_element(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
+    StringVarArgs a;
+    for (auto x : s.arg2stringvec(ce[1]))
+      a << StringVar(s, x);
+    element(s, a, s.arg2IntVar(ce[0]), s.arg2StringVar(ce[2]));
+  }
 
 //  void
 //  p_str_reg_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
@@ -2483,8 +2483,8 @@ namespace Gecode { namespace FlatZinc {
     	  registry().add("str_chars", &p_str_chars);
     	  registry().add("str_range", &p_str_range);
 //    	  registry().add("str_char2code", &p_str_char2code);
-//    	  registry().add("str_find", &p_str_find);
-//    	  registry().add("str_rfind", &p_str_rfind);
+    	  registry().add("str_find", &p_str_find);
+    	  registry().add("str_rfind", &p_str_rfind);
 //    	  registry().add("str_replace", &p_str_replace);
 //    	  registry().add("str_replace_all", &p_str_replace_all);
 //    	  registry().add("str_replace_last", &p_str_replace_last);
@@ -2499,7 +2499,7 @@ namespace Gecode { namespace FlatZinc {
 //    	  registry().add("str_dfa", &p_str_dfa);
 //    	  registry().add("str_nfa", &p_str_nfa);
 //    	  registry().add("str_reg", &p_str_reg);
-//    	  registry().add("array_string_element", &p_array_str_element);
+    	  registry().add("array_string_element", &p_array_str_element);
         registry().add("array_var_string_element", &p_array_var_str_element);
 //        registry().add("str_reg_reif", &p_str_reg_reif);
 //        registry().add("str_dfa_reif", &p_str_dfa_reif);
