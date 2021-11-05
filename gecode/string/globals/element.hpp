@@ -49,14 +49,16 @@ namespace Gecode { namespace String { namespace Globals {
       View& vi = x[i.val()];
       // std::cerr << "x["<< i.val() << "] = " << vi << "\n";
       if (check_equate_x(x[0],vi)) {
-        Set::SetDelta d;
-//TODO        s.include(home, m, m, d);
+        for (int j = 0; j < vi.size(); ++j)
+          vi[j].includeBaseIn(home, s);
         int li = vi.min_length(), ui = vi.max_length();
         if (li < l) l = li;
         if (ui > u) u = ui;
       }
       else
-        GECODE_ME_CHECK(0); //TODO
+        y.nq(home, i.val());
+      Block b(home, CharSet(home, s), l, u);
+      GECODE_ME_CHECK(x[0].equate(home, ConstDashedView(b, 1)));
     }
     //TODO
     std::cerr << "Element::propagated "<<x<<"[" << y << "] = "<<x[0]<< "\n";
