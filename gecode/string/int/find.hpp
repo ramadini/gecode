@@ -53,7 +53,6 @@ namespace Gecode { namespace String { namespace Int {
     // The query string is known: we check if x0 definitely occurs in x1, and
     // possibly update the index variable.
     if (x1.assigned()) {
-//      std::vector<int> w = x1.val();
       if (uy == 0) {
         GECODE_ME_CHECK(x2.eq(home, 1));
         return home.ES_SUBSUMED(*this);
@@ -124,31 +123,35 @@ namespace Gecode { namespace String { namespace Int {
       return ES_FIX;
     }
     if (occ) {
-//TODO with a ConstDashedView
-//      NSIntSet ychars = x1.may_chars();
-//      int n = x0.pdomain()->length();
-//      NSBlocks v;
-//      if (u > 1)
-//        v.push_back(NSBlock(ychars, l - 1, u - 1));
-//      for (int i = 0; i < n; ++i)
-//        v.push_back(NSBlock(x0.pdomain()->at(i)));
-//      int j = x1.max_length() - x0.min_length() - l + 1;
-//      if (j > 0) {
-//        int i = max(0, x1.min_length() - x0.max_length() - u + 1);
-//        v.push_back(NSBlock(ychars, i, j));
-//      }
-//      v.normalize();
-//      GECODE_ME_CHECK(x1.dom(home, v));
+      //FIXME: Is this redundant?
+      Set::GLBndSet s;
+      for (int i = 0; i < x0.size(); ++i)
+        x0[i].includeBaseIn(home, s);
+      CharSet S(home, s);
+      int bp = (un > 1), j = x0.max_length()-x1.min_length()-ln+1, bs = (j > 0);
+      Region r;
+      Block* dom = r.alloc<Block>(bp + x1.size() + bs);
+      int k = 0;
+      if (bp)
+        dom[k++].update(home, Block(home, S, ln-1, un-1));
+      for (int i = 0; i < x1.size(); ++i)
+        dom[k++].update(home, x1[i]);
+      if (bs) {
+        int i = x0.min_length()-x1.max_length()-un+1;
+        dom[k++].update(home, Block(home, S, i, j));
+      }
+      GECODE_ME_CHECK(x0.equate(home, ConstDashedView(*dom,k)));
     }
     else {
-      // l = min(D(x2) - {0}).
+      // ln = min(D(x2) \ {0}).
       Gecode::Int::ViewValues<Gecode::Int::IntView> i(x2);
       ++i;
       ln = i.val();
     }
+    
     // General case.
-//    GECODE_ME_CHECK(x1.find(home, x0, l, u, occ));
-//    // std::cerr << "After find: " << x0 << " in " << x1 << " (" << l << ", " << u << ")\n";
+    int ll = ln;
+    //TODO: GECODE_ME_CHECK(x1.find(home, x0, l, u, occ));
     GECODE_ME_CHECK(x2.lq(home, un));
     if (occ) {
       // Can modify x and y.
@@ -162,7 +165,7 @@ namespace Gecode { namespace String { namespace Int {
         if (x2.assigned() && x1.min_length() == x1.max_length()) {
           int n = x2.val(), m = x0.min_length();
           assert (n > 0);
-//FIXME:  GECODE_ME_CHECK(x0.eq(home, x1.val().substr(n-1, m)));
+          //FIXME:  GECODE_ME_CHECK(x1.eq(home, x0.val().substr(n-1, m)));
           return home.ES_SUBSUMED(*this); 
         }
       }
@@ -171,8 +174,8 @@ namespace Gecode { namespace String { namespace Int {
       // Can't modify neither x nor y.
       if (un == 0)
         GECODE_ME_CHECK(x2.eq(home, 0));
-      if (ln > 1) {
-        IntSet s(1, ln - 1);
+      if (ln > ll) {
+        IntSet s(ll,ln-1);
         IntSetRanges is(s);
         GECODE_ME_CHECK(x2.minus_r(home, is));
       }
