@@ -79,12 +79,13 @@ namespace Gecode { namespace String { namespace Int {
       ln = std::max(ln, x2.min());
       un = std::min(un, x2.max());
     }
-    bool mod = (ln > 0);
+    // occ is true iff x1 must occur in x0.
+    bool occ = (ln > 0);
     // Target string empty.
     if (ux == 0) {
-      if (mod) {
+      if (occ) {
         GECODE_ME_CHECK(x2.eq(home, 1));
-        GECODE_ME_CHECK(x0.nullify(home));
+        GECODE_ME_CHECK(x1.nullify(home));
         return home.ES_SUBSUMED(*this);
       }
       else {
@@ -99,8 +100,8 @@ namespace Gecode { namespace String { namespace Int {
     // The query string does not occur.
     if (ln == un && un == 0) {
       if (x0.assigned() && x0.val().size() == 1) {
-        // TODO:Removing a single character from all the bases.
-//        int c = char2int(x0.val()[0]);
+        // Removing a single character from all the bases.
+        int c = x0.val()[0];
 //        DashedString* pdom = x1.pdomain();
 //        bool norm = false;
 //        for (int i = 0; i < pdom->length(); ++i) {
@@ -122,7 +123,7 @@ namespace Gecode { namespace String { namespace Int {
       }
       return ES_FIX;
     }
-    if (mod) {
+    if (occ) {
 //TODO with a ConstDashedView
 //      NSIntSet ychars = x1.may_chars();
 //      int n = x0.pdomain()->length();
@@ -146,10 +147,10 @@ namespace Gecode { namespace String { namespace Int {
       ln = i.val();
     }
     // General case.
-//    GECODE_ME_CHECK(x1.find(home, x0, l, u, mod));
+//    GECODE_ME_CHECK(x1.find(home, x0, l, u, occ));
 //    // std::cerr << "After find: " << x0 << " in " << x1 << " (" << l << ", " << u << ")\n";
     GECODE_ME_CHECK(x2.lq(home, un));
-    if (mod) {
+    if (occ) {
       // Can modify x and y.
       GECODE_ME_CHECK(x2.gq(home, ln));
       if (x0.assigned()) {
