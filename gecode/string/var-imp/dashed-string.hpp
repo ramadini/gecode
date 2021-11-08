@@ -804,7 +804,7 @@ namespace Gecode { namespace String {
   
   forceinline void
   Block::baseRemove(Space& home, int c) {
-    if (isFixed()|| (l > 0 && S.size() == 1))
+    if (isFixed() || (l > 0 && S.size() == 1))
       throw VariableEmptyDomain("Block::baseRemove"); 
     Set::SetDelta d;
     S.exclude(home, c, c, d);

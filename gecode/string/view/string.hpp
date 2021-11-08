@@ -264,6 +264,10 @@ namespace Gecode { namespace String {
     x->ubAt(home, i, u);
   }  
   forceinline void
+  StringView::baseRemoveAt(Space& home, int idx, int c) {
+    x->baseRemoveAt(home, idx, c);
+  }
+  forceinline void
   StringView::baseIntersectAt(Space& home, int idx, const Set::BndSet& S) {
     x->baseIntersectAt(home, idx, S);
   }

@@ -99,27 +99,27 @@ namespace Gecode { namespace String { namespace Int {
     }
     // The query string does not occur.
     if (ln == un && un == 0) {
-      if (x0.assigned() && x0.val().size() == 1) {
-        // Removing a single character from all the bases.
-        int c = x0.val()[0];
-//        DashedString* pdom = x1.pdomain();
-//        bool norm = false;
-//        for (int i = 0; i < pdom->length(); ++i) {
-//          DSBlock& b = pdom->at(i);
-//          if (b.S.contains(c)) {
-//            b.S.remove(home, c);
-//            if (b.l > 0 && b.S.empty())
-//              return ES_FAILED;
-//            norm |= b.S.empty() || (i > 0 && pdom->at(i-1).S == b.S) || 
-//                    (i < pdom->length()-1 && pdom->at(i+1).S == b.S);
-//          }
-//        }
-//        if (norm)
-//          pdom->normalize(home);
-//        assert (pdom->is_normalized());
-//        if (x1.assigned() && x1.val().find(x0.val()))
-//          return ES_FAILED;
-//        return home.ES_SUBSUMED(*this);
+      if (x1.assigned() && x1.max_length() == 1) {
+        // Removing a single character from all the bases of x0.
+        bool norm = false;
+        int c = x1.val()[0];
+        for (int i = 0; i < x0.size(); ++i) {
+          const Block& x_i = x0[i];
+          if (x_i.baseSize() == 1 && x_i.baseMin() == c) {
+            if (x_i.lb() > 0)
+              return ES_FAILED;
+            x0.nullifyAt(home, i);
+            norm = true;
+          }
+          else {
+            x0.baseRemoveAt(home, i, c);
+            norm |= (i > 0 && x0[i-1].baseEquals(x_i)) ||
+                    (i < x0.size()-1 && x0[i+1].baseEquals(x_i));
+          }
+        }
+        if (norm)
+          x0.normalize(home);
+        return home.ES_SUBSUMED(*this);
       }
       return ES_FIX;
     }

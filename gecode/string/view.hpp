@@ -107,6 +107,7 @@ namespace Gecode { namespace String {
     void nullifyAt(Space& home, int i);
     void lbAt(Space& home, int i, int l);
     void ubAt(Space& home, int i, int u);
+    void baseRemoveAt(Space& home, int i, int c);
     void baseIntersectAt(Space& home, int idx, const Set::BndSet& S);
     void baseIntersectAt(Space& home, int idx, const Block& b);
     void updateCardAt(Space& home, int i, int l, int u);

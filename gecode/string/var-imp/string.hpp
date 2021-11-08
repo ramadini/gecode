@@ -318,7 +318,12 @@ namespace Gecode { namespace String {
     ds.ubAt(home, i, u);    
     min_len = std::max(min_len, ds.lb_sum());
     max_len = std::min((long) max_len, ds.ub_sum());
-  }  
+  }
+  forceinline void
+  StringVarImp::baseRemoveAt(Space& home, int i, int c) {
+    ds.baseRemoveAt(home, i, c);
+    max_len = std::min((long) max_len, ds.ub_sum());
+  }
   forceinline void
   StringVarImp::baseIntersectAt(Space& home, int i, const Set::BndSet& S) {
     int m = ds[i].baseSize();
