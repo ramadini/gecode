@@ -75,6 +75,9 @@ namespace Gecode { namespace String { namespace Int {
           return home.ES_SUBSUMED(*this);
         }
       }
+      fixed_comp(home, x0, x1, x2);
+      ln = std::max(ln, x2.min());
+      un = std::min(un, x2.max());
       // FIXME: Check fixed components in an auxiliary function.
 //      string curr = "";
 //      Position start(0,0);
