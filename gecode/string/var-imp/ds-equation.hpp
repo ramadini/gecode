@@ -13,6 +13,8 @@ namespace Gecode { namespace String {
   forceinline int lbound(int) { return 1; }
   forceinline int ubound(const Block& b) { return b.ub(); }
   forceinline int lbound(const Block& b) { return b.lb(); }
+  forceinline int baseMin(int i) { return i; }
+  forceinline int baseMin(const Block& b) { return b.baseMin(); }
   forceinline bool isFixed(const Block& b) { return b.isFixed(); }
   forceinline bool isFixed(int) { return 1; }
   template <class View> forceinline int 

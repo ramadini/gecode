@@ -1,4 +1,5 @@
 #include <gecode/int.hh>
+#include <gecode/string/var-imp/ds-find.hpp>
 
 namespace Gecode { namespace String { namespace Int {
 
@@ -52,23 +53,23 @@ namespace Gecode { namespace String { namespace Int {
     // The query string is known: we check if x0 definitely occurs in x1, and
     // possibly update the index variable.
     if (x1.assigned()) {
-//      std::vector<int> w = x0.val();
+//      std::vector<int> w = x1.val();
       if (uy == 0) {
         GECODE_ME_CHECK(x2.eq(home, 1));
         return home.ES_SUBSUMED(*this);
       }
       if (x0.assigned()) {
-        int i = 0; //FIXME: no need to retrieve the values, int i = find_fixed(x0,x1);
+        int i = find_fixed(x0,x1);
         if (i < ln || i > un)
           return ES_FAILED;
         GECODE_ME_CHECK(x2.eq(home, i));
         return home.ES_SUBSUMED(*this);
       }
-      int n = x0.size();
+      int n;
       std::vector<int> pref = x0.fixed_pref(Position(0,0), Position(n,0), n);
       n = pref.size();
-      if (n > 0 && n >= uy) {
-        int i = 0; //FIXME: find_fixed(ConstStringView(pref,pref.size()), x[1]);
+      if (n >= uy) {
+        int i = find_fixed(ConstStringView(home,&pref[0],pref.size()), x1);
         if (i > 0) {
           GECODE_ME_CHECK(x2.eq(home, i));
           return home.ES_SUBSUMED(*this);
