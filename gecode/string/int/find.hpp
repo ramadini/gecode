@@ -78,39 +78,6 @@ namespace Gecode { namespace String { namespace Int {
       fixed_comp(home, x0, x1, x2);
       ln = std::max(ln, x2.min());
       un = std::min(un, x2.max());
-      // FIXME: Check fixed components in an auxiliary function.
-//      string curr = "";
-//      Position start(0,0);
-//      for (int i = 0; n > 0 && i < p1->length(); ++i) {
-//        const DSBlock& b = p1->at(i);
-//        if (b.S.size() == 1) {
-//          char c = b.S.min();
-//          string t(min(b.l, n), c);
-//          curr += t;
-//          int k = curr.find(s);
-//          if (k != (int) string::npos) {
-//            GECODE_ME_CHECK(x2.gq(home, 1));
-//            if (l == 0)
-//              l = 1;
-//            int ub = start.off + k + 1;
-//            for (int j = 0; j < start.idx && ub < u; ++j)
-//              ub += p1->at(j).u;
-//            GECODE_ME_CHECK(x2.lq(home, ub));
-//            if (u > ub)
-//              u = ub;
-//            break;
-//          }
-//          if (b.u > b.l) {
-//            curr = t;
-//            start = Position({i, b.u - b.l});
-//          }
-//        }
-//        else {
-//          curr = "";
-//          start = Position({i, b.u});
-//        }
-//        n -= b.u;
-//      }
     }
     bool mod = (ln > 0);
     // Target string empty.
