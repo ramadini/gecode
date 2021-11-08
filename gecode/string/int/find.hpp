@@ -151,7 +151,7 @@ namespace Gecode { namespace String { namespace Int {
     
     // General case.
     int ll = ln;
-    //TODO 2: GECODE_ME_CHECK(x1.find(home, x0, l, u, occ));
+    //TODO: GECODE_ME_CHECK(x0.find(home, x1, ln, un, occ));
     GECODE_ME_CHECK(x2.lq(home, un));
     if (occ) {
       // Can modify x and y.
@@ -163,10 +163,13 @@ namespace Gecode { namespace String { namespace Int {
           return home.ES_SUBSUMED(*this);
         }
         if (x2.assigned() && x1.min_length() == x1.max_length()) {
-          int n = x2.val(), m = x0.min_length();
-          assert (n > 0);
-          //TODO 1:  GECODE_ME_CHECK(x1.eq(home, x0.val().substr(n-1, m)));
-          return home.ES_SUBSUMED(*this); 
+          std::vector<int> w0 = x0.val();
+          ConstStringView w1(home, (&w0[0])+x2.val()-1, x1.max_length());
+          if (check_equate_x(x1, w1))
+            x1.gets(home, w1);
+          else
+            return ES_FAILED;
+          return home.ES_SUBSUMED(*this);
         }
       }
     }
