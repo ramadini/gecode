@@ -222,24 +222,38 @@ namespace Gecode { namespace String {
       return ME_STRING_FAILED;  
   }
   
-//  TODO: template <class T>
-//  forceinline ModEvent
-//  StringView::find(Space& home, const T& y, int& l, int& u, bool& occ) {
-//    int lbx = lb_sum(), ubx = ub_sum();
-//    long ubx = y.ub_sum(), uby = y.ub_sum();
-//    if (sweep_find(*this, x, y, l, u, occ)) {
-//      if (n == -1)
-//        return ME_STRING_NONE;      
-//      StringDelta d;
-//      int lbx0 = lb_sum(); long ubx0 = ub_sum();     
-//      if (assigned())
-//        return x->notify(home, ME_STRING_VAL, d);
-//      return x->notify(home, lbs0 > lbs || ubs0 < ubs || size() != s? 
+  template <class T>
+  forceinline ModEvent
+  StringView::find(Space& home, const T& y, int& l, int& u, bool& occ) {
+    int lbx = lb_sum(), lby = y.ub_sum();
+    long ubx = y.ub_sum(), uby = y.ub_sum();
+    if (sweep_find(home, *this, y, l, u, occ)) {
+      ModEvent me0 = ME_STRING_NONE;
+      if (l < 0) {
+        l = -l;
+        // *this modified.
+        StringDelta d;
+        if (assigned())
+          me0 = x->notify(home, ME_STRING_VAL, d);
+//        else
+//          me0 = x->notify(home, lbs0 > lbs || ubs0 < ubs || size() != s? 
 //                             ME_STRING_CARD : ME_STRING_BASE, d);
-//    }
-//    else
-//      return ME_STRING_FAILED;  
-//  }
+      }
+      ModEvent me1 = ME_STRING_NONE;
+      if (u < 0) {
+        u = -u;
+        // y modified
+        StringDelta d;
+        if (y.assigned())
+          me1 = y.x->notify(home, ME_STRING_VAL, d);
+//        else ...
+      }
+      return me0 == ME_STRING_NONE && me1 == ME_STRING_NONE ? me0 : 
+        StringVarImp::me_combine(me0, me1);
+    }
+    else
+      return ME_STRING_FAILED;  
+  }
   
   forceinline void
   StringView::resize(Space& home, Block newBlocks[], int newSize, int U[], 

@@ -1,4 +1,4 @@
-namespace Gecode { namespace String { namespace Int {
+namespace Gecode { namespace String {
 
   template <class ViewX, class ViewY>
   forceinline int
@@ -60,4 +60,11 @@ namespace Gecode { namespace String { namespace Int {
     return ME_STRING_NONE;
   }
 
-}}}
+  template <class ViewX, class ViewY>
+  forceinline bool
+  sweep_find(Space& home, ViewX x, ViewY y, int& l, int& u, bool& occ) {
+    // TODO
+    return true;
+  }
+
+}}

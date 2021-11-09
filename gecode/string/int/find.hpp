@@ -170,7 +170,7 @@ namespace Gecode { namespace String { namespace Int {
     }
     // General case.
     int ll = ln;
-    //TODO: GECODE_ME_CHECK(x0.find(home, x1, ln, un, occ));
+    GECODE_ME_CHECK(x0.find(home, x1, ln, un, occ));
     GECODE_ME_CHECK(x2.lq(home, un));
     if (occ) {
       // Can modify x and y.
