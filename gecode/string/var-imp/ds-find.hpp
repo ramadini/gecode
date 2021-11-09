@@ -73,7 +73,18 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool
   pushESP_find(const ViewX x, ViewY y, Matching m[]) {
-    //TODO
+    bool no_change = false;
+    int ny = y.size();
+    Position start = m[0].ESP;
+    do {      
+      for (int j = 0; j < ny; ++j) {
+        if (!no_change)
+          start = m[j].ESP;
+        SweepFwdIterator<ViewX> it(x, start);
+        m[j].ESP = y.push(j, it);
+        start = *it;
+      }
+    } while (no_change);
     return true;
   }
 
@@ -93,10 +104,10 @@ namespace Gecode { namespace String {
       m[i].ESP = start;
       m[i].LEP = end;
     }
-    if (!pushESP_find(x, y, m))
+    if (!pushESP_find(x,y,m))
       return false;
     if (occ) {
-    
+      
     }
     return true;
   }
