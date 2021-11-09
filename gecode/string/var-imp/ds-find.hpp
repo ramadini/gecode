@@ -126,6 +126,13 @@ namespace Gecode { namespace String {
     return true;
   }
 
+  template <class ViewX, class ViewY>
+  forceinline bool
+  pushLEP_find(const ViewX& x, const ViewY& y, Matching m[]) {
+    // TODO
+    return true;  
+  }
+
   // Sweep-based algorithm for find propagator. It returns true iff !occ OR
   // x can be a substring of y. If !occ and x can't be substring of y, then ub
   // parameter is set to 0, but true is still returned.
@@ -146,6 +153,48 @@ namespace Gecode { namespace String {
       return false;
     if (occ) {
       //TODO
+      if (!pushLEP_find(x, y, m))
+        return false;
+//      uvec upx, upy;
+      bool modx = false, mody = false;
+//      if (!refine_find(h, xblocks, yblocks, m, upx, upy, modx, mody))
+//        return false;
+//      int k = 0;
+//      for (auto u : upx) {
+//        const NSBlocks& us = u.second;
+//        while (u.first == k && 
+//        (us.size() == 0 || (us.size() == 1 && us[0].null()))) {
+//          ++k;
+//        }
+//      }
+//      int n = m.esp[k].off + 1;
+//      for (int i = 0; i < m.esp[k].idx; ++i)
+//        n += y.at(i).l;
+//      if (n > lb)
+//        lb = n;
+//      n = y.at(m.lep[k].idx).u - m.lep[k].off - x.at(k).l + 1;
+//      for (int i = 0; i < m.lep[k].idx; ++i)
+//        n += y.at(i).u;
+//      if (n < ub)
+//        ub = n;
+//      NSIntSet ychars = y.may_chars();
+//      // Nullify incompatible x-blocks.
+//      for (int i = 0; i < x.length(); ++i)
+//        if (ychars.disjoint(x.at(i).S)) {
+//          assert (x.at(i).l == 0);
+//          x.at(i).u = 0;
+//          modx = true;
+//        }
+      if (modx) {
+//        refine_eq(h, x, upx);
+      }
+      else
+        lb = -lb;
+      if (mody) {
+//        refine_eq(h, y, upy);
+      }
+      else
+        ub = -ub;
     }
     return true;
   }
