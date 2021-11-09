@@ -95,6 +95,8 @@ namespace Gecode { namespace String { namespace Int {
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator for \f n = find(x, y) \f$
     static ExecStatus post(Home, View0, View1, Gecode::Int::IntView);
+  private:
+    ExecStatus refine_card(Space& home);
   };
 
 }}}

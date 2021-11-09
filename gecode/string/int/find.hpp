@@ -39,6 +39,24 @@ namespace Gecode { namespace String { namespace Int {
 
   template <class View0, class View1>
   forceinline ExecStatus
+  Find<View0,View1>::refine_card(Space& home) {    
+    // |x0| >= |x1| + x2 - 1.
+    int k = x1.min_length() + x2.min() - 1;    
+    if (x0.min_length() < k)
+      GECODE_ME_CHECK(x0.min_length(home, k));
+    // |x1| <= |x0| - x2 + 1.
+    k = x0.max_length() - x2.min() + 1;
+    if (x1.max_length() > k)
+      GECODE_ME_CHECK(x1.max_length(home, k));
+    // x2 <= |x0| - |x1| + 1;
+    k = x0.max_length() - x1.min_length() + 1;
+    if (x2.max() > k)
+      GECODE_ME_CHECK(x2.lq(home, k));
+    return ES_OK;
+  }
+
+  template <class View0, class View1>
+  forceinline ExecStatus
   Find<View0,View1>::propagate(Space& home, const ModEventDelta&) {
     int lx = x0.min_length(), ly = x1.min_length(),
         ux = x0.max_length(), uy = x1.max_length();
@@ -49,6 +67,8 @@ namespace Gecode { namespace String { namespace Int {
     if (ux < x2.min())
       return ES_FAILED;
     GECODE_ME_CHECK(x2.lq(home, std::max(0, ux-ly+1)));
+    if (x2.min() > 0)
+      refine_card(home);
     int ln = x2.min(), un = x2.max();
     // The query string is known: we check if x0 definitely occurs in x1, and
     // possibly update the index variable.
@@ -148,7 +168,6 @@ namespace Gecode { namespace String { namespace Int {
       ++i;
       ln = i.val();
     }
-    
     // General case.
     int ll = ln;
     //TODO: GECODE_ME_CHECK(x0.find(home, x1, ln, un, occ));
@@ -156,6 +175,7 @@ namespace Gecode { namespace String { namespace Int {
     if (occ) {
       // Can modify x and y.
       GECODE_ME_CHECK(x2.gq(home, ln));
+      refine_card(home);
       if (x0.assigned()) {
         if (x1.assigned()) {
           int n = find_fixed(x0,x1);
