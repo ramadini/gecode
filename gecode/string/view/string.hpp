@@ -225,7 +225,7 @@ namespace Gecode { namespace String {
   template <class T>
   forceinline ModEvent
   StringView::find(Space& home, const T& y, int& l, int& u, bool& occ) {
-    int lbx = lb_sum(), lby = y.ub_sum();
+    int lbx = lb_sum(), lby = y.ub_sum(), sx = size(), sy = y.size();
     long ubx = y.ub_sum(), uby = y.ub_sum();
     if (sweep_find(home, *this, y, l, u, occ)) {
       ModEvent me0 = ME_STRING_NONE;
@@ -235,18 +235,22 @@ namespace Gecode { namespace String {
         StringDelta d;
         if (assigned())
           me0 = x->notify(home, ME_STRING_VAL, d);
-//        else
-//          me0 = x->notify(home, lbs0 > lbs || ubs0 < ubs || size() != s? 
-//                             ME_STRING_CARD : ME_STRING_BASE, d);
+        else if (lb_sum() > lbx || ub_sum() < ubx || size() != sx)
+          me0 = x->notify(home, ME_STRING_CARD, d);
+        else
+          me0 = x->notify(home, ME_STRING_BASE, d);
       }
       ModEvent me1 = ME_STRING_NONE;
       if (u < 0) {
         u = -u;
         // y modified
         StringDelta d;
-        if (y.assigned())
+        if (assigned())
           me1 = y.x->notify(home, ME_STRING_VAL, d);
-//        else ...
+        else if (y.lb_sum() > lby || y.ub_sum() < uby || y.size() != sy)          
+          me1 = y.x->notify(home, ME_STRING_CARD, d);
+        else
+          me1 = y.x->notify(home, ME_STRING_BASE, d);
       }
       return me0 == ME_STRING_NONE && me1 == ME_STRING_NONE ? me0 : 
         StringVarImp::me_combine(me0, me1);
