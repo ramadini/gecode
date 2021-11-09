@@ -60,11 +60,23 @@ namespace Gecode { namespace String {
     return ME_STRING_NONE;
   }
 
+  // Sweep-based algorithm for find propagator. It returns true iff lb == 0 OR 
+  // x can be a substring of y. If lb = 0 and x can't be substring of y, then ub
+  // parameter is set to 0, but true is still returned. 
+  // If x is not modified, then lb is set to -lb.
+  // If y is not modified, then ub is set to -ub.
   template <class ViewX, class ViewY>
   forceinline bool
-  sweep_find(Space& home, ViewX x, ViewY y, int& l, int& u, bool& occ) {
+  sweep_find(ViewX x, ViewY y, int& lb, int& ub) {
+    assert (lb >= 0 && ub >= 0);
     // TODO
     return true;
   }
 
 }}
+
+
+
+
+
+

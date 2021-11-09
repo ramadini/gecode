@@ -224,36 +224,40 @@ namespace Gecode { namespace String {
   
   template <class T>
   forceinline ModEvent
-  StringView::find(Space& home, const T& y, int& l, int& u, bool& occ) {
+  StringView::find(Space& home, const T& y, Int::IntView n) {
     int lbx = lb_sum(), lby = y.ub_sum(), sx = size(), sy = y.size();
     long ubx = y.ub_sum(), uby = y.ub_sum();
-    if (sweep_find(home, *this, y, l, u, occ)) {
-      ModEvent me0 = ME_STRING_NONE;
+    int l = n.min(), u = n.max();
+    if (sweep_find(*this, y, l, u)) {
+      ModEvent me = n.gq(home, l);
+      GECODE_ME_CHECK(me);
+      me = StringVarImp::me_combine(me, n.lq(home, u));
+      GECODE_ME_CHECK(me);
       if (l < 0) {
         l = -l;
         // *this modified.
         StringDelta d;
         if (assigned())
-          me0 = x->notify(home, ME_STRING_VAL, d);
+          me = StringVarImp::me_combine(me, x->notify(home, ME_STRING_VAL, d));
         else if (lb_sum() > lbx || ub_sum() < ubx || size() != sx)
-          me0 = x->notify(home, ME_STRING_CARD, d);
+          me = StringVarImp::me_combine(me, x->notify(home, ME_STRING_CARD, d));
         else
-          me0 = x->notify(home, ME_STRING_BASE, d);
+          me = StringVarImp::me_combine(me, x->notify(home, ME_STRING_BASE, d));
+        GECODE_ME_CHECK(me);
       }
-      ModEvent me1 = ME_STRING_NONE;
       if (u < 0) {
         u = -u;
         // y modified
         StringDelta d;
         if (assigned())
-          me1 = y.x->notify(home, ME_STRING_VAL, d);
+          me = StringVarImp::me_combine(me, y.x->notify(home, ME_STRING_VAL,d));
         else if (y.lb_sum() > lby || y.ub_sum() < uby || y.size() != sy)          
-          me1 = y.x->notify(home, ME_STRING_CARD, d);
+          me = StringVarImp::me_combine(me, y.x->notify(home, ME_STRING_CARD,d));
         else
-          me1 = y.x->notify(home, ME_STRING_BASE, d);
+          me = StringVarImp::me_combine(me, y.x->notify(home, ME_STRING_BASE,d));
+        GECODE_ME_CHECK(me);
       }
-      return me0 == ME_STRING_NONE && me1 == ME_STRING_NONE ? me0 : 
-        StringVarImp::me_combine(me0, me1);
+      return me;
     }
     else
       return ME_STRING_FAILED;  
