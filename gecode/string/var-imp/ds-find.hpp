@@ -60,19 +60,30 @@ namespace Gecode { namespace String {
     return ME_STRING_NONE;
   }
 
-  // Returns the minimum position p s.t. x[:p] has at least idx characters.
+  // Auxiliary functions for find(x,y).
   template <class View>
   forceinline Position
   idx2pos(const View& x, int idx) {
     int i = 0, j = idx-1, n = x.size();
     while (i < n && j >= x[i].ub())
       j -= x[i++].ub();
+    assert (Position(i,j).isNorm(x));
     return Position(i,j);
   }
+  template <class View>
+  forceinline int
+  pos2idx(const View& x, const Position& p) {
+    assert (p.isNorm(x));
+    int idx = 1;
+    for (int i = 0; i < p.idx; ++i)
+      idx += x[i].lb();
+    return ubounded_sum(idx, p.off);
+  }
   
+  // Pushing the earliest start position of each y-block in x for find(x,y).
   template <class ViewX, class ViewY>
   forceinline bool
-  pushESP_find(const ViewX x, ViewY y, Matching m[]) {
+  pushESP_find(const ViewX x, ViewY y, Matching m[], int& l, int& u, bool occ) {
     bool no_change = false;
     int ny = y.size();
     Position start = m[0].ESP;
@@ -80,11 +91,38 @@ namespace Gecode { namespace String {
       for (int j = 0; j < ny; ++j) {
         if (!no_change)
           start = m[j].ESP;
-        SweepFwdIterator<ViewX> it(x, start);
-        m[j].ESP = y.push(j, it);
-        start = *it;
+        SweepFwdIterator<ViewX> fwd_it(x, start);
+        m[j].ESP = y.push(j, fwd_it);
+        start = *fwd_it;
+      }
+      // y can't fit in x.
+      if (x.equiv(start, Position(x.size(),0))) {
+        if (occ)
+          return false;
+        if (u > 0)
+          u = 0;
+        return true;
+      }
+      no_change = false;
+      for (int j=ny-1; j >= 0; --j) {
+        SweepBwdIterator<ViewX> bwd_it = x.bwd_iterator();
+        y.stretch(j, bwd_it);
+        start = *bwd_it;
+        if (x.prec(m[j].ESP, start)) {
+          m[j].ESP = start;
+          no_change = true;
+        }
       }
     } while (no_change);
+    // Possibly refining lb and ub (converting from position to index).
+    l = std::max(l, pos2idx(x, start));
+    if (l > u) {
+      if (occ)
+        return false;
+      if (u > 0)
+        u = 0;
+      return true;
+    }
     return true;
   }
 
@@ -104,10 +142,10 @@ namespace Gecode { namespace String {
       m[i].ESP = start;
       m[i].LEP = end;
     }
-    if (!pushESP_find(x,y,m))
+    if (!pushESP_find(x ,y, m, lb, ub, occ))
       return false;
     if (occ) {
-      
+      //TODO
     }
     return true;
   }
