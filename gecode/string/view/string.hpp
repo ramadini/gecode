@@ -222,6 +222,25 @@ namespace Gecode { namespace String {
       return ME_STRING_FAILED;  
   }
   
+//  TODO: template <class T>
+//  forceinline ModEvent
+//  StringView::find(Space& home, const T& y, int& l, int& u, bool& occ) {
+//    int lbx = lb_sum(), ubx = ub_sum();
+//    long ubx = y.ub_sum(), uby = y.ub_sum();
+//    if (sweep_find(*this, x, y, l, u, occ)) {
+//      if (n == -1)
+//        return ME_STRING_NONE;      
+//      StringDelta d;
+//      int lbx0 = lb_sum(); long ubx0 = ub_sum();     
+//      if (assigned())
+//        return x->notify(home, ME_STRING_VAL, d);
+//      return x->notify(home, lbs0 > lbs || ubs0 < ubs || size() != s? 
+//                             ME_STRING_CARD : ME_STRING_BASE, d);
+//    }
+//    else
+//      return ME_STRING_FAILED;  
+//  }
+  
   forceinline void
   StringView::resize(Space& home, Block newBlocks[], int newSize, int U[], 
                                                                   int uSize) {

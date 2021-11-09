@@ -105,28 +105,33 @@ namespace Gecode { namespace String {
     long ubs0 = x0.ub_sum(), ubs1 = x1.ub_sum();
     Matching m[size()];
     int n, k;
-    if (sweep_x(*this, y, m, k, n) && refine_x(home, *this, y, m, k, n)) {
-      if (n == -1)
-        return ME_STRING_NONE;
-      StringDelta d;
-      ModEvent me0 = ME_STRING_NONE;
-      if (!a0 && x0.assigned())
-        me0 = x0.varimp()->notify(home, ME_STRING_VAL, d);
-      else if (x0.lb_sum() > lbs0 || x0.ub_sum() < ubs0 || size() != n0)
-        me0 = x0.varimp()->notify(home, ME_STRING_CARD, d);
-      ModEvent me1 = ME_STRING_NONE;
-      if (!a1 && x1.assigned())
-        me1 = x1.varimp()->notify(home, ME_STRING_VAL, d);
-      else if (x1.lb_sum() > lbs1 || x1.ub_sum() < ubs1 || size() != n1)
-        me1 = x1.varimp()->notify(home, ME_STRING_CARD, d);
-      if (me0 == ME_STRING_VAL)
-        return me1 == ME_STRING_VAL ? me0 : ME_STRING_CARD;
-      if (me1 == ME_STRING_VAL)
-        return me0 == ME_STRING_VAL ? me1 : ME_STRING_CARD;
-      return StringVarImp::me_combine(me0, me1);
-    }
-    else
-      return ME_STRING_FAILED;  
+    do {
+      if (sweep_x(*this, y, m, k, n) && refine_x(home, *this, y, m, k, n)) {
+        if (n == -1)
+          return ME_STRING_NONE;
+        StringDelta d;
+        ModEvent me0 = ME_STRING_NONE;
+        if (!a0 && x0.assigned())
+          me0 = x0.varimp()->notify(home, ME_STRING_VAL, d);
+        else if (x0.lb_sum() > lbs0 || x0.ub_sum() < ubs0 || x0.size() != n0)
+          me0 = x0.varimp()->notify(home, ME_STRING_CARD, d);
+        ModEvent me1 = ME_STRING_NONE;
+        if (!a1 && x1.assigned())
+          me1 = x1.varimp()->notify(home, ME_STRING_VAL, d);
+        else if (x1.lb_sum() > lbs1 || x1.ub_sum() < ubs1 || x1.size() != n1)
+          me1 = x1.varimp()->notify(home, ME_STRING_CARD, d);
+        if (me0 == ME_STRING_VAL)
+          return me1 == ME_STRING_VAL ? me0 : ME_STRING_CARD;
+        if (me1 == ME_STRING_VAL)
+          return me0 == ME_STRING_VAL ? me1 : ME_STRING_CARD;
+        if (me0 != ME_STRING_NONE || me1 != ME_STRING_NONE)
+          return StringVarImp::me_combine(me0, me1);
+        // FIXME: Corner case: at this stage there has been a modification, but 
+        // we don't know where exactly. So we enforce another round of equation.
+      }
+      else
+        return ME_STRING_FAILED;
+    } while (true);
   }
   
   template <class IterY>
