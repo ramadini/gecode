@@ -170,7 +170,7 @@ namespace Gecode { namespace String { namespace Int {
     }
     // General case.
     int ll = ln;
-    GECODE_ME_CHECK(x0.find(home, x1, x2));
+    GECODE_ME_CHECK(x0.find(home, x1, ln, un, occ));
     GECODE_ME_CHECK(x2.lq(home, un));
     if (occ) {
       // Can modify x and y.
@@ -195,6 +195,8 @@ namespace Gecode { namespace String { namespace Int {
     }
     else {
       // Can't modify neither x nor y.
+      if (un == 0)
+        GECODE_ME_CHECK(x2.eq(home, 0));
       if (ln > ll) {
         IntSet s(ll,ln-1);
         IntSetRanges is(s);

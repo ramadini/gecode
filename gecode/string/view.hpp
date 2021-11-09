@@ -89,7 +89,8 @@ namespace Gecode { namespace String {
     template <class T> bool contains(const T& y) const;
     
     template <class T> ModEvent equate(Space& home, const T& y);
-    template <class T> ModEvent find(Space& home, const T& y, Int::IntView n);
+    template <class T> ModEvent find(Space& home, const T& y, int& ln, int& un,
+                                                                      bool occ);
     ModEvent nullify(Space& home);
     ModEvent bnd_length(Space& home, int l, int u);
     ModEvent min_length(Space& home, int l);

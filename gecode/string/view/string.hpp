@@ -224,38 +224,32 @@ namespace Gecode { namespace String {
   
   template <class T>
   forceinline ModEvent
-  StringView::find(Space& home, const T& y, Int::IntView n) {
+  StringView::find(Space& home, const T& y, int& lb, int& ub, bool occ) {
     int lbx = lb_sum(), lby = y.ub_sum(), sx = size(), sy = y.size();
     long ubx = y.ub_sum(), uby = y.ub_sum();
-    int l = n.min(), u = n.max();
-    if (sweep_find(*this, y, l, u)) {
-      ModEvent me = n.gq(home, l);
-      GECODE_ME_CHECK(me);
-      me = StringVarImp::me_combine(me, n.lq(home, u));
-      GECODE_ME_CHECK(me);
-      if (l < 0) {
-        l = -l;
+    if (sweep_find(*this, y, lb, ub, occ)) {
+      ModEvent me = ME_STRING_NONE;
+      if (lb < 0) {
+        lb = -lb;
         // *this modified.
         StringDelta d;
         if (assigned())
-          me = StringVarImp::me_combine(me, x->notify(home, ME_STRING_VAL, d));
+          me = x->notify(home, ME_STRING_VAL, d);
         else if (lb_sum() > lbx || ub_sum() < ubx || size() != sx)
-          me = StringVarImp::me_combine(me, x->notify(home, ME_STRING_CARD, d));
+          me = x->notify(home, ME_STRING_CARD, d);
         else
-          me = StringVarImp::me_combine(me, x->notify(home, ME_STRING_BASE, d));
-        GECODE_ME_CHECK(me);
+          me = x->notify(home, ME_STRING_BASE, d);
       }
-      if (u < 0) {
-        u = -u;
+      if (ub < 0) {
+        ub = -ub;
         // y modified
         StringDelta d;
         if (assigned())
-          me = StringVarImp::me_combine(me, y.x->notify(home, ME_STRING_VAL,d));
+          me = StringVarImp::me_combine(me,y.x->notify(home, ME_STRING_VAL,d));
         else if (y.lb_sum() > lby || y.ub_sum() < uby || y.size() != sy)          
-          me = StringVarImp::me_combine(me, y.x->notify(home, ME_STRING_CARD,d));
+          me = StringVarImp::me_combine(me,y.x->notify(home, ME_STRING_CARD,d));
         else
-          me = StringVarImp::me_combine(me, y.x->notify(home, ME_STRING_BASE,d));
-        GECODE_ME_CHECK(me);
+          me = StringVarImp::me_combine(me,y.x->notify(home, ME_STRING_BASE,d));
       }
       return me;
     }
