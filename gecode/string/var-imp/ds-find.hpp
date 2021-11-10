@@ -104,7 +104,7 @@ namespace Gecode { namespace String {
         return true;
       }
       no_change = false;
-      for (int j=ny-1; j >= 0; --j) {
+      for (int j = ny-1; j >= 0; --j) {
         SweepBwdIterator<ViewX> bwd_it = x.bwd_iterator();
         y.stretch(j, bwd_it);
         start = *bwd_it;
@@ -129,8 +129,34 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool
   pushLEP_find(const ViewX& x, const ViewY& y, Matching m[]) {
-    // TODO
-    return true;  
+    bool no_change = false;
+    int ny = y.size();
+    Position start = m[ny-1].LEP;
+    do {      
+      for (int j = ny-1; j >= 0; --j) {
+        if (!no_change)
+          start = m[j].ESP;
+        SweepBwdIterator<ViewX> bwd_it(x, start);
+        m[j].LEP = y.push(j, bwd_it);
+        start = *bwd_it;
+        if (x.equiv(start, m[j].ESP))
+          // Prefix cannot fit.
+          return false;
+      }
+      no_change = false;
+      for (int j = 0; j < ny; ++j) {
+        SweepFwdIterator<ViewX> fwd_it = x.fwd_iterator();
+        y.stretch(j, fwd_it);
+        start = *fwd_it;
+        if (x.prec(start, m[j].LEP)) {
+          // There is a gap between the latest end position of y[j] and the 
+          // position of the maximum forward stretch for its latest start.
+          m[j].LEP = start;
+          no_change = false;
+        }
+      }
+    } while (no_change);
+    return true;
   }
 
   // Sweep-based algorithm for find propagator. It returns true iff !occ OR
@@ -157,7 +183,7 @@ namespace Gecode { namespace String {
         return false;
 //      uvec upx, upy;
       bool modx = false, mody = false;
-//      if (!refine_find(h, xblocks, yblocks, m, upx, upy, modx, mody))
+//      if (!refine_find(h, x, y, m, upx, upy, modx, mody))
 //        return false;
 //      int k = 0;
 //      for (auto u : upx) {
