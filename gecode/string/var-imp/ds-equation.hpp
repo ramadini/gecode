@@ -181,33 +181,32 @@ namespace Gecode { namespace String {
         U[uSize++] = zp/2 + zs/2 + 1;
         continue;
       }
-      const Block& xx_i = x[i];
       assert (l1 > 0);
       int n = y.max_new_blocks(m[i]);
       assert (n > 0);
       if (n == 1) {
         nBlocks--;
         ux -= 2;
-        // No need to unfold xx_i.
-        n = xx_i.baseSize();
+        // No need to unfold x_i.
+        n = x_i.baseSize();
         y.mand_region(home, x, i, lsp, eep);
-        changed |= l < xx_i.lb() || u > xx_i.ub() || n > xx_i.baseSize();
-//        std::cerr << "2) x[" << i << "] ref. into " << xx_i << "\n";
+        changed |= l < x_i.lb() || u > x_i.ub() || n > x_i.baseSize();
+//        std::cerr << "2) x[" << i << "] ref. into " << x_i << "\n";
         continue;
       }
-      l = xx_i.lb(), u = xx_i.ub();
-      // Unfolding xx_i into newBlocks
+      l = x_i.lb(), u = x_i.ub();
+      // Unfolding x_i into newBlocks
       Region r1;
       Block* mreg = r1.alloc<Block>(n);
-//      std::cerr << "Before unfolding: "  << xx_i << ' ' << l1 << '\n';
+//      std::cerr << "Before unfolding: "  << x_i << ' ' << l1 << '\n';
       if (esp == lsp)
-        y.mand_region(home, xx_i, &mreg[0], u1, lsp, eep);
+        y.mand_region(home, x_i, &mreg[0], u1, lsp, eep);
       else {
-        y.opt_region(home, xx_i, mreg[0], esp, lsp, l1);
-        y.mand_region(home, xx_i, &mreg[1], u1, lsp, eep);
+        y.opt_region(home, x_i, mreg[0], esp, lsp, l1);
+        y.mand_region(home, x_i, &mreg[1], u1, lsp, eep);
       }
       if (eep != lep)
-        y.opt_region(home, xx_i, mreg[n-1], eep, lep, l1);
+        y.opt_region(home, x_i, mreg[n-1], eep, lep, l1);
       DashedString d(home, mreg, n);
       if (d.ub_sum() > u1)
         d.max_length(home, u1);
@@ -219,7 +218,7 @@ namespace Gecode { namespace String {
         ux -= 2;
         if (d[0].ub() > u)
           d.ubAt(home, 0, u);
-        if (d[0].equals(xx_i))
+        if (d[0].equals(x_i))
           continue;
         x.updateAt(home, i, d[0]);
         changed = true;

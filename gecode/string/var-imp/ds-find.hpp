@@ -210,12 +210,75 @@ namespace Gecode { namespace String {
         return false;
       assert (l1 <= u1);
       if (l == 0 || l != l1 || u1 > u) {
-        // TODO
-        
+        if (u1 == 0) {
+          y.nullifyAt(home, j);
+          yChanged = true;
+          uy -= 2;
+          continue;
+        }
+        int m = y_j.baseSize();
+        x.crushBase(home, y, j, esp, lep);
+        yChanged |= l < l1 || u > u1 || m > y_j.baseSize();
+        if (l1 == 0 || x[j].baseSize() == 1) {
+          if (l1 > l)
+            y.lbAt(home, j, l1);
+          if (u1 < u)
+            y.ubAt(home, j, u1);
+          uy -= 2;
+          continue;
+        }
+        int np = 0, ns = 0;
+        std::vector<int> vp, vs;
+        if (esp == lsp)
+          vp = x.fixed_pref(lsp, eep, np);
+        if (eep == lep)
+          vs = x.fixed_suff(lsp, eep, ns);
+        np = np < 0 ? -np : np;
+        ns = ns < 0 ? -ns : ns;
+         if (np + ns > l1)
+          return false;
+        assert (vp.size() % 2 == 0 && vs.size() % 2 == 0 && np + ns <= u1);
+        if (np == 0 && ns == 0) {
+          nBlocks--;
+          if (l1 > l)
+            y.lbAt(home, j, l1);
+          if (u1 < u)
+            y.ubAt(home, j, u1);
+          uy -= 2;
+          continue;
+        }
+        assert (x.prec(lsp, eep) && (esp == lsp || eep == lep));
+        if (U == nullptr)
+          U = r.alloc<int>(uy);
+        if (newBlocks == nullptr)
+          newBlocks = r.alloc<Block>(nBlocks);        
+        int zp = vp.size();
+        for (int i = 0; i < zp-1; i += 2)
+          newBlocks[newSize++].update(home, Block(vp[i], vp[i+1]));
+        newBlocks[newSize].update(home, y[j]);
+        newBlocks[newSize++].updateCard(home, std::max(y_j.lb(),l1)-ns-np,
+                                              std::min(long(y_j.ub()),u1)-ns-np);
+        int zs = vs.size();
+        for (int i = zs-1; i > 0; i -= 2)
+          newBlocks[newSize++].update(home, Block(vs[i-1], vs[i]));
+        U[uSize++] = j;
+        U[uSize++] = zp/2 + zs/2 + 1;
         continue;
       }
-      // TODO: expand the block.
-      yChanged = true;
+      const Block& yy_j = y[j];
+      assert (l1 > 0);
+      int n = x.max_new_blocks(m[j]);
+      assert (n > 0);
+      if (n == 1) {
+        nBlocks--;
+        uy -= 2;
+        // No need to unfold xx_i.
+        n = yy_j.baseSize();
+        x.mand_region(home, y, j, lsp, eep);
+        yChanged |= l < yy_j.lb() || u > yy_j.ub() || n > yy_j.baseSize();
+        continue;
+      }
+      l = yy_j.lb(), u = yy_j.ub();
       
 //      long u = 0;  
 //      for (int i = 0; i < p_reg.length(); ++i) {
