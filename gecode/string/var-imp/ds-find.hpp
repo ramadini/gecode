@@ -172,15 +172,15 @@ namespace Gecode { namespace String {
   // Possibly refines x and y for find propagator, knowing that x occurs in y.
   template <class ViewX, class ViewY>
   forceinline bool
-  refine_find_y(Space& home, ViewX& x, ViewY& y, Matching m[], int& yFixed, 
-                                                               int& nBlocks) {
+  refine_find(Space& home, ViewX& x, ViewY& y, int& lb, int& ub, Matching m[], 
+                                               int& yFixed, int& nBlocks) {
     // std::cerr << "refine_find " << x << ' ' << y << '\n';
     bool yChanged = false; 
     int ny = y.size(), uy = 2*(ny-yFixed);
     Region r;
     Block* newBlocks = nullptr;
     int* U = nullptr;
-    int newSize = 0, uSize = 0, nx = 0;
+    int newSize = 0, uSize = 0, nx = 0, idxNotNull = -1;
     // xfit[i] = (j, k) if blocks y[j]y[j+1]...y[k] all fit in x[i].
     std::map<int, std::pair<int,int>> xfit;
     for (int j = 0; j < ny; ++j) {
@@ -213,6 +213,8 @@ namespace Gecode { namespace String {
       if (l == 0 || l != l1 || u1 > u) {
         if (u1 == 0) {
           y.nullifyAt(home, j);
+          if (idxNotNull == j-1)
+            idxNotNull = j;
           yChanged = true;
           uy -= 2;
           continue;
@@ -322,13 +324,8 @@ namespace Gecode { namespace String {
       y.resize(home, newBlocks, newSize, U, uSize);
       yChanged = true;
     }
-    else if (yChanged)
-      x.normalize(home);
-    else
-      nBlocks = -1;
       
     // Possibly refining x.
-    yChanged = false;
     bool xChanged = false;
     int ux = 2*nx;
     r.free(U, uSize);
@@ -359,7 +356,9 @@ namespace Gecode { namespace String {
           }
           else {
             y.nullifyAt(home, j);
-            yChanged = false;
+            if (idxNotNull == j-1)
+              idxNotNull = j;
+            yChanged = true;
           }
         }        
         DashedString dx(home, vx, k);
@@ -388,42 +387,44 @@ namespace Gecode { namespace String {
         }
       }
     }
-    if (yChanged) {
-      y.normalize(home);
-      nBlocks = -1;
-    }
-    if (xChanged) {
-      x.resize(home, newBlocks, newSize, U, uSize);
-      yFixed = -1;
+    
+    // Possibly refining lower and upper bounds of the index variable.
+    int n = m[idxNotNull].ESP.off + 1;
+    for (int i = 0; i < m[idxNotNull].ESP.idx; ++i)
+      n += x[i].lb();
+    if (n > lb)
+      lb = n;
+    n = x[m[idxNotNull].LEP.idx].ub() 
+        - m[idxNotNull].LEP.off - y[idxNotNull].lb() + 1;
+    for (int i = 0; i < m[idxNotNull].LEP.idx; ++i)
+      n += x[i].ub();
+    if (n < ub)
+      ub = n;
+    // Nullify incompatible x-blocks. FIXME: Is this redundant?
+    Set::GLBndSet s;
+    for (int i = 0; i < x.size(); ++i)
+      x[i].includeBaseIn(home, s);
+    const Block& xchars = Block(home, CharSet(home, s));
+    for (int j = 0; j < y.size(); ++j) {
+      if (y[j].baseDisjoint(xchars)) {
+        assert (y[j].lb() == 0);
+        y.nullifyAt(home, j);
+        yChanged = true;
+      }
     }
     
-    // Possibly refining lb and ub.
-//      int k = 0;
-//      for (auto u : upx) {
-//        const NSBlocks& us = u.second;
-//        while (u.first == k && 
-//        (us.size() == 0 || (us.size() == 1 && us[0].null()))) {
-//          ++k;
-//        }
-//      }
-//      int n = m.esp[k].off + 1;
-//      for (int i = 0; i < m.esp[k].idx; ++i)
-//        n += y[i].l;
-//      if (n > lb)
-//        lb = n;
-//      n = y.at(m.lep[k].idx).u - m.lep[k].off - x.at(k).l + 1;
-//      for (int i = 0; i < m.lep[k].idx; ++i)
-//        n += y[i].u;
-//      if (n < ub)
-//        ub = n;
-//      NSIntSet ychars = y.may_chars();
-//      // Nullify incompatible x-blocks.
-//      for (int i = 0; i < x.length(); ++i)
-//        if (ychars.disjoint(x[i].S)) {
-//          assert (x[i].l == 0);
-//          x[i].u = 0;
-//          modx = true;
-//        }
+    if (newSize > 0)
+      x.resize(home, newBlocks, newSize, U, uSize);
+    else if (xChanged)
+      x.normalize(home);
+    else
+      // x not modified.
+      yFixed = -1;
+    if (yChanged)
+      y.normalize(home);
+    else
+      // y not modified.
+      nBlocks = -1;
     return true;
   }
 
@@ -449,7 +450,7 @@ namespace Gecode { namespace String {
       int yFixed = 0, nBlocks = 0;
       if (!pushLEP_find(x, y, m, yFixed, nBlocks))
         return false;
-      if (!refine_find_y(home, x, y, m, yFixed, nBlocks))
+      if (!refine_find(home, x, y, lb, ub, m, yFixed, nBlocks))
         return false;
       if (yFixed == -1)
         lb = -lb;
