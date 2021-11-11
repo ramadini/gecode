@@ -130,7 +130,8 @@ namespace Gecode { namespace String {
 
   template <class ViewX, class ViewY>
   forceinline bool
-  pushLEP_find(const ViewX& x, const ViewY& y, Matching m[]) {
+  pushLEP_find(const ViewX& x, const ViewY& y, Matching m[], int& yFixed, 
+                                                             int& nBlocks) {
     bool no_change = false;
     int ny = y.size();
     Position start = m[ny-1].LEP;
@@ -146,6 +147,7 @@ namespace Gecode { namespace String {
           return false;
       }
       no_change = false;
+      yFixed = 0, nBlocks = 0;
       for (int j = 0; j < ny; ++j) {
         SweepFwdIterator<ViewX> fwd_it = x.fwd_iterator();
         y.stretch(j, fwd_it);
@@ -158,6 +160,10 @@ namespace Gecode { namespace String {
         }
         if (x.prec(m[j].LEP, m[j].ESP))
           return false;
+        if (y[j].isFixed())
+          yFixed++;
+        else
+          nBlocks += x.max_new_blocks(m[j]);
       }
     } while (no_change);
     return true;
@@ -166,9 +172,15 @@ namespace Gecode { namespace String {
   // Possibly refines x and y for find propagator, knowing that x occurs in y.
   template <class ViewX, class ViewY>
   forceinline bool
-  refine_find(Space& home, ViewX& x, ViewY& y, Matching m[]) {
+  refine_find(Space& home, ViewX& x, ViewY& y, int& lb, int& ub, Matching m[],
+                                               int& yFixed, int& nBlocks) {
     // std::cerr << "refine_find " << x << ' ' << y << '\n';
-    int ny = y.size();
+    bool xChanged = false, yChanged = false; 
+    int ny = y.size(), uy = 2*(ny-yFixed);
+    Region r;
+    Block* newBlocks = nullptr;
+    int* U = nullptr;
+    int newSize = 0, uSize = 0;
     // xfit[i] = (j, k) if blocks y[j]y[j+1]...y[k] all fit in x[i].
     std::map<int, std::pair<int,int>> xfit;
     for (int j = 0; j < ny; ++j) {
@@ -188,6 +200,23 @@ namespace Gecode { namespace String {
       }
       if (y_j.isFixed())
         continue;
+      int l = y_j.lb(), u = y_j.ub(), l1 = min_len_mand(x, y_j, lsp, eep);
+//      std::cerr << "l'=" << l1 << "\n";
+      if (u < l1)
+        return false;
+      long u1 = x.max_len_opt(y_j, esp, lep, l1);
+//      std::cerr << "u'=" << u1 << "\n";
+      if (l > u1)
+        return false;
+      assert (l1 <= u1);
+      if (l == 0 || l != l1 || u1 > u) {
+        // TODO
+        
+        continue;
+      }
+      // TODO: expand the block.
+      yChanged = true;
+      
 //      long u = 0;  
 //      for (int i = 0; i < p_reg.length(); ++i) {
 //        if (xi.S.disjoint(p_set))
@@ -211,7 +240,7 @@ namespace Gecode { namespace String {
 //        upx.push(std::make_pair(i, v));
 //      }
     }
-    // Possibly refining y-blocks.        
+    // Possibly refining x-blocks.        
 //    for (std::map<int, tpl2>::iterator it  = ymatch.begin(); 
 //                                       it != ymatch.end(); ++it) {
 //      int j = it->first;
@@ -250,35 +279,7 @@ namespace Gecode { namespace String {
 //        }
 //      }
 //    }
-    return true;
-  }
 
-  // Sweep-based algorithm for find propagator. It returns true iff !occ OR
-  // x can be a substring of y. If !occ and x can't be substring of y, then ub
-  // parameter is set to 0, but true is still returned.
-  // If x is not modified, then lb is set to -lb. 
-  // If y is not modified, then ub is set to -ub.
-  template <class ViewX, class ViewY>
-  forceinline bool
-  sweep_find(Space& home, ViewX x, ViewY y, int& lb, int& ub, bool occ) {
-    assert (lb >= 0 && ub >= 0);    
-    int ny = y.size();
-    Matching m[ny];
-    Position start = idx2pos(x,lb), end = Position(x.size(),0);
-    for (int i = 0; i < ny; ++i) {
-      m[i].ESP = start;
-      m[i].LEP = end;
-    }
-    if (!pushESP_find(x ,y, m, lb, ub, occ))
-      return false;
-    if (occ) {
-      if (!pushLEP_find(x, y, m))
-        return false;
-//      uvec upx, upy;
-      bool modx = false, mody = false;
-      if (!refine_find(home, x, y, m))
-        return false;
-        //TODO move to refine_find
 //      int k = 0;
 //      for (auto u : upx) {
 //        const NSBlocks& us = u.second;
@@ -305,16 +306,44 @@ namespace Gecode { namespace String {
 //          x.at(i).u = 0;
 //          modx = true;
 //        }
-      if (modx) {
+    if (xChanged) {
 //        refine_eq(h, x, upx);
-      }
-      else
-        lb = -lb;
-      if (mody) {
+    }
+    else
+      lb = -lb;
+    if (yChanged) {
 //        refine_eq(h, y, upy);
-      }
-      else
-        ub = -ub;
+    }
+    else
+      ub = -ub;
+    return true;
+  }
+
+  // Sweep-based algorithm for find propagator. It returns true iff !occ OR
+  // x can be a substring of y. If !occ and x can't be substring of y, then ub
+  // parameter is set to 0, but true is still returned.
+  // If x is not modified, then lb is set to -lb. 
+  // If y is not modified, then ub is set to -ub.
+  template <class ViewX, class ViewY>
+  forceinline bool
+  sweep_find(Space& home, ViewX x, ViewY y, int& lb, int& ub, bool occ) {
+    assert (lb >= 0 && ub >= 0);    
+    int ny = y.size();
+    Matching m[ny];
+    Position start = idx2pos(x,lb), end = Position(x.size(),0);
+    for (int i = 0; i < ny; ++i) {
+      m[i].ESP = start;
+      m[i].LEP = end;
+    }
+    if (!pushESP_find(x ,y, m, lb, ub, occ))
+      return false;
+    if (occ) {
+      int yFixed = 0, nBlocks = 0;
+      if (!pushLEP_find(x, y, m, yFixed, nBlocks))
+        return false;
+      bool modx = false, mody = false;
+      if (!refine_find(home, x, y, lb, ub, m, yFixed, nBlocks))
+        return false;
     }
     return true;
   }
