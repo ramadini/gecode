@@ -58,9 +58,9 @@ namespace Gecode { namespace String { namespace Int {
   template <class View0, class View1>
   forceinline ExecStatus
   Find<View0,View1>::propagate(Space& home, const ModEventDelta&) {
-    int lx = x0.min_length(), ly = x1.min_length(),
-        ux = x0.max_length(), uy = x1.max_length();
-    if (lx > uy) {
+//    std::cerr << this << "::Find::propagate "<<x0<<".find( "<<x1<<" ) = "<<x2<<" \n";
+    int ly = x1.min_length(), ux = x0.max_length(), uy = x1.max_length();
+    if (ux < ly) {
       GECODE_ME_CHECK(x2.eq(home, 0));
       return home.ES_SUBSUMED(*this);
     }
@@ -143,7 +143,7 @@ namespace Gecode { namespace String { namespace Int {
       return ES_FIX;
     }
     if (occ) {
-      //FIXME: Is this redundant?
+      //FIXME: Is this redundant in general? For sure when x0 is top, or S is top...
       Set::GLBndSet s;
       for (int i = 0; i < x0.size(); ++i)
         x0[i].includeBaseIn(home, s);
@@ -155,11 +155,12 @@ namespace Gecode { namespace String { namespace Int {
       if (bp)
         dom[k++].update(home, Block(home, S, ln-1, un-1));
       for (int i = 0; i < x1.size(); ++i)
-        dom[k++].update(home, x1[i]);
+        dom[k++].update(home, x1[i]);      
       if (bs) {
-        int i = x0.min_length()-x1.max_length()-un+1;
+        int i = std::max(0,x0.min_length()-x1.max_length()-un+1);
         dom[k++].update(home, Block(home, S, i, j));
       }
+      std::cerr <<  ConstDashedView(*dom,k) << '\n';
       GECODE_ME_CHECK(x0.equate(home, ConstDashedView(*dom,k)));
     }
     else {
@@ -170,7 +171,9 @@ namespace Gecode { namespace String { namespace Int {
     }
     // General case.
     int ll = ln;
+//    std::cerr<<"Before: "<<x0<<".find( "<<x1<<" ) = "<<ln<<" "<<un<<" ("<<occ<<") \n";
     GECODE_ME_CHECK(x0.find(home, x1, ln, un, occ));
+//    std::cerr<<"After: "<<x0<<".find( "<<x1<<" ) = "<<ln<<" "<<un<<" ("<<occ<<") \n";
     GECODE_ME_CHECK(x2.lq(home, un));
     if (occ) {
       // Can modify x and y.
@@ -203,6 +206,7 @@ namespace Gecode { namespace String { namespace Int {
         GECODE_ME_CHECK(x2.minus_r(home, is));
       }
     }
+//    std::cerr << this << "propagated "<<x0<<".find( "<<x1<<" ) = "<<x2<<" \n";
     return ES_FIX;
   }
 

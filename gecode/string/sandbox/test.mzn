@@ -24,7 +24,7 @@ var string: s;
 
 var int: n = 5;
 var 0..1: b1;
-%var int: a;
+var int: a;
 %var int: b;
 %var int: c;
 var int: i;
@@ -49,9 +49,9 @@ constraint str_sub(t, 3, 4) = "gg";
 
 %constraint str_gcc(z, ["a", "b", "c"], [a, b, c]);
 constraint [x, y, z][i] = "abb";
-%constraint i >= a;
+constraint i >= a;
 constraint str_len(r) > 2;
-%constraint str_contains(r, "]");
+constraint str_contains(r, "]");
 %constraint str_reg(r, "(\(|\[)(\**)(\\|\])");
 %array[1..4, 1..3] of int: delta = [|
 %  2, 0, 3 | 0, 4, 0 | 2, 0, 3 | 2, 0, 3
