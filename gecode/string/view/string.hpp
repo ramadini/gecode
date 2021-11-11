@@ -227,7 +227,7 @@ namespace Gecode { namespace String {
   StringView::find(Space& home, const T& y, int& lb, int& ub, bool occ) {
     int lbx = lb_sum(), lby = y.ub_sum(), sx = size(), sy = y.size();
     long ubx = y.ub_sum(), uby = y.ub_sum();
-    if (sweep_find(*this, y, lb, ub, occ)) {
+    if (sweep_find(home, *this, y, lb, ub, occ)) {
       ModEvent me = ME_STRING_NONE;
       if (lb < 0) {
         lb = -lb;

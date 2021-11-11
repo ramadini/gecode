@@ -1,3 +1,5 @@
+#include <map>
+
 namespace Gecode { namespace String {
 
   template <class ViewX, class ViewY>
@@ -154,8 +156,100 @@ namespace Gecode { namespace String {
           m[j].LEP = start;
           no_change = false;
         }
+        if (x.prec(m[j].LEP, m[j].ESP))
+          return false;
       }
     } while (no_change);
+    return true;
+  }
+  
+  // Possibly refines x and y for find propagator, knowing that x occurs in y.
+  template <class ViewX, class ViewY>
+  forceinline bool
+  refine_find(Space& home, ViewX& x, ViewY& y, Matching m[]) {
+    // std::cerr << "refine_find " << x << ' ' << y << '\n';
+    int ny = y.size();
+    // xfit[i] = (j, k) if blocks y[j]y[j+1]...y[k] all fit in x[i].
+    std::map<int, std::pair<int,int>> xfit;
+    for (int j = 0; j < ny; ++j) {
+      const Block& y_j = y[j];
+      Position& esp = m[j].ESP, eep = m[j].EEP, lsp = m[j].LSP, lep = m[j].LEP;
+      assert (esp.isNorm(x) && lep.isNorm(x));
+      // If the x-block fits all in a single y-block b, we can update b.
+      if (esp.idx == lep.idx && !x[esp.idx].isFixed()) {
+        int i = esp.idx;
+        std::map<int, std::pair<int,int>>::iterator it = xfit.find(i);
+        if (it == xfit.end())
+          xfit[i] = std::pair<int,int>(j,j);
+        else {
+          assert (it->second.second == j-1);
+          it->second.second = j;
+        }
+      }
+      if (y_j.isFixed())
+        continue;
+//      long u = 0;  
+//      for (int i = 0; i < p_reg.length(); ++i) {
+//        if (xi.S.disjoint(p_set))
+//          continue;
+//        // p_reg[i].u - p.reg[i].l + p_l <= xi.u.
+//        u += p_reg[i].u;
+//      }
+//      // std::cerr << p_reg << ' ' << p_l << '\n';
+//      if (xi.l > u)
+//        return false;
+//      modx = true;
+//      if (u == 0) {
+//        upx.push(std::make_pair(i, NSBlocks(1)));
+//        continue;
+//      }
+//      if (xi.l == p_l && u <= xi.u)
+//        upx.push(std::make_pair(i, p_reg));
+//      else {
+//        p_set.intersect(xi.S);
+//        NSBlocks v(1, NSBlock(p_set, xi.l, min(xi.u, u)));
+//        upx.push(std::make_pair(i, v));
+//      }
+    }
+    // Possibly refining y-blocks.        
+//    for (std::map<int, tpl2>::iterator it  = ymatch.begin(); 
+//                                       it != ymatch.end(); ++it) {
+//      int j = it->first;
+//      const DSBlock& y_j = y.at(j);
+//      const tpl2& xreg = it->second;      
+//      int sl = 0;
+//      for (int i = xreg.first; sl <= y_j.u && i <= xreg.second; ++i)
+//        sl += x.at(i).l;
+//      if (sl == y_j.u) {
+//        NSBlocks v;
+//        for (int i = xreg.first; i <= xreg.second; ++i) {
+//          DSBlock& x_i = x.at(i);
+//          assert (x_i.known() || modx);
+//          if (x_i.l > 0) {
+//            NSBlock b = NSBlock(x_i);            
+//            b.u = b.l;
+//            if (x_i.known()) {
+//              assert (y_j.S.in(b.S.min()));
+//              b.S.intersect(y_j.S);
+//            }
+//            else {
+//              x_i.u = b.l;
+//              int n = b.S.size();
+//              b.S.intersect(h, y_j.S);
+//              if (n > b.S.size())
+//                x_i.S.update(h, b.S);
+//            }
+//            v.push_back(b);
+//          }
+//          else
+//            x_i.set_null(h);
+//        }
+//        if (v.logdim() < y_j.logdim()) {
+//          mody = true;
+//          upy.push(std::make_pair(j, v));
+//        }
+//      }
+//    }
     return true;
   }
 
@@ -166,7 +260,7 @@ namespace Gecode { namespace String {
   // If y is not modified, then ub is set to -ub.
   template <class ViewX, class ViewY>
   forceinline bool
-  sweep_find(ViewX x, ViewY y, int& lb, int& ub, bool occ) {
+  sweep_find(Space& home, ViewX x, ViewY y, int& lb, int& ub, bool occ) {
     assert (lb >= 0 && ub >= 0);    
     int ny = y.size();
     Matching m[ny];
@@ -178,13 +272,13 @@ namespace Gecode { namespace String {
     if (!pushESP_find(x ,y, m, lb, ub, occ))
       return false;
     if (occ) {
-      //TODO
       if (!pushLEP_find(x, y, m))
         return false;
 //      uvec upx, upy;
       bool modx = false, mody = false;
-//      if (!refine_find(h, x, y, m, upx, upy, modx, mody))
-//        return false;
+      if (!refine_find(home, x, y, m))
+        return false;
+        //TODO move to refine_find
 //      int k = 0;
 //      for (auto u : upx) {
 //        const NSBlocks& us = u.second;
