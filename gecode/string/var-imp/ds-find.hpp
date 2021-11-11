@@ -180,14 +180,14 @@ namespace Gecode { namespace String {
     Region r;
     Block* newBlocks = nullptr;
     int* U = nullptr;
-    int newSize = 0, uSize = 0;
+    int newSize = 0, uSize = 0, nx = 0;
     // xfit[i] = (j, k) if blocks y[j]y[j+1]...y[k] all fit in x[i].
     std::map<int, std::pair<int,int>> xfit;
     for (int j = 0; j < ny; ++j) {
       const Block& y_j = y[j];
       Position& esp = m[j].ESP, eep = m[j].EEP, lsp = m[j].LSP, lep = m[j].LEP;
       assert (esp.isNorm(x) && lep.isNorm(x));
-      // If the x-block fits all in a single y-block b, we can update b.
+      // If some y-blocks fits all in a single x-block x[i], we will update x[i]
       if (esp.idx == lep.idx && !x[esp.idx].isFixed()) {
         int i = esp.idx;
         std::map<int, std::pair<int,int>>::iterator it = xfit.find(i);
@@ -197,6 +197,7 @@ namespace Gecode { namespace String {
           assert (it->second.second == j-1);
           it->second.second = j;
         }
+        nx++;
       }
       if (y_j.isFixed())
         continue;
@@ -327,46 +328,76 @@ namespace Gecode { namespace String {
       nBlocks = -1;
       
     // Possibly refining x.
-//    for (std::map<int, tpl2>::iterator it  = ymatch.begin(); 
-//                                       it != ymatch.end(); ++it) {
-//      int j = it->first;
-//      const DSBlock& y_j = y.at(j);
-//      const tpl2& xreg = it->second;      
-//      int sl = 0;
-//      for (int i = xreg.first; sl <= y_j.u && i <= xreg.second; ++i)
-//        sl += x.at(i).l;
-//      if (sl == y_j.u) {
-//        NSBlocks v;
-//        for (int i = xreg.first; i <= xreg.second; ++i) {
-//          DSBlock& y_j = x.at(i);
-//          assert (y_j.known() || modx);
-//          if (y_j.l > 0) {
-//            NSBlock b = NSBlock(y_j);            
-//            b.u = b.l;
-//            if (y_j.known()) {
-//              assert (y_j.S.in(b.S.min()));
-//              b.S.intersect(y_j.S);
-//            }
-//            else {
-//              y_j.u = b.l;
-//              int n = b.S.size();
-//              b.S.intersect(h, y_j.S);
-//              if (n > b.S.size())
-//                y_j.S.update(h, b.S);
-//            }
-//            v.push_back(b);
-//          }
-//          else
-//            y_j.set_null(h);
-//        }
-//        if (v.logdim() < y_j.logdim()) {
-//          mody = true;
-//          upy.push(std::make_pair(j, v));
-//        }
-//      }
-//    }
-
-      // Possibly refining lb and ub.
+    yChanged = false;
+    bool xChanged = false;
+    int ux = 2*nx;
+    r.free(U, uSize);
+    r.free(newBlocks, newSize);
+    newSize = 0, uSize = 0;
+    for (std::map<int, std::pair<int,int>>::iterator it = xfit.begin(); 
+                                                     it != xfit.end(); ++it) {      
+      int i = it->first;
+      const Block& x_i = x[i];
+      assert (x_i.isFixed());
+      const std::pair<int,int>& yreg = it->second;      
+      int sl = 0, j0 = yreg.first, j1 = yreg.second;
+      for (int j = j0; sl <= x_i.ub() && j <= j1; ++j)
+        sl += y[j].lb();
+      if (sl == x_i.ub()) {
+        // y[j0]...y[j1] matching region falls within block x[i] and the no. of 
+        // its mandatory chars is equal to x[i].ub(). Hence we can refine x[i].
+        Region r;
+        int k = 0;
+        Block* vx = r.alloc<Block>(j1-j0+1);
+        for (int j = j0; j <= j1; ++j) {
+          const Block& y_j = y[j];
+          int lj = y_j.lb();
+          if (lj > 0) {
+            vx[k++].update(home, y_j);
+            vx[k].baseIntersect(home, x_i);
+            vx[k].updateCard(home, lj, lj);
+          }
+          else {
+            y.nullifyAt(home, j);
+            yChanged = false;
+          }
+        }        
+        DashedString dx(home, vx, k);
+        if (dx.logdim() < x_i.logdim()) {
+          xChanged = true;
+          int n = dx.size();
+          if (n == 1) {
+            nx--;
+            ux -= 2;
+            if (dx[0].ub() > x_i.ub())
+              dx.ubAt(home, 0, x_i.ub());
+            if (dx[0].equals(x_i))
+              continue;
+            x.updateAt(home, i, dx[0]);
+            continue;
+          }
+          if (U == nullptr)
+            U = r.alloc<int>(ux);
+          if (newBlocks == nullptr)
+            newBlocks = r.alloc<Block>(nx);
+          for (int j = 0, k = newSize; j < n; ++j,++k)
+            newBlocks[k].update(home, dx[j]);
+          U[uSize++] = i;
+          U[uSize++] = n;
+          newSize += n;
+        }
+      }
+    }
+    if (yChanged) {
+      y.normalize(home);
+      nBlocks = -1;
+    }
+    if (xChanged) {
+      x.resize(home, newBlocks, newSize, U, uSize);
+      yFixed = -1;
+    }
+    
+    // Possibly refining lb and ub.
 //      int k = 0;
 //      for (auto u : upx) {
 //        const NSBlocks& us = u.second;
@@ -377,20 +408,20 @@ namespace Gecode { namespace String {
 //      }
 //      int n = m.esp[k].off + 1;
 //      for (int i = 0; i < m.esp[k].idx; ++i)
-//        n += y.at(i).l;
+//        n += y[i].l;
 //      if (n > lb)
 //        lb = n;
 //      n = y.at(m.lep[k].idx).u - m.lep[k].off - x.at(k).l + 1;
 //      for (int i = 0; i < m.lep[k].idx; ++i)
-//        n += y.at(i).u;
+//        n += y[i].u;
 //      if (n < ub)
 //        ub = n;
 //      NSIntSet ychars = y.may_chars();
 //      // Nullify incompatible x-blocks.
 //      for (int i = 0; i < x.length(); ++i)
-//        if (ychars.disjoint(x.at(i).S)) {
-//          assert (x.at(i).l == 0);
-//          x.at(i).u = 0;
+//        if (ychars.disjoint(x[i].S)) {
+//          assert (x[i].l == 0);
+//          x[i].u = 0;
 //          modx = true;
 //        }
     return true;
