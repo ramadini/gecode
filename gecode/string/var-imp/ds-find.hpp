@@ -172,10 +172,10 @@ namespace Gecode { namespace String {
   // Possibly refines x and y for find propagator, knowing that x occurs in y.
   template <class ViewX, class ViewY>
   forceinline bool
-  refine_find(Space& home, ViewX& x, ViewY& y, int& lb, int& ub, Matching m[],
-                                               int& yFixed, int& nBlocks) {
+  refine_find_y(Space& home, ViewX& x, ViewY& y, Matching m[], int& yFixed, 
+                                                               int& nBlocks) {
     // std::cerr << "refine_find " << x << ' ' << y << '\n';
-    bool xChanged = false, yChanged = false; 
+    bool yChanged = false; 
     int ny = y.size(), uy = 2*(ny-yFixed);
     Region r;
     Block* newBlocks = nullptr;
@@ -265,45 +265,68 @@ namespace Gecode { namespace String {
         U[uSize++] = zp/2 + zs/2 + 1;
         continue;
       }
-      const Block& yy_j = y[j];
       assert (l1 > 0);
       int n = x.max_new_blocks(m[j]);
       assert (n > 0);
       if (n == 1) {
         nBlocks--;
         uy -= 2;
-        // No need to unfold xx_i.
-        n = yy_j.baseSize();
+        // No need to unfold y_j.
+        n = y_j.baseSize();
         x.mand_region(home, y, j, lsp, eep);
-        yChanged |= l < yy_j.lb() || u > yy_j.ub() || n > yy_j.baseSize();
+        yChanged |= l < y_j.lb() || u > y_j.ub() || n > y_j.baseSize();
         continue;
       }
-      l = yy_j.lb(), u = yy_j.ub();
-      
-//      long u = 0;  
-//      for (int i = 0; i < p_reg.length(); ++i) {
-//        if (xi.S.disjoint(p_set))
-//          continue;
-//        // p_reg[i].u - p.reg[i].l + p_l <= xi.u.
-//        u += p_reg[i].u;
-//      }
-//      // std::cerr << p_reg << ' ' << p_l << '\n';
-//      if (xi.l > u)
-//        return false;
-//      modx = true;
-//      if (u == 0) {
-//        upx.push(std::make_pair(i, NSBlocks(1)));
-//        continue;
-//      }
-//      if (xi.l == p_l && u <= xi.u)
-//        upx.push(std::make_pair(i, p_reg));
-//      else {
-//        p_set.intersect(xi.S);
-//        NSBlocks v(1, NSBlock(p_set, xi.l, min(xi.u, u)));
-//        upx.push(std::make_pair(i, v));
-//      }
+      // Unfolding y_j into newBlocks
+      Region r1;
+      Block* mreg = r1.alloc<Block>(n);
+//      std::cerr << "Before unfolding: "  << y_j << ' ' << l1 << '\n';
+      if (esp == lsp)
+        x.mand_region(home, y_j, &mreg[0], u1, lsp, eep);
+      else {
+        x.opt_region(home, y_j, mreg[0], esp, lsp, l1);
+        x.mand_region(home, y_j, &mreg[1], u1, lsp, eep);
+      }
+      if (eep != lep)
+        x.opt_region(home, y_j, mreg[n-1], eep, lep, l1);
+      DashedString d(home, mreg, n);
+      if (d.ub_sum() > u1)
+        d.max_length(home, u1);
+      r1.free();
+//      std::cerr << "d = " << d << ' ' << n << "\n";
+      n = d.size();
+      if (n == 1) {
+        nBlocks--;
+        uy -= 2;
+        if (d[0].ub() > u)
+          d.ubAt(home, 0, u);
+        if (d[0].equals(y_j))
+          continue;
+        y.updateAt(home, j, d[0]);
+        yChanged = true;
+//        std::cerr << "3) x[" << i << "] ref. into " << d[0] << "\n";
+        continue;
+      }
+      if (U == nullptr)
+        U = r.alloc<int>(uy);
+      if (newBlocks == nullptr)
+        newBlocks = r.alloc<Block>(nBlocks);
+      for (int i = 0, k = newSize; i < n; ++i,++k)
+        newBlocks[k].update(home, d[i]);
+      U[uSize++] = j;
+      U[uSize++] = n;
+      newSize += n;
     }
-    // Possibly refining x-blocks.        
+    if (newSize > 0) {
+      y.resize(home, newBlocks, newSize, U, uSize);
+      yChanged = true;
+    }
+    else if (yChanged)
+      x.normalize(home);
+    else
+      nBlocks = -1;
+      
+    // Possibly refining x.
 //    for (std::map<int, tpl2>::iterator it  = ymatch.begin(); 
 //                                       it != ymatch.end(); ++it) {
 //      int j = it->first;
@@ -315,26 +338,26 @@ namespace Gecode { namespace String {
 //      if (sl == y_j.u) {
 //        NSBlocks v;
 //        for (int i = xreg.first; i <= xreg.second; ++i) {
-//          DSBlock& x_i = x.at(i);
-//          assert (x_i.known() || modx);
-//          if (x_i.l > 0) {
-//            NSBlock b = NSBlock(x_i);            
+//          DSBlock& y_j = x.at(i);
+//          assert (y_j.known() || modx);
+//          if (y_j.l > 0) {
+//            NSBlock b = NSBlock(y_j);            
 //            b.u = b.l;
-//            if (x_i.known()) {
+//            if (y_j.known()) {
 //              assert (y_j.S.in(b.S.min()));
 //              b.S.intersect(y_j.S);
 //            }
 //            else {
-//              x_i.u = b.l;
+//              y_j.u = b.l;
 //              int n = b.S.size();
 //              b.S.intersect(h, y_j.S);
 //              if (n > b.S.size())
-//                x_i.S.update(h, b.S);
+//                y_j.S.update(h, b.S);
 //            }
 //            v.push_back(b);
 //          }
 //          else
-//            x_i.set_null(h);
+//            y_j.set_null(h);
 //        }
 //        if (v.logdim() < y_j.logdim()) {
 //          mody = true;
@@ -343,6 +366,7 @@ namespace Gecode { namespace String {
 //      }
 //    }
 
+      // Possibly refining lb and ub.
 //      int k = 0;
 //      for (auto u : upx) {
 //        const NSBlocks& us = u.second;
@@ -369,16 +393,6 @@ namespace Gecode { namespace String {
 //          x.at(i).u = 0;
 //          modx = true;
 //        }
-    if (xChanged) {
-//        refine_eq(h, x, upx);
-    }
-    else
-      lb = -lb;
-    if (yChanged) {
-//        refine_eq(h, y, upy);
-    }
-    else
-      ub = -ub;
     return true;
   }
 
@@ -404,9 +418,12 @@ namespace Gecode { namespace String {
       int yFixed = 0, nBlocks = 0;
       if (!pushLEP_find(x, y, m, yFixed, nBlocks))
         return false;
-      bool modx = false, mody = false;
-      if (!refine_find(home, x, y, lb, ub, m, yFixed, nBlocks))
+      if (!refine_find_y(home, x, y, m, yFixed, nBlocks))
         return false;
+      if (yFixed == -1)
+        lb = -lb;
+      if (nBlocks == -1)
+        ub = -ub;
     }
     return true;
   }

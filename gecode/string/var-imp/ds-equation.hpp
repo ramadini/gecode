@@ -194,7 +194,6 @@ namespace Gecode { namespace String {
 //        std::cerr << "2) x[" << i << "] ref. into " << x_i << "\n";
         continue;
       }
-      l = x_i.lb(), u = x_i.ub();
       // Unfolding x_i into newBlocks
       Region r1;
       Block* mreg = r1.alloc<Block>(n);
