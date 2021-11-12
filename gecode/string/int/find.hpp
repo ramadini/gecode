@@ -206,7 +206,7 @@ namespace Gecode { namespace String { namespace Int {
         GECODE_ME_CHECK(x2.minus_r(home, is));
       }
     }
-//    std::cerr << this << "propagated "<<x0<<".find( "<<x1<<" ) = "<<x2<<" \n";
+    std::cerr << this << " propagated "<<x0<<".find( "<<x1<<" ) = "<<x2<<" \n";
     return ES_FIX;
   }
 

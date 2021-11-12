@@ -96,7 +96,7 @@ namespace Gecode { namespace String {
         SweepFwdIterator<ViewX> fwd_it(x, start);
         m[j].ESP = y.push(j, fwd_it);
         start = *fwd_it;
-        std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
+//        std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
       }
       // y can't fit in x.
       if (x.equiv(start, Position(x.size(),0))) {
@@ -111,11 +111,11 @@ namespace Gecode { namespace String {
         SweepBwdIterator<ViewX> bwd_it(x,start);
         y.stretch(j, bwd_it);
         start = *bwd_it;
-        std::cerr << "stretched bwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
+//        std::cerr << "stretched bwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
         if (x.prec(m[j].ESP, start)) {
           m[j].ESP = start;
           again = true;
-          std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
+//          std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
         }
       }
     } while (again);
@@ -145,11 +145,11 @@ namespace Gecode { namespace String {
         SweepBwdIterator<ViewX> bwd_it(x, start);
         m[j].LEP = y.push(j, bwd_it);
         start = *bwd_it;
-        std::cerr << "pushed bwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
+//        std::cerr << "pushed bwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
         if (x.equiv(start, m[j].ESP))
           // Prefix cannot fit.
           return false;
-        std::cerr << "LEP of y[" << j << "] = " << y[j] << ": " << m[j].LEP << '\n';
+//        std::cerr << "LEP of y[" << j << "] = " << y[j] << ": " << m[j].LEP << '\n';
       }
       again = false;
       yFixed = 0, nBlocks = 0;
@@ -157,7 +157,7 @@ namespace Gecode { namespace String {
         SweepFwdIterator<ViewX> fwd_it(x,start);
         y.stretch(j, fwd_it);
         start = *fwd_it;
-        std::cerr << "pushed fwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
+//        std::cerr << "pushed fwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
         if (x.prec(start, m[j].LEP)) {
           // There is a gap between the latest end position of y[j] and the 
           // position of the maximum forward stretch for its latest start.
@@ -166,11 +166,17 @@ namespace Gecode { namespace String {
         }
         if (x.prec(m[j].LEP, m[j].ESP))
           return false;
+        m[j].LSP = j > 0 ? m[j-1].EEP : m[0].ESP;
+        if (x.prec(m[j].LSP,m[j].ESP))
+          return false;
+        m[j].EEP = j < ny-1 ? m[j+1].ESP : m[j].LEP;
+        if (x.prec(m[j].LEP,m[j].EEP))
+          return false;
         if (y[j].isFixed())
           yFixed++;
         else
           nBlocks += x.max_new_blocks(m[j]);
-        std::cerr << "LEP of y[" << j << "] = " << y[j] << ": " << m[j].LEP << '\n';
+//        std::cerr << "LEP of y[" << j << "] = " << y[j] << ": " << m[j].LEP << '\n';
       }
     } while (again);
     return true;
@@ -181,7 +187,7 @@ namespace Gecode { namespace String {
   forceinline bool
   refine_find(Space& home, ViewX& x, ViewY& y, int& lb, int& ub, Matching m[], 
                                                int& yFixed, int& nBlocks) {
-    // std::cerr << "refine_find " << x << ' ' << y << '\n';
+    std::cerr << "refine_find " << x << ' ' << y << '\n';
     bool yChanged = false; 
     int ny = y.size(), uy = 2*(ny-yFixed);
     Region r;
@@ -192,10 +198,13 @@ namespace Gecode { namespace String {
     std::map<int, std::pair<int,int>> xfit;
     for (int j = 0; j < ny; ++j) {
       const Block& y_j = y[j];
-      Position& esp = m[j].ESP, eep = m[j].EEP, lsp = m[j].LSP, lep = m[j].LEP;
-      assert (esp.isNorm(x) && lep.isNorm(x));
+      const Position& esp = m[j].ESP, eep = m[j].EEP, 
+                      lsp = m[j].LSP, lep = m[j].LEP;
+//      std::cerr<<"Ref. x[" << j << "] = " << y[j] <<"\tESP: "<<esp<<"\tLSP: "<<lsp <<"\tEEP: "<<eep<<"\tLEP: "<<lep<< "\n";
+      assert (esp.isNorm(x) && lsp.isNorm(x) && eep.isNorm(x) && lep.isNorm(x));
       // If some y-blocks fits all in a single x-block x[i], we will update x[i]
-      if (esp.idx == lep.idx && !x[esp.idx].isFixed()) {
+      if ((esp.idx == lep.idx || (esp.idx == lep.idx-1 && lep.off == 0)) &&
+        !x[esp.idx].isFixed()) {
         int i = esp.idx;
         std::map<int, std::pair<int,int>>::iterator it = xfit.find(i);
         if (it == xfit.end())
@@ -339,10 +348,10 @@ namespace Gecode { namespace String {
     r.free(newBlocks, newSize);
     newSize = 0, uSize = 0;
     for (std::map<int, std::pair<int,int>>::iterator it = xfit.begin(); 
-                                                     it != xfit.end(); ++it) {      
+                                                     it != xfit.end(); ++it) {
       int i = it->first;
       const Block& x_i = x[i];
-      assert (x_i.isFixed());
+      assert (!x_i.isFixed());
       const std::pair<int,int>& yreg = it->second;      
       int sl = 0, j0 = yreg.first, j1 = yreg.second;
       for (int j = j0; sl <= x_i.ub() && j <= j1; ++j)
@@ -394,19 +403,20 @@ namespace Gecode { namespace String {
         }
       }
     }
-    
     // Possibly refining lower and upper bounds of the index variable.
-    int n = m[idxNotNull].ESP.off + 1;
-    for (int i = 0; i < m[idxNotNull].ESP.idx; ++i)
-      n += x[i].lb();
-    if (n > lb)
-      lb = n;
-    n = x[m[idxNotNull].LEP.idx].ub() 
-        - m[idxNotNull].LEP.off - y[idxNotNull].lb() + 1;
-    for (int i = 0; i < m[idxNotNull].LEP.idx; ++i)
-      n += x[i].ub();
-    if (n < ub)
-      ub = n;
+    if (idxNotNull != -1) {
+      int n = m[idxNotNull].ESP.off + 1;
+      for (int i = 0; i < m[idxNotNull].ESP.idx; ++i)
+        n += x[i].lb();
+      if (n > lb)
+        lb = n;
+      n = x[m[idxNotNull].LEP.idx].ub() 
+          - m[idxNotNull].LEP.off - y[idxNotNull].lb() + 1;
+      for (int i = 0; i < m[idxNotNull].LEP.idx; ++i)
+        n += x[i].ub();
+      if (n < ub)
+        ub = n;
+    }
     // Nullify incompatible x-blocks. FIXME: Is this redundant?
     Set::GLBndSet s;
     for (int i = 0; i < x.size(); ++i)
@@ -419,7 +429,7 @@ namespace Gecode { namespace String {
         yChanged = true;
       }
     }
-    
+    // Refining.
     if (newSize > 0)
       x.resize(home, newBlocks, newSize, U, uSize);
     else if (xChanged)
