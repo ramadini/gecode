@@ -7,8 +7,9 @@ namespace Gecode { namespace String {
   find_fixed(ViewX x, ViewY y) {
     int j = 0, k = 0, nx = x.size(), ny = y.size();
     for (int i = 0; i < nx && ny > 0; ) {
+      int lx = lbound(x[i]);
       if (baseMin(x[i]) == baseMin(y[j])) {
-        int lx = lbound(x[i]), ly = ubound(y[j]);
+        int ly = ubound(y[j]);
         if (lx == ly || (lx > ly && (j == 0 || j == ny-1))) {
           ++i;
           ++j;
@@ -18,10 +19,10 @@ namespace Gecode { namespace String {
       }
       ++i;
       j = 0;
-      k = i;
+      k += lx;
       ny = y.size();
     }
-    return ny == 0 ? k : 0;
+    return ny == 0 ? k+1 : 0;
   }
     
     

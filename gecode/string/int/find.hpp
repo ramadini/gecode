@@ -78,10 +78,12 @@ namespace Gecode { namespace String { namespace Int {
         return home.ES_SUBSUMED(*this);
       }
       if (x0.assigned()) {
+      both_assigned:        
         int i = find_fixed(x0,x1);
         if (i < ln || i > un)
           return ES_FAILED;
         GECODE_ME_CHECK(x2.eq(home, i));
+        std::cerr << this << " subsumed: "<<x0<<".find( "<<x1<<" ) = "<<x2<<"\n\n";
         return home.ES_SUBSUMED(*this);
       }
       int n = x0.size();
@@ -91,16 +93,23 @@ namespace Gecode { namespace String { namespace Int {
       Block* pref = r.alloc<Block>(n/2);
       for (int i = 0; i < n-1; i += 2)
         pref[i].update(home, Block(vp[i], vp[i+1]));
+      n /= 2;
       if (n >= uy) {
-        int i = find_fixed(ConstDashedView(*pref,n/2), x1);
+        int i = find_fixed(ConstDashedView(*pref,n), x1);
         if (i > 0) {
           GECODE_ME_CHECK(x2.eq(home, i));
           return home.ES_SUBSUMED(*this);
         }
       }
       fixed_comp(home, x0, x1, x2);
-      ln = std::max(ln, x2.min());
-      un = std::min(un, x2.max());
+      if (ln > x2.min()) {
+        x2.gq(home, ln);
+        ln = x2.min();
+      }
+      if (un < x2.max()) {
+        x2.lq(home, un);
+        un = x2.max();
+      }
     }
     // occ is true iff x1 must occur in x0.
     bool occ = (ln > 0);
@@ -147,10 +156,12 @@ namespace Gecode { namespace String { namespace Int {
       return ES_FIX;
     }
     if (occ) {
-      //FIXME: Is this redundant in general? For sure it is when x0 is top, or S is top...
       Set::GLBndSet s;
-      for (int i = 0; i < x0.size(); ++i)
+      for (int i = 0; i < x0.size(); ++i) {
         x0[i].includeBaseIn(home, s);
+        if (x0[i].isUniverse())
+          goto general;
+      }
       CharSet S(home, s);
       int bp = (un > 1), j = x0.max_length()-x1.min_length()-ln+1, bs = (j > 0);
       Region r;
@@ -164,8 +175,9 @@ namespace Gecode { namespace String { namespace Int {
         int i = std::max(0,x0.min_length()-x1.max_length()-un+1);
         dom[k++].update(home, Block(home, S, i, j));
       }
-//      std::cerr <<  ConstDashedView(*dom,k) << '\n';
       GECODE_ME_CHECK(x0.equate(home, ConstDashedView(*dom,k)));
+      if (x0.assigned() && x1.assigned())
+        goto both_assigned;
     }
     else {
       // ln = min(D(x2) \ {0}).
@@ -173,6 +185,7 @@ namespace Gecode { namespace String { namespace Int {
       ++i;
       ln = i.val();
     }
+  general:
     // General case.
     int ll = ln;
 //    std::cerr<<"Before: "<<x0<<".find( "<<x1<<" ) = "<<ln<<" "<<un<<" ("<<occ<<") \n";
