@@ -371,9 +371,9 @@ namespace Gecode { namespace String {
             const Block& y_j = y[j];
             int lj = y_j.lb();
             if (lj > 0) {
-              vx[k++].update(home, y_j);
+              vx[k].update(home, y_j);
               vx[k].updateCard(home, lj, lj);
-              vx[k].baseIntersect(home, x_i);
+              vx[k++].baseIntersect(home, x_i);
             }
             else {
               y.nullifyAt(home, j);
