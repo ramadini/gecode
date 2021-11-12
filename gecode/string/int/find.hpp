@@ -58,7 +58,7 @@ namespace Gecode { namespace String { namespace Int {
   template <class View0, class View1>
   forceinline ExecStatus
   Find<View0,View1>::propagate(Space& home, const ModEventDelta&) {
-//    std::cerr << this << "::Find::propagate "<<x0<<".find( "<<x1<<" ) = "<<x2<<" \n";
+    std::cerr << this << "::Find::propagate "<<x0<<".find( "<<x1<<" ) = "<<x2<<" \n";
     int ly = x1.min_length(), ux = x0.max_length(), uy = x1.max_length();
     if (ux < ly) {
       GECODE_ME_CHECK(x2.eq(home, 0));
@@ -143,7 +143,7 @@ namespace Gecode { namespace String { namespace Int {
       return ES_FIX;
     }
     if (occ) {
-      //FIXME: Is this redundant in general? For sure when x0 is top, or S is top...
+      //FIXME: Is this redundant in general? For sure it is when x0 is top, or S is top...
       Set::GLBndSet s;
       for (int i = 0; i < x0.size(); ++i)
         x0[i].includeBaseIn(home, s);
@@ -160,7 +160,7 @@ namespace Gecode { namespace String { namespace Int {
         int i = std::max(0,x0.min_length()-x1.max_length()-un+1);
         dom[k++].update(home, Block(home, S, i, j));
       }
-      std::cerr <<  ConstDashedView(*dom,k) << '\n';
+//      std::cerr <<  ConstDashedView(*dom,k) << '\n';
       GECODE_ME_CHECK(x0.equate(home, ConstDashedView(*dom,k)));
     }
     else {

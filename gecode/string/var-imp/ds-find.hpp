@@ -86,16 +86,17 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool
   pushESP_find(const ViewX x, ViewY y, Matching m[], int& l, int& u, bool occ) {
-    bool no_change = false;
+    bool again = false;
     int ny = y.size();
     Position start = m[0].ESP;
     do {      
       for (int j = 0; j < ny; ++j) {
-        if (!no_change)
+        if (again)
           start = m[j].ESP;
         SweepFwdIterator<ViewX> fwd_it(x, start);
         m[j].ESP = y.push(j, fwd_it);
         start = *fwd_it;
+        std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
       }
       // y can't fit in x.
       if (x.equiv(start, Position(x.size(),0))) {
@@ -105,17 +106,19 @@ namespace Gecode { namespace String {
           u = 0;
         return true;
       }
-      no_change = false;
+      again = false;
       for (int j = ny-1; j >= 0; --j) {
-        SweepBwdIterator<ViewX> bwd_it = x.bwd_iterator();
+        SweepBwdIterator<ViewX> bwd_it(x,start);
         y.stretch(j, bwd_it);
         start = *bwd_it;
+        std::cerr << "stretched bwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
         if (x.prec(m[j].ESP, start)) {
           m[j].ESP = start;
-          no_change = true;
+          again = true;
+          std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
         }
       }
-    } while (no_change);
+    } while (again);
     // Possibly refining lb and ub (converting from position to index).
     l = std::max(l, pos2idx(x, start));
     if (l > u) {
@@ -132,31 +135,34 @@ namespace Gecode { namespace String {
   forceinline bool
   pushLEP_find(const ViewX& x, const ViewY& y, Matching m[], int& yFixed, 
                                                              int& nBlocks) {
-    bool no_change = false;
+    bool again = false;
     int ny = y.size();
     Position start = m[ny-1].LEP;
     do {      
       for (int j = ny-1; j >= 0; --j) {
-        if (!no_change)
+        if (again)
           start = m[j].ESP;
         SweepBwdIterator<ViewX> bwd_it(x, start);
         m[j].LEP = y.push(j, bwd_it);
         start = *bwd_it;
+        std::cerr << "pushed bwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
         if (x.equiv(start, m[j].ESP))
           // Prefix cannot fit.
           return false;
+        std::cerr << "LEP of y[" << j << "] = " << y[j] << ": " << m[j].LEP << '\n';
       }
-      no_change = false;
+      again = false;
       yFixed = 0, nBlocks = 0;
       for (int j = 0; j < ny; ++j) {
-        SweepFwdIterator<ViewX> fwd_it = x.fwd_iterator();
+        SweepFwdIterator<ViewX> fwd_it(x,start);
         y.stretch(j, fwd_it);
         start = *fwd_it;
+        std::cerr << "pushed fwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
         if (x.prec(start, m[j].LEP)) {
           // There is a gap between the latest end position of y[j] and the 
           // position of the maximum forward stretch for its latest start.
           m[j].LEP = start;
-          no_change = false;
+          again = true;
         }
         if (x.prec(m[j].LEP, m[j].ESP))
           return false;
@@ -164,8 +170,9 @@ namespace Gecode { namespace String {
           yFixed++;
         else
           nBlocks += x.max_new_blocks(m[j]);
+        std::cerr << "LEP of y[" << j << "] = " << y[j] << ": " << m[j].LEP << '\n';
       }
-    } while (no_change);
+    } while (again);
     return true;
   }
   
@@ -436,6 +443,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool
   sweep_find(Space& home, ViewX x, ViewY y, int& lb, int& ub, bool occ) {
+    std::cerr << "sweep_find "<<x<<".find( "<<y<<" ) = "<<lb<<".."<<ub<<" \n";
     assert (lb >= 0 && ub >= 0);    
     int ny = y.size();
     Matching m[ny];
