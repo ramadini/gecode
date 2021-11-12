@@ -70,13 +70,13 @@ constraint str_len(s) > 1;
 %constraint z3 = str_code2char(str_len(u ++ v));
 %constraint j = str_code_at(z, b);
 %constraint str_reg(r1, "\\\n");
-  %FIXME constraint r2 = "\\"; 
+constraint r2 = "\\"; 
 %constraint str_len(r2) = 1 /\ str_reg(r2, "\\");
   %constraint r3 = "***" /\ str_len(r3) > 2;
 %constraint str_reg(r3, "\**");
 %constraint str_reg(r4, "(\"\"|\")") /\ r4 = "\"";
 %constraint str_reg(r5, "(\(|\[)(\*)(\**)(\\|\])\"");
-  %FIXME constraint str_find("\\", r5) > 0; %FIXME: reverse arguments!
+constraint str_find(r5,"\\") > 0;
 %constraint z4 = str_replace_all("ABBABB1211DDGGD", d ++ d, d) /\ z1 != z4;
 %constraint z5 = str_replace(z4, "BB", z6) /\ z4 < z5;
 %constraint str_replace_last(z1, "G", z6) > z1;

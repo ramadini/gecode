@@ -60,7 +60,7 @@ namespace Gecode { namespace String { namespace Int {
   template <class View0, class View1>
   forceinline ExecStatus
   Find<View0,View1>::propagate(Space& home, const ModEventDelta&) {
-    std::cerr <<"\n"<< this << "::Find::propagate "<<x0<<".find( "<<x1<<" ) = "<<x2<<" \n";
+//    std::cerr <<"\n"<< this << "::Find::propagate "<<x0<<".find( "<<x1<<" ) = "<<x2<<" \n";
     int ly = x1.min_length(), ux = x0.max_length(), uy = x1.max_length();
     if (ux < ly) {
       GECODE_ME_CHECK(x2.eq(home, 0));
@@ -87,7 +87,7 @@ namespace Gecode { namespace String { namespace Int {
         if (i < ln || i > un)
           return ES_FAILED;
         GECODE_ME_CHECK(x2.eq(home, i));
-        std::cerr << this << " subsumed: "<<x0<<".find( "<<x1<<" ) = "<<x2<<"\n\n";
+//        std::cerr << this << " subsumed: "<<x0<<".find( "<<x1<<" ) = "<<x2<<"\n\n";
         return home.ES_SUBSUMED(*this);
       }
       int n = x0.size();
@@ -110,7 +110,6 @@ namespace Gecode { namespace String { namespace Int {
           GECODE_ME_CHECK(x2.minus_r(home, is));
         }
       }
-      std::cerr <<x0<<".find( "<<x1<<" ) = "<<x2<<"\n\n";
       GECODE_ME_CHECK(fixed_comp(home, x0, x1, x2));
       if (ln < x2.min())
         ln = x2.min();
@@ -171,7 +170,7 @@ namespace Gecode { namespace String { namespace Int {
     int ll = ln;
 //    std::cerr<<"Before: "<<x0<<".find( "<<x1<<" ) = "<<ln<<" "<<un<<" ("<<occ<<") \n";
     GECODE_ME_CHECK(x0.find(home, x1, ln, un, occ));
-    std::cerr<<"After: "<<x0<<".find( "<<x1<<" ) = "<<ln<<" "<<un<<" ("<<occ<<") \n";
+//    std::cerr<<"After: "<<x0<<".find( "<<x1<<" ) = "<<ln<<" "<<un<<" ("<<occ<<") \n";
     GECODE_ME_CHECK(x2.lq(home, un));
     if (occ) {
       // Can modify x and y.
@@ -204,7 +203,7 @@ namespace Gecode { namespace String { namespace Int {
         GECODE_ME_CHECK(x2.minus_r(home, is));
       }
     }
-    std::cerr << this << "propagated "<<x0<<".find( "<<x1<<" ) = "<<x2<<"\n";
+//    std::cerr << this << "propagated "<<x0<<".find( "<<x1<<" ) = "<<x2<<"\n";
     return ES_FIX;
   }
 
