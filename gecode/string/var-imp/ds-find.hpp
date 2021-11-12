@@ -5,6 +5,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline int
   find_fixed(ViewX x, ViewY y) {
+    std::cerr << "find_fixed " << x << ".find( " << y << " )\n";
     int j = 0, k = 0, nx = x.size(), ny = y.size();
     for (int i = 0; i < nx && ny > 0; ) {
       int lx = lbound(x[i]);
@@ -29,16 +30,18 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline ModEvent
   fixed_comp(Space& home, ViewX x, ViewY y, Gecode::Int::IntView iv) {
+    std::cerr << "fixed_comp " << x << ".find( " << y << " ) = "<<iv<<"\n";
     Position start(0,0);
     Region r;    
     int n = x.max_length(), nx = x.size(), k = 0;
     Block* curr = r.alloc<Block>(nx);
-    for (int i = 0; n > 0 && i < nx; ++i) {
+    for (int i = iv.min(); n > 0 && i < nx; ++i) {
       const Block& b = x[i];
       if (b.baseSize() == 1) {
         Block t(b.baseMin(), std::min(b.lb(), n));
         curr[k++].update(home, t);
-        int k = find_fixed(ConstDashedView(*curr,k), y);
+        ConstDashedView cv(*curr,k);
+        int k = find_fixed(cv, y);
         if (k > 0) {
           GECODE_ME_CHECK(iv.gq(home,1));
           int ub = start.off + k + 1;
@@ -201,7 +204,7 @@ namespace Gecode { namespace String {
       const Block& y_j = y[j];
       const Position& esp = m[j].ESP, eep = m[j].EEP, 
                       lsp = m[j].LSP, lep = m[j].LEP;
-//      std::cerr<<"Ref. x[" << j << "] = " << y[j] <<"\tESP: "<<esp<<"\tLSP: "<<lsp <<"\tEEP: "<<eep<<"\tLEP: "<<lep<< "\n";
+      std::cerr<<"Ref. y[" << j << "] = " << y[j] <<"\tESP: "<<esp<<"\tLSP: "<<lsp <<"\tEEP: "<<eep<<"\tLEP: "<<lep<< "\n";
       assert (esp.isNorm(x) && lsp.isNorm(x) && eep.isNorm(x) && lep.isNorm(x));
       // If some y-blocks fits all in a single x-block x[i], we will update x[i]
       if ((esp.idx == lep.idx || (esp.idx == lep.idx-1 && lep.off == 0)) &&
@@ -344,63 +347,65 @@ namespace Gecode { namespace String {
       
     // Possibly refining x.
     bool xChanged = false;
-    int ux = 2*nx;
-    r.free(U, uSize);
-    r.free(newBlocks, newSize);
-    newSize = 0, uSize = 0;
-    for (std::map<int, std::pair<int,int>>::iterator it = xfit.begin(); 
-                                                     it != xfit.end(); ++it) {
-      int i = it->first;
-      const Block& x_i = x[i];
-      assert (!x_i.isFixed());
-      const std::pair<int,int>& yreg = it->second;      
-      int sl = 0, j0 = yreg.first, j1 = yreg.second;
-      for (int j = j0; sl <= x_i.ub() && j <= j1; ++j)
-        sl += y[j].lb();
-      if (sl == x_i.ub()) {
-        // y[j0]...y[j1] matching region falls within block x[i] and the no. of 
-        // its mandatory chars is equal to x[i].ub(). Hence we can refine x[i].
-        Region r;
-        int k = 0;
-        Block* vx = r.alloc<Block>(j1-j0+1);
-        for (int j = j0; j <= j1; ++j) {
-          const Block& y_j = y[j];
-          int lj = y_j.lb();
-          if (lj > 0) {
-            vx[k++].update(home, y_j);
-            vx[k].baseIntersect(home, x_i);
-            vx[k].updateCard(home, lj, lj);
-          }
-          else {
-            y.nullifyAt(home, j);
-            if (idxNotNull == j-1)
-              idxNotNull = j;
-            yChanged = true;
-          }
-        }        
-        DashedString dx(home, vx, k);
-        if (dx.logdim() < x_i.logdim()) {
-          xChanged = true;
-          int n = dx.size();
-          if (n == 1) {
-            nx--;
-            ux -= 2;
-            if (dx[0].ub() > x_i.ub())
-              dx.ubAt(home, 0, x_i.ub());
-            if (dx[0].equals(x_i))
+    if (!x.assigned()) {
+      int ux = 2*nx;
+      r.free(U, uSize);
+      r.free(newBlocks, newSize);
+      newSize = 0, uSize = 0;
+      for (std::map<int, std::pair<int,int>>::iterator it = xfit.begin(); 
+                                                       it != xfit.end(); ++it) {
+        int i = it->first;
+        const Block& x_i = x[i];
+        assert (!x_i.isFixed());
+        const std::pair<int,int>& yreg = it->second;      
+        int sl = 0, j0 = yreg.first, j1 = yreg.second;
+        for (int j = j0; sl <= x_i.ub() && j <= j1; ++j)
+          sl += y[j].lb();
+        if (sl == x_i.ub()) {
+          // y[j0]...y[j1] matching region falls within block x[i] and the no. 
+          // of mandatory chars is equal to x[i].ub(). Hence we can refine x[i].
+          Region r;
+          int k = 0;
+          Block* vx = r.alloc<Block>(j1-j0+1);
+          for (int j = j0; j <= j1; ++j) {
+            const Block& y_j = y[j];
+            int lj = y_j.lb();
+            if (lj > 0) {
+              vx[k++].update(home, y_j);
+              vx[k].baseIntersect(home, x_i);
+              vx[k].updateCard(home, lj, lj);
+            }
+            else {
+              y.nullifyAt(home, j);
+              if (idxNotNull == j-1)
+                idxNotNull = j;
+              yChanged = true;
+            }
+          }        
+          DashedString dx(home, vx, k);
+          if (dx.logdim() < x_i.logdim()) {
+            xChanged = true;
+            int n = dx.size();
+            if (n == 1) {
+              nx--;
+              ux -= 2;
+              if (dx[0].ub() > x_i.ub())
+                dx.ubAt(home, 0, x_i.ub());
+              if (dx[0].equals(x_i))
+                continue;
+              x.updateAt(home, i, dx[0]);
               continue;
-            x.updateAt(home, i, dx[0]);
-            continue;
+            }
+            if (U == nullptr)
+              U = r.alloc<int>(ux);
+            if (newBlocks == nullptr)
+              newBlocks = r.alloc<Block>(nx);
+            for (int j = 0, k = newSize; j < n; ++j,++k)
+              newBlocks[k].update(home, dx[j]);
+            U[uSize++] = i;
+            U[uSize++] = n;
+            newSize += n;
           }
-          if (U == nullptr)
-            U = r.alloc<int>(ux);
-          if (newBlocks == nullptr)
-            newBlocks = r.alloc<Block>(nx);
-          for (int j = 0, k = newSize; j < n; ++j,++k)
-            newBlocks[k].update(home, dx[j]);
-          U[uSize++] = i;
-          U[uSize++] = n;
-          newSize += n;
         }
       }
     }
@@ -418,18 +423,24 @@ namespace Gecode { namespace String {
       if (n < ub)
         ub = n;
     }
-    // Nullify incompatible x-blocks. FIXME: Is this redundant?
-    Set::GLBndSet s;
-    for (int i = 0; i < x.size(); ++i)
-      x[i].includeBaseIn(home, s);
-    const Block& xchars = Block(home, CharSet(home, s));
-    for (int j = 0; j < y.size(); ++j) {
-      if (y[j].baseDisjoint(xchars)) {
-        assert (y[j].lb() == 0);
-        y.nullifyAt(home, j);
-        yChanged = true;
+    // Nullify incompatible y-blocks.
+    if (!x.assigned()) {
+      Set::GLBndSet s;
+      for (int i = 0; i < x.size(); ++i) {
+        if (x[i].isUniverse())
+          goto refine; 
+        x[i].includeBaseIn(home, s);
+      }
+      const Block& xchars = Block(home, CharSet(home, s));
+      for (int j = 0; j < y.size(); ++j) {
+        if (y[j].baseDisjoint(xchars)) {
+          assert (y[j].lb() == 0);
+          y.nullifyAt(home, j);
+          yChanged = true;
+        }
       }
     }
+  refine:
     // Refining.
     if (newSize > 0)
       x.resize(home, newBlocks, newSize, U, uSize);
