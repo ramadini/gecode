@@ -84,11 +84,15 @@ namespace Gecode { namespace String { namespace Int {
         GECODE_ME_CHECK(x2.eq(home, i));
         return home.ES_SUBSUMED(*this);
       }
-      int n;
-      std::vector<int> pref = x0.fixed_pref(Position(0,0), Position(n,0), n);
-      n = pref.size();
+      int n = x0.size();
+      std::vector<int> vp = x0.fixed_pref(Position(0,0), Position(n,0), n);
+      n = vp.size();
+      Region r;
+      Block* pref = r.alloc<Block>(n/2);
+      for (int i = 0; i < n-1; i += 2)
+        pref[i].update(home, Block(vp[i], vp[i+1]));
       if (n >= uy) {
-        int i = find_fixed(ConstStringView(home,&pref[0],pref.size()), x1);
+        int i = find_fixed(ConstDashedView(*pref,n/2), x1);
         if (i > 0) {
           GECODE_ME_CHECK(x2.eq(home, i));
           return home.ES_SUBSUMED(*this);
@@ -206,7 +210,7 @@ namespace Gecode { namespace String { namespace Int {
         GECODE_ME_CHECK(x2.minus_r(home, is));
       }
     }
-    std::cerr << this << " propagated "<<x0<<".find( "<<x1<<" ) = "<<x2<<" \n";
+    std::cerr << this << "propagated "<<x0<<".find( "<<x1<<" ) = "<<x2<<"\n\n";
     return ES_FIX;
   }
 
