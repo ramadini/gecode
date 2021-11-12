@@ -1,7 +1,11 @@
+a = -2147483646;
 b1 = 0;
 i = 1;
-r = "";
-s = "22";
+r = "22]";
+r2 = "\";
+r3 = "";
+r5 = "\";
+s = "";
 t = "ggggg";
 u = "abbabbabbabbabbabbabbabbabbabb";
 v = "bbabbabbabbabbabbabbabbabbabba";
