@@ -100,10 +100,10 @@ namespace Gecode { namespace String {
         SweepFwdIterator<ViewX> fwd_it(x, start);
         m[j].ESP = y.push(j, fwd_it);
         start = *fwd_it;
-//        std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
+        std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
       }
       // y can't fit in x.
-      if (x.equiv(start, Position(x.size(),0))) {
+      if (x.equiv(m[ny-1].ESP, Position(x.size(),0))) {
         if (occ)
           return false;
         if (u > 0)
@@ -115,11 +115,11 @@ namespace Gecode { namespace String {
         SweepBwdIterator<ViewX> bwd_it(x,start);
         y.stretch(j, bwd_it);
         start = *bwd_it;
-//        std::cerr << "stretched bwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
+        std::cerr << "stretched bwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
         if (x.prec(m[j].ESP, start)) {
           m[j].ESP = start;
           again = true;
-//          std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
+          std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
         }
       }
     } while (again);
@@ -149,11 +149,11 @@ namespace Gecode { namespace String {
         SweepBwdIterator<ViewX> bwd_it(x, start);
         m[j].LEP = y.push(j, bwd_it);
         start = *bwd_it;
-//        std::cerr << "pushed bwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
-        if (x.equiv(start, m[j].ESP))
+        std::cerr << "pushed bwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
+        if (x.equiv(Position(0,0), m[j].LEP))
           // Prefix cannot fit.
           return false;
-//        std::cerr << "LEP of y[" << j << "] = " << y[j] << ": " << m[j].LEP << '\n';
+        std::cerr << "LEP of y[" << j << "] = " << y[j] << ": " << m[j].LEP << '\n';
       }
       again = false;
       yFixed = 0, nBlocks = 0;
@@ -161,7 +161,7 @@ namespace Gecode { namespace String {
         SweepFwdIterator<ViewX> fwd_it(x,start);
         y.stretch(j, fwd_it);
         start = *fwd_it;
-//        std::cerr << "pushed fwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
+        std::cerr << "pushed fwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
         if (x.prec(start, m[j].LEP)) {
           // There is a gap between the latest end position of y[j] and the 
           // position of the maximum forward stretch for its latest start.
@@ -180,7 +180,7 @@ namespace Gecode { namespace String {
           yFixed++;
         else
           nBlocks += x.max_new_blocks(m[j]);
-//        std::cerr << "LEP of y[" << j << "] = " << y[j] << ": " << m[j].LEP << '\n';
+        std::cerr << "LEP of y[" << j << "] = " << y[j] << ": " << m[j].LEP << '\n';
       }
     } while (again);
     return true;
@@ -372,8 +372,8 @@ namespace Gecode { namespace String {
             int lj = y_j.lb();
             if (lj > 0) {
               vx[k++].update(home, y_j);
-              vx[k].baseIntersect(home, x_i);
               vx[k].updateCard(home, lj, lj);
+              vx[k].baseIntersect(home, x_i);
             }
             else {
               y.nullifyAt(home, j);
