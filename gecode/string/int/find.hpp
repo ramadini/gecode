@@ -60,7 +60,7 @@ namespace Gecode { namespace String { namespace Int {
   template <class View0, class View1>
   forceinline ExecStatus
   Find<View0,View1>::propagate(Space& home, const ModEventDelta&) {
-    std::cerr <<"\n"<< this << "::Find::propagate "<<x0<<".find( "<<x1<<" ) = "<<x2<<" \n";
+//    std::cerr <<"\n"<< this << "::Find::propagate "<<x0<<".find( "<<x1<<" ) = "<<x2<<" \n";
     int ly = x1.min_length(), ux = x0.max_length(), uy = x1.max_length();
     if (ux < ly) {
       GECODE_ME_CHECK(x2.eq(home, 0));
@@ -157,7 +157,7 @@ namespace Gecode { namespace String { namespace Int {
         }
         if (norm)
           x0.normalize(home);
-        std::cerr << this << "propagated "<<x0<<".find( "<<x1<<" ) = "<<x2<<"\n";
+//        std::cerr << this << "propagated "<<x0<<".find( "<<x1<<" ) = "<<x2<<"\n";
         return home.ES_SUBSUMED(*this);
       }
       return ES_FIX;
@@ -239,7 +239,7 @@ namespace Gecode { namespace String { namespace Int {
         GECODE_ME_CHECK(x2.minus_r(home, is));
       }
     }
-    std::cerr << this << "propagated "<<x0<<".find( "<<x1<<" ) = "<<x2<<"\n";
+//    std::cerr << this << "propagated "<<x0<<".find( "<<x1<<" ) = "<<x2<<"\n";
     return ES_FIX;
   }
 

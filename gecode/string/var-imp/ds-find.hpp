@@ -26,7 +26,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline int
   find_fixed(ViewX x, ViewY y) {
-    std::cerr << "find_fixed " << x << ".find( " << y << " )\n";
+//    std::cerr << "find_fixed " << x << ".find( " << y << " )\n";
     int j = 0, k = 0, nx = x.size(), ny = y.size();
     for (int i = 0; i < nx && ny > 0; ) {
       int lx = lbound(x[i]);
@@ -51,14 +51,14 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline ModEvent
   fixed_comp(Space& home, ViewX x, ViewY y, Gecode::Int::IntView iv) {
-    std::cerr << "fixed_comp " << x << ".find( " << y << " ) = "<<iv<<"\n";
+//    std::cerr << "fixed_comp " << x << ".find( " << y << " ) = "<<iv<<"\n";
     Region r;    
     int n = x.max_length(), nx = x.size(), k = 0;
     Block* curr = r.alloc<Block>(nx);
     Position start = idx2min_pos(x,iv.min());
     for (int i = start.idx; n > 0 && i < nx; ++i) {
       const Block& b = x[i];
-      std::cerr << i << ": " << b << "\n";
+//      std::cerr << i << ": " << b << "\n";
       if (b.baseSize() == 1 && b.lb() > 0) {
         Block t(b.baseMin(), std::min(b.lb(), n));
         curr[k++].update(home, t);
@@ -473,7 +473,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool
   sweep_find(Space& home, ViewX x, ViewY y, int& lb, int& ub, bool occ) {
-    std::cerr << "sweep_find "<<x<<".find( "<<y<<" ) = "<<lb<<".."<<ub<<" \n";
+//    std::cerr << "sweep_find "<<x<<".find( "<<y<<" ) = "<<lb<<".."<<ub<<" \n";
     assert (lb >= 0 && ub >= 0);    
     int ny = y.size();
     Matching m[ny];
