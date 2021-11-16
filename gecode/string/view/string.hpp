@@ -262,9 +262,9 @@ namespace Gecode { namespace String {
                                                                   int uSize) {
 //    std::cerr << "Resizing " << *this << '\n';
 //    for (int i = 0; i < uSize; i ++) std::cerr << "U[" << i << "] = " << U[i] << "\n"; 
-//    for (int i = 0; i < newSize; i ++) std::cerr << "newBlocks[" << i << "] = " << newBlocks[i] << "\n";
-    Region r;
+//    for (int i = 0; i < newSize; i ++) std::cerr << "newBlocks[" << i << "] = " << newBlocks[i] << "\n";    
     int n = size()+newSize-uSize/2;
+    Region r;
     Block* d = r.alloc<Block>(n);
     int off = 0, idxOld = 0, idxNew = 0;
     for (int idxU = 0; idxU < uSize; idxU += 2) {

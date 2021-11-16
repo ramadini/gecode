@@ -62,7 +62,7 @@ namespace Gecode { namespace String { namespace Branch {
         StringView& xi = x[i];
         if (!xi.assigned()) {
           if (xi.degree() == 0) {
-//            std::cerr << "Warning: " << xi << " has degree 0!\n";
+            std::cerr << "Warning: " << xi << " has degree 0!\n";
             xi.gets(home, std::vector<int>());
             continue;
           }
@@ -81,7 +81,7 @@ namespace Gecode { namespace String { namespace Branch {
           if (mi < m) m = mi, pos = i;
         }
       }
-//       std::cerr << "Chosen var. " << x[pos] << " (pos. " << pos << ")\n";
+       std::cerr << "Chosen var. " << x[pos] << " (pos. " << pos << ")\n";
 //       abort();
       return val_lllm(pos, x[pos]);
     }

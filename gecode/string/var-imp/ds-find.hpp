@@ -2,6 +2,26 @@
 
 namespace Gecode { namespace String {
 
+  // Auxiliary functions for find(x,y).
+  template <class View>
+  forceinline Position
+  idx2pos(const View& x, int idx) {
+    int i = 0, j = idx-1, n = x.size();
+    while (i < n && j >= x[i].ub())
+      j -= x[i++].ub();
+    assert (Position(i,j).isNorm(x));
+    return Position(i,j);
+  }
+  template <class View>
+  forceinline int
+  pos2idx(const View& x, const Position& p) {
+    assert (p.isNorm(x));
+    int idx = 1;
+    for (int i = 0; i < p.idx; ++i)
+      idx += x[i].lb();
+    return ubounded_sum(idx, p.off);
+  }
+
   template <class ViewX, class ViewY>
   forceinline int
   find_fixed(ViewX x, ViewY y) {
@@ -9,21 +29,21 @@ namespace Gecode { namespace String {
     int j = 0, k = 0, nx = x.size(), ny = y.size();
     for (int i = 0; i < nx && ny > 0; ) {
       int lx = lbound(x[i]);
+      k += lx;
       if (baseMin(x[i]) == baseMin(y[j])) {
         int ly = ubound(y[j]);
         if (lx == ly || (lx > ly && (j == 0 || j == ny-1))) {
           ++i;
           ++j;
-          ny -= ly;
+          --ny;
           continue;
         }
       }
       ++i;
       j = 0;
-      k += lx;
       ny = y.size();
     }
-    return ny == 0 ? k+1 : 0;
+    return ny == 0 ? k-y.max_length()+1 : 0;
   }
     
     
@@ -35,13 +55,15 @@ namespace Gecode { namespace String {
     Region r;    
     int n = x.max_length(), nx = x.size(), k = 0;
     Block* curr = r.alloc<Block>(nx);
-    for (int i = iv.min(); n > 0 && i < nx; ++i) {
+    for (int i = idx2pos(x,iv.min()).idx; n > 0 && i < nx; ++i) { 
       const Block& b = x[i];
+//      std::cerr << i << ": " << b << "\n";
       if (b.baseSize() == 1) {
         Block t(b.baseMin(), std::min(b.lb(), n));
         curr[k++].update(home, t);
-        ConstDashedView cv(*curr,k);
+        ConstDashedView cv(*curr,k);        
         int k = find_fixed(cv, y);
+//        std::cerr << "Curr: " << cv << ", k = " << k << '\n';
         if (k > 0) {
           GECODE_ME_CHECK(iv.gq(home,1));
           int ub = start.off + k + 1;
@@ -66,26 +88,6 @@ namespace Gecode { namespace String {
     return ME_STRING_NONE;
   }
 
-  // Auxiliary functions for find(x,y).
-  template <class View>
-  forceinline Position
-  idx2pos(const View& x, int idx) {
-    int i = 0, j = idx-1, n = x.size();
-    while (i < n && j >= x[i].ub())
-      j -= x[i++].ub();
-    assert (Position(i,j).isNorm(x));
-    return Position(i,j);
-  }
-  template <class View>
-  forceinline int
-  pos2idx(const View& x, const Position& p) {
-    assert (p.isNorm(x));
-    int idx = 1;
-    for (int i = 0; i < p.idx; ++i)
-      idx += x[i].lb();
-    return ubounded_sum(idx, p.off);
-  }
-  
   // Pushing the earliest start position of each y-block in x for find(x,y).
   template <class ViewX, class ViewY>
   forceinline bool
@@ -100,7 +102,7 @@ namespace Gecode { namespace String {
         SweepFwdIterator<ViewX> fwd_it(x, start);
         m[j].ESP = y.push(j, fwd_it);
         start = *fwd_it;
-//        std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
+        std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
       }
       // y can't fit in x.
       if (x.equiv(m[ny-1].ESP, Position(x.size(),0))) {
@@ -115,11 +117,11 @@ namespace Gecode { namespace String {
         SweepBwdIterator<ViewX> bwd_it(x,start);
         y.stretch(j, bwd_it);
         start = *bwd_it;
-//        std::cerr << "stretched bwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
+        std::cerr << "stretched bwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
         if (x.prec(m[j].ESP, start)) {
           m[j].ESP = start;
           again = true;
-//          std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
+          std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
         }
       }
     } while (again);
@@ -145,7 +147,7 @@ namespace Gecode { namespace String {
     do {      
       for (int j = ny-1; j >= 0; --j) {
         if (again)
-          start = m[j].ESP;
+          start = m[j].LEP;
         SweepBwdIterator<ViewX> bwd_it(x, start);
         m[j].LEP = y.push(j, bwd_it);
         start = *bwd_it;
@@ -175,12 +177,12 @@ namespace Gecode { namespace String {
           return false;
         m[j].EEP = j < ny-1 ? m[j+1].ESP : m[j].LEP;
         if (x.prec(m[j].LEP,m[j].EEP))
-          return false;
+          return false;        
         if (y[j].isFixed())
           yFixed++;
         else
           nBlocks += x.max_new_blocks(m[j]);
-//        std::cerr << "LEP of y[" << j << "] = " << y[j] << ": " << m[j].LEP << '\n';
+        std::cerr << "LEP of y[" << j << "] = " << y[j] << ": " << m[j].LEP << '\n';
       }
     } while (again);
     return true;
@@ -191,7 +193,7 @@ namespace Gecode { namespace String {
   forceinline bool
   refine_find(Space& home, ViewX& x, ViewY& y, int& lb, int& ub, Matching m[], 
                                                int& yFixed, int& nBlocks) {
-//    std::cerr << "refine_find " << x << ' ' << y << '\n';
+    std::cerr << "refine_find " << x << ' ' << y << '\n';
     bool yChanged = false; 
     int ny = y.size(), uy = 2*(ny-yFixed);
     Region r;
@@ -202,9 +204,9 @@ namespace Gecode { namespace String {
     std::map<int, std::pair<int,int>> xfit;
     for (int j = 0; j < ny; ++j) {
       const Block& y_j = y[j];
-      const Position& esp = m[j].ESP, eep = m[j].EEP, 
-                      lsp = m[j].LSP, lep = m[j].LEP;
-//      std::cerr<<"Ref. y[" << j << "] = " << y[j] <<"\tESP: "<<esp<<"\tLSP: "<<lsp <<"\tEEP: "<<eep<<"\tLEP: "<<lep<< "\n";
+      const Position& esp = m[j].ESP, eep = m[j].EEP,  lsp = m[j].LSP, 
+         lep = j < ny-1 && x.prec(m[j+1].LSP, m[j].LEP) ? m[j+1].LSP : m[j].LEP;
+      std::cerr<<"Ref. y[" << j << "] = " << y[j] <<"\tESP: "<<esp<<"\tLSP: "<<lsp <<"\tEEP: "<<eep<<"\tLEP: "<<lep<< "\n";
       assert (esp.isNorm(x) && lsp.isNorm(x) && eep.isNorm(x) && lep.isNorm(x));
       // If some y-blocks fits all in a single x-block x[i], we will update x[i]
       if ((esp.idx == lep.idx || (esp.idx == lep.idx-1 && lep.off == 0)) &&
@@ -214,6 +216,7 @@ namespace Gecode { namespace String {
         if (it == xfit.end())
           xfit[i] = std::pair<int,int>(j,j);
         else {
+          std::cerr << it->second.second << ' ' << j << '\n';
           assert (it->second.second == j-1);
           it->second.second = j;
         }
@@ -222,11 +225,11 @@ namespace Gecode { namespace String {
       if (y_j.isFixed())
         continue;
       int l = y_j.lb(), u = y_j.ub(), l1 = min_len_mand(x, y_j, lsp, eep);
-//      std::cerr << "l'=" << l1 << "\n";
+      std::cerr << "l'=" << l1 << "\n";
       if (u < l1)
         return false;
       long u1 = x.max_len_opt(y_j, esp, lep, l1);
-//      std::cerr << "u'=" << u1 << "\n";
+      std::cerr << "u'=" << u1 << "\n";
       if (l > u1)
         return false;
       assert (l1 <= u1);
@@ -258,7 +261,7 @@ namespace Gecode { namespace String {
           vs = x.fixed_suff(lsp, eep, ns);
         np = np < 0 ? -np : np;
         ns = ns < 0 ? -ns : ns;
-         if (np + ns > l1)
+        if (np + ns > l1)
           return false;
         assert (vp.size() % 2 == 0 && vs.size() % 2 == 0 && np + ns <= u1);
         if (np == 0 && ns == 0) {
@@ -344,13 +347,13 @@ namespace Gecode { namespace String {
       y.resize(home, newBlocks, newSize, U, uSize);
       yChanged = true;
     }
+    r.free(U, uSize);
+    r.free(newBlocks, newSize);
       
     // Possibly refining x.
     bool xChanged = false;
     if (!x.assigned()) {
       int ux = 2*nx;
-      r.free(U, uSize);
-      r.free(newBlocks, newSize);
       newSize = 0, uSize = 0;
       for (std::map<int, std::pair<int,int>>::iterator it = xfit.begin(); 
                                                        it != xfit.end(); ++it) {
@@ -361,12 +364,12 @@ namespace Gecode { namespace String {
         int sl = 0, j0 = yreg.first, j1 = yreg.second;
         for (int j = j0; sl <= x_i.ub() && j <= j1; ++j)
           sl += y[j].lb();
+//        std::cerr << sl << '\n';
         if (sl == x_i.ub()) {
           // y[j0]...y[j1] matching region falls within block x[i] and the no. 
           // of mandatory chars is equal to x[i].ub(). Hence we can refine x[i].
-          Region r;
-          int k = 0;
-          Block* vx = r.alloc<Block>(j1-j0+1);
+          int k = 0, nx = j1-j0+1;
+          Block* vx = r.alloc<Block>(nx);
           for (int j = j0; j <= j1; ++j) {
             const Block& y_j = y[j];
             int lj = y_j.lb();
@@ -383,6 +386,7 @@ namespace Gecode { namespace String {
             }
           }        
           DashedString dx(home, vx, k);
+          r.free(vx, nx);
           if (dx.logdim() < x_i.logdim()) {
             xChanged = true;
             int n = dx.size();
@@ -465,7 +469,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool
   sweep_find(Space& home, ViewX x, ViewY y, int& lb, int& ub, bool occ) {
-//    std::cerr << "sweep_find "<<x<<".find( "<<y<<" ) = "<<lb<<".."<<ub<<" \n";
+    std::cerr << "sweep_find "<<x<<".find( "<<y<<" ) = "<<lb<<".."<<ub<<" \n";
     assert (lb >= 0 && ub >= 0);    
     int ny = y.size();
     Matching m[ny];
