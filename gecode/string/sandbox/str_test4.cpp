@@ -559,27 +559,25 @@ public:
   
   void test18() {
     std::cerr << "\n*** Test 18 ***" << std::endl;
-    // TODO: Test find.
-//    NSBlocks vy({
-//      NSBlock(NSIntSet('a', 'z'), 0, 3),
-//      NSBlock(NSIntSet('b', 'b'), 2, 2),
-//      NSBlock(NSIntSet('a', 'a'), 1, 2),
-//      NSBlock(NSIntSet('c', 'c'), 5, 8),
-//      NSBlock(NSIntSet('a', 'z'), 1, 2),
-//    });
-//    StringVar x(*this, "accc");
-//    StringVar y(*this, vy, 0, 10000);
-//    IntVar n(*this, 10, 50);
-//    std::cerr << "D(x) :: " << x << '\n';
-//    std::cerr << "D(y) :: " << y << '\n';
-//    std::cerr << "D(n) :: " << n << '\n';
-//    class find : public Find {
-//    public:
-//      find(Home h, StringView x, StringView y, Gecode::Int::IntView n) :
-//        Find(h, x, y, n) {};
-//    };
-//    assert(find(*this, x, y, n).propagate(*this, 0) == ES_FAILED);
-//    std::cerr << "===== UNSATISFIABLE =====" << std::endl;
+    Block vx[5];
+    vx[0].update(*this, Block(*this, CharSet(*this, 'a', 'z'), 0, 3));
+    vx[1].update(*this, Block(*this, CharSet(*this, 'b', 'b'), 2, 2));
+    vx[2].update(*this, Block(*this, CharSet(*this, 'a', 'a'), 1, 2));
+    vx[3].update(*this, Block(*this, CharSet(*this, 'c', 'c'), 5, 8));
+    vx[4].update(*this, Block(*this, CharSet(*this, 'a', 'z'), 1, 2));    
+    StringVar x(*this, DashedString(*this, vx, 4)), 
+              y(*this, DashedString(*this, str2vec("accc")));
+    IntVar n(*this, 10, 50);
+    std::cerr << "D(x) :: " << x << '\n';
+    std::cerr << "D(y) :: " << y << '\n';
+    std::cerr << "D(n) :: " << n << '\n';
+    class find : public Find<StringView,StringView> {
+    public:
+      find(Home h, StringView x, StringView y, Gecode::Int::IntView n) :
+        Find(h, x, y, n) {};
+    };
+    assert(find(*this, x, y, n).propagate(*this, 0) == ES_FAILED);
+    std::cerr << "===== UNSATISFIABLE =====" << std::endl;
   }
   
   void test19() {
