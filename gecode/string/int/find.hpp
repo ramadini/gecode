@@ -111,7 +111,7 @@ namespace Gecode { namespace String { namespace Int {
         }
       }
       GECODE_ME_CHECK(fixed_comp(home, x0, x1, x2));
-      std::cerr << "After fixed_comp: " << x2 << '\n';
+//      std::cerr << "After fixed_comp: " << x2 << '\n';
       if (ln < x2.min())
         ln = x2.min();
       if (un > x2.max())
@@ -157,6 +157,7 @@ namespace Gecode { namespace String { namespace Int {
         }
         if (norm)
           x0.normalize(home);
+        std::cerr << this << "propagated "<<x0<<".find( "<<x1<<" ) = "<<x2<<"\n";
         return home.ES_SUBSUMED(*this);
       }
       return ES_FIX;
@@ -188,11 +189,22 @@ namespace Gecode { namespace String { namespace Int {
       if (bs) {
         int i = std::max(0,x0.min_length()-x1.max_length()-un+1);
         dom[k++].update(home, Block(home, S, i, j));
-      }      
-//      std::cerr <<  ConstDashedView(*dom,k) << '\n';
-      GECODE_ME_CHECK(x0.equate(home, ConstDashedView(*dom,k)));
-//      std::cerr << x0 << '\n';
-      //FIXME: if (x0.assigned()) ...
+      }
+      ConstDashedView cv(*dom,k);
+//      std::cerr << "cv: " << cv << '\n';
+      if (x0.assigned()) {
+        if (!check_equate_x(x0,cv))
+          return ES_FAILED;
+      }
+      else
+        GECODE_ME_CHECK(x0.equate(home,cv));
+//      std::cerr << "x0: " << x0 << '\n';
+      if (x0.assigned()) {
+        if (x1.assigned())
+          goto x0_x1_fixed;
+        if (x2.assigned() && x1.min_length() == x1.max_length())
+          goto x0_x2_fixed;
+      }
     }
     else {
       // ln = min(D(x2) \ {0}).
@@ -202,7 +214,7 @@ namespace Gecode { namespace String { namespace Int {
     }
     // General case.
     int ll = ln;
-    std::cerr<<"Before: "<<x0<<".find( "<<x1<<" ) = "<<ln<<".."<<un<<" ("<<occ<<") \n";
+//    std::cerr<<"Before: "<<x0<<".find( "<<x1<<" ) = "<<ln<<".."<<un<<" ("<<occ<<") \n";
     GECODE_ME_CHECK(x0.find(home, x1, ln, un, occ));
 //    std::cerr<<"After: "<<x0<<".find( "<<x1<<" ) = "<<ln<<".."<<un<<" ("<<occ<<") \n";
     GECODE_ME_CHECK(x2.lq(home, un));
@@ -227,7 +239,7 @@ namespace Gecode { namespace String { namespace Int {
         GECODE_ME_CHECK(x2.minus_r(home, is));
       }
     }
-//    std::cerr << this << "propagated "<<x0<<".find( "<<x1<<" ) = "<<x2<<"\n";
+    std::cerr << this << "propagated "<<x0<<".find( "<<x1<<" ) = "<<x2<<"\n";
     return ES_FIX;
   }
 

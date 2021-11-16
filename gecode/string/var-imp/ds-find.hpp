@@ -26,7 +26,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline int
   find_fixed(ViewX x, ViewY y) {
-//    std::cerr << "find_fixed " << x << ".find( " << y << " )\n";
+    std::cerr << "find_fixed " << x << ".find( " << y << " )\n";
     int j = 0, k = 0, nx = x.size(), ny = y.size();
     for (int i = 0; i < nx && ny > 0; ) {
       int lx = lbound(x[i]);
@@ -59,12 +59,12 @@ namespace Gecode { namespace String {
     for (int i = start.idx; n > 0 && i < nx; ++i) {
       const Block& b = x[i];
       std::cerr << i << ": " << b << "\n";
-      if (b.baseSize() == 1) {
+      if (b.baseSize() == 1 && b.lb() > 0) {
         Block t(b.baseMin(), std::min(b.lb(), n));
         curr[k++].update(home, t);
         ConstDashedView cv(*curr,k);        
         int k = find_fixed(cv, y);
-        std::cerr << "Curr: " << cv << ", k = " << k << '\n';
+//        std::cerr << "Curr: " << cv << ", k = " << k << '\n';
         if (k > 0) {
           GECODE_ME_CHECK(iv.gq(home,1));
           int ub = start.off + k + 1;

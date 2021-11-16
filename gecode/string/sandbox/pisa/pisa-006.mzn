@@ -17,7 +17,7 @@ constraint
   [(filename_1) = (filename_0),((i2) = ((str_len (filename_0)) - (i1))) /\ (
   (filename_1) = (str_sub(filename_0, (i1)+(1), ((i1)+(1))+(i2))))][1 + (not (
   (i1) = ((0) - (1))))];
-constraint (i3) = ((str_find_offset(".", filename_1, (0)+(1)))-(1));
+constraint (i3) = ((str_find_offset(filename_1, ".", (0)+(1)))-(1));
 constraint
   [(filename_2) = (filename_1),(filename_2) =
                                  (str_sub(filename_1, (0)+(1), ((0)+(1))+(i3)))][1 + (not (

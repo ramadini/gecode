@@ -195,10 +195,10 @@ namespace Gecode { namespace String { namespace Branch {
 
     ExecStatus commit(Space& home, const Choice& c, unsigned a);
     
-    static bool _FIRST;
+    static bool _FIRST;static int N;
 
   };
-  
+  int DimDeg_LenBlock_Min_LLLM::N = 0;
   bool DimDeg_LenBlock_Min_LLLM::_FIRST = true;
 
 }}}
