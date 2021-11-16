@@ -491,31 +491,36 @@ public:
   
   void test16() {
     std::cerr << "\n*** Test 16 ***" << std::endl;
-    // TODO: Test find.
-//        NSBlocks vx({
-//      NSBlock(NSIntSet('d', 'e'), 0, 2),
-//      NSBlock(NSIntSet('c'), 1, 3),
-//      NSBlock(NSIntSet('a', 'd'), 3, 5),
-//      NSBlock(NSIntSet('h', 'n'), 0, 2),
-//      NSBlock(NSIntSet('a', 'b'), 0, 1),
-//      NSBlock(NSIntSet('g'), 0, 3),
-//    });
-//    NSBlocks vy({
-//      NSBlock(NSIntSet('a', 'b'), 1, 2),
-//      NSBlock(NSIntSet('x', 'y'), 2, 3),
-//      NSBlock(NSIntSet('a', 'b'), 1, 2),
-//      NSBlock(NSIntSet('a', 'c'), 0, 10),
-//    });
-//    DashedString x(*this, vx, 0, 10000);
-//    DashedString y(*this, vy, 0, 10000);
-//    std::cerr << "x = " << x << '\n';
-//    std::cerr << "y = " << y << '\n';
-//    int fst = 1, lst = y.max_length();
-//    assert (y.find(*this, x, fst, lst, true) && fst == 5 && lst == 14);
-//    std::cerr << "===== After n = y.find(x), n > 0 =====" << std::endl;
-//    std::cerr << "x = " << x << '\n';
-//    std::cerr << "y = " << y << '\n';
-//    std::cerr << "n :: [" << fst << ", " << lst << "]\n";
+    Block vx[4];
+    vx[0].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 2));
+    vx[1].update(*this, Block(*this, CharSet(*this, 'x', 'y'), 2, 3));
+    vx[2].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 2));
+    vx[3].update(*this, Block(*this, CharSet(*this, 'b', 'd'), 0, 4));
+    Block vy[6];
+    vy[0].update(*this, Block(*this, CharSet(*this, 'd', 'e'), 0, 2));
+    vy[1].update(*this, Block(*this, CharSet(*this, 'c'), 1, 3));
+    vy[2].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 3, 5));
+    vy[3].update(*this, Block(*this, CharSet(*this, 'h', 'n'), 0, 2));
+    vy[4].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 0, 1));
+    vy[5].update(*this, Block(*this, CharSet(*this, 'g'), 0, 3));
+    
+    StringVar x(*this, DashedString(*this, vx, 4)), 
+              y(*this, DashedString(*this, vy, 6));
+    std::cerr << "x = " << x << '\n';
+    std::cerr << "y = " << y << '\n';
+    int fst = 1, lst = MAX_STRING_LENGTH;
+    assert (sweep_find(*this, StringView(x), StringView(y), fst, lst, true));
+    std::cerr << "===== After n = y.find(x), n > 0 =====" << std::endl;
+    std::cerr << "x = " << x << '\n';
+    std::cerr << "y = " << y << '\n';
+    std::cerr << "n :: [" << fst << ", " << lst << "]\n";
+    assert (fst == 4 && lst == 8);
+    assert (sweep_find(*this, StringView(x), StringView(y), fst, lst, true));
+    std::cerr << "===== After n = y.find(x), n > 0 =====" << std::endl;
+    std::cerr << "x = " << x << '\n';
+    std::cerr << "y = " << y << '\n';
+    std::cerr << "n :: [" << -fst << ", " << -lst << "]\n";
+    assert (fst == -5 && lst == -8);
   }
   
   void test17() {

@@ -114,7 +114,6 @@ namespace Gecode { namespace String {
         }
       }
       again = false;
-//      start = Position(x.size(),0);
       for (int j = ny-1; j >= 0; --j) {
         SweepBwdIterator<ViewX> bwd_it(x,start);
         y.stretch(j, bwd_it);
@@ -129,8 +128,7 @@ namespace Gecode { namespace String {
 //      std::cerr << (again ? "Again!\n" : "");
     } while (again);
     // Possibly refining lb and ub (converting from position to index).
-//    std::cerr <<  pos2min_idx(x, m[0].ESP) << '\n';
-    l = std::max(l, pos2min_idx(x, m[0].ESP));//start));
+    l = std::max(l, pos2min_idx(x, m[0].ESP));
     if (l > u) {
       if (occ)
         return false;
@@ -432,8 +430,7 @@ namespace Gecode { namespace String {
         n += x[i].lb();
       if (n > lb)
         lb = n;
-      n = x[m[idxNotNull].LEP.idx].ub() 
-          - m[idxNotNull].LEP.off - y[idxNotNull].lb() + 1;
+      n = m[idxNotNull].LSP.off + 1;
       for (int i = 0; i < m[idxNotNull].LEP.idx; ++i)
         n += x[i].ub();
       if (n < ub)
