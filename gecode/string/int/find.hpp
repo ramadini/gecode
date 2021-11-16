@@ -80,6 +80,7 @@ namespace Gecode { namespace String { namespace Int {
         return home.ES_SUBSUMED(*this);
       }
       if (x0.assigned()) {
+      x0_x1_fixed:
         int i = find_fixed(x0,x1);
         if (i < ln || i > un)
           return ES_FAILED;
@@ -160,6 +161,16 @@ namespace Gecode { namespace String { namespace Int {
       }
       return ES_FIX;
     }
+    if (x0.assigned() && x2.assigned() && x1.min_length() == x1.max_length()) {
+    x0_x2_fixed:
+      std::vector<int> w0 = x0.val();
+      ConstStringView w1(home, (&w0[0])+x2.val()-1, x1.max_length());
+      if (check_equate_x(x1, w1))
+        x1.gets(home, w1);
+      else
+        return ES_FAILED;
+      return home.ES_SUBSUMED(*this);
+    }
     if (occ) {
       Set::GLBndSet s;
       for (int i = 0; i < x0.size(); ++i)
@@ -200,21 +211,10 @@ namespace Gecode { namespace String { namespace Int {
       GECODE_ME_CHECK(x2.gq(home, ln));
       refine_card(home);
       if (x0.assigned()) {
-        if (x1.assigned()) {
-          int n = find_fixed(x0,x1);
-//          std::cerr << n << '\n';
-          GECODE_ME_CHECK(x2.eq(home, n));
-          return home.ES_SUBSUMED(*this);
-        }
-        if (x2.assigned() && x1.min_length() == x1.max_length()) {
-          std::vector<int> w0 = x0.val();
-          ConstStringView w1(home, (&w0[0])+x2.val()-1, x1.max_length());
-          if (check_equate_x(x1, w1))
-            x1.gets(home, w1);
-          else
-            return ES_FAILED;
-          return home.ES_SUBSUMED(*this);
-        }
+        if (x1.assigned())
+          goto x0_x1_fixed;
+        if (x2.assigned() && x1.min_length() == x1.max_length())
+          goto x0_x2_fixed;
       }
     }
     else {
