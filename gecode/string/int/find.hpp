@@ -149,7 +149,7 @@ namespace Gecode { namespace String { namespace Int {
             x0.nullifyAt(home, i);
             norm = true;
           }
-          else {
+          else if (x_i.baseContains(c)) {
             x0.baseRemoveAt(home, i, c);
             norm |= (i > 0 && x0[i-1].baseEquals(x_i)) ||
                     (i < x0.size()-1 && x0[i+1].baseEquals(x_i));

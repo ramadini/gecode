@@ -33,8 +33,12 @@ let {
   constraint str_find_offset(x, y, n, i);
 } in n;
 predicate 
-str_find_offset(var string: x, var string: y, var int: n, var int: i) =
-  str_find(if i <= 1 then x else str_sub(x, i, str_len(x)) endif, y, n);
+str_find_offset(var string: x, var string: y, var int: n, var int: i) ::promise_total =
+  if i <= 1 then
+    str_find(x, y, n)
+  else
+    str_find(str_sub(x, i, str_len(x)), y, n)
+  endif;
 
 predicate str_startswith(var string: x, var string: y) =
   str_len(x) >= str_len(y) /\ str_find(x, y) = 1;

@@ -105,21 +105,21 @@ namespace Gecode { namespace String {
         m[j].ESP = y.push(j, fwd_it);
         start = *fwd_it;
 //        std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
-      }
-      // y can't fit in x.
-      if (x.equiv(m[ny-1].ESP, Position(x.size(),0))) {
-        if (occ)
-          return false;
-        if (u > 0)
-          u = 0;
-        return true;
-      }
+        // y can't fit in x.
+        if (y[j].lb() > 0 && x.equiv(m[j].ESP, Position(x.size(),0))) {
+          if (occ)
+            return false;
+          if (u > 0)
+            u = 0;
+          return true;
+        }
+      }      
       again = false;
       for (int j = ny-1; j >= 0; --j) {
         SweepBwdIterator<ViewX> bwd_it(x,start);
         y.stretch(j, bwd_it);
         start = *bwd_it;
-//        std::cerr << "stretched bwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
+//        std::cerr << "stretching bwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
         if (x.prec(m[j].ESP, start)) {
           m[j].ESP = start;
           again = true;
@@ -167,7 +167,7 @@ namespace Gecode { namespace String {
         SweepFwdIterator<ViewX> fwd_it(x,start);
         y.stretch(j, fwd_it);
         start = *fwd_it;
-//        std::cerr << "pushed fwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
+//        std::cerr << "pushing fwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
         if (x.prec(start, m[j].LEP)) {
           // There is a gap between the latest end position of y[j] and the 
           // position of the maximum forward stretch for its latest start.
@@ -192,7 +192,7 @@ namespace Gecode { namespace String {
     return true;
   }
   
-  // Possibly refines x and y for find propagator, knowing that x occurs in y.
+  // Possibly refines x and y for find propagator, assuming that x contains y
   template <class ViewX, class ViewY>
   forceinline bool
   refine_find(Space& home, ViewX& x, ViewY& y, int& lb, int& ub, Matching m[], 
@@ -212,6 +212,15 @@ namespace Gecode { namespace String {
          lep = j < ny-1 && x.prec(m[j+1].LSP, m[j].LEP) ? m[j+1].LSP : m[j].LEP;
 //      std::cerr<<"Ref. y[" << j << "] = " << y[j] <<"\tESP: "<<esp<<"\tLSP: "<<lsp <<"\tEEP: "<<eep<<"\tLEP: "<<lep<< "\n";
       assert (esp.isNorm(x) && lsp.isNorm(x) && eep.isNorm(x) && lep.isNorm(x));
+      if (esp == lep) {        
+        if (y_j.lb() > 0){
+          std::cerr <<x<<".find( "<<y<<" ) = "<<lb<<".."<<ub<<" \n";
+          std::cerr<<"Ref. y[" << j << "] = " << y[j] <<"\tESP: "<<esp<<"\tLSP: "<<lsp <<"\tEEP: "<<eep<<"\tLEP: "<<lep<< "\n";
+          assert(0) ;}
+//          return false;
+//        y.nullifyAt(home, j);
+        continue;
+      }
       // If some y-blocks fits all in a single x-block x[i], we will update x[i]
       if ((esp.idx == lep.idx || (esp.idx == lep.idx-1 && lep.off == 0)) &&
         !x[esp.idx].isFixed()) {

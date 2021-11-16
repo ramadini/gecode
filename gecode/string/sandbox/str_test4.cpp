@@ -488,6 +488,166 @@ public:
     cerr << "Unsat!\n";
     assert (!check_equate_x(vx, ry) && !check_equate_x(vy, rx));
   }
+  
+  void test16() {
+    std::cerr << "\n*** Test 16 ***" << std::endl;
+    // TODO: Test find.
+//        NSBlocks vx({
+//      NSBlock(NSIntSet('d', 'e'), 0, 2),
+//      NSBlock(NSIntSet('c'), 1, 3),
+//      NSBlock(NSIntSet('a', 'd'), 3, 5),
+//      NSBlock(NSIntSet('h', 'n'), 0, 2),
+//      NSBlock(NSIntSet('a', 'b'), 0, 1),
+//      NSBlock(NSIntSet('g'), 0, 3),
+//    });
+//    NSBlocks vy({
+//      NSBlock(NSIntSet('a', 'b'), 1, 2),
+//      NSBlock(NSIntSet('x', 'y'), 2, 3),
+//      NSBlock(NSIntSet('a', 'b'), 1, 2),
+//      NSBlock(NSIntSet('a', 'c'), 0, 10),
+//    });
+//    DashedString x(*this, vx, 0, 10000);
+//    DashedString y(*this, vy, 0, 10000);
+//    std::cerr << "x = " << x << '\n';
+//    std::cerr << "y = " << y << '\n';
+//    int fst = 1, lst = y.max_length();
+//    assert (y.find(*this, x, fst, lst, true) && fst == 5 && lst == 14);
+//    std::cerr << "===== After n = y.find(x), n > 0 =====" << std::endl;
+//    std::cerr << "x = " << x << '\n';
+//    std::cerr << "y = " << y << '\n';
+//    std::cerr << "n :: [" << fst << ", " << lst << "]\n";
+  }
+  
+  void test17() {
+    std::cerr << "\n*** Test 17 ***" << std::endl;
+    // TODO: Test find.
+//    NSBlocks vx({
+//      NSBlock(NSIntSet('d', 'e'), 0, 2),
+//      NSBlock(NSIntSet('c'), 1, 3),
+//      NSBlock(NSIntSet('a', 'b'), 3, 5),
+//      NSBlock(NSIntSet('h', 'n'), 0, 2),
+//      NSBlock(NSIntSet('a', 'b'), 0, 1),
+//      NSBlock(NSIntSet('g'), 0, 3),
+//    });
+//    NSBlocks vy({
+//      NSBlock(NSIntSet('a', 'b'), 1, 2),
+//      NSBlock(NSIntSet('x', 'y'), 2, 3),
+//      NSBlock(NSIntSet('a', 'b'), 1, 2),
+//      NSBlock(NSIntSet('b', 'd'), 0, 4),
+//    });
+//    StringVar x(*this, vx, 0, 10000);
+//    StringVar y(*this, vy, 0, 10000);
+//    IntVar n(*this, 1, y.max_length());
+//    std::cerr << "D(x) :: " << x << '\n';
+//    std::cerr << "D(y) :: " << y << '\n';
+//    std::cerr << "D(n) :: " << n << '\n';
+//    class find : public Find {
+//    public:
+//      find(Home h, StringView x, StringView y, Gecode::Int::IntView n) :
+//        Find(h, x, y, n) {};
+//    };
+//    assert(find(*this, x, y, n).propagate(*this, 0) == ES_FIX);
+//    assert (n.min() == 5 && n.max() == 8 && x.val() == "cbbb");
+//    std::cerr << "===== After n = y.find(x), n >= 0 =====" << std::endl;
+//    std::cerr << "D(x) :: " << x << '\n';
+//    std::cerr << "D(y) :: " << y << '\n';
+//    std::cerr << "D(n) :: " << n << '\n';
+  }
+  
+  void test18() {
+    std::cerr << "\n*** Test 18 ***" << std::endl;
+    // TODO: Test find.
+//    NSBlocks vy({
+//      NSBlock(NSIntSet('a', 'z'), 0, 3),
+//      NSBlock(NSIntSet('b', 'b'), 2, 2),
+//      NSBlock(NSIntSet('a', 'a'), 1, 2),
+//      NSBlock(NSIntSet('c', 'c'), 5, 8),
+//      NSBlock(NSIntSet('a', 'z'), 1, 2),
+//    });
+//    StringVar x(*this, "accc");
+//    StringVar y(*this, vy, 0, 10000);
+//    IntVar n(*this, 10, 50);
+//    std::cerr << "D(x) :: " << x << '\n';
+//    std::cerr << "D(y) :: " << y << '\n';
+//    std::cerr << "D(n) :: " << n << '\n';
+//    class find : public Find {
+//    public:
+//      find(Home h, StringView x, StringView y, Gecode::Int::IntView n) :
+//        Find(h, x, y, n) {};
+//    };
+//    assert(find(*this, x, y, n).propagate(*this, 0) == ES_FAILED);
+//    std::cerr << "===== UNSATISFIABLE =====" << std::endl;
+  }
+  
+  void test19() {
+    std::cerr << "\n*** Test 19 ***" << std::endl;
+    // TODO: Test find.
+//    NSBlocks vy({
+//      NSBlock(NSIntSet('b', 'c'), 0, 12),
+//      NSBlock(NSIntSet('a', 'a'), 3, 4),
+//      NSBlock(NSIntSet('d', 'd'), 1, 2),
+//      NSBlock(NSIntSet('b', 'c'), 2, 4),
+//      NSBlock(NSIntSet('a', 'a'), 5, 5),
+//      NSBlock(NSIntSet('b', 'b'), 2, 3),
+//      NSBlock(NSIntSet('a', 'c'), 0, 8),
+//    });
+//    StringVar x(*this, "abb");
+//    StringVar y(*this, vy, 0, 10000);
+//    IntVar n(*this, 0, 100);
+//    std::cerr << "D(x) :: " << x << '\n';
+//    std::cerr << "D(y) :: " << y << '\n';
+//    std::cerr << "D(n) :: " << n << '\n';
+//    class find : public Find {
+//    public:
+//      find(Home h, StringView x, StringView y, Gecode::Int::IntView n) :
+//      Find(h, x, y, n) {};
+//    };
+//    assert(find(*this, x, y, n).propagate(*this, 0) == ES_FIX);
+//    std::cerr << "D(x) :: " << x << '\n';
+//    std::cerr << "D(y) :: " << y << '\n';
+//    std::cerr << "D(n) :: " << n << '\n';
+//    assert(n.min() == 7 && n.max() == 27);
+  }
+  
+  void test20() {
+    std::cerr << "\n*** Test 20 ***" << std::endl;
+    // TODO: Test find.
+//      NSBlocks v({
+//      NSBlock(NSIntSet('0', '3'), 4, 7)
+//    });
+//    StringVar x(*this, "123");
+//    StringVar y(*this, v, 0, 10000);
+//    IntVar n(*this, 2, 2);
+//    NSBlocks vx({
+//      NSBlock(NSIntSet('a', 'a'), 1, 1),
+//      NSBlock(NSIntSet('b', 'b'), 2, 2)
+//    });
+//    NSBlocks vy({
+//      NSBlock(NSIntSet('b', 'c'), 0, 12),
+//      NSBlock(NSIntSet('a', 'a'), 3 , 3),
+//      NSBlock(NSIntSet('d', 'd'), 1, 2),
+//      NSBlock(NSIntSet('b', 'c'), 2, 4),
+//      NSBlock(NSIntSet('a', 'a'), 5, 5),
+//      NSBlock(NSIntSet('b', 'b'), 3, 3),
+//      NSBlock(NSIntSet('a', 'c'), 0, 8),
+//    });
+//    StringVar x1(*this, vx, 0, 10000);
+//    StringVar y1(*this, vy, 0, 10000);
+//    IntVar n1(*this, 0, 38);
+//    std::cerr << "D(x) :: " << x << '\n';
+//    std::cerr << "D(y) :: " << y << '\n';
+//    std::cerr << "D(n) :: " << n << '\n';
+//    class find : public Find {
+//    public:
+//      find(Home h, StringView x, StringView y, Gecode::Int::IntView n) :
+//        Find(h, x, y, n) {};
+//    };
+//    assert(find(*this, x, y, n).propagate(*this, 0) == ES_FIX);
+//    assert(find(*this, x1, y1, n1).propagate(*this, 0) == ES_FIX);
+//    assert(ns_blocks(y.domain()).slice(1, 4).known());
+//    std::cerr << "D(y) :: " << y << '\n';
+//    std::cerr << "n1 :: " << n1 << '\n';
+  }
 
 };
 
@@ -508,6 +668,11 @@ int main() {
   home->test13();
   home->test14();
   home->test15();
+  home->test16();
+  home->test17();
+  home->test18();
+  home->test19();
+  home->test20();
   delete home;
   cerr << "\n----- str_test4 passes passes -----\n\n";
   return 0;
