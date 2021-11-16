@@ -99,11 +99,11 @@ namespace Gecode { namespace String {
       for (int j = 0; j < ny; ++j) {
         if (again)
           start = j > 0 && x.prec(m[j].ESP, m[j-1].ESP) ? m[j-1].ESP : m[j].ESP;
-        std::cerr << "start: " << start << '\n';
+//        std::cerr << "start: " << start << '\n';
         SweepFwdIterator<ViewX> fwd_it(x, start);
         m[j].ESP = y.push(j, fwd_it);
         start = *fwd_it;
-        std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
+//        std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
       }
       // y can't fit in x.
       if (x.equiv(m[ny-1].ESP, Position(x.size(),0))) {
@@ -118,14 +118,14 @@ namespace Gecode { namespace String {
         SweepBwdIterator<ViewX> bwd_it(x,start);
         y.stretch(j, bwd_it);
         start = *bwd_it;
-        std::cerr << "stretched bwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
+//        std::cerr << "stretched bwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
         if (x.prec(m[j].ESP, start)) {
           m[j].ESP = start;
           again = true;
-          std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
+//          std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
         }
       }
-      std::cerr << (again ? "Again!\n" : "");
+//      std::cerr << (again ? "Again!\n" : "");
     } while (again);
     // Possibly refining lb and ub (converting from position to index).
     l = std::max(l, pos2idx(x, start));
@@ -209,7 +209,7 @@ namespace Gecode { namespace String {
       const Block& y_j = y[j];
       const Position& esp = m[j].ESP, eep = m[j].EEP,  lsp = m[j].LSP, 
          lep = j < ny-1 && x.prec(m[j+1].LSP, m[j].LEP) ? m[j+1].LSP : m[j].LEP;
-      std::cerr<<"Ref. y[" << j << "] = " << y[j] <<"\tESP: "<<esp<<"\tLSP: "<<lsp <<"\tEEP: "<<eep<<"\tLEP: "<<lep<< "\n";
+//      std::cerr<<"Ref. y[" << j << "] = " << y[j] <<"\tESP: "<<esp<<"\tLSP: "<<lsp <<"\tEEP: "<<eep<<"\tLEP: "<<lep<< "\n";
       assert (esp.isNorm(x) && lsp.isNorm(x) && eep.isNorm(x) && lep.isNorm(x));
       // If some y-blocks fits all in a single x-block x[i], we will update x[i]
       if ((esp.idx == lep.idx || (esp.idx == lep.idx-1 && lep.off == 0)) &&
@@ -219,7 +219,7 @@ namespace Gecode { namespace String {
         if (it == xfit.end())
           xfit[i] = std::pair<int,int>(j,j);
         else {
-          std::cerr << it->second.second << ' ' << j << '\n';
+//          std::cerr << it->second.second << ' ' << j << '\n';
           assert (it->second.second == j-1);
           it->second.second = j;
         }
@@ -228,11 +228,11 @@ namespace Gecode { namespace String {
       if (y_j.isFixed())
         continue;
       int l = y_j.lb(), u = y_j.ub(), l1 = min_len_mand(x, y_j, lsp, eep);
-      std::cerr << "l'=" << l1 << "\n";
+//      std::cerr << "l'=" << l1 << "\n";
       if (u < l1)
         return false;
       long u1 = x.max_len_opt(y_j, esp, lep, l1);
-      std::cerr << "u'=" << u1 << "\n";
+//      std::cerr << "u'=" << u1 << "\n";
       if (l > u1)
         return false;
       assert (l1 <= u1);
@@ -472,7 +472,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool
   sweep_find(Space& home, ViewX x, ViewY y, int& lb, int& ub, bool occ) {
-    std::cerr << "sweep_find "<<x<<".find( "<<y<<" ) = "<<lb<<".."<<ub<<" \n";
+//    std::cerr << "sweep_find "<<x<<".find( "<<y<<" ) = "<<lb<<".."<<ub<<" \n";
     assert (lb >= 0 && ub >= 0);    
     int ny = y.size();
     Matching m[ny];

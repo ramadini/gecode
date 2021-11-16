@@ -81,7 +81,7 @@ namespace Gecode { namespace String { namespace Branch {
           if (mi < m) m = mi, pos = i;
         }
       }
-       std::cerr << "Chosen var. " << x[pos] << " (pos. " << pos << ")\n";
+//       std::cerr << "Chosen var. " << x[pos] << " (pos. " << pos << ")\n";
 //       abort();
       return val_lllm(pos, x[pos]);
     }
