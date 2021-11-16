@@ -503,7 +503,6 @@ public:
     vy[3].update(*this, Block(*this, CharSet(*this, 'h', 'n'), 0, 2));
     vy[4].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 0, 1));
     vy[5].update(*this, Block(*this, CharSet(*this, 'g'), 0, 3));
-    
     StringVar x(*this, DashedString(*this, vx, 4)), 
               y(*this, DashedString(*this, vy, 6));
     std::cerr << "x = " << x << '\n';
@@ -525,38 +524,37 @@ public:
   
   void test17() {
     std::cerr << "\n*** Test 17 ***" << std::endl;
-    // TODO: Test find.
-//    NSBlocks vx({
-//      NSBlock(NSIntSet('d', 'e'), 0, 2),
-//      NSBlock(NSIntSet('c'), 1, 3),
-//      NSBlock(NSIntSet('a', 'b'), 3, 5),
-//      NSBlock(NSIntSet('h', 'n'), 0, 2),
-//      NSBlock(NSIntSet('a', 'b'), 0, 1),
-//      NSBlock(NSIntSet('g'), 0, 3),
-//    });
-//    NSBlocks vy({
-//      NSBlock(NSIntSet('a', 'b'), 1, 2),
-//      NSBlock(NSIntSet('x', 'y'), 2, 3),
-//      NSBlock(NSIntSet('a', 'b'), 1, 2),
-//      NSBlock(NSIntSet('b', 'd'), 0, 4),
-//    });
-//    StringVar x(*this, vx, 0, 10000);
-//    StringVar y(*this, vy, 0, 10000);
-//    IntVar n(*this, 1, y.max_length());
-//    std::cerr << "D(x) :: " << x << '\n';
-//    std::cerr << "D(y) :: " << y << '\n';
-//    std::cerr << "D(n) :: " << n << '\n';
-//    class find : public Find {
-//    public:
-//      find(Home h, StringView x, StringView y, Gecode::Int::IntView n) :
-//        Find(h, x, y, n) {};
-//    };
-//    assert(find(*this, x, y, n).propagate(*this, 0) == ES_FIX);
-//    assert (n.min() == 5 && n.max() == 8 && x.val() == "cbbb");
-//    std::cerr << "===== After n = y.find(x), n >= 0 =====" << std::endl;
-//    std::cerr << "D(x) :: " << x << '\n';
-//    std::cerr << "D(y) :: " << y << '\n';
-//    std::cerr << "D(n) :: " << n << '\n';
+    Block vx[4];
+    vx[0].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 2));
+    vx[1].update(*this, Block(*this, CharSet(*this, 'x', 'y'), 2, 3));
+    vx[2].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 1, 2));
+    vx[3].update(*this, Block(*this, CharSet(*this, 'b', 'd'), 0, 4));
+    Block vy[6];
+    vy[0].update(*this, Block(*this, CharSet(*this, 'd', 'e'), 0, 2));
+    vy[1].update(*this, Block(*this, CharSet(*this, 'c'), 1, 3));
+    vy[2].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 3, 5));
+    vy[3].update(*this, Block(*this, CharSet(*this, 'h', 'n'), 0, 2));
+    vy[4].update(*this, Block(*this, CharSet(*this, 'a', 'b'), 0, 1));
+    vy[5].update(*this, Block(*this, CharSet(*this, 'g'), 0, 3));
+    StringVar x(*this, DashedString(*this, vx, 4)), 
+              y(*this, DashedString(*this, vy, 6));
+    std::cerr << "x = " << x << '\n';
+    std::cerr << "y = " << y << '\n';
+    IntVar n(*this, 1, y.max_length());
+    std::cerr << "D(x) :: " << x << '\n';
+    std::cerr << "D(y) :: " << y << '\n';
+    std::cerr << "D(n) :: " << n << '\n';
+    class find : public Find<StringView,StringView> {
+    public:
+      find(Home h, StringView x, StringView y, Gecode::Int::IntView n) :
+        Find(h, x, y, n) {};
+    };
+    assert(find(*this, x, y, n).propagate(*this, 0) == ES_FIX);
+    assert (n.min() == 5 && n.max() == 8 && vec2str(y.val()) == "cbbb");
+    std::cerr << "===== After n = y.find(x), n >= 0 =====" << std::endl;
+    std::cerr << "D(x) :: " << x << '\n';
+    std::cerr << "D(y) :: " << y << '\n';
+    std::cerr << "D(n) :: " << n << '\n';
   }
   
   void test18() {
