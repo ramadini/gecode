@@ -51,11 +51,11 @@ namespace Gecode { namespace String {
   forceinline ModEvent
   fixed_comp(Space& home, ViewX x, ViewY y, Gecode::Int::IntView iv) {
 //    std::cerr << "fixed_comp " << x << ".find( " << y << " ) = "<<iv<<"\n";
-    Position start(0,0);
     Region r;    
     int n = x.max_length(), nx = x.size(), k = 0;
     Block* curr = r.alloc<Block>(nx);
-    for (int i = idx2pos(x,iv.min()).idx; n > 0 && i < nx; ++i) { 
+    Position start = idx2pos(x,iv.min());
+    for (int i = start.idx; n > 0 && i < nx; ++i) { 
       const Block& b = x[i];
 //      std::cerr << i << ": " << b << "\n";
       if (b.baseSize() == 1) {
@@ -67,8 +67,8 @@ namespace Gecode { namespace String {
         if (k > 0) {
           GECODE_ME_CHECK(iv.gq(home,1));
           int ub = start.off + k + 1;
-          for (int j = 0; j < start.idx && ub < iv.max(); ++j)
-            ub += x[j].ub();
+          for (int i = 0; i < start.idx && ub < iv.max(); ++i)
+            ub += x[i].ub();
           GECODE_ME_CHECK(iv.lq(home, ub));
           return ME_STRING_NONE;
         }
@@ -98,7 +98,8 @@ namespace Gecode { namespace String {
     do {      
       for (int j = 0; j < ny; ++j) {
         if (again)
-          start = m[j].ESP;
+          start = j > 0 && x.prec(m[j].ESP, m[j-1].ESP) ? m[j-1].ESP : m[j].ESP;
+        std::cerr << "start: " << start << '\n';
         SweepFwdIterator<ViewX> fwd_it(x, start);
         m[j].ESP = y.push(j, fwd_it);
         start = *fwd_it;
@@ -124,6 +125,7 @@ namespace Gecode { namespace String {
           std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
         }
       }
+      std::cerr << (again ? "Again!\n" : "");
     } while (again);
     // Possibly refining lb and ub (converting from position to index).
     l = std::max(l, pos2idx(x, start));
@@ -147,7 +149,8 @@ namespace Gecode { namespace String {
     do {      
       for (int j = ny-1; j >= 0; --j) {
         if (again)
-          start = m[j].LEP;
+          start = j < ny-1 && x.prec(m[j+1].LEP, m[j].ESP) ? m[j+1].LEP : 
+                                                               m[j].LEP;
         SweepBwdIterator<ViewX> bwd_it(x, start);
         m[j].LEP = y.push(j, bwd_it);
         start = *bwd_it;
@@ -182,7 +185,7 @@ namespace Gecode { namespace String {
           yFixed++;
         else
           nBlocks += x.max_new_blocks(m[j]);
-        std::cerr << "LEP of y[" << j << "] = " << y[j] << ": " << m[j].LEP << '\n';
+//        std::cerr << "LEP of y[" << j << "] = " << y[j] << ": " << m[j].LEP << '\n';
       }
     } while (again);
     return true;
@@ -193,7 +196,7 @@ namespace Gecode { namespace String {
   forceinline bool
   refine_find(Space& home, ViewX& x, ViewY& y, int& lb, int& ub, Matching m[], 
                                                int& yFixed, int& nBlocks) {
-    std::cerr << "refine_find " << x << ' ' << y << '\n';
+//    std::cerr << "refine_find " << x << ' ' << y << '\n';
     bool yChanged = false; 
     int ny = y.size(), uy = 2*(ny-yFixed);
     Region r;

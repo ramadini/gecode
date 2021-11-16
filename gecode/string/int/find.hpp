@@ -89,7 +89,7 @@ namespace Gecode { namespace String { namespace Int {
       }
       int n = x0.size();
       std::vector<int> vp = x0.fixed_pref(Position(0,0), Position(n,0), n);
-      std::cerr << "Pref: " << vec2str(vp) << "\n";
+//      std::cerr << "Pref: " << vec2str(vp) << "\n";
       n = vp.size();
       assert (n % 2 == 0);
       if (n/2 >= uy) {
@@ -98,6 +98,7 @@ namespace Gecode { namespace String { namespace Int {
         for (int i=0, j=0; i < n-1; i += 2, ++j)
           pref[j].update(home, Block(vp[i], vp[i+1]));
         int i = find_fixed(ConstDashedView(*pref,n/2), x1);
+//        std::cerr << ConstDashedView(*pref,n/2) << ' ' << i << '\n';
         if (i > 0) {
           GECODE_ME_CHECK(x2.eq(home, i));
           return home.ES_SUBSUMED(*this);
@@ -109,6 +110,7 @@ namespace Gecode { namespace String { namespace Int {
         }
       }
       GECODE_ME_CHECK(fixed_comp(home, x0, x1, x2));
+//      std::cerr << "After fixed_comp: " << x2 << '\n';
       if (ln < x2.min())
         ln = x2.min();
       if (un > x2.max())
@@ -200,7 +202,7 @@ namespace Gecode { namespace String { namespace Int {
       if (x0.assigned()) {
         if (x1.assigned()) {
           int n = find_fixed(x0,x1);
-          std::cerr << n << '\n';
+//          std::cerr << n << '\n';
           GECODE_ME_CHECK(x2.eq(home, n));
           return home.ES_SUBSUMED(*this);
         }
