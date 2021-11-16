@@ -11,8 +11,8 @@ let {
   var 0..ub(str_len(x)): n;
   constraint
     x = p ++ str_pow(q, i) ++ s /\ y = p ++ str_pow(q1, i) ++ s
-    /\ i = bool2int(n > 0) /\ n = str_find(q, x) /\ str_len(p) = max(0, n - 1)
-    /\ str_find(q, p) = (str_len(q) = 0)
+    /\ i = bool2int(n > 0) /\ n = str_find(x, q) /\ str_len(p) = max(0, n - 1)
+    /\ str_find(p, q) = (str_len(q) = 0)
 } in y;
     
 function var string:

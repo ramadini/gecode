@@ -1,3 +1,4 @@
+include "replace.mzn";
 var string: s;
 var string: ret0;
 var string: ret1;

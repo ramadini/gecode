@@ -5,16 +5,17 @@ namespace Gecode { namespace String {
   // Auxiliary functions for find(x,y).
   template <class View>
   forceinline Position
-  idx2pos(const View& x, int idx) {
+  idx2min_pos(const View& x, int idx) {
     int i = 0, j = idx-1, n = x.size();
     while (i < n && j >= x[i].ub())
       j -= x[i++].ub();
-    assert (Position(i,j).isNorm(x));
-    return Position(i,j);
+    assert (j < 0 || Position(i,j).isNorm(x));
+    return j < 0 ? Position(0,0) : Position(i,j);
   }
+  
   template <class View>
   forceinline int
-  pos2idx(const View& x, const Position& p) {
+  pos2min_idx(const View& x, const Position& p) {
     assert (p.isNorm(x));
     int idx = 1;
     for (int i = 0; i < p.idx; ++i)
@@ -50,20 +51,20 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline ModEvent
   fixed_comp(Space& home, ViewX x, ViewY y, Gecode::Int::IntView iv) {
-//    std::cerr << "fixed_comp " << x << ".find( " << y << " ) = "<<iv<<"\n";
+    std::cerr << "fixed_comp " << x << ".find( " << y << " ) = "<<iv<<"\n";
     Region r;    
     int n = x.max_length(), nx = x.size(), k = 0;
     Block* curr = r.alloc<Block>(nx);
-    Position start = idx2pos(x,iv.min());
-    for (int i = start.idx; n > 0 && i < nx; ++i) { 
+    Position start = idx2min_pos(x,iv.min());
+    for (int i = start.idx; n > 0 && i < nx; ++i) {
       const Block& b = x[i];
-//      std::cerr << i << ": " << b << "\n";
+      std::cerr << i << ": " << b << "\n";
       if (b.baseSize() == 1) {
         Block t(b.baseMin(), std::min(b.lb(), n));
         curr[k++].update(home, t);
         ConstDashedView cv(*curr,k);        
         int k = find_fixed(cv, y);
-//        std::cerr << "Curr: " << cv << ", k = " << k << '\n';
+        std::cerr << "Curr: " << cv << ", k = " << k << '\n';
         if (k > 0) {
           GECODE_ME_CHECK(iv.gq(home,1));
           int ub = start.off + k + 1;
@@ -128,7 +129,7 @@ namespace Gecode { namespace String {
 //      std::cerr << (again ? "Again!\n" : "");
     } while (again);
     // Possibly refining lb and ub (converting from position to index).
-    l = std::max(l, pos2idx(x, start));
+    l = std::max(l, pos2min_idx(x, start));
     if (l > u) {
       if (occ)
         return false;
@@ -472,11 +473,11 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool
   sweep_find(Space& home, ViewX x, ViewY y, int& lb, int& ub, bool occ) {
-//    std::cerr << "sweep_find "<<x<<".find( "<<y<<" ) = "<<lb<<".."<<ub<<" \n";
+    std::cerr << "sweep_find "<<x<<".find( "<<y<<" ) = "<<lb<<".."<<ub<<" \n";
     assert (lb >= 0 && ub >= 0);    
     int ny = y.size();
     Matching m[ny];
-    Position start = idx2pos(x,lb), end = Position(x.size(),0);
+    Position start = idx2min_pos(x,lb), end = Position(x.size(),0);
     for (int i = 0; i < ny; ++i) {
       m[i].ESP = start;
       m[i].LEP = end;

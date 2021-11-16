@@ -60,7 +60,7 @@ namespace Gecode { namespace String { namespace Int {
   template <class View0, class View1>
   forceinline ExecStatus
   Find<View0,View1>::propagate(Space& home, const ModEventDelta&) {
-//    std::cerr <<"\n"<< this << "::Find::propagate "<<x0<<".find( "<<x1<<" ) = "<<x2<<" \n";
+    std::cerr <<"\n"<< this << "::Find::propagate "<<x0<<".find( "<<x1<<" ) = "<<x2<<" \n";
     int ly = x1.min_length(), ux = x0.max_length(), uy = x1.max_length();
     if (ux < ly) {
       GECODE_ME_CHECK(x2.eq(home, 0));
@@ -111,7 +111,7 @@ namespace Gecode { namespace String { namespace Int {
         }
       }
       GECODE_ME_CHECK(fixed_comp(home, x0, x1, x2));
-//      std::cerr << "After fixed_comp: " << x2 << '\n';
+      std::cerr << "After fixed_comp: " << x2 << '\n';
       if (ln < x2.min())
         ln = x2.min();
       if (un > x2.max())
@@ -202,7 +202,7 @@ namespace Gecode { namespace String { namespace Int {
     }
     // General case.
     int ll = ln;
-//    std::cerr<<"Before: "<<x0<<".find( "<<x1<<" ) = "<<ln<<".."<<un<<" ("<<occ<<") \n";
+    std::cerr<<"Before: "<<x0<<".find( "<<x1<<" ) = "<<ln<<".."<<un<<" ("<<occ<<") \n";
     GECODE_ME_CHECK(x0.find(home, x1, ln, un, occ));
 //    std::cerr<<"After: "<<x0<<".find( "<<x1<<" ) = "<<ln<<".."<<un<<" ("<<occ<<") \n";
     GECODE_ME_CHECK(x2.lq(home, un));
