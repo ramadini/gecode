@@ -358,7 +358,14 @@ namespace Gecode {
   GECODE_STRING_EXPORT void element(Home home, StringVarArgs x, IntVar i, 
                                                              StringVar y);
   GECODE_STRING_EXPORT void  find(Home home, StringVar x, StringVar y, IntVar i);
-  GECODE_STRING_EXPORT void rfind(Home home, StringVar x, StringVar y, IntVar i);                                                             
+  GECODE_STRING_EXPORT void rfind(Home home, StringVar x, StringVar y, IntVar i);
+  
+  GECODE_STRING_EXPORT void 
+  replace(Home home, StringVar x, StringVar q, StringVar t, StringVar y);
+  GECODE_STRING_EXPORT void 
+  replace_all (Home home, StringVar x, StringVar q, StringVar t, StringVar y);
+  GECODE_STRING_EXPORT void 
+  replace_last(Home home, StringVar x, StringVar q, StringVar t, StringVar y);
 }
 
 namespace Gecode {

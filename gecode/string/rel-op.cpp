@@ -99,4 +99,38 @@ namespace Gecode {
     }
   }
   
+  void
+  replace(Home home, StringVar x, StringVar q, StringVar t, StringVar y) {
+    using namespace String;
+    GECODE_POST;
+    ViewArray<StringView> v(home, 4);
+    v[0] = x;
+    v[1] = q;
+    v[2] = t;
+    v[3] = y;
+    GECODE_ES_FAIL(RelOp::Replace<StringView>::post(home,v));
+  }
+  void
+  replace_last(Home home, StringVar x, StringVar q, StringVar t, StringVar y) {
+    using namespace String;
+    GECODE_POST;
+    ViewArray<StringView> v(home, 4);
+    v[0] = x;
+    v[1] = q;
+    v[2] = t;
+    v[3] = y;
+    GECODE_ES_FAIL(RelOp::Replace<StringView>::post(home,v,false,true));
+  }
+  void
+  replace_all(Home home, StringVar x, StringVar q, StringVar t, StringVar y) {
+    using namespace String;
+    GECODE_POST;
+    ViewArray<StringView> v(home, 4);
+    v[0] = x;
+    v[1] = q;
+    v[2] = t;
+    v[3] = y;
+    GECODE_ES_FAIL(RelOp::Replace<StringView>::post(home,v,true,false));
+  }
+  
 }
