@@ -2258,11 +2258,6 @@ namespace Gecode { namespace FlatZinc {
     rel(s, sot, s.arg2StringVar(ce[0]), s.arg2StringVar(ce[1]),
                 s.arg2StringVar(ce[2]));
   }
-  
-//  void p_str_op3(FlatZincSpace& s, StringOpType sot, const ConExpr& ce) {
-//    rel(s, sot, s.arg2StringVar(ce[0]), s.arg2StringVar(ce[1]),
-//                s.arg2StringVar(ce[2]), s.arg2StringVar(ce[3]));
-//  }
 
   void p_str_rev(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
     p_str_op1(s, STRT_REV, ce);
@@ -2337,17 +2332,20 @@ namespace Gecode { namespace FlatZinc {
     rfind(s, s.arg2StringVar(ce[0]), s.arg2StringVar(ce[1]), s.arg2IntVar(ce[2]));
   }
 
-//  void p_str_replace(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-//    p_str_op3(s, STRT_REP, ce);
-//  }
-//  
-//  void p_str_replace_all(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-//    p_str_op3(s, STRT_REPALL, ce);
-//  }
-//  
-//  void p_str_replace_last(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-//    p_str_op3(s, STRT_REPLST, ce);
-//  }
+  void p_str_replace(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+    replace(s, s.arg2StringVar(ce[0]), s.arg2StringVar(ce[1]),
+               s.arg2StringVar(ce[2]), s.arg2StringVar(ce[3]));
+  }
+  
+  void p_str_replace_all(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+    replace_all(s, s.arg2StringVar(ce[0]), s.arg2StringVar(ce[1]),
+                   s.arg2StringVar(ce[2]), s.arg2StringVar(ce[3]));
+  }
+  
+  void p_str_replace_last(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+    replace_last(s, s.arg2StringVar(ce[0]), s.arg2StringVar(ce[1]),
+                    s.arg2StringVar(ce[2]), s.arg2StringVar(ce[3]));
+  }
 
 //  void p_str_contains(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
 //    contains(s, s.arg2StringVar(ce[0]), s.arg2StringVar(ce[1]));
@@ -2485,9 +2483,9 @@ namespace Gecode { namespace FlatZinc {
 //    	  registry().add("str_char2code", &p_str_char2code);
     	  registry().add("str_find", &p_str_find);
     	  registry().add("str_rfind", &p_str_rfind);
-//    	  registry().add("str_replace", &p_str_replace);
-//    	  registry().add("str_replace_all", &p_str_replace_all);
-//    	  registry().add("str_replace_last", &p_str_replace_last);
+    	  registry().add("str_replace", &p_str_replace);
+    	  registry().add("str_replace_all", &p_str_replace_all);
+    	  registry().add("str_replace_last", &p_str_replace_last);
     	  registry().add("str_concat", &p_str_concat);
 //    	  registry().add("str_gconcat", &p_str_gconcat);
     	  registry().add("str_eq_reif", &p_str_eq_reif);
