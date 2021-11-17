@@ -61,21 +61,22 @@ namespace Gecode { namespace String { namespace Int {
   forceinline ExecStatus
   Find<View0,View1>::propagate(Space& home, const ModEventDelta&) {
 //    std::cerr <<"\n"<< this << "::Find::propagate "<<x0<<".find( "<<x1<<" ) = "<<x2<<" \n";
-    int ly = x1.min_length(), ux = x0.max_length(), uy = x1.max_length();
-    if (ux < ly) {
+    int l1 = x1.min_length(), u0 = x0.max_length(), u1 = x1.max_length();
+    if (u0 < l1) {
       GECODE_ME_CHECK(x2.eq(home, 0));
       return home.ES_SUBSUMED(*this);
     }
-    if (ux < x2.min())
+    if (u0 < x2.min())
       return ES_FAILED;
-    GECODE_ME_CHECK(x2.lq(home, std::max(0, std::min(ux, ux-ly+1))));
+    GECODE_ME_CHECK(x2.lq(home, std::max(0, std::min(u0, u0-l1+1))));
     if (x2.min() > 0)
       refine_card(home);
     int ln = x2.min(), un = x2.max();
-    // The query string is known: we check if x0 definitely occurs in x1, and
+    
+    // The query string x1 is known: we check if x0 definitely occurs in x1, and
     // possibly update the index variable.
     if (x1.assigned()) {
-      if (uy == 0) {
+      if (u1 == 0) {
         GECODE_ME_CHECK(x2.eq(home, 1));
         return home.ES_SUBSUMED(*this);
       }
@@ -89,11 +90,12 @@ namespace Gecode { namespace String { namespace Int {
         return home.ES_SUBSUMED(*this);
       }
       int n = x0.size();
+      // Checking fixed prefix.
       std::vector<int> vp = x0.fixed_pref(Position(0,0), Position(n,0), n);
 //      std::cerr << "Pref: " << vec2str(vp) << "\n";
       n = vp.size();
       assert (n % 2 == 0);
-      if (n/2 >= uy) {
+      if (n/2 >= u1) {
         Region r;
         Block* pref = r.alloc<Block>(n/2);
         for (int i=0, j=0; i < n-1; i += 2, ++j)
@@ -104,12 +106,8 @@ namespace Gecode { namespace String { namespace Int {
           GECODE_ME_CHECK(x2.eq(home, i));
           return home.ES_SUBSUMED(*this);
         }
-        else if (i > 0) {
-          IntSet s(1,n);
-          IntSetRanges is(s);
-          GECODE_ME_CHECK(x2.minus_r(home, is));
-        }
       }
+      // Checking if x1 occurs in the fixed components of x0.
       GECODE_ME_CHECK(fixed_comp(home, x0, x1, x2));
 //      std::cerr << "After fixed_comp: " << x2 << '\n';
       if (ln < x2.min())
@@ -117,10 +115,11 @@ namespace Gecode { namespace String { namespace Int {
       if (un > x2.max())
         un = x2.max();
     }
+    
     // occ is true iff x1 must occur in x0.
     bool occ = (ln > 0);
-    // Target string empty.
-    if (ux == 0) {
+    // Target string x0 empty.
+    if (u0 == 0) {
       if (occ) {
         GECODE_ME_CHECK(x2.eq(home, 1));
         GECODE_ME_CHECK(x1.nullify(home));
@@ -135,7 +134,8 @@ namespace Gecode { namespace String { namespace Int {
         un = 1;
       }
     }
-    // The query string does not occur.
+    
+    // The query string x1 does not occur.
     if (ln == un && un == 0) {
       if (x1.assigned() && x1.max_length() == 1) {
         // Removing a single character from all the bases of x0.
@@ -162,6 +162,8 @@ namespace Gecode { namespace String { namespace Int {
       }
       return ES_FIX;
     }
+    
+    // x0, x2 fixed and x1 with fixed length.
     if (x0.assigned() && x2.assigned() && x1.min_length() == x1.max_length()) {
     x0_x2_fixed:
       std::vector<int> w0 = x0.val();
@@ -172,6 +174,8 @@ namespace Gecode { namespace String { namespace Int {
         return ES_FAILED;
       return home.ES_SUBSUMED(*this);
     }
+    
+    // General case.
     if (occ) {
       Set::GLBndSet s;
       for (int i = 0; i < x0.size(); ++i)
@@ -190,14 +194,14 @@ namespace Gecode { namespace String { namespace Int {
         int i = std::max(0,x0.min_length()-x1.max_length()-un+1);
         dom[k++].update(home, Block(home, S, i, j));
       }
-      ConstDashedView cv(*dom,k);
-//      std::cerr << "cv: " << cv << '\n';
+      ConstDashedView d(*dom,k);
+//      std::cerr << "d: " << d << '\n';
       if (x0.assigned()) {
-        if (!check_equate_x(x0,cv))
+        if (!check_equate_x(x0,d))
           return ES_FAILED;
       }
       else
-        GECODE_ME_CHECK(x0.equate(home,cv));
+        GECODE_ME_CHECK(x0.equate(home,d));
 //      std::cerr << "x0: " << x0 << '\n';
       if (x0.assigned()) {
         if (x1.assigned())
@@ -211,8 +215,7 @@ namespace Gecode { namespace String { namespace Int {
       Gecode::Int::ViewValues<Gecode::Int::IntView> i(x2);
       ++i;
       ln = i.val();
-    }
-    // General case.
+    }    
     int ll = ln;
 //    std::cerr<<"Before: "<<x0<<".find( "<<x1<<" ) = "<<ln<<".."<<un<<" ("<<occ<<") \n";
     GECODE_ME_CHECK(x0.find(home, x1, ln, un, occ));
@@ -230,7 +233,7 @@ namespace Gecode { namespace String { namespace Int {
       }
     }
     else {
-      // Can't modify neither x nor y.
+      // Can't modify neither x0 nor x1.
       if (un == 0)
         GECODE_ME_CHECK(x2.eq(home, 0));
       if (ln > ll) {

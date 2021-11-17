@@ -2,17 +2,18 @@
 
 namespace Gecode { namespace String {
 
-  // Auxiliary functions for find(x,y).
+  // Returns the least position p s.t. x[:p] has at least k characters.
   template <class View>
   forceinline Position
-  idx2min_pos(const View& x, int idx) {
-    int i = 0, j = idx-1, n = x.size();
-    while (i < n && j >= x[i].ub())
-      j -= x[i++].ub();
-    assert (j < 0 || Position(i,j).isNorm(x));
-    return j < 0 ? Position(0,0) : Position(i,j);
+  idx2min_pos(const View& x, int k) {
+    int idx = 0, off = k-1, n = x.size();
+    while (idx < n && off >= x[idx].ub())
+      off -= x[idx++].ub();
+    assert (off < 0 || Position(idx,off).isNorm(x));
+    return off < 0 ? Position(0,0) : Position(idx,off);
   }
   
+  // Returns the least index i s.t. x[:p] has at least i-1 characters.   
   template <class View>
   forceinline int
   pos2min_idx(const View& x, const Position& p) {
@@ -23,6 +24,7 @@ namespace Gecode { namespace String {
     return ubounded_sum(idx, p.off);
   }
 
+  // Returns the index of the first occurrence of y in x when both fixed.
   template <class ViewX, class ViewY>
   forceinline int
   find_fixed(ViewX x, ViewY y) {
@@ -47,7 +49,8 @@ namespace Gecode { namespace String {
     return ny == 0 ? k-y.max_length()+1 : 0;
   }
     
-    
+  // Computes the fixed components of x and checks if y can occur in it. If so,
+  // iv is refined accordingly.  
   template <class ViewX, class ViewY>
   forceinline ModEvent
   fixed_comp(Space& home, ViewX x, ViewY y, Gecode::Int::IntView iv) {
@@ -93,20 +96,23 @@ namespace Gecode { namespace String {
     return me;
   }
 
-  // Pushing the earliest start position of each y-block in x for find(x,y).
+  // Pushes fwd the earliest start position of each y-block in x for find(x,y),
+  // knowing that, if occ, y must start between index l and u (possibly refined
+  // after the pushing).
   template <class ViewX, class ViewY>
   forceinline bool
   pushESP_find(const ViewX x, ViewY y, Matching m[], int& l, int& u, bool occ) {
     bool again = false;
     int ny = y.size();
     Position start = m[0].ESP;
-    do {      
+    do {
       for (int j = 0; j < ny; ++j) {
         if (again)
           start = x.prec(m[j].ESP, start) ? start : m[j].ESP;
         SweepFwdIterator<ViewX> fwd_it(x, start);
         m[j].ESP = y.push(j, fwd_it);
         start = *fwd_it;
+        assert (!x.prec(start,m[j].ESP));
 //        std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';        
         if (y[j].lb() > 0 && x.equiv(m[j].ESP, Position(x.size(),0))) {
           // y can't fit in x.
@@ -118,6 +124,7 @@ namespace Gecode { namespace String {
         }
       }
       again = false;
+      // Stretching backward to see if we can further move forward the ESPs.
       for (int j = ny-1; j >= 0; --j) {
         SweepBwdIterator<ViewX> bwd_it(x,start);
         y.stretch(j, bwd_it);
@@ -131,9 +138,10 @@ namespace Gecode { namespace String {
       }
 //      std::cerr << (again ? "Again!\n" : "");
     } while (again);
-    // Possibly refining lb and ub (converting from position to index).
+    // Possibly refining l and u, by converting from position to index.
     l = std::max(l, pos2min_idx(x, m[0].ESP));
     if (l > u) {
+      // y can't fit in x.
       if (occ)
         return false;
       if (u > 0)
@@ -143,8 +151,9 @@ namespace Gecode { namespace String {
     return true;
   }
 
-  // Pushing the latest end position of each y-block in x for find(x,y), 
-  // assuming that x contains y. It also sets latest starts and earliest ends.
+  // Pushes bwd the latest end position of each y-block in x for find(x,y), 
+  // assuming that y must occur in x. It also sets latest starts, earliest ends
+  // and yFixed, nBlocks parameters for the following refining of y.
   template <class ViewX, class ViewY>
   forceinline bool
   pushLEP_find(const ViewX& x, const ViewY& y, Matching m[], int& yFixed, 
@@ -159,14 +168,16 @@ namespace Gecode { namespace String {
         SweepBwdIterator<ViewX> bwd_it(x, start);
         m[j].LEP = y.push(j, bwd_it);
         start = *bwd_it;
+        assert (!x.prec(m[j].LEP, start));
 //        std::cerr << "pushed bwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
         if (x.equiv(Position(0,0), m[j].LEP))
-          // Prefix cannot fit.
+          // y cannot fit in x.
           return false;
 //        std::cerr << "LEP of y[" << j << "] = " << y[j] << ": " << m[j].LEP << '\n';
       }
       again = false;
       yFixed = 0, nBlocks = 0;
+      // Stretching forward to see if we can further move backward the LEPs.
       for (int j = 0; j < ny; ++j) {
         SweepFwdIterator<ViewX> fwd_it(x,start);
         y.stretch(j, fwd_it);
@@ -197,7 +208,8 @@ namespace Gecode { namespace String {
     return true;
   }
   
-  // Possibly refines x and y for find propagator, assuming that x contains y.
+  // Possibly refines x and y for find propagator, assuming that y must occur 
+  // in x.
   template <class ViewX, class ViewY>
   forceinline bool
   refine_find(Space& home, ViewX& x, ViewY& y, int& lb, int& ub, Matching m[], 
@@ -357,14 +369,16 @@ namespace Gecode { namespace String {
       U[uSize++] = n;
       newSize += n;
     }
+    
+    // Possibly refining y.
     if (newSize > 0) {
       y.resize(home, newBlocks, newSize, U, uSize);
       yChanged = true;
     }
     r.free(U, uSize);
     r.free(newBlocks, newSize);
-      
-    // Possibly refining x.
+    
+    // Possibly refining x (and y).
     bool xChanged = false;
     if (!x.assigned()) {
       int ux = 2*nx;
@@ -426,22 +440,7 @@ namespace Gecode { namespace String {
           }
         }
       }
-    }
-    // Possibly refining lower and upper bounds of the index variable.
-    if (idxNotNull != -1) {
-      int n = m[idxNotNull].ESP.off + 1;
-      for (int i = 0; i < m[idxNotNull].ESP.idx; ++i)
-        n += x[i].lb();
-      if (n > lb)
-        lb = n;
-      n = m[idxNotNull].LSP.off + 1;
-      for (int i = 0; i < m[idxNotNull].LEP.idx; ++i)
-        n += x[i].ub();
-      if (n < ub)
-        ub = n;
-    }
-    // Nullify incompatible y-blocks.
-    if (!x.assigned()) {
+      // Nullify incompatible y-blocks.
       Set::GLBndSet s;
       for (int i = 0; i < x.size(); ++i) {
         if (x[i].isUniverse())
@@ -458,7 +457,7 @@ namespace Gecode { namespace String {
       }
     }
   refine:
-    // Refining.
+    // Refining x and y.
     if (newSize > 0)
       x.resize(home, newBlocks, newSize, U, uSize);
     else if (xChanged)
@@ -471,6 +470,20 @@ namespace Gecode { namespace String {
     else
       // y not modified.
       nBlocks = -1;
+      
+    // Possibly refining lower and upper bounds of the index variable.
+    if (idxNotNull != -1) {
+      int n = m[idxNotNull].ESP.off + 1;
+      for (int i = 0; i < m[idxNotNull].ESP.idx; ++i)
+        n += x[i].lb();
+      if (n > lb)
+        lb = n;
+      n = m[idxNotNull].LSP.off + 1;
+      for (int i = 0; i < m[idxNotNull].LEP.idx; ++i)
+        n += x[i].ub();
+      if (n < ub)
+        ub = n;
+    }
     return true;
   }
 
