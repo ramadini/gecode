@@ -70,8 +70,7 @@ namespace Gecode { namespace String { namespace RelOp {
   template <class View>
   forceinline
   Replace<View>::Replace(Space& home, Replace& p)
-  : NaryPropagator<View, PC_STRING_ANY>(home, p), all(p.all), last(p.last) 
-  {}
+  : NaryPropagator<View, PC_STRING_ANY>(home, p), all(p.all), last(p.last) {}
 
 //  // Returns the prefix of x[k] until position p.
 //  template <class View>
@@ -108,10 +107,10 @@ namespace Gecode { namespace String { namespace RelOp {
 //    return suff;
 //  }
   
-//  // Decomposes decomp_all into basic constraints.
-//  template <class View>
-//  forceinline ExecStatus
-//  Replace<View>::decomp_all(Space& home) {
+  // Decomposes decomp_all into basic constraints.
+  template <class View>
+  forceinline ExecStatus
+  Replace<View>::decomp_all(Space& home) {
 //    // std::cerr << "decomp_all\n";
 //    string sx = x[0].val(), sq = x[1].val();
 //    if (x[2].assigned()) {
@@ -187,19 +186,19 @@ namespace Gecode { namespace String { namespace RelOp {
 //      }
 //    }
 //    // std::cerr << "After decomp_all: " << x << "\n";
-//    return home.ES_SUBSUMED(*this);
-//  }
+    return home.ES_SUBSUMED(*this);
+  }
 
-//  // Checking if |y| = |x| + |q'| - |q| is consistent.
-//  template <class View>
-//  forceinline bool
-//  Replace<View>::check_card() const {  
-//   int lx  = x[0].min_length(), ux  = x[0].max_length(),
-//       lq  = x[1].min_length(), uq  = x[1].max_length(),
-//       lq1 = x[2].min_length(), uq1 = x[2].max_length(),       
-//       ly  = x[3].min_length(), uy  = x[3].max_length();
-//     return ly <= ux + uq1 - lq && uy >= lx + lq1 - uq;
-//  }
+  // Checking if |y| = |x| + |q'| - |q| is consistent.
+  template <class View>
+  forceinline bool
+  Replace<View>::check_card() const {
+   int lx  = x[0].min_length(), lq = x[1].min_length(), lq1 = x[2].min_length(),
+       ly  = x[3].min_length();
+   long ux = x[0].max_length(), uq = x[1].max_length(), uq1 = x[2].max_length(),
+        uy = x[3].max_length();
+   return ly <= ux + uq1 - lq && uy >= lx + lq1 - uq;
+  }
   
 //  // For replace, it returns 1 if q must occur in x[0], 0 otherwise.
 //  // For decomp_all, it returns the minimum number of occurrences of q in x[0].
@@ -339,30 +338,30 @@ namespace Gecode { namespace String { namespace RelOp {
   
   template <class View>
   forceinline ExecStatus
-  Replace<View>::propagate(Space& home, const ModEventDelta& m) {
-    // std::cerr<<"\nReplace" << (all ? "All" : last ? "Last" : "") << "::propagate: "<< x <<"\n";
-//    assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
-//           x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());
-//    if (!all && !check_card()) {
-//      find(home, x[1], x[0], IntVar(home, 0, 0));
-//      rel(home, x[0], STRT_EQ, x[3]);
-//      return home.ES_SUBSUMED(*this);
-//    }
-//    int min_occur = 0;
-//    if (x[1].assigned()) {
-//      string sq = x[1].val();
-//      if (x[2].assigned() && sq == x[2].val()) {
-//        rel(home, x[0], STRT_EQ, x[3]);
-//        return home.ES_SUBSUMED(*this);
-//      }
-//      if (sq == "" && !all) {
-//        last ? rel(home, x[0], x[2], STRT_CAT, x[3])
-//             : rel(home, x[2], x[0], STRT_CAT, x[3]);
-//        return home.ES_SUBSUMED(*this);
-//      }
-//      if (x[0].assigned()) {
-//        if (all)
-//          return decomp_all(home);
+  Replace<View>::propagate(Space& home, const ModEventDelta&) {
+    std::cerr<<"\nReplace" << (all ? "All" : last ? "Last" : "") << "::propagate: "<< x <<"\n";
+    if (!all && !check_card()) {
+      // x[1] not occurring in x[0].
+      find(home, x[0], x[1], IntVar(home, 0, 0));
+      eq(home, x[0], x[3]);
+      return home.ES_SUBSUMED(*this);
+    }
+    int min_occur = 0;
+    // Query string x[1] fixed.
+    if (x[1].assigned()) {
+      if (x[2].assigned() && check_equate_x(x[1],x[2])) {
+        // x[1] = x[2] -> x[3] = x[0].
+        rel(home, x[0], STRT_EQ, x[3]);
+        return home.ES_SUBSUMED(*this);
+      }
+      if (x[1].max_length() == 0 && !all) {
+        // x[1] = "".
+        last ? concat(home, x[0], x[2], x[3]) : concat(home, x[2], x[0], x[3]);
+        return home.ES_SUBSUMED(*this);
+      }
+      if (x[0].assigned()) {
+        if (all)
+          return decomp_all(home);
 //        string sx = x[0].val();
 //        size_t n = last ? sx.rfind(sq) : sx.find(sq);
 //        if (n == string::npos)
@@ -379,17 +378,17 @@ namespace Gecode { namespace String { namespace RelOp {
 //          }
 //        }
 //        return home.ES_SUBSUMED(*this);
-//      }
+      }
 //      min_occur = occur(sq);
-//    }
-//    if (x[0].assigned() && x[3].assigned()) {
-//      if (x[0].val() == x[3].val()) {
-//        find(home, x[1], x[0], IntVar(home, 0, 0));
-//        return home.ES_SUBSUMED(*this);
-//      }
-//      if (min_occur == 0)
-//        min_occur += 1;
-//    } 
+    }
+    if (x[0].assigned() && x[3].assigned()) {
+      if (x[0].val() == x[3].val()) {
+        find(home, x[1], x[0], IntVar(home, 0, 0));
+        return home.ES_SUBSUMED(*this);
+      }
+      if (min_occur == 0)
+        min_occur += 1;
+    } 
 //    // x[0] != x[3] => x[1] occur in x[0] /\ x[2] occur in x[3].
 //    DashedString* px  = x[0].pdomain();
 //    DashedString* pq  = x[1].pdomain();
