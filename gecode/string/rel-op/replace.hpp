@@ -242,27 +242,33 @@ namespace Gecode { namespace String { namespace RelOp {
   // For decomp_all, it returns the minimum number of occurrences of q in x[ORI].
   template <class View>
   forceinline int
-  Replace<View>::occur() const {
-    int min_occur = 0;
-//    string curr = "";
-    for (int i = 0; i < x[ORI].size(); ++i) {
+  Replace<View>::occur(Space& home) const {
+    if (x[ORI].assigned() && !all)
+      return find_fixed(x[QRY], x[ORI]) > 0;
+    int min_occur = 0, k = 0;
+    std::vector<int> curr;
+    for (int i = 0, nq = x[ORI].size(); i < nq; ++i) {
       const Block& b = x[ORI][i];
       if (b.baseSize() == 1) {
-//FIXME        string w(b.l, b.S.min());
-//        curr += w;
-//        size_t i = curr.find(q);
-//        while (i != string::npos) {
-//          min_occur++;
-//          if (!all)
-//            return min_occur;
-//          curr = curr.substr(i + q.size());
-//          i = curr.find(q);
-//        }
-//        if (b.l < b.u)
-//          curr = w;
+        std::vector<int> w(b.lb(), b.baseMin());
+        curr.insert(curr.end(), w.begin(), w.end());
+        k += b.lb();
+        int i = find_fixed(ConstStringView(home,&curr[0],k), x[QRY]);
+        while (i > 0) {
+          if (!all)
+            return 1;
+          min_occur++;
+          i = find_fixed(ConstStringView(home,&curr[0]+i+nq-1,k-i), x[QRY]);
+        }
+        if (b.lb() < b.ub()) {
+          curr = w;
+          k = b.lb();
+        }
       }
-//      else
-//        curr = "";
+      else {
+        curr.clear();
+        k = 0;
+      }
     }
     return min_occur;
   }
@@ -403,6 +409,7 @@ namespace Gecode { namespace String { namespace RelOp {
         if (n == 0)
           eq(home, x[ORI], x[OUT]);
         else {
+          n--;
           std::vector<int> wx = x[ORI].val();
           std::vector<int> pref(wx.begin(), wx.begin() + n);
           std::vector<int> suff(wx.begin() + n, wx.end());
@@ -422,7 +429,7 @@ namespace Gecode { namespace String { namespace RelOp {
         }
         return home.ES_SUBSUMED(*this);
       }
-      min_occur = occur();
+      min_occur = occur(home);
     }
     if (x[ORI].assigned() && x[OUT].assigned()) {
       if (x[ORI].val() == x[OUT].val()) {
