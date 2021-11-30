@@ -238,12 +238,12 @@ namespace Gecode { namespace String { namespace RelOp {
    return ly <= ux + uq1 - lq && uy >= lx + lq1 - uq;
   }
   
-//  // For replace, it returns 1 if q must occur in x[ORI], 0 otherwise.
-//  // For decomp_all, it returns the minimum number of occurrences of q in x[ORI].
-//  template <class View>
-//  forceinline int
-//  Replace<View>::occur(string q) const {
-//    int min_occur = 0;
+  // For replace, it returns 1 if x[QRY] must occur in x[ORI], 0 otherwise.
+  // For decomp_all, it returns the minimum number of occurrences of q in x[ORI].
+  template <class View>
+  forceinline int
+  Replace<View>::occur() const {
+    int min_occur = 0;
 //    string curr = "";
 //    DashedString* p = x[ORI].pdomain();
 //    for (int i = 0; i < p->length(); ++i) {
@@ -265,8 +265,8 @@ namespace Gecode { namespace String { namespace RelOp {
 //      else
 //        curr = "";
 //    }
-//    return min_occur;
-//  }
+    return min_occur;
+  }
   
 //  // If x[QRY] must not occur in x[ORI], then x[ORI] = x[OUT]. Otherwise, we use the 
 //  // earliest/latest start/end positions of x[QRY] in x[ORI] to possibly refine 
@@ -401,23 +401,30 @@ namespace Gecode { namespace String { namespace RelOp {
         if (all)
           return decomp_all(home);
 //        string sx = x[ORI].val();
-//        size_t n = last ? sx.rfind(sq) : sx.find(sq);
-//        if (n == string::npos)
-//          rel(home, x[ORI], STRT_EQ, x[OUT]);
-//        else {
-//          string pref = sx.substr(0, n);
-//          string suff = sx.substr(n + sq.size());
-//          if (x[RPL].assigned())
-//            GECODE_ME_CHECK(x[OUT].eq(home, pref + x[RPL].val() + suff));
-//          else {
-//            StringVar z(home);
-//            rel(home, StringVar(home, pref), x[RPL], STRT_CAT, z);
-//            rel(home, z, StringVar(home, suff), STRT_CAT, x[OUT]);
-//          }
-//        }
-//        return home.ES_SUBSUMED(*this);
+        int n = last ? rfind_fixed(x[ORI],x[QRY]) : find_fixed(x[ORI],x[QRY]);
+        if (n == 0)
+          eq(home, x[ORI], x[OUT]);
+        else {
+          std::vector<int> wx = x[ORI].val();
+          std::vector<int> pref(wx.begin(), wx.begin() + n);
+          std::vector<int> suff(wx.begin() + n, wx.end());
+          if (x[RPL].assigned()) {
+            std::vector<int> w(pref);
+            std::vector<int> wq1 = x[RPL].val();
+            w.insert(w.end(), wq1.begin(), wq1.end());
+            w.insert(w.end(), suff.begin(), suff.end());
+            int k = pref.size() + w.size() + suff.size();
+            GECODE_ME_CHECK(x[OUT].equate(home, ConstStringView(home,&w[0],k)));
+          }
+          else {
+            StringVar tmp(home);
+            concat(home, StringVar(home, pref), x[RPL], tmp);
+            concat(home, tmp, StringVar(home, suff), x[OUT]);
+          }
+        }
+        return home.ES_SUBSUMED(*this);
       }
-//      min_occur = occur(sq);
+      min_occur = occur();
     }
     if (x[ORI].assigned() && x[OUT].assigned()) {
       if (x[ORI].val() == x[OUT].val()) {
@@ -427,7 +434,7 @@ namespace Gecode { namespace String { namespace RelOp {
       if (min_occur == 0)
         min_occur += 1;
     } 
-//    // x[ORI] != x[OUT] => x[QRY] occur in x[ORI] /\ x[RPL] occur in x[OUT].
+    // x[ORI] != x[OUT] => x[QRY] occur in x[ORI] /\ x[RPL] occur in x[OUT].
 //    DashedString* px  = x[ORI].pdomain();
 //    DashedString* pq  = x[QRY].pdomain();
 //    DashedString* pq1 = x[RPL].pdomain();

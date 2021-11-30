@@ -102,7 +102,7 @@ namespace Gecode { namespace String { namespace RelOp {
 //    ExecStatus replace_q_x(Space&, int);
 //    ExecStatus replace_q1_y(Space&, int);
 //    ModEvent refine_card(Space&);
-//    int occur(string q) const;
+    int occur() const;
     bool check_card() const;
     bool all;
     bool last;

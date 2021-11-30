@@ -48,6 +48,31 @@ namespace Gecode { namespace String {
     }
     return ny == 0 ? k-y.max_length()+1 : 0;
   }
+  
+  // Returns the index of the last occurrence of y in x when both fixed.
+  template <class ViewX, class ViewY>
+  forceinline int
+  rfind_fixed(ViewX x, ViewY y) {
+//    std::cerr << "find_fixed " << x << ".find( " << y << " )\n";
+    int nx = x.size(), ny = y.size(), cy = ny, j = ny-1, k = 0;
+    for (int i = nx-1; i >= 0 && cy > 0; ) {
+      int lx = lbound(x[i]);
+      k += lx;
+      if (baseMin(x[i]) == baseMin(y[j])) {
+        int ly = ubound(y[j]);
+        if (lx == ly || (lx > ly && (j == 0 || j == ny-1))) {
+          --i;
+          --j;
+          --cy;
+          continue;
+        }
+      }
+      --i;
+      j = ny-1;
+      cy = y.size();
+    }
+    return cy == 0 ? x.max_length()-k+1 : 0;
+  }
     
   // Computes the fixed components of x and checks if y can occur in it. If so,
   // iv is refined accordingly.  
