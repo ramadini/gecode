@@ -114,36 +114,50 @@ namespace Gecode { namespace String { namespace RelOp {
 //    std::cerr << "decomp_all\n";
     assert (x[0].assigned() && x[1].assigned());
     if (x[2].assigned()) {
-//      string sq1 = x[2].val();
       if (x[1].max_length() == 0) {
         if (x[2].max_length() == 0) {
+          // x[1] = x[2] = "" -> x[0] = x[3].
           GECODE_ME_CHECK(x[3].equate(home, 
                                       ConstDashedView(x[0][0],x[0].size())));
           return home.ES_SUBSUMED(*this);
         }
         std::vector<int> w0 = x[0].val();
         std::vector<int> w2 = x[2].val();
-        int w[(w0.size()+1)* w2.size()];
+        int w3[(w0.size()+1)* w2.size()];
         int k = 0;
         for (size_t i = 0; i < w0.size(); ++i) {          
           for (size_t j = 0; j < w2.size(); ++j)
-            w[k++] = w2[j];
-          w[k++] = w0[i];
+            w3[k++] = w2[j];
+          w3[k++] = w0[i];
         }
         for (size_t j = 0; j < w2.size(); ++j)
-          w[k++] = w2[j];
-        GECODE_ME_CHECK(x[3].equate(home, ConstStringView(home,w,k)));
+          w3[k++] = w2[j];
+        // x[1] = "" -> x[3] = x[2] x[0][0] x[2] x[0][1] ... x[0][-1] x[2].
+        GECODE_ME_CHECK(x[3].equate(home, ConstStringView(home,w3,k)));
       }
       else {
         std::vector<int> w0 = x[0].val();
         std::vector<int> w1 = x[1].val();
         std::vector<int> w2 = x[2].val();
-//        size_t pos = sx.find(sq), n = sq.size(), n1 = sq1.size();
-//        while (pos != string::npos) {
-//          sx.replace(pos, n, sq1);
-//          pos = sx.find(sq, pos + n1);
-//        }
-//        GECODE_ME_CHECK(x[3].eq(home, sx));
+        std::vector<int>::iterator pos = 
+           std::search(w0.begin(), w0.end(), w1.begin(), w1.end());
+        std::vector<int> idx;
+        while (pos != w0.end()) { 
+          idx.push_back(pos-w0.begin());
+          pos = std::search(pos + w1.size(), w0.end(), w1.begin(), w1.end());
+        }
+         int k = 0, i0 = 0;
+         int w3[w0.size() + idx.size() * (w2.size()-w1.size())];
+         for (auto i : idx) {
+           for (int j = i0; j < i; ++j)
+             w3[k++] = w0[j];
+           for (auto c : w2)
+             w3[k++] = c;
+           i0 = i + w1.size();
+         }
+         for (size_t i = i0; i < w0.size(); ++i)
+           w3[k++] = w0[i];
+        GECODE_ME_CHECK(x[3].equate(home, ConstStringView(home,w3,k)));
       }
     }
     else {
@@ -152,22 +166,28 @@ namespace Gecode { namespace String { namespace RelOp {
           eq(home, x[2], x[3]);
           return home.ES_SUBSUMED(*this);
         }
-//        int n = sx.size();
-//        StringVarArray vx(home, n);
-//        rel(home, x[2], StringVar(home, string(1, sx[0])), STRT_CAT, vx[0]);
-//        for (int i = 1; i < n; ++i) {
-//          StringVar z(home);
-//          rel(home, x[2], StringVar(home, string(1, sx[i])), STRT_CAT, z);
-//          rel(home, vx[i - 1], z, STRT_CAT, vx[i]);
-//        }
-//        rel(home, vx[n - 1], x[2], STRT_CAT, x[3]);
-//      }
-//      else {
-//        size_t pos = sx.find(sq);
-//        if (pos == string::npos) {
-//          rel(home, x[0], STRT_EQ, x[3]);
-//          return home.ES_SUBSUMED(*this);
-//        }
+        // x[1] = "" -> x[3] = x[2] x[0][0] x[2] x[0][1] ... x[0][-1] x[2].
+        std::vector<int> w0 = x[0].val();
+        int n = w0.size();
+        StringVarArray v(home, n);
+        concat(home, x[2], StringVar(home, w0[0]), v[0]);
+        for (int i = 1; i < n; ++i) {
+          StringVar tmp(home);
+          concat(home, x[2], StringVar(home, w0[i]), tmp);
+          concat(home, v[i-1], tmp, v[i]);
+        }
+        concat(home, v[n-1], x[2], x[3]);
+      }
+      else {
+        std::vector<int> w0 = x[0].val();
+        std::vector<int> w1 = x[1].val();
+        std::vector<int>::iterator pos = 
+          std::search(w0.begin(), w0.end(), w1.begin(), w1.end());
+        if (pos == w0.end()) {
+          eq(home, x[0], x[3]);
+          return home.ES_SUBSUMED(*this);
+        }
+        std::vector<int> w2 = x[2].val();
 //        std::vector<StringVar> vx(1, StringVar(home));
 //        string s = sx.substr(0, pos);
 //        if (s == "")
