@@ -111,35 +111,47 @@ namespace Gecode { namespace String { namespace RelOp {
   template <class View>
   forceinline ExecStatus
   Replace<View>::decomp_all(Space& home) {
-//    // std::cerr << "decomp_all\n";
-//    string sx = x[0].val(), sq = x[1].val();
-//    if (x[2].assigned()) {
+//    std::cerr << "decomp_all\n";
+    assert (x[0].assigned() && x[1].assigned());
+    if (x[2].assigned()) {
 //      string sq1 = x[2].val();
-//      if (sq == "") {
-//        if (sq1 == "") {
-//          rel(home, x[0], STRT_EQ, x[3]);
-//          return home.ES_SUBSUMED(*this);
-//        }
-//        string sz = sq1;
-//        for (auto c : sx)
-//          sz += c + sq1;
-//        GECODE_ME_CHECK(x[3].eq(home, sz));
-//      }
-//      else {
+      if (x[1].max_length() == 0) {
+        if (x[2].max_length() == 0) {
+          GECODE_ME_CHECK(x[3].equate(home, 
+                                      ConstDashedView(x[0][0],x[0].size())));
+          return home.ES_SUBSUMED(*this);
+        }
+        std::vector<int> w0 = x[0].val();
+        std::vector<int> w2 = x[2].val();
+        int w[(w0.size()+1)* w2.size()];
+        int k = 0;
+        for (size_t i = 0; i < w0.size(); ++i) {          
+          for (size_t j = 0; j < w2.size(); ++j)
+            w[k++] = w2[j];
+          w[k++] = w0[i];
+        }
+        for (size_t j = 0; j < w2.size(); ++j)
+          w[k++] = w2[j];
+        GECODE_ME_CHECK(x[3].equate(home, ConstStringView(home,w,k)));
+      }
+      else {
+        std::vector<int> w0 = x[0].val();
+        std::vector<int> w1 = x[1].val();
+        std::vector<int> w2 = x[2].val();
 //        size_t pos = sx.find(sq), n = sq.size(), n1 = sq1.size();
 //        while (pos != string::npos) {
 //          sx.replace(pos, n, sq1);
 //          pos = sx.find(sq, pos + n1);
 //        }
 //        GECODE_ME_CHECK(x[3].eq(home, sx));
-//      }
-//    }
-//    else {
-//      if (sq == "") {
-//        if (sx == "") {
-//          rel(home, x[2], STRT_EQ, x[3]);
-//          return home.ES_SUBSUMED(*this);
-//        }
+      }
+    }
+    else {
+      if (x[1].max_length() == 0) {
+        if (x[0].max_length() == 0) {
+          eq(home, x[2], x[3]);
+          return home.ES_SUBSUMED(*this);
+        }
 //        int n = sx.size();
 //        StringVarArray vx(home, n);
 //        rel(home, x[2], StringVar(home, string(1, sx[0])), STRT_CAT, vx[0]);
@@ -183,9 +195,9 @@ namespace Gecode { namespace String { namespace RelOp {
 //          rel(home, vx.back(), StringVar(home,sx.substr(pos1)), STRT_CAT, x[3]);
 //        else
 //          rel(home, vx.back(), STRT_EQ, x[3]);
-//      }
-//    }
-//    // std::cerr << "After decomp_all: " << x << "\n";
+      }
+    }
+//    std::cerr << "After decomp_all: " << x << "\n";
     return home.ES_SUBSUMED(*this);
   }
 
