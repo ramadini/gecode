@@ -84,7 +84,6 @@ namespace Gecode { namespace String {
     int n = x.max_length(), nx = x.size(), k = 0;
     Block* curr = r.alloc<Block>(nx);
     Position start = idx2min_pos(x,iv.min());
-    ModEvent me = Gecode::Int::ME_INT_NONE;
     for (int i = start.idx; n > 0 && i < nx; ++i) {
       const Block& b = x[i];
 //      std::cerr << i << ": " << b << ", start: " << start << "\n";
@@ -95,15 +94,14 @@ namespace Gecode { namespace String {
         int k = find_fixed(cv, y);
 //        std::cerr << "Curr: " << cv << ", k = " << k << '\n';
         if (k > 0) {
-          ModEvent me0 = iv.gq(home,1);
-          GECODE_ME_CHECK(me0);
-          me = Gecode::Int::IntVarImp::me_combine(me, me0);
+          ModEvent ml = iv.gq(home,1);
+          GECODE_ME_CHECK(ml);
           int ub = start.off + k;
           for (int i = 0; i < start.idx && ub < iv.max(); ++i)
             ub += x[i].ub();
-          me0 = iv.lq(home, ub);
-          GECODE_ME_CHECK(me0);
-          me = Gecode::Int::IntVarImp::me_combine(me, me0);
+          ModEvent mu = iv.lq(home, ub);
+          GECODE_ME_CHECK(mu);
+          return Gecode::Int::IntVarImp::me_combine(ml, mu);
         }
         int h = b.ub()-b.lb();
         if (h > 0) {
@@ -118,7 +116,7 @@ namespace Gecode { namespace String {
       }
       n -= b.ub();
     }
-    return me;
+    return Gecode::Int::ME_INT_NONE;
   }
 
   // Pushes fwd the earliest start position of each y-block in x for find(x,y),

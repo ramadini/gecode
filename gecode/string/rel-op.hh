@@ -92,16 +92,11 @@ namespace Gecode { namespace String { namespace RelOp {
   template <class View>
   class Replace : public NaryPropagator<View,PC_STRING_ANY> {
 // TODO
-//    int lb_card(int, const Position&, const Position&) const;
-//    int ub_card(int, const Position&, const Position&) const;
 //    NSBlocks prefix(int, const Position&) const;
 //    NSBlocks suffix(int, const Position&) const;
-//    NSBlocks pref(int k, const Position& p) const;
-//    NSBlocks suff(int k, const Position& p) const;
     ExecStatus decomp_all(Space&);
-//    ExecStatus replace_q_x(Space&, int);
-//    ExecStatus replace_q1_y(Space&, int);
-//    ModEvent refine_card(Space&);
+    ExecStatus replace_qry_ori(Space&, int);
+    ExecStatus replace_trg_out(Space&, int);
     int occur() const;
     bool check_card() const;
     bool all;

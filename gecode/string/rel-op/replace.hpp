@@ -203,16 +203,16 @@ namespace Gecode { namespace String { namespace RelOp {
         std::vector<int>::iterator pos1 = pos + nq;
         pos = std::search(pos1, wx.end(), wq.begin(), wq.end());
         while (pos != wx.end()) {
-          StringVar last = v.back();
+          StringVar lst = v.back();
           v.push_back(StringVar(home));
           if (pos > pos1) {
             StringVar tmp(home);
             std::vector<int>::iterator p = pos1 - (pos - wx.begin());
             concat(home, StringVar(home,std::vector<int>(pos1,p)), x[RPL], tmp);
-            concat(home, last, tmp, v.back());
+            concat(home, lst, tmp, v.back());
           }
           else
-            concat(home, last, x[RPL], v.back());
+            concat(home, lst, x[RPL], v.back());
           pos1 = pos + nq;
           pos = std::search(pos1, wx.end(), wq.begin(), wq.end()); 
         }
@@ -248,7 +248,7 @@ namespace Gecode { namespace String { namespace RelOp {
     for (int i = 0; i < x[ORI].size(); ++i) {
       const Block& b = x[ORI][i];
       if (b.baseSize() == 1) {
-//        string w(b.l, b.S.min());
+//FIXME        string w(b.l, b.S.min());
 //        curr += w;
 //        size_t i = curr.find(q);
 //        while (i != string::npos) {
@@ -267,12 +267,12 @@ namespace Gecode { namespace String { namespace RelOp {
     return min_occur;
   }
   
-//  // If x[QRY] must not occur in x[ORI], then x[ORI] = x[OUT]. Otherwise, we use the 
-//  // earliest/latest start/end positions of x[QRY] in x[ORI] to possibly refine 
-//  // x[OUT] via equation.
-//  template <class View>
-//  forceinline ExecStatus
-//  Replace<View>::replace_q_x(Space& home, int min_occur) {
+  // If x[QRY] must not occur in x[ORI], then x[ORI] = x[OUT]. Otherwise, we use the 
+  // earliest/latest start/end positions of x[QRY] in x[ORI] to possibly refine 
+  // x[OUT] via equation.
+  template <class View>
+  forceinline ExecStatus
+  Replace<View>::replace_qry_ori(Space& home, int min_occur) {
 //    DashedString* px  = x[ORI].pdomain();
 //    DashedString* pq  = x[QRY].pdomain();
 //    DashedString* pq1 = x[RPL].pdomain();
@@ -316,15 +316,15 @@ namespace Gecode { namespace String { namespace RelOp {
 //      rel(home, x[ORI], STRT_EQ, x[OUT]);
 //      return home.ES_SUBSUMED(*this);
 //    }
-//    return ES_OK;
-//  }
+    return ES_OK;
+  }
   
-//  // If x[RPL] must not occur in x[OUT], then find(x[QRY], x[ORI]) = 0 /\ x[ORI] = x[OUT].
-//  // Otherwise, we use the earliest/latest start/end positions of x[RPL] in x[OUT]
-//  // to possibly refine x[ORI] via equation.
-//  template <class View>
-//  forceinline ExecStatus
-//  Replace<View>::replace_q1_y(Space& home, int min_occur) {
+  // If x[RPL] must not occur in x[OUT], then find(x[QRY], x[ORI]) = 0 /\ x[ORI] = x[OUT].
+  // Otherwise, we use the earliest/latest start/end positions of x[RPL] in x[OUT]
+  // to possibly refine x[ORI] via equation.
+  template <class View>
+  forceinline ExecStatus
+  Replace<View>::replace_trg_out(Space& home, int min_occur) {
 //    DashedString* pq  = x[QRY].pdomain();
 //    DashedString* pq1 = x[RPL].pdomain();
 //    DashedString* py  = x[OUT].pdomain();
@@ -370,8 +370,8 @@ namespace Gecode { namespace String { namespace RelOp {
 //      rel(home, x[ORI], STRT_EQ, x[OUT]);
 //      return home.ES_SUBSUMED(*this);
 //    }
-//    return ES_OK;
-//  }
+    return ES_OK;
+  }
   
   template <class View>
   forceinline ExecStatus
@@ -436,30 +436,30 @@ namespace Gecode { namespace String { namespace RelOp {
     if (min_occur == 0 && !check_equate_x(x[ORI],x[OUT]))
       min_occur = 1;
     if (min_occur > 0 && !all) {
-//      StringVar pref(home), suff(home);
-//      StringVarArgs lhs, rhs;
-//      lhs << pref << x[QRY] << suff;
-//      rhs << pref << x[RPL] << suff;
-//      gconcat(home, lhs, x[ORI]);
-//      gconcat(home, rhs, x[OUT]);
-//      find(home, x[QRY], last ? suff : pref, IntVar(home, 0, 0));
-//      return home.ES_SUBSUMED(*this);
+      StringVar pref(home), suff(home);
+      StringVarArgs lhs, rhs;
+      StringVar tmp, tmp1;
+      concat(home, pref, x[QRY], tmp);
+      concat(home, tmp, suff, x[ORI]);
+      concat(home, pref, x[RPL], tmp);
+      concat(home, tmp, suff, x[OUT]);
+      find(home, x[QRY], last ? suff : pref, IntVar(home, 0, 0));
+      return home.ES_SUBSUMED(*this);
     }
     // std::cerr << "min_occur: " << min_occur << "\n";
-//    ExecStatus es = replace_q_x(home, min_occur);
-//    if (es != ES_OK)
-//      return es;
-//    // std::cerr<<"After replace_q_x: "<< x <<"\n";
-//    es = replace_q1_y(home, min_occur);
-//    if (es != ES_OK)
-//      return es;
-//    // std::cerr<<"After replace_q1_y: "<< x <<"\n";
-//    if (!all && !check_card()) {
-//      rel(home, x[ORI], STRT_EQ, x[OUT]);
-//      return home.ES_SUBSUMED(*this);
-//    }
-    if (home.failed())
-      return ES_FAILED;
+    ExecStatus es = replace_qry_ori(home, min_occur);
+    if (es != ES_OK)
+      return es;
+    // std::cerr<<"After replace_qry_ori: "<< x <<"\n";
+    es = replace_trg_out(home, min_occur);
+    if (es != ES_OK)
+      return es;
+    // std::cerr<<"After replace_trg_out: "<< x <<"\n";
+    if (!all && !check_card()) {
+      eq(home, x[ORI], x[OUT]);
+      return home.ES_SUBSUMED(*this);
+    }
+    assert (!home.failed());
     // std::cerr<<"After replace: "<< x <<"\n";
     switch (x[ORI].assigned() + x[QRY].assigned() +
             x[RPL].assigned() + x[OUT].assigned()) {
