@@ -245,10 +245,9 @@ namespace Gecode { namespace String { namespace RelOp {
   Replace<View>::occur() const {
     int min_occur = 0;
 //    string curr = "";
-//    DashedString* p = x[ORI].pdomain();
-//    for (int i = 0; i < p->length(); ++i) {
-//      const DSBlock& b = p->at(i);
-//      if (b.S.size() == 1) {
+    for (int i = 0; i < x[ORI].size(); ++i) {
+      const Block& b = x[ORI][i];
+      if (b.baseSize() == 1) {
 //        string w(b.l, b.S.min());
 //        curr += w;
 //        size_t i = curr.find(q);
@@ -261,10 +260,10 @@ namespace Gecode { namespace String { namespace RelOp {
 //        }
 //        if (b.l < b.u)
 //          curr = w;
-//      }
+      }
 //      else
 //        curr = "";
-//    }
+    }
     return min_occur;
   }
   
@@ -376,7 +375,7 @@ namespace Gecode { namespace String { namespace RelOp {
   
   template <class View>
   forceinline ExecStatus
-  Replace<View>::propagate(Space& home, const ModEventDelta&) {
+  Replace<View>::propagate(Space& home, const ModEventDelta& med) {
     std::cerr<<"\nReplace" << (all ? "All" : last ? "Last" : "") << "::propagate: "<< x <<"\n";
     if (!all && !check_card()) {
       // x[QRY] not occurring in x[ORI].
@@ -400,7 +399,6 @@ namespace Gecode { namespace String { namespace RelOp {
       if (x[ORI].assigned()) {
         if (all)
           return decomp_all(home);
-//        string sx = x[ORI].val();
         int n = last ? rfind_fixed(x[ORI],x[QRY]) : find_fixed(x[ORI],x[QRY]);
         if (n == 0)
           eq(home, x[ORI], x[OUT]);
@@ -435,14 +433,9 @@ namespace Gecode { namespace String { namespace RelOp {
         min_occur += 1;
     } 
     // x[ORI] != x[OUT] => x[QRY] occur in x[ORI] /\ x[RPL] occur in x[OUT].
-//    DashedString* px  = x[ORI].pdomain();
-//    DashedString* pq  = x[QRY].pdomain();
-//    DashedString* pq1 = x[RPL].pdomain();
-//    DashedString* py  = x[OUT].pdomain();
-//    if (min_occur == 0 && !px->check_equate(*py))
-//      min_occur = 1;
-//    if (min_occur > 0 && !all) {
-//      // std::<<cerr << "min_occur = "<<min_occur<<": rewriting into concat!\n";
+    if (min_occur == 0 && !check_equate_x(x[ORI],x[OUT]))
+      min_occur = 1;
+    if (min_occur > 0 && !all) {
 //      StringVar pref(home), suff(home);
 //      StringVarArgs lhs, rhs;
 //      lhs << pref << x[QRY] << suff;
@@ -451,8 +444,8 @@ namespace Gecode { namespace String { namespace RelOp {
 //      gconcat(home, rhs, x[OUT]);
 //      find(home, x[QRY], last ? suff : pref, IntVar(home, 0, 0));
 //      return home.ES_SUBSUMED(*this);
-//    }
-//    // std::cerr << "min_occur: " << min_occur << "\n";
+    }
+    // std::cerr << "min_occur: " << min_occur << "\n";
 //    ExecStatus es = replace_q_x(home, min_occur);
 //    if (es != ES_OK)
 //      return es;
@@ -465,23 +458,21 @@ namespace Gecode { namespace String { namespace RelOp {
 //      rel(home, x[ORI], STRT_EQ, x[OUT]);
 //      return home.ES_SUBSUMED(*this);
 //    }
-//    if (home.failed())
-//      return ES_FAILED;
-//    // std::cerr<<"After replace: "<< x <<"\n";
-//    assert (px->is_normalized() && pq->is_normalized() 
-//        && pq1->is_normalized() && py->is_normalized());
-//    switch (
-//      x[ORI].assigned() + x[QRY].assigned() + x[RPL].assigned() + x[OUT].assigned()
-//    ) {
-//      case 4:
-//      case 3:
-//        // Force the re-execution of the propagation.
-//        return x[ORI].assigned() ? propagate(home, m) : ES_FIX;
-//      case 2:
-//        return x[QRY].assigned() && x[ORI].assigned() ? propagate(home, m) : ES_FIX;
-//      default:
-//        return ES_FIX;
-//    }
+    if (home.failed())
+      return ES_FAILED;
+    // std::cerr<<"After replace: "<< x <<"\n";
+    switch (x[ORI].assigned() + x[QRY].assigned() +
+            x[RPL].assigned() + x[OUT].assigned()) {
+      case 4:
+      case 3:
+        // Force the re-execution of the propagation.
+        return x[ORI].assigned() ? propagate(home, med) : ES_FIX;
+      case 2:
+        return x[QRY].assigned() && x[ORI].assigned() ? 
+                                   propagate(home, med) : ES_FIX;
+      default:
+        return ES_FIX;
+    }
     return ES_FIX;
   }
 
