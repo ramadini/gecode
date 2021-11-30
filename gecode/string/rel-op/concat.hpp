@@ -1,6 +1,7 @@
 #include <gecode/string/rel.hh>
 
 namespace Gecode { namespace String { namespace RelOp {
+  
 
   template<class View0, class View1, class View2>
   forceinline ExecStatus
