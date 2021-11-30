@@ -125,43 +125,43 @@ namespace Gecode { namespace String { namespace RelOp {
                                       ConstDashedView(x[ORI][0],x[ORI].size())));
           return home.ES_SUBSUMED(*this);
         }
-        std::vector<int> w0 = x[ORI].val();
-        std::vector<int> w2 = x[RPL].val();
-        int w3[(w0.size()+1)* w2.size()];
+        std::vector<int> wx = x[ORI].val();
+        std::vector<int> wq1 = x[RPL].val();
+        int wy[(wx.size()+1)* wq1.size()];
         int k = 0;
-        for (size_t i = 0; i < w0.size(); ++i) {          
-          for (size_t j = 0; j < w2.size(); ++j)
-            w3[k++] = w2[j];
-          w3[k++] = w0[i];
+        for (size_t i = 0; i < wx.size(); ++i) {          
+          for (size_t j = 0; j < wq1.size(); ++j)
+            wy[k++] = wq1[j];
+          wy[k++] = wx[i];
         }
-        for (size_t j = 0; j < w2.size(); ++j)
-          w3[k++] = w2[j];
+        for (size_t j = 0; j < wq1.size(); ++j)
+          wy[k++] = wq1[j];
         // x[QRY] = "" -> x[OUT] = x[RPL] x[ORI][0] x[RPL] x[ORI][1] ... x[ORI][-1] x[RPL].
-        GECODE_ME_CHECK(x[OUT].equate(home, ConstStringView(home,w3,k)));
+        GECODE_ME_CHECK(x[OUT].equate(home, ConstStringView(home,wy,k)));
       }
       else {
-        std::vector<int> w0 = x[ORI].val();
-        std::vector<int> w1 = x[QRY].val();
-        std::vector<int> w2 = x[RPL].val();
+        std::vector<int> wx = x[ORI].val();
+        std::vector<int> wq = x[QRY].val();
+        std::vector<int> wq1 = x[RPL].val();
         std::vector<int>::iterator pos = 
-           std::search(w0.begin(), w0.end(), w1.begin(), w1.end());
+           std::search(wx.begin(), wx.end(), wq.begin(), wq.end());
         std::vector<int> idx;
-        while (pos != w0.end()) { 
-          idx.push_back(pos-w0.begin());
-          pos = std::search(pos + w1.size(), w0.end(), w1.begin(), w1.end());
+        while (pos != wx.end()) { 
+          idx.push_back(pos-wx.begin());
+          pos = std::search(pos + wq.size(), wx.end(), wq.begin(), wq.end());
         }
          int k = 0, i0 = 0;
-         int w3[w0.size() + idx.size() * (w2.size()-w1.size())];
+         int wy[wx.size() + idx.size() * (wq1.size()-wq.size())];
          for (auto i : idx) {
            for (int j = i0; j < i; ++j)
-             w3[k++] = w0[j];
-           for (auto c : w2)
-             w3[k++] = c;
-           i0 = i + w1.size();
+             wy[k++] = wx[j];
+           for (auto c : wq1)
+             wy[k++] = c;
+           i0 = i + wq.size();
          }
-         for (size_t i = i0; i < w0.size(); ++i)
-           w3[k++] = w0[i];
-        GECODE_ME_CHECK(x[OUT].equate(home, ConstStringView(home,w3,k)));
+         for (size_t i = i0; i < wx.size(); ++i)
+           wy[k++] = wx[i];
+        GECODE_ME_CHECK(x[OUT].equate(home, ConstStringView(home,wy,k)));
       }
     }
     else {
@@ -171,54 +171,56 @@ namespace Gecode { namespace String { namespace RelOp {
           return home.ES_SUBSUMED(*this);
         }
         // x[QRY] = "" -> x[OUT] = x[RPL] x[ORI][0] x[RPL] x[ORI][1] ... x[ORI][-1] x[RPL].
-        std::vector<int> w0 = x[ORI].val();
-        int n = w0.size();
+        std::vector<int> wx = x[ORI].val();
+        int n = wx.size();
         StringVarArray v(home, n);
-        concat(home, x[RPL], StringVar(home, w0[0]), v[0]);
+        concat(home, x[RPL], StringVar(home, wx[0]), v[0]);
         for (int i = 1; i < n; ++i) {
           StringVar tmp(home);
-          concat(home, x[RPL], StringVar(home, w0[i]), tmp);
+          concat(home, x[RPL], StringVar(home, wx[i]), tmp);
           concat(home, v[i-1], tmp, v[i]);
         }
         concat(home, v[n-1], x[RPL], x[OUT]);
       }
       else {
-        std::vector<int> w0 = x[ORI].val();
-        std::vector<int> w1 = x[QRY].val();
+        std::vector<int> wx = x[ORI].val();
+        std::vector<int> wq = x[QRY].val();
         std::vector<int>::iterator pos = 
-          std::search(w0.begin(), w0.end(), w1.begin(), w1.end());
-        if (pos == w0.end()) {
+          std::search(wx.begin(), wx.end(), wq.begin(), wq.end());
+        if (pos == wx.end()) {
           eq(home, x[ORI], x[OUT]);
           return home.ES_SUBSUMED(*this);
         }
-//        std::vector<int> w2 = x[RPL].val();
-//        std::vector<StringVar> v(1, StringVar(home));
-//        std::vector<int> w = std::vector<int>(w0.begin(), pos);
-//        if (w.empty())
-//          eq(home, x[RPL], v[0]);
-//        else
-//          concat(home, StringVar(home, w), x[RPL], v[0]);
-//        size_t nx = w1.size(), pos1 = pos + nx;
-//        pos = sx.find(sq, pos1);
-//        while (pos != string::npos) {
-//          StringVar last = vx.back();
-//          vx.push_back(StringVar(home));
-//          if (pos > pos1) {
-//            StringVar z(home);
-//            rel(home,
-//              StringVar(home, sx.substr(pos1, pos - pos1)), x[RPL], STRT_CAT, z
-//            );
-//            rel(home, last, z, STRT_CAT, vx.back());
-//          }
-//          else
-//            rel(home, last, x[RPL], STRT_CAT, vx.back());
-//          pos1 = pos + nx;
-//          pos = sx.find(sq, pos1);          
-//        }
-//        if (pos1 < sx.size())
-//          rel(home, vx.back(), StringVar(home,sx.substr(pos1)), STRT_CAT, x[OUT]);
-//        else
-//          rel(home, vx.back(), STRT_EQ, x[OUT]);
+        std::vector<int> wq1 = x[RPL].val();
+        std::vector<StringVar> v(1, StringVar(home));
+        std::vector<int> w = std::vector<int>(wx.begin(), pos);
+        if (w.empty())
+          // x[ORI] starts with x[QRY]
+          eq(home, x[RPL], v[0]);
+        else
+          concat(home, StringVar(home, w), x[RPL], v[0]);
+        size_t nq = wq.size();
+        std::vector<int>::iterator pos1 = pos + nq;
+        pos = std::search(pos1, wx.end(), wq.begin(), wq.end());
+        while (pos != wx.end()) {
+          StringVar last = v.back();
+          v.push_back(StringVar(home));
+          if (pos > pos1) {
+            StringVar tmp(home);
+            std::vector<int>::iterator p = pos1 - (pos - wx.begin());
+            concat(home, StringVar(home,std::vector<int>(pos1,p)), x[RPL], tmp);
+            concat(home, last, tmp, v.back());
+          }
+          else
+            concat(home, last, x[RPL], v.back());
+          pos1 = pos + nq;
+          pos = std::search(pos1, wx.end(), wq.begin(), wq.end()); 
+        }
+        if (pos1 < wx.end())
+          concat(home, v.back(), 
+                 StringVar(home, std::vector<int>(pos1,wx.end())), x[OUT]);
+        else
+          eq(home, v.back(), x[OUT]);
       }
     }
 //    std::cerr << "After decomp_all: " << x << "\n";
