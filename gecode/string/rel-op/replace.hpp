@@ -76,26 +76,25 @@ namespace Gecode { namespace String { namespace RelOp {
   Replace<View>::Replace(Space& home, Replace& p)
   : NaryPropagator<View, PC_STRING_ANY>(home, p), all(p.all), last(p.last) {}
 
-//  // Returns the prefix of x[k] until position p.
-//  template <class View>
-//  forceinline NSBlocks
-//  Replace<View>::prefix(int k, const Position& p) const {
-//    NSBlocks pref;
-//    DashedString* px = x[k].pdomain();
-//    for (int i = 0; i < p.idx; ++i)
-//      pref.push_back(NSBlock(px->at(i)));
-//    int off = p.off;
-//    if (off > 0) {
-//      const DSBlock& b = px->at(p.idx);
-//      if (off < b.l)
-//        pref.push_back(NSBlock(b.S, off, off));
-//      else
-//        pref.push_back(NSBlock(b.S, b.l, off));
-//    }
-//    return pref;
-//  }
+  // The array of blocks starting at pref becomes the prefix x[:p].
+  template <class View>
+  forceinline void
+  Replace<View>::prefix(Space& home, const View& x, 
+                                     const Position& p, Block* pref) const {
+    assert (x.isNorm(p));
+    for (int i = 0; i < x.size(); ++i)
+      (pref++)->update(home, x[i]);
+    int off = p.off;
+    if (off > 0) {
+      const Block& b = x[p.idx];
+      if (off < b.lb())
+        pref->updateCard(home, off, off);
+      else
+        pref->ub(home, off);
+    }
+  }
   
-//  // Returns the suffix of x[k] from position p.
+//  // The array of blocks starting at pref becomes the prefix x[:p].
 //  template <class View>
 //  forceinline NSBlocks
 //  Replace<View>::suffix(int k, const Position& p) const {
@@ -110,7 +109,7 @@ namespace Gecode { namespace String { namespace RelOp {
 //      suff.push_back(NSBlock(px->at(i)));
 //    return suff;
 //  }
-  
+//  
   // Decomposes decomp_all into basic constraints.
   template <class View>
   forceinline ExecStatus

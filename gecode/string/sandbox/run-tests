@@ -3,7 +3,7 @@
 TEST_DIR="${0%/*}"
 TEST_CMD=$TEST_DIR/test_cpp.sh
 declare -a TESTS=(
-#  'str_test1.cpp' 'str_test2.cpp' 'str_test3.cpp' 'str_test4.cpp' \
+  'str_test1.cpp' 'str_test2.cpp' 'str_test3.cpp' 'str_test4.cpp' \
   'str_ex1.cpp' 'str_ex2.cpp' 'str_ex3.cpp' 'str_ex4.cpp' 'str_ex7.cpp'  \
   'anbn.cpp' 'chunk_split.cpp' 'hamming_mod.cpp' 'levenshtein.cpp' \
   'string_replace.cpp' 'scs.cpp'

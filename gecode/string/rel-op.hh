@@ -92,7 +92,7 @@ namespace Gecode { namespace String { namespace RelOp {
   template <class View>
   class Replace : public NaryPropagator<View,PC_STRING_ANY> {
 // TODO
-//    NSBlocks prefix(int, const Position&) const;
+    void prefix(Space&, const View&, const Position&, Block*) const;
 //    NSBlocks suffix(int, const Position&) const;
     ExecStatus decomp_all(Space&);
     ExecStatus replace_qry_ori(Space&, int);
