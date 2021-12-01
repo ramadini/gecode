@@ -94,22 +94,22 @@ namespace Gecode { namespace String { namespace RelOp {
     }
   }
   
-//  // The array of blocks starting at pref becomes the prefix x[:p].
-//  template <class View>
-//  forceinline NSBlocks
-//  Replace<View>::suffix(int k, const Position& p) const {
-//    NSBlocks suff;
-//    DashedString* px = x[k].pdomain();
-//    int off = p.off;
-//    if (off < px->at(p.idx).u) {
-//      const DSBlock& b = px->at(p.idx);
-//      suff.push_back(NSBlock(b.S, max(0, b.l - off), b.u - off));
-//    }
-//    for (int i = p.idx + 1; i < px->length(); ++i)
-//      suff.push_back(NSBlock(px->at(i)));
-//    return suff;
-//  }
-//  
+  // The array of blocks starting at suff becomes the prefix x[p:].
+  template <class View>
+  forceinline void
+  Replace<View>::suffix(Space& home, const View& x, 
+                                     const Position& p, Block* suff) const {    
+    int off = p.off, idx = p.idx;
+    if (p.off == 0)
+      off = x[--idx].ub();
+    if (off < x[p.idx].ub) {
+      const Block& b = x[p.idx];
+      (suff++)->updateCard(home, std::max(0, b.lb()-off), b.ub()-off);
+    }
+    for (int i = idx + 1; i < x.size(); ++i)
+      (suff++)->update(home, x[i]);
+  }
+  
   // Decomposes decomp_all into basic constraints.
   template <class View>
   forceinline ExecStatus
