@@ -290,10 +290,12 @@ namespace Gecode { namespace String { namespace RelOp {
       eq(home, x[ORI], x[OUT]);
       return home.ES_SUBSUMED(*this);
     }
-    Position es = pos[0], le = pos[1];
     // Prefix: x[ORI][:es]
     Region r;
-    int n = 0; //FIXME:
+    Position es = pos[0], le = pos[1];
+    int n = es.idx - (es.off == 0) +
+            min_occur*x[RPL].size() + (x[OUT].max_length() > 0)*(min_occur+1) +
+            x[ORI].size() - le.idx - (le.off == x[ORI][le.idx].ub());
     Block* d = r.alloc<Block>(n);
     const Block& d0 = *d;
     // std::cerr << "ES: " << es << ", LE: " << le << "\n";
@@ -345,38 +347,43 @@ namespace Gecode { namespace String { namespace RelOp {
       return home.ES_SUBSUMED(*this);
     }
     // Prefix: x[OUT][: es].
-//      NSBlocks v;
-//      Position es = pos[0], le = pos[1];
-//      // std::cerr << "ES: " << es << ", LE: " << le << "\n";
-//      if (es != Position({0, 0}))
-//        v = prefix(3, es);
-//      // Crush x[OUT][es : ls], possibly adding x[QRY].
-//      int u = x[ORI].max_length();
-//      if (u > 0) {
-//        NSBlock b;
-//        b.S = x[QRY].may_chars();
-//        b.S.include(x[OUT].may_chars());
-//        b.u = u;
-//        v.push_back(b);
-//        for (int i = 0; i < min_occur; ++i) {
-//          for (int j = 0; j < pq->length(); ++j)
-//            v.push_back(NSBlock(pq->at(j)));
-//          v.push_back(b);
-//        }
-//      }
-//      else {
-//        for (int i = 0; i < min_occur; ++i)
-//          for (int j = 0; j < pq->length(); ++j)
-//            v.push_back(NSBlock(pq->at(j)));
-//      }
-//      // Suffix: x[OUT][le :]
-//      if (le != last_fwd(py->blocks()))
-//        v.extend(suffix(3, le));
-//      v.normalize();
-//      // std::cerr << "2) Equating " << x[ORI] << " with " << v << " => \n";
-//      GECODE_ME_CHECK(x[ORI].dom(home, v));
-//      //std::cerr << x[ORI] << "\n";
-//    }
+    Region r;
+    Position es = pos[0], le = pos[1];
+    int n = es.idx - (es.off == 0) +
+            min_occur*x[QRY].size() + (x[ORI].max_length() > 0)*(min_occur+1) +
+            x[OUT].size() - le.idx - (le.off == x[OUT][le.idx].ub());
+    Block* d = r.alloc<Block>(n);
+    const Block& d0 = *d;
+    // std::cerr << "ES: " << es << ", LE: " << le << "\n";
+    prefix(home, x[OUT], es, d);
+    // Crush x[OUT][es : ls], possibly adding x[QRY].
+    if (x[ORI].max_length() > 0) {
+      Set::GLBndSet s;
+      for (auto i : {QRY,OUT}) {
+        for (int j = 0; j < x[i].size(); ++j) {
+          if (x[i][j].isUniverse())
+            break; 
+          x[i][j].includeBaseIn(home, s);
+        }
+      }
+      Block b(home, CharSet(home,s), 0, x[ORI].max_length());
+      (d++)->update(home,b);
+      for (int i = 0; i < min_occur; ++i) {
+        for (int j = 0; j < x[QRY].size(); ++j)
+          (d++)->update(home, x[QRY][j]);
+        (d++)->update(home,b);
+      }
+    }
+    else {
+      for (int i = 0; i < min_occur; ++i)
+        for (int j = 0; j < x[QRY].size(); ++j)
+          (d++)->update(home, x[QRY][j]);
+    }
+    // Suffix: x[OUT][le :]
+    suffix(home, x[OUT], le, d);
+    // std::cerr << "2) Equating " << x[ORI] << " with " << v << " => \n";
+    GECODE_ME_CHECK(x[ORI].equate(home, ConstDashedView(d0,d-&d0)));
+    //std::cerr << x[ORI] << "\n";
     return ES_OK;
   }
   
