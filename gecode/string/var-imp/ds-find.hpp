@@ -173,6 +173,43 @@ namespace Gecode { namespace String {
     }
     return true;
   }
+  
+  // Pushes fwd the earliest start position of each y-block in x for find(x,y).
+  template <class ViewX, class ViewY>
+  forceinline bool
+  pushESP_find(const ViewX x, ViewY y, Matching m[]) {
+    bool again = false;
+    int ny = y.size();
+    Position start = m[0].ESP;
+    do {
+      for (int j = 0; j < ny; ++j) {
+        if (again)
+          start = x.prec(m[j].ESP, start) ? start : m[j].ESP;
+        SweepFwdIterator<ViewX> fwd_it(x, start);
+        m[j].ESP = y.push(j, fwd_it);
+        start = *fwd_it;
+        assert (!x.prec(start,m[j].ESP));
+//        std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';        
+        if (y[j].lb() > 0 && x.equiv(m[j].ESP, Position(x.size(),0)))
+          return false;
+      }
+      again = false;
+      // Stretching backward to see if we can further move forward the ESPs.
+      for (int j = ny-1; j >= 0; --j) {
+        SweepBwdIterator<ViewX> bwd_it(x,start);
+        y.stretch(j, bwd_it);
+        start = *bwd_it;
+//        std::cerr << "Stretching bwd: y[" << j << "] = " << y[j] << ": " << start << " vs " << m[j].ESP << '\n';
+        if (x.prec(m[j].ESP, start)) {
+          m[j].ESP = start;
+          again = true;
+//          std::cerr << "Adjusted ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
+        }
+      }
+//      std::cerr << (again ? "Again!\n" : "");
+    } while (again);
+    return true;
+  }
 
   // Pushes bwd the latest end position of each y-block in x for find(x,y), 
   // assuming that y must occur in x. It also sets latest starts, earliest ends
@@ -249,7 +286,8 @@ namespace Gecode { namespace String {
     for (int j = 0; j < ny; ++j) {
       const Block& y_j = y[j];
       const Position& esp = m[j].ESP, eep = m[j].EEP,  lsp = m[j].LSP, 
-         lep = j < ny-1 && x.prec(m[j+1].LSP, m[j].LEP) ? m[j+1].LSP : m[j].LEP;
+                      lep =m[j].LEP;
+      assert (j == ny-1 || !x.prec(m[j+1].LSP, m[j].LEP));
 //      std::cerr<<"Ref. y[" << j << "] = " << y[j] <<"\tESP: "<<esp<<"\tLSP: "<<lsp <<"\tEEP: "<<eep<<"\tLEP: "<<lep<< "\n";
       assert (esp.isNorm(x) && lsp.isNorm(x) && eep.isNorm(x) && lep.isNorm(x));
       if (esp == lep) {        
@@ -541,6 +579,35 @@ namespace Gecode { namespace String {
         ub = -ub;
     }
     return true;
+  }
+  
+  // Initializes pos such that:
+  //   pos[0] = earliest start position of y in x
+  //   pos[1] = latest end position of y in x
+  // If pos = nullptr, then y cannot be substring of x.
+  template <class ViewX, class ViewY>
+  forceinline void
+  check_find(const ViewX& x, const ViewY& y, Position* pos) {
+    assert (y.min_length() == 0);
+    int ny = y.size();
+    Matching m[ny];
+    Position start(0,0), end(ny,0);
+    for (int j = 0; j < ny; ++j) {
+      m[j].ESP = start;
+      m[j].LEP = end;
+    }
+    if (!pushESP_find(x, y, m)) {
+      pos = nullptr;
+      return;
+    }
+    int tmp1, tmp2;
+    if (!pushLEP_find(x, y, m, tmp1, tmp2)) {
+      pos = nullptr;
+      return;
+    }
+    pos[0] = m[0].ESP;
+    pos[1] = m[ny-1].LEP;
+    assert(x.prec(pos[0],pos[1]));
   }
 
 }}

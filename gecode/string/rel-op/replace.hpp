@@ -279,49 +279,45 @@ namespace Gecode { namespace String { namespace RelOp {
   template <class View>
   forceinline ExecStatus
   Replace<View>::replace_qry_ori(Space& home, int min_occur) {
-//    DashedString* px  = x[ORI].pdomain();
-//    DashedString* pq  = x[QRY].pdomain();
-//    DashedString* pq1 = x[RPL].pdomain();
-//    Position pos[2];
-//    if (check_find(*pq, *px, pos)) {
-//      // Prefix: x[ORI][: es]
-//      NSBlocks v;
-//      Position es = pos[0], le = pos[1];
-//      // std::cerr << "ES: " << es << ", LE: " << le << "\n";
-//      if (es != Position({0, 0}))
-//        v = prefix(0, es);
-//      // Crush x[ORI][es : le], possibly adding x[RPL].
-//      int u = x[OUT].max_length();
-//      if (u > 0) {
-//        NSBlock b;
-//        b.S = x[ORI].may_chars();
-//        b.S.include(x[RPL].may_chars());
-//        b.u = u;
+    Position pos[2];
+    check_find(x[ORI], x[QRY], pos);
+    if (pos == nullptr) {
+      if (min_occur > 0)
+        return ES_FAILED;
+      eq(home, x[ORI], x[OUT]);
+      return home.ES_SUBSUMED(*this);
+    }
+    // Prefix: x[ORI][:es]
+//    NSBlocks v;
+//    Position es = pos[0], le = pos[1];
+//    // std::cerr << "ES: " << es << ", LE: " << le << "\n";
+//    if (es != Position({0, 0}))
+//      v = prefix(0, es);
+//    // Crush x[ORI][es : le], possibly adding x[RPL].
+//    int u = x[OUT].max_length();
+//    if (u > 0) {
+//      NSBlock b;
+//      b.S = x[ORI].may_chars();
+//      b.S.include(x[RPL].may_chars());
+//      b.u = u;
+//      v.push_back(b);
+//      for (int i = 0; i < min_occur; ++i) {
+//        for (int j = 0; j < pq1->length(); ++j)
+//          v.push_back(NSBlock(pq1->at(j)));
 //        v.push_back(b);
-//        for (int i = 0; i < min_occur; ++i) {
-//          for (int j = 0; j < pq1->length(); ++j)
-//            v.push_back(NSBlock(pq1->at(j)));
-//          v.push_back(b);
-//        }
 //      }
-//      else
-//        for (int i = 0; i < min_occur; ++i)
-//          for (int j = 0; j < pq1->length(); ++j)
-//            v.push_back(NSBlock(pq1->at(j)));
-//      // Suffix: x[ORI][le :]
-//      if (le != last_fwd(px->blocks()))
-//        v.extend(suffix(0, le));
-//      v.normalize();
-//      // std::cerr << "1c) Equating " << x[OUT] << " with " << v << " => \n";
-//      GECODE_ME_CHECK(x[OUT].dom(home, v));
-//      //std::cerr << x[OUT] << "\n";
 //    }
-//    else {
-//      if (min_occur > 0)
-//        return ES_FAILED;
-//      rel(home, x[ORI], STRT_EQ, x[OUT]);
-//      return home.ES_SUBSUMED(*this);
-//    }
+//    else
+//      for (int i = 0; i < min_occur; ++i)
+//        for (int j = 0; j < pq1->length(); ++j)
+//          v.push_back(NSBlock(pq1->at(j)));
+//    // Suffix: x[ORI][le :]
+//    if (le != last_fwd(px->blocks()))
+//      v.extend(suffix(0, le));
+//    v.normalize();
+//    // std::cerr << "1c) Equating " << x[OUT] << " with " << v << " => \n";
+//    GECODE_ME_CHECK(x[OUT].dom(home, v));
+    //std::cerr << x[OUT] << "\n";
     return ES_OK;
   }
   
@@ -331,12 +327,16 @@ namespace Gecode { namespace String { namespace RelOp {
   template <class View>
   forceinline ExecStatus
   Replace<View>::replace_trg_out(Space& home, int min_occur) {
-//    DashedString* pq  = x[QRY].pdomain();
-//    DashedString* pq1 = x[RPL].pdomain();
-//    DashedString* py  = x[OUT].pdomain();
-//    Position pos[2];
-//    if (check_find(*pq1, *py, pos)) {
-//      // Prefix: x[OUT][: es].
+    Position pos[2];
+    check_find(x[RPL], x[OUT], pos);
+    if (pos == nullptr) {
+      if (min_occur > 0)
+        return ES_FAILED;
+      find(home, x[ORI], x[QRY], IntVar(home, 0, 0));
+      eq(home, x[ORI], x[OUT]);
+      return home.ES_SUBSUMED(*this);
+    }
+    // Prefix: x[OUT][: es].
 //      NSBlocks v;
 //      Position es = pos[0], le = pos[1];
 //      // std::cerr << "ES: " << es << ", LE: " << le << "\n";
@@ -369,20 +369,14 @@ namespace Gecode { namespace String { namespace RelOp {
 //      GECODE_ME_CHECK(x[ORI].dom(home, v));
 //      //std::cerr << x[ORI] << "\n";
 //    }
-//    else {
-//      if (min_occur > 0)
-//        return ES_FAILED;
-//      find(home, x[QRY], x[ORI], IntVar(home, 0, 0));
-//      rel(home, x[ORI], STRT_EQ, x[OUT]);
-//      return home.ES_SUBSUMED(*this);
-//    }
     return ES_OK;
   }
   
   template <class View>
   forceinline ExecStatus
-  Replace<View>::propagate(Space& home, const ModEventDelta& med) {
-    std::cerr<<"\nReplace" << (all ? "All" : last ? "Last" : "") << "::propagate: "<< x <<"\n";
+  Replace<View>::propagate(Space& home, const ModEventDelta&) {
+  again:
+//    std::cerr<<"\nReplace" << (all ? "All" : last ? "Last" : "") << "::propagate: "<< x <<"\n";
     if (!all && !check_card()) {
       // x[QRY] not occurring in x[ORI].
       find(home, x[ORI], x[QRY], IntVar(home, 0, 0));
@@ -433,7 +427,7 @@ namespace Gecode { namespace String { namespace RelOp {
     }
     if (x[ORI].assigned() && x[OUT].assigned()) {
       if (x[ORI].val() == x[OUT].val()) {
-        find(home, x[QRY], x[ORI], IntVar(home, 0, 0));
+        find(home, x[ORI], x[QRY], IntVar(home, 0, 0));
         return home.ES_SUBSUMED(*this);
       }
       if (min_occur == 0)
@@ -450,7 +444,7 @@ namespace Gecode { namespace String { namespace RelOp {
       concat(home, tmp, suff, x[ORI]);
       concat(home, pref, x[RPL], tmp);
       concat(home, tmp, suff, x[OUT]);
-      find(home, x[QRY], last ? suff : pref, IntVar(home, 0, 0));
+      find(home, last ? suff : pref, x[QRY], IntVar(home, 0, 0));
       return home.ES_SUBSUMED(*this);
     }
     // std::cerr << "min_occur: " << min_occur << "\n";
@@ -473,10 +467,13 @@ namespace Gecode { namespace String { namespace RelOp {
       case 4:
       case 3:
         // Force the re-execution of the propagation.
-        return x[ORI].assigned() ? propagate(home, med) : ES_FIX;
+        if (x[ORI].assigned())
+          goto again;
+        return ES_FIX;
       case 2:
-        return x[QRY].assigned() && x[ORI].assigned() ? 
-                                   propagate(home, med) : ES_FIX;
+        if (x[QRY].assigned())
+          goto again;
+        return ES_FIX;
       default:
         return ES_FIX;
     }
