@@ -81,7 +81,9 @@ namespace Gecode { namespace String { namespace RelOp {
   forceinline void
   Replace<View>::prefix(Space& home, const View& x, 
                                      const Position& p, Block* pref) const {
-    assert (x.isNorm(p));
+    assert (p.isNorm(x));
+    if (p == Position(0,0))
+      return;
     for (int i = 0; i < x.size(); ++i)
       (pref++)->update(home, x[i]);
     int off = p.off;
@@ -99,14 +101,16 @@ namespace Gecode { namespace String { namespace RelOp {
   forceinline void
   Replace<View>::suffix(Space& home, const View& x, 
                                      const Position& p, Block* suff) const {    
-    int off = p.off, idx = p.idx;
+    int off = p.off, idx = p.idx, nx = x.size();
     if (p.off == 0)
       off = x[--idx].ub();
-    if (off < x[p.idx].ub) {
-      const Block& b = x[p.idx];
+    if (idx == nx-1 && off == x[idx].ub())
+      return;
+    if (off < x[idx].ub()) {
+      const Block& b = x[idx];
       (suff++)->updateCard(home, std::max(0, b.lb()-off), b.ub()-off);
     }
-    for (int i = idx + 1; i < x.size(); ++i)
+    for (int i = idx + 1; i < nx; ++i)
       (suff++)->update(home, x[i]);
   }
   
@@ -272,12 +276,12 @@ namespace Gecode { namespace String { namespace RelOp {
     return min_occur;
   }
   
-  // If x[QRY] must not occur in x[ORI], then x[ORI] = x[OUT]. Otherwise, we use the 
-  // earliest/latest start/end positions of x[QRY] in x[ORI] to possibly refine 
-  // x[OUT] via equation.
+  // If x[QRY] must not occur in x[ORI], then x[ORI] = x[OUT]. 
+  // Otherwise, we use the earliest/latest start/end positions of x[QRY] in 
+  // x[ORI] to possibly refine x[OUT] via equation.
   template <class View>
   forceinline ExecStatus
-  Replace<View>::replace_qry_ori(Space& home, int min_occur) {
+  Replace<View>::refine_out(Space& home, int min_occur) {
     Position pos[2];
     check_find(x[ORI], x[QRY], pos);
     if (pos == nullptr) {
@@ -286,36 +290,41 @@ namespace Gecode { namespace String { namespace RelOp {
       eq(home, x[ORI], x[OUT]);
       return home.ES_SUBSUMED(*this);
     }
+    Position es = pos[0], le = pos[1];
     // Prefix: x[ORI][:es]
-//    NSBlocks v;
-//    Position es = pos[0], le = pos[1];
-//    // std::cerr << "ES: " << es << ", LE: " << le << "\n";
-//    if (es != Position({0, 0}))
-//      v = prefix(0, es);
-//    // Crush x[ORI][es : le], possibly adding x[RPL].
-//    int u = x[OUT].max_length();
-//    if (u > 0) {
-//      NSBlock b;
-//      b.S = x[ORI].may_chars();
-//      b.S.include(x[RPL].may_chars());
-//      b.u = u;
-//      v.push_back(b);
-//      for (int i = 0; i < min_occur; ++i) {
-//        for (int j = 0; j < pq1->length(); ++j)
-//          v.push_back(NSBlock(pq1->at(j)));
-//        v.push_back(b);
-//      }
-//    }
-//    else
-//      for (int i = 0; i < min_occur; ++i)
-//        for (int j = 0; j < pq1->length(); ++j)
-//          v.push_back(NSBlock(pq1->at(j)));
-//    // Suffix: x[ORI][le :]
-//    if (le != last_fwd(px->blocks()))
-//      v.extend(suffix(0, le));
-//    v.normalize();
-//    // std::cerr << "1c) Equating " << x[OUT] << " with " << v << " => \n";
-//    GECODE_ME_CHECK(x[OUT].dom(home, v));
+    Region r;
+    int n = 0; //FIXME:
+    Block* d = r.alloc<Block>(n);
+    const Block& d0 = *d;
+    // std::cerr << "ES: " << es << ", LE: " << le << "\n";
+    prefix(home, x[ORI], es, d);
+    // Crush x[ORI][es : le], possibly adding x[RPL].
+    if (x[OUT].max_length() > 0) {
+      Set::GLBndSet s;
+      for (auto i : {ORI, RPL}) {
+        for (int j = 0; j < x[i].size(); ++j) {
+          if (x[i][j].isUniverse())
+            break; 
+          x[i][j].includeBaseIn(home, s);
+        }
+      }
+      Block b(home, CharSet(home,s), 0, x[OUT].max_length());
+      (d++)->update(home,b);
+      for (int i = 0; i < min_occur; ++i) {
+        for (int j = 0; j < x[RPL].size(); ++j)
+          (d++)->update(home, x[RPL][j]);
+        (d++)->update(home,b);
+      }
+    }
+    else {
+      for (int i = 0; i < min_occur; ++i)
+        for (int j = 0; j < x[RPL].size(); ++j)
+          (d++)->update(home, x[RPL][j]);
+    }
+    // Suffix: x[ORI][le :]
+    suffix(home, x[ORI], le, d);
+    // std::cerr << "1c) Equating " << x[OUT] << " with " << v << " => \n";
+    GECODE_ME_CHECK(x[OUT].equate(home, ConstDashedView(d0,d-&d0)));
     //std::cerr << x[OUT] << "\n";
     return ES_OK;
   }
@@ -325,7 +334,7 @@ namespace Gecode { namespace String { namespace RelOp {
   // to possibly refine x[ORI] via equation.
   template <class View>
   forceinline ExecStatus
-  Replace<View>::replace_trg_out(Space& home, int min_occur) {
+  Replace<View>::refine_ori(Space& home, int min_occur) {
     Position pos[2];
     check_find(x[RPL], x[OUT], pos);
     if (pos == nullptr) {
@@ -447,14 +456,14 @@ namespace Gecode { namespace String { namespace RelOp {
       return home.ES_SUBSUMED(*this);
     }
     // std::cerr << "min_occur: " << min_occur << "\n";
-    ExecStatus es = replace_qry_ori(home, min_occur);
+    ExecStatus es = refine_out(home, min_occur);
     if (es != ES_OK)
       return es;
-    // std::cerr<<"After replace_qry_ori: "<< x <<"\n";
-    es = replace_trg_out(home, min_occur);
+    // std::cerr<<"After refine_out: "<< x <<"\n";
+    es = refine_ori(home, min_occur);
     if (es != ES_OK)
       return es;
-    // std::cerr<<"After replace_trg_out: "<< x <<"\n";
+    // std::cerr<<"After refine_ori: "<< x <<"\n";
     if (!all && !check_card()) {
       eq(home, x[ORI], x[OUT]);
       return home.ES_SUBSUMED(*this);

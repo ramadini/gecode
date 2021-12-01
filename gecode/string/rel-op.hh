@@ -94,8 +94,8 @@ namespace Gecode { namespace String { namespace RelOp {
     void prefix(Space&, const View&, const Position&, Block*) const;
     void suffix(Space&, const View&, const Position&, Block*) const;
     ExecStatus decomp_all(Space&);
-    ExecStatus replace_qry_ori(Space&, int);
-    ExecStatus replace_trg_out(Space&, int);
+    ExecStatus refine_ori(Space&, int);
+    ExecStatus refine_out(Space&, int);
     int occur(Space&) const;
     bool check_card() const;
     bool all;
