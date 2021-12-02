@@ -588,7 +588,6 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline void
   check_find(const ViewX& x, const ViewY& y, Position* pos) {
-    assert (y.min_length() == 0);
     int ny = y.size();
     Matching m[ny];
     Position start(0,0), end(ny,0);

@@ -323,7 +323,7 @@ namespace Gecode { namespace String { namespace RelOp {
         for (int j = 0; j < x[RPL].size(); ++j)
           (d++)->update(home, x[RPL][j]);
     }
-    // Suffix: x[ORI][le :]
+    // Suffix: x[ORI][le:]
     suffix(home, x[ORI], le, d);
     // std::cerr << "1c) Equating " << x[OUT] << " with " << v << " => \n";
     GECODE_ME_CHECK(x[OUT].equate(home, ConstDashedView(d0,d-&d0)));
@@ -391,7 +391,7 @@ namespace Gecode { namespace String { namespace RelOp {
   forceinline ExecStatus
   Replace<View>::propagate(Space& home, const ModEventDelta&) {
   again:
-//    std::cerr<<"\nReplace" << (all ? "All" : last ? "Last" : "") << "::propagate: "<< x <<"\n";
+    std::cerr<<"\nReplace" << (all ? "All" : last ? "Last" : "") << "::propagate: "<< x <<"\n";
     if (!all && !check_card()) {
       // x[QRY] not occurring in x[ORI].
       find(home, x[ORI], x[QRY], IntVar(home, 0, 0));
@@ -462,21 +462,21 @@ namespace Gecode { namespace String { namespace RelOp {
       find(home, last ? suff : pref, x[QRY], IntVar(home, 0, 0));
       return home.ES_SUBSUMED(*this);
     }
-    // std::cerr << "min_occur: " << min_occur << "\n";
+     std::cerr << "min_occur: " << min_occur << "\n";
     ExecStatus es = refine_out(home, min_occur);
     if (es != ES_OK)
       return es;
-    // std::cerr<<"After refine_out: "<< x <<"\n";
+    std::cerr<<"After refine_out: "<< x <<"\n";
     es = refine_ori(home, min_occur);
     if (es != ES_OK)
       return es;
-    // std::cerr<<"After refine_ori: "<< x <<"\n";
+    std::cerr<<"After refine_ori: "<< x <<"\n";
     if (!all && !check_card()) {
       eq(home, x[ORI], x[OUT]);
       return home.ES_SUBSUMED(*this);
     }
     assert (!home.failed());
-    // std::cerr<<"After replace: "<< x <<"\n";
+    std::cerr<<"After replace: "<< x <<"\n";
     switch (x[ORI].assigned() + x[QRY].assigned() +
             x[RPL].assigned() + x[OUT].assigned()) {
       case 4:
