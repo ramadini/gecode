@@ -31,28 +31,25 @@ public:
 
   Ex8(const StringOptions& so): Script(so) {
     // Variables.
-    NSBlocks v({
-      NSBlock(NSIntSet('c', 'z'), 1, 5),
-      NSBlock(NSIntSet('a'), 0, 3),
-        NSBlock(NSIntSet('x', 'y'), 1, 2),
-    });
-    NSBlocks v1({
-      NSBlock::top(),
-      NSBlock(NSIntSet('b'), 1, DashedString::_MAX_STR_LENGTH),
-      NSBlock::top()
-    });
-    NSBlocks v2({
-      NSBlock(NSIntSet('a'), 5, 8),
-      NSBlock(NSIntSet('a', 'b'), 1, 1)
-    });
-    StringVar x(*this, "aa");
-    StringVar x1(*this, "bb");
-    StringVar y(*this, v, 0, 100);
-    StringVar y1(*this, v1, 0, 100);
-    StringVar z(*this, v, 0, 100);
-    StringVar z1(*this, v, 0, 100);
-    StringVar s(*this, "xyxxyxxyx");
-    StringVar t(*this, v2, 0, 100);
+    Block v[3]; int i = 0;
+    v[i++].update(*this, Block(*this, CharSet(*this,'c', 'z'), 1, 5));
+    v[i++].update(*this, Block(*this, CharSet(*this,'a'), 0, 3));
+    v[i++].update(*this, Block(*this, CharSet(*this,'x', 'y'), 1, 2));
+    Block v1[3]; i = 0;
+    v1[i++].update(*this, Block(*this));
+    v1[i++].update(*this, Block(*this, CharSet(*this,'b'), 1, MAX_STRING_LENGTH));
+    v1[i++].update(*this, Block(*this));
+    Block v2[2]; i = 0;
+    v2[i++].update(*this, Block(*this, CharSet(*this,'a'), 5, 8));
+    v2[i++].update(*this, Block(*this, CharSet(*this,'a', 'b'), 1, 1));
+    StringVar x(*this, str2vec("aa"));
+    StringVar x1(*this, str2vec("bb"));
+    StringVar y(*this, DashedString(*this, v, 3));
+    StringVar y1(*this, DashedString(*this, v1, 3));
+    StringVar z(*this, DashedString(*this, v, 3));
+    StringVar z1(*this, DashedString(*this, v, 3));
+    StringVar s(*this, str2vec("xyxxyxxyx"));
+    StringVar t(*this, DashedString(*this, v2, 2));
     StringVar t1(*this);    
 
     StringVarArgs sva;
@@ -67,33 +64,32 @@ public:
     replace(*this, y, x, x1, y1);
     replace(*this, z, x, x1, z1);
     replace_all(*this, t, x, t1, s);
-    sizemin_llul(*this, string_vars);
+    lenblock_min_lllm(*this, string_vars);
   }
 
   virtual void
   print(std::ostream& os) const {
-    string x  = string_vars[0].val(),
-           x1 = string_vars[1].val(),
-           y  = string_vars[2].val(),
-           y1 = string_vars[3].val(),
-           z  = string_vars[4].val(),
-           z1 = string_vars[5].val(),
-           s  = string_vars[6].val(),
-           t  = string_vars[7].val(),
-           t1 = string_vars[8].val();
-    os << "x  = \"" << x  << "\"\n"
+    std::string x = vec2str(string_vars[0].val()),
+               x1 = vec2str(string_vars[1].val()),
+               y  = vec2str(string_vars[2].val()),
+               y1 = vec2str(string_vars[3].val()),
+               z  = vec2str(string_vars[4].val()),
+               z1 = vec2str(string_vars[5].val()),
+               s  = vec2str(string_vars[6].val()),
+               t  = vec2str(string_vars[7].val()),
+               t1 = vec2str(string_vars[8].val());
+    os << "x  = \"" <<  x << "\"\n"
        << "x1 = \"" << x1 << "\"\n"
-       << "y  = \"" << y  << "\"\n"
+       << "y  = \"" <<  y << "\"\n"
        << "y1 = \"" << y1 << "\"\n"
-       << "z  = \"" << z  << "\"\n"       
+       << "z  = \"" <<  z << "\"\n"       
        << "z1 = \"" << z1 << "\"\n"
-       << "s = \"" << s << "\"\n"
-       << "t  = \"" << t << "\"\n"
+       << "s = \""  <<  s << "\"\n"
+       << "t  = \"" <<  t << "\"\n"
        << "t1 = \"" << t1 << "\"\n"       
        << "----------\n";
-    assert (y.find(x) != string::npos && y1.find(x1) != string::npos &&
-      z.find(x) == string::npos && z1.find(x1) == string::npos && 
-      z == z1 && t1 == "xyx");
+    assert (y.find(x) && y1.find(x1) && z.find(x) && z1.find(x1) && 
+            z == z1 && t1 == "xyx");
     sat = true;
   }
 
