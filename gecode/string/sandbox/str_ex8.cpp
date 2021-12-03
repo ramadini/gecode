@@ -62,11 +62,9 @@ public:
 
     length(*this, z1, l);
     replace(*this, y, x, x1, y1);
-//    replace(*this, z, x, x1, z1);
-//    replace_all(*this, t, x, t1, s);
-    block_mindim_lslm(*this, string_vars);
-    
-    eq(*this, y, str2vec("caax"));
+    replace(*this, z, x, x1, z1);
+    replace_all(*this, t, x, t1, s);
+    dimdeg_lenblock_min_lllm(*this, string_vars);
     
     std::cout << "x: " << x << '\n';
     std::cout << "x1: " << x1 << '\n';
@@ -111,7 +109,7 @@ bool Ex8::sat = false;
 
 int main() {
   StringOptions opt("*** Ex8 ***");
-  opt.solutions(1);
+  opt.solutions(3);
   Script::run<Ex8, DFS, StringOptions>(opt);
   assert (Ex8::sat);
   return 0;

@@ -310,6 +310,12 @@ namespace Gecode { namespace String { namespace RelOp {
             break; 
           x[i][j].includeBaseIn(home, s);
         }
+        if (i == ORI && min_occur > 0 && !x[QRY].assigned()) {
+          int u = std::max(0, std::min(x[ORI].max_length(), 
+                              x[ORI].max_length()-x[QRY].min_length()+1));
+          Block b(home, CharSet(home,s), 0, u);
+          GECODE_ME_CHECK(x[QRY].equate(home, ConstDashedView(b,1)));
+        }
       }
       Block b(home, CharSet(home,s), 0, x[OUT].max_length());
       (d++)->update(home,b);
@@ -365,11 +371,17 @@ namespace Gecode { namespace String { namespace RelOp {
     // Crush x[OUT][es : ls], possibly adding x[QRY].
     if (x[ORI].max_length() > 0) {
       Set::GLBndSet s;
-      for (auto i : {QRY,OUT}) {
+      for (auto i : {OUT,QRY}) {
         for (int j = 0; j < x[i].size(); ++j) {
           if (x[i][j].isUniverse())
             break; 
           x[i][j].includeBaseIn(home, s);
+        }
+        if (i == OUT && min_occur > 0 && !x[RPL].assigned()) {
+          int u = std::max(0, std::min(x[OUT].max_length(), 
+                              x[OUT].max_length()-x[RPL].min_length()+1));
+          Block b(home, CharSet(home,s), 0, u);
+          GECODE_ME_CHECK(x[RPL].equate(home, ConstDashedView(b,1)));
         }
       }
       Block b(home, CharSet(home,s), 0, x[ORI].max_length());
@@ -392,7 +404,7 @@ namespace Gecode { namespace String { namespace RelOp {
     if (x[OUT].assigned())
       return check_equate_x(x[ORI], dom) ? ES_OK : ES_FAILED;
     GECODE_ME_CHECK(x[ORI].equate(home, ConstDashedView(d0,d-&d0)));
-    //std::cerr << x[ORI] << "\n";
+    //std::cerr << x[ORI] << "\n";    
     return ES_OK;
   }
   
@@ -437,10 +449,7 @@ namespace Gecode { namespace String { namespace RelOp {
             std::vector<int> wq1 = x[RPL].val();
             w.insert(w.end(), wq1.begin(), wq1.end());
             w.insert(w.end(), suff.begin(), suff.end());
-            std::cerr << "w: " << vec2str(w) << '\n';
-            GECODE_ME_CHECK(x[OUT].equate(home, 
-                            ConstStringView(home,&w[0],w.size())));
-            std::cerr << x[OUT] << '\n';
+            eq(home, x[OUT], w);
           }
           else {
             StringVar tmp(home);
@@ -458,7 +467,7 @@ namespace Gecode { namespace String { namespace RelOp {
         return home.ES_SUBSUMED(*this);
       }
       if (min_occur == 0)
-        min_occur += 1;
+        min_occur = 1;
     } 
     // x[ORI] != x[OUT] => x[QRY] occur in x[ORI] /\ x[RPL] occur in x[OUT].
     if (min_occur == 0 && !check_equate_x(x[ORI],x[OUT]))
@@ -472,7 +481,7 @@ namespace Gecode { namespace String { namespace RelOp {
       find(home, last ? suff : pref, x[QRY], IntVar(home, 0, 0));
       return home.ES_SUBSUMED(*this);
     }
-     std::cerr << "min_occur: " << min_occur << "\n";
+    std::cerr << "min_occur: " << min_occur << "\n";
     ExecStatus es = refine_out(home, min_occur);
     if (es != ES_OK)
       return es;

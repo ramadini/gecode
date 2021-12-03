@@ -24,7 +24,7 @@ namespace Gecode { namespace String {
     return ubounded_sum(idx, p.off);
   }
 
-  // Returns the index of the first occurrence of y in x when both fixed.
+  // Returns the 1-based index of the first occurrence of y in x when both fixed.
   template <class ViewX, class ViewY>
   forceinline int
   find_fixed(ViewX x, ViewY y) {
@@ -595,7 +595,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline void
   check_find(const ViewX& x, const ViewY& y, Position* pos) {
-    std::cerr << "check_find("<<x<<", "<<y<<")\n";
+//    std::cerr << "check_find("<<x<<", "<<y<<")\n";
     int ny = y.size();
     Matching m[ny];
     Position start(0,0), end(x.size(),0);
@@ -603,12 +603,12 @@ namespace Gecode { namespace String {
       m[j].ESP = start;
       m[j].LEP = end;
     }
-    if (!pushESP_find(x, y, m)) {std::cerr << "Fail ESP\n";
+    if (!pushESP_find(x, y, m)) {
       pos[0].idx = -1;
       return;
     }
     int tmp1, tmp2;
-    if (!pushLEP_find(x, y, m, tmp1, tmp2)) {std::cerr << "Fail LEP\n";
+    if (!pushLEP_find(x, y, m, tmp1, tmp2)) {
       pos[0].idx = -1;
       return;
     }
