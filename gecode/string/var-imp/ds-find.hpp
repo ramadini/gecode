@@ -614,8 +614,10 @@ namespace Gecode { namespace String {
     pos[0] = m[0].ESP;
     pos[1] = m[ny-1].LEP;
     assert(x.prec(pos[0],pos[1]));
-    if (pos[1].off == 0)
-      pos[1].off = x[--pos[1].idx].ub();
+    if (pos[1].off == x[pos[1].idx].ub()) {
+      pos[1].idx++;
+      pos[1].off = 0;
+    }
   }
 
 }}

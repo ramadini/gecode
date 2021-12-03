@@ -55,10 +55,11 @@ namespace Gecode { namespace String {
     }
     
     /// Test if this is normalized w.r.t. to y, i.e., it belongs to the set 
-    /// {(i,j) | 0 <= i < |y|, 0 <= j < ub(y)} U {(|y|,0)}
+    /// {(i,j) | 0 <= i < |y|, 0 <= j < y[i].ub()} U {(|y|,0)}
     template <class View>
     forceinline bool
     isNorm(const View& y) const {
+      std::cerr << "isNorm " <<  "(" << idx << "," << off << ")" << " in " << y << '\n'; 
       int n = y.size();
       return (0 <= idx && idx < n && 0 <= off && (ubound(y[idx]) == 0 
                    || off < ubound(y[idx]))) || (idx == n && off == 0);

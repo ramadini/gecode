@@ -293,9 +293,9 @@ namespace Gecode { namespace String { namespace RelOp {
     // Prefix: x[ORI][:es]
     Region r;
     Position es = pos[0], le = pos[1];
-    int n = es.idx - (es.off == 0) +
-            min_occur*x[RPL].size() + (x[OUT].max_length() > 0)*(min_occur+1) +
-            x[ORI].size() - le.idx - (le.off == x[ORI][le.idx].ub());
+    assert (es.isNorm(x[ORI]) && le.isNorm(x[ORI]));
+    int n = es.idx - (es.off == 0) + x[ORI].size() - le.idx +
+            min_occur*x[RPL].size() + (x[OUT].max_length() > 0)*(min_occur+1);            
     std::cerr << "ES: " << es << ", LE: " << le << ", n: "<< n << "\n";
     if (n == 0)
       return ES_OK;
@@ -351,9 +351,9 @@ namespace Gecode { namespace String { namespace RelOp {
     // Prefix: x[OUT][: es].
     Region r;
     Position es = pos[0], le = pos[1];
-    int n = es.idx - (es.off == 0) +
-            min_occur*x[QRY].size() + (x[ORI].max_length() > 0)*(min_occur+1) +
-            x[OUT].size() - le.idx - (le.off == x[OUT][le.idx].ub());
+    assert (es.isNorm(x[OUT]) && le.isNorm(x[OUT]));
+    int n = es.idx - (es.off == 0) + x[OUT].size() - le.idx +
+            min_occur*x[QRY].size() + (x[ORI].max_length() > 0)*(min_occur+1);
     std::cerr << "ES: " << es << ", LE: " << le << ", n: "<< n << "\n";
     if (n == 0)
       return ES_OK;
