@@ -257,7 +257,8 @@ namespace Gecode { namespace String {
 //          std::cerr << "Adjusted LEP of y[" << j << "] = " << y[j] << ": " << m[j].LEP << '\n';
           continue;
         }
-        if (x.prec(m[j].LEP, m[j].ESP))
+        if (x.prec(m[j].LEP, m[j].ESP) 
+        || (x.equiv(m[j].ESP, m[j].LEP) && x[j].lb() > 0))
           return false;
         m[j].LSP = j > 0 ? m[j-1].LEP : m[0].ESP;
         if (x.prec(m[j].LSP,m[j].ESP))
@@ -602,19 +603,19 @@ namespace Gecode { namespace String {
       m[j].ESP = start;
       m[j].LEP = end;
     }
-    if (!pushESP_find(x, y, m)) {
-      pos = nullptr;
+    if (!pushESP_find(x, y, m)) {std::cerr << "Fail ESP\n";
+      pos[0].idx = -1;
       return;
     }
     int tmp1, tmp2;
-    if (!pushLEP_find(x, y, m, tmp1, tmp2)) {
-      pos = nullptr;
+    if (!pushLEP_find(x, y, m, tmp1, tmp2)) {std::cerr << "Fail LEP\n";
+      pos[0].idx = -1;
       return;
     }
     pos[0] = m[0].ESP;
     pos[1] = m[ny-1].LEP;
     assert(x.prec(pos[0],pos[1]));
-    if (pos[1].off == x[pos[1].idx].ub()) {
+    if (!pos[1].isNorm(x)) {
       pos[1].idx++;
       pos[1].off = 0;
     }

@@ -62,9 +62,21 @@ public:
 
     length(*this, z1, l);
     replace(*this, y, x, x1, y1);
-    replace(*this, z, x, x1, z1);
-    replace_all(*this, t, x, t1, s);
-    lenblock_min_lllm(*this, string_vars);
+//    replace(*this, z, x, x1, z1);
+//    replace_all(*this, t, x, t1, s);
+    block_mindim_lslm(*this, string_vars);
+    
+    eq(*this, y, str2vec("caax"));
+    
+    std::cout << "x: " << x << '\n';
+    std::cout << "x1: " << x1 << '\n';
+    std::cout << "y: " << y << '\n';
+    std::cout << "y1: " << y1 << '\n';
+    std::cout << "z: " << z << '\n';
+    std::cout << "z1: " << z1 << '\n';
+    std::cout << "s: " << s << '\n';
+    std::cout << "t: " << t << '\n';
+    std::cout << "t1: " << t1 << '\n';
   }
 
   virtual void
@@ -99,7 +111,7 @@ bool Ex8::sat = false;
 
 int main() {
   StringOptions opt("*** Ex8 ***");
-  opt.solutions(3);
+  opt.solutions(1);
   Script::run<Ex8, DFS, StringOptions>(opt);
   assert (Ex8::sat);
   return 0;

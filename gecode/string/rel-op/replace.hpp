@@ -84,7 +84,7 @@ namespace Gecode { namespace String { namespace RelOp {
     assert (p.isNorm(x));
     if (p == Position(0,0))
       return;
-    for (int i = 0; i < x.size(); ++i)
+    for (int i = 0; i < p.idx; ++i)
       (pref++)->update(home, x[i]);
     int off = p.off;
     if (off > 0) {
@@ -103,13 +103,13 @@ namespace Gecode { namespace String { namespace RelOp {
                                      const Position& p, Block* suff) const {    
     assert (p.isNorm(x));
     int off = p.off, idx = p.idx, nx = x.size();
-    if (idx == nx-1 && off == x[idx].ub())
+    if (idx == nx && off == 0)
       return;
-    if (off < x[idx].ub()) {
+    if (off > 0) {
       const Block& b = x[idx];
       (suff++)->updateCard(home, std::max(0, b.lb()-off), b.ub()-off);
     }
-    for (int i = idx + 1; i < nx; ++i)
+    for (int i = idx + (off > 0); i < nx; ++i)
       (suff++)->update(home, x[i]);
   }
   
@@ -117,7 +117,7 @@ namespace Gecode { namespace String { namespace RelOp {
   template <class View>
   forceinline ExecStatus
   Replace<View>::decomp_all(Space& home) {
-//    std::cerr << "decomp_all\n";
+    std::cerr << "decomp_all\n";
     assert (x[ORI].assigned() && x[QRY].assigned());
     if (x[RPL].assigned()) {
       if (x[QRY].max_length() == 0) {
@@ -193,7 +193,6 @@ namespace Gecode { namespace String { namespace RelOp {
           eq(home, x[ORI], x[OUT]);
           return home.ES_SUBSUMED(*this);
         }
-        std::vector<int> wq1 = x[RPL].val();
         std::vector<StringVar> v(1, StringVar(home));
         std::vector<int> w = std::vector<int>(wx.begin(), pos);
         if (w.empty())
@@ -284,7 +283,7 @@ namespace Gecode { namespace String { namespace RelOp {
   Replace<View>::refine_out(Space& home, int min_occur) {
     Position pos[2];
     check_find(x[ORI], x[QRY], pos);
-    if (pos == nullptr) {
+    if (pos[0].idx == -1) {
       if (min_occur > 0)
         return ES_FAILED;
       eq(home, x[ORI], x[OUT]);
@@ -294,7 +293,7 @@ namespace Gecode { namespace String { namespace RelOp {
     Region r;
     Position es = pos[0], le = pos[1];
     assert (es.isNorm(x[ORI]) && le.isNorm(x[ORI]));
-    int n = es.idx - (es.off == 0) + x[ORI].size() - le.idx +
+    int n = es.idx + (es.off > 0) + x[ORI].size() - le.idx +
             min_occur*x[RPL].size() + (x[OUT].max_length() > 0)*(min_occur+1);            
     std::cerr << "ES: " << es << ", LE: " << le << ", n: "<< n << "\n";
     if (n == 0)
@@ -327,9 +326,12 @@ namespace Gecode { namespace String { namespace RelOp {
     }
     // Suffix: x[ORI][le:]
     suffix(home, x[ORI], le, d);
-    // std::cerr << "1c) Equating " << x[OUT] << " with " << v << " => \n";
+    ConstDashedView dom(d0,d-&d0);
+    std::cerr << "1c) Equating " << x[OUT] << " with " << dom << " => \n";
+    if (x[OUT].assigned())
+      return check_equate_x(x[OUT], dom) ? ES_OK : ES_FAILED;
     GECODE_ME_CHECK(x[OUT].equate(home, ConstDashedView(d0,d-&d0)));
-    //std::cerr << x[OUT] << "\n";
+    // std::cerr << x[OUT] << "\n";
     return ES_OK;
   }
   
@@ -341,7 +343,7 @@ namespace Gecode { namespace String { namespace RelOp {
   Replace<View>::refine_ori(Space& home, int min_occur) {
     Position pos[2];
     check_find(x[OUT], x[RPL], pos);
-    if (pos == nullptr) {
+    if (pos[0].idx == -1) {
       if (min_occur > 0)
         return ES_FAILED;
       find(home, x[ORI], x[QRY], IntVar(home, 0, 0));
@@ -352,7 +354,7 @@ namespace Gecode { namespace String { namespace RelOp {
     Region r;
     Position es = pos[0], le = pos[1];
     assert (es.isNorm(x[OUT]) && le.isNorm(x[OUT]));
-    int n = es.idx - (es.off == 0) + x[OUT].size() - le.idx +
+    int n = es.idx + (es.off > 0) + x[OUT].size() - le.idx +
             min_occur*x[QRY].size() + (x[ORI].max_length() > 0)*(min_occur+1);
     std::cerr << "ES: " << es << ", LE: " << le << ", n: "<< n << "\n";
     if (n == 0)
@@ -385,7 +387,10 @@ namespace Gecode { namespace String { namespace RelOp {
     }
     // Suffix: x[OUT][le :]
     suffix(home, x[OUT], le, d);
-    // std::cerr << "2) Equating " << x[ORI] << " with " << v << " => \n";
+    ConstDashedView dom(d0,d-&d0);
+    std::cerr << "1c) Equating " << x[ORI] << " with " << dom << " => \n";
+    if (x[OUT].assigned())
+      return check_equate_x(x[ORI], dom) ? ES_OK : ES_FAILED;
     GECODE_ME_CHECK(x[ORI].equate(home, ConstDashedView(d0,d-&d0)));
     //std::cerr << x[ORI] << "\n";
     return ES_OK;
@@ -419,20 +424,23 @@ namespace Gecode { namespace String { namespace RelOp {
         if (all)
           return decomp_all(home);
         int n = last ? rfind_fixed(x[ORI],x[QRY]) : find_fixed(x[ORI],x[QRY]);
+        std::cerr << "idx: " << n << "\n"; 
         if (n == 0)
           eq(home, x[ORI], x[OUT]);
         else {
           n--;
           std::vector<int> wx = x[ORI].val();
           std::vector<int> pref(wx.begin(), wx.begin() + n);
-          std::vector<int> suff(wx.begin() + n, wx.end());
+          std::vector<int> suff(wx.begin() + x[QRY].max_length() + n, wx.end());
           if (x[RPL].assigned()) {
             std::vector<int> w(pref);
             std::vector<int> wq1 = x[RPL].val();
             w.insert(w.end(), wq1.begin(), wq1.end());
             w.insert(w.end(), suff.begin(), suff.end());
-            int k = pref.size() + w.size() + suff.size();
-            GECODE_ME_CHECK(x[OUT].equate(home, ConstStringView(home,&w[0],k)));
+            std::cerr << "w: " << vec2str(w) << '\n';
+            GECODE_ME_CHECK(x[OUT].equate(home, 
+                            ConstStringView(home,&w[0],w.size())));
+            std::cerr << x[OUT] << '\n';
           }
           else {
             StringVar tmp(home);

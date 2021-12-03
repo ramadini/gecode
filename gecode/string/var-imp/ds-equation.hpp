@@ -1,5 +1,17 @@
 namespace Gecode { namespace String {
 
+#ifndef NDEBUG
+template<typename T>
+std::ostream & operator<<(std::ostream& os, const std::vector<T>& v) {
+  int n = v.size()-1;
+  os << "[";
+  for (int i = 0; i < n; ++i)
+    os << v[i] << ", ";
+  os << v[n] << "]";
+  return os;
+}
+#endif
+
   struct Position;
   template <class T> class SweepFwdIterator;
   template <class T> class SweepBwdIterator;
@@ -59,7 +71,7 @@ namespace Gecode { namespace String {
     template <class View>
     forceinline bool
     isNorm(const View& y) const {
-      std::cerr << "isNorm " <<  "(" << idx << "," << off << ")" << " in " << y << '\n'; 
+//      std::cerr << "isNorm " <<  "(" << idx << "," << off << ")" << " in " << y << '\n'; 
       int n = y.size();
       return (0 <= idx && idx < n && 0 <= off && (ubound(y[idx]) == 0 
                    || off < ubound(y[idx]))) || (idx == n && off == 0);
