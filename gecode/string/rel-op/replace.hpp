@@ -101,9 +101,8 @@ namespace Gecode { namespace String { namespace RelOp {
   forceinline void
   Replace<View>::suffix(Space& home, const View& x, 
                                      const Position& p, Block* suff) const {    
+    assert (p.isNorm(x));
     int off = p.off, idx = p.idx, nx = x.size();
-    if (p.off == 0)
-      off = x[--idx].ub();
     if (idx == nx-1 && off == x[idx].ub())
       return;
     if (off < x[idx].ub()) {
@@ -296,9 +295,11 @@ namespace Gecode { namespace String { namespace RelOp {
     int n = es.idx - (es.off == 0) +
             min_occur*x[RPL].size() + (x[OUT].max_length() > 0)*(min_occur+1) +
             x[ORI].size() - le.idx - (le.off == x[ORI][le.idx].ub());
+    std::cerr << "ES: " << es << ", LE: " << le << ", n: "<< n << "\n";
+    if (n == 0)
+      return ES_OK;
     Block* d = r.alloc<Block>(n);
     const Block& d0 = *d;
-    // std::cerr << "ES: " << es << ", LE: " << le << "\n";
     prefix(home, x[ORI], es, d);
     // Crush x[ORI][es : le], possibly adding x[RPL].
     if (x[OUT].max_length() > 0) {
@@ -352,9 +353,11 @@ namespace Gecode { namespace String { namespace RelOp {
     int n = es.idx - (es.off == 0) +
             min_occur*x[QRY].size() + (x[ORI].max_length() > 0)*(min_occur+1) +
             x[OUT].size() - le.idx - (le.off == x[OUT][le.idx].ub());
+    std::cerr << "ES: " << es << ", LE: " << le << ", n: "<< n << "\n";
+    if (n == 0)
+      return ES_OK;
     Block* d = r.alloc<Block>(n);
     const Block& d0 = *d;
-    // std::cerr << "ES: " << es << ", LE: " << le << "\n";
     prefix(home, x[OUT], es, d);
     // Crush x[OUT][es : ls], possibly adding x[QRY].
     if (x[ORI].max_length() > 0) {

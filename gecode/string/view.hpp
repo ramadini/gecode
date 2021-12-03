@@ -144,6 +144,7 @@ namespace Gecode { namespace String {
     SweepFwdIterator<ConstDashedView> fwd_iterator(void) const;
     SweepBwdIterator<ConstDashedView> bwd_iterator(void) const;
     bool isOK(void) const;
+    bool isNull(void) const;
   };
   /**
    * \brief Print string variable view

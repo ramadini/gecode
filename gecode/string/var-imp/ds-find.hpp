@@ -29,6 +29,10 @@ namespace Gecode { namespace String {
   forceinline int
   find_fixed(ViewX x, ViewY y) {
 //    std::cerr << "find_fixed " << x << ".find( " << y << " )\n";
+    if (x.isNull())
+      return y.isNull();
+    if (y.isNull())
+      return 1;
     int j = 0, k = 0, nx = x.size(), ny = y.size();
     for (int i = 0; i < nx && ny > 0; ) {
       int lx = lbound(x[i]);
@@ -174,7 +178,7 @@ namespace Gecode { namespace String {
     return true;
   }
   
-  // Pushes fwd the earliest start position of each y-block in x for find(x,y).
+  // Pushes fwd the earliest start position of each y-block in x for replace prop.
   template <class ViewX, class ViewY>
   forceinline bool
   pushESP_find(const ViewX x, ViewY y, Matching m[]) {
@@ -189,7 +193,7 @@ namespace Gecode { namespace String {
         m[j].ESP = y.push(j, fwd_it);
         start = *fwd_it;
         assert (!x.prec(start,m[j].ESP));
-//        std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';        
+        std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';        
         if (y[j].lb() > 0 && x.equiv(m[j].ESP, Position(x.size(),0)))
           return false;
       }
@@ -199,14 +203,14 @@ namespace Gecode { namespace String {
         SweepBwdIterator<ViewX> bwd_it(x,start);
         y.stretch(j, bwd_it);
         start = *bwd_it;
-//        std::cerr << "Stretching bwd: y[" << j << "] = " << y[j] << ": " << start << " vs " << m[j].ESP << '\n';
+        std::cerr << "Stretching bwd: y[" << j << "] = " << y[j] << ": " << start << " vs " << m[j].ESP << '\n';
         if (x.prec(m[j].ESP, start)) {
           m[j].ESP = start;
           again = true;
-//          std::cerr << "Adjusted ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
+          std::cerr << "Adjusted ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
         }
       }
-//      std::cerr << (again ? "Again!\n" : "");
+      std::cerr << (again ? "Again!\n" : "");
     } while (again);
     return true;
   }
@@ -588,6 +592,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline void
   check_find(const ViewX& x, const ViewY& y, Position* pos) {
+    std::cerr << "check_find("<<x<<", "<<y<<")\n";
     int ny = y.size();
     Matching m[ny];
     Position start(0,0), end(ny,0);
@@ -607,6 +612,8 @@ namespace Gecode { namespace String {
     pos[0] = m[0].ESP;
     pos[1] = m[ny-1].LEP;
     assert(x.prec(pos[0],pos[1]));
+    if (pos[1].off == 0)
+      pos[1].off = x[--pos[1].idx].ub();
   }
 
 }}

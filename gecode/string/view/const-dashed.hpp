@@ -26,6 +26,11 @@ namespace Gecode { namespace String {
       if (!b0[i].isOK())
         return false;
   }
+  
+  forceinline bool
+  ConstDashedView::isNull() const {
+    return n == 1 && b0->isNull();
+  }
 
   forceinline SweepFwdIterator<ConstDashedView>
   ConstDashedView::fwd_iterator(void) const {
