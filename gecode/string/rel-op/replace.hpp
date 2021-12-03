@@ -339,7 +339,7 @@ namespace Gecode { namespace String { namespace RelOp {
   forceinline ExecStatus
   Replace<View>::refine_ori(Space& home, int min_occur) {
     Position pos[2];
-    check_find(x[RPL], x[OUT], pos);
+    check_find(x[OUT], x[RPL], pos);
     if (pos == nullptr) {
       if (min_occur > 0)
         return ES_FAILED;
@@ -489,7 +489,7 @@ namespace Gecode { namespace String { namespace RelOp {
           goto again;
         return ES_FIX;
       case 2:
-        if (x[QRY].assigned())
+        if (x[ORI].assigned() && x[QRY].assigned())
           goto again;
         return ES_FIX;
       default:
