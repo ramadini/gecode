@@ -182,7 +182,7 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline bool
   pushESP_find(const ViewX x, ViewY y, Matching m[]) {
-    std::cerr << "pushESP_find(" << x << ", " << y << ")\n";
+//    std::cerr << "pushESP_find(" << x << ", " << y << ")\n";
     bool again = false;
     int ny = y.size();
     Position start = m[0].ESP;
@@ -194,7 +194,7 @@ namespace Gecode { namespace String {
         m[j].ESP = y.push(j, fwd_it);
         start = *fwd_it;
         assert (!x.prec(start,m[j].ESP));
-        std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';        
+//        std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';        
         if (y[j].lb() > 0 && x.equiv(m[j].ESP, Position(x.size(),0)))
           return false;
       }
@@ -204,14 +204,14 @@ namespace Gecode { namespace String {
         SweepBwdIterator<ViewX> bwd_it(x,start);
         y.stretch(j, bwd_it);
         start = *bwd_it;
-        std::cerr << "Stretching bwd: y[" << j << "] = " << y[j] << ": " << start << " vs " << m[j].ESP << '\n';
+//        std::cerr << "Stretching bwd: y[" << j << "] = " << y[j] << ": " << start << " vs " << m[j].ESP << '\n';
         if (x.prec(m[j].ESP, start)) {
           m[j].ESP = start;
           again = true;
-          std::cerr << "Adjusted ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
+//          std::cerr << "Adjusted ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';
         }
       }
-      std::cerr << (again ? "Again!\n" : "");
+//      std::cerr << (again ? "Again!\n" : "");
     } while (again);
     return true;
   }
@@ -223,7 +223,7 @@ namespace Gecode { namespace String {
   forceinline bool
   pushLEP_find(const ViewX& x, const ViewY& y, Matching m[], int& yFixed, 
                                                              int& nBlocks) {
-    std::cerr << "pushLEP_find(" << x << ", " << y << ")\n";
+//    std::cerr << "pushLEP_find(" << x << ", " << y << ")\n";
     bool again = false;
     int ny = y.size();
     Position start = m[ny-1].LEP;
@@ -235,11 +235,11 @@ namespace Gecode { namespace String {
         m[j].LEP = y.push(j, bwd_it);
         start = *bwd_it;
         assert (!x.prec(m[j].LEP, start));
-        std::cerr << "pushed bwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
+//        std::cerr << "pushed bwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
         if (x.equiv(Position(0,0), m[j].LEP))
           // y cannot fit in x.
           return false;
-        std::cerr << "LEP of y[" << j << "] = " << y[j] << ": " << m[j].LEP << '\n';
+//        std::cerr << "LEP of y[" << j << "] = " << y[j] << ": " << m[j].LEP << '\n';
       }
       again = false;
       yFixed = 0, nBlocks = 0;
@@ -248,13 +248,13 @@ namespace Gecode { namespace String {
         SweepFwdIterator<ViewX> fwd_it(x,start);
         y.stretch(j, fwd_it);
         start = *fwd_it;
-        std::cerr << "pushing fwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
+//        std::cerr << "pushing fwd: y[" << j << "] = " << y[j] << ": " << start << '\n';
         if (x.prec(start, m[j].LEP)) {
           // There is a gap between the latest end position of y[j] and the 
           // position of the maximum forward stretch for its latest start.
           m[j].LEP = start;
           again = true;
-          std::cerr << "Adjusted LEP of y[" << j << "] = " << y[j] << ": " << m[j].LEP << '\n';
+//          std::cerr << "Adjusted LEP of y[" << j << "] = " << y[j] << ": " << m[j].LEP << '\n';
           continue;
         }
         if (x.prec(m[j].LEP, m[j].ESP))
