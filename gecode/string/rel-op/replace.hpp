@@ -245,13 +245,14 @@ namespace Gecode { namespace String { namespace RelOp {
   template <class View>
   forceinline int
   Replace<View>::occur(Space& home) const {
+    assert (x[QRY].assigned());
     if (x[ORI].assigned() && !all)
       return find_fixed(x[QRY], x[ORI]) > 0;
     int min_occur = 0, k = 0;
     std::vector<int> curr;
     for (int i = 0, nq = x[ORI].size(); i < nq; ++i) {
       const Block& b = x[ORI][i];
-      if (b.baseSize() == 1) {
+      if (b.lb() > 0 && b.baseSize() == 1) {
         std::vector<int> w(b.lb(), b.baseMin());
         curr.insert(curr.end(), w.begin(), w.end());
         k += b.lb();
@@ -455,13 +456,11 @@ namespace Gecode { namespace String { namespace RelOp {
     if (min_occur == 0 && !check_equate_x(x[ORI],x[OUT]))
       min_occur = 1;
     if (min_occur > 0 && !all) {
-      StringVar pref(home), suff(home);
-      StringVarArgs lhs, rhs;
-      StringVar tmp, tmp1;
+      StringVar pref(home), suff(home), tmp(home), tmp1(home);
       concat(home, pref, x[QRY], tmp);
       concat(home, tmp, suff, x[ORI]);
-      concat(home, pref, x[RPL], tmp);
-      concat(home, tmp, suff, x[OUT]);
+      concat(home, pref, x[RPL], tmp1);
+      concat(home, tmp1, suff, x[OUT]);
       find(home, last ? suff : pref, x[QRY], IntVar(home, 0, 0));
       return home.ES_SUBSUMED(*this);
     }
