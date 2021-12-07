@@ -63,7 +63,7 @@ namespace Gecode { namespace String { namespace RelOp {
   template <class View>
   forceinline ExecStatus
   Replace<View>::rewrite(Home home, ViewArray<View>& x, bool last) {
-    std::cerr << "Rewriting replace\n";
+//    std::cerr << "Rewriting replace\n";
     StringVar pref(home), suff(home), tmp(home), tmp1(home);
     concat(home, pref, x[QRY], tmp);
     concat(home, tmp, suff, x[ORI]);
@@ -308,7 +308,7 @@ namespace Gecode { namespace String { namespace RelOp {
     assert (es.isNorm(x[ORI]) && le.isNorm(x[ORI]));
     int n = es.idx + (es.off > 0) + x[ORI].size() - le.idx +
             min_occur*x[RPL].size() + (x[OUT].max_length() > 0)*(min_occur+1);            
-    std::cerr << "ES: " << es << ", LE: " << le << ", n: "<< n << "\n";
+//    std::cerr << "ES: " << es << ", LE: " << le << ", n: "<< n << "\n";
     if (n == 0)
       return ES_OK;
     int k = 0;
@@ -346,7 +346,7 @@ namespace Gecode { namespace String { namespace RelOp {
     // Suffix: x[ORI][le:]
     suffix(home, x[ORI], le, d, k);
     ConstDashedView dom(d[0],k);
-    std::cerr << "Equating x[OUT]: " << x[OUT] << " with " << dom << " => \n";
+//    std::cerr << "Equating x[OUT]: " << x[OUT] << " with " << dom << " => \n";
     if (x[OUT].assigned())
       return check_equate_x(x[OUT], dom) ? ES_OK : ES_FAILED;
     GECODE_ME_CHECK(x[OUT].equate(home, dom));
@@ -414,7 +414,7 @@ namespace Gecode { namespace String { namespace RelOp {
     // Suffix: x[OUT][le :]
     suffix(home, x[OUT], le, d, k);
     ConstDashedView dom(d[0],k);
-    std::cerr << "Equating x[ORI]: " << x[ORI] << " with " << dom << " => \n";
+//    std::cerr << "Equating x[ORI]: " << x[ORI] << " with " << dom << " => \n";
     if (x[ORI].assigned())
       return check_equate_x(x[ORI], dom) ? ES_OK : ES_FAILED;
     GECODE_ME_CHECK(x[ORI].equate(home, dom));
@@ -426,7 +426,7 @@ namespace Gecode { namespace String { namespace RelOp {
   forceinline ExecStatus
   Replace<View>::propagate(Space& home, const ModEventDelta&) {
   again:
-    std::cerr<<"\nReplace" << (all ? "All" : last ? "Last" : "") << "::propagate: "<< x <<"\n";
+//    std::cerr<<"\nReplace" << (all ? "All" : last ? "Last" : "") << "::propagate: "<< x <<"\n";
     if (!all && !check_card()) {
       // x[QRY] not occurring in x[ORI].
       find(home, x[ORI], x[QRY], IntVar(home, 0, 0));
@@ -450,7 +450,7 @@ namespace Gecode { namespace String { namespace RelOp {
         if (all)
           return decomp_all(home);
         int n = last ? rfind_fixed(x[ORI],x[QRY]) : find_fixed(x[ORI],x[QRY]);
-        std::cerr << "idx: " << n << "\n"; 
+//        std::cerr << "idx: " << n << "\n"; 
         if (n == 0)
           eq(home, x[ORI], x[OUT]);
         else {
@@ -458,7 +458,7 @@ namespace Gecode { namespace String { namespace RelOp {
           std::vector<int> wx = x[ORI].val();
           std::vector<int> pref(wx.begin(), wx.begin() + n);
           std::vector<int> suff(wx.begin() + x[QRY].max_length() + n, wx.end());
-          std::cerr << "pref: " << vec2str(pref) << "\tsuff: " << vec2str(suff) << "\n";
+//          std::cerr << "pref: " << vec2str(pref) << "\tsuff: " << vec2str(suff) << "\n";
           if (x[RPL].assigned()) {
             std::vector<int> w(pref);
             std::vector<int> wq1 = x[RPL].val();
@@ -489,7 +489,7 @@ namespace Gecode { namespace String { namespace RelOp {
       min_occur = 1;
     if (min_occur > 0 && !all)
       GECODE_REWRITE(*this, rewrite(home, x, last));
-    std::cerr << "min_occur: " << min_occur << "\n";
+//    std::cerr << "min_occur: " << min_occur << "\n";
     GECODE_ES_CHECK(refine_out(home, min_occur));
 //    std::cerr<<"After refine_out: "<< x <<"\n";
     GECODE_ES_CHECK(refine_ori(home, min_occur));
@@ -499,7 +499,7 @@ namespace Gecode { namespace String { namespace RelOp {
       return home.ES_SUBSUMED(*this);
     }
     assert (!home.failed());
-    std::cerr<<"After replace: "<< x <<"\n";
+//    std::cerr<<"After replace: "<< x <<"\n";
     switch (x[ORI].assigned() + x[QRY].assigned() +
             x[RPL].assigned() + x[OUT].assigned()) {
       case 4:
