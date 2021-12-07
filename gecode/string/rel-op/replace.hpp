@@ -458,6 +458,7 @@ namespace Gecode { namespace String { namespace RelOp {
           std::vector<int> wx = x[ORI].val();
           std::vector<int> pref(wx.begin(), wx.begin() + n);
           std::vector<int> suff(wx.begin() + x[QRY].max_length() + n, wx.end());
+          std::cerr << "pref: " << vec2str(pref) << "\tsuff: " << vec2str(suff) << "\n";
           if (x[RPL].assigned()) {
             std::vector<int> w(pref);
             std::vector<int> wq1 = x[RPL].val();
