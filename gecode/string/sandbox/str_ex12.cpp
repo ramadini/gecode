@@ -33,7 +33,7 @@ public:
     // Variables.
     StringVar x(*this);
     StringVar x1(*this);
-    StringVar y(*this, "Hello world!!!");
+    StringVar y(*this, str2vec("Hello world!!!"));
     StringVar y1(*this);
     StringVar z(*this);
     StringVar z1(*this);
@@ -49,25 +49,25 @@ public:
     int_vars = IntVarArray(*this, iva);
 
     replace_all(*this, y, x, x1, y1);
-    replace_last(*this, y1, StringVar(*this, "o"), StringVar(*this, "O"), z);
+    replace_last(*this, y1, StringVar(*this,'o'), StringVar(*this,'O'), z);
     replace_last(
-      *this, z, z1, StringVar(*this, "*"), StringVar(*this, "H*o wOrd!!!")
+      *this, z, z1, StringVar(*this,'*'), StringVar(*this,str2vec("H*o wOrd!!!"))
     );
     length(*this, x, lx);
     length(*this, y1, ly1);
     
-    blockmin_lllm(*this, string_vars);
+    lenblock_min_lllm(*this, string_vars);
     branch(*this, int_vars, INT_VAR_SIZE_MIN(), INT_VAL_SPLIT_MIN());
   }
 
   virtual void
   print(std::ostream& os) const {
-    string x  = string_vars[0].val(),
-           x1 = string_vars[1].val(),
-           y  = string_vars[2].val(),
-           y1 = string_vars[3].val(),
-           z  = string_vars[4].val(),
-           z1 = string_vars[5].val();
+    std::string x  = vec2str(string_vars[0].val()),
+                x1 = vec2str(string_vars[1].val()),
+                y  = vec2str(string_vars[2].val()),
+                y1 = vec2str(string_vars[3].val()),
+                z  = vec2str(string_vars[4].val()),
+                z1 = vec2str(string_vars[5].val());
     os << "x  = \"" << x  << "\"\n"
        << "x1 = \"" << x1 << "\"\n"
        << "y  = \"" << y  << "\"\n"
@@ -77,7 +77,7 @@ public:
        << "|x| = " << int_vars[0].val() << "\n"
        << "|y1| = " << int_vars[1].val() << "\n"
        << "----------\n";
-    assert (y.find(x) != string::npos && x1 == "" && z1 == "e");
+    assert (y.find(x) != std::string::npos && x1 == "" && z1 == "e");
     n_sol++;
   }
 

@@ -79,45 +79,45 @@ namespace Gecode { namespace String { namespace RelOp {
   // The array of blocks starting at pref becomes the prefix x[:p].
   template <class View>
   forceinline void
-  Replace<View>::prefix(Space& home, const View& x, 
-                                     const Position& p, Block* pref) const {
+  Replace<View>::prefix(Space& home, const View& x, const Position& p, 
+                                                  Block* pref, int& k) const {
     assert (p.isNorm(x));
     if (p == Position(0,0))
       return;
     for (int i = 0; i < p.idx; ++i)
-      (pref++)->update(home, x[i]);
+      pref[k++].update(home, x[i]);
     int off = p.off;
     if (off > 0) {
       const Block& b = x[p.idx];
       if (off < b.lb())
-        pref->updateCard(home, off, off);
+        pref[k++].updateCard(home, off, off);
       else
-        pref->ub(home, off);
+        pref[k++].ub(home, off);
     }
   }
   
   // The array of blocks starting at suff becomes the prefix x[p:].
   template <class View>
   forceinline void
-  Replace<View>::suffix(Space& home, const View& x, 
-                                     const Position& p, Block* suff) const {    
+  Replace<View>::suffix(Space& home, const View& x, const Position& p, 
+                                                  Block* suff, int& k) const {
     assert (p.isNorm(x));
     int off = p.off, idx = p.idx, nx = x.size();
     if (idx == nx && off == 0)
       return;
     if (off > 0) {
       const Block& b = x[idx];
-      (suff++)->updateCard(home, std::max(0, b.lb()-off), b.ub()-off);
+      suff[k++].updateCard(home, std::max(0, b.lb()-off), b.ub()-off);
     }
     for (int i = idx + (off > 0); i < nx; ++i)
-      (suff++)->update(home, x[i]);
+      suff[k++].update(home, x[i]);
   }
   
   // Decomposes decomp_all into basic constraints.
   template <class View>
   forceinline ExecStatus
   Replace<View>::decomp_all(Space& home) {
-    std::cerr << "decomp_all\n";
+//    std::cerr << "decomp_all\n";
     assert (x[ORI].assigned() && x[QRY].assigned());
     if (x[RPL].assigned()) {
       if (x[QRY].max_length() == 0) {
@@ -281,6 +281,7 @@ namespace Gecode { namespace String { namespace RelOp {
   template <class View>
   forceinline ExecStatus
   Replace<View>::refine_out(Space& home, int min_occur) {
+//    std::cerr << "refine_out\n";
     Position pos[2];
     check_find(x[ORI], x[QRY], pos);
     if (pos[0].idx == -1) {
@@ -298,16 +299,16 @@ namespace Gecode { namespace String { namespace RelOp {
     std::cerr << "ES: " << es << ", LE: " << le << ", n: "<< n << "\n";
     if (n == 0)
       return ES_OK;
+    int k = 0;
     Block* d = r.alloc<Block>(n);
-    const Block& d0 = *d;
-    prefix(home, x[ORI], es, d);
+    prefix(home, x[ORI], es, d, k);
     // Crush x[ORI][es : le], possibly adding x[RPL].
     if (x[OUT].max_length() > 0) {
       Set::GLBndSet s;
       for (auto i : {ORI, RPL}) {
         for (int j = 0; j < x[i].size(); ++j) {
-          if (x[i][j].isUniverse())
-            break; 
+          if (s.min() == 0 && s.max() == MAX_ALPHABET_SIZE-1)
+            break;
           x[i][j].includeBaseIn(home, s);
         }
         if (i == ORI && min_occur > 0 && !x[QRY].assigned()) {
@@ -318,25 +319,25 @@ namespace Gecode { namespace String { namespace RelOp {
         }
       }
       Block b(home, CharSet(home,s), 0, x[OUT].max_length());
-      (d++)->update(home,b);
+      d[k++].update(home,b);
       for (int i = 0; i < min_occur; ++i) {
         for (int j = 0; j < x[RPL].size(); ++j)
-          (d++)->update(home, x[RPL][j]);
-        (d++)->update(home,b);
+          d[k++].update(home, x[RPL][j]);
+        d[k++].update(home,b);
       }
     }
     else {
       for (int i = 0; i < min_occur; ++i)
         for (int j = 0; j < x[RPL].size(); ++j)
-          (d++)->update(home, x[RPL][j]);
+          d[k++].update(home, x[RPL][j]);
     }
     // Suffix: x[ORI][le:]
-    suffix(home, x[ORI], le, d);
-    ConstDashedView dom(d0,d-&d0);
-    std::cerr << "1c) Equating " << x[OUT] << " with " << dom << " => \n";
+    suffix(home, x[ORI], le, d, k);
+    ConstDashedView dom(d[0],k);
+    std::cerr << "Equating x[OUT]: " << x[OUT] << " with " << dom << " => \n";
     if (x[OUT].assigned())
       return check_equate_x(x[OUT], dom) ? ES_OK : ES_FAILED;
-    GECODE_ME_CHECK(x[OUT].equate(home, ConstDashedView(d0,d-&d0)));
+    GECODE_ME_CHECK(x[OUT].equate(home, dom));
     // std::cerr << x[OUT] << "\n";
     return ES_OK;
   }
@@ -347,6 +348,7 @@ namespace Gecode { namespace String { namespace RelOp {
   template <class View>
   forceinline ExecStatus
   Replace<View>::refine_ori(Space& home, int min_occur) {
+//    std::cerr << "refine_ori\n";
     Position pos[2];
     check_find(x[OUT], x[RPL], pos);
     if (pos[0].idx == -1) {
@@ -362,19 +364,19 @@ namespace Gecode { namespace String { namespace RelOp {
     assert (es.isNorm(x[OUT]) && le.isNorm(x[OUT]));
     int n = es.idx + (es.off > 0) + x[OUT].size() - le.idx +
             min_occur*x[QRY].size() + (x[ORI].max_length() > 0)*(min_occur+1);
-    std::cerr << "ES: " << es << ", LE: " << le << ", n: "<< n << "\n";
+//    std::cerr << "ES: " << es << ", LE: " << le << ", n: "<< n << "\n";
     if (n == 0)
       return ES_OK;
+    int k = 0;
     Block* d = r.alloc<Block>(n);
-    const Block& d0 = *d;
-    prefix(home, x[OUT], es, d);
+    prefix(home, x[OUT], es, d, k);
     // Crush x[OUT][es : ls], possibly adding x[QRY].
     if (x[ORI].max_length() > 0) {
       Set::GLBndSet s;
       for (auto i : {OUT,QRY}) {
         for (int j = 0; j < x[i].size(); ++j) {
-          if (x[i][j].isUniverse())
-            break; 
+          if (s.min() == 0 && s.max() == MAX_ALPHABET_SIZE-1)
+            break;
           x[i][j].includeBaseIn(home, s);
         }
         if (i == OUT && min_occur > 0 && !x[RPL].assigned()) {
@@ -385,25 +387,25 @@ namespace Gecode { namespace String { namespace RelOp {
         }
       }
       Block b(home, CharSet(home,s), 0, x[ORI].max_length());
-      (d++)->update(home,b);
+      d[k++].update(home,b);
       for (int i = 0; i < min_occur; ++i) {
         for (int j = 0; j < x[QRY].size(); ++j)
-          (d++)->update(home, x[QRY][j]);
-        (d++)->update(home,b);
+          d[k++].update(home, x[QRY][j]);
+        d[k++].update(home,b);
       }
     }
     else {
       for (int i = 0; i < min_occur; ++i)
         for (int j = 0; j < x[QRY].size(); ++j)
-          (d++)->update(home, x[QRY][j]);
+          d[k++].update(home, x[QRY][j]);
     }
     // Suffix: x[OUT][le :]
-    suffix(home, x[OUT], le, d);
-    ConstDashedView dom(d0,d-&d0);
-    std::cerr << "1c) Equating " << x[ORI] << " with " << dom << " => \n";
-    if (x[OUT].assigned())
+    suffix(home, x[OUT], le, d, k);
+    ConstDashedView dom(d[0],k);
+//    std::cerr << "Equating x[ORI]: " << x[ORI] << " with " << dom << " => \n";
+    if (x[ORI].assigned())
       return check_equate_x(x[ORI], dom) ? ES_OK : ES_FAILED;
-    GECODE_ME_CHECK(x[ORI].equate(home, ConstDashedView(d0,d-&d0)));
+    GECODE_ME_CHECK(x[ORI].equate(home, dom));
     //std::cerr << x[ORI] << "\n";    
     return ES_OK;
   }
@@ -485,11 +487,11 @@ namespace Gecode { namespace String { namespace RelOp {
     ExecStatus es = refine_out(home, min_occur);
     if (es != ES_OK)
       return es;
-    std::cerr<<"After refine_out: "<< x <<"\n";
+//    std::cerr<<"After refine_out: "<< x <<"\n";
     es = refine_ori(home, min_occur);
     if (es != ES_OK)
       return es;
-    std::cerr<<"After refine_ori: "<< x <<"\n";
+//    std::cerr<<"After refine_ori: "<< x <<"\n";
     if (!all && !check_card()) {
       eq(home, x[ORI], x[OUT]);
       return home.ES_SUBSUMED(*this);

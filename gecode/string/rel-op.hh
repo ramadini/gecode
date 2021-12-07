@@ -91,8 +91,8 @@ namespace Gecode { namespace String { namespace RelOp {
 
   template <class View>
   class Replace : public NaryPropagator<View,PC_STRING_ANY> {
-    void prefix(Space&, const View&, const Position&, Block*) const;
-    void suffix(Space&, const View&, const Position&, Block*) const;
+    void prefix(Space&, const View&, const Position&, Block*, int& k) const;
+    void suffix(Space&, const View&, const Position&, Block*, int& k) const;
     ExecStatus decomp_all(Space&);
     ExecStatus refine_ori(Space&, int);
     ExecStatus refine_out(Space&, int);
