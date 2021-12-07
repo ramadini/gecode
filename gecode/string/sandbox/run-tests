@@ -7,7 +7,7 @@ declare -a TESTS=(
   'str_ex1.cpp' 'str_ex2.cpp' 'str_ex3.cpp' 'str_ex4.cpp' 'str_ex7.cpp' \
   'str_ex8.cpp' 'str_ex12.cpp' \
   'anbn.cpp' 'chunk_split.cpp' 'hamming_mod.cpp' 'levenshtein.cpp' \
-  'string_replace.cpp' 'scs.cpp'
+  'string_replace.cpp' 'gray.cpp' 'scs.cpp' 
 )
 X=$TEST_DIR/x
 Y=$TEST_DIR/y

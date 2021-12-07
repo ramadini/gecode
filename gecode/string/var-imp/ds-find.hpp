@@ -322,7 +322,7 @@ namespace Gecode { namespace String {
         continue;
       int l = y_j.lb(), u = y_j.ub(), l1 = min_len_mand(x, y_j, lsp, eep);
 //      std::cerr << "l'=" << l1 << "\n";
-      long u1 = std::min(u, x.max_len_opt(y_j, esp, lep, l));
+      int u1 = std::min(u, x.max_len_opt(y_j, esp, lep, std::min(l,l1)));
 //      std::cerr << "u'=" << u1 << "\n";
       if (l > u1)
         return false;
