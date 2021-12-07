@@ -35,17 +35,18 @@ namespace Gecode { namespace String {
       return 1;
     int j = 0, k = 0, nx = x.size(), ny = y.size();
     for (int i = 0; i < nx && ny > 0; ) {
-      int lx = lbound(x[i]);
-      k += lx;
+      int lx = lbound(x[i]);      
       if (baseMin(x[i]) == baseMin(y[j])) {
         int ly = ubound(y[j]);
         if (lx == ly || (lx > ly && (j == 0 || j == ny-1))) {
           ++i;
           ++j;
           --ny;
+          k += y.size() == 1 ? ly : lx;
           continue;
         }
       }
+      k += lx;
       ++i;
       j = 0;
       ny = y.size();
@@ -61,16 +62,17 @@ namespace Gecode { namespace String {
     int nx = x.size(), ny = y.size(), cy = ny, j = ny-1, k = 0;
     for (int i = nx-1; i >= 0 && cy > 0; ) {
       int lx = lbound(x[i]);
-      k += lx;
       if (baseMin(x[i]) == baseMin(y[j])) {
         int ly = ubound(y[j]);
         if (lx == ly || (lx > ly && (j == 0 || j == ny-1))) {
           --i;
           --j;
           --cy;
+          k += y.size() == 1 ? ly : lx;
           continue;
         }
       }
+      k += lx;
       --i;
       j = ny-1;
       cy = y.size();
@@ -318,10 +320,9 @@ namespace Gecode { namespace String {
       }
       if (y_j.isFixed())
         continue;
-      int l = y_j.lb(), u = y_j.ub(), l1 = min_len_mand(x, y_j, lsp, eep);
+      int l = y_j.lb(), u = y_j.ub(),
+         l1 = std::min(u,min_len_mand(x, y_j, lsp, eep));
 //      std::cerr << "l'=" << l1 << "\n";
-      if (u < l1)
-        return false;
       long u1 = x.max_len_opt(y_j, esp, lep, l1);
 //      std::cerr << "u'=" << u1 << "\n";
       if (l > u1)
@@ -400,7 +401,7 @@ namespace Gecode { namespace String {
       // Unfolding y_j into newBlocks
       Region r1;
       Block* mreg = r1.alloc<Block>(n);
-//      std::cerr << "Before unfolding: "  << y_j << ' ' << l1 << '\n';
+      std::cerr << "Before unfolding: "  << y_j << ' ' << l1 << '\n';
       if (esp == lsp)
         x.mand_region(home, y_j, &mreg[0], u1, lsp, eep);
       else {

@@ -59,6 +59,19 @@ namespace Gecode { namespace String { namespace RelOp {
     (void) new (home) Replace<View>(home, x, a, l);
     return ES_OK;
   }
+  
+  template <class View>
+  forceinline ExecStatus
+  Replace<View>::rewrite(Home home, ViewArray<View>& x, bool last) {
+    std::cerr << "Rewriting replace\n";
+    StringVar pref(home), suff(home), tmp(home), tmp1(home);
+    concat(home, pref, x[QRY], tmp);
+    concat(home, tmp, suff, x[ORI]);
+    concat(home, pref, x[RPL], tmp1);
+    concat(home, tmp1, suff, x[OUT]);
+    find(home, last ? suff : pref, x[QRY], IntVar(home, 0, 0));
+    return ES_OK;
+  }
 
   template <class View>
   forceinline Actor*
@@ -188,7 +201,7 @@ namespace Gecode { namespace String { namespace RelOp {
         std::vector<int> wx = x[ORI].val();
         std::vector<int> wq = x[QRY].val();
         std::vector<int>::iterator pos = 
-          std::search(wx.begin(), wx.end(), wq.begin(), wq.end());
+          std::search(wx.begin(), wx.end(), wq.begin(), wq.end());        
         if (pos == wx.end()) {
           eq(home, x[ORI], x[OUT]);
           return home.ES_SUBSUMED(*this);
@@ -208,14 +221,13 @@ namespace Gecode { namespace String { namespace RelOp {
           v.push_back(StringVar(home));
           if (pos > pos1) {
             StringVar tmp(home);
-            std::vector<int>::iterator p = pos1 - (pos - wx.begin());
-            concat(home, StringVar(home,std::vector<int>(pos1,p)), x[RPL], tmp);
+            concat(home, StringVar(home,std::vector<int>(pos1,pos)), x[RPL], tmp);
             concat(home, lst, tmp, v.back());
           }
           else
             concat(home, lst, x[RPL], v.back());
           pos1 = pos + nq;
-          pos = std::search(pos1, wx.end(), wq.begin(), wq.end()); 
+          pos = std::search(pos1, wx.end(), wq.begin(), wq.end());
         }
         if (pos1 < wx.end())
           concat(home, v.back(), 
@@ -402,7 +414,7 @@ namespace Gecode { namespace String { namespace RelOp {
     // Suffix: x[OUT][le :]
     suffix(home, x[OUT], le, d, k);
     ConstDashedView dom(d[0],k);
-//    std::cerr << "Equating x[ORI]: " << x[ORI] << " with " << dom << " => \n";
+    std::cerr << "Equating x[ORI]: " << x[ORI] << " with " << dom << " => \n";
     if (x[ORI].assigned())
       return check_equate_x(x[ORI], dom) ? ES_OK : ES_FAILED;
     GECODE_ME_CHECK(x[ORI].equate(home, dom));
@@ -474,23 +486,12 @@ namespace Gecode { namespace String { namespace RelOp {
     // x[ORI] != x[OUT] => x[QRY] occur in x[ORI] /\ x[RPL] occur in x[OUT].
     if (min_occur == 0 && !check_equate_x(x[ORI],x[OUT]))
       min_occur = 1;
-    if (min_occur > 0 && !all) {
-      StringVar pref(home), suff(home), tmp(home), tmp1(home);
-      concat(home, pref, x[QRY], tmp);
-      concat(home, tmp, suff, x[ORI]);
-      concat(home, pref, x[RPL], tmp1);
-      concat(home, tmp1, suff, x[OUT]);
-      find(home, last ? suff : pref, x[QRY], IntVar(home, 0, 0));
-      return home.ES_SUBSUMED(*this);
-    }
+    if (min_occur > 0 && !all)
+      GECODE_REWRITE(*this, rewrite(home, x, last));
     std::cerr << "min_occur: " << min_occur << "\n";
-    ExecStatus es = refine_out(home, min_occur);
-    if (es != ES_OK)
-      return es;
+    GECODE_ES_CHECK(refine_out(home, min_occur));
 //    std::cerr<<"After refine_out: "<< x <<"\n";
-    es = refine_ori(home, min_occur);
-    if (es != ES_OK)
-      return es;
+    GECODE_ES_CHECK(refine_ori(home, min_occur));
 //    std::cerr<<"After refine_ori: "<< x <<"\n";
     if (!all && !check_card()) {
       eq(home, x[ORI], x[OUT]);

@@ -116,6 +116,7 @@ namespace Gecode { namespace String { namespace RelOp {
     /// Post propagator string replace
     static  ExecStatus post(Home, ViewArray<View>&, bool all  = false, 
                                                     bool last = false);
+    static  ExecStatus rewrite(Home home, ViewArray<View>&, bool last);
   };
 
 }}}
