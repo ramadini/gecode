@@ -258,7 +258,7 @@ namespace Gecode { namespace String {
           continue;
         }
         if (x.prec(m[j].LEP, m[j].ESP) 
-        || (x.equiv(m[j].ESP, m[j].LEP) && x[j].lb() > 0))
+        || (x.equiv(m[j].ESP, m[j].LEP) && y[j].lb() > 0))
           return false;
         m[j].LSP = j > 0 ? m[j-1].LEP : m[0].ESP;
         if (x.prec(m[j].LSP,m[j].ESP))
