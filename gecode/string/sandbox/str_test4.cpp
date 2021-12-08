@@ -549,7 +549,7 @@ public:
       find(Home h, StringView x, StringView y, Gecode::Int::IntView n) :
         Find(h, x, y, n) {};
     };
-    assert(find(*this, x, y, n).propagate(*this, 0) == ES_FIX);
+    assert(find(*this, x, y, n).propagate(*this, 0) == ES_OK);
     assert (n.min() == 5 && n.max() == 8 && vec2str(y.val()) == "cbbb");
     std::cerr << "===== After n = find(x,y), n >= 0 =====" << std::endl;
     std::cerr << "D(x) :: " << x << '\n';
@@ -640,7 +640,7 @@ public:
       find(Home h, StringView x, StringView y, Gecode::Int::IntView n) :
         Find(h, x, y, n) {};
     };
-    assert(find(*this, x, y, n).propagate(*this, 0) == ES_FIX);
+    assert(find(*this, x, y, n).propagate(*this, 0) == ES_OK);
     std::cerr << "===== After n = find(x,y), n > 0 =====" << std::endl;
     std::cerr << "D(x) :: " << x << '\n';
     std::cerr << "D(y) :: " << y << '\n';
@@ -648,7 +648,7 @@ public:
     for (int i = 1; i < 4; ++i)
       assert(StringView(x)[i].val()[0] == i + '0');
     std::cerr << "===== After n1 = find(y1,x1) =====" << std::endl;
-    assert(find(*this, y1, x1, n1).propagate(*this, 0) == ES_FIX);
+    assert(find(*this, y1, x1, n1).propagate(*this, 0) == ES_OK);
     std::cerr << "D(x1) :: " << x1 << '\n';
     std::cerr << "D(y1) :: " << y1 << '\n';
     std::cerr << "D(n1) :: " << n1 << '\n';
