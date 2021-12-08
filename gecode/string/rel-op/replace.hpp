@@ -130,7 +130,7 @@ namespace Gecode { namespace String { namespace RelOp {
   template <class View>
   forceinline ExecStatus
   Replace<View>::decomp_all(Space& home) {
-//    std::cerr << "decomp_all\n";
+//    std::cerr << "decomp_all " << x << "\n";
     assert (x[ORI].assigned() && x[QRY].assigned());
     if (x[RPL].assigned()) {
       if (x[QRY].max_length() == 0) {
@@ -216,6 +216,7 @@ namespace Gecode { namespace String { namespace RelOp {
         }
         std::vector<StringVar> v(1, StringVar(home));
         std::vector<int> w = std::vector<int>(wx.begin(), pos);
+//        std::cerr << vec2str(w) << '\n';
         if (w.empty())
           // x[ORI] starts with x[QRY]
           eq(home, x[RPL], v[0]);
@@ -229,7 +230,7 @@ namespace Gecode { namespace String { namespace RelOp {
           v.push_back(StringVar(home));
           if (pos > pos1) {
             StringVar tmp(home);
-            concat(home, StringVar(home,std::vector<int>(pos1,pos)), x[RPL], tmp);
+            concat(home, StringVar(home,std::vector<int>(pos1,pos)),x[RPL],tmp);
             concat(home, lst, tmp, v.back());
           }
           else
@@ -242,6 +243,7 @@ namespace Gecode { namespace String { namespace RelOp {
                  StringVar(home, std::vector<int>(pos1,wx.end())), x[OUT]);
         else
           eq(home, v.back(), x[OUT]);
+//        std::cerr << v << '\n';
       }
     }
 //    std::cerr << "After decomp_all: " << x << "\n";
@@ -448,7 +450,7 @@ namespace Gecode { namespace String { namespace RelOp {
     if (x[QRY].assigned()) {
       if (x[RPL].assigned() && check_equate_x(x[QRY],x[RPL])) {
         // x[QRY] = x[RPL] -> x[OUT] = x[ORI].
-        rel(home, x[ORI], STRT_EQ, x[OUT]);
+        eq(home, x[ORI], x[OUT]);
         return home.ES_SUBSUMED(*this);
       }
       if (x[QRY].max_length() == 0 && !all) {
@@ -517,15 +519,15 @@ namespace Gecode { namespace String { namespace RelOp {
         // Force the re-execution of the propagation.
         if (x[ORI].assigned())
           goto again;
-        return ES_FIX;
+        return ES_OK;
       case 2:
         if (x[ORI].assigned() && x[QRY].assigned())
           goto again;
-        return ES_FIX;
+        return ES_OK;
       default:
-        return ES_FIX;
+        return ES_OK;
     }
-    return ES_FIX;
+    return ES_OK;
   }
 
 }}}

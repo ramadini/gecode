@@ -160,7 +160,7 @@ namespace Gecode { namespace String { namespace Int {
 //        std::cerr << this << "propagated "<<x0<<".find( "<<x1<<" ) = "<<x2<<"\n";
         return home.ES_SUBSUMED(*this);
       }
-      return ES_FIX;
+      return ES_OK;
     }
     
     // x0, x2 fixed and x1 with fixed length.
@@ -243,7 +243,7 @@ namespace Gecode { namespace String { namespace Int {
       }
     }
 //    std::cerr << this << "propagated "<<x0<<".find( "<<x1<<" ) = "<<x2<<"\n";
-    return ES_FIX;
+    return ES_OK;
   }
 
 }}}
