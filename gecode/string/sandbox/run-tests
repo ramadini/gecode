@@ -63,6 +63,7 @@ else
   cat $X
   rm $Y
 fi &&
+
 # FIXME: Timeout depends on the target machine.
 TOUT=2
 for m in `ls $TEST_DIR/pisa/*.mzn | sort -n`
@@ -109,6 +110,50 @@ do
     fi
   fi
 done &&
+#for m in `ls $TEST_DIR/stranger/*.mzn | sort -n`
+#do
+#  timeout $TOUT mzn-dashed $m > $X
+#  ret=$?
+#  m=`basename $m`
+#  if
+#    [[ `grep "\----------" $X` ]]
+#  then
+##    cat $X | grep -v "\----------" > $Y.dzn
+#    res=`grep $m $TEST_DIR/stranger/stranger_check.txt | awk '{print $2}'`
+#    if
+#      [[ $res == "sat" ]]
+#    then
+#      echo "$m sat"
+#    else
+#      echo "Error! $m incorrect."
+#      rm $X
+#      exit 1
+#    fi
+#  elif 
+#    [[ `grep "=====UNSATISFIABLE=====" $X` ]]
+#  then
+#    res=`grep $m $TEST_DIR/stranger/stranger_check.txt | awk '{print $2}'`
+#    if
+#      [[ $res == "uns" ]]
+#    then
+#      echo "$m unsat"
+#    else
+#      echo "Error! $m incorrect."
+#      rm $X
+#      exit 1
+#    fi
+#  else
+#    if
+#      [[ $ret -eq 124 ]]
+#    then
+#      echo "$m timeout"
+#    else
+#      echo "$m unknown"
+#      rm $X
+#      exit 1
+#    fi
+#  fi
+#done &&
 for m in `ls $TEST_DIR/woorpje/*.mzn | sort -n`
 do
   timeout $TOUT mzn-dashed $m > $X

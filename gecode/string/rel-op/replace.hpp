@@ -140,7 +140,7 @@ namespace Gecode { namespace String { namespace RelOp {
           if (x[OUT].assigned())
             return check_equate_x(x[OUT], dom) ? ES_OK : ES_FAILED;
           GECODE_ME_CHECK(x[OUT].equate(home, dom));
-          return home.ES_SUBSUMED(*this);
+          return ES_OK;
         }
         std::vector<int> wx = x[ORI].val();
         std::vector<int> wq1 = x[RPL].val();
@@ -191,7 +191,7 @@ namespace Gecode { namespace String { namespace RelOp {
       if (x[QRY].max_length() == 0) {
         if (x[ORI].max_length() == 0) {
           eq(home, x[RPL], x[OUT]);
-          return home.ES_SUBSUMED(*this);
+          return ES_OK;
         }
         // x[QRY] = "" -> x[OUT] = x[RPL] x[ORI][0] x[RPL] x[ORI][1] ... x[ORI][-1] x[RPL].
         std::vector<int> wx = x[ORI].val();
@@ -212,7 +212,7 @@ namespace Gecode { namespace String { namespace RelOp {
           std::search(wx.begin(), wx.end(), wq.begin(), wq.end());        
         if (pos == wx.end()) {
           eq(home, x[ORI], x[OUT]);
-          return home.ES_SUBSUMED(*this);
+          return ES_OK;
         }
         std::vector<StringVar> v(1, StringVar(home));
         std::vector<int> w = std::vector<int>(wx.begin(), pos);
@@ -245,7 +245,7 @@ namespace Gecode { namespace String { namespace RelOp {
       }
     }
 //    std::cerr << "After decomp_all: " << x << "\n";
-    return home.ES_SUBSUMED(*this);
+    return ES_OK;
   }
 
   // Checking if |y| = |x| + |q'| - |q| is consistent.
@@ -458,7 +458,7 @@ namespace Gecode { namespace String { namespace RelOp {
       }
       if (x[ORI].assigned()) {
         if (all)
-          return decomp_all(home);
+          GECODE_REWRITE(*this, decomp_all(home));
         int n = last ? rfind_fixed(x[ORI],x[QRY]) : find_fixed(x[ORI],x[QRY]);
 //        std::cerr << "idx: " << n << "\n"; 
         if (n == 0)

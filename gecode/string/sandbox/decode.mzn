@@ -52,6 +52,7 @@ constraint cz[1] = z[1] /\ forall (i in 2..n) (cz[i] = cz[i-1] ++ z[i]) /\
            cz[n] = y[d];
 constraint idx = str_find(W_out,y[d]);
 
+% FIXME:
 constraint x[1] = "01100011";
 constraint x[2] = "01100001"; 
 constraint x[3] = "01110011"; 

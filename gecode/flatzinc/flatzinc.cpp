@@ -2496,9 +2496,7 @@ namespace Gecode { namespace FlatZinc {
                 if (v[i + 1] == '\\')
                   ++i;
                 else if (v[i + 1] != '"') {
-                  if (v[i + 1] != '0')
-                    throw std::runtime_error("Malformed escape sequence!");
-                  else {
+                  if (v[i + 1] == '0') {
                     w.clear();
                     ++i;
                     if (i < n)
@@ -2511,6 +2509,7 @@ namespace Gecode { namespace FlatZinc {
             }
           }
         }
+//        std::cerr << Gecode::String::vec2str(w) << '\n';
         x0 = StringVar(*this, w);
       }
       else if (n->isStringDom()) {
@@ -2528,9 +2527,7 @@ namespace Gecode { namespace FlatZinc {
                   if (v[i + 1] == '\\')
                     ++i;
                   else if (v[i + 1] != '"') {
-                    if (v[i + 1] != '0')
-                      throw std::runtime_error("Malformed escape sequence!");
-                    else {
+                    if (v[i + 1] == '0') {
                       w.clear();
                       ++i;
                       if (i < n)
@@ -2543,6 +2540,7 @@ namespace Gecode { namespace FlatZinc {
               }
             }
           }
+//          std::cerr << Gecode::String::vec2str(w) << '\n';
           x0 = StringVar(*this, w);
         }
         else
