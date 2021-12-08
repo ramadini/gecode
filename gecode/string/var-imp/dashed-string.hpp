@@ -722,6 +722,8 @@ namespace Gecode { namespace String {
     u = x;
     if (x == l && S.size() <= 1)
       fix(home);
+    else if (u == 0)
+      nullifyBase(home);
     assert(isOK());
   }
   

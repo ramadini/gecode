@@ -30,7 +30,7 @@ var 1..m: idx;
 constraint y[0] = W_in;
 constraint forall (i in 1..d) (
   str_len(x[i]) > 0 /\ 
-  str_find(x[i], W_out) > 0 /\
+  str_find(W_out,x[i]) > 0 /\
   y[i] = str_replace_all(y[i - 1], C[i], x[i]) /\
   if i < d then
     if FIXED_LENGTH then
@@ -43,14 +43,14 @@ constraint forall (i in 1..d) (
   endif /\
   % Imposing the prefix property.
   forall (j in 1..d where i != j) (
-    str_find(x[i], x[j]) != 1
+    str_find(x[j],x[i]) != 1
   )
 );
 
-%FIXME: array[1..n] of var string: cz;
-%constraint cz[1] = z[1] /\ forall (i in 2..n) (cz[i] = cz[i-1] ++ z[i]);
-%constraint cz[n] = y[d];
-constraint idx = str_find(y[d], W_out);
+array[1..n] of var string: cz;
+constraint cz[1] = z[1] /\ forall (i in 2..n) (cz[i] = cz[i-1] ++ z[i]) /\
+           cz[n] = y[d];
+constraint idx = str_find(W_out,y[d]);
 
 solve satisfy;
 

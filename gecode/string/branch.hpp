@@ -55,6 +55,8 @@ namespace Gecode { namespace String { namespace Branch {
         switch (val) {
           case MIN:
             x.ubAt(home, i, x_i.lb());
+            if (x_i.isNull())
+              x.normalize(home);
             return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
           case MAX:
             x.lbAt(home, i, x_i.ub());
@@ -97,6 +99,8 @@ namespace Gecode { namespace String { namespace Branch {
              return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
           case MAX:
              x.ubAt(home, i, x_i.ub() - 1);
+             if (x_i.isNull())
+               x.normalize(home);
              return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
           default:
             GECODE_NEVER;

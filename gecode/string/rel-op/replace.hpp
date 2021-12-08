@@ -259,29 +259,31 @@ namespace Gecode { namespace String { namespace RelOp {
     assert (x[QRY].assigned());
     if (x[ORI].assigned() && !all)
       return find_fixed(x[QRY], x[ORI]) > 0;
-    int min_occur = 0, k = 0;
+    int min_occur = 0, j = 0;
     std::vector<int> curr;
-    for (int i = 0, nq = x[ORI].size(); i < nq; ++i) {
+    for (int i=0, nx=x[ORI].size(), nq=x[QRY].size(); i < nx; ++i) {
       const Block& b = x[ORI][i];
       if (b.lb() > 0 && b.baseSize() == 1) {
         std::vector<int> w(b.lb(), b.baseMin());
         curr.insert(curr.end(), w.begin(), w.end());
-        k += b.lb();
-        int i = find_fixed(ConstStringView(home,&curr[0],k), x[QRY]);
-        while (i > 0) {
+        int k = find_fixed(ConstStringView(home,&curr[j],curr.size()-j), x[QRY]);
+        while (k > 0) {
           if (!all)
             return 1;
           min_occur++;
-          i = find_fixed(ConstStringView(home,&curr[0]+i+nq-1,k-i), x[QRY]);
+          j += k + nq - 1;
+          if (j == (int) curr.size())
+            break;          
+          k = find_fixed(ConstStringView(home,&curr[j],curr.size()-j), x[QRY]);
         }
         if (b.lb() < b.ub()) {
           curr = w;
-          k = b.lb();
+          j = 0;
         }
       }
       else {
         curr.clear();
-        k = 0;
+        j = 0;
       }
     }
     return min_occur;
@@ -426,7 +428,7 @@ namespace Gecode { namespace String { namespace RelOp {
   forceinline ExecStatus
   Replace<View>::propagate(Space& home, const ModEventDelta&) {
   again:
-//    std::cerr<<"\nReplace" << (all ? "All" : last ? "Last" : "") << "::propagate: "<< x <<"\n";
+    std::cerr<<"\nReplace" << (all ? "All" : last ? "Last" : "") << "::propagate: "<< x <<"\n";
     if (!all && !check_card()) {
       // x[QRY] not occurring in x[ORI].
       find(home, x[ORI], x[QRY], IntVar(home, 0, 0));
