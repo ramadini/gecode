@@ -57,13 +57,18 @@ namespace Gecode { namespace String { namespace Branch {
             x.ubAt(home, i, x_i.lb());
             if (x_i.isNull())
               x.normalize(home);
-            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
+            break;
           case MAX:
             x.lbAt(home, i, x_i.ub());
-            return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
+            break;
           default:
             GECODE_NEVER;
         }
+        if (x.lb_sum() < x.min_length())
+          x.min_length(home, x.min_length());
+        if (x.ub_sum() > x.max_length())
+          x.max_length(home, x.max_length());
+        return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
       }
       case BASE:
         return splitBlock(home, x, i, val, 0);
@@ -96,15 +101,20 @@ namespace Gecode { namespace String { namespace Branch {
         switch (val) {
           case MIN:
              x.lbAt(home, i, x_i.lb() + 1);
-             return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
+             break;
           case MAX:
              x.ubAt(home, i, x_i.ub() - 1);
              if (x_i.isNull())
                x.normalize(home);
-             return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
+             break;
           default:
             GECODE_NEVER;
         }
+        if (x.lb_sum() < x.min_length())
+          x.min_length(home, x.min_length());
+        if (x.ub_sum() > x.max_length())
+          x.max_length(home, x.max_length());
+        return x.assigned() ? ME_STRING_VAL : ME_STRING_CARD;
       }
       case BASE:
         return x_i.baseSize() == 1 ? ME_STRING_FAILED

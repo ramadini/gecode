@@ -136,8 +136,10 @@ namespace Gecode { namespace String { namespace RelOp {
       if (x[QRY].max_length() == 0) {
         if (x[RPL].max_length() == 0) {
           // x[QRY] = x[RPL] = "" -> x[ORI] = x[OUT].
-          GECODE_ME_CHECK(x[OUT].equate(home, 
-                                      ConstDashedView(x[ORI][0],x[ORI].size())));
+          ConstDashedView dom(x[ORI][0],x[ORI].size());
+          if (x[OUT].assigned())
+            return check_equate_x(x[OUT], dom) ? ES_OK : ES_FAILED;
+          GECODE_ME_CHECK(x[OUT].equate(home, dom));
           return home.ES_SUBSUMED(*this);
         }
         std::vector<int> wx = x[ORI].val();
@@ -152,7 +154,10 @@ namespace Gecode { namespace String { namespace RelOp {
         for (size_t j = 0; j < wq1.size(); ++j)
           wy[k++] = wq1[j];
         // x[QRY] = "" -> x[OUT] = x[RPL] x[ORI][0] x[RPL] x[ORI][1] ... x[ORI][-1] x[RPL].
-        GECODE_ME_CHECK(x[OUT].equate(home, ConstStringView(home,wy,k)));
+        ConstStringView dom(home,wy,k);
+        if (x[OUT].assigned())
+          return check_equate_x(x[OUT], dom) ? ES_OK : ES_FAILED;
+        GECODE_ME_CHECK(x[OUT].equate(home, dom));
       }
       else {
         std::vector<int> wx = x[ORI].val();
@@ -176,6 +181,9 @@ namespace Gecode { namespace String { namespace RelOp {
          }
          for (size_t i = i0; i < wx.size(); ++i)
            wy[k++] = wx[i];
+        ConstStringView dom(home,wy,k);
+        if (x[OUT].assigned())
+          return check_equate_x(x[OUT], dom) ? ES_OK : ES_FAILED;
         GECODE_ME_CHECK(x[OUT].equate(home, ConstStringView(home,wy,k)));
       }
     }
@@ -428,7 +436,7 @@ namespace Gecode { namespace String { namespace RelOp {
   forceinline ExecStatus
   Replace<View>::propagate(Space& home, const ModEventDelta&) {
   again:
-    std::cerr<<"\nReplace" << (all ? "All" : last ? "Last" : "") << "::propagate: "<< x <<"\n";
+//    std::cerr<<"\nReplace" << (all ? "All" : last ? "Last" : "") << "::propagate: "<< x <<"\n";
     if (!all && !check_card()) {
       // x[QRY] not occurring in x[ORI].
       find(home, x[ORI], x[QRY], IntVar(home, 0, 0));
