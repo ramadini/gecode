@@ -82,7 +82,7 @@ namespace Gecode { namespace String { namespace Int {
       }
       if (x0.assigned()) {
       x0_x1_fixed:
-        int i = find_fixed(x0,x1);
+        int i = find_fixed(x0,x1);        
         if (i < ln || i > un)
           return ES_FAILED;
         GECODE_ME_CHECK(x2.eq(home, i));

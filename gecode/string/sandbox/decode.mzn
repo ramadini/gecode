@@ -60,6 +60,7 @@ constraint x[5] = "01101111";
 constraint x[6] = "01110010"; 
 constraint x[7] = "01110100"; 
 %constraint x[8] = "01100101";
+constraint idx = 25;
 
 solve satisfy;
 

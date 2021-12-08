@@ -35,22 +35,27 @@ namespace Gecode { namespace String {
       return 1;
     int j = 0, k = 0, nx = x.size(), ny = y.size();
     for (int i = 0; i < nx && ny > 0; ) {
-      int lx = lbound(x[i]);      
+      int lx = lbound(x[i]);
+//      std::cerr << "x[" << i << "] = "<< x[i] << ", y["<<j << "] = " << y[j];
       if (baseMin(x[i]) == baseMin(y[j])) {
-        int ly = ubound(y[j]);
-        if (lx == ly || (lx > ly && (j == 0 || j == ny-1))) {
+        int ly = lbound(y[j]);
+        if (lx == ly || (lx > ly && (ny == 1 || ny == y.size()))) {
+//          std::cerr << " match!\n";
           ++i;
           ++j;
           --ny;
-          k += y.size() == 1 ? ly : lx;
+          k += ny == 0 ? ly : lx;
           continue;
         }
       }
+//      std::cerr << " no match!\n";
       k += lx;
       ++i;
       j = 0;
       ny = y.size();
+//      std::cerr << "k: " << k << '\n';
     }
+//    std::cerr << ny << ' ' << k << ' ' << y.max_length() << '\n';
     return ny == 0 ? k-y.max_length()+1 : 0;
   }
   
