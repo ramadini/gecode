@@ -334,7 +334,7 @@ namespace Gecode { namespace String {
         uy -= 2;
         continue;
       }
-      if (l != l1 || u1 > u) {
+      if (l1 == 0 || l != l1 || u1 > u) {
         int m = y_j.baseSize();
         x.crushBase(home, y, j, esp, lep);
         if (u1 < u)
@@ -343,7 +343,6 @@ namespace Gecode { namespace String {
         uy -= 2;
         continue;
       }
-      assert (l1 > 0);
       int n = x.max_new_blocks(m[j]);
       assert (n > 0);
       if (n == 1) {
@@ -406,9 +405,10 @@ namespace Gecode { namespace String {
     
     // Possibly refining x (and y).
     bool xChanged = false;
+    newSize = 0;
     if (!x.assigned()) {
       int ux = 2*nx;
-      newSize = 0, uSize = 0;
+      uSize = 0;
       for (std::map<int, std::pair<int,int>>::iterator it = xfit.begin(); 
                                                        it != xfit.end(); ++it) {
         int i = it->first;

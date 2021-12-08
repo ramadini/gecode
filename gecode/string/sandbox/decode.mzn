@@ -52,5 +52,14 @@ constraint cz[1] = z[1] /\ forall (i in 2..n) (cz[i] = cz[i-1] ++ z[i]) /\
            cz[n] = y[d];
 constraint idx = str_find(W_out,y[d]);
 
+constraint x[1] = "01100011";
+constraint x[2] = "01100001"; 
+constraint x[3] = "01110011"; 
+constraint x[4] = "01100110"; 
+constraint x[5] = "01101111"; 
+constraint x[6] = "01110010"; 
+constraint x[7] = "01110100"; 
+%constraint x[8] = "01100101";
+
 solve satisfy;
 
