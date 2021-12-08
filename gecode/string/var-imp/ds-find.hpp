@@ -304,7 +304,7 @@ namespace Gecode { namespace String {
       assert (j == ny-1 || !x.prec(m[j+1].LSP, m[j].LEP));
 //      std::cerr<<"Ref. y[" << j << "] = " << y[j] <<"\tESP: "<<esp<<"\tLSP: "<<lsp <<"\tEEP: "<<eep<<"\tLEP: "<<lep<< "\n";
       assert (esp.isNorm(x) && lsp.isNorm(x) && eep.isNorm(x) && lep.isNorm(x));
-      if (esp == lep) {        
+      if (esp == lep) {
         assert (y_j.lb() == 0);
         y.nullifyAt(home, j);
         continue;
@@ -327,7 +327,13 @@ namespace Gecode { namespace String {
         continue;
       int l = y_j.lb(), u = y_j.ub(), l1 = min_len_mand(x, y_j, lsp, eep);
 //      std::cerr << "l'=" << l1 << "\n";
-      int u1 = std::min(u, x.max_len_opt(y_j, esp, lep, std::min(l,l1)));
+      int u1 = 0;
+      for (int i = esp.idx; i < lep.idx + (lep.off > 0); ++i) {
+        if (!x[i].baseDisjoint(y[j]))
+          u1 += x[i].ub();
+        if (u1 > u)
+          break;
+      }
 //      std::cerr << "u'=" << u1 << "\n";
       if (l > u1)
         return false;

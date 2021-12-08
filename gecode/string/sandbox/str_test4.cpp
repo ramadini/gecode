@@ -518,8 +518,8 @@ public:
     std::cerr << "===== After n = find(x,y), n > 0 =====" << std::endl;
     std::cerr << "x = " << x << '\n';
     std::cerr << "y = " << y << '\n';
-    std::cerr << "n :: [" << -fst << ", " << -lst << "]\n";
-    assert (fst == -5 && lst == -8);
+    std::cerr << "n :: [" << -fst << ", " << lst << "]\n";
+    assert (fst == -5 && lst == 8);
   }
   
   void test17() {
