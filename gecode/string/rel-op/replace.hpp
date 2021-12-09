@@ -459,6 +459,14 @@ namespace Gecode { namespace String { namespace RelOp {
         return home.ES_SUBSUMED(*this);
       }
       if (x[ORI].assigned()) {
+        if (x[ORI].max_length() == 0) {
+          if (x[QRY].max_length() == 0)
+            GECODE_REWRITE(*this, 
+              (Rel::Eq<View,View>::post(home(*this), x[RPL], x[OUT])));
+          else
+            return x[OUT].nullify(home) == ME_STRING_FAILED ? ES_FAILED 
+                                                      : home.ES_SUBSUMED(*this);
+        }
         if (all)
           GECODE_REWRITE(*this, decomp_all(home));
         int n = last ? rfind_fixed(x[ORI],x[QRY]) : find_fixed(x[ORI],x[QRY]);
