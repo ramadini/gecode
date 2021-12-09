@@ -172,6 +172,7 @@ namespace Gecode { namespace String { namespace Int {
         x1.gets(home, w1);
       else
         return ES_FAILED;
+//      std::cerr << this << "propagated "<<x0<<".find( "<<x1<<" ) = "<<x2<<"\n";
       return home.ES_SUBSUMED(*this);
     }
     
