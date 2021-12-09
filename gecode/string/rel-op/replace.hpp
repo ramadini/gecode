@@ -101,8 +101,8 @@ namespace Gecode { namespace String { namespace RelOp {
       pref[k++].update(home, x[i]);
     int off = p.off;
     if (off > 0) {
-      const Block& b = x[p.idx];
-      if (off < b.lb())
+      pref[k].update(home,x[p.idx]);
+      if (off < pref[k].lb())
         pref[k++].updateCard(home, off, off);
       else
         pref[k++].ub(home, off);
@@ -119,8 +119,8 @@ namespace Gecode { namespace String { namespace RelOp {
     if (idx == nx && off == 0)
       return;
     if (off > 0) {
-      const Block& b = x[idx];
-      suff[k++].updateCard(home, std::max(0, b.lb()-off), b.ub()-off);
+      suff[k].update(home,x[idx]);
+      suff[k++].updateCard(home, std::max(0, x[idx].lb()-off), x[idx].ub()-off);
     }
     for (int i = idx + (off > 0); i < nx; ++i)
       suff[k++].update(home, x[i]);
@@ -372,7 +372,7 @@ namespace Gecode { namespace String { namespace RelOp {
   template <class View>
   forceinline ExecStatus
   Replace<View>::refine_ori(Space& home, int min_occur) {
-//    std::cerr << "refine_ori\n";
+    std::cerr << "refine_ori " << x << ' ' << min_occur << "\n";
     Position pos[2];
     check_find(x[OUT], x[RPL], pos);
     if (pos[0].idx == -1) {
@@ -388,7 +388,7 @@ namespace Gecode { namespace String { namespace RelOp {
     assert (es.isNorm(x[OUT]) && le.isNorm(x[OUT]));
     int n = es.idx + (es.off > 0) + x[OUT].size() - le.idx +
             min_occur*x[QRY].size() + (x[ORI].max_length() > 0)*(min_occur+1);
-//    std::cerr << "ES: " << es << ", LE: " << le << ", n: "<< n << "\n";
+    std::cerr << "ES: " << es << ", LE: " << le << ", n: "<< n << "\n";
     if (n == 0)
       return ES_OK;
     int k = 0;
@@ -426,11 +426,11 @@ namespace Gecode { namespace String { namespace RelOp {
     // Suffix: x[OUT][le :]
     suffix(home, x[OUT], le, d, k);
     ConstDashedView dom(d[0],k);
-//    std::cerr << "Equating x[ORI]: " << x[ORI] << " with " << dom << " => \n";
+    std::cerr << "Equating x[ORI]: " << x[ORI] << " with " << dom << " => \n";
     if (x[ORI].assigned())
       return check_equate_x(x[ORI], dom) ? ES_OK : ES_FAILED;
     GECODE_ME_CHECK(x[ORI].equate(home, dom));
-    //std::cerr << x[ORI] << "\n";    
+    //std::cerr << x[ORI] << "\n"; 
     return ES_OK;
   }
   
@@ -438,7 +438,7 @@ namespace Gecode { namespace String { namespace RelOp {
   forceinline ExecStatus
   Replace<View>::propagate(Space& home, const ModEventDelta&) {
   again:
-//    std::cerr<<"\nReplace" << (all ? "All" : last ? "Last" : "") << "::propagate: "<< x <<"\n";
+    std::cerr<<"\nReplace" << (all ? "All" : last ? "Last" : "") << "::propagate: "<< x <<"\n";
     if (!all && !check_card()) {
       // x[QRY] not occurring in x[ORI].
       find(home, x[ORI], x[QRY], IntVar(home, 0, 0));
@@ -501,17 +501,17 @@ namespace Gecode { namespace String { namespace RelOp {
       min_occur = 1;
     if (min_occur > 0 && !all)
       GECODE_REWRITE(*this, rewrite(home, x, last));
-//    std::cerr << "min_occur: " << min_occur << "\n";
+    std::cerr << "min_occur: " << min_occur << "\n";
     GECODE_ES_CHECK(refine_out(home, min_occur));
-//    std::cerr<<"After refine_out: "<< x <<"\n";
+    std::cerr<<"After refine_out: "<< x <<"\n";
     GECODE_ES_CHECK(refine_ori(home, min_occur));
-//    std::cerr<<"After refine_ori: "<< x <<"\n";
+    std::cerr<<"After refine_ori: "<< x <<"\n";
     if (!all && !check_card()) {
       eq(home, x[ORI], x[OUT]);
       return home.ES_SUBSUMED(*this);
     }
     assert (!home.failed());
-//    std::cerr<<"After replace: "<< x <<"\n";
+    std::cerr<<"After replace: "<< x <<"\n";
     switch (x[ORI].assigned() + x[QRY].assigned() +
             x[RPL].assigned() + x[OUT].assigned()) {
       case 4:
