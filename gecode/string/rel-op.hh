@@ -96,7 +96,7 @@ namespace Gecode { namespace String { namespace RelOp {
     ExecStatus decomp_all(Space&);
     ExecStatus refine_ori(Space&, int);
     ExecStatus refine_out(Space&, int);
-    int occur(Space&) const;
+    int occur() const;
     bool check_card() const;
     bool all;
     bool last;

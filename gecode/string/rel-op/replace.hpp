@@ -170,18 +170,19 @@ namespace Gecode { namespace String { namespace RelOp {
           idx.push_back(pos-wx.begin());
           pos = std::search(pos + wq.size(), wx.end(), wq.begin(), wq.end());
         }
-         int k = 0, i0 = 0;
-         int wy[wx.size() + idx.size() * (wq1.size()-wq.size())];
-         for (auto i : idx) {
-           for (int j = i0; j < i; ++j)
-             wy[k++] = wx[j];
-           for (auto c : wq1)
-             wy[k++] = c;
-           i0 = i + wq.size();
-         }
-         for (size_t i = i0; i < wx.size(); ++i)
-           wy[k++] = wx[i];
+        int k = 0, i0 = 0;
+        int wy[wx.size() + idx.size() * (wq1.size()-wq.size())];
+        for (auto i : idx) {
+          for (int j = i0; j < i; ++j)
+            wy[k++] = wx[j];
+          for (auto c : wq1)
+            wy[k++] = c;
+          i0 = i + wq.size();
+        }
+        for (size_t i = i0; i < wx.size(); ++i)
+          wy[k++] = wx[i];
         ConstStringView dom(home,wy,k);
+//        std::cerr << dom << ' ' << check_equate_x(x[OUT], dom) << '\n';
         if (x[OUT].assigned())
           return check_equate_x(x[OUT], dom) ? ES_OK : ES_FAILED;
         GECODE_ME_CHECK(x[OUT].equate(home, ConstStringView(home,wy,k)));
@@ -243,7 +244,6 @@ namespace Gecode { namespace String { namespace RelOp {
                  StringVar(home, std::vector<int>(pos1,wx.end())), x[OUT]);
         else
           eq(home, v.back(), x[OUT]);
-//        std::cerr << v << '\n';
       }
     }
 //    std::cerr << "After decomp_all: " << x << "\n";
@@ -265,26 +265,25 @@ namespace Gecode { namespace String { namespace RelOp {
   // For decomp_all, it returns the minimum number of occurrences of q in x[ORI].
   template <class View>
   forceinline int
-  Replace<View>::occur(Space& home) const {
+  Replace<View>::occur() const {
     assert (x[QRY].assigned());
     if (x[ORI].assigned() && !all)
       return find_fixed(x[QRY], x[ORI]) > 0;
     int min_occur = 0, j = 0;
-    std::vector<int> curr;
-    for (int i=0, nx=x[ORI].size(), nq=x[QRY].size(); i < nx; ++i) {
+    std::vector<int> curr, qry = x[QRY].val();
+    for (int i=0, nx=x[ORI].size(), nq=qry.size(); i < nx; ++i) {
       const Block& b = x[ORI][i];
       if (b.lb() > 0 && b.baseSize() == 1) {
         std::vector<int> w(b.lb(), b.baseMin());
         curr.insert(curr.end(), w.begin(), w.end());
-        int k = find_fixed(ConstStringView(home,&curr[j],curr.size()-j), x[QRY]);
-        while (k > 0) {
+        std::vector<int>::iterator it = 
+          std::search(curr.begin(), curr.end(), qry.begin(), qry.end());
+        while (it != curr.end()) {
           if (!all)
             return 1;
           min_occur++;
-          j += k + nq - 1;
-          if (j == (int) curr.size())
-            break;          
-          k = find_fixed(ConstStringView(home,&curr[j],curr.size()-j), x[QRY]);
+          j += it-curr.begin() + nq;
+          it = std::search(curr.begin()+j, curr.end(), qry.begin(), qry.end());
         }
         if (b.lb() < b.ub()) {
           curr = w;
@@ -443,6 +442,7 @@ namespace Gecode { namespace String { namespace RelOp {
       // x[QRY] not occurring in x[ORI].
       find(home, x[ORI], x[QRY], IntVar(home, 0, 0));
       eq(home, x[ORI], x[OUT]);
+//      std::cerr<<"After replace: "<< x <<"\n";
       return home.ES_SUBSUMED(*this);
     }
     int min_occur = 0;
@@ -451,11 +451,13 @@ namespace Gecode { namespace String { namespace RelOp {
       if (x[RPL].assigned() && check_equate_x(x[QRY],x[RPL])) {
         // x[QRY] = x[RPL] -> x[OUT] = x[ORI].
         eq(home, x[ORI], x[OUT]);
+//        std::cerr<<"After replace: "<< x <<"\n";
         return home.ES_SUBSUMED(*this);
       }
       if (x[QRY].max_length() == 0 && !all) {
         // x[QRY] = "".
         last ? concat(home, x[ORI], x[RPL], x[OUT]) : concat(home, x[RPL], x[ORI], x[OUT]);
+//        std::cerr<<"After replace: "<< x <<"\n";
         return home.ES_SUBSUMED(*this);
       }
       if (x[ORI].assigned()) {
@@ -494,7 +496,7 @@ namespace Gecode { namespace String { namespace RelOp {
         }
         return home.ES_SUBSUMED(*this);
       }
-      min_occur = occur(home);
+      min_occur = occur();
     }
     if (x[ORI].assigned() && x[OUT].assigned()) {
       if (x[ORI].val() == x[OUT].val()) {

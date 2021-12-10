@@ -50,8 +50,7 @@ namespace Gecode {
   template<class Char, class Traits>
   std::basic_ostream<Char,Traits>&
   operator <<(std::basic_ostream<Char,Traits>& os, const StringVar& v) {
-    os << "Var. " << v.varimp() << " [ " << *v.varimp() << " ]";
-    return os;
+    return os << *v.varimp();
   }   
 
 }
