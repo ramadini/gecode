@@ -20,7 +20,7 @@ namespace Gecode { namespace String {
     assert (p.isNorm(x));
     int idx = 1;
     for (int i = 0; i < p.idx; ++i)
-      idx += x[i].lb();
+      idx += lbound(x[i]);
     return ubounded_sum(idx, p.off);
   }
 
@@ -28,67 +28,25 @@ namespace Gecode { namespace String {
   template <class ViewX, class ViewY>
   forceinline int
   find_fixed(ViewX x, ViewY y) {
-//    std::cerr << "find_fixed " << x << ".find( " << y << " )\n";
-    if (x.isNull())
-      return y.isNull();
-    if (y.isNull())
-      return 1;
-    int j = 0, k = 0, nx = x.size(), ny = y.size();
-    for (int i = 0; i < nx && ny > 0; ) {
-      int lx = lbound(x[i]);
-//      std::cerr << "x[" << i << "] = "<< x[i] << ", y["<<j<< "] = " << y[j];
-      if (baseMin(x[i]) == baseMin(y[j])) {
-        int ly = lbound(y[j]);
-        if (lx == ly || (lx > ly && (ny == 1 || ny == y.size()))) {
-//          std::cerr << ": match!\n";
-          ++i;
-          ++j;
-          --ny;
-          k += ny == 0 ? ly : lx;
-          continue;
-        }
-        else if (lx > ly) {
-          k += lx;
-          ++i;
-        }
-      }
-      else {
-        k += lx;
-        ++i;
-      }
-//      std::cerr << ": no match!\n";
-      j = 0;
-      ny = y.size();
-//      std::cerr << "k: " << k << '\n';
-    }
-//    std::cerr << ny << ' ' << k << ' ' << y.max_length() << '\n';
-    return ny == 0 ? k-y.max_length()+1 : 0;
+    int ny = y.size();
+    Matching m[ny];
+    Position start(0,0);
+    for (int j = 0; j < ny; ++j)
+      m[j].ESP = start;
+    return pushESP_find(x, y, m) ? pos2min_idx(x,m[0].ESP) : -1;
   }
-  
+ 
   // Returns the index of the last occurrence of y in x when both fixed.
   template <class ViewX, class ViewY>
   forceinline int
   rfind_fixed(ViewX x, ViewY y) {
-//    std::cerr << "find_fixed " << x << ".find( " << y << " )\n";
-    int nx = x.size(), ny = y.size(), cy = ny, j = ny-1, k = 0;
-    for (int i = nx-1; i >= 0 && cy > 0; ) {
-      int lx = lbound(x[i]);
-      if (baseMin(x[i]) == baseMin(y[j])) {
-        int ly = ubound(y[j]);
-        if (lx == ly || (lx > ly && (j == 0 || j == ny-1))) {
-          --i;
-          --j;
-          --cy;
-          k += y.size() == 1 ? ly : lx;
-          continue;
-        }
-      }
-      k += lx;
-      --i;
-      j = ny-1;
-      cy = y.size();
-    }
-    return cy == 0 ? x.max_length()-k+1 : 0;
+    int nx = x.size(), ny = y.size();
+    Matching m[ny];
+    Position end(x.size(),0);
+    for (int j = 0; j < ny; ++j)
+      m[j].LEP = end;
+    return pushLEP_find(x, y, m, ny, ny) 
+      ? pos2min_idx(x,m[nx-1].LEP) - y.max_length() + 1 : -1;
   }
     
   // Computes the fixed components of x and checks if y can occur in it. If so,
@@ -208,7 +166,7 @@ namespace Gecode { namespace String {
         start = *fwd_it;
         assert (!x.prec(start,m[j].ESP));
 //        std::cerr << "ESP of y[" << j << "] = " << y[j] << ": " << m[j].ESP << '\n';        
-        if (y[j].lb() > 0 && x.equiv(m[j].ESP, Position(x.size(),0)))
+        if (lbound(y[j]) > 0 && x.equiv(m[j].ESP, Position(x.size(),0)))
           return false;
       }
       again = false;

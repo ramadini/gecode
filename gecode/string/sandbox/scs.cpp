@@ -80,7 +80,7 @@ public:
     for (auto wi : W)
       std::cerr << "\t\"" << wi << "\": starts at index " 
                                 << int_vars[++i] << "\n";
-    std::cerr << "----------\n";
+    std::cerr << "----------\n";    
   }
 
 };

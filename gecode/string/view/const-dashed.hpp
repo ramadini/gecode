@@ -31,6 +31,16 @@ namespace Gecode { namespace String {
   ConstDashedView::isNull() const {
     return n == 1 && b0->isNull();
   }
+  
+  forceinline std::vector<int>
+  ConstDashedView::val(void) const {
+    std::vector<int> v;
+    for (int i = 0; i < n; ++i) {
+      std::vector<int> val_i = b0[i].val();
+      v.insert(v.end(), val_i.begin(), val_i.end());
+    }
+    return v;
+  }
 
   forceinline SweepFwdIterator<ConstDashedView>
   ConstDashedView::fwd_iterator(void) const {

@@ -653,6 +653,14 @@ public:
     std::cerr << "D(y1) :: " << y1 << '\n';
     std::cerr << "D(n1) :: " << n1 << '\n';
     assert (n1.min() == 11 && n1.max() == 26);
+    int xx[] =  {'a','a','b'};    
+    Block yy[2];
+    yy[0].update(*this, 'a');
+    yy[1].update(*this, 'b');
+    assert(find_fixed(ConstStringView(*this,xx,3),
+                      ConstDashedView(yy[0],2)) == 2);
+    assert(find_fixed(ConstStringView(*this,xx,3),
+                      ConstStringView(*this,xx+2,1)) == 3);
   }
 
 };
