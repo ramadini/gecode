@@ -60,10 +60,9 @@ namespace Gecode { namespace String {
         p = lx == ly || j == 0 ? Position(i,0) : Position(i-1,ly);
       }
       else {
-        k = max_length(y);
+        ++i;
         j = 0;
-        if (baseMin(x[i]) != baseMin(y[j]))
-          ++i;
+        k = max_length(y);
       }
     }
 //    std::cerr << k << ", idx: " << (k==0?pos2min_idx(x,p)-max_length(y):0) << '\n';

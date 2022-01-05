@@ -36,30 +36,29 @@ constraint forall (i in 1..d) (
     str_len(x[i]) = str_len(x[i+1])
   else
     true
-  endif /\true
+  endif /\
   % Imposing the prefix property.
-% forall (j in 1..d where i != j) (
-%    str_find(x[j],x[i]) != 1
-%  )
+  forall (j in 1..d where i != j) (
+    str_find(x[i],x[j]) != 1
+  )
 );
 
-%int: nz = length(z)-1;
-%array[1..nz] of var string: cz;
-%constraint cz[1] = z[1] /\ 
-%forall (i in 2..nz) (cz[i] = cz[i-1] ++ z[i]) /\ y[d] = cz[nz] ++ z[n];
-%constraint y[d] = z[1] ++ z[2] ++ z[3] ++ z[4] ++ z[5] ++ z[6] ++ z[7] ++ z[8] ++ z[9] ++ z[10];
+int: nz = length(z)-1;
+array[1..nz] of var string: cz;
+constraint cz[1] = z[1] /\ 
+forall (i in 2..nz) (cz[i] = cz[i-1] ++ z[i]) /\ y[d] = cz[nz] ++ z[n];
 constraint idx = str_find(W_out,y[d]);
 
 %constraint x[1] = "01100011";
-%constraint x[2] = "01100001"; 
-%constraint x[3] = "01110011"; 
-%constraint x[4] = "01100110"; 
-%constraint x[5] = "01101111"; 
-%constraint x[6] = "01110010";
+constraint x[2] = "01100001"; 
+constraint x[3] = "01110011"; 
+constraint x[4] = "01100110"; 
+constraint x[5] = "01101111"; 
+constraint x[6] = "01110010";
 %constraint x[7] = "01110100";
 %constraint x[8] = "01100101";
-%constraint str_find(W_out,y[d]) in 25..26;%= 25;
-%constraint forall (i in 1..6) (y[i] = ["cassaforte", "01100011assaforte", "0110001101100001ss01100001forte", "0110001101100001011100110111001101100001forte", "011000110110000101110011011100110110000101100110orte", "01100011011000010111001101110011011000010110011001101111rte", "0110001101100001011100110111001101100001011001100110111101110010te", "011000110110000101110011011100110110000101100110011011110111001001110100e", "01100011011000010111001101110011011000010110011001101111011100100111010001100101"][i+1]);
+constraint str_find(W_out,y[d]) = 25;
+constraint forall (i in 1..6) (y[i] = ["cassaforte", "01100011assaforte", "0110001101100001ss01100001forte", "0110001101100001011100110111001101100001forte", "011000110110000101110011011100110110000101100110orte", "01100011011000010111001101110011011000010110011001101111rte", "0110001101100001011100110111001101100001011001100110111101110010te", "011000110110000101110011011100110110000101100110011011110111001001110100e", "01100011011000010111001101110011011000010110011001101111011100100111010001100101"][i+1]);
 
 solve
 %::string_search([x[8]], input_order, lllm, complete)

@@ -144,20 +144,16 @@ namespace Gecode { namespace String { namespace RelOp {
         }
         std::vector<int> wx = x[ORI].val();
         std::vector<int> wq1 = x[RPL].val();
-        int wy[(wx.size()+1)* wq1.size()];
-        int k = 0;
+        std::vector<int> wy;
         for (size_t i = 0; i < wx.size(); ++i) {          
           for (size_t j = 0; j < wq1.size(); ++j)
-            wy[k++] = wq1[j];
-          wy[k++] = wx[i];
+            wy.push_back(wq1[j]);
+          wy.push_back(wx[i]);
         }
         for (size_t j = 0; j < wq1.size(); ++j)
-          wy[k++] = wq1[j];
+          wy.push_back(wq1[j]);
         // x[QRY] = "" -> x[OUT] = x[RPL] x[ORI][0] x[RPL] x[ORI][1] ... x[ORI][-1] x[RPL].
-        ConstStringView dom(home,wy,k);
-        if (x[OUT].assigned())
-          return check_equate_x(x[OUT], dom) ? ES_OK : ES_FAILED;
-        GECODE_ME_CHECK(x[OUT].equate(home, dom));
+        eq(home, x[OUT], wy);
       }
       else {
         std::vector<int> wx = x[ORI].val();
@@ -170,22 +166,18 @@ namespace Gecode { namespace String { namespace RelOp {
           idx.push_back(pos-wx.begin());
           pos = std::search(pos + wq.size(), wx.end(), wq.begin(), wq.end());
         }
-        int k = 0, i0 = 0;
-        int wy[wx.size() + idx.size() * (wq1.size()-wq.size())];
+        int i0 = 0;
+        std::vector<int> wy;
         for (auto i : idx) {
           for (int j = i0; j < i; ++j)
-            wy[k++] = wx[j];
+            wy.push_back(wx[j]);
           for (auto c : wq1)
-            wy[k++] = c;
+            wy.push_back(c);
           i0 = i + wq.size();
         }
         for (size_t i = i0; i < wx.size(); ++i)
-          wy[k++] = wx[i];
-        ConstStringView dom(home,wy,k);
-//        std::cerr << dom << ' ' << check_equate_x(x[OUT], dom) << '\n';
-        if (x[OUT].assigned())
-          return check_equate_x(x[OUT], dom) ? ES_OK : ES_FAILED;
-        GECODE_ME_CHECK(x[OUT].equate(home, ConstStringView(home,wy,k)));
+          wy.push_back(wx[i]);        
+        eq(home, x[OUT], wy);
       }
     }
     else {
@@ -276,12 +268,14 @@ namespace Gecode { namespace String { namespace RelOp {
       if (b.lb() > 0 && b.baseSize() == 1) {
         std::vector<int> w(b.lb(), b.baseMin());
         curr.insert(curr.end(), w.begin(), w.end());
+//        std::cerr << vec2str(curr) << ' ' << vec2str(w) << '\n';
         std::vector<int>::iterator it = 
-          std::search(curr.begin(), curr.end(), qry.begin(), qry.end());
+          std::search(curr.begin()+j, curr.end(), qry.begin(), qry.end());
         while (it != curr.end()) {
+//          std::cerr << it-curr.begin() + nq << '\n';
+          min_occur++;
           if (!all)
             return 1;
-          min_occur++;
           j += it-curr.begin() + nq;
           it = std::search(curr.begin()+j, curr.end(), qry.begin(), qry.end());
         }
@@ -520,7 +514,6 @@ namespace Gecode { namespace String { namespace RelOp {
       eq(home, x[ORI], x[OUT]);
       return home.ES_SUBSUMED(*this);
     }
-    assert (!home.failed());
 //    std::cerr<<"After replace: "<< x <<"\n";
     switch (x[ORI].assigned() + x[QRY].assigned() +
             x[RPL].assigned() + x[OUT].assigned()) {
