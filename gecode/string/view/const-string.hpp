@@ -21,6 +21,14 @@ namespace Gecode { namespace String {
     return n == 0;
   }
   
+  forceinline bool
+  ConstStringView::isNorm() const {
+    for (int i = 1; i < n; i++)
+      if (_val[i-1] == _val[i])
+        return false;
+    return true;
+  }
+  
   forceinline int 
   ConstStringView::size() const {
     return n;

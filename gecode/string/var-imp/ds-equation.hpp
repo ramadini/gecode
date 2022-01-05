@@ -37,7 +37,7 @@ std::ostream & operator<<(std::ostream& os, const std::vector<T>& v) {
   template <class View> forceinline int 
   min_len_mand(const View&, int, const Position&, const Position&) {
     return 1;
-  }
+  }  
   
   /// Struct abstracting a position in a dashed string.
   struct Position {

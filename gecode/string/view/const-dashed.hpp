@@ -28,6 +28,24 @@ namespace Gecode { namespace String {
   }
   
   forceinline bool
+  ConstDashedView::assigned() const {
+    for (int i = 0; i < n; ++i)
+      if (!b0[i].isFixed())
+        return false;
+    return true;
+  }
+  
+  forceinline bool
+  ConstDashedView::isNorm() const  {
+    if (b0[0].isNull())
+      return n == 1;
+    for (int i = 1; i < n; i++)
+      if (b0[i].isNull() || b0[i-1].baseEquals(b0[i]))
+        return false;
+    return true;
+  }
+  
+  forceinline bool
   ConstDashedView::isNull() const {
     return n == 1 && b0->isNull();
   }

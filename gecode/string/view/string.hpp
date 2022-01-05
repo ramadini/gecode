@@ -87,6 +87,11 @@ namespace Gecode { namespace String {
   }
   
   forceinline bool
+  StringView::isNorm() const {
+    return x->isNorm();
+  }
+  
+  forceinline bool
   StringView::isOK() const {
     return x->isOK();
   }

@@ -282,6 +282,11 @@ namespace Gecode { namespace String {
   }
   
   forceinline bool
+  StringVarImp::isNorm() const {
+    return ds.isNorm();
+  }
+  
+  forceinline bool
   StringVarImp::isOK() const {
     return min_len >= ds.lb_sum() && max_len <= ds.ub_sum() && ds.isOK();
   }

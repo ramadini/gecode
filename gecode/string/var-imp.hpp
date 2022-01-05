@@ -88,6 +88,7 @@ namespace Gecode { namespace String {
 //    bool check_equate(const DashedString& x) const;
     /// Consistency checks on the domain
     bool isOK(void) const;
+    bool isNorm(void) const;
     /// Returns the i-th block of the domain
     const Block& operator[](int i) const;
     /// If this domain contains y

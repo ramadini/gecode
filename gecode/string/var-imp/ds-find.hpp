@@ -23,30 +23,59 @@ namespace Gecode { namespace String {
       idx += lbound(x[i]);
     return ubounded_sum(idx, p.off);
   }
+  
+  template <class View>
+  forceinline int 
+  max_length(const View& x) {
+    return x.max_length();
+  }
+  template <>
+  forceinline int 
+  max_length(const ConstDashedView& x) {
+    int l = 0;
+    for (int i = 0; i < x.size(); ++i) {
+      l += ubounded_sum(l, x[i].ub());
+      if (l == MAX_STRING_LENGTH)
+        return l;
+    }
+    return l;
+  }
 
   // Returns the 1-based index of the first occurrence of y in x when both fixed.
   template <class ViewX, class ViewY>
   forceinline int
   find_fixed(ViewX x, ViewY y) {
-    int ny = y.size();
-    Matching m[ny];
-    Position start(0,0);
-    for (int j = 0; j < ny; ++j)
-      m[j].ESP = start;
-    return pushESP_find(x, y, m) ? pos2min_idx(x,m[0].ESP) : -1;
+//    std::cerr << "find_fixed " << x << ' ' << y << '\n';
+    assert (x.assigned() && x.isNorm() && y.assigned() && y.isNorm());
+    Position p(0,0);
+    int nx = x.size(), ny = y.size(), i = 0, j = 0, k = max_length(y);
+    while (i < nx && j < ny && k > 0) {
+      int lx = lbound(x[i]), ly = ubound(y[j]);
+//      std::cerr << x[i] << "  vs  "  << y[j] << "\n";
+      if ((lx == ly || (lx > ly && (j == 0 || j == ny-1))) 
+      && baseMin(x[i]) == baseMin(y[j])) {
+        ++i;
+        ++j;
+        k -= ly;
+        p = lx == ly || j == 0 ? Position(i,0) : Position(i-1,ly);
+      }
+      else {
+        k = max_length(y);
+        j = 0;
+        if (baseMin(x[i]) != baseMin(y[j]))
+          ++i;
+      }
+    }
+//    std::cerr << k << ", idx: " << (k==0?pos2min_idx(x,p)-max_length(y):0) << '\n';
+    return k == 0 ? pos2min_idx(x,p) - max_length(y) : 0;
   }
  
   // Returns the index of the last occurrence of y in x when both fixed.
   template <class ViewX, class ViewY>
   forceinline int
   rfind_fixed(ViewX x, ViewY y) {
-    int nx = x.size(), ny = y.size();
-    Matching m[ny];
-    Position end(x.size(),0);
-    for (int j = 0; j < ny; ++j)
-      m[j].LEP = end;
-    return pushLEP_find(x, y, m, ny, ny) 
-      ? pos2min_idx(x,m[nx-1].LEP) - y.max_length() + 1 : -1;
+//    std::cerr << "rfind_fixed " << x << ' ' << y << '\n';
+    return x.max_length() - find_fixed(ReverseView(x), ReverseView(y)) + 1;
   }
     
   // Computes the fixed components of x and checks if y can occur in it. If so,

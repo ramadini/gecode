@@ -177,5 +177,20 @@ namespace Gecode { namespace String {
     return ptr->isOK();
   }
   
+  forceinline bool
+  ReverseView::isNorm() const {
+    return ptr->isNorm();
+  }
+  
+  forceinline bool
+  ReverseView::assigned() const {
+    return ptr->assigned();
+  }
+  
+  forceinline int
+  ReverseView::max_length() const {
+    return ptr->max_length();
+  }  
+  
 }}
 

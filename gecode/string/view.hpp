@@ -76,6 +76,7 @@ namespace Gecode { namespace String {
     int smallest_unfixed_idx(void) const;
     
     bool isOK(void) const;
+    bool isNorm(void) const;
     bool isNull(void) const;
     bool assigned(void) const;
     std::vector<int> val(void) const;
@@ -145,6 +146,8 @@ namespace Gecode { namespace String {
     SweepBwdIterator<ConstDashedView> bwd_iterator(void) const;
     bool isOK(void) const;
     bool isNull(void) const;
+    bool isNorm(void) const;
+    bool assigned(void) const;
     std::vector<int> val(void) const;
   };
   /**
@@ -187,6 +190,7 @@ namespace Gecode { namespace String {
     int size(void) const;
     /// Return true iff the view is on the empty string
     bool isNull(void) const;
+    bool isNorm(void) const;
     /// Returns the i-th character of the string
     int operator[](int i) const;
     /// Return the value of this view
@@ -301,7 +305,7 @@ namespace Gecode { namespace String {
     StringView rhs(void) const;
     bool assigned(void) const;
     /// Consistency checks on the view
-    bool isOK(void) const;
+    bool isOK(void) const;    
     bool isNull(void) const;
     int lb_sum(void) const;
     long ub_sum(void) const;
@@ -401,6 +405,9 @@ namespace Gecode { namespace String {
     std::vector<int> fixed_suff(const Position& p,
                                 const Position& q, int & np) const;
     bool isOK(void) const;
+    bool isNorm(void) const;
+    bool assigned(void) const;
+    int max_length(void) const;
     const StringView& baseView(void) const;
   };
   /**
