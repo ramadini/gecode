@@ -63,20 +63,16 @@ namespace Gecode { namespace String { namespace Branch {
 //      std::cerr<<x[start]<<" (pos. "<<start<<", dim. "<<d<<")\n";
       for (int i = start + 1; i < x.size(); ++i) {
         StringView& xi = x[i];
+//        std::cerr<<i<<": "<<xi<<' '<<x.size()<<"\n";
         if (!xi.assigned()) {
           double gi = xi.degree();
-          if (gi == 0) {
-//            std::cerr << "Warning: " << xi << " has degree 0!\n";
-            xi.gets(home, std::vector<int>());
-            continue;
-          }
           const Block& bi = xi[xi.leftmost_unfixed_idx()];
           double di = bi.logdim();
           int li = bi.ub() - bi.lb();
           int mi = xi.min_length();
           int fi = xi.max_length() - mi;
           gi = di / gi; 
-//          std::cerr<<x[i]<<" (pos. "<<i<<", dim. "<<di<<")\n";
+//          std::cerr<<i<<": "<<xi<<" (pos. "<<i<<", dim. "<<di<<")\n";
           if (gi < g) { g = gi, f = fi, d = di, l = li, m = mi, pos = i; continue; }
           else if (gi > g) continue;
           if (fi < f) { f = fi, d = di, l = li, m = mi, pos = i; continue; }

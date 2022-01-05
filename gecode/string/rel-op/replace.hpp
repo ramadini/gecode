@@ -210,11 +210,15 @@ namespace Gecode { namespace String { namespace RelOp {
         std::vector<StringVar> v(1, StringVar(home));
         std::vector<int> w = std::vector<int>(wx.begin(), pos);
 //        std::cerr << vec2str(w) << '\n';
-        if (w.empty())
+        if (w.empty()) {
           // x[ORI] starts with x[QRY]
           eq(home, x[RPL], v[0]);
-        else
+//          std::cerr << x[RPL] << " = " << v[0] << '\n';
+        }
+        else {
           concat(home, StringVar(home, w), x[RPL], v[0]);
+//          std::cerr << StringVar(home, w) << "  ++  " << x[RPL] << " = " << v[0] << '\n';
+        }
         size_t nq = wq.size();
         std::vector<int>::iterator pos1 = pos + nq;
         pos = std::search(pos1, wx.end(), wq.begin(), wq.end());
@@ -224,21 +228,28 @@ namespace Gecode { namespace String { namespace RelOp {
           if (pos > pos1) {
             StringVar tmp(home);
             concat(home, StringVar(home,std::vector<int>(pos1,pos)),x[RPL],tmp);
+//            std::cerr << StringVar(home,std::vector<int>(pos1,pos)) << "  ++  " << x[RPL] << " = " << tmp << '\n';
             concat(home, lst, tmp, v.back());
+//            std::cerr << lst << "  ++  " << tmp << " = " << v.back() << '\n';
           }
-          else
+          else {
             concat(home, lst, x[RPL], v.back());
+//            std::cerr << lst << "  ++  " << x[RPL] << " = " << v.back() << '\n';
+          }
           pos1 = pos + nq;
           pos = std::search(pos1, wx.end(), wq.begin(), wq.end());
         }
-        if (pos1 < wx.end())
+        if (pos1 < wx.end()) {
           concat(home, v.back(), 
                  StringVar(home, std::vector<int>(pos1,wx.end())), x[OUT]);
-        else
+//          std::cerr << v.back() << "  ++  " << StringVar(home, std::vector<int>(pos1,wx.end())) << " = " << x[OUT] << '\n';
+        }
+        else {
           eq(home, v.back(), x[OUT]);
+//          std::cerr << v.back() << " = " << x[OUT] << '\n';
+        }
       }
     }
-//    std::cerr << "After decomp_all: " << x << "\n";
     return ES_OK;
   }
 

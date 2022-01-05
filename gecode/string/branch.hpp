@@ -51,7 +51,6 @@ namespace Gecode { namespace String { namespace Branch {
         }
       }
       case CARD: {
-        std::cerr << x << ' ' << i << ' ' << x_i << ' ' << x.min_length() << ' ' << x.max_length() << '\n';
         assert (x_i.ub() - x_i.lb() > 0 && x.min_length() == x.max_length());
         switch (val) {
           case MIN:
