@@ -193,6 +193,9 @@ namespace Gecode { namespace String { namespace Branch {
       GECODE_NEVER;
     }
     return a == 0 ? commit0(home, x, l, v, i) : commit1(home, x, l, v, i);
+    StringDelta d;
+    return x.varimp()->notify(home, x.assigned() ? ME_STRING_VAL 
+                                                 : ME_STRING_DOM, d);
   }
 
   
