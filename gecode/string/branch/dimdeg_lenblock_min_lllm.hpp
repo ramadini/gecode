@@ -88,7 +88,7 @@ namespace Gecode { namespace String { namespace Branch {
 //      abort();
       return val_lllm(pos, x[pos]);
     }
-
+    
     forceinline ExecStatus
     DimDeg_LenBlock_Min_LLLM::commit(Space& home, const Choice& c, unsigned a) {
       const PosLevVal& p = static_cast<const PosLevVal&>(c);
@@ -97,6 +97,7 @@ namespace Gecode { namespace String { namespace Branch {
         StringBrancher::commit(home, x[p.pos], p.lev, p.val, Blc::LEFTMOST, a)
       );
 //      std::cerr << "After commit: " << x[p.pos] << '\n';
+//      abort();
       return ES_OK;
     }
 

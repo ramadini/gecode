@@ -51,6 +51,8 @@ then
         fi
       done
 fi &&
+
+echo "Solving test.mzn"
 mzn-dashed $TEST_DIR/test.mzn > $X
 diff $X $TEST_DIR/output_mzn > $Y
 if
@@ -62,6 +64,20 @@ then
 else
   cat $X
   rm $Y
+fi &&
+
+echo "Solving decode.mzn"
+mzn-dashed $TEST_DIR/decode.mzn > $X
+x=`grep "x = \[" "$X" | awk -F"[" '{print $2}' | sed "s/];//g"`
+if
+  [ "$x" == "01100011, 01100001, 01110011, 01100110, 01101111, 01110010, 01110100, 01100101" ]
+then
+  cat $X
+else
+  echo "Error! MZN output not expected!"
+  echo $x
+  cat $X
+  exit 1
 fi &&
 
 # FIXME: Timeout depends on the target machine.

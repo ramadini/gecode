@@ -153,7 +153,7 @@ function var string: nat2str(var int: n);
 function var int: str2nat(var string: x);
 
 annotation none;
-annotation blockdim_min;
+annotation block_mindim;
 annotation lenblock_min;
 annotation dimdeg_lenblock_min;
 
