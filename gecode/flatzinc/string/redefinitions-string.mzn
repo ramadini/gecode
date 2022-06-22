@@ -208,6 +208,19 @@ let {
   endif;
 } in B;
 
+function var int:
+str_match(var string: x, string: regexp) = 
+let {
+  var int: n;
+  constraint 0 <= n /\ n <= str_len(x) /\
+  if n = 0 then
+    not(str_reg(x, ".*" ++ regexp ++ ".*"))
+  else
+    not(str_reg(str_sub(x, 1, n-1), ".*" ++ regexp ++ ".*")) /\ 
+        str_reg(str_sub(x, n, str_len(x)),  regexp ++ ".*")        
+  endif
+} in n;
+
 annotation none;
 annotation lenmin;
 annotation lenmax;
