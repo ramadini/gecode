@@ -209,7 +209,7 @@ let {
 } in B;
 
 function var int:
-str_match2(var string: x, string: regexp) = 
+str_match(var string: x, string: regexp) = 
 let {
   var int: i;
   constraint 0 <= i /\ i <= str_len(x) /\
@@ -220,6 +220,24 @@ let {
         str_reg(str_sub(x, i, str_len(x)),  regexp ++ ".*")        
   endif
 } in i;
+
+function var int:
+str_match(var string: x, int: l, int: u, string: regexp) = 
+let {
+  var 0..u-l: i;
+  constraint if i > 0 then
+    str_reg(str_sub(x, i, u), regexp ++ ".*") /\
+    forall (j in 1..i-1) (
+      not(str_reg(str_sub(x, j, u), regexp ++ ".*"))
+    )
+  else
+    forall (j in 1..u-l) (
+      not(str_reg(str_sub(x, j, u), regexp ++ ".*"))
+    )
+  endif
+} in i;
+
+
 
 annotation none;
 annotation lenmin;
