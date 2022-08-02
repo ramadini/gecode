@@ -216,8 +216,8 @@ let {
   if i = 0 then
     not(str_reg(x, ".*" ++ regexp ++ ".*"))
   else
-    not(str_reg(str_sub(x, 1, i-1), ".*" ++ regexp ++ ".*")) /\ 
-        str_reg(str_sub(x, i, str_len(x)),  regexp ++ ".*")        
+    not(str_reg(str_sub(x, 1, i-1), ".*" ++ regexp ++ ".*")) /\
+        str_reg(str_sub(x, i, str_len(x)), regexp ++ ".*")
   endif
 } in i;
 
@@ -225,7 +225,7 @@ function var int:
 str_match(var string: x, int: l, int: u, string: regexp) = 
 let {
   var 0..u-l: i;
-  constraint if i > 0 then
+  constraint i <= str_len(x) /\ if i > 0 then
     str_reg(str_sub(x, i, u), regexp ++ ".*") /\
     forall (j in 1..i-1) (
       not(str_reg(str_sub(x, j, u), regexp ++ ".*"))
