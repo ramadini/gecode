@@ -195,12 +195,9 @@ namespace Gecode { namespace String {
     // std::cerr << "dom: " << dfa << '\n';    
     NSIntSet S = dfa->alphabet();
     int l = 0, u = 0, n_states = dfa->n_states;
-    int dist[n_states];
-    int distF[n_states];
-    for (int i = 0; i < n_states; ++i) {
+    int dist[n_states];    
+    for (int i = 0; i < n_states; ++i)
       dist[i] = DashedString::_MAX_STR_LENGTH;
-      distF[i] = 0;
-    }
     if (DashedString::_DECOMP_REGEX)
       u = DashedString::_MAX_STR_LENGTH;
     else {
@@ -228,11 +225,12 @@ namespace Gecode { namespace String {
         return NSBlocks();
       s.clear();
       s.push_front(0);
+      int distF[n_states];
       int visited[n_states];      
       for (int i = 0; i < n_states; ++i)
-        visited[i] = dist[i] = 0;
+        visited[i] = dist[i] = distF[i] = 0;
       // DFS for u.
-      std::list<int> curr;
+      std::vector<int> curr;
       while (u != DashedString::_MAX_STR_LENGTH && !s.empty()) {
         int q = s.front();
         s.pop_front();
@@ -241,15 +239,15 @@ namespace Gecode { namespace String {
         assert (visited[q] == 0);
         NSIntSet nq = dfa->neighbours(q);
         if (nq.empty()) {
-          // q is a leaf: we finished with nodes belonging to current path.
-          int i = 0;
+          // q is a leaf: we found a path initial state -> final state.
           if (u < dist[q])
             u = dist[q];
           for (auto qi : curr) {
             distF[qi] = dist[q] - dist[qi];
             visited[qi] = 2;
           }
-        }        
+          curr.clear();
+        }
         else {
           visited[q] = 1;
           // Exploring the neighbours of q.
@@ -265,14 +263,20 @@ namespace Gecode { namespace String {
               break;
             }
             else if (dist[q] + 1 > dist[qi]) {
+              // Path already visited.
               int d = dist[q] + distF[qi] + 1;
               if (d > u)
                 u = d;
-              distF[q] = distF[qi] + 1;              
+              for (int j = 0, n = curr.size(); j < n; ++j) {
+                int qj = curr[j];
+                distF[qj] = dist[q] + n - j + distF[qi];
+                visited[qj] = 2;
+              }
+              curr.clear();            
             }
           }
         }
-      }      
+      }
     }
 //    std::cerr << l << ' ' << u << '\n';
     assert (l <= u);
