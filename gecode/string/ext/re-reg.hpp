@@ -131,7 +131,7 @@ namespace Gecode { namespace String {
   template<class CtrlView, ReifyMode rm>
   forceinline ExecStatus
   ReReg<CtrlView, rm>::propagate(Space& home, const ModEventDelta& m) {
-    // std::cerr<<"ReDFA::propagate "<<x1<<" <> "<<x0<<" in dfa "<<*dfa<<std::endl;
+    // std::cerr<<"ReDFA::propagate "<<b<<" <> "<<x0<<" in dfa "<<*dfa<<std::endl;
     if (x0.assigned()) {
       if (dfa->accepted(x0.val())) {
         if (rm != RM_IMP)
@@ -157,7 +157,7 @@ namespace Gecode { namespace String {
         return home.ES_SUBSUMED(*this);
       GECODE_REWRITE(*this, (Reg::post(home(*this), x0, dfa)));
     }
-    // std::cerr<<"ReDFA::propagated "<<x1<<" <> "<<x0<<std::endl;
+    // std::cerr<<"ReDFA::propagated "<<b<<" <> "<<x0<<std::endl;
     dfa->compute_univ(x0.may_chars());
     DashedString* x = x0.pdomain();
     std::vector<std::vector<NSIntSet>> F(x->length());

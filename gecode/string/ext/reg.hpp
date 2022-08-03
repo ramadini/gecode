@@ -192,16 +192,19 @@ namespace Gecode { namespace String {
 
   forceinline NSBlocks
   Reg::dom(stringDFA* dfa) {
-    // std::cerr << "dom: " << dfa << '\n';
+    // std::cerr << "dom: " << dfa << '\n';    
     NSIntSet S = dfa->alphabet();
-    int l = 0, u = 0;
-    std::vector<std::vector<int>> delta;
-    std::list<int> sort;
+    int l = 0, u = 0, n_states = dfa->n_states;
+    int dist[n_states];
+    int distF[n_states];
+    for (int i = 0; i < n_states; ++i) {
+      dist[i] = DashedString::_MAX_STR_LENGTH;
+      distF[i] = 0;
+    }
     if (DashedString::_DECOMP_REGEX)
       u = DashedString::_MAX_STR_LENGTH;
     else {
       std::list<int> s;
-      std::vector<int> dist(dfa->n_states, DashedString::_MAX_STR_LENGTH);
       s.push_back(0);
       dist[0] = 0;
       // BFS for l.
@@ -225,67 +228,55 @@ namespace Gecode { namespace String {
         return NSBlocks();
       s.clear();
       s.push_front(0);
-      dist = std::vector<int>(dfa->n_states, 0);
-      delta = std::vector<std::vector<int>>(dfa->n_states);
-      std::list<int> curr;
+      int visited[n_states];      
+      for (int i = 0; i < n_states; ++i)
+        visited[i] = dist[i] = 0;
       // DFS for u.
-      while (!s.empty()) {
+      std::list<int> curr;
+      while (u != DashedString::_MAX_STR_LENGTH && !s.empty()) {
         int q = s.front();
         s.pop_front();
-        // Node unseen.
-        if (dist[q] == 0) {
-          NSIntSet nq = dfa->neighbours(q);          
-          if (nq.empty()) {
-            // q is a leaf: we finished with nodes belonging to current path.
-            dist[q] = 2;
-            for (auto qi : curr)
-              dist[qi] = 2;
-            curr.clear();
+        curr.push_back(q);
+//        std::cerr << "Current node: " << q << "\n";
+        assert (visited[q] == 0);
+        NSIntSet nq = dfa->neighbours(q);
+        if (nq.empty()) {
+          // q is a leaf: we finished with nodes belonging to current path.
+          int i = 0;
+          if (u < dist[q])
+            u = dist[q];
+          for (auto qi : curr) {
+            distF[qi] = dist[q] - dist[qi];
+            visited[qi] = 2;
           }
+        }        
+        else {
+          visited[q] = 1;
           // Exploring the neighbours of q.
-          else {
-            dist[q] = 1;
-            int qi = -1;
-            for (NSIntSet::iterator it(nq); it(); ++it) {
-              qi = *it;
-              delta[qi].push_back(q);
-              if (dist[qi] == 0) {
-                s.push_front(qi);
-                sort.push_back(qi);
-              }
-              else if (dist[qi] == 1) {
-                u = DashedString::_MAX_STR_LENGTH;
-                break;
-              }
+          for (NSIntSet::iterator it(nq); it(); ++it) {
+            int qi = *it;
+            if (visited[qi] == 0) {
+              s.push_front(qi);
+              dist[qi] = dist[q] + 1;
             }
-            if (u == DashedString::_MAX_STR_LENGTH)
+            else if (visited[qi] == 1) {
+              // Loop detected.
+              u = DashedString::_MAX_STR_LENGTH;
               break;
-            curr.push_front(qi);
+            }
+            else if (dist[q] + 1 > dist[qi]) {
+              int d = dist[q] + distF[qi] + 1;
+              if (d > u)
+                u = d;
+              distF[q] = distF[qi] + 1;              
+            }
           }
         }
-        // Node already seen in the current path.
-        else if (dist[q] == 1) {
-          u = DashedString::_MAX_STR_LENGTH;
-          break;
-        }
-      }
+      }      
     }
-    // No loops.
-    if (u == 0) {
-      std::vector<int> d(dfa->n_states);
-      for (auto q : sort) {
-        int m = 0;
-        for (auto qi : delta[q])
-          if (d[qi] > m)
-            m = d[qi];
-        d[q] = m + 1;
-      }
-      u = d.back() + 1;
-    }
-    if (l > u)
-      return NSBlocks();
-    else
-      return NSBlocks(1, NSBlock(S, l, u));
+//    std::cerr << l << ' ' << u << '\n';
+    assert (l <= u);
+    return NSBlocks(1, NSBlock(S, l, u));
   }
 
   forceinline

@@ -26,13 +26,13 @@ namespace Gecode {
   void
   extensional(Home home, StringVar x, std::string regex) {
     String::RegEx* r = String::RegExParser(regex).parse();
-    // std::cerr << "x = " << x << '\n';
-    // std::cerr << "Expression: " << r->str() << '\n';
-    // std::cerr << "DFA: " << r->dfa() << '\n';
-    // std::cerr << "Reg.: " << r->reg() << '\n';
-    // std::cerr << "Dec: " << r->decomp() << '\n';
-    // std::cerr << "DECOMP:" << Gecode::String::DashedString::_DECOMP_REGEX << '\n';
-    // std::cerr << "Intro: " << r->intro_vars() << '\n';
+//     std::cerr << "x = " << x << '\n';
+//     std::cerr << "Expression: " << r->str() << '\n';
+//     std::cerr << "DFA: " << r->dfa() << '\n';
+//     std::cerr << "Reg.: " << r->reg() << '\n';
+//     std::cerr << "Dec: " << r->decomp() << '\n';
+//     std::cerr << "DECOMP:" << Gecode::String::DashedString::_DECOMP_REGEX << '\n';
+//     std::cerr << "Intro: " << r->intro_vars() << '\n';
     if (Gecode::String::DashedString::_DECOMP_REGEX && !r->intro_vars()) {
       VarArgs v;
       r->post(home, x, v);

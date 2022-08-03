@@ -887,7 +887,6 @@ namespace Gecode { namespace String {
 
     forceinline void
     NSIntSet::add(int n) {
-      //std::cerr<<"add "<<n<<" to "<<*this<<"\n";
       if (this->empty()) {
         this->_fst = new NSRange(n, n);
         this->_lst = this->_fst;

@@ -29,7 +29,7 @@ namespace Gecode { namespace String { namespace Branch {
       int l = b.u - b.l;
       int m = p->min_length();
       int pos = start;      
-      // std::cerr<<x[start]<<" (pos. "<<start<<", dim. "<<s<<")\n";
+//       std::cerr<<x[start]<<" (pos. "<<start<<", dim. "<<s<<")\n";
       if (_FIRST)
         DashedString::_MUST_CHARS.include(x[start].must_chars());
       for (int i = start + 1; i < x.size(); ++i) {
@@ -38,7 +38,7 @@ namespace Gecode { namespace String { namespace Branch {
         if (!x[i].assigned()) {
           int di = x[i].degree();
           if (di == 0) {
-            // std::cerr << "Warning: " << x[i] << " has degree 0!\n";
+//             std::cerr << "Warning: " << x[i] << " has degree 0!\n";
             x[i].pdomain()->update(home, "");
             continue;
           }
@@ -47,7 +47,7 @@ namespace Gecode { namespace String { namespace Branch {
           double si = bi.logdim();
           int li = b.u - bi.l;
           int mi = p->min_length();
-          // std::cerr<<x[i]<<" (pos. "<<i<<", deg. "<<di<<", dim. "<<si<<")\n";
+//           std::cerr<<x[i]<<" (pos. "<<i<<", deg. "<<di<<", dim. "<<si<<")\n";
           if (si < s || (si == s && li < l) || (si == s && li == l && mi < m)) {
             s = si;   
             l = li;
@@ -58,7 +58,7 @@ namespace Gecode { namespace String { namespace Branch {
       }
       // if (_FIRST) std::cerr<<"Must chars: "<<DashedString::_MUST_CHARS<<"\n";      
       // std::cerr << "Chosen var. " << x[pos] << " (pos. " << pos << ")\n";
-      // abort();
+//      abort();
       _FIRST = false;
       return val_lllm(pos, x[pos].pdomain());
     }
