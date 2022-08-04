@@ -4,6 +4,7 @@ int: L = 100;
 var string(L): x;
 
 %constraint str_reg(x, "[c-d,3,5](a|b)(a|d)[a-b,0,4]");
+
 var string(5): x1; constraint str_reg(x1, "(c|d)*") /\ str_len(x1) >= 3;
 var string(1): x2; constraint str_reg(x2, "(a|b)");
 var string(1): x3; constraint str_reg(x3, "(a|d)");

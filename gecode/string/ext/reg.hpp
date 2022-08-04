@@ -195,7 +195,7 @@ namespace Gecode { namespace String {
     // std::cerr << "dom: " << dfa << '\n';    
     NSIntSet S = dfa->alphabet();
     int l = 0, u = 0, n_states = dfa->n_states;
-    int dist[n_states];    
+    std::vector<int> dist(n_states);    
     for (int i = 0; i < n_states; ++i)
       dist[i] = DashedString::_MAX_STR_LENGTH;
     if (DashedString::_DECOMP_REGEX)
@@ -223,60 +223,61 @@ namespace Gecode { namespace String {
       }
       if (l > 0 && S.empty())
         return NSBlocks();
+      std::list<std::pair<int,bool>> stack;
       s.clear();
-      s.push_front(0);
-      int distF[n_states];
-      int visited[n_states];      
-      for (int i = 0; i < n_states; ++i)
-        visited[i] = dist[i] = distF[i] = 0;
+      stack.push_front(std::pair<int,bool>(0, 0));
       // DFS for u.
-      std::vector<int> curr;
-      while (u != DashedString::_MAX_STR_LENGTH && !s.empty()) {
-        int q = s.front();
-        s.pop_front();
-        curr.push_back(q);
-//        std::cerr << "Current node: " << q << "\n";
-        assert (visited[q] == 0);
-        NSIntSet nq = dfa->neighbours(q);
-        if (nq.empty()) {
-          // q is a leaf: we found a path initial state -> final state.
-          if (u < dist[q])
-            u = dist[q];
-          for (auto qi : curr) {
-            distF[qi] = dist[q] - dist[qi];
-            visited[qi] = 2;
-          }
-          curr.clear();
+      for (int i = 0; i < n_states; ++i)
+        dist[i] = 0;
+      while (u != DashedString::_MAX_STR_LENGTH && !stack.empty()) {
+        int q = stack.front().first, open = stack.front().second;
+        stack.pop_front();
+        if (open) {
+//          std::cerr << "Closing " << q << '\n';
+          dist[q] = 2;
+          s.push_front(q);
         }
         else {
-          visited[q] = 1;
-          // Exploring the neighbours of q.
+//          std::cerr << "Opening " << q << "\n";
+          dist[q] = 1;
+          // push again q in "exit" mode.
+          stack.push_front(std::pair<int,bool>(q,1));
+          NSIntSet nq = dfa->neighbours(q);
           for (NSIntSet::iterator it(nq); it(); ++it) {
             int qi = *it;
-            if (visited[qi] == 0) {
-              s.push_front(qi);
-              dist[qi] = dist[q] + 1;
-            }
-            else if (visited[qi] == 1) {
-              // Loop detected.
+            if (dist[qi] == 1) {
+//              std::cerr << "Loop! " << qi << "\n";
               u = DashedString::_MAX_STR_LENGTH;
               break;
             }
-            else if (dist[q] + 1 > dist[qi]) {
-              // Path already visited.
-              int d = dist[q] + distF[qi] + 1;
-              if (d > u)
-                u = d;
-              for (int j = 0, n = curr.size(); j < n; ++j) {
-                int qj = curr[j];
-                distF[qj] = dist[q] + n - j + distF[qi];
-                visited[qj] = 2;
+            else if (dist[qi] == 0)
+              stack.push_front(std::pair<int,bool>(qi, 0));
+          }
+        }        
+      }
+      if (u != DashedString::_MAX_STR_LENGTH) {
+//        std::cerr << "Topo. sort: "; for (auto x : s) std::cerr << x << " "; std::cerr <<"\n";
+        dist[0] = 0;
+        for (int i = 1; i < n_states; ++i)
+          dist[i] = -1;
+        while (!s.empty()) {
+          int q = s.front();
+          s.pop_front();
+          if (dist[q] != -1) {
+            NSIntSet nq = dfa->neighbours(q);
+            for (NSIntSet::iterator it(nq); it(); ++it) {
+              int qi = *it;
+              if (dist[qi] < dist[q] + 1) {
+                int d = dist[q] + 1;
+                if (d > u)
+                  u = d;
+                dist[qi] = d;
               }
-              curr.clear();            
             }
           }
         }
-      }
+//        std::cerr << "dist: "; for (auto x : dist) std::cerr << x << " "; std::cerr <<"\n";
+      }  
     }
 //    std::cerr << l << ' ' << u << '\n';
     assert (l <= u);
