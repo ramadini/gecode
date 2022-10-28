@@ -211,33 +211,19 @@ let {
 function var int:
 str_match(var string: x, string: regexp) = 
 let {
-  var int: i;
-  constraint 0 <= i /\ i <= str_len(x) /\
-  if i = 0 then
-    not(str_reg(x, ".*" ++ regexp ++ ".*"))
+  var 0..str_ub(x): i;
+  constraint if str_reg("", regexp) then
+    i = 1
   else
-    not(str_reg(str_sub(x, 1, i-1), ".*" ++ regexp ++ ".*")) /\
-        str_reg(str_sub(x, i, str_len(x)), regexp ++ ".*")
+    i <= str_len(x) /\
+    if i = 0 then
+      not(str_reg(x, ".*" ++ regexp ++ ".*"))
+    else
+      not(str_reg(str_sub(x, 1, i-1), ".*" ++ regexp ++ ".*")) /\
+          str_reg(str_sub(x, i, str_len(x)),  regexp ++ ".*")
+    endif
   endif
 } in i;
-
-function var int:
-str_match(var string: x, int: l, int: u, string: regexp) = 
-let {
-  var 0..u-l: i;
-  constraint i <= str_len(x) /\ if i > 0 then
-    str_reg(str_sub(x, i, u), regexp ++ ".*") /\
-    forall (j in 1..i-1) (
-      not(str_reg(str_sub(x, j, u), regexp ++ ".*"))
-    )
-  else
-    forall (j in 1..u-l) (
-      not(str_reg(str_sub(x, j, u), regexp ++ ".*"))
-    )
-  endif
-} in i;
-
-
 
 annotation none;
 annotation lenmin;
