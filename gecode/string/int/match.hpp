@@ -1,20 +1,26 @@
 namespace Gecode { namespace String {
 
   forceinline
-  Match::Match(Home home, StringView x, String::RegEx* R, Gecode::Int::IntView i) // Not RegEx* but stringDFA* s_R_s, stringDFA* R_s, minlen...
+  Match::Match(Home home, StringView x, Gecode::Int::IntView i, stringDFA* R, 
+    stringDFA* R1, int r)
   : MixBinaryPropagator
   <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_BND>
-    (home, x, i) { /*TODO*/ }
+    (home, x, i), sRs(R), Rs(R1), minR(r)  {}
 
   forceinline ExecStatus
-  Match::post(Home home, StringView x, string r, Gecode::Int::IntView i) {    
-    String::RegEx* regex = String::RegExParser(r).parse();
+  Match::post(Home home, StringView x, string re, Gecode::Int::IntView i) {    
+    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();
     if (regex->has_empty()) {
       rel(home, i, IRT_EQ, 1);
       return ES_OK;
     }
-//    TODO
-    (void) new (home) Match(home, x, regex, i); // Not regex but stringDFA* s_R_s, stringDFA* R_s, minlen...
+    stringDFA* R = new stringDFA(regex->dfa());
+    stringDFA* R1 = new stringDFA(RegExParser(re + ").*").parse()->dfa());
+    int r = 0;
+//  TODO: Compute BFS on sRs to find r
+    if (i.gr(home, x.max_length() - r + 1) == Int::ME_INT_FAILED)
+      return ES_FAILED;
+    (void) new (home) Match(home, x, i, R, R1, r);
     return ES_OK;
   }
 
@@ -22,7 +28,7 @@ namespace Gecode { namespace String {
   Match::Match(Space& home, Match& p)
   : MixBinaryPropagator
   <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_BND> 
-    (home, p), s_R_s(p.s_R_s), R_s(p.R_s) {}
+    (home, p), sRs(p.sRs), Rs(p.Rs), minR(p.minR) {}
 
   forceinline Actor*
   Match::copy(Space& home) {
@@ -38,8 +44,8 @@ namespace Gecode { namespace String {
   
   forceinline
   Match::~Match() {
-    delete s_R_s;
-    delete R_s;
+    delete sRs;
+    delete Rs;
   }
 
 }}
