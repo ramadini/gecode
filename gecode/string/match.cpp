@@ -7,8 +7,7 @@ namespace Gecode {
   void
   match(Home home, StringVar x, string r, IntVar i) {
     GECODE_POST;
-    String::RegEx* regex = String::RegExParser(r).parse();
-    GECODE_ES_FAIL(String::Match::post(home, x, regex, i));
+    GECODE_ES_FAIL(String::Match::post(home, x, r, i));
   }
 
 }

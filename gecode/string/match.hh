@@ -7,7 +7,7 @@
 namespace Gecode { namespace String {
 
   // DFA data structure for regular matching.
-  struct stringMDFA {
+//  struct stringMDFA {
 //    typedef std::vector<std::vector<std::pair<int, int>>> delta_t;
 //    int ua;
 //    int ur;
@@ -27,7 +27,7 @@ namespace Gecode { namespace String {
 //    NSIntSet neighbours(int, const DSIntSet&) const;
 //    void compute_univ(const NSIntSet& alphabet);
 //    protected: int nstate(int) const;
-  };
+//  };
 
   /**
    * \brief %Propagator for match.
@@ -45,14 +45,14 @@ namespace Gecode { namespace String {
     /// Constructor for cloning \a p
     Match(Space& home, Match& p);
     /// Constructor for posting
-    Match(Home home, StringView, stringMDFA*, Gecode::Int::IntView);
+    Match(Home home, StringView, String::RegEx*, Gecode::Int::IntView);
   public:
     /// Copy propagator during cloning
     virtual Actor* copy(Space& home);
     /// Perform propagation
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator
-    static ExecStatus post(Home home, StringView x, String::RegEx* r,
+    static ExecStatus post(Home home, StringView x, string r,
       Gecode::Int::IntView i);
     ~Match();
   };

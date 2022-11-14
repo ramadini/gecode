@@ -1,15 +1,16 @@
 namespace Gecode { namespace String {
 
   forceinline
-  Match::Match(Home home, StringView x, stringMDFA* R, Gecode::Int::IntView i)
+  Match::Match(Home home, StringView x, String::RegEx* R, Gecode::Int::IntView i)
   : MixBinaryPropagator
   <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_BND>
-    (home, x, i) { /*TODO: stringMDFA R */ }
+    (home, x, i) { /*TODO: regex R */ }
 
   forceinline ExecStatus
-  Match::post(Home home, StringView x, String::RegEx* r, Gecode::Int::IntView i) {
+  Match::post(Home home, StringView x, string r, Gecode::Int::IntView i) {    
+    String::RegEx* regex = String::RegExParser(r).parse();
     // TODO
-//    (void) new (home) Match(home, x, r, i);
+    (void) new (home) Match(home, x, regex, i);
     return ES_OK;
   }
 
