@@ -36,6 +36,7 @@ namespace Gecode { namespace String {
     virtual bool has_union()  const { return false; }
     virtual bool has_concat() const { return false; }
     virtual bool has_star()   const { return false; }
+    virtual bool has_empty()  const { return false; }
     virtual bool intro_vars() const { return false; }
     //FIXME: post and add only work in a positive context.
     virtual void post(Home, StringVar, VarArgs&)    const = 0;
@@ -61,6 +62,7 @@ namespace Gecode { namespace String {
   public:
     string str() const { return "eps"; }
     bool empty() const { return true;  }
+    bool has_empty() const { return true; }
     bool decomp() const { return true;  }
     string get_string() const { return ""; }
     NSIntSet get_chars() const { return NSIntSet(); }
@@ -92,6 +94,7 @@ namespace Gecode { namespace String {
     string str() const { return "(" + lhs->str() + " ++ " + rhs->str() + ")"; }
     bool decomp() const { return lhs->decomp() && rhs->decomp(); }
     bool empty() const { return lhs->empty() && rhs->empty(); }
+    bool has_empty() const { return lhs->has_empty() && rhs->has_empty(); }
     bool has_star() const { return lhs->has_star() || rhs->has_star(); }
     bool has_union() const {
       if (lhs->empty())
@@ -206,6 +209,7 @@ namespace Gecode { namespace String {
       string str() const { return "(" + lhs->str() + " & " + rhs->str() + ")"; }
       bool decomp() const { return lhs->decomp() && rhs->decomp(); }
       bool empty() const { return lhs->empty() && rhs->empty(); }
+      bool has_empty() const { return lhs->has_empty() && rhs->has_empty(); }
       bool has_star() const { return lhs->has_star() || rhs->has_star(); }
       bool has_union() const { return lhs->has_union() || rhs->has_union(); }
       bool has_concat() const { return lhs->has_concat() || rhs->has_concat(); }
@@ -281,6 +285,7 @@ namespace Gecode { namespace String {
     string str() const { return "(" + lhs->str() + " | " + rhs->str() + ")"; }
     bool decomp()  const { return lhs->decomp() && rhs->decomp(); }
     bool empty() const { return lhs->empty() && rhs->empty(); }
+    bool has_empty() const { return lhs->has_empty() || rhs->has_empty(); }
     bool has_star() const { return lhs->has_star() || rhs->has_star(); }
     bool has_union()  const { return !empty(); }
     bool intro_vars() const { return !empty(); }
@@ -376,6 +381,7 @@ namespace Gecode { namespace String {
       return !base->has_star() && !(has_union() && has_concat());
     }
     bool empty() const { return base->empty(); }
+    bool has_empty() const { return true; }
     bool has_star() const { return !empty(); }
     bool has_union() const { return base->has_union(); }
     bool has_concat() const { return base->has_concat(); }

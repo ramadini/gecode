@@ -1,33 +1,10 @@
-#ifndef __GECODE_STRING_EXT_HH__
-#define __GECODE_STRING_EXT_HH__
+#ifndef __GECODE_STRING_MATCH_HH__
+#define __GECODE_STRING_MATCH_HH__
 
 #include <gecode/string/extensional.hh>
 #include <gecode/string/ext/parse-reg.hpp>
 
 namespace Gecode { namespace String {
-
-  // DFA data structure for regular matching.
-//  struct stringMDFA {
-//    typedef std::vector<std::vector<std::pair<int, int>>> delta_t;
-//    int ua;
-//    int ur;
-//    int n_states;
-//    int final_fst;
-//    int final_lst;
-//    delta_t delta;
-//    stringDFA(const DFA&);
-//    void negate(const NSIntSet&);
-//    bool final(int) const;
-//    int search(int, int) const;
-//    bool accepted(string) const;
-//    bool univ_accepted(const NSIntSet& Q) const;
-//    bool univ_rejected(const NSIntSet& Q) const;
-//    NSIntSet alphabet() const;
-//    NSIntSet neighbours(int) const;
-//    NSIntSet neighbours(int, const DSIntSet&) const;
-//    void compute_univ(const NSIntSet& alphabet);
-//    protected: int nstate(int) const;
-//  };
 
   /**
    * \brief %Propagator for match.
@@ -35,8 +12,9 @@ namespace Gecode { namespace String {
    */
   class Match : public MixBinaryPropagator
     <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_BND> {
-//  private:
-//    stringMDFA* dfa;
+  private:
+    stringDFA* s_R_s;
+    stringDFA* R_s;
   protected:
     using MixBinaryPropagator<StringView, PC_STRING_DOM, Gecode::Int::IntView, 
       Gecode::Int::PC_INT_BND>::x0;
