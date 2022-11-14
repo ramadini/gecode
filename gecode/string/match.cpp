@@ -5,9 +5,10 @@
 namespace Gecode {
 
   void
-  match(Home home, StringVar x, String::RegEx* r, IntVar i) {
+  match(Home home, StringVar x, string r, IntVar i) {
     GECODE_POST;
-    GECODE_ES_FAIL(String::Match::post(home, x, r, i));
+    String::RegEx* regex = String::RegExParser(r).parse();
+    GECODE_ES_FAIL(String::Match::post(home, x, regex, i));
   }
 
 }

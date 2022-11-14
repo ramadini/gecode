@@ -354,6 +354,9 @@ namespace Gecode {
   GECODE_STRING_EXPORT void
   extensional(Home home, StringVar x, const std::vector<std::string>& a);
 
+  GECODE_STRING_EXPORT void
+  match(Home home, StringVar x, string expr, IntVar i);
+
   // Post propagator for \f$ a[i] = x \f$
   GECODE_STRING_EXPORT void
   element(Home home, StringVarArgs a, IntVar i, StringVar x);
