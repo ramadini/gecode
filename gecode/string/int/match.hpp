@@ -15,11 +15,34 @@ namespace Gecode { namespace String {
       return ES_OK;
     }
     stringDFA* R = new stringDFA(regex->dfa());
-    stringDFA* R1 = new stringDFA(RegExParser(re + ").*").parse()->dfa());
-    int r = 0;
-//  TODO: Compute BFS on sRs to find r
+    // BFS to find minimal-length word accepted by R.
+    int r = 0, n = R->n_states;
+    std::vector<int> dist(n);    
+    for (int i = 0; i < n; ++i)
+      dist[i] = DashedString::_MAX_STR_LENGTH;        
+    std::list<int> s;
+    s.push_back(0);
+    dist[0] = 0;
+    while (!s.empty()) {
+      int q = s.front();
+      s.pop_front();
+      if (R->final(q)) {
+        r = dist[q];
+        break;
+      }
+      NSIntSet nq = R->neighbours(q);
+      for (NSIntSet::iterator it(nq); it(); ++it) {
+        int a = dist[q] + 1, x = *it;
+        if (a < dist[x]) {
+          dist[x] = a;
+          s.push_back(x);
+        }
+      }
+    }
+    assert (r > 0);
     if (i.gr(home, x.max_length() - r + 1) == Int::ME_INT_FAILED)
-      return ES_FAILED;
+      return ES_FAILED;    
+    stringDFA* R1 = new stringDFA(RegExParser(re + ".*").parse()->dfa());
     (void) new (home) Match(home, x, i, R, R1, r);
     return ES_OK;
   }
