@@ -57,7 +57,7 @@ namespace Gecode { namespace String {
     static NSBlocks dom(stringDFA*);
     static std::vector<NSIntSet> reach_fwd(
       stringDFA*, const NSIntSet&, const DSBlock&,
-    bool reif = false, bool bwd = false
+      bool reif = false, bool bwd = false
     );
     static NSBlocks reach_bwd(stringDFA*, 
       const std::vector<NSIntSet>&, NSIntSet&, const DSBlock&, bool&,

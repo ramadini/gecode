@@ -16,6 +16,7 @@ namespace Gecode { namespace String {
     stringDFA* sRs;
     stringDFA* Rs;
     int minR;
+    std::pair<NSIntSet,int> checkBlock(const DSBlock&, const NSIntSet&);
   protected:
     using MixBinaryPropagator<StringView, PC_STRING_DOM, Gecode::Int::IntView, 
       Gecode::Int::PC_INT_BND>::x0;

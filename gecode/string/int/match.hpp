@@ -15,6 +15,8 @@ namespace Gecode { namespace String {
       return ES_OK;
     }
     stringDFA* R = new stringDFA(regex->dfa());
+    assert (R->final(1) && R->final_lst == 1);
+    assert (R->neighbours(1) == NSIntSet(1));
     // BFS to find minimal-length word accepted by R.
     int r = 0, n = R->n_states;
     std::vector<int> dist(n);    
@@ -58,6 +60,57 @@ namespace Gecode { namespace String {
     return new (home) Match(home, *this);
   }
 
+  forceinline std::pair<NSIntSet,int>
+  Match::checkBlock(const DSBlock& b, const NSIntSet& Q) {
+    int l = b.l, j = 0;
+    NSIntSet Q_prev = Q;
+    // Mandatory region.
+    for (int i = 0; i < l; ++i) {
+      NSIntSet Qi;
+      for (NSIntSet::iterator it(Q_prev); it(); ++it)
+        Qi.include(sRs->neighbours(*it, b.S));
+      if (Qi.max() == 0)
+        // All paths lead to q0.
+        j = i;
+      else if (Qi.in(1))
+        // Final state q1 belongs to Qi.
+        return std::make_pair(Qi, j);
+      if (Qi == Q_prev)
+        // Fixpoint.
+        return std::make_pair(Qi, Qi.max() == 0 ? l : j);
+      Q_prev = Qi;
+    }
+    // BFS over optional region.
+    int dist[sRs->n_states];
+    for (int q = 0; q < sRs->n_states; ++q)
+      dist[q] = Q_prev.contains(q) ? l : DashedString::_MAX_STR_LENGTH + 1;
+    std::list<int> U;
+    for (NSIntSet::iterator i(Q_prev); i(); ++i)
+      U.push_back(*i);    
+    while (!U.empty()) {
+      int q = U.front(), d = dist[q] + 1;
+      U.pop_front();
+      if (d <= b.u) {
+        NSIntSet Nq = sRs->neighbours(q, b.S);
+        if (Nq.in(1))
+          // Final state in the neighbourhood of q.
+          return std::make_pair(Nq, j);
+        for (NSIntSet::iterator j(Nq); j(); ++j) {
+          int q1 = *j;
+          if (dist[q1] > d) {
+            U.push_back(q1);
+            dist[q1] = d;
+          }
+        }
+      }
+    }
+    NSIntSet Qf;
+    for (int q = 0; q < sRs->n_states; ++q)
+      if (dist[q] <= DashedString::_MAX_STR_LENGTH)
+        Qf.add(q);
+    return std::make_pair(Qf, j);
+  }
+
   forceinline ExecStatus
   Match::propagate(Space& home, const ModEventDelta& med) {
     //FIXME: To handle the case where x0 is fixed, we need to keep track of the 
@@ -77,6 +130,8 @@ namespace Gecode { namespace String {
       return home.ES_SUBSUMED(*this);
     }
     // TODO
+
+    
 //    class RegProp : public Reg {
 //    public:
 //      RegProp(Home home, StringView x, stringDFA* d) :
