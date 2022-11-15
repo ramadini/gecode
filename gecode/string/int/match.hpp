@@ -115,23 +115,66 @@ namespace Gecode { namespace String {
   Match::propagate(Space& home, const ModEventDelta& med) {
     //FIXME: To handle the case where x0 is fixed, we need to keep track of the 
     // original regex and take into account C++ regex syntax/semantics.
-    if (x1.assigned()) {
-      int k = x1.val();
-      sRs->negate(x0.may_chars());
-      if (k == 0)
-        GECODE_REWRITE(*this, Reg::post(home, x0, sRs));
-      // Rewrite into x = yz, |y| = k-1, ¬regular(y, sRs), regular(z, Rs)
-      StringVar y(home), z(home);
-      rel(home, y, z, STRT_CAT, x0);
-      k--;
-      length(home, y, IntVar(home, k, k));      
-      Reg::post(home, y, sRs);
-      Reg::post(home, z, Rs);
-      return home.ES_SUBSUMED(*this);
-    }
-    // TODO
-
-    
+    do {
+      if (x1.assigned()) {
+        int k = x1.val();
+        sRs->negate(x0.may_chars());
+        if (k == 0)
+          GECODE_REWRITE(*this, Reg::post(home, x0, sRs));
+        // Rewrite into x = yz, |y| = k-1, ¬regular(y, sRs), regular(z, Rs)
+        StringVar y(home), z(home);
+        rel(home, y, z, STRT_CAT, x0);
+        k--;
+        length(home, y, IntVar(home, k, k));      
+        Reg::post(home, y, sRs);
+        Reg::post(home, z, Rs);
+        return home.ES_SUBSUMED(*this);
+      }
+      int i = 0, j = 0, k = 0, h = 0, n = x0.pdomain()->length();
+      NSIntSet Q(0);
+      while (i < n && !Q.in(1)) {
+        //FIXME: Positions are implemented as 0-based, not 1-based.
+        std::pair<NSIntSet,int> p = checkBlock(x0.pdomain()->at(i), Q);
+        Q = p.first;
+        j = p.second;
+        if (Q.size() == 1 && Q.max() == 0) {
+          h = i;
+          k = j;
+        }
+        ++i;
+      }
+      if (!Q.in(1))
+        // No match.
+        return me_failed(x1.eq(home,0)) ? ES_FAILED : ES_OK;
+      if (Q.size() == 1 && Q.max() == 1) {
+        // Surely a match: possibly refining lower and upper bound of x1.
+        if (me_failed(x1.gq(home, 1)))
+          return ES_FAILED;
+        if (i < n) {
+          int u;
+          for (int j = 0, u = -minR + 1; j < i; ++j)
+            u += x0.pdomain()->at(j).u;
+          if (me_failed(x1.lq(home, u)))
+            return ES_FAILED;
+        }
+      }
+      // FIXME: Check positions/offsets!!!
+      int l, m = x1.min();
+      for (int j = 0, l = k + 1; j < h && l <= m; ++j)
+        l += x0.pdomain()->at(j).l;
+      if (l > m)
+        l = m;
+      if (Q.in(0)) {
+        // Can't refine x1.
+        if (l > 1) {
+          IntSet s(1, l-1);
+          IntSetRanges is(s);
+          if (me_failed(x1.minus_r(home, is)))
+            return ES_FAILED;
+        }
+        return ES_OK;
+      }
+      // TODO: x_pref ← X[..., (h,k)], X'' ← X[(h,k), ...]
 //    class RegProp : public Reg {
 //    public:
 //      RegProp(Home home, StringView x, stringDFA* d) :
@@ -141,7 +184,8 @@ namespace Gecode { namespace String {
 //    RegProp p2(home, x0, Rs);
 //    p1.propagate(home, med);
 //    p2.propagate(home, med);
-//  FIXME: home.ES_SUBSUMED(p1); home.ES_SUBSUMED(p2); ???
+//    FIXME: home.ES_SUBSUMED(p1); home.ES_SUBSUMED(p2); ???
+    } while (x0.assigned() || x1.assigned());
     assert (x0.pdomain()->is_normalized());
     return ES_FIX;
   }

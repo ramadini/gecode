@@ -44,7 +44,7 @@ namespace Gecode { namespace String {
   forceinline int null(char) { return false; }
 
   struct Position {
-    int idx; // Block
+    int idx; // Block. FIXME: Blocks are 0-based, not 1-based.
     int off; // How far into the block?
 
     forceinline bool
