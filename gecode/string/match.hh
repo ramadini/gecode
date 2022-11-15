@@ -13,8 +13,9 @@ namespace Gecode { namespace String {
   class Match : public MixBinaryPropagator
     <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_BND> {
   private:
-    stringDFA* sRs;
     stringDFA* Rs;
+    stringDFA* sRs;    
+    stringDFA* sRsC;
     int minR;
     std::pair<NSIntSet,int> checkBlock(const DSBlock&, const NSIntSet&) const;
     NSBlocks prefix(int,int) const;

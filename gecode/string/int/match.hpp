@@ -5,7 +5,7 @@ namespace Gecode { namespace String {
     stringDFA* R1, int r)
   : MixBinaryPropagator
   <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_BND>
-    (home, x, i), sRs(R), Rs(R1), minR(r)  {}
+    (home, x, i), sRsC(nullptr), sRs(R), Rs(R1), minR(r)  {}
 
   forceinline ExecStatus
   Match::post(Home home, StringView x, string re, Gecode::Int::IntView i) {    
@@ -53,7 +53,7 @@ namespace Gecode { namespace String {
   Match::Match(Space& home, Match& p)
   : MixBinaryPropagator
   <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_BND> 
-    (home, p), sRs(p.sRs), Rs(p.Rs), minR(p.minR) {}
+    (home, p), sRsC(p.sRsC), sRs(p.sRs), Rs(p.Rs), minR(p.minR) {}
 
   forceinline Actor*
   Match::copy(Space& home) {
@@ -221,9 +221,11 @@ namespace Gecode { namespace String {
           k -= px.at(h).u;
         }
         NSBlocks pref = prefix(h, k);
-        stringDFA* CsRs = new stringDFA(*sRs);
-        CsRs->negate(x0.may_chars());
-        RegProp p_pref(home, x_pref, CsRs);
+        if (sRsC == nullptr) {
+          sRsC = new stringDFA(*sRs);
+          sRsC->negate(x0.may_chars());
+        }
+        RegProp p_pref(home, x_pref, sRsC);
         p_pref.propagate(home, med);
       }
       else
