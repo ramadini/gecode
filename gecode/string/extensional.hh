@@ -23,7 +23,8 @@ namespace Gecode { namespace String {
     NSIntSet neighbours(int) const;
     NSIntSet neighbours(int, const DSIntSet&) const;
     void compute_univ(const NSIntSet& alphabet);
-    protected: int nstate(int) const;
+    protected:
+      int nstate(int) const;
   };
 
   // Complete DFA for reified regular.

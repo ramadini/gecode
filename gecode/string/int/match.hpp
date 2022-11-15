@@ -63,11 +63,11 @@ namespace Gecode { namespace String {
   forceinline NSBlocks
   Match::prefix(int idx, int off) const {
     NSBlocks pref;
-    DashedString* px = x0.pdomain();
+    DashedString& px = *x0.pdomain();
     for (int i = 0; i < idx; ++i)
-      pref.push_back(NSBlock(px->at(i)));
+      pref.push_back(NSBlock(px.at(i)));
     if (off > 0) {
-      const DSBlock& b = px->at(idx);
+      const DSBlock& b = px.at(idx);
       pref.push_back(NSBlock(b.S, off < b.l ? off : b.l, off));
     }
     return pref;
@@ -76,13 +76,13 @@ namespace Gecode { namespace String {
   forceinline NSBlocks
   Match::suffix(int idx, int off) const {
     NSBlocks suff;
-    DashedString* px = x0.pdomain();
-    if (off < px->at(idx).u) {
-      const DSBlock& b = px->at(idx);
+    DashedString& px = *x0.pdomain();
+    if (off < px.at(idx).u) {
+      const DSBlock& b = px.at(idx);
       suff.push_back(NSBlock(b.S, max(0, b.l - off), b.u - off));
     }
-    for (int i = idx + 1; i < px->length(); ++i)
-      suff.push_back(NSBlock(px->at(i)));
+    for (int i = idx + 1; i < px.length(); ++i)
+      suff.push_back(NSBlock(px.at(i)));
     return suff;
   }
 
@@ -142,6 +142,7 @@ namespace Gecode { namespace String {
     //FIXME: To handle the case where x0 is fixed, we need to keep track of the 
     // original regex and take into account C++ regex syntax/semantics.
     do {
+      DashedString& px = *x0.pdomain();
       if (x1.assigned()) {
         int k = x1.val();
         sRs->negate(x0.may_chars());
@@ -156,11 +157,11 @@ namespace Gecode { namespace String {
         Reg::post(home, z, Rs);
         return home.ES_SUBSUMED(*this);
       }
-      int i = 0, j = 0, k = 0, h = 0, n = x0.pdomain()->length();
+      int i = 0, j = 0, k = 0, h = 0, n = px.length();
       NSIntSet Q(0);
       while (i < n && !Q.in(1)) {
         //FIXME: Positions are implemented as 0-based, not 1-based.
-        std::pair<NSIntSet,int> p = checkBlock(x0.pdomain()->at(i), Q);
+        std::pair<NSIntSet,int> p = checkBlock(px.at(i), Q);
         Q = p.first;
         j = p.second;
         if (Q.size() == 1 && Q.max() == 0) {
@@ -174,20 +175,18 @@ namespace Gecode { namespace String {
         return me_failed(x1.eq(home,0)) ? ES_FAILED : ES_OK;
       if (Q.size() == 1 && Q.max() == 1) {
         // Surely a match: possibly refining lower and upper bound of x1.
-        if (me_failed(x1.gq(home, 1)))
-          return ES_FAILED;
+        GECODE_ME_CHECK(x1.gq(home, 1));
         if (i < n) {
           int u;
           for (int j = 0, u = -minR + 1; j < i; ++j)
-            u += x0.pdomain()->at(j).u;
-          if (me_failed(x1.lq(home, u)))
-            return ES_FAILED;
+            u += px.at(j).u;
+          GECODE_ME_CHECK(x1.lq(home, u));
         }
       }
       // FIXME: Check positions/offsets!!!
       int l, m = x1.min();
       for (int j = 0, l = k + 1; j < h && l <= m; ++j)
-        l += x0.pdomain()->at(j).l;
+        l += px.at(j).l;
       if (l > m)
         l = m;
       if (Q.in(0)) {
@@ -195,26 +194,60 @@ namespace Gecode { namespace String {
         if (l > 1) {
           IntSet s(1, l-1);
           IntSetRanges is(s);
-          if (me_failed(x1.minus_r(home, is)))
-            return ES_FAILED;
+          GECODE_ME_CHECK(x1.minus_r(home, is));
         }
         return ES_OK;
       }
-      NSBlocks x_pref = prefix(h,k);
-      NSBlocks x_suff = suffix(h,k);
-      // TODO: x_pref ← X[..., (h,k)], X'' ← X[(h,k), ...]
-//    class RegProp : public Reg {
-//    public:
-//      RegProp(Home home, StringView x, stringDFA* d) :
-//        Reg(home, x, d) {};
-//    };
-//    RegProp p1(home, x0, sRs);
-//    RegProp p2(home, x0, Rs);
-//    p1.propagate(home, med);
-//    p2.propagate(home, med);
-//    FIXME: home.ES_SUBSUMED(p1); home.ES_SUBSUMED(p2); ???
+      // General case:
+      class RegProp : public Reg {
+      public:
+        RegProp(Home home, StringView x, stringDFA* d) : Reg(home, x, d) {};
+      };
+      StringVar x_pref(home), x_suff(home);
+      double x_dim = px.logdim();
+      int maxl = x0.max_length();
+      NSBlocks pref, suff = suffix(h, k);
+      if (l > x1.min()) {
+        // Lower bound improved.
+        GECODE_ME_CHECK(x1.gq(home, l));
+        if (x1.size() == 1)
+          continue;
+      }
+      else if (l > x1.min()) {
+        // Updating (h,k) from the lower bound of x1.
+        h = 0, k = x1.min() - 1;
+        while (h < n && k >= px.at(h).u) {
+          h++;
+          k -= px.at(h).u;
+        }
+        NSBlocks pref = prefix(h, k);
+        stringDFA* CsRs = new stringDFA(*sRs);
+        CsRs->negate(x0.may_chars());
+        RegProp p_pref(home, x_pref, CsRs);
+        p_pref.propagate(home, med);
+      }
+      else
+        pref = prefix(h, k);
+      RegProp p_suff(home, x_suff, Rs);
+      p_suff.propagate(home, med);        
+      if (x0.max_length() < maxl) {
+        int r = x0.max_length() - minR + 1;
+        GECODE_ME_CHECK(x1.lq(home, r));
+      }
+      if (px.logdim() < x_dim) {
+        // Udpating x0.
+        NSBlocks x_new;
+        pref.concat(suff, x_new);
+        if (pref.back() == suff.front())
+          x_new.normalize();
+        StringDelta d(true);
+        px.update(home, x_new);
+        GECODE_ME_CHECK(x0.varimp()->notify(
+          home, x0.assigned() ? ME_STRING_VAL : ME_STRING_DOM, d)
+        );
+      }
+      assert (px.is_normalized());
     } while (x0.assigned() || x1.assigned());
-    assert (x0.pdomain()->is_normalized());
     return ES_FIX;
   }
   
