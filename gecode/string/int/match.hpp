@@ -60,8 +60,34 @@ namespace Gecode { namespace String {
     return new (home) Match(home, *this);
   }
 
+  forceinline NSBlocks
+  Match::prefix(int idx, int off) const {
+    NSBlocks pref;
+    DashedString* px = x0.pdomain();
+    for (int i = 0; i < idx; ++i)
+      pref.push_back(NSBlock(px->at(i)));
+    if (off > 0) {
+      const DSBlock& b = px->at(idx);
+      pref.push_back(NSBlock(b.S, off < b.l ? off : b.l, off));
+    }
+    return pref;
+  }
+  
+  forceinline NSBlocks
+  Match::suffix(int idx, int off) const {
+    NSBlocks suff;
+    DashedString* px = x0.pdomain();
+    if (off < px->at(idx).u) {
+      const DSBlock& b = px->at(idx);
+      suff.push_back(NSBlock(b.S, max(0, b.l - off), b.u - off));
+    }
+    for (int i = idx + 1; i < px->length(); ++i)
+      suff.push_back(NSBlock(px->at(i)));
+    return suff;
+  }
+
   forceinline std::pair<NSIntSet,int>
-  Match::checkBlock(const DSBlock& b, const NSIntSet& Q) {
+  Match::checkBlock(const DSBlock& b, const NSIntSet& Q) const {
     int l = b.l, j = 0;
     NSIntSet Q_prev = Q;
     // Mandatory region.
@@ -174,6 +200,8 @@ namespace Gecode { namespace String {
         }
         return ES_OK;
       }
+      NSBlocks x_pref = prefix(h,k);
+      NSBlocks x_suff = suffix(h,k);
       // TODO: x_pref ← X[..., (h,k)], X'' ← X[(h,k), ...]
 //    class RegProp : public Reg {
 //    public:
