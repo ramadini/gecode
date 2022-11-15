@@ -60,7 +60,33 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   Match::propagate(Space& home, const ModEventDelta& med) {
+    //FIXME: To handle the case where x0 is fixed, we need to keep track of the 
+    // original regex and take into account C++ regex syntax/semantics.
+    if (x1.assigned()) {
+      int k = x1.val();
+      sRs->negate(x0.may_chars());
+      if (k == 0)
+        GECODE_REWRITE(*this, Reg::post(home, x0, sRs));
+      // Rewrite into x = yz, |y| = k-1, ¬regular(y, sRs), regular(z, Rs)
+      StringVar y(home), z(home);
+      rel(home, y, z, STRT_CAT, x0);
+      k--;
+      length(home, y, IntVar(home, k, k));      
+      Reg::post(home, y, sRs);
+      Reg::post(home, z, Rs);
+      return home.ES_SUBSUMED(*this);
+    }
     // TODO
+//    class RegProp : public Reg {
+//    public:
+//      RegProp(Home home, StringView x, stringDFA* d) :
+//        Reg(home, x, d) {};
+//    };
+//    RegProp p1(home, x0, sRs);
+//    RegProp p2(home, x0, Rs);
+//    p1.propagate(home, med);
+//    p2.propagate(home, med);
+//  FIXME: home.ES_SUBSUMED(p1); home.ES_SUBSUMED(p2); ???
     assert (x0.pdomain()->is_normalized());
     return ES_FIX;
   }
