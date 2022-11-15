@@ -9,7 +9,7 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   Match::post(Home home, StringView x, string re, Gecode::Int::IntView i) {    
-    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();
+    String::RegEx* regex = RegExParser(".*" + re + ".*").parse();    
     if (regex->has_empty()) {
       rel(home, i, IRT_EQ, 1);
       return ES_OK;
@@ -29,6 +29,7 @@ namespace Gecode { namespace String {
       int q = s.front();
       s.pop_front();
       if (R->final(q)) {
+        assert (q == 1);
         r = dist[q];
         break;
       }
@@ -41,9 +42,7 @@ namespace Gecode { namespace String {
         }
       }
     }
-    assert (r > 0);
-    if (i.gr(home, x.max_length() - r + 1) == Int::ME_INT_FAILED)
-      return ES_FAILED;    
+    GECODE_ME_CHECK(i.le(home, x.max_length() - r + 1));
     stringDFA* R1 = new stringDFA(RegExParser(re + ".*").parse()->dfa());
     (void) new (home) Match(home, x, i, R, R1, r);
     return ES_OK;
@@ -139,9 +138,10 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   Match::propagate(Space& home, const ModEventDelta& med) {
-    //FIXME: To handle the case where x0 is fixed, we need to keep track of the 
-    // original regex and take into account C++ regex syntax/semantics.
+    std::cerr << "\nMatch::propagate: " << x1 << " = Match " << *sRs << " in " << x0 << "\n";
     do {
+      //FIXME: To handle the case where x0 is fixed, we need to keep track of the 
+      // original regex and take into account C++ regex syntax/semantics.
       DashedString& px = *x0.pdomain();
       if (x1.assigned()) {
         int k = x1.val();
@@ -177,8 +177,8 @@ namespace Gecode { namespace String {
         // Surely a match: possibly refining lower and upper bound of x1.
         GECODE_ME_CHECK(x1.gq(home, 1));
         if (i < n) {
-          int u;
-          for (int j = 0, u = -minR + 1; j < i; ++j)
+          int u = -minR + 1;
+          for (int j = 0; j < i; ++j)
             u += px.at(j).u;
           GECODE_ME_CHECK(x1.lq(home, u));
         }
@@ -250,6 +250,7 @@ namespace Gecode { namespace String {
       }
       assert (px.is_normalized());
     } while (x0.assigned() || x1.assigned());
+    std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";    
     return ES_FIX;
   }
   
