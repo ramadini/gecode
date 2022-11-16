@@ -135,6 +135,55 @@ namespace Gecode { namespace String {
         Qf.add(q);
     return std::make_pair(Qf, j);
   }
+  
+  forceinline ExecStatus
+  Match::propagateReg(Space& home, StringView& x, stringDFA* d) {
+    if (x.assigned())
+      return d->accepted(x.val()) ? ES_FIX : ES_FAILED;
+    d->compute_univ(x.may_chars());
+    DashedString* px = x.pdomain();
+    std::vector<std::vector<NSIntSet>> F(px->length());
+    NSIntSet Fi(0);
+    int n = px->length();
+    for (int i = 0; i < n; ++i) {
+      F[i] = Reg::reach_fwd(d, Fi, px->at(i));
+      if (F[i].empty())
+        return ES_FAILED;
+      Fi = F[i].back();
+      if (d->univ_rejected(Fi))
+        return ES_FAILED;
+    }
+    NSIntSet E(F.back().back());
+    NSBlocks y[n];
+    Fi = NSIntSet(d->final_fst, d->final_lst);
+    E.intersect(Fi);
+    if (E.empty())
+      return ES_FAILED;
+    bool changed = false;
+    int k = 0;
+    for (int i = n - 1; i >= 0; --i) {
+      y[i] = Reg::reach_bwd(d, F[i], E, px->at(i), changed);
+      k += y[i].size();
+    }
+    if (changed) {
+      NSBlocks z;
+      for (auto yi : y)
+        for (auto yij: yi) {
+          if (yij.null())
+            continue;
+          if (!z.empty() && z.back().S == yij.S) {
+            z.back().l += yij.l;
+            z.back().u += yij.u;
+          }
+          else
+            z.push_back(yij);
+        }
+      z.empty() ? px->set_null(home) : px->update(home, z);
+      assert (x.pdomain()->is_normalized());
+      return ES_NOFIX;
+    }
+    return ES_FIX;
+  }
 
   forceinline ExecStatus
   Match::propagate(Space& home, const ModEventDelta& med) {
@@ -198,16 +247,10 @@ namespace Gecode { namespace String {
         std::cerr << "\nMatch::propagated: " << x1 << ' ' << x0 << "\n";
         return ES_FIX;
       }
-      // General case:
-      // FIXME: This shortcut is now working. We need to implement a function 
-      //        for propagating regular on pref/suff.
-      class RegProp : public Reg {
-      public:
-        RegProp(Home home, StringView x, stringDFA* d) : Reg(home, x, d) {};
-      };
+      // General case.
       StringView x_pref(home), x_suff(home);
-      double x_dim = px.logdim();
       NSBlocks pref, suff = suffix(h, k);
+      int es_pref = ES_FIX;
       if (l > x1.min()) {
         // Lower bound improved.
         GECODE_ME_CHECK(x1.gq(home, l));
@@ -228,27 +271,28 @@ namespace Gecode { namespace String {
           sRsC->negate(x0.may_chars());
         }
         x_pref.pdomain()->update(home, pref);
-        RegProp p_pref(home, x_pref, sRsC);
-        p_pref.propagate(home, med);
+        es_pref = propagateReg(home, x_pref, sRsC);
+        if (es_pref == ES_FAILED)
+          return ES_FAILED;
       }
       else
         pref = prefix(h, k);
       std::cerr << "Pref: " << pref << "\n";
       std::cerr << "Suff: " << suff << "\n";
       x_suff.pdomain()->update(home, suff);
-      RegProp p_suff(home, x_suff, Rs);
-      p_suff.propagate(home, med);
-      if (px.logdim() < x_dim) {
+      int es_suff = propagateReg(home, x_suff, Rs);
+      if (es_suff == ES_FAILED)
+        return ES_FAILED;
+      if (es_pref == ES_NOFIX || es_suff == ES_NOFIX) {
         // Udpating x0.
         NSBlocks x_new;
         NSBlocks(*x_pref.pdomain()).concat(NSBlocks(*x_suff.pdomain()), x_new);
-        if (pref.back() == suff.front())
-          x_new.normalize();
+        x_new.normalize();
         StringDelta d(true);
         px.update(home, x_new);
         GECODE_ME_CHECK(x0.varimp()->notify(
-          home, x0.assigned() ? ME_STRING_VAL : ME_STRING_DOM, d)
-        );
+          home, x0.assigned() ? ME_STRING_VAL : ME_STRING_DOM, d
+        ));
       }
       GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
       assert (px.is_normalized());
