@@ -6,7 +6,10 @@ using namespace Gecode;
 using namespace String;
 
 std::vector<string> PATTERNS({
-  "(acc|rg|bc)", "ea(c|d)*", //"dqdrd*", "qqhx(ad|ew)*"
+  "(acc|rg|bc)", 
+  "ea(c|d)*", 
+  "dqdrd*", 
+  "qqhx(ad|ew)*"
 });
 
 int N = -1;
