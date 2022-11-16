@@ -138,51 +138,58 @@ namespace Gecode { namespace String {
   
   forceinline ExecStatus
   Match::propagateReg(Space& home, StringView& x, stringDFA* d) {
+    std::cerr << "\npropagateReg: "<<x<<" in "<<*d<<std::endl;
     if (x.assigned())
       return d->accepted(x.val()) ? ES_FIX : ES_FAILED;
-    d->compute_univ(x.may_chars());
-    DashedString* px = x.pdomain();
-    std::vector<std::vector<NSIntSet>> F(px->length());
-    NSIntSet Fi(0);
-    int n = px->length();
-    for (int i = 0; i < n; ++i) {
-      F[i] = Reg::reach_fwd(d, Fi, px->at(i));
-      if (F[i].empty())
+    bool changed, nofix = false;
+    do {
+      d->compute_univ(x.may_chars());
+      DashedString* px = x.pdomain();
+      std::vector<std::vector<NSIntSet>> F(px->length());
+      NSIntSet Fi(0);
+      int n = px->length();
+      for (int i = 0; i < n; ++i) {
+        F[i] = Reg::reach_fwd(d, Fi, px->at(i));
+        if (F[i].empty())
+          return ES_FAILED;
+        Fi = F[i].back();
+        if (d->univ_rejected(Fi))
+          return ES_FAILED;
+      }
+      NSIntSet E(F.back().back());
+      NSBlocks y[n];
+      Fi = NSIntSet(d->final_fst, d->final_lst);
+      E.intersect(Fi);
+      if (E.empty())
         return ES_FAILED;
-      Fi = F[i].back();
-      if (d->univ_rejected(Fi))
-        return ES_FAILED;
-    }
-    NSIntSet E(F.back().back());
-    NSBlocks y[n];
-    Fi = NSIntSet(d->final_fst, d->final_lst);
-    E.intersect(Fi);
-    if (E.empty())
-      return ES_FAILED;
-    bool changed = false;
-    int k = 0;
-    for (int i = n - 1; i >= 0; --i) {
-      y[i] = Reg::reach_bwd(d, F[i], E, px->at(i), changed);
-      k += y[i].size();
-    }
-    if (changed) {
-      NSBlocks z;
-      for (auto yi : y)
-        for (auto yij: yi) {
-          if (yij.null())
-            continue;
-          if (!z.empty() && z.back().S == yij.S) {
-            z.back().l += yij.l;
-            z.back().u += yij.u;
+      changed = false;
+      int k = 0;
+      for (int i = n - 1; i >= 0; --i) {
+        y[i] = Reg::reach_bwd(d, F[i], E, px->at(i), changed);
+        k += y[i].size();
+      }
+      if (changed) {
+        nofix = true;
+        NSBlocks z;
+        for (auto yi : y)
+          for (auto yij: yi) {
+            if (yij.null())
+              continue;
+            if (!z.empty() && z.back().S == yij.S) {
+              z.back().l += yij.l;
+              z.back().u += yij.u;
+            }
+            else
+              z.push_back(yij);
           }
-          else
-            z.push_back(yij);
-        }
-      z.empty() ? px->set_null(home) : px->update(home, z);
-      assert (x.pdomain()->is_normalized());
-      return ES_NOFIX;
-    }
-    return ES_FIX;
+        z.empty() ? px->set_null(home) : px->update(home, z);
+        std::cerr << "changed: " << x << '\n';
+        assert (x.pdomain()->is_normalized());
+        if (x.assigned())
+          return ES_FIX;
+      }
+    } while (changed);
+    return nofix ? ES_NOFIX : ES_FIX;
   }
 
   forceinline ExecStatus
@@ -286,8 +293,10 @@ namespace Gecode { namespace String {
       if (es_pref == ES_NOFIX || es_suff == ES_NOFIX) {
         // Udpating x0.
         NSBlocks x_new;
-        NSBlocks(*x_pref.pdomain()).concat(NSBlocks(*x_suff.pdomain()), x_new);
+        (es_pref == ES_NOFIX ? NSBlocks(*x_pref.pdomain()) : pref).concat(
+         es_suff == ES_NOFIX ? NSBlocks(*x_suff.pdomain()) : suff, x_new);
         x_new.normalize();
+        std::cerr << "x_new: " << x_new << '\n';
         StringDelta d(true);
         px.update(home, x_new);
         GECODE_ME_CHECK(x0.varimp()->notify(

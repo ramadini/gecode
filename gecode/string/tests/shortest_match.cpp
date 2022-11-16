@@ -6,7 +6,7 @@ using namespace Gecode;
 using namespace String;
 
 std::vector<string> PATTERNS({
-  "(acc|rg|bc)", //FIXME: "ea(c|d)*", "dqdrd*", "qqhx(ad|ew)*"
+  "(acc|rg|bc)", "ea(c|d)*", //"dqdrd*", "qqhx(ad|ew)*"
 });
 
 int N = -1;
@@ -47,7 +47,7 @@ public:
     StringVarArgs sva;
     StringVar w(*this);
     sva << w;
-    int n = 3; // 12
+    int n = 100;
     IntVar l(*this, 0, n);
     iva << l;
     length(*this, w, l);
@@ -64,12 +64,10 @@ public:
       }
     }
     int_vars = IntVarArray(*this, iva);
-    string_vars = StringVarArray(*this, sva);
-  //    { //FIXME:
-  //      IntVarArgs branch_vars = int_vars.slice(1);
-  //      branch_vars << l;
-  //      branch(*this, branch_vars, INT_VAR_SIZE_MIN(), INT_VAL_MIN());
-  //    }
+    string_vars = StringVarArray(*this, sva);  
+    //IntVarArgs branch_vars = int_vars.slice(1);
+    //branch_vars << l;
+    //branch(*this, branch_vars, INT_VAR_SIZE_MIN(), INT_VAL_MIN());
     lenblockmin_lllm(*this, sva);
   }
 
