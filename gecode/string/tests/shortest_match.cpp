@@ -50,8 +50,8 @@ public:
     StringVarArgs sva;
     StringVar w(*this);
     sva << w;
-    int n = 20;
-    IntVar l(*this, 11, 11); //FIXME 0, n);
+    int n = DashedString::_MAX_STR_LENGTH;
+    IntVar l(*this, 0, n);
     iva << l;
     length(*this, w, l);
     bool use_regular = false;
@@ -67,17 +67,12 @@ public:
       }
     }
     
-//      rel(*this, iva[1] == 8);
-      rel(*this, iva[2] == 10);
-//      rel(*this, iva[3] == 5);
-//      rel(*this, iva[4] == 1);
-    
     int_vars = IntVarArray(*this, iva);
     string_vars = StringVarArray(*this, sva);  
     IntVarArgs branch_vars = int_vars.slice(1);
     branch_vars << l;
     branch(*this, branch_vars, INT_VAR_SIZE_MIN(), INT_VAL_MIN());
-    lenblockmin_lllm(*this, sva);
+    blockmin_lllm(*this, sva);
   }
 
   virtual IntVar cost(void) const {
