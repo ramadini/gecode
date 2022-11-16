@@ -6,7 +6,7 @@ using namespace Gecode;
 using namespace String;
 
 std::vector<string> PATTERNS({
-  "(acc|rg|bc)", "ea(c|d)*", "dqdrd*", "qqhx(ad|ew)*"
+  "(acc|rg|bc)", //FIXME: "ea(c|d)*", "dqdrd*", "qqhx(ad|ew)*"
 });
 
 int N = -1;
@@ -47,7 +47,8 @@ public:
     StringVarArgs sva;
     StringVar w(*this);
     sva << w;
-    IntVar l(*this, 0, DashedString::_MAX_STR_LENGTH);
+    int n = 3; // 12
+    IntVar l(*this, 0, n);
     iva << l;
     length(*this, w, l);
     bool use_regular = false;
@@ -57,18 +58,18 @@ public:
       if (use_regular)
         extensional(*this, w, ".*(" + ri + ").*");
       else {
-        IntVar i(*this, 1, DashedString::_MAX_STR_LENGTH);
+        IntVar i(*this, 1, n);
         iva << i;
         match(*this, w, ri, i);
       }
     }
     int_vars = IntVarArray(*this, iva);
     string_vars = StringVarArray(*this, sva);
-//    {
-//      IntVarArgs branch_vars = int_vars.slice(1);
-//      branch_vars << l;
-//      branch(*this, branch_vars, INT_VAR_SIZE_MIN(), INT_VAL_MIN());
-//    }
+  //    { //FIXME:
+  //      IntVarArgs branch_vars = int_vars.slice(1);
+  //      branch_vars << l;
+  //      branch(*this, branch_vars, INT_VAR_SIZE_MIN(), INT_VAL_MIN());
+  //    }
     lenblockmin_lllm(*this, sva);
   }
 
@@ -79,7 +80,7 @@ public:
   virtual void
   print(std::ostream& os) const {
     N = string_vars[0].min_length();
-    os << "w = " << string_vars[0] << " (lenght: " << N << ")\n";    
+    os << "w = " << string_vars[0] << " (length: " << N << ")\n";    
   }
 
 };
