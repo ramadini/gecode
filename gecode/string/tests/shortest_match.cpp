@@ -50,7 +50,7 @@ public:
     StringVarArgs sva;
     StringVar w(*this);
     sva << w;
-    int n = 100;
+    int n = 20;
     IntVar l(*this, 0, n);
     iva << l;
     length(*this, w, l);
@@ -68,9 +68,9 @@ public:
     }
     int_vars = IntVarArray(*this, iva);
     string_vars = StringVarArray(*this, sva);  
-    //IntVarArgs branch_vars = int_vars.slice(1);
-    //branch_vars << l;
-    //branch(*this, branch_vars, INT_VAR_SIZE_MIN(), INT_VAL_MIN());
+    IntVarArgs branch_vars = int_vars.slice(1);
+    branch_vars << l;
+    branch(*this, branch_vars, INT_VAR_SIZE_MIN(), INT_VAL_MIN());
     lenblockmin_lllm(*this, sva);
   }
 
