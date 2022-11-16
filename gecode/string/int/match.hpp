@@ -141,7 +141,7 @@ namespace Gecode { namespace String {
   
   forceinline ExecStatus
   Match::propagateReg(Space& home, StringView& x, stringDFA* d) {
-//    std::cerr << "\npropagateReg: "<<x<<" in "<<*d<<std::endl;
+    std::cerr << "\npropagateReg: "<<x<<" in "<<*d<<std::endl;
     if (x.assigned())
       return d->accepted(x.val()) ? ES_FIX : ES_FAILED;
     bool changed, nofix = false;
@@ -186,7 +186,7 @@ namespace Gecode { namespace String {
               z.push_back(yij);
           }
         z.empty() ? px->set_null(home) : px->update(home, z);
-//        std::cerr << "changed: " << x << '\n';
+        std::cerr << "changed: " << x << '\n';
         assert (x.pdomain()->is_normalized());
       }
     } while (changed);
@@ -195,7 +195,7 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   Match::propagate(Space& home, const ModEventDelta& med) {
-//    std::cerr << "\nMatch::propagate: " << x1 << " = Match " << x0 << " in " << *sRs << "\n";
+    std::cerr << "\nMatch::propagate: " << x1 << " = Match " << x0 << " in " << *sRs << "\n";
     GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
     do {
       NSIntSet may_chars = x0.may_chars();
@@ -203,26 +203,30 @@ namespace Gecode { namespace String {
       string kpref = px.known_pref();
       if (kpref.size() >= minR && sRs->accepted(kpref)) {
         for (int i = 0; i < kpref.size(); i++)
-          if (sRs->accepted(kpref.substr(i))) {
+          if (Rs->accepted(kpref.substr(i))) {
             GECODE_ME_CHECK(x1.eq(home, i+1));
             return home.ES_SUBSUMED(*this);
           }
       }
-      if (x1.assigned()) { //FIXME: Improvable.
+      if (x1.assigned()) {
+        // Rewrite into x = yz, |y| = k-1, ¬regular(y, sRs), regular(z, Rs)
         int k = x1.val();
         sRs->negate(may_chars);
         if (k == 0)
           GECODE_REWRITE(*this, Reg::post(home, x0, sRs));
-        // Rewrite into x = yz, |y| = k-1, ¬regular(y, sRs), regular(z, Rs)
-        StringVar y(home), z(home);
-        rel(home, y, z, STRT_CAT, x0);
-        k--;
-        length(home, y, IntVar(home, k, k));      
-        Reg::post(home, y, sRs);
-        Reg::post(home, z, Rs);
-        return home.ES_SUBSUMED(*this);
+        else if (k == 1)
+          GECODE_REWRITE(*this, Reg::post(home, x0, Rs));
+        else {
+          StringVar y(home), z(home);
+          rel(home, y, z, STRT_CAT, x0);
+          k--;        
+          length(home, y, IntVar(home, k, k));      
+          Reg::post(home, y, sRs);
+          Reg::post(home, z, Rs);
+          return home.ES_SUBSUMED(*this);        
+        }
+        GECODE_NEVER;
       }
-      
       int i = 0, j = 0, k = 0, h = 0, n = px.length();
       NSIntSet Q(0);
       while (i < n && !Q.in(1)) {
@@ -235,7 +239,7 @@ namespace Gecode { namespace String {
         }
         ++i;
       }
-  //    std::cerr << "(h,k) = (" << h << "," << k << ")\n";
+      std::cerr << "(h,k) = (" << h << "," << k << ")\n";
       if (!Q.in(1))
         // No match.
         return me_failed(x1.eq(home,0)) ? ES_FAILED : ES_FIX;
@@ -253,7 +257,7 @@ namespace Gecode { namespace String {
       for (int j = 0; j < h; ++j)
         l += px.at(j).l;
       assert (l > 0);
-  //    std::cerr << "l = " << l << '\n';
+      std::cerr << "l = " << l << '\n';
       if (x1.in(0)) {
         // Can't refine x1.
         if (l > 1) {
@@ -281,10 +285,11 @@ namespace Gecode { namespace String {
           h++;
           k -= px.at(h).u;
         }
+        std::cerr << "Updated (h,k) = (" << h << ", " << k << ")\n";
         NSBlocks pref = prefix(h, k);
-  //      std::cerr << "Updated (h,k) = (" << h << ", " << k << ")\n";
+        std::cerr << "Pref: " << pref << "\n";        
         if (sRsC == nullptr) {
-          sRsC = new stringDFA(*sRs);
+          sRsC = new stringDFA(*sRs);     
           sRsC->negate(may_chars);
         }
         x_pref.pdomain()->update(home, pref);
@@ -294,13 +299,13 @@ namespace Gecode { namespace String {
         
       }
       if (x1.size() > 1) {
-  //      std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
+        std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
         return ES_FIX;
       }
       pref = prefix(h, k);
       NSBlocks suff = suffix(h, k);
-  //    std::cerr << "Pref: " << pref << "\n";
-  //    std::cerr << "Suff: " << suff << "\n";
+      std::cerr << "Pref: " << pref << "\n";
+      std::cerr << "Suff: " << suff << "\n";
       x_suff.pdomain()->update(home, suff);
       int es_suff = propagateReg(home, x_suff, Rs);
       if (es_suff == ES_FAILED)
@@ -311,7 +316,7 @@ namespace Gecode { namespace String {
         (es_pref == ES_NOFIX ? NSBlocks(*x_pref.pdomain()) : pref).concat
         (es_suff == ES_NOFIX ? NSBlocks(*x_suff.pdomain()) : pref, x_new);
         x_new.normalize();
-  //      std::cerr << "x_new: " << x_new << "\n";
+        std::cerr << "x_new: " << x_new << "\n";
         StringDelta d(true);
         px.update(home, x_new);
         GECODE_ME_CHECK(x0.varimp()->notify(
@@ -321,14 +326,15 @@ namespace Gecode { namespace String {
       GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
       assert (px.is_normalized());
     } while (x0.assigned() || x1.assigned());
-  //    std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
+      std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
     return ES_FIX;
   }
   
   forceinline
   Match::~Match() {
-    delete sRs;
     delete Rs;
+    delete sRs;
+    delete sRsC;
   }
 
 }}

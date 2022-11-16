@@ -66,6 +66,12 @@ public:
         match(*this, w, ri, i);
       }
     }
+    
+//      rel(*this, iva[1] == 8);
+      rel(*this, iva[2] == 10);
+//      rel(*this, iva[3] == 5);
+//      rel(*this, iva[4] == 1);
+    
     int_vars = IntVarArray(*this, iva);
     string_vars = StringVarArray(*this, sva);  
     IntVarArgs branch_vars = int_vars.slice(1);

@@ -69,8 +69,8 @@ namespace Gecode { namespace String { namespace Branch {
         }
       }
       // if (_FIRST) std::cerr<<"Must chars: "<<DashedString::_MUST_CHARS<<"\n";      
-      // std::cerr << "Chosen var. " << x[pos] << " (pos. " << pos << ")\n";
-      // abort();
+       std::cerr << "Chosen var. " << x[pos] << " (pos. " << pos << ")\n";
+//       abort();
       _FIRST = false;
       return val_lllm(pos, x[pos].pdomain());
     }
