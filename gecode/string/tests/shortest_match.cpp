@@ -51,7 +51,7 @@ public:
     StringVar w(*this);
     sva << w;
     int n = 20;
-    IntVar l(*this, 0, n);
+    IntVar l(*this, 11, 11); //FIXME 0, n);
     iva << l;
     length(*this, w, l);
     bool use_regular = false;
@@ -90,5 +90,6 @@ int main() {
   StringOptions opt("*** Shortest matching super-string ***");
   opt.solutions(0);
   Script::run<MinMatchStr, BAB, StringOptions>(opt);
+  assert (N == 11);
   return 0;
 }
