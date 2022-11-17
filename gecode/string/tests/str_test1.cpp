@@ -44,7 +44,7 @@ public:
       v[i] = NSBlock(x.at(i));
     return v;
   }
-/*
+
   void test01() {
     std::cerr << "\n*** Test 01 ***" << std::endl;
     StringVar x(*this);
@@ -701,7 +701,7 @@ public:
     assert (b);
     std::cerr << "x = " << x << std::endl;
     std::cerr << "y = " << y << std::endl;
-  }*/
+  }
 
   void test23() {
     std::cerr << "\n*** Test 23 ***" << std::endl;
@@ -717,38 +717,73 @@ public:
         : Match(h, x, i, R, R1, r) {};
     };
     string re = "(ab|c)";
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "i = " << i << std::endl;
+    std::cerr << "R = " << re << std::endl;
     String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
     stringDFA* R = new stringDFA(regex->dfa());
     stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
     assert(match(*this, x, i, R, R1, 1).propagate(*this, 0) == ES_FAILED);
-    std::cerr << "===== UNSATISFIABLE =====" << x << std::endl;
+    std::cerr << "===== i = match(x, R) UNSATISFIABLE =====\n" << std::endl;
+  }
+  
+  void test24() {
+    std::cerr << "\n*** Test 24 ***" << std::endl;
+    NSBlocks v;
+    NSIntSet s0('b'); s0.add('d');
+    NSIntSet s1('a'); s1.add('c');
+    v.push_back(NSBlock(s0, 2, 5));
+    v.push_back(NSBlock(s1, 0, 3));
+    StringVar x(*this, v, 0, 100);
+    IntVar i(*this, 0, 100);
+    class match : public Match {
+    public:
+      match(Home h, StringView x, IntView i, stringDFA* R, stringDFA* R1, int r)
+        : Match(h, x, i, R, R1, r) {};
+    };
+    string re = "(ab|c)";
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "i = " << i << std::endl;
+    std::cerr << "R = " << re << std::endl;
+    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
+    stringDFA* R = new stringDFA(regex->dfa());
+    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    double lx = x.domain().logdim();
+    std::cerr << "===== After i = match(x, R) =====" << std::endl;
+    assert(match(*this, x, i, R, R1, 1).propagate(*this, 0) == ES_FIX);
+    std::cerr << "x = " << x << std::endl;
+    assert(x.domain().logdim() == lx);
+    std::cerr << "i = " << i << std::endl;
+    for (int j = 0; j < 9; ++j)
+      assert ( j == 0 || j > 2 ? i.in(j) : !i.in(j) );
   }
 
 };
 
 int main() {
-//  (new StrTest())->test01();
-//  (new StrTest())->test02();
-//  (new StrTest())->test03();
-//  (new StrTest())->test04();
-//  (new StrTest())->test05();
-//  (new StrTest())->test06();
-//  (new StrTest())->test07();
-//  (new StrTest())->test08();
-//  (new StrTest())->test09();
-//  (new StrTest())->test10();
-//  (new StrTest())->test11();
-//  (new StrTest())->test12();
-//  (new StrTest())->test13();
-//  (new StrTest())->test14();
-//  (new StrTest())->test15();
-//  (new StrTest())->test16();
-//  (new StrTest())->test17();
-//  (new StrTest())->test18();
-//  (new StrTest())->test19();
-//  (new StrTest())->test20();
-//  (new StrTest())->test21();
-//  (new StrTest())->test22();
+  (new StrTest())->test01();
+  (new StrTest())->test02();
+  (new StrTest())->test03();
+  (new StrTest())->test04();
+  (new StrTest())->test05();
+  (new StrTest())->test06();
+  (new StrTest())->test07();
+  (new StrTest())->test08();
+  (new StrTest())->test09();
+  (new StrTest())->test10();
+  (new StrTest())->test11();
+  (new StrTest())->test12();
+  (new StrTest())->test13();
+  (new StrTest())->test14();
+  (new StrTest())->test15();
+  (new StrTest())->test16();
+  (new StrTest())->test17();
+  (new StrTest())->test18();
+  (new StrTest())->test19();
+  (new StrTest())->test20();
+  (new StrTest())->test21();
+  (new StrTest())->test22();
   (new StrTest())->test23();
+  (new StrTest())->test24();
   return 0;
 }
