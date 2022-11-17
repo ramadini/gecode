@@ -11,12 +11,14 @@
 #include <gecode/string/branch.hh>
 #include <gecode/string/gcc.hh>
 #include <gecode/string/find.hh>
+#include <gecode/string/match.hh>
 
 using namespace Gecode;
 using namespace String;
 using Gecode::String::DashedString;
 using Gecode::String::Branch::None_LLLL;
 using Gecode::Int::BoolView;
+using Gecode::Int::IntView;
 
 class StrTest : public Space {
 
@@ -42,7 +44,7 @@ public:
       v[i] = NSBlock(x.at(i));
     return v;
   }
-
+/*
   void test01() {
     std::cerr << "\n*** Test 01 ***" << std::endl;
     StringVar x(*this);
@@ -699,32 +701,54 @@ public:
     assert (b);
     std::cerr << "x = " << x << std::endl;
     std::cerr << "y = " << y << std::endl;
+  }*/
+
+  void test23() {
+    std::cerr << "\n*** Test 23 ***" << std::endl;
+    NSBlocks v;
+    v.push_back(NSBlock(NSIntSet('d'), 2, 3));
+    v.push_back(NSBlock(NSIntSet('c'), 0, 5));
+    v.push_back(NSBlock(NSIntSet('a', 'b'), 3, 5));
+    StringVar x(*this, v, 0, 100);
+    IntVar i(*this, 10, 100);
+    class match : public Match {
+    public:
+      match(Home h, StringView x, IntView i, stringDFA* R, stringDFA* R1, int r)
+        : Match(h, x, i, R, R1, r) {};
+    };
+    string re = "(ab|c)";
+    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
+    stringDFA* R = new stringDFA(regex->dfa());
+    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    assert(match(*this, x, i, R, R1, 1).propagate(*this, 0) == ES_FAILED);
+    std::cerr << "===== UNSATISFIABLE =====" << x << std::endl;
   }
 
 };
 
 int main() {
-  (new StrTest())->test01();
-  (new StrTest())->test02();
-  (new StrTest())->test03();
-  (new StrTest())->test04();
-  (new StrTest())->test05();
-  (new StrTest())->test06();
-  (new StrTest())->test07();
-  (new StrTest())->test08();
-  (new StrTest())->test09();
-  (new StrTest())->test10();
-  (new StrTest())->test11();
-  (new StrTest())->test12();
-  (new StrTest())->test13();
-  (new StrTest())->test14();
-  (new StrTest())->test15();
-  (new StrTest())->test16();
-  (new StrTest())->test17();
-  (new StrTest())->test18();
-  (new StrTest())->test19();
-  (new StrTest())->test20();
-  (new StrTest())->test21();
-  (new StrTest())->test22();
+//  (new StrTest())->test01();
+//  (new StrTest())->test02();
+//  (new StrTest())->test03();
+//  (new StrTest())->test04();
+//  (new StrTest())->test05();
+//  (new StrTest())->test06();
+//  (new StrTest())->test07();
+//  (new StrTest())->test08();
+//  (new StrTest())->test09();
+//  (new StrTest())->test10();
+//  (new StrTest())->test11();
+//  (new StrTest())->test12();
+//  (new StrTest())->test13();
+//  (new StrTest())->test14();
+//  (new StrTest())->test15();
+//  (new StrTest())->test16();
+//  (new StrTest())->test17();
+//  (new StrTest())->test18();
+//  (new StrTest())->test19();
+//  (new StrTest())->test20();
+//  (new StrTest())->test21();
+//  (new StrTest())->test22();
+  (new StrTest())->test23();
   return 0;
 }

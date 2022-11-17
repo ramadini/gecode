@@ -9,7 +9,7 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   Match::post(Home home, StringView x, string re, Gecode::Int::IntView i) {  
-    String::RegEx* regex = RegExParser(".*" + re + ".*").parse();    
+    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();
     if (regex->has_empty()) {
       rel(home, i, IRT_EQ, 1);
       return ES_OK;
@@ -46,7 +46,7 @@ namespace Gecode { namespace String {
 //    std::cerr << "RE: " << re << ", minlen: " << r << '\n';
     GECODE_ME_CHECK(i.le(home, x.max_length() - r + 1));
     GECODE_ME_CHECK(x.lb(home, r));
-    stringDFA* R1 = new stringDFA(RegExParser(re + ".*").parse()->dfa());
+    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
     (void) new (home) Match(home, x, i, R, R1, r);
     return ES_OK;
   }
