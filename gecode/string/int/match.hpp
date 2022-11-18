@@ -332,7 +332,7 @@ namespace Gecode { namespace String {
       GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
       assert (px.is_normalized());
     } while (x0.assigned() || x1.assigned());
-      std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
+//      std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
     return ES_FIX;
   }
   
