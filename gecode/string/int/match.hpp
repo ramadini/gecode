@@ -209,12 +209,13 @@ namespace Gecode { namespace String {
           }
       }
       if (x1.assigned()) {
-        // Rewrite into x = yz, |y| = k-1, ¬regular(y, sRs), regular(z, Rs)
+        // Rewrite into x = yz, |y| = k-1, ¬regular(y, sRs), regular(z, Rs).
         int k = x1.val();
         if (sRsC == nullptr) {
           sRsC = new stringDFA(*sRs);     
           sRsC->negate(may_chars);
         }
+//        std::cerr << "Rewriting into x=yz, k=" << k << '\n';
         if (k == 0)
           GECODE_REWRITE(*this, Reg::post(home, x0, sRsC));
         else if (k == 1)

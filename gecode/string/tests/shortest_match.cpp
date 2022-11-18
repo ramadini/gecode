@@ -68,8 +68,8 @@ public:
     }
     
     int_vars = IntVarArray(*this, iva);
-    string_vars = StringVarArray(*this, sva);  
-    IntVarArgs branch_vars = int_vars.slice(1);
+    string_vars = StringVarArray(*this, sva);
+    IntVarArgs branch_vars = use_regular ? int_vars : int_vars.slice(1);
     branch_vars << l;
     branch(*this, branch_vars, INT_VAR_SIZE_MIN(), INT_VAL_MIN());
     blockmin_lllm(*this, sva);
