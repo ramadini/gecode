@@ -82,7 +82,7 @@ public:
   virtual void
   print(std::ostream& os) const {
     N = string_vars[0].min_length();
-    os << "w = " << string_vars[0] << " (length: " << N << ")\n";    
+    os << "substring = " << sub << " (length: " << N << ")\n";    
   }
 
 };
@@ -91,6 +91,6 @@ int main() {
   StringOptions opt("*** Shortest matching super-string ***");
   opt.solutions(0);
   Script::run<MinMatchStr, BAB, StringOptions>(opt);
-  assert (N == 11);
+  assert (N == 70);
   return 0;
 }

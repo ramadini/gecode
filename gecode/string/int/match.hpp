@@ -202,11 +202,13 @@ namespace Gecode { namespace String {
       DashedString& px = *x0.pdomain();
       string kpref = px.known_pref();
       if (kpref.size() >= minR && sRs->accepted(kpref)) {
-        for (int i = 0; i < kpref.size(); i++)
+        for (int i = x1.min(); i < kpref.size(); i++)
           if (Rs->accepted(kpref.substr(i))) {
+//            std::cerr << "Rewriting into i = " << i+1 << "\n";
             GECODE_ME_CHECK(x1.eq(home, i+1));
             return home.ES_SUBSUMED(*this);
           }
+        GECODE_NEVER;
       }
       if (x1.assigned()) {
         // Rewrite into x = yz, |y| = k-1, ¬regular(y, sRs), regular(z, Rs).
@@ -330,7 +332,7 @@ namespace Gecode { namespace String {
       GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
       assert (px.is_normalized());
     } while (x0.assigned() || x1.assigned());
-//      std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
+      std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
     return ES_FIX;
   }
   
