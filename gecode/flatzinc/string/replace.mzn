@@ -1,4 +1,4 @@
-% Include this file in the MiniZinc model to decompose the replace constraints.
+% Include this file in the MiniZinc model to decompose the replace constraint.
 
 % String replace: returns the replacement of first occurrence of q with q1 in x.
 function var string:

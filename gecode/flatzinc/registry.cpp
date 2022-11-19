@@ -2219,6 +2219,10 @@ namespace Gecode { namespace FlatZinc {
   void p_str_reg(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
 	  extensional(s, s.arg2StringVar(ce[0]), ce[1]->getString());
   }
+  
+  void p_str_match(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+    match(s, s.arg2StringVar(ce[0]), ce[1]->getString(), s.arg2IntVar(ce[2]));
+  }
 
   void
   p_array_var_str_element(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
@@ -2302,6 +2306,7 @@ namespace Gecode { namespace FlatZinc {
         registry().add("str_dfa_reif", &p_str_dfa_reif);
         registry().add("str2nat", &p_str2nat);
         registry().add("nat2str", &p_nat2str);
+        registry().add("str_match", &p_str_match);
       }
   };
 	StringPoster __string_poster;

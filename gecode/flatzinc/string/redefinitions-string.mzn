@@ -208,22 +208,7 @@ let {
   endif;
 } in B;
 
-function var int:
-str_match(var string: x, string: regexp) = 
-let {
-  var 0..str_ub(x): i;
-  constraint if str_reg("", regexp) then
-    i = 1
-  else
-    i <= str_len(x) /\
-    if i = 0 then
-      not(str_reg(x, ".*" ++ regexp ++ ".*"))
-    else
-      not(str_reg(str_sub(x, 1, i-1), ".*" ++ regexp ++ ".*")) /\
-          str_reg(str_sub(x, i, str_len(x)),  regexp ++ ".*")
-    endif
-  endif
-} in i;
+function var int: str_match(var string: x, string: regexp) :: promise_total;
 
 annotation none;
 annotation lenmin;
