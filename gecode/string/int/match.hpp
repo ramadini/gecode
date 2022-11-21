@@ -44,6 +44,7 @@ namespace Gecode { namespace String {
       }
     }
 //    std::cerr << "RE: " << re << ", minlen: " << r << '\n';
+    GECODE_ME_CHECK(i.gr(home, -1));
     GECODE_ME_CHECK(i.le(home, x.max_length() - r + 1));
     GECODE_ME_CHECK(x.lb(home, r));
     stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
@@ -197,11 +198,11 @@ namespace Gecode { namespace String {
   Match::propagate(Space& home, const ModEventDelta& med) {
 //    std::cerr << "\nMatch::propagate: " << x1 << " = Match " << x0 << " in " << *sRs << "\n";
     GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
-    do {      
+    do {
       DashedString& px = *x0.pdomain();
       string kpref = px.known_pref();
-      if (kpref.size() >= minR && sRs->accepted(kpref)) {
-        for (int i = x1.min()-1; i < kpref.size(); i++) {
+      if (kpref.size() >= minR && sRs->accepted(kpref)) {        
+        for (int i = max(0,x1.min()-1); i < kpref.size(); i++) {          
           if (Rs->accepted(kpref.substr(i))) {
 //            std::cerr << "Rewriting into i = " << i+1 << "\n";
             GECODE_ME_CHECK(x1.eq(home, i+1));
@@ -209,6 +210,14 @@ namespace Gecode { namespace String {
           }
         }
         return ES_FAILED;
+      }
+      if (x1.assigned() && x1.val() <= 1) {
+        if (x1.val() == 0) {
+          NSIntSet may_chars = x0.may_chars();
+          sRs->negate(may_chars);
+          GECODE_REWRITE(*this, Reg::post(home, x0, sRs));
+        }
+        GECODE_REWRITE(*this, Reg::post(home, x0, Rs));       
       }
       int i = 0, j = 0, k = 0, h = 0, n = px.length();
       NSIntSet Q(0);
@@ -309,7 +318,7 @@ namespace Gecode { namespace String {
       }
       GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
       assert (px.is_normalized());
-    } while (x0.assigned());
+    } while (x0.assigned() || (x1.assigned() && x1.val() <= 1));
 //      std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
     return ES_FIX;
   }

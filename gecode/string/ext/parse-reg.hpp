@@ -740,7 +740,7 @@ namespace Gecode { namespace String {
         throw std::runtime_error("Unbalanced brackets");
       else if (more())
         throw std::runtime_error("Ill-formed expression");
-      // std::cerr << r->str() << "\n";
+//       std::cerr << r->str() << "\n";
       return r;
     }
 
