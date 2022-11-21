@@ -197,41 +197,18 @@ namespace Gecode { namespace String {
   Match::propagate(Space& home, const ModEventDelta& med) {
 //    std::cerr << "\nMatch::propagate: " << x1 << " = Match " << x0 << " in " << *sRs << "\n";
     GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
-    do {
-      NSIntSet may_chars = x0.may_chars();
+    do {      
       DashedString& px = *x0.pdomain();
       string kpref = px.known_pref();
       if (kpref.size() >= minR && sRs->accepted(kpref)) {
-        for (int i = x1.min(); i < kpref.size(); i++)
+        for (int i = x1.min()-1; i < kpref.size(); i++) {
           if (Rs->accepted(kpref.substr(i))) {
 //            std::cerr << "Rewriting into i = " << i+1 << "\n";
             GECODE_ME_CHECK(x1.eq(home, i+1));
             return home.ES_SUBSUMED(*this);
           }
-        GECODE_NEVER;
-      }
-      if (x1.assigned()) {
-        // Rewrite into x = yz, |y| = k-1, ¬regular(y, sRs), regular(z, Rs).
-        int k = x1.val();
-        if (sRsC == nullptr) {
-          sRsC = new stringDFA(*sRs);     
-          sRsC->negate(may_chars);
         }
-//        std::cerr << "Rewriting into x=yz, k=" << k << '\n';
-        if (k == 0)
-          GECODE_REWRITE(*this, Reg::post(home, x0, sRsC));
-        else if (k == 1)
-          GECODE_REWRITE(*this, Reg::post(home, x0, Rs));
-        else {
-          StringVar y(home), z(home);
-          rel(home, y, z, STRT_CAT, x0);
-          k--;        
-          length(home, y, IntVar(home, k, k));      
-          Reg::post(home, y, sRsC);
-          Reg::post(home, z, Rs);
-          return home.ES_SUBSUMED(*this);        
-        }
-        GECODE_NEVER;
+        return ES_FAILED;
       }
       int i = 0, j = 0, k = 0, h = 0, n = px.length();
       NSIntSet Q(0);
@@ -287,15 +264,16 @@ namespace Gecode { namespace String {
       else if (l < x1.min()) {
         // Updating (h,k) from the lower bound of x1.
         h = 0, k = x1.min() - 1;
-        while (h < n && k >= px.at(h).u) {
-          h++;
+        while (h < n && k >= px.at(h).u) {          
           k -= px.at(h).u;
-        }
-//        std::cerr << "Updated (h,k) = (" << h << ", " << k << ")\n";
+          h++;
+        }        
+//        std::cerr << "Updated (h,k) = ("<<h<<", "<<k<<") from position " << x1.min() << "\n";
         NSBlocks pref = prefix(h, k);
 //        std::cerr << "Pref: " << pref << "\n";        
         if (sRsC == nullptr) {
-          sRsC = new stringDFA(*sRs);     
+          sRsC = new stringDFA(*sRs);
+          NSIntSet may_chars = x0.may_chars();
           sRsC->negate(may_chars);
         }
         x_pref.pdomain()->update(home, pref);
@@ -331,7 +309,7 @@ namespace Gecode { namespace String {
       }
       GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
       assert (px.is_normalized());
-    } while (x0.assigned() || x1.assigned());
+    } while (x0.assigned());
 //      std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
     return ES_FIX;
   }
