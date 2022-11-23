@@ -213,9 +213,12 @@ namespace Gecode { namespace String {
       }
       if (x1.assigned() && x1.val() <= 1) {
         if (x1.val() == 0) {
-          NSIntSet may_chars = x0.may_chars();
-          sRs->negate(may_chars);
-          GECODE_REWRITE(*this, Reg::post(home, x0, sRs));
+          if (sRsC == nullptr) {
+            sRsC = sRs;
+            NSIntSet may_chars = x0.may_chars();
+            sRsC->negate(may_chars);
+          }
+          GECODE_REWRITE(*this, Reg::post(home, x0, sRsC));
         }
         GECODE_REWRITE(*this, Reg::post(home, x0, Rs));       
       }
