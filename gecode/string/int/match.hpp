@@ -4,7 +4,7 @@ namespace Gecode { namespace String {
   Match::Match(Home home, StringView x, Gecode::Int::IntView i, stringDFA* R, 
     stringDFA* R1, int r)
   : MixBinaryPropagator
-  <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_BND>
+  <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM>
     (home, x, i), sRsC(nullptr), sRs(R), Rs(R1), minR(r) {}
 
   forceinline ExecStatus
@@ -55,7 +55,7 @@ namespace Gecode { namespace String {
   forceinline
   Match::Match(Space& home, Match& p)
   : MixBinaryPropagator
-  <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_BND> 
+  <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM> 
     (home, p), sRsC(p.sRsC), sRs(p.sRs), Rs(p.Rs), minR(p.minR) {}
 
   forceinline Actor*
@@ -196,7 +196,7 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   Match::propagate(Space& home, const ModEventDelta& med) {
-//    std::cerr << "\nMatch::propagate: " << x1 << " = Match " << x0 << " in " << *sRs << "\n";
+//    std::cerr << "\nMatch::propagate: Var " << x1.varimp() << ": " << x1 << " = Match " << x0 << " in " << *sRs << "\n";
     GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
     do {
       DashedString& px = *x0.pdomain();
@@ -267,10 +267,14 @@ namespace Gecode { namespace String {
       StringView x_pref(home), x_suff(home);
       NSBlocks pref;
       int es_pref = ES_FIX;
-      if (l > x1.min())
+      if (l > x1.min()) {
         // Lower bound improved.
         GECODE_ME_CHECK(x1.gq(home, l));
-      else if (l < x1.min()) {
+      }
+      // FIXME:
+      // Not an "else if": if l is within a "hole" of dom(x1) and l > min(x1), 
+      // then, if x1.gq(home, l) succeeds, we have min(x1) > l.      
+      if (l < x1.min()) {
         // Updating (h,k) from the lower bound of x1.
         h = 0, k = x1.min() - 1;
         while (h < n && k >= px.at(h).u) {          
@@ -278,7 +282,7 @@ namespace Gecode { namespace String {
           h++;
         }        
 //        std::cerr << "Updated (h,k) = ("<<h<<", "<<k<<") from position " << x1.min() << "\n";
-        NSBlocks pref = prefix(h, k);
+        pref = prefix(h, k);
 //        std::cerr << "Pref: " << pref << "\n";        
         if (sRsC == nullptr) {
           sRsC = new stringDFA(*sRs);
@@ -289,18 +293,38 @@ namespace Gecode { namespace String {
         es_pref = propagateReg(home, x_pref, sRsC);
         if (es_pref == ES_FAILED)
           return ES_FAILED;
-        
+        if (es_pref == ES_NOFIX && !x1.assigned()) {
+          NSBlocks suff = suffix(h, k);
+//          std::cerr << "New pref: " << x_pref << '\n';
+//          std::cerr << "Pref: " << pref << "\n";
+//          std::cerr << "Suff: " << suff << "\n";
+          NSBlocks x_new;
+          NSBlocks(*x_pref.pdomain()).concat(suff, x_new);
+          x_new.normalize();
+//          std::cerr << "x_new: " << x_new << "\n";
+          StringDelta d(true);
+          px.update(home, x_new);
+          GECODE_ME_CHECK(x0.varimp()->notify(
+            home, x0.assigned() ? ME_STRING_VAL : ME_STRING_DOM, d
+          ));
+          GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
+          assert (px.is_normalized());
+          if (x0.assigned() || (x1.assigned() && x1.val() <= 1))
+            continue;
+          return ES_FIX;
+        }
       }
-      if (x1.assigned()) {
-        if (x1.val() <= 1)
-          continue;
-      }
-      else
-        // std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
+      if (!x1.assigned()) {
+//        std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
         return ES_FIX;
-      pref = prefix(h, k);
-      NSBlocks suff = suffix(h, k);
-//      std::cerr << "Pref: " << pref << "\n";
+      }
+      if (x1.val() <= 1)
+        continue;
+      if (pref.size() == 0) {
+        pref = prefix(h, k);
+//        std::cerr << "Pref: " << pref << "\n";
+      }
+      NSBlocks suff = suffix(h, k);      
 //      std::cerr << "Suff: " << suff << "\n";
       x_suff.pdomain()->update(home, suff);
       int es_suff = propagateReg(home, x_suff, Rs);
@@ -310,7 +334,7 @@ namespace Gecode { namespace String {
         // Udpating x0.
         NSBlocks x_new;
         (es_pref == ES_NOFIX ? NSBlocks(*x_pref.pdomain()) : pref).concat
-        (es_suff == ES_NOFIX ? NSBlocks(*x_suff.pdomain()) : pref, x_new);
+        (es_suff == ES_NOFIX ? NSBlocks(*x_suff.pdomain()) : suff, x_new);
         x_new.normalize();
 //        std::cerr << "x_new: " << x_new << "\n";
         StringDelta d(true);

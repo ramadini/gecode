@@ -11,7 +11,7 @@ namespace Gecode { namespace String {
    *
    */
   class Match : public MixBinaryPropagator
-    <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_BND> {
+    <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM> {
   private:
     stringDFA* Rs;
     stringDFA* sRs;    
@@ -23,9 +23,9 @@ namespace Gecode { namespace String {
     static ExecStatus propagateReg(Space&, StringView&, stringDFA*);
   protected:
     using MixBinaryPropagator<StringView, PC_STRING_DOM, Gecode::Int::IntView, 
-      Gecode::Int::PC_INT_BND>::x0;
+      Gecode::Int::PC_INT_DOM>::x0;
     using MixBinaryPropagator<StringView, PC_STRING_DOM, Gecode::Int::IntView, 
-      Gecode::Int::PC_INT_BND>::x1;
+      Gecode::Int::PC_INT_DOM>::x1;
     /// Constructor for cloning \a p
     Match(Space& home, Match& p);
     /// Constructor for posting
