@@ -57,7 +57,7 @@ namespace Gecode { namespace String { namespace Branch {
         }
       }
       // if (_FIRST) std::cerr<<"Must chars: "<<DashedString::_MUST_CHARS<<"\n";      
-      // std::cerr << "Chosen var. " << x[pos] << " (pos. " << pos << ")\n";
+//       std::cerr << "Chosen var. " << x[pos] << " (pos. " << pos << ")\n";
 //      abort();
       _FIRST = false;
       return val_lllm(pos, x[pos].pdomain());
@@ -66,7 +66,7 @@ namespace Gecode { namespace String { namespace Branch {
     forceinline ExecStatus
     BlockMin_LLLM::commit(Space& home, const Choice& c, unsigned a) {
       const PosLevVal& p = static_cast<const PosLevVal&>(c);
-      // std::cerr << '\n'; this->print(home, c, a, std::cerr); std::cerr << '\n';
+//       std::cerr << '\n'; this->print(home, c, a, std::cerr); std::cerr << '\n';
       x[p.pos].commit(home, p.lev, p.val, Block::FIRST, a);
       return ES_OK;
     }

@@ -200,16 +200,16 @@ namespace Gecode { namespace String {
     GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
     do {
       DashedString& px = *x0.pdomain();
-      string kpref = px.known_pref();
-      if (kpref.size() >= minR && sRs->accepted(kpref)) {        
-        for (int i = max(0,x1.min()-1); i < kpref.size(); i++) {          
-          if (Rs->accepted(kpref.substr(i))) {
+      if (x0.assigned()) {
+        string val = x0.val();
+        for (int i = max(0,x1.min()-1); i < val.size(); i++)
+          if (Rs->accepted(val.substr(i))) {
 //            std::cerr << "Rewriting into i = " << i+1 << "\n";
             GECODE_ME_CHECK(x1.eq(home, i+1));
             return home.ES_SUBSUMED(*this);
           }
-        }
-        return ES_FAILED;
+        GECODE_ME_CHECK(x1.eq(home, 0));
+        return home.ES_SUBSUMED(*this);
       }
       if (x1.assigned() && x1.val() <= 1) {
         if (x1.val() == 0) {
@@ -220,7 +220,7 @@ namespace Gecode { namespace String {
           }
           GECODE_REWRITE(*this, Reg::post(home, x0, sRsC));
         }
-        GECODE_REWRITE(*this, Reg::post(home, x0, Rs));       
+        GECODE_REWRITE(*this, Reg::post(home, x0, Rs));
       }
       int i = 0, j = 0, k = 0, h = 0, n = px.length();
       NSIntSet Q(0);
@@ -267,12 +267,9 @@ namespace Gecode { namespace String {
       StringView x_pref(home), x_suff(home);
       NSBlocks pref;
       int es_pref = ES_FIX;
-      if (l > x1.min()) {
+      if (l > x1.min())
         // Lower bound improved.
         GECODE_ME_CHECK(x1.gq(home, l));
-        if (x1.size() == 1)
-          continue;
-      }
       else if (l < x1.min()) {
         // Updating (h,k) from the lower bound of x1.
         h = 0, k = x1.min() - 1;
@@ -294,10 +291,13 @@ namespace Gecode { namespace String {
           return ES_FAILED;
         
       }
-      if (x1.size() > 1) {
-//        std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
-        return ES_FIX;
+      if (x1.assigned()) {
+        if (x1.val() <= 1)
+          continue;
       }
+      else
+        // std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
+        return ES_FIX;
       pref = prefix(h, k);
       NSBlocks suff = suffix(h, k);
 //      std::cerr << "Pref: " << pref << "\n";
