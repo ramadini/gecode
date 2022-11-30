@@ -224,46 +224,10 @@ namespace Gecode { namespace String {
         }
         GECODE_REWRITE(*this, Reg::post(home, x0, Rs));
       }
-//      // (h,k) = earliest position after consuming min(x1) characters.
-//      
-//      int h = 0, k = x1.min() - 1, n = px.length();
-//      while (h < n && k >= px.at(h).u) {
-//        k -= px.at(h).u;
-//        h++;
-//      }
-////      std::cerr << "(h,k) before = (" << h << "," << k << ")\n";
-//      int es_pref = ES_FIX;
-//      NSBlocks pref;
-//      if (h > 0 || k > 0) {
-//        // No match must occur in pref.
-//        pref = prefix(h,k);
-////        std::cerr << "Pref: " << pref << "\n";
-//        if (sRsC == nullptr) {
-//          sRsC = new stringDFA(*sRs);
-//          NSIntSet may_chars = x0.may_chars();
-//          sRsC->negate(may_chars);
-//        }
-//        es_pref = propagateReg(home, pref, sRsC);
-//        if (es_pref == ES_FAILED)
-//          return ES_FAILED;
-//      }
+
       DashedString& px = *x0.pdomain();
       NSIntSet Q(0);
-      int h = 0, k = 0, n = px.length();
-      int i = h, j = 0;
-      bool hk_changed = false;
-      if (k > 0) {
-        // If (h,k) occurs in the middle of a block of x.
-        DSBlock b(home, px.at(h).S, max(0, px.at(h).l - k), px.at(h).u - k);
-        std::pair<NSIntSet,int> p = checkBlock(b, Q);
-        Q = p.first; j = p.second;
-        if (Q.size() == 1 && Q.max() == 0) {
-          // Q = {q0}.
-          k += j;
-          hk_changed = true;
-        }
-        i++;
-      }
+      int i = 0, j = 0, h = 0, k = 0, n = px.length();
       while (i < n && !Q.in(1)) {
         //FIXME: Positions are 0-based, not 1-based.
         std::pair<NSIntSet,int> p = checkBlock(px.at(i), Q);
@@ -271,15 +235,16 @@ namespace Gecode { namespace String {
         if (Q.size() == 1 && Q.max() == 0) {
           // Q = {q0}.
           h = i; k = j;
+//          std::cerr << "(h,k) = (" << h << "," << k << ")\n";
         }
         ++i;
       }
-//      std::cerr << "(h,k) = (" << h << "," << k << ")\n";
-      if (!Q.in(1))
-        // No match.
+
+      // No match.
+      if (!Q.in(1))        
         return me_failed(x1.eq(home,0)) ? ES_FAILED : ES_FIX;
-      if (Q.size() == 1 && Q.max() == 1) {
-        // Surely a match: possibly refining lower and upper bound of x1.
+      // Surely a match: possibly refining lower and upper bound of x1.
+      if (Q.size() == 1 && Q.max() == 1) {        
         GECODE_ME_CHECK(x1.gq(home, 1));
         if (i < n) {
           int u = -minR + 1;
@@ -288,13 +253,16 @@ namespace Gecode { namespace String {
           GECODE_ME_CHECK(x1.lq(home, u));
         }
       }
-      int l = k + 1, m = x1.min();
+      
+      
+      int l = k + 1;
       for (int j = 0; j < h; ++j)
         l += px.at(j).l;
-      assert (l > 0);
 //      std::cerr << "l = " << l << '\n';
-      if (x1.in(0)) {
-        // Can't refine x1.
+      assert (l > 0);
+      
+      // Can't refine x1.
+      if (x1.in(0)) {   
         if (l > 1) {
           IntSet s(1, l-1);
           IntSetRanges is(s);
@@ -303,21 +271,17 @@ namespace Gecode { namespace String {
   //      std::cerr << "\nMatch::propagated: " << x1 << ' ' << x0 << "\n";
         return ES_FIX;
       }
-      // General case.
-      StringView x_pref(home), x_suff(home);
-      NSBlocks pref;
-      int es_pref = ES_FIX;
-      if (l > x1.min()) {
-        // Lower bound improved.
+      else
         GECODE_ME_CHECK(x1.gq(home, l));
-      }
-      // FIXME:
-      // Not an "else if": if l is within a "hole" of dom(x1) and l > min(x1), 
-      // then, if x1.gq(home, l) succeeds, we have min(x1) > l.      
+      
+      // General case.
+      NSBlocks pref, suff;
+      int es_pref = ES_FIX;
+           
       if (l < x1.min()) {
         // Updating (h,k) from the lower bound of x1.
         h = 0, k = x1.min() - 1;
-        while (h < n && k >= px.at(h).u) {          
+        while (h < n && k >= px.at(h).u) {      
           k -= px.at(h).u;
           h++;
         }        
@@ -333,7 +297,7 @@ namespace Gecode { namespace String {
         if (es_pref == ES_FAILED)
           return ES_FAILED;
         if (es_pref == ES_NOFIX && !x1.assigned()) {
-          NSBlocks suff = suffix(h, k);
+          suff = suffix(h, k);
 //          std::cerr << "Pref: " << pref << "\n";
 //          std::cerr << "Suff: " << suff << "\n";
           NSBlocks x_new;
@@ -352,17 +316,18 @@ namespace Gecode { namespace String {
           return ES_FIX;
         }
       }
+      
       if (!x1.assigned()) {
 //        std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
         return ES_FIX;
       }
       if (x1.val() <= 1)
         continue;
-      if (pref.size() == 0) {
+        
+      if (pref.size() == 0)
         pref = prefix(h, k);
 //        std::cerr << "Pref: " << pref << "\n";
-      }
-      NSBlocks suff = suffix(h, k);      
+      suff = suffix(h, k);      
 //      std::cerr << "Suff: " << suff << "\n";
       int es_suff = propagateReg(home, suff, Rs);
       if (es_suff == ES_FAILED)
@@ -379,6 +344,7 @@ namespace Gecode { namespace String {
           home, x0.assigned() ? ME_STRING_VAL : ME_STRING_DOM, d
         ));
       }
+      
       GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
       assert (px.is_normalized());
     } while (x0.assigned() || (x1.assigned() && x1.val() <= 1));
