@@ -1318,6 +1318,14 @@ namespace Gecode { namespace String {
     length() const {
       return size();
     }
+    
+    forceinline NSIntSet
+    may_chars() const {
+      NSIntSet set;
+      for (int i = 0; i < size(); ++i)
+        set.include(at(i).S);
+      return set;
+    }
 
     template <typename Block, typename Blocks>
     forceinline bool

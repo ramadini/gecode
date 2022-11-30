@@ -20,7 +20,7 @@ namespace Gecode { namespace String {
     std::pair<NSIntSet,int> checkBlock(const DSBlock&, const NSIntSet&) const;
     NSBlocks prefix(int,int) const;
     NSBlocks suffix(int,int) const;
-    static ExecStatus propagateReg(Space&, StringView&, stringDFA*);
+    static ExecStatus propagateReg(Space&, NSBlocks&, stringDFA*);
   protected:
     using MixBinaryPropagator<StringView, PC_STRING_DOM, Gecode::Int::IntView, 
       Gecode::Int::PC_INT_DOM>::x0;
