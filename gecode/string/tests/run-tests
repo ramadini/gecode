@@ -228,7 +228,7 @@ done &&
 for m in `ls $TEST_DIR/norn/*/*.mzn | sort`
 do
   echo "Solving $m..."
-  timeout $TOUT mzn-gstrings $m  > $X
+  timeout $TOUT mzn-gstrings $m | strings > $X
   if
     [[ `grep "\----------" $X` ]]
   then

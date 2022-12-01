@@ -212,6 +212,7 @@ namespace Gecode { namespace String {
         GECODE_ME_CHECK(x1.eq(home, 0));
         return home.ES_SUBSUMED(*this);
       }
+      
       // x1 fixed and val(x1) in {0,1}.
       if (x1.assigned() && x1.val() <= 1) {
         if (x1.val() == 0) {
@@ -254,13 +255,11 @@ namespace Gecode { namespace String {
         }
       }
       
-      
       int l = k + 1;
       for (int j = 0; j < h; ++j)
         l += px.at(j).l;
 //      std::cerr << "l = " << l << '\n';
       assert (l > 0);
-      
       // Can't refine x1.
       if (x1.in(0)) {   
         if (l > 1) {
@@ -277,7 +276,6 @@ namespace Gecode { namespace String {
       // General case.
       NSBlocks pref, suff;
       int es_pref = ES_FIX;
-           
       if (l < x1.min()) {
         // Updating (h,k) from the lower bound of x1.
         h = 0, k = x1.min() - 1;
@@ -295,8 +293,13 @@ namespace Gecode { namespace String {
         }
         es_pref = propagateReg(home, pref, sRsC);
         if (es_pref == ES_FAILED)
-          return ES_FAILED;
-        if (es_pref == ES_NOFIX && !x1.assigned()) {
+          return ES_FAILED;        
+      }
+      
+      // We don't propagate the suffix if x1 is not fixed.
+      if (!x1.assigned()) {
+//        std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
+        if (es_pref == ES_NOFIX) {          
           suff = suffix(h, k);
 //          std::cerr << "Pref: " << pref << "\n";
 //          std::cerr << "Suff: " << suff << "\n";
@@ -313,15 +316,10 @@ namespace Gecode { namespace String {
           assert (px.is_normalized());
           if (x0.assigned() || (x1.assigned() && x1.val() <= 1))
             continue;
-          return ES_FIX;
         }
-      }
-      
-      if (!x1.assigned()) {
-//        std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
         return ES_FIX;
-      }
-      if (x1.val() <= 1)
+      }      
+      else if (x1.val() <= 1)
         continue;
         
       if (pref.size() == 0)
@@ -344,7 +342,6 @@ namespace Gecode { namespace String {
           home, x0.assigned() ? ME_STRING_VAL : ME_STRING_DOM, d
         ));
       }
-      
       GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
       assert (px.is_normalized());
     } while (x0.assigned() || (x1.assigned() && x1.val() <= 1));
