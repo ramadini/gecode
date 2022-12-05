@@ -203,7 +203,7 @@ namespace Gecode { namespace String {
       // x0 fixed.
       if (x0.assigned()) {
         string val = x0.val();
-        for (int i = max(0,x1.min()-1); i < val.size(); i++)
+        for (int i = 0; i < val.size(); i++)
           if (Rs->accepted(val.substr(i))) {
 //            std::cerr << "Rewriting into i = " << i+1 << "\n";
             GECODE_ME_CHECK(x1.eq(home, i+1));
