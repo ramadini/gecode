@@ -200,19 +200,6 @@ namespace Gecode { namespace String {
 //    std::cerr << "\nMatch::propagate: Var " << x1.varimp() << ": " << x1 << " = Match " << x0 << " in " << *sRs << "\n";
     GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
     do {
-      // x0 fixed.
-      if (x0.assigned()) {
-        string val = x0.val();
-        for (int i = 0; i < val.size(); i++)
-          if (Rs->accepted(val.substr(i))) {
-//            std::cerr << "Rewriting into i = " << i+1 << "\n";
-            GECODE_ME_CHECK(x1.eq(home, i+1));
-            return home.ES_SUBSUMED(*this);
-          }
-        GECODE_ME_CHECK(x1.eq(home, 0));
-        return home.ES_SUBSUMED(*this);
-      }
-      
       // x1 fixed and val(x1) in {0,1}.
       if (x1.assigned() && x1.val() <= 1) {
         if (x1.val() == 0) {
@@ -314,7 +301,7 @@ namespace Gecode { namespace String {
           ));
           GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
           assert (px.is_normalized());
-          if (x0.assigned() || (x1.assigned() && x1.val() <= 1))
+          if (x1.assigned() && x1.val() <= 1)
             continue;
         }
         return ES_FIX;
@@ -344,7 +331,7 @@ namespace Gecode { namespace String {
       }
       GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
       assert (px.is_normalized());
-    } while (x0.assigned() || (x1.assigned() && x1.val() <= 1));
+    } while (x1.assigned() && x1.val() <= 1);
 //      std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
     return ES_FIX;
   }
