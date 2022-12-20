@@ -757,6 +757,34 @@ public:
     for (int j = 0; j < 9; ++j)
       assert ( j == 0 || j > 2 ? i.in(j) : !i.in(j) );
   }
+  
+  void test25() {
+    std::cerr << "\n*** Test 25 ***" << std::endl;
+    NSBlocks v;
+    NSIntSet s0('b'); s0.add('d');
+    NSIntSet s1('a'); s1.add('c');
+    v.push_back(NSBlock(s0, 2, 5));
+    v.push_back(NSBlock(s1, 0, 3));
+    StringVar x(*this, v, 0, 100);
+    IntVar i(*this, 3, 3);
+    class match : public Match {
+    public:
+      match(Home h, StringView x, IntView i, stringDFA* R, stringDFA* R1, int r)
+        : Match(h, x, i, R, R1, r) {};
+    };
+    string re = "(ab|c)";
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "i = " << i << std::endl;
+    std::cerr << "R = " << re << std::endl;
+    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
+    stringDFA* R = new stringDFA(regex->dfa());
+    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    std::cerr << "===== After i = match(x, R) =====" << std::endl;
+    assert(match(*this, x, i, R, R1, 1).propagate(*this, 0) == ES_FIX);
+    std::cerr << "x = " << x << std::endl;
+    assert(x.domain().at(1).val() == "c");
+
+  }
 
 };
 
@@ -785,5 +813,6 @@ int main() {
   (new StrTest())->test22();
   (new StrTest())->test23();
   (new StrTest())->test24();
+  (new StrTest())->test25();
   return 0;
 }
