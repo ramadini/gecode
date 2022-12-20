@@ -783,7 +783,30 @@ public:
     assert(match(*this, x, i, R, R1, 1).propagate(*this, 0) == ES_FIX);
     std::cerr << "x = " << x << std::endl;
     assert(x.domain().at(1).val() == "c");
-
+  }
+  
+  void test26() {
+    std::cerr << "\n*** Test 26 ***" << std::endl;
+    NSBlocks v;
+    v.push_back(NSBlock(NSIntSet('d'), 2, 3));
+    v.push_back(NSBlock(NSIntSet('c'), 0, 5));
+    v.push_back(NSBlock(NSIntSet('d', 'e'), 3, 8));
+    StringVar x(*this, v, 0, 100);
+    IntVar i(*this, 10, 100);
+    class match : public Match {
+    public:
+      match(Home h, StringView x, IntView i, stringDFA* R, stringDFA* R1, int r)
+        : Match(h, x, i, R, R1, r) {};
+    };
+    string re = "(ab|c)";
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "i = " << i << std::endl;
+    std::cerr << "R = " << re << std::endl;
+    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
+    stringDFA* R = new stringDFA(regex->dfa());
+    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    assert(match(*this, x, i, R, R1, 1).propagate(*this, 0) == ES_FAILED);
+    std::cerr << "===== i = match(x, R) UNSATISFIABLE =====\n" << std::endl;
   }
 
 };
@@ -811,8 +834,9 @@ int main() {
   (new StrTest())->test20();
   (new StrTest())->test21();
   (new StrTest())->test22();
-  (new StrTest())->test23();
+  (new StrTest())->test23();  
   (new StrTest())->test24();
   (new StrTest())->test25();
+  (new StrTest())->test26();
   return 0;
 }
