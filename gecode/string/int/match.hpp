@@ -246,8 +246,38 @@ namespace Gecode { namespace String {
       int l = k + 1;
       for (int j = 0; j < h; ++j)
         l += px.at(j).l;
-//      std::cerr << "l = " << l << '\n';
       assert (l > 0);
+      
+      if (l > 1) {
+        for (int i = 0; i < h; ++i) {
+          NSBlocks xx = suffix(i, 0);
+          if (xx[0].l > 1)
+            xx[0].l = 1;          
+          if (propagateReg(home, xx, Rs) != ES_FAILED) {
+//            std::cerr << "DFA(r*) = " << *Rs << '\n';
+//            std::cerr << "(h,k) = (" << h << "," << k << ")\tl = " << l << "\ti =  " << i << '\n';
+//            std::cerr << "x: " << x0 << '\n';
+//            std::cerr << "xx: " << xx << '\n';
+            int ll = 1; for (int j = 0; j < i; ++j) ll += px.at(j).l;
+            std::cerr << "[FIXME @" << x0.varimp() << "] Should l be " << ll << " instead of " << l << " ???\n";
+          }
+        }
+        if (k > 0) {        
+          NSBlocks xx = suffix(h, 0);
+          if (xx[0].l > 1)
+            xx[0].l = 1;
+          if (propagateReg(home, xx, Rs) != ES_FAILED) {
+//            std::cerr << "DFA(r*) = " << *Rs << '\n';
+//            std::cerr << "(h,k) = (" << h << "," << k << ")\tl = " << l << "\ti =  " << h << '\n';
+//            std::cerr << "x: " << x0 << '\n';
+//            std::cerr << "xx: " << xx << '\n';
+            int ll = 1; for (int j = 0; j < h; ++j) ll += px.at(j).l;
+            std::cerr << "[FIXME @" << x0.varimp() << "] Should l be " << ll << " instead of " << l << " ???\n";
+          }
+        }
+      }
+      
+      
       // Can't refine x1.
       if (x1.in(0)) {   
         if (l > 1) {
@@ -294,7 +324,7 @@ namespace Gecode { namespace String {
       if (pref.size() == 0)
         pref = prefix(h, k);
 //        std::cerr << "Pref: " << pref << "\n";
-      suff = suffix(h, k);      
+      suff = suffix(h, k);
 //      std::cerr << "Suff: " << suff << "\n";
       int es_suff = x1.assigned() ? propagateReg(home, suff, Rs) 
                                   : propagateReg(home, suff, sRs);
