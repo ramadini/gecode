@@ -259,7 +259,8 @@ namespace Gecode { namespace String {
 //            std::cerr << "x: " << x0 << '\n';
 //            std::cerr << "xx: " << xx << '\n';
             int ll = 1; for (int j = 0; j < i; ++j) ll += px.at(j).l;
-            std::cerr << "[FIXME @" << x0.varimp() << "] Should l be " << ll << " instead of " << l << " ???\n";
+            l = ll;
+            std::cerr << "[FIXME @" << x0.varimp() << "] Set l to " << ll << " instead of " << l << "\n";
           }
         }
         if (k > 0) {        
@@ -272,7 +273,8 @@ namespace Gecode { namespace String {
 //            std::cerr << "x: " << x0 << '\n';
 //            std::cerr << "xx: " << xx << '\n';
             int ll = 1; for (int j = 0; j < h; ++j) ll += px.at(j).l;
-            std::cerr << "[FIXME @" << x0.varimp() << "] Should l be " << ll << " instead of " << l << " ???\n";
+            l = ll;
+            std::cerr << "[FIXME @" << x0.varimp() << "] Set l be " << ll << " instead of " << l << "\n";
           }
         }
       }
