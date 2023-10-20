@@ -232,6 +232,7 @@ namespace Gecode { namespace String {
       // No match.
       if (!Q.in(1)) 
         return me_failed(x1.eq(home,0)) ? ES_FAILED : ES_FIX;
+        
       // Surely a match: possibly refining lower and upper bound of x1.
       if (Q.size() == 1 && Q.max() == 1) {   
         GECODE_ME_CHECK(x1.gq(home, 1));
@@ -243,43 +244,25 @@ namespace Gecode { namespace String {
         }
       }
       
-      int l = k + 1;
-      for (int j = 0; j < h; ++j)
-        l += px.at(j).l;
-      assert (l > 0);
-      
-      if (l > 1) {
-        for (int i = 0; i < h; ++i) {
-          NSBlocks xx = suffix(i, 0);
-          if (xx[0].l > 1)
-            xx[0].l = 1;          
-          if (propagateReg(home, xx, Rs) != ES_FAILED) {
-//            std::cerr << "DFA(r*) = " << *Rs << '\n';
-//            std::cerr << "(h,k) = (" << h << "," << k << ")\tl = " << l << "\ti =  " << i << '\n';
-//            std::cerr << "x: " << x0 << '\n';
-//            std::cerr << "xx: " << xx << '\n';
-            int ll = 1; for (int j = 0; j < i; ++j) ll += px.at(j).l;
-            l = ll;
-            std::cerr << "[FIXME @" << x0.varimp() << "] Set l to " << ll << " instead of " << l << "\n";
-          }
+      // Compute l as the leftmost position for a match, if any.
+      int l = 1;
+      for (int i = 0; i < h || (i == h && k > 0); ++i) {
+        NSBlocks x_suff = suffix(i, 0);
+        if (x_suff[0].l > 1)
+          x_suff[0].l = 1;
+        if (propagateReg(home, x_suff, Rs) != ES_FAILED) {
+          l = 1;
+          for (int j = 0; j < i; ++j)
+            l += px.at(j).l;
+          h = i;
+          k = 0;
+//          std::cerr << "[" << x0.varimp() << "] updated l and (h,k)\n";
+          break;
         }
-        if (k > 0) {        
-          NSBlocks xx = suffix(h, 0);
-          if (xx[0].l > 1)
-            xx[0].l = 1;
-          if (propagateReg(home, xx, Rs) != ES_FAILED) {
-//            std::cerr << "DFA(r*) = " << *Rs << '\n';
-//            std::cerr << "(h,k) = (" << h << "," << k << ")\tl = " << l << "\ti =  " << h << '\n';
-//            std::cerr << "x: " << x0 << '\n';
-//            std::cerr << "xx: " << xx << '\n';
-            int ll = 1; for (int j = 0; j < h; ++j) ll += px.at(j).l;
-            l = ll;
-            std::cerr << "[FIXME @" << x0.varimp() << "] Set l be " << ll << " instead of " << l << "\n";
-          }
-        }
+        else
+          l += i < h ? px.at(i).l : k ;
       }
-      
-      
+
       // Can't refine x1.
       if (x1.in(0)) {   
         if (l > 1) {
