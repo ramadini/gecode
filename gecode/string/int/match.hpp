@@ -43,10 +43,10 @@ namespace Gecode { namespace String {
         }
       }
     }
-//    std::cerr << "RE: " << re << ", minlen: " << r << '\n';
     GECODE_ME_CHECK(i.gr(home, -1));
-    GECODE_ME_CHECK(i.le(home, x.max_length() - r + 1));
+    GECODE_ME_CHECK(i.le(home, x.max_length() - r));
     GECODE_ME_CHECK(x.lb(home, r));
+//    std::cerr << "RE: " << re << ", minlen: " << r << ", i: " << i << '\n';
     stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
     (void) new (home) Match(home, x, i, R, R1, r);
     return ES_OK;
@@ -250,6 +250,7 @@ namespace Gecode { namespace String {
         NSBlocks x_suff = suffix(i, 0);
         if (x_suff[0].l > 1)
           x_suff[0].l = 1;
+//        std::cerr << i << ": " << x_suff << "\n";
         if (propagateReg(home, x_suff, Rs) != ES_FAILED) {
           l = 1;
           for (int j = 0; j < i; ++j)
@@ -261,16 +262,17 @@ namespace Gecode { namespace String {
         }
         else
           l += i < h ? px.at(i).l : k ;
+//        std::cerr << "l: " << l << "\n";
       }
-
+//      std::cerr << x1 << "\n";
       // Can't refine x1.
-      if (x1.in(0)) {   
+      if (x1.in(0)) {
         if (l > 1) {
           IntSet s(1, l-1);
           IntSetRanges is(s);
           GECODE_ME_CHECK(x1.minus_r(home, is));
         }
-  //      std::cerr << "\nMatch::propagated: " << x1 << ' ' << x0 << "\n";
+//        std::cerr << "\nMatch::propagated: " << x1 << ' ' << x0 << "\n";
         return ES_FIX;
       }
       else
@@ -288,7 +290,7 @@ namespace Gecode { namespace String {
         }        
 //        std::cerr << "Updated (h,k) = ("<<h<<", "<<k<<") from position " << x1.min() << "\n";
         pref = prefix(h, k);
-//        std::cerr << "Pref: " << pref << "\n";        
+//        std::cerr << "Pref: " << pref << "\n"; 
         if (sRsC == nullptr) {
           sRsC = new stringDFA(*sRs);
           NSIntSet may_chars = x0.may_chars();
