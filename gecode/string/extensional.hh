@@ -3,6 +3,14 @@
 
 namespace Gecode { namespace String {
 
+  struct matchNFA { //TODO
+    typedef std::vector<std::vector<std::pair<int, int>>> delta_t;
+    int bot;
+    int acc;
+    delta_t delta;
+    NSIntSet neighbours(int) const;
+  };
+
   // DFA data structure for non-reified regular.
   struct stringDFA {
     typedef std::vector<std::vector<std::pair<int, int>>> delta_t;
@@ -33,16 +41,6 @@ namespace Gecode { namespace String {
     stringCDFA(const DFA&, const NSIntSet&);
     void negate();
   };
-
-  struct matchNFA { //TODO
-    typedef std::vector<std::vector<std::pair<int, int>>> delta_t;
-    int bot;
-    int acc;
-    delta_t delta;
-    NSIntSet neighbours(int) const;
-  }
-  
-  
 
 
   /**
