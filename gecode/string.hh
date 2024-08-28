@@ -356,6 +356,9 @@ namespace Gecode {
 
   GECODE_STRING_EXPORT void
   match(Home home, StringVar x, string expr, IntVar i);
+  
+  GECODE_STRING_EXPORT void
+  match_new(Home home, StringVar x, string expr, IntVar i);
 
   // Post propagator for \f$ a[i] = x \f$
   GECODE_STRING_EXPORT void

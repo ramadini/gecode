@@ -13,7 +13,7 @@ namespace Gecode {
   void
   match_new(Home home, StringVar x, string r, IntVar i) {
     GECODE_POST;
-    //FIXME: GECODE_ES_FAIL(String::MatchNew::post(home, x, r, i));
+    GECODE_ES_FAIL(String::MatchNew::post(home, x, r, i));
   }
 
 }
