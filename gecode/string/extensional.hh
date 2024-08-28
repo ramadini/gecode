@@ -23,6 +23,7 @@ namespace Gecode { namespace String {
     NSIntSet neighbours(int) const;
     NSIntSet neighbours(int, const DSIntSet&) const;
     void compute_univ(const NSIntSet& alphabet);
+    matchNFA toMatchNFA(void) const; //TODO
     protected:
       int nstate(int) const;
   };
@@ -32,6 +33,16 @@ namespace Gecode { namespace String {
     stringCDFA(const DFA&, const NSIntSet&);
     void negate();
   };
+
+  struct matchNFA { //TODO
+    typedef std::vector<std::vector<std::pair<int, int>>> delta_t;
+    int bot;
+    int acc;
+    delta_t delta;
+    NSIntSet neighbours(int) const;
+  }
+  
+  
 
 
   /**
