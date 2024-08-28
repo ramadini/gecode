@@ -561,7 +561,7 @@ STRINGHDR0 = \
 	dashed/aux-equate.hpp dashed/aux-lex.hpp dashed/aux-find.hpp \
 	eq.hh nq.hh re-eq.hh lex.hh re-lex.hh inc.hh dom.hh concat.hh replace.hh rev.hh lcase.hh ucase.hh \
 	length.hh char2code.hh pow.hh find.hh channel.hh int/str2nat.hpp int/nat2str.hpp extensional.hh ext/reg.hpp \
-	ext/re-reg.hpp ext/parse-reg.hpp element.hh global/element.hpp match.hh int/match.hpp
+	ext/re-reg.hpp ext/parse-reg.hpp element.hh global/element.hpp match.hh int/match.hpp int/match-new.hpp
 
 STRINGSRC	= $(STRINGSRC0:%=gecode/string/%)
 STRINGHDR	= gecode/string.hh $(STRINGHDR0:%=gecode/string/%)
