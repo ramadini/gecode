@@ -150,7 +150,50 @@ namespace Gecode { namespace String {
   forceinline ExecStatus
   MatchNew::propagate(Space& home, const ModEventDelta& med) {
 //    std::cerr << "\nMatchNew::propagate: Var " << x1.varimp() << ": " << x1 << " = MatchNew " << x0 << " in " << *sRs << "\n";
-    //TODO
+    GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
+    do {
+      // x1 fixed and val(x1) in {0,1}.
+      if (x1.assigned() && x1.val() <= 1) {
+        if (x1.val() == 0) {
+          if (Rcomp == nullptr) {
+            Rcomp = Rfull;
+            NSIntSet may_chars = x0.may_chars();
+            Rcomp->negate(may_chars);
+          }
+          GECODE_REWRITE(*this, Reg::post(home, x0, Rcomp));
+        }
+        GECODE_REWRITE(*this, Reg::post(home, x0, Rpref));
+      }
+      DashedString& px = *x0.pdomain();
+      std::string w = px.known_pref();
+      int k = w.size();
+      if (k > 0) {
+        if (Rfull->accepted(w)) {
+          for (int i = 0; i < k; ++i)
+            if (Rpref->accepted(w.substr(i))) {
+              GECODE_ME_CHECK(x1.eq(home, i+1));
+              return home.ES_SUBSUMED(*this);            
+            }
+        }
+        // i = 0 \/ i > k.
+        IntSet s(1, k);
+        IntSetRanges is(s);
+        GECODE_ME_CHECK(x1.minus_r(home, is));
+      }
+      // lb = min(I - {0})
+      int lb = x1.min();
+      if (lb == 0) {
+        Gecode::IntVarValues r(x1);
+        ++r;
+        assert (r());
+        lb = r.val();
+      }
+      
+      //TODO
+      // check_refine
+      // ...
+      
+    } while (x1.assigned() && x1.val() <= 1);
 //   std::cerr << "\nMatchNew::propagated: " << x1 << " = MatchNew " << x0 << "\n";
     return ES_FIX;
   }
