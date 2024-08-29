@@ -176,8 +176,8 @@ namespace Gecode { namespace String {
       if (changed) {
         nofix = true;
         NSBlocks z;
-        for (auto yi : y) {
-          for (auto yij: yi) {
+        for (auto& yi : y) {
+          for (auto& yij: yi) {
             if (yij.null())
               continue;
             if (!z.empty() && z.back().S == yij.S) {

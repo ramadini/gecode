@@ -643,7 +643,7 @@ namespace Gecode { namespace String {
     // std::cerr << "refine_eq " << x << "\n";
     x.changed(true);
     int m = 0;
-    for (auto pair : up) {
+    for (auto& pair : up) {
       int n = pair.second.size();
       if (n > 1)
         m += n - 1;
@@ -653,11 +653,11 @@ namespace Gecode { namespace String {
       int n = x.length() + m;
       DSBlock* xx = h.alloc<DSBlock>(n);
       int i_x = 0, i_xx = 0, j = 0;
-      for (auto pair : up) {
+      for (auto& pair : up) {
         for (; i_xx < pair.first + j; ++i_x, ++i_xx)
           xx[i_xx].init(h, x.at(i_x));
         ++i_x;
-        for (auto b : pair.second) {
+        for (auto& b : pair.second) {
           xx[i_xx].init(h, b);
           ++i_xx;
         }
@@ -670,7 +670,7 @@ namespace Gecode { namespace String {
       x.normalize(h);
       return;
     }
-    for (auto pair : up) {
+    for (auto& pair : up) {
       if (pair.second.empty())
         x.at(pair.first).set_null(h);
       else
@@ -699,7 +699,7 @@ namespace Gecode { namespace String {
         for (; i_xx < pair.first + j; ++i_x, ++i_xx)
           xx[i_xx].init(h, x.at(i_x));
         ++i_x;
-        for (auto b : pair.second) {
+        for (auto& b : pair.second) {
           xx[i_xx].init(h, b);
           ++i_xx;
         }
@@ -712,7 +712,7 @@ namespace Gecode { namespace String {
       x.normalize(h);      
     }
     else {
-      for (auto pair : up) {
+      for (auto& pair : up) {
         if (pair.first >= lx)
           break;
         if (pair.second.empty())
@@ -740,7 +740,7 @@ namespace Gecode { namespace String {
         for (; i_yy < pair.first - lx + j; ++i_y, ++i_yy)
           yy[i_yy].init(h, y.at(i_y));
         ++i_y;
-        for (auto b : pair.second) {
+        for (auto& b : pair.second) {
           yy[i_yy].init(h, b);
           ++i_yy;
         }
@@ -779,7 +779,7 @@ namespace Gecode { namespace String {
   forceinline void
   refine_concat(Space& home, NSBlocks& xn, vec<DashedString*> x, uvec up) {
     // std::cerr << "refine_concat " << xn << '\n';
-    // for (auto px:x) std::cerr<<"--> "<<*px<<'\n';
+    // for (auto& px:x) std::cerr<<"--> "<<*px<<'\n';
     int l = x.size() - 1;
     x[l]->changed(true);
     int p[l], q[up.size()];
@@ -794,7 +794,7 @@ namespace Gecode { namespace String {
       q[i] = j;
     }
     i = j = 0;
-    for (auto pair : up) {
+    for (auto& pair : up) {
       int n = pair.first + j, m = pair.second.size() - 1;
       for (int k = 0; k < l; ++k)
         if (n < p[k]) {
@@ -830,7 +830,7 @@ namespace Gecode { namespace String {
     // std::cerr << "refine_rev: " << x << "\n";
     x.changed(true);
     int m = 0;
-    for (auto pair : up) {
+    for (auto& pair : up) {
       int n = pair.second.size();
       if (n > 1)
         m += n - 1;
@@ -840,11 +840,11 @@ namespace Gecode { namespace String {
       int n = lx + m;
       DSBlock* xx = h.alloc<DSBlock>(n);
       int i_x = 0, i_xx = 0, j = 0;
-      for (auto pair : up) {
+      for (auto& pair : up) {
         for (; i_xx < pair.first + j; ++i_x, ++i_xx) 
           xx[n - i_xx - 1].init(h, x.at(lx - i_x - 1));
         ++i_x;
-        for (auto b : pair.second) {
+        for (auto& b : pair.second) {
           xx[n - i_xx - 1].init(h, b);
           ++i_xx;
         }
@@ -858,7 +858,7 @@ namespace Gecode { namespace String {
       return;
     }
     int lx = x.length();
-    for (auto pair : up) {
+    for (auto& pair : up) {
       if (pair.second.empty())
         x.at(lx - pair.first - 1).set_null(h);
       else

@@ -60,7 +60,7 @@ public:
       IntVar m(*this, 1, N);
       find(*this, a1, sva[i - 1], m);
       replace(*this, sva[i - 1], a1, a2, sva[i]);
-      for (auto v : va.sva)
+      for (auto& v : va.sva)
         aux << v;
       rel(*this, a1, STRT_NQ, a2);
     }

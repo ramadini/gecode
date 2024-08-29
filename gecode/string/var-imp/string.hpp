@@ -185,7 +185,7 @@ namespace Gecode { namespace String {
     bool b = !ds.known();
     vec<bool> bv;
     NSBlocks xn;
-    for (auto i : x) {
+    for (auto& i : x) {
       DashedString& d = i->ds;
       d._changed = false;
       xs.push(&d);

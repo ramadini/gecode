@@ -57,7 +57,7 @@ public:
     iva << l;
     length(*this, w, l);
     bool cont = false;
-    for (auto wi : W) {
+    for (auto& wi : W) {
       std::cerr << wi << '\n';
       if (cont)
         contains(*this, w, StringVar(*this, wi));

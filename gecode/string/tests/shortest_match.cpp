@@ -56,7 +56,7 @@ public:
     length(*this, w, l);
     bool use_regular = false;
     std::cerr << "Patterns:\n";
-    for (auto ri : PATTERNS) {
+    for (auto& ri : PATTERNS) {
       std::cerr << "\t" << ri << '\n';
       if (use_regular)
         extensional(*this, w, ".*(" + ri + ").*");

@@ -27,7 +27,7 @@ public:
   int
   min_length(const NSBlocks& x) const {
     int l = 0;
-	for (auto b: x)
+	for (auto& b: x)
       l += b.l;
     return l;
   }
@@ -35,7 +35,7 @@ public:
   int
   max_length(const NSBlocks& x) const {
     long u = 0;
-	  for (auto b: x)
+	  for (auto& b: x)
       u += b.u;
     return min(DashedString::_MAX_STR_LENGTH, u);
   }

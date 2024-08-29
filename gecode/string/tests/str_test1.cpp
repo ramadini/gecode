@@ -295,7 +295,7 @@ public:
     std::cerr << "\n*** Test 09 ***" << std::endl;
     NSBlocks vx("A;CW7.MC3ER88MWZPRP.9H@A3?(2-UL3S3-3EG<;MQ@4TW6%*,FKYZ;J3XMF9?<F9>F%I)*HTAX3)7?'/0X*19<D1T)A><#V$V4UL7$@D W$,U5&GPFA(MH;.Z-N7/FBT7H0L5/;(#$S<LFZ6(SY5H6#YY/VD.=CUJG.5<7?O%W1N@PTHD3;A3.A4X%GN3Y(/&FFQ2#MK&/)WM&:>=23WNH;Q72P YHOAM++MROZPIOJ=))4MR7?&D;=N/&RR(6E7ZB,$?<<0GIE51P8%NV:J");
     string s = "K+BW#FY9X=TSG7E/<&#+LG+S&M .8K3UT)-''GXFH2D2D(?<BFE>XH*4G(:>F,;?AH652FX>2+MU)?N ?T'?YO,%(90 Y $1Y/,O 8MS6-A=5<WA 8";
-    for (auto c : s)
+    for (auto& c : s)
       vx.push_back(NSBlock(c, 0, 1));
     vx.push_back(NSBlock('=', 1, 1));
     DashedString x(*this, vx, 0, 10000);
@@ -305,7 +305,7 @@ public:
 //     std::cerr << "x = " << x << std::endl;
     NSBlocks vy("8");
     s = "%N:K+BW#FY9X=TSG7E/<&#+LG+S&M .8K3UT)-'GXFH2D2D(?<BFE>XH*4G(:>F,;?AH652FX>2+MU)?N ?T'?YO,%(90 Y $1Y/,O 8MS6-A=5<WA 8=";
-    for (auto c : s)
+    for (auto& c : s)
       vy.push_back(NSBlock(c, 0, 1));
     vy.concat(NSBlocks("*9.63TS$1BY#<VP+%U.N#%,0@/JH$0X>A<VLG'O@M-II%;D-XXU5,,O+Q8&YWO%DX.SS/AADJG-$.7*FX+R7UEW(E(S5EY:;<M%> CKL#DBB"), vy);
     DashedString y(*this, vy, 0, 10000);
@@ -323,12 +323,12 @@ public:
       std::cerr << "\n*** Test 10 ***" << std::endl;
       NSBlocks yy("A;CW7.MC3ER88MWZPRP.9H@A3?(2-UL3S3-3EG<;MQ@4TW6%*,FKYZ;J3XMF9?<F9>F%I)*HTAX3)7?'/0X*19<D1T)A><#V$V4UL7$@D W$,U5&GPFA(MH;.Z-N7/FBT7H0L5/;(#$S<LFZ6(SY5H6#YY/VD.=CUJG.5<7?O%W1N@PTHD3;A3.A4X%GN3Y(/&FFQ2#MK&/)WM&:>=23WNH;Q72P YHOAM++MROZPIOJ=))4MR7?&D;=N/&RR(6E7ZB,$?<<0GIE51P8%NV:J");
       string s = "K+BW#FY9X=TSG7E/<&#+LG+S&M .8K3UT)-''GXFH2D2D(?<BFE>XH*4G(:>F,;?AH652FX>2+MU)?N ?T'?YO,%(90 Y $1Y/,O 8MS6-A=5<WA 8";
-      for (auto c : s)
+      for (auto& c : s)
          yy.push_back(NSBlock(c, 0, 1));
       yy.push_back(NSBlock('=', 1, 1));
       yy.push_back(NSBlock('8', 1, 1));
       s = "%N:K+BW#FY9X=TSG7E/<&#+LG+S&M .8K3UT)-'GXFH2D2D(?<BFE>XH*4G(:>F,;?AH652FX>2+MU)?N ?T'?YO,%(90 Y $1Y/,O 8MS6-A=5<WA 8=";
-      for (auto c : s)
+      for (auto& c : s)
          yy.push_back(NSBlock(c, 0, 1));
       yy.concat(NSBlocks("*9.63TS$1BY#<VP+%U.N#%,0@/JH$0X>A<VLG'O@M-II%;D-XXU5,,O+Q8&YWO%DX.SS/AADJG-$.7*FX+R7UEW(E(S5EY:;<M%> CKL#DBB"), yy);
       DashedString x(*this, "A;CW7.MC3ER88MWZPRP.9H@A3?(2-UL3S3-3EG<;MQ@4TW6%*,FKYZ;J3XMF9?<F9>F%I)*HTAX3)7?'/0X*19<D1T)A><#V$V4UL7$@D W$,U5&GPFA(MH;.Z-N7/FBT7H0L5/;(#$S<LFZ6(SY5H6#YY/VD.=CUJG.5<7?O%W1N@PTHD3;A3.A4X%GN3Y(/&FFQ2#MK&/)WM&:>=23WNH;Q72P YHOAM++MROZPIOJ=))4MR7?&D;=N/&RR(6E7ZB,$?<<0GIE51P8%NV:JK+BW#FY9X=TSG7E/<&#+LG+S&M .8K3UT)-''GXFH2D2D(?<BFE>XH*4G(:>F,;?AH652FX>2+MU)?N ?T'?YO,%(90 Y $1Y/,O 8MS6-A=5<WA 8=*9.63TS$1BY#<VP+%U.N#%,0@/JH$0X>A<VLG'O@M-II%;D-XXU5,,O+Q8&YWO%DX.SS/AADJG-$.7*FX+R7UEW(E(S5EY:;<M%> CKL#DBB");
@@ -345,7 +345,7 @@ public:
      std::cerr << "\n*** Test 11 ***" << std::endl;
      NSBlocks vx("+C<*@?OB+>9MW?,2U','/YBRO%ZAFAZ;+*");
      string s = "=UOL1%!'Z7*I ";
-     for (auto c : s)
+     for (auto& c : s)
        vx.push_back(NSBlock(c, 0, 1));
      NSBlocks vy({
        NSBlock(NSIntSet(0, 1000), 1, 49),
@@ -366,7 +366,7 @@ public:
      std::cerr << "\n*** Test 12 ***" << std::endl;
      NSBlocks vx("$");
      string s = "==2V=< =2V";
-     for (auto c : s)
+     for (auto& c : s)
        if (c != ' ')
          vx.push_back(NSBlock(c, 0, 1));
        else

@@ -52,14 +52,14 @@ namespace Gecode { namespace String {
       else
         remove.push_back(i.val());
     }
-    // std::cerr<<"remove = ["; for(auto x:remove) std::cerr<<"\""<<x<< "\", "; std::cerr<<"]\n";
+    // std::cerr<<"remove = ["; for(auto& x:remove) std::cerr<<"\""<<x<< "\", "; std::cerr<<"]\n";
     IntSet is(IntSet(&remove[0], remove.size()));
     IntSetRanges r(is);
     GECODE_ME_CHECK(y.minus_r(home, r));
     NSBlocks dom(1, NSBlock(s, l, u));
     GECODE_ME_CHECK(v.dom(home, dom));
     // std::cerr << "Element::propagated " << x << "[" << y << "] = " << x[0] << "\n";
-    for (auto v : x)
+    for (auto& v : x)
       assert (v.pdomain()->is_normalized());
     return y.assigned() ? propagate(home, m) : ES_FIX;
   }

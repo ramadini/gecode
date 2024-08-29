@@ -115,7 +115,7 @@ namespace Gecode { namespace String {
           return home.ES_SUBSUMED(*this);
         }
         string sz = sq1;
-        for (auto c : sx)
+        for (auto& c : sx)
           sz += c + sq1;
         GECODE_ME_CHECK(x[3].eq(home, sz));
       }

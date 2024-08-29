@@ -69,7 +69,7 @@ public:
 
   virtual void
   print(std::ostream& os) const {
-  for (auto w : string_vars)
+  for (auto& w : string_vars)
     os << w << "\n";
   N = -1;
   }

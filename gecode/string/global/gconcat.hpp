@@ -33,7 +33,7 @@ namespace Gecode { namespace String {
   GConcat::refine_card(Space& home) {
     // std::cerr << "GConcat<StringView>::refine_card " << y << "\n";
     long lx = 0, ux = 0;
-    for (auto xi : x) {
+    for (auto& xi : x) {
       lx += xi.min_length();
       ux += xi.max_length();
     }
@@ -54,7 +54,7 @@ namespace Gecode { namespace String {
         again = true;
       }
       int i = -1, ly = y.min_length(), uy = y.max_length();
-      for (auto xi : x) {
+      for (auto& xi : x) {
         i++;
         long lxi = ly - ux + xi.max_length();
         long uxi = max(0, uy - lx + xi.min_length());
@@ -71,7 +71,7 @@ namespace Gecode { namespace String {
       }
       if (again) {
         lx = 0, ux = 0;
-        for (auto xi : x) {
+        for (auto& xi : x) {
           lx += xi.min_length();
           ux += xi.max_length();
         }
@@ -89,7 +89,7 @@ namespace Gecode { namespace String {
     // std::cerr<<"\nGConcat::propagate " <<y<< " = gconcat(" <<x<< ")\n";
     if (x.assigned()) {
       string val;
-      for (auto s : x)
+      for (auto& s : x)
         val += s.val();
       if (y.assigned())
         return val == y.val() ? home.ES_SUBSUMED(*this) : ES_FAILED;
@@ -114,7 +114,7 @@ namespace Gecode { namespace String {
         assert (y.pdomain()->is_normalized());
       }
       int i = -1;
-      for (auto xi : x) {
+      for (auto& xi : x) {
         i++;
         if (xi.pdomain()->changed() && !xi.assigned()) {
           ModEvent xme = xi.varimp()->notify(

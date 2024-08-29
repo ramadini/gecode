@@ -81,7 +81,7 @@ namespace Gecode { namespace String {
   forceinline ModEvent
   StringView::gconcat(Space& home, ViewArray<StringView>& a) {
     vec<StringVarImp*> v;
-    for (auto i : a)
+    for (auto& i : a)
       v.push(i.varimp());
     return x->gconcat(home, v);
   }

@@ -1543,7 +1543,7 @@ namespace Gecode { namespace String {
       return false;
     _changed = that._changed = false;
     std::vector<float> y_succ = min_succ(that);
-    // std::cerr<<"y_succ = ["; for (auto v:y_succ) std::cerr<<v<< ", "; std::cerr<<"]\n";
+    // std::cerr<<"y_succ = ["; for (auto& v:y_succ) std::cerr<<v<< ", "; std::cerr<<"]\n";
     NSBlocks y_max = that.lex_greatest(y_succ);
     if (known()) {
       string sx = val(), sy = y_max.val();

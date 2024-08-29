@@ -323,7 +323,7 @@ namespace Gecode { namespace String {
       if (!refine_find(h, xblocks, yblocks, m, upx, upy, modx, mody))
         return false;
       int k = 0;
-      for (auto u : upx) {
+      for (auto& u : upx) {
         const NSBlocks& us = u.second;
         while (u.first == k && 
         (us.size() == 0 || (us.size() == 1 && us[0].null()))) {

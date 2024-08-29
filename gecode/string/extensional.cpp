@@ -94,7 +94,7 @@ namespace Gecode {
   extensional(Home home, StringVar x, const std::vector<std::string>& y) {
     IntVar i(home, 1, y.size());
     StringVarArgs a;
-    for (auto s : y)
+    for (auto& s : y)
       a << StringVar(home, s);
     element(home, a, i, x);
   }

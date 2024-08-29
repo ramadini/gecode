@@ -39,7 +39,7 @@ namespace Gecode { namespace String {
     }
     delta_t rdelta(n_states);
     for (int i = 0; i < n_states; i++)
-      for (auto x : delta[i])
+      for (auto& x : delta[i])
         rdelta[nstate(i)].push_back(std::make_pair(x.first, nstate(x.second)));
     delta = rdelta;
     final_lst = n_states - final_lst + final_fst - 2;
@@ -205,8 +205,8 @@ namespace Gecode { namespace String {
     if (changed) {
       StringDelta d(true);
       NSBlocks z;
-      for (auto yi : y)
-        for (auto yij: yi) {
+      for (auto& yi : y)
+        for (auto& yij: yi) {
           if (yij.null())
             continue;
           if (!z.empty() && z.back().S == yij.S) {
