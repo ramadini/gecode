@@ -215,6 +215,33 @@ namespace Gecode { namespace String {
     }
     return matchNFA();
   }
+  
+  forceinline NSIntSet
+  matchNFA::neighbours(int q) const {
+    NSIntSet s;
+    for (auto& x : delta[q])
+      if (x.second < 0) {
+        s.add(-x.second);
+        s.add(bot);
+      }
+      else
+        s.add(x.second);
+    return s;
+  };
+  
+  forceinline NSIntSet
+  matchNFA::neighbours(int q, const DSIntSet& S) const {
+    NSIntSet s;
+    for (auto& x : delta[q])
+      if (S.in(x.first))
+        if (x.second < 0) {
+          s.add(-x.second);
+          s.add(bot);
+        }
+        else
+          s.add(x.second);
+    return s;
+  };
 
   forceinline
   Reg::Reg(Home home, StringView x, stringDFA* p)
