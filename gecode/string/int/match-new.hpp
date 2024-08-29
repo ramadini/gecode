@@ -1,15 +1,55 @@
 namespace Gecode { namespace String {
 
   forceinline
-  MatchNew::MatchNew(Home home, StringView x, Gecode::Int::IntView i, stringDFA* R, 
-    stringDFA* R1, int r)
+  MatchNew::MatchNew(Home home, StringView x, Gecode::Int::IntView i, int r, 
+             stringDFA* Rp, stringDFA* Rf, matchNFA* Rn)
   : MixBinaryPropagator
   <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM>
-    (home, x, i), sRsC(nullptr), sRs(R), Rs(R1), minR(r) {}
+    (home, x, i), minR(r), Rpref(Rp), Rfull(Rf), Rcomp(nullptr), Rnfa(Rn) {}
 
   forceinline ExecStatus
   MatchNew::post(Home home, StringView x, string re, Gecode::Int::IntView i) {  
-    // TODO
+    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();
+    if (regex->has_empty()) {
+      rel(home, i, IRT_EQ, 1);
+      return ES_OK;
+    }
+    GECODE_ME_CHECK(x.lb(home, 1));
+    stringDFA* R = new stringDFA(regex->dfa());
+    assert (R->final(1) && R->final_lst == 1);
+    assert (R->neighbours(1) == NSIntSet(1));
+    // BFS to find minimal-length word accepted by R.
+    int r = 0, n = R->n_states;
+    std::vector<int> dist(n);    
+    for (int i = 0; i < n; ++i)
+      dist[i] = DashedString::_MAX_STR_LENGTH;        
+    std::list<int> s;
+    s.push_back(0);
+    dist[0] = 0;
+    while (!s.empty()) {
+      int q = s.front();
+      s.pop_front();
+      if (R->final(q)) {
+        assert (q == 1);
+        r = dist[q];
+        break;
+      }
+      NSIntSet nq = R->neighbours(q);
+      for (NSIntSet::iterator it(nq); it(); ++it) {
+        int a = dist[q] + 1, x = *it;
+        if (a < dist[x]) {
+          dist[x] = a;
+          s.push_back(x);
+        }
+      }
+    }
+    GECODE_ME_CHECK(i.gr(home, -1));
+    GECODE_ME_CHECK(i.le(home, x.max_length() - r));
+    GECODE_ME_CHECK(x.lb(home, r));
+//    std::cerr << "RE: " << re << ", minlen: " << r << ", i: " << i << '\n';
+    stringDFA* Rp = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    matchNFA* Rn = new matchNFA(Rp->toMatchNFA());
+    (void) new (home) MatchNew(home, x, i, r, Rp, R, Rn);
     return ES_OK;
   }
 
@@ -17,7 +57,8 @@ namespace Gecode { namespace String {
   MatchNew::MatchNew(Space& home, MatchNew& p)
   : MixBinaryPropagator
   <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM> 
-    (home, p), sRsC(p.sRsC), sRs(p.sRs), Rs(p.Rs), minR(p.minR) {}
+    (home, p), minR(p.minR), Rpref(p.Rpref), Rfull(p.Rfull), Rcomp(p.Rcomp),
+                                                             Rnfa(p.Rnfa) {}
 
   forceinline Actor*
   MatchNew::copy(Space& home) {
@@ -116,9 +157,10 @@ namespace Gecode { namespace String {
   
   forceinline
   MatchNew::~MatchNew() {
-    delete Rs;
-    delete sRs;
-    delete sRsC;
+    delete Rpref;
+    delete Rfull;
+    delete Rcomp;
+    delete Rnfa;
   }
 
 }}

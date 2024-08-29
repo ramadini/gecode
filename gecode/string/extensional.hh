@@ -3,10 +3,12 @@
 
 namespace Gecode { namespace String {
 
-  struct matchNFA { //TODO
+  struct matchNFA {
+    // 0 = initial state q_0, 1 = accepting state q_F, bot = q_⊥ state.    
     typedef std::vector<std::vector<std::pair<int, int>>> delta_t;
     int bot;
-    int acc;
+    // delta_t[i][j] = k >= 0 means δ(i,j) = {k}.
+    // delta_t[i][j] = k <  0 means δ(i,j) = {-k,bot}.
     delta_t delta;
     NSIntSet neighbours(int) const;
   };
@@ -31,7 +33,7 @@ namespace Gecode { namespace String {
     NSIntSet neighbours(int) const;
     NSIntSet neighbours(int, const DSIntSet&) const;
     void compute_univ(const NSIntSet& alphabet);
-    matchNFA toMatchNFA(void) const; //TODO
+    matchNFA toMatchNFA(void) const;
     protected:
       int nstate(int) const;
   };

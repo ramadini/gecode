@@ -44,9 +44,10 @@ namespace Gecode { namespace String {
   class MatchNew : public MixBinaryPropagator
     <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM> {
   private:
-    stringDFA* Rs;
-    stringDFA* sRs;    
-    stringDFA* sRsC;
+    stringDFA* Rpref;
+    stringDFA* Rfull;    
+    stringDFA* Rcomp;
+    matchNFA* Rnfa;
     int minR;
     NSBlocks prefix(int,int) const;
     NSBlocks suffix(int,int) const;
@@ -59,7 +60,8 @@ namespace Gecode { namespace String {
     /// Constructor for cloning \a p
     MatchNew(Space& home, MatchNew& p);
     /// Constructor for posting
-    MatchNew(Home, StringView, Gecode::Int::IntView, stringDFA*, stringDFA*, int);
+    MatchNew(Home, StringView, Gecode::Int::IntView, int, 
+             stringDFA*, stringDFA*, matchNFA*);
   public:
     /// Copy propagator during cloning
     virtual Actor* copy(Space& home);
@@ -67,7 +69,7 @@ namespace Gecode { namespace String {
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator
     static ExecStatus post(Home home, StringView x, string r,
-      Gecode::Int::IntView i);
+                           Gecode::Int::IntView i);
     ~MatchNew();
   };
 

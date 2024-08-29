@@ -185,6 +185,12 @@ namespace Gecode { namespace String {
     else
       return q + n_states - final_lst - 1;
   }
+  
+  forceinline matchNFA
+  stringDFA::toMatchNFA() const {
+    // TODO
+    return matchNFA();
+  }
 
   forceinline
   Reg::Reg(Home home, StringView x, stringDFA* p)
