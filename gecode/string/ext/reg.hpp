@@ -6,7 +6,7 @@ namespace Gecode { namespace String {
     os << '[';
     for (int i = 0; i < d.n_states; i++) {
       std::vector<NSIntSet> qi(d.n_states);
-      for (auto x : d.delta[i])
+      for (auto& x : d.delta[i])
         qi[x.second].add(x.first);
       for (unsigned j = 0; j < qi.size(); ++j)
         if (!qi[j].empty())
@@ -23,7 +23,7 @@ namespace Gecode { namespace String {
     ur = -1;
     for (int i = 0; i < final_fst; ++i) {
       ur = i;
-      for (auto x : delta[i])
+      for (auto& x : delta[i])
         if (x.second != i) {
           ur = -1;
           break;
@@ -38,7 +38,7 @@ namespace Gecode { namespace String {
         ua = -1;
         continue;
       }
-      for (auto x : di)
+      for (auto& x : di)
         if (x.second != i || !domain.contains(x.first)) {
           ua = -1;
           break;
@@ -47,7 +47,7 @@ namespace Gecode { namespace String {
     if (ur == -1)
       for (int i = final_lst + 1; i < n_states; ++i) {
         ur = i;
-        for (auto x : delta[i])
+        for (auto& x : delta[i])
           if (x.second != i) {
             ur = -1;
             break;
@@ -105,7 +105,7 @@ namespace Gecode { namespace String {
   forceinline bool
   stringDFA::accepted(string s) const {
     int q = 0;
-    for (auto c : s) {
+    for (auto& c : s) {
       q = search(q, char2int(c));
       if (q == -1)
         return false;
@@ -117,7 +117,7 @@ namespace Gecode { namespace String {
   stringDFA::alphabet() const {
     NSIntSet s;
     for (int i = 0; i < n_states; i++)
-      for (auto x : delta[i])
+      for (auto& x : delta[i])
         s.add(x.first);
     return s;
   }
@@ -125,7 +125,7 @@ namespace Gecode { namespace String {
   forceinline NSIntSet
   stringDFA::neighbours(int q) const {
     NSIntSet s;
-    for (auto x : delta[q])
+    for (auto& x : delta[q])
       s.add(x.second);
     return s;
   }
@@ -133,7 +133,7 @@ namespace Gecode { namespace String {
   forceinline NSIntSet
   stringDFA::neighbours(int q, const DSIntSet& S) const {
     NSIntSet s;
-    for (auto x : delta[q])
+    for (auto& x : delta[q])
       if (S.in(x.first))
         s.add(x.second);
     return s;
@@ -167,7 +167,7 @@ namespace Gecode { namespace String {
     }
     delta_t rdelta(n_states);
     for (int i = 0; i < n_states; i++)
-      for (auto x : delta[i])
+      for (auto& x : delta[i])
         rdelta[nstate(i)].push_back(std::make_pair(x.first, nstate(x.second)));
     delta = rdelta;
     final_lst = n_states - final_lst + final_fst - 2;
@@ -188,7 +188,31 @@ namespace Gecode { namespace String {
   
   forceinline matchNFA
   stringDFA::toMatchNFA() const {
-    // TODO
+    int qbot;
+    matchNFA R;
+    R.delta = delta;    
+    if (ur > 0) {
+      // There was already a bottom state in *this.
+      qbot = ur;
+      R.delta[qbot].clear();
+    }
+    else {
+      // No bottom state in *this.
+      qbot = delta.size();
+      R.delta.push_back(std::vector<std::pair<int, int>>());
+    }
+    R.bot = qbot;
+    for (auto& x : delta[0])
+      R.delta[qbot].push_back(x);
+    for (int i = 0; i < delta.size(); ++i) {
+      if (i != qbot) {
+        for (int j = 0; j < delta[i].size(); ++j) {
+          int q = delta[i][j].second;
+          if (q > 1 && q != qbot)
+            R.delta[i][j].second = -q;
+        }
+      }
+    }
     return matchNFA();
   }
 
@@ -262,7 +286,7 @@ namespace Gecode { namespace String {
         }        
       }
       if (u != DashedString::_MAX_STR_LENGTH) {
-//        std::cerr << "Topo. sort: "; for (auto x : s) std::cerr << x << " "; std::cerr <<"\n";
+//        std::cerr << "Topo. sort: "; for (auto& x : s) std::cerr << x << " "; std::cerr <<"\n";
         dist[0] = 0;
         for (int i = 1; i < n_states; ++i)
           dist[i] = -1;
@@ -282,7 +306,7 @@ namespace Gecode { namespace String {
             }
           }
         }
-//        std::cerr << "dist: "; for (auto x : dist) std::cerr << x << " "; std::cerr <<"\n";
+//        std::cerr << "dist: "; for (auto& x : dist) std::cerr << x << " "; std::cerr <<"\n";
       }  
     }
 //    std::cerr << l << ' ' << u << '\n';
@@ -346,7 +370,7 @@ namespace Gecode { namespace String {
     if (rev) {
       delta_rev = stringDFA::delta_t(dfa->n_states);
       for (int q = 0; q < dfa->n_states; ++q)
-        for (auto x : dfa->delta[q])
+        for (auto& x : dfa->delta[q])
           if (b.S.in(x.first))
             delta_rev[x.second].push_back(std::pair<int, int>(x.first, q));
     }
@@ -355,7 +379,7 @@ namespace Gecode { namespace String {
       NSIntSet qi;
       if (rev)
         for (NSIntSet::iterator it(Q[i]); it(); ++it)
-          for (auto x : delta_rev[*it])
+          for (auto& x : delta_rev[*it])
             qi.include(x.second);
       else
         for (NSIntSet::iterator it(Q[i]); it(); ++it)
@@ -391,7 +415,7 @@ namespace Gecode { namespace String {
       if (d <= b.u) {
         NSIntSet nq;
         if (rev)
-          for (auto x : delta_rev[q])
+          for (auto& x : delta_rev[q])
             nq.include(x.second);
         else
           nq = dfa->neighbours(q, b.S);
@@ -416,7 +440,7 @@ namespace Gecode { namespace String {
     stringDFA::delta_t delta_bwd(dfa->n_states);
     if (!rev)
       for (int q = 0; q < dfa->n_states; ++q)
-        for (auto x : dfa->delta[q])
+        for (auto& x : dfa->delta[q])
           if (b.S.in(x.first))
             delta_bwd[x.second].push_back(std::pair<int, int>(x.first, q));
     int l = b.l, l1 = DashedString::_MAX_STR_LENGTH;
@@ -441,13 +465,13 @@ namespace Gecode { namespace String {
       if (d <= b.u) {
         std::vector<std::pair<int, int>> dx;
         if (rev) {
-          for (auto x : dfa->delta[q])
+          for (auto& x : dfa->delta[q])
             if (b.S.in(x.first))
               dx.push_back(x);
         }
         else
           dx = delta_bwd[q];
-        for (auto x : dx) {
+        for (auto& x : dx) {
           int c = x.first, q1 = x.second;
           if (Q[l + 1].contains(q1)) {
             S_opt.add(c);
@@ -477,13 +501,13 @@ namespace Gecode { namespace String {
         int q = *it;
         std::vector<std::pair<int, int>> dx;
         if (rev) {
-          for (auto x : dfa->delta[q])
+          for (auto& x : dfa->delta[q])
             if (b.S.in(x.first))
               dx.push_back(x);
         }
         else
          dx = delta_bwd[q];
-        for (auto x : dx) {
+        for (auto& x : dx) {
           int c = x.first, q1 = x.second;
           S_opt.add(c);
           if (Q[i - 1].contains(q1)) {
@@ -537,8 +561,8 @@ namespace Gecode { namespace String {
     if (changed) {
       StringDelta d(true);
       NSBlocks z;
-      for (auto yi : y)
-        for (auto yij: yi) {
+      for (auto& yi : y)
+        for (auto& yij: yi) {
           if (yij.null())
             continue;
           if (!z.empty() && z.back().S == yij.S) {
@@ -580,8 +604,8 @@ namespace Gecode { namespace String {
       if (changed) {
         StringDelta d(true);
         NSBlocks z;
-        for (auto yi : y)
-          for (auto yij: yi) {
+        for (auto& yi : y)
+          for (auto& yij: yi) {
             if (yij.null())
               continue;
             if (!z.empty() && z.back().S == yij.S) {
