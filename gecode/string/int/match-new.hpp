@@ -147,6 +147,25 @@ namespace Gecode { namespace String {
     return nofix ? ES_NOFIX : ES_FIX;
   }
 
+  forceinline void
+  MatchNew::refine_idx(void) {
+    //TODO
+  };
+  
+  forceinline bool
+  MatchNew::must_match(void) const {
+    //TODO
+    DashedString& px = *x0.pdomain();
+    NSIntSet Q(0);
+    int i = 0, j = 0, h = 0, k = 0, n = px.length();
+    for (int i = 0; i < px.length(); ++i) {
+      NSIntSet Q;//TODO = checkBlock(Q, Rfull);
+      if (Q.size() == 1 && Q.min() == 1)
+        return true;
+    }
+    return false;
+  };
+
   forceinline ExecStatus
   MatchNew::propagate(Space& home, const ModEventDelta& med) {
 //    std::cerr << "\nMatchNew::propagate: Var " << x1.varimp() << ": " << x1 << " = MatchNew " << x0 << " in " << *sRs << "\n";
@@ -188,7 +207,15 @@ namespace Gecode { namespace String {
         assert (r());
         lb = r.val();
       }
-      
+      refine_idx();
+      if (x1.min() == 0) {
+        if (must_match())
+          GECODE_ME_CHECK(x1.gq(home,1));
+        else
+          return ES_FIX;
+      }
+      if (lb <= x1.min() && x1.max() > x1.min())
+        return ES_FIX;
       //TODO
       // check_refine
       // ...

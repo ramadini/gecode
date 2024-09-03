@@ -49,6 +49,8 @@ namespace Gecode { namespace String {
     stringDFA* Rcomp;
     matchNFA* Rnfa;
     int minR;
+    void refine_idx(void);
+    bool must_match(void) const;
     NSBlocks prefix(int,int) const;
     NSBlocks suffix(int,int) const;
     static ExecStatus propagateReg(Space&, NSBlocks&, stringDFA*);
