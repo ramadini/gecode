@@ -147,19 +147,67 @@ namespace Gecode { namespace String {
     return nofix ? ES_NOFIX : ES_FIX;
   }
 
-  forceinline void
+  forceinline ExecStatus
   MatchNew::refine_idx(void) {
     //TODO
+    return ES_OK;
   };
+  
+  forceinline NSIntSet
+  MatchNew::reachFwdLazy(const DSBlock& b, const NSIntSet& Q_in) const {
+//    std::cerr << "reachFwdLazy " << b << '\n';
+    int l = b.l, j = 0;
+    NSIntSet Q_prev = Q_in;
+    // Mandatory region.
+    for (int i = 0; i < l; ++i) {
+      NSIntSet Qi;
+      for (NSIntSet::iterator it(Q_prev); it(); ++it)
+        Qi.include(Rfull->neighbours(*it, b.S));
+      if (Qi.size() == 1 && Qi.in(1))
+        return Qi;
+      if (Qi == Q_prev)
+        // Fixpoint.
+        return Qi;
+      Q_prev = Qi;
+    }
+    // BFS over optional region.
+    int dist[Rfull->n_states];
+    for (int q = 0; q < Rfull->n_states; ++q)
+      dist[q] = Q_prev.contains(q) ? l : DashedString::_MAX_STR_LENGTH + 1;
+    std::list<int> U;
+    for (NSIntSet::iterator i(Q_prev); i(); ++i)
+      U.push_back(*i);    
+    while (!U.empty()) {
+      int q = U.front(), d = dist[q] + 1;
+      U.pop_front();
+      if (d <= b.u) {
+        NSIntSet Nq = Rfull->neighbours(q, b.S);
+        for (NSIntSet::iterator j(Nq); j(); ++j) {
+          int q1 = *j;
+          if (dist[q1] > d) {
+            U.push_back(q1);
+            dist[q1] = d;
+          }
+        }
+        if (Nq.size() == 1 && Nq.in(1))
+          // Final state in the neighbourhood of q.
+          return Nq;
+      }
+    }
+    NSIntSet Qf;
+    for (int q = 0; q < Rfull->n_states; ++q)
+      if (dist[q] <= DashedString::_MAX_STR_LENGTH)
+        Qf.add(q);
+    return Qf;
+  }
   
   forceinline bool
   MatchNew::must_match(void) const {
-    //TODO
     DashedString& px = *x0.pdomain();
     NSIntSet Q(0);
     int i = 0, j = 0, h = 0, k = 0, n = px.length();
     for (int i = 0; i < px.length(); ++i) {
-      NSIntSet Q;//TODO = checkBlock(Q, Rfull);
+      NSIntSet Q = reachFwdLazy(px.at(i), Q);
       if (Q.size() == 1 && Q.min() == 1)
         return true;
     }
@@ -207,7 +255,8 @@ namespace Gecode { namespace String {
         assert (r());
         lb = r.val();
       }
-      refine_idx();
+      // TODO
+      GECODE_ME_CHECK(refine_idx());
       if (x1.min() == 0) {
         if (must_match())
           GECODE_ME_CHECK(x1.gq(home,1));
