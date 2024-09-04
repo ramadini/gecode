@@ -220,10 +220,28 @@ namespace Gecode { namespace String {
     }
     // Bwd pass.
     NSIntSet B(1);
-    int k = 0;
+    int i  = 0, j = 0, i_lb = 0, i_ub = 0, j_lb = 0, j_ub = 0, k = 0;
     for (int i = n; i >= 0; --i) {
-      //TODO
+      //TODO B  = ReachBwd(x.at(i), F[i], B, i, j);
+      if (j > 0) {
+        i_lb = i;
+        j_ub = j;
+      }
+      if (k > 0 && i_ub == 0 && j_ub == 0) {
+        i_lb = i;
+        j_ub = k;
+      }
     }
+    i = j_lb;
+    for (k = 0; k < i_lb - 1; ++k)
+      i += x.at(k).l;
+    j = j_ub;
+    for (k = 0; k < i_ub - 1; ++k)
+      j += x.at(k).u;
+    GECODE_ME_CHECK(x1.lq(home, j));
+    IntSet s(1, i);
+    IntSetRanges is(s);  
+    GECODE_ME_CHECK(x1.minus_r(home, is));
     return ES_OK;
   };
   
@@ -329,7 +347,6 @@ namespace Gecode { namespace String {
         assert (r());
         lb = r.val();
       }
-      // TODO
       GECODE_ES_CHECK(refine_idx(home));
       if (x1.min() == 0) {
         if (must_match())
