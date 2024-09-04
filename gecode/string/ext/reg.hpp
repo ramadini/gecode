@@ -505,7 +505,8 @@ namespace Gecode { namespace String {
             S_opt.add(c);
             if (dist[q1] > d) {
               Q_bfs.push_back(q1);
-              Q1.include(q1);
+              if (Q[l].in(q1))
+                Q1.include(q1);
               dist[q1] = d;
             }
           }

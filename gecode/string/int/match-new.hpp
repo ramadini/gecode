@@ -139,21 +139,21 @@ namespace Gecode { namespace String {
   }
   
   forceinline void
-  MatchNew::reachBwd(int i, NSIntSet& B, const std::vector<NSIntSet>& Fi,
+  MatchNew::reachBwd(int i, NSIntSet& B, const std::vector<NSIntSet>& Q,
                      int& j, int& k) const {
     const DSBlock& b = x0.pdomain()->at(i);
     j = k = 0;
     int l = b.l;
-    stringDFA::delta_t delta_bwd(Rnfa->n_states);
+    std::vector<std::vector<int>> delta_bwd(Rnfa->n_states);
     for (int q = 0; q < Rnfa->n_states; ++q)
       for (auto& x : Rnfa->delta[q])
         if (b.S.in(x.first))
           if (x.second < 0) {
-            delta_bwd[-x.second].push_back(std::pair<int, int>(x.first, q));
-            delta_bwd[Rnfa->bot].push_back(std::pair<int, int>(x.first, q));
+            delta_bwd[-x.second].push_back(q);
+            delta_bwd[Rnfa->bot].push_back(q);
           }
           else
-            delta_bwd[x.second].push_back(std::pair<int, int>(x.first, q));    
+            delta_bwd[x.second].push_back(q);    
     int dist[Rnfa->n_states];
     for (int q = 0; q < Rnfa->n_states; ++q)
       dist[q] = B.contains(q) ? 0 : DashedString::_MAX_STR_LENGTH;
@@ -167,57 +167,35 @@ namespace Gecode { namespace String {
       if (d < DashedString::_MAX_STR_LENGTH)
         ++d;
       if (d <= b.u - b.l)
-        for (auto& x : delta_bwd[q]) {
-          int c = x.first, q1 = x.second;
-          if (Fi[l + 1].contains(q1) && dist[q1] > d) {
+        for (int q1 : delta_bwd[q]) {
+          if (dist[q1] > d && Q[l + 1].contains(q1)) {
             Q_bfs.push_back(q1);
-            Q1.include(q1);
+            if (Q[l].in(q1))
+              Q1.include(q1);
             dist[q1] = d;
             if (q1 == Rnfa->bot && k == 0)
               k = b.u - d + 1;
           }
         }
-    }    
-    //FIXME: From Reg::reach_bwd
-//    NSIntSet E(Q1);
-//    if (l1 > l) {
-//      changed = true;
-//      y[l] = NSBlock(S_opt, l1, b.u - l);
-//    }
-//    else {
-//      if (b.u > l && S_opt.size() < (int) b.S.size())
-//        changed = true;
-//      y[l] = NSBlock(S_opt, 0, b.u - l);
-//    }
-//    for (int i = l; i > 0; --i) {
-//      NSIntSet S_man, B1;
-//      for (NSIntSet::iterator it(E); it(); ++it) {
-//        int q = *it;
-//        std::vector<std::pair<int, int>> dx;
-//        if (rev) {
-//          for (auto& x : dfa->delta[q])
-//            if (b.S.in(x.first))
-//              dx.push_back(x);
-//        }
-//        else
-//         dx = delta_bwd[q];
-//        for (auto& x : dx) {
-//          int c = x.first, q1 = x.second;
-//          S_opt.add(c);
-//          if (Q[i - 1].contains(q1)) {
-//            S_man.add(c);
-//            B1.add(q1);
-//          }
-//        }
-//      }
-//      E = B1;
-//      if (S_man.size() < (int) b.S.size())
-//        changed = true;
-//      y[i - 1] = NSBlock(S_man, 1, 1);
-//    }
-//    y.normalize();
-//    Qe = E;
-//    return y;
+    }
+    B = Q1;
+    for (int i = l; i > 0; --i) {
+      NSIntSet B1;
+      for (NSIntSet::iterator it(B); it(); ++it) {
+        int q = *it;
+        for (int q1 : delta_bwd[q]) {
+          if (Q[i - 1].contains(q1)) {
+            Q1.add(q1);
+            if (k == 0)
+              k = i;
+          }
+        }
+        if (Q1.size() == 1 && Q1.in(1))
+          j = i;
+        B1.include(Q1);
+      }
+      B = B1;
+    }
   }
   
   forceinline ExecStatus
@@ -437,10 +415,9 @@ namespace Gecode { namespace String {
       if (lb <= x1.min() && x1.max() > x1.min())
         return ES_FIX;
       //TODO
-      // check_refine
-      // ...
+      // (h,k) = idx2pos...
       
-    } while (x1.assigned() && x1.val() <= 1);
+    } while (x0.assigned() || (x1.assigned() && x1.val() <= 1));
 //   std::cerr << "\nMatchNew::propagated: " << x1 << " = MatchNew " << x0 << "\n";
     return ES_FIX;
   }
