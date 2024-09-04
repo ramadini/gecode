@@ -138,7 +138,12 @@ namespace Gecode { namespace String {
     return Q;
   }
   
-  //TODO ReachBwd
+  forceinline void
+  MatchNew::reachBwd(int i, NSIntSet& B, const std::vector<NSIntSet>& Fi,
+                     int& j, int& k) const {
+    const DSBlock& Xi = x0.pdomain()->at(i);
+    //TODO
+  }
   
   forceinline ExecStatus
   MatchNew::propagateReg(Space& home, NSBlocks& x, stringDFA* d) {
@@ -222,7 +227,7 @@ namespace Gecode { namespace String {
     NSIntSet B(1);
     int i  = 0, j = 0, i_lb = 0, i_ub = 0, j_lb = 0, j_ub = 0, k = 0;
     for (int i = n; i >= 0; --i) {
-      //TODO B  = ReachBwd(x.at(i), F[i], B, i, j);
+      reachBwd(i, B, F[i], j, k);
       if (j > 0) {
         i_lb = i;
         j_ub = j;

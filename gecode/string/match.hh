@@ -52,6 +52,7 @@ namespace Gecode { namespace String {
     bool must_match(void) const;
     ExecStatus refine_idx(Space& home);
     std::vector<NSIntSet> reachFwd(const DSBlock&, const NSIntSet&) const;
+    void reachBwd(int, NSIntSet&, const std::vector<NSIntSet>&, int&, int&) const;
     NSIntSet reachFwdLazy(const DSBlock&, const NSIntSet&) const;
     NSBlocks prefix(int,int) const;
     NSBlocks suffix(int,int) const;
