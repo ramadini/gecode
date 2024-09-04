@@ -141,8 +141,46 @@ namespace Gecode { namespace String {
   forceinline void
   MatchNew::reachBwd(int i, NSIntSet& B, const std::vector<NSIntSet>& Fi,
                      int& j, int& k) const {
-    const DSBlock& Xi = x0.pdomain()->at(i);
-    //TODO
+    const DSBlock& b = x0.pdomain()->at(i);
+    j = k = 0;
+    int l = b.l, l1 = DashedString::_MAX_STR_LENGTH;
+    NSIntSet Q1(B);
+    int dist[Rnfa->n_states];
+    for (int q = 0; q < Rnfa->n_states; ++q)
+      dist[q] = B.contains(q) ? 0 : DashedString::_MAX_STR_LENGTH;
+    std::list<int> Q_bfs;
+    for (NSIntSet::iterator i(Q1); i(); ++i)
+      Q_bfs.push_back(*i);
+    stringDFA::delta_t delta_bwd(Rnfa->n_states);
+    for (int q = 0; q < Rnfa->n_states; ++q) {
+// FIXME: Take into account negative states!
+//      for (auto& x : Rnfa->delta[q]) {
+//        int q = x.second < 0 ? Rnfa.bot
+//        
+//        if (b.S.in(x.first))
+//          delta_bwd[x.second].push_back(std::pair<int, int>(x.first, q));
+//      }
+    }
+    while (!Q_bfs.empty()) {
+      int q = Q_bfs.front(), d = dist[q];
+      Q_bfs.pop_front();
+      if (Fi[l].contains(q))
+        l1 = min(l1, dist[q]);
+      if (d < DashedString::_MAX_STR_LENGTH)
+        ++d;
+      if (d <= b.u) {
+        std::vector<std::pair<int, int>> dx;
+        dx = delta_bwd[q];
+        for (auto& x : dx) {
+          int c = x.first, q1 = x.second;
+          if (Fi[l + 1].contains(q1) && dist[q1] > d) {
+            Q_bfs.push_back(q1);
+            Q1.include(q1);
+            dist[q1] = d;
+          }
+        }
+      }
+    }
   }
   
   forceinline ExecStatus
