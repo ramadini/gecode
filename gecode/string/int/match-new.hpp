@@ -91,10 +91,10 @@ namespace Gecode { namespace String {
     return suff;
   }
   
-  forceinline std::vector<NSIntSet> //FIXME: Why not array?
+  forceinline NSIntSet*
   MatchNew::reachFwd(const DSBlock& b, const NSIntSet& F) const {
     int l = b.l;
-    std::vector<NSIntSet> Q(l + 2); //FIXME: Simplify algorithm in the paper
+    NSIntSet* Q = new NSIntSet[l + 2];
     Q[0] = F;
     // Mandatory region.
     for (int i = 0; i < l; ++i) {
@@ -110,31 +110,31 @@ namespace Gecode { namespace String {
       Q[i + 1] = qi;
     }
     Q[l + 1] = Q[l];
-//    int dist[Rfa->n_states];
-//    for (int q = 0; q < Rfa->n_states; ++q)
-//      dist[q] = Q[l].contains(q) ? l : DashedString::_MAX_STR_LENGTH;
-//    std::list<int> Q_bfs;
-//    for (NSIntSet::iterator i(Q[l]); i(); ++i)
-//      Q_bfs.push_back(*i);
-//    // BFS over optional region.
-//    while (!Q_bfs.empty()) {
-//      int q = Q_bfs.front(), d = dist[q];
-//      Q_bfs.pop_front();
-//      if (d < DashedString::_MAX_STR_LENGTH)
-//        ++d;
-//      if (d <= b.u) {
-//        NSIntSet nq;
-//        nq = Rnfa->neighbours(q, b.S);
-//        for (NSIntSet::iterator j(nq); j(); ++j) {
-//          int q1 = *j;
-//          if (dist[q1] > d) {
-//            Q_bfs.push_back(q1);
-//            Q[l + 1].include(q1);
-//            dist[q1] = d;
-//          }
-//        }
-//      }
-//    }
+    int dist[Rnfa->n_states];
+    for (int q = 0; q < Rnfa->n_states; ++q)
+      dist[q] = Q[l].contains(q) ? l : DashedString::_MAX_STR_LENGTH;
+    std::list<int> Q_bfs;
+    for (NSIntSet::iterator i(Q[l]); i(); ++i)
+      Q_bfs.push_back(*i);
+    // BFS over optional region.
+    while (!Q_bfs.empty()) {
+      int q = Q_bfs.front(), d = dist[q];
+      Q_bfs.pop_front();
+      if (d < DashedString::_MAX_STR_LENGTH)
+        ++d;
+      if (d <= b.u) {
+        NSIntSet nq;
+        nq = Rnfa->neighbours(q, b.S);
+        for (NSIntSet::iterator j(nq); j(); ++j) {
+          int q1 = *j;
+          if (dist[q1] > d) {
+            Q_bfs.push_back(q1);
+            Q[l + 1].include(q1);
+            dist[q1] = d;
+          }
+        }
+      }
+    }
     return Q;
   }
 

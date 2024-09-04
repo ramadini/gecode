@@ -190,7 +190,8 @@ namespace Gecode { namespace String {
   stringDFA::toMatchNFA() const {
     int qbot;
     matchNFA R;
-    R.delta = delta;    
+    R.delta = delta;
+    R.n_states = n_states;
     if (ur > 0) {
       // There was already a bottom state in *this.
       qbot = ur;

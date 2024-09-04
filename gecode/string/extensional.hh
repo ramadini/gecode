@@ -6,7 +6,8 @@ namespace Gecode { namespace String {
   struct matchNFA {
     // 0 = initial state q_0, 1 = accepting state q_F, bot = q_⊥ state.    
     typedef std::vector<std::vector<std::pair<int, int>>> delta_t;
-    int bot;
+    int bot;    
+    int n_states;
     // delta_t[i][j] = k >= 0 means δ(i,j) = {k}.
     // delta_t[i][j] = k <  0 means δ(i,j) = {-k,bot}.
     delta_t delta;
