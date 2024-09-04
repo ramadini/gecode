@@ -91,10 +91,10 @@ namespace Gecode { namespace String {
     return suff;
   }
   
-  forceinline NSIntSet*
+  forceinline std::vector<NSIntSet>
   MatchNew::reachFwd(const DSBlock& b, const NSIntSet& F) const {
     int l = b.l;
-    NSIntSet* Q = new NSIntSet[l + 2];
+    std::vector<NSIntSet> Q(l + 2);
     Q[0] = F;
     // Mandatory region.
     for (int i = 0; i < l; ++i) {
@@ -196,7 +196,8 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   MatchNew::refine_idx(void) {
-    //TODO
+    DashedString& px = *x0.pdomain();
+    std::vector<std::vector<NSIntSet>> F(px.length());
     return ES_OK;
   };
   
