@@ -137,7 +137,8 @@ namespace Gecode { namespace String {
     }
     return Q;
   }
-
+  
+  //TODO ReachBwd
   
   forceinline ExecStatus
   MatchNew::propagateReg(Space& home, NSBlocks& x, stringDFA* d) {
@@ -195,9 +196,34 @@ namespace Gecode { namespace String {
   }
 
   forceinline ExecStatus
-  MatchNew::refine_idx(void) {
-    DashedString& px = *x0.pdomain();
-    std::vector<std::vector<NSIntSet>> F(px.length());
+  MatchNew::refine_idx(Space& home) {
+    DashedString& x = *x0.pdomain();
+    std::vector<std::vector<NSIntSet>> F(x.length());
+    NSIntSet Fi(0);
+    int n = x.length();
+    // Fwd pass.
+    for (int i = 0; i < n; ++i) {
+      F[i] = reachFwd(x.at(i), Fi);
+      assert (!F[i].empty());
+      Fi = F[i].back();
+      if (Fi.size() == 1 && Fi.in(1)) {
+        GECODE_ME_CHECK(x1.gq(home, 0));
+        n = i;
+        break;
+      }
+    }
+    n--;
+    assert (!F[n].back().empty());
+    if (!F[n].back().in(1)) {
+      GECODE_ME_CHECK(x1.eq(home, 0));
+      return ES_OK;
+    }
+    // Bwd pass.
+    NSIntSet B(1);
+    int k = 0;
+    for (int i = n; i >= 0; --i) {
+      //TODO
+    }
     return ES_OK;
   };
   
@@ -304,7 +330,7 @@ namespace Gecode { namespace String {
         lb = r.val();
       }
       // TODO
-      GECODE_ME_CHECK(refine_idx());
+      GECODE_ES_CHECK(refine_idx(home));
       if (x1.min() == 0) {
         if (must_match())
           GECODE_ME_CHECK(x1.gq(home,1));

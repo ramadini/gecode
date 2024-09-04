@@ -48,9 +48,9 @@ namespace Gecode { namespace String {
     stringDFA* Rfull;    
     stringDFA* Rcomp;
     matchNFA* Rnfa;
-    int minR;
-    ExecStatus refine_idx(void);
+    int minR;    
     bool must_match(void) const;
+    ExecStatus refine_idx(Space& home);
     std::vector<NSIntSet> reachFwd(const DSBlock&, const NSIntSet&) const;
     NSIntSet reachFwdLazy(const DSBlock&, const NSIntSet&) const;
     NSBlocks prefix(int,int) const;
