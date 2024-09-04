@@ -490,7 +490,7 @@ namespace Gecode { namespace String {
         l1 = min(l1, dist[q]);
       if (d < DashedString::_MAX_STR_LENGTH)
         ++d;
-      if (d <= b.u) {
+      if (d <= b.u - b.l) {
         std::vector<std::pair<int, int>> dx;
         if (rev) {
           for (auto& x : dfa->delta[q])
