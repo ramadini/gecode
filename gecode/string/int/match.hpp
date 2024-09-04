@@ -287,7 +287,7 @@ namespace Gecode { namespace String {
         while (h < n && k >= px.at(h).u) {      
           k -= px.at(h).u;
           h++;
-        }        
+        }
 //        std::cerr << "Updated (h,k) = ("<<h<<", "<<k<<") from position " << x1.min() << "\n";
         pref = prefix(h, k);
 //        std::cerr << "Pref: " << pref << "\n"; 

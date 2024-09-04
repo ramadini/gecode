@@ -381,8 +381,8 @@ namespace Gecode { namespace String {
         }
         GECODE_REWRITE(*this, Reg::post(home, x0, Rpref));
       }
-      DashedString& px = *x0.pdomain();
-      std::string w = px.known_pref();
+      DashedString& X = *x0.pdomain();
+      std::string w = X.known_pref();
       int k = w.size();
       if (k > 0) {
         if (Rfull->accepted(w)) {
@@ -414,9 +414,53 @@ namespace Gecode { namespace String {
       }
       if (lb <= x1.min() && x1.max() > x1.min())
         return ES_FIX;
-      //TODO
-      // (h,k) = idx2pos...
+      // General case.
+      NSBlocks pref, suff;
+      int es_pref = ES_FIX, h = 0;
+      k = x1.min() - 1;
+      while (h < X.length() && k >= X.at(h).u) {      
+        k -= X.at(h).u;
+        h++;
+      }
+      if (lb > x1.min()) {
+//        std::cerr << "Pref: " << prefix(h, k) << "\n"; 
+        if (Rcomp == nullptr) {
+          Rcomp = new stringDFA(*Rfull);
+          NSIntSet may_chars = x0.may_chars();
+          Rcomp->negate(may_chars);
+        }
+        es_pref = propagateReg(home, pref, Rcomp);
+        if (es_pref == ES_FAILED)
+          return ES_FAILED;
+      }
+      else if (!x1.assigned()) {
+//        std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
+        return ES_FIX;
+      }
+      if (pref.size() == 0)
+        pref = prefix(h, k);
+//        std::cerr << "Pref: " << pref << "\n";
+      suff = suffix(h, k);
+//      std::cerr << "Suff: " << suff << "\n";
+      int es_suff = x1.assigned() ? propagateReg(home, suff, Rpref) 
+                                  : propagateReg(home, suff, Rfull);
       
+      if (es_suff == ES_FAILED)
+        return ES_FAILED;
+      if (es_pref == ES_NOFIX || es_suff == ES_NOFIX) {
+        // Udpating x0.
+        NSBlocks x_new;
+        pref.concat(suff, x_new);
+        x_new.normalize();
+//        std::cerr << "x_new: " << x_new << "\n";
+        StringDelta d(true);
+        X.update(home, x_new);
+        GECODE_ME_CHECK(x0.varimp()->notify(
+          home, x0.assigned() ? ME_STRING_VAL : ME_STRING_DOM, d
+        ));
+      }
+      GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
+      assert (X.is_normalized());     
     } while (x0.assigned() || (x1.assigned() && x1.val() <= 1));
 //   std::cerr << "\nMatchNew::propagated: " << x1 << " = MatchNew " << x0 << "\n";
     return ES_FIX;
