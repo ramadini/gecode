@@ -946,7 +946,7 @@ int main() {
   (new StrTest())->test24();
   (new StrTest())->test25();
   (new StrTest())->test26();
-//  (new StrTest())->test27();
+  (new StrTest())->test27();
 //  (new StrTest())->test28();
 //  (new StrTest())->test29();
 //  (new StrTest())->test30();
