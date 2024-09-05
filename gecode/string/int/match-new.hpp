@@ -48,7 +48,7 @@ namespace Gecode { namespace String {
     GECODE_ME_CHECK(x.lb(home, r));
 //    std::cerr << "RE: " << re << ", minlen: " << r << ", i: " << i << '\n';
     stringDFA* Rp = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
-    matchNFA* Rn = new matchNFA(Rp->toMatchNFA());
+    matchNFA* Rn = new matchNFA(Rp->toMatchNFA(x.may_chars()));
     (void) new (home) MatchNew(home, x, i, r, Rp, R, Rn);
     return ES_OK;
   }
@@ -99,11 +99,13 @@ namespace Gecode { namespace String {
     // Mandatory region.
     for (int i = 0; i < l; ++i) {
       NSIntSet qi;
-      for (NSIntSet::iterator it(Q[i]); it(); ++it)
-        qi.include(Rnfa->neighbours(*it, b.S));
+      for (NSIntSet::iterator it(Q[i]); it(); ++it) {
+        NSIntSet qj = Rnfa->neighbours(*it, b.S);
+        qi.include(qj);
+      }
       assert (!qi.empty());
       if ((qi.size() == 1 && qi.min() == qi.max()) || qi == Q[i]) {        
-        for (int j = i + 1; j < l + 1; ++j)
+        for (int j = i + 1; j <= l + 1; ++j)
           Q[j] = qi;
         return Q;
       }
@@ -366,7 +368,7 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   MatchNew::propagate(Space& home, const ModEventDelta& med) {
-//    std::cerr << "\nMatchNew::propagate: Var " << x1.varimp() << ": " << x1 << " = MatchNew " << x0 << " in " << *sRs << "\n";
+//    std::cerr << "\nMatchNew::propagate: Var " << x1.varimp() << ": " << x1 << " = MatchNew " << x0 << " in " << *Rnfa << "\n";
     GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
     do {
       // x1 fixed and val(x1) in {0,1}.

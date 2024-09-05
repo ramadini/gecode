@@ -793,6 +793,114 @@ public:
     v.push_back(NSBlock(NSIntSet('d', 'e'), 3, 8));
     StringVar x(*this, v, 0, 100);
     IntVar i(*this, 10, 100);
+    class match : public MatchNew {
+    public:
+      match(Home h, StringView x, IntView i, int r,
+            stringDFA* R, stringDFA* R1, matchNFA* R2)
+        : MatchNew(h, x, i, r, R, R1, R2) {};
+    };
+    string re = "(ab|c)";
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "i = " << i << std::endl;
+    std::cerr << "R = " << re << std::endl;
+    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
+    stringDFA* R = new stringDFA(regex->dfa());
+    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    matchNFA* R2 = new matchNFA(R1->toMatchNFA(x.may_chars()));
+    assert(match(*this, x, i, 1, R, R1, R2).propagate(*this, 0) == ES_FAILED);
+    std::cerr << "===== i = match(x, R) UNSATISFIABLE =====\n" << std::endl;
+  }
+  
+  void test27() {
+    std::cerr << "\n*** Test 27 ***" << std::endl;
+    NSBlocks v;
+    v.push_back(NSBlock(NSIntSet('d'), 2, 3));
+    v.push_back(NSBlock(NSIntSet('c'), 0, 5));
+    v.push_back(NSBlock(NSIntSet('a', 'b'), 3, 5));
+    StringVar x(*this, v, 0, 100);
+    IntVar i(*this, 10, 100);
+    class match : public Match {
+    public:
+      match(Home h, StringView x, IntView i, stringDFA* R, stringDFA* R1, int r)
+        : Match(h, x, i, R, R1, r) {};
+    };
+    string re = "(ab|c)";
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "i = " << i << std::endl;
+    std::cerr << "R = " << re << std::endl;
+    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
+    stringDFA* R = new stringDFA(regex->dfa());
+    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    assert(match(*this, x, i, R, R1, 1).propagate(*this, 0) == ES_FAILED);
+    std::cerr << "===== i = match(x, R) UNSATISFIABLE =====\n" << std::endl;
+  }
+  
+  void test28() {
+    std::cerr << "\n*** Test 28 ***" << std::endl;
+    NSBlocks v;
+    NSIntSet s0('b'); s0.add('d');
+    NSIntSet s1('a'); s1.add('c');
+    v.push_back(NSBlock(s0, 2, 5));
+    v.push_back(NSBlock(s1, 0, 3));
+    StringVar x(*this, v, 0, 100);
+    IntVar i(*this, 0, 100);
+    class match : public Match {
+    public:
+      match(Home h, StringView x, IntView i, stringDFA* R, stringDFA* R1, int r)
+        : Match(h, x, i, R, R1, r) {};
+    };
+    string re = "(ab|c)";
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "i = " << i << std::endl;
+    std::cerr << "R = " << re << std::endl;
+    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
+    stringDFA* R = new stringDFA(regex->dfa());
+    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    double lx = x.domain().logdim();
+    std::cerr << "===== After i = match(x, R) =====" << std::endl;
+    assert(match(*this, x, i, R, R1, 1).propagate(*this, 0) == ES_FIX);
+    std::cerr << "x = " << x << std::endl;
+    assert(x.domain().logdim() == lx);
+    std::cerr << "i = " << i << std::endl;
+    for (int j = 0; j < 9; ++j)
+      assert ( j == 0 || j > 2 ? i.in(j) : !i.in(j) );
+  }
+  
+  void test29() {
+    std::cerr << "\n*** Test 29 ***" << std::endl;
+    NSBlocks v;
+    NSIntSet s0('b'); s0.add('d');
+    NSIntSet s1('a'); s1.add('c');
+    v.push_back(NSBlock(s0, 2, 5));
+    v.push_back(NSBlock(s1, 0, 3));
+    StringVar x(*this, v, 0, 100);
+    IntVar i(*this, 3, 3);
+    class match : public Match {
+    public:
+      match(Home h, StringView x, IntView i, stringDFA* R, stringDFA* R1, int r)
+        : Match(h, x, i, R, R1, r) {};
+    };
+    string re = "(ab|c)";
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "i = " << i << std::endl;
+    std::cerr << "R = " << re << std::endl;
+    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
+    stringDFA* R = new stringDFA(regex->dfa());
+    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    std::cerr << "===== After i = match(x, R) =====" << std::endl;
+    assert(match(*this, x, i, R, R1, 1).propagate(*this, 0) == ES_FIX);
+    std::cerr << "x = " << x << std::endl;
+    assert(x.domain().at(1).val() == "c");
+  }
+  
+  void test30() {
+    std::cerr << "\n*** Test 30 ***" << std::endl;
+    NSBlocks v;
+    v.push_back(NSBlock(NSIntSet('d'), 2, 3));
+    v.push_back(NSBlock(NSIntSet('c'), 0, 5));
+    v.push_back(NSBlock(NSIntSet('d', 'e'), 3, 8));
+    StringVar x(*this, v, 0, 100);
+    IntVar i(*this, 10, 100);
     class match : public Match {
     public:
       match(Home h, StringView x, IntView i, stringDFA* R, stringDFA* R1, int r)
@@ -838,5 +946,9 @@ int main() {
   (new StrTest())->test24();
   (new StrTest())->test25();
   (new StrTest())->test26();
+//  (new StrTest())->test27();
+//  (new StrTest())->test28();
+//  (new StrTest())->test29();
+//  (new StrTest())->test30();
   return 0;
 }

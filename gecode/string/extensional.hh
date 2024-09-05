@@ -34,8 +34,8 @@ namespace Gecode { namespace String {
     NSIntSet alphabet() const;
     NSIntSet neighbours(int) const;
     NSIntSet neighbours(int, const DSIntSet&) const;
-    void compute_univ(const NSIntSet& alphabet);
-    matchNFA toMatchNFA(void) const;
+    void compute_univ(const NSIntSet&);
+    matchNFA toMatchNFA(const NSIntSet&);
     protected:
       int nstate(int) const;
   };

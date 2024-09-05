@@ -15,34 +15,58 @@ namespace Gecode { namespace String {
     return os << "F: " << d.final_fst << ".." << d.final_lst << ", ua = "
           << d.ua << ", ur = " << d.ur << "]";
   }
+  template<class Char, class Traits>
+  forceinline std::basic_ostream<Char,Traits>&
+  operator <<(std::basic_ostream<Char,Traits>& os, const matchNFA& R) {
+    os << '[';
+    for (int i = 0; i < R.n_states; i++) {
+      std::vector<NSIntSet> Si(R.n_states);
+      for (auto& x : R.delta[i]) {
+        if (x.second < 0) {
+          Si[-x.second].add(x.first);
+          Si[R.bot].add(x.first);
+        }
+        else
+          Si[x.second].add(x.first);
+      }
+      for (unsigned j = 0; j < Si.size(); ++j)
+        if (!Si[j].empty())
+          os << "(q" << i << ", " << Si[j] << ", q" << j << "), ";
+    }
+    return os << "qbot = " << R.bot << "]";
+  }
 
   forceinline void
   stringDFA::compute_univ(const NSIntSet& domain) {
   	// For a minimal DFA, there is at most 1 universal accepted/rejected state.
 	  ua = -1;
     ur = -1;
-    for (int i = 0; i < final_fst; ++i) {
-      ur = i;
-      for (auto& x : delta[i])
-        if (x.second != i) {
-          ur = -1;
+    if (ur == -1) {
+      for (int i = 0; i < final_fst; ++i) {
+        ur = i;
+        for (auto& x : delta[i])
+          if (x.second != i) {
+            ur = -1;
+            break;
+          }
+        if (ur == i)
           break;
-        }
-      if (ur == i)
-        break;
-    }
-    for (int i = final_fst; i <= final_lst; ++i) {
-      ua = i;
-      const std::vector<std::pair<int, int>>& di = delta[i];
-      if ((int) di.size() < domain.size()) {
-        ua = -1;
-        continue;
       }
-      for (auto& x : di)
-        if (x.second != i || !domain.contains(x.first)) {
+    }
+    if (ua == -1) {
+      for (int i = final_fst; i <= final_lst; ++i) {
+        ua = i;
+        const std::vector<std::pair<int, int>>& di = delta[i];
+        if ((int) di.size() < domain.size()) {
           ua = -1;
-          break;
+          continue;
         }
+        for (auto& x : di)
+          if (x.second != i || !domain.contains(x.first)) {
+            ua = -1;
+            break;
+          }
+      }
     }
     if (ur == -1)
       for (int i = final_lst + 1; i < n_states; ++i) {
@@ -187,61 +211,69 @@ namespace Gecode { namespace String {
   }
   
   forceinline matchNFA
-  stringDFA::toMatchNFA() const {
+  stringDFA::toMatchNFA(const NSIntSet& domain) {
     int qbot;
     matchNFA R;
+    compute_univ(domain);
+    // Proper pattern: not empty, not containing empty string.
+    assert (ur == -1);
+//    std::cerr << "stringDFA::toMatchNFA of " << *this << "\n";
     R.delta = delta;
-    R.n_states = n_states;
-    if (ur > 0) {
-      // There was already a bottom state in *this.
-      qbot = ur;
-      R.delta[qbot].clear();
-    }
-    else {
-      // No bottom state in *this.
-      qbot = delta.size();
-      R.delta.push_back(std::vector<std::pair<int, int>>());
-    }
+    R.n_states = n_states + 1;
+    qbot = delta.size();
+    R.delta.push_back(std::vector<std::pair<int, int>>());
     R.bot = qbot;
+    NSIntSet S = alphabet();
+    S.include(domain);
+    for (NSIntSet::iterator it = S.begin(); it(); ++it)
+      R.delta[qbot].push_back(std::make_pair(*it, qbot));
     for (auto& x : delta[0])
-      R.delta[qbot].push_back(x);
-    for (int i = 0; i < delta.size(); ++i) {
+      R.delta[qbot][x.first].second = x.second;
+//    std::cerr << "matchNFA: " << R << "\n";
+    for (int i = 0; i < delta.size(); ++i) {      
       if (i != qbot) {
+        NSIntSet T(S);      
         for (int j = 0; j < delta[i].size(); ++j) {
+          T.remove(delta[i][j].first);
           int q = delta[i][j].second;
           if (q > 1 && q != qbot)
             R.delta[i][j].second = -q;
         }
+        for (NSIntSet::iterator it = T.begin(); it(); ++it)
+          R.delta[i].push_back(std::make_pair(*it, qbot));
       }
     }
-    return matchNFA();
+//    std::cerr << "matchNFA: " << R << "\n";
+    return R;
   }
   
   forceinline NSIntSet
   matchNFA::neighbours(int q) const {
-    NSIntSet s;
-    for (auto& x : delta[q])
+    NSIntSet Q;
+    for (auto& x : delta[q]) {
       if (x.second < 0) {
-        s.add(-x.second);
-        s.add(bot);
+        Q.add(-x.second);
+        Q.add(bot);
       }
       else
-        s.add(x.second);
-    return s;
+        Q.add(x.second);
+    }
+    return Q;
   };
   
   forceinline NSIntSet
   matchNFA::neighbours(int q, const DSIntSet& S) const {
-    NSIntSet s;
-    for (auto& x : delta[q])
+    NSIntSet Q;
+    for (auto& x : delta[q]) {
       if (S.in(x.first))
         if (x.second < 0) {
-          s.add(-x.second);
-          s.add(bot);
+          Q.add(-x.second);
+          Q.add(bot);
         }
         else
-          s.add(x.second);
-    return s;
+          Q.add(x.second);
+    }
+    return Q;
   };
 
   forceinline
