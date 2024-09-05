@@ -281,27 +281,32 @@ namespace Gecode { namespace String {
     // Bwd pass.
     NSIntSet B(1);
     int i  = 0, j = 0, i_lb = 0, i_ub = 0, j_lb = 0, j_ub = 0, k = 0;
-    for (int i = n; i >= 0; --i) {
+    for (int i = n; i >= 0; --i) {      
       reachBwd(i, B, F[i], j, k);
+//      std::cerr << "Bwd pass after " << x.at(i) << ": last(F[" << i << "]) = " 
+//        << DSIntSet(home, F[i].back()).toIntSet() << ", B = " 
+//        << DSIntSet(home, B).toIntSet() << ", j = " << j << ", k = " << k << "\n";
       if (j > 0) {
         i_lb = i;
-        j_ub = j;
+        j_lb = j;
       }
       if (k > 0 && i_ub == 0 && j_ub == 0) {
-        i_lb = i;
+        i_ub = i;
         j_ub = k;
       }
     }
     i = j_lb;
-    for (k = 0; k < i_lb - 1; ++k)
+    for (k = 0; k < i_lb; ++k)
       i += x.at(k).l;
     j = j_ub;
-    for (k = 0; k < i_ub - 1; ++k)
+    for (k = 0; k < i_ub; ++k)
       j += x.at(k).u;
     GECODE_ME_CHECK(x1.lq(home, j));
-    IntSet s(1, i);
-    IntSetRanges is(s);  
-    GECODE_ME_CHECK(x1.minus_r(home, is));
+    if (i > 0) {
+      IntSet s(1, i);
+      IntSetRanges is(s);  
+      GECODE_ME_CHECK(x1.minus_r(home, is));
+    }
     return ES_OK;
   };
   

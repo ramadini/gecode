@@ -177,8 +177,8 @@ namespace Gecode { namespace String {
       NSRange* p = s._fst;
       os << '{';
       while (p != NULL) {
-        char mi = unsigned(p->l);
-        char ma = unsigned(p->u);
+        char mi = p->l;
+        char ma = p->u;
         if (mi == ma)
           os << mi;
         else
