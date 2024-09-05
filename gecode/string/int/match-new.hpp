@@ -359,7 +359,7 @@ namespace Gecode { namespace String {
     NSIntSet Q(0);
     int i = 0, j = 0, h = 0, k = 0, n = px.length();
     for (int i = 0; i < px.length(); ++i) {
-      NSIntSet Q = reachFwdLazy(px.at(i), Q);
+      Q = reachFwdLazy(px.at(i), Q);
       if (Q.size() == 1 && Q.min() == 1)
         return true;
     }
