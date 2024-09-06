@@ -812,7 +812,7 @@ public:
   }
   
   void test27() {
-    std::cerr << "\n*** Test 27 ***" << std::endl;
+    std::cerr << "\n*** Test 27 ***" << std::endl; //FIXME: How match find it UNSATISFIABLE?
     NSBlocks v;
     v.push_back(NSBlock(NSIntSet('d'), 2, 3));
     v.push_back(NSBlock(NSIntSet('c'), 0, 5));
@@ -928,32 +928,32 @@ public:
 };
 
 int main() {
-//  (new StrTest())->test01();
-//  (new StrTest())->test02();
-//  (new StrTest())->test03();
-//  (new StrTest())->test04();
-//  (new StrTest())->test05();
-//  (new StrTest())->test06();
-//  (new StrTest())->test07();
-//  (new StrTest())->test08();
-//  (new StrTest())->test09();
-//  (new StrTest())->test10();
-//  (new StrTest())->test11();
-//  (new StrTest())->test12();
-//  (new StrTest())->test13();
-//  (new StrTest())->test14();
-//  (new StrTest())->test15();
-//  (new StrTest())->test16();
-//  (new StrTest())->test17();
-//  (new StrTest())->test18();
-//  (new StrTest())->test19();
-//  (new StrTest())->test20();
-//  (new StrTest())->test21();
-//  (new StrTest())->test22();
-//  (new StrTest())->test23();  
-//  (new StrTest())->test24();
-//  (new StrTest())->test25();
-// FIXME: Tests not passing yet. 
+  (new StrTest())->test01();
+  (new StrTest())->test02();
+  (new StrTest())->test03();
+  (new StrTest())->test04();
+  (new StrTest())->test05();
+  (new StrTest())->test06();
+  (new StrTest())->test07();
+  (new StrTest())->test08();
+  (new StrTest())->test09();
+  (new StrTest())->test10();
+  (new StrTest())->test11();
+  (new StrTest())->test12();
+  (new StrTest())->test13();
+  (new StrTest())->test14();
+  (new StrTest())->test15();
+  (new StrTest())->test16();
+  (new StrTest())->test17();
+  (new StrTest())->test18();
+  (new StrTest())->test19();
+  (new StrTest())->test20();
+  (new StrTest())->test21();
+  (new StrTest())->test22();
+  (new StrTest())->test23();  
+  (new StrTest())->test24();
+  (new StrTest())->test25();
+// FIXME: MatchNew tests not passing yet. 
   (new StrTest())->test26();
 //  (new StrTest())->test27();
 //  (new StrTest())->test28();

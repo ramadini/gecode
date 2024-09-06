@@ -50,7 +50,7 @@ namespace Gecode { namespace String {
     matchNFA* Rnfa;
     int minR;    
     bool must_match(void) const;
-    ExecStatus refine_idx(Space& home);
+    ExecStatus refine_idx(Space& home, int&, int&);
     std::vector<NSIntSet> reachFwd(const DSBlock&, const NSIntSet&) const;
     void reachBwd(int, NSIntSet&, const std::vector<NSIntSet>&, int&, int&) const;
     NSIntSet reachFwdLazy(const DSBlock&, const NSIntSet&) const;

@@ -143,12 +143,11 @@ namespace Gecode { namespace String {
   forceinline void
   MatchNew::reachBwd(int i, NSIntSet& B, const std::vector<NSIntSet>& Q,
                      int& j, int& k) const {
-    std::cerr << "MatchNew::reachBwd " << i << ' ' << x0.pdomain()->at(i) << ' ' << B << '\n';
+    std::cerr<<"\nMatchNew::reachBwd: X["<<i<<"] = "<<x0.pdomain()->at(i)<<", B=" <<B.toString()<<'\n';
     const DSBlock& b = x0.pdomain()->at(i);
-    j = k = 0;
     int l = b.l;
     std::vector<NSIntSet> delta_bwd(Rnfa->n_states);
-    for (int q = 1; q < Rnfa->n_states; ++q)
+    for (int q = 0; q < Rnfa->n_states; ++q)
       for (auto& x : Rnfa->delta[q])
         if (b.S.in(x.first))
           if (x.second < 0) {
@@ -156,7 +155,7 @@ namespace Gecode { namespace String {
             delta_bwd[Rnfa->bot].add(q);
           }
           else
-            delta_bwd[x.second].add(q);    
+            delta_bwd[x.second].add(q);
     for (int q = 0; q < Rnfa->n_states; ++q)
       std::cerr << "\tdelta_bwd[q" << q << "] = " << delta_bwd[q].toString() << "\n";
     int dist[Rnfa->n_states];
@@ -166,43 +165,53 @@ namespace Gecode { namespace String {
     std::list<int> Q_bfs;
     for (NSIntSet::iterator i(Q1); i(); ++i)
       Q_bfs.push_back(*i);
+    // Optional region
     while (!Q_bfs.empty()) {
       int q = Q_bfs.front(), d = dist[q];
       Q_bfs.pop_front();
       if (d < DashedString::_MAX_STR_LENGTH)
         ++d;
-      if (d <= b.u - b.l)
+      if (d <= b.u - b.l) {
         for (NSIntSet::iterator it(delta_bwd[q]); it(); ++it) {
-          int q1 = *it;
+          int q1 = *it;          
           if (dist[q1] > d && Q[l + 1].contains(q1)) {
+          std::cerr << "q = "<<q<<", q'= " << q1 << ", dist = "<<dist[q1]<<" > d = "<<d<<", Q[l+1] = " << Q[l+1].toString() << "\n";
             Q_bfs.push_back(q1);
             if (Q[l].in(q1))
-              Q1.include(q1);
+              B.include(q1);
             dist[q1] = d;
             if (q1 == Rnfa->bot && k == 0)
               k = b.u - d + 1;
           }
         }
-    }
-    B = Q1;
+      }
+    }    
+    B.intersect(Q[l]); //FIXME: Check reg.
+    std::cerr<<"After opt. B = "<< B.toString() << ", k = " << k << ".\n------\n";
+    // Mandatory region
     for (int i = l; i > 0; --i) {
+      std::cerr<<"i = "<<i<<"\n";
       NSIntSet B1;
       for (NSIntSet::iterator it(B); it(); ++it) {
         int q = *it;
+        std::cerr << "\tq = "<<q<<", delta_bwd[q]=" << delta_bwd[q].toString() << "\n";
         for (NSIntSet::iterator it(delta_bwd[q]); it(); ++it) {
           int q1 = *it;
           if (Q[i - 1].contains(q1)) {
-            Q1.add(q1);
+            std::cerr << "\tq'= " << q1 << ", Q["<<i-1<<"] = " << Q[i-1].toString() << "\n";
+            B1.add(q1);
             if (q1 == Rnfa->bot && k == 0)
               k = i;
           }
         }
-        if (Q1.size() == 1 && Q1.in(Rnfa->bot))
-          j = i;
-        B1.include(Q1);
+        if (B1.size() == 1 && B1.in(Rnfa->bot))
+          j = i + 1; //FIXME: Fix paper.
+        std::cerr << "\tB' = " << B1.toString() << ", j = " << j << ", k = " << k << "\n";
       }
       B = B1;
+      std::cerr << "B = " << B.toString() << "\n";
     }
+    std::cerr<<"After mand. B = "<< B.toString() << ", j = " << j << ", k = " << k << "\n";
   }
   
   forceinline ExecStatus
@@ -261,7 +270,7 @@ namespace Gecode { namespace String {
   }
 
   forceinline ExecStatus
-  MatchNew::refine_idx(Space& home) {
+  MatchNew::refine_idx(Space& home, int& i_lb, int& j_lb) {
     DashedString& x = *x0.pdomain();
     std::vector<std::vector<NSIntSet>> F(x.length());
     NSIntSet Fi(0);
@@ -285,8 +294,9 @@ namespace Gecode { namespace String {
     }
     // Bwd pass.
     NSIntSet B(1);
-    int i  = 0, j = 0, i_lb = 0, i_ub = 0, j_lb = 0, j_ub = 0, k = 0;
-    for (int i = n; i >= 0; --i) {      
+    i_lb = j_lb = 0;
+    int i_ub = 0, j_ub = 0;
+    for (int i = n, j = 0, k = 0; i >= 0; --i) {      
       reachBwd(i, B, F[i], j, k);
       std::cerr << "Bwd pass after " << x.at(i) << ": last(F[" << i << "]) = " 
         << DSIntSet(home, F[i].back()).toIntSet() << ", B = " 
@@ -300,18 +310,11 @@ namespace Gecode { namespace String {
         j_ub = k;
       }
     }
-    i = j_lb;
-    for (k = 0; k < i_lb; ++k)
-      i += x.at(k).l;
-    j = j_ub;
-    for (k = 0; k < i_ub; ++k)
-      j += x.at(k).u;
-    GECODE_ME_CHECK(x1.lq(home, j));
-    if (i > 0) {
-      IntSet s(1, i);
-      IntSetRanges is(s);  
-      GECODE_ME_CHECK(x1.minus_r(home, is));
-    }
+    std::cerr << "(i_lb,j_lb)=("<<i_lb<<","<<j_lb<<"), (i_ub,j_ub)=("<<i_ub<<","<<j_ub<<")\n";    
+    int u = j_ub;
+    for (int i = 0; i < i_ub; ++i)
+      u += x.at(i).u;
+    GECODE_ME_CHECK(x1.lq(home, u));    
     return ES_OK;
   };
   
@@ -409,33 +412,37 @@ namespace Gecode { namespace String {
         IntSetRanges is(s);
         GECODE_ME_CHECK(x1.minus_r(home, is));
       }
-      // lb = min(I - {0})
-      int lb = x1.min();
-      if (lb == 0) {
-        Gecode::IntVarValues r(x1);
-        ++r;
-        assert (r());
-        lb = r.val();
+      
+      int h = 0;
+      GECODE_ES_CHECK(refine_idx(home, h, k));
+      int l = k;
+      for (int i = 0; i < h; ++i)
+        l += X.at(i).l;
+      if (l > 1) {
+        IntSet s(1, l);
+        IntSetRanges is(s);  
+        GECODE_ME_CHECK(x1.minus_r(home, is));
       }
-      GECODE_ES_CHECK(refine_idx(home));
-      if (x1.min() == 0) {
+      if (x1.in(0)) {
         if (must_match())
           GECODE_ME_CHECK(x1.gq(home,1));
         else
           return ES_FIX;
       }
-      if (lb <= x1.min() && x1.max() > x1.min())
-        return ES_FIX;
+      
       // General case.
       NSBlocks pref, suff;
-      int es_pref = ES_FIX, h = 0;
-      k = x1.min() - 1;
-      while (h < X.length() && k >= X.at(h).u) {      
-        k -= X.at(h).u;
-        h++;
-      }
-      if (lb > x1.min()) {
-//        std::cerr << "Pref: " << prefix(h, k) << "\n"; 
+      int es_pref = ES_FIX;      
+      if (l < x1.min()) { //FIXME: Fix paper.
+        // Updating (h,k) from the lower bound of x1.
+        h = 0, k = x1.min() - 1;
+        while (h < X.length() && k >= X.at(h).u) {      
+          k -= X.at(h).u;
+          h++;
+        }
+//        std::cerr << "(h,k)=" << "("<<h<<","<<k<<")\n";
+        pref = prefix(h, k);
+        std::cerr << "Pref: " << pref << "\n"; 
         if (Rcomp == nullptr) {
           Rcomp = new stringDFA(*Rfull);
           NSIntSet may_chars = x0.may_chars();
@@ -445,26 +452,29 @@ namespace Gecode { namespace String {
         if (es_pref == ES_FAILED)
           return ES_FAILED;
       }
+      // We don't propagate the suffix if l >= x1.min() and x1 is not fixed.
       else if (!x1.assigned()) {
-        std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
+//        std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
         return ES_FIX;
       }
+      else if (x1.val() <= 1)
+        continue;
       if (pref.size() == 0)
         pref = prefix(h, k);
-//        std::cerr << "Pref: " << pref << "\n";
+      std::cerr << "Pref: " << pref << "\n";
       suff = suffix(h, k);
-//      std::cerr << "Suff: " << suff << "\n";
+      std::cerr << "Suff: " << suff << ' ' << x1 << "\n";
       int es_suff = x1.assigned() ? propagateReg(home, suff, Rpref) 
                                   : propagateReg(home, suff, Rfull);
-      
       if (es_suff == ES_FAILED)
         return ES_FAILED;
+      std::cerr << "New suff: " << suff << "\n";
       if (es_pref == ES_NOFIX || es_suff == ES_NOFIX) {
         // Udpating x0.
         NSBlocks x_new;
         pref.concat(suff, x_new);
         x_new.normalize();
-//        std::cerr << "x_new: " << x_new << "\n";
+        std::cerr << "x_new: " << x_new << "\n";
         StringDelta d(true);
         X.update(home, x_new);
         GECODE_ME_CHECK(x0.varimp()->notify(
