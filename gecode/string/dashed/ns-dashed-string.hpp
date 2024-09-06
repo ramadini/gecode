@@ -150,6 +150,8 @@ namespace Gecode { namespace String {
     NSIntSet comp() const;
 
     int nth(int n) const;
+    
+    std::string toString() const;
 
     ~NSIntSet();
 
@@ -188,6 +190,26 @@ namespace Gecode { namespace String {
           os << ",";
       }
       return os << "}";
+    }
+
+    forceinline std::string
+    NSIntSet::toString() const {
+      NSRange* p = _fst;
+      std::ostringstream os;
+      os << "{";
+      while (p != NULL) {
+        int mi = p->l;
+        int ma = p->u;
+        if (mi == ma)
+          os << mi;
+        else
+          os << mi << ".." << ma;
+        p = p->next;
+        if (p)
+          os << ",";
+      }
+      os << "}";
+      return os.str();
     }
 
     forceinline

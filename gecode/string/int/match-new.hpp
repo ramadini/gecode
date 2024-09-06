@@ -143,19 +143,22 @@ namespace Gecode { namespace String {
   forceinline void
   MatchNew::reachBwd(int i, NSIntSet& B, const std::vector<NSIntSet>& Q,
                      int& j, int& k) const {
+    std::cerr << "MatchNew::reachBwd " << i << ' ' << x0.pdomain()->at(i) << ' ' << B << '\n';
     const DSBlock& b = x0.pdomain()->at(i);
     j = k = 0;
     int l = b.l;
-    std::vector<std::vector<int>> delta_bwd(Rnfa->n_states);
-    for (int q = 0; q < Rnfa->n_states; ++q)
+    std::vector<NSIntSet> delta_bwd(Rnfa->n_states);
+    for (int q = 1; q < Rnfa->n_states; ++q)
       for (auto& x : Rnfa->delta[q])
         if (b.S.in(x.first))
           if (x.second < 0) {
-            delta_bwd[-x.second].push_back(q);
-            delta_bwd[Rnfa->bot].push_back(q);
+            delta_bwd[-x.second].add(q);
+            delta_bwd[Rnfa->bot].add(q);
           }
           else
-            delta_bwd[x.second].push_back(q);    
+            delta_bwd[x.second].add(q);    
+    for (int q = 0; q < Rnfa->n_states; ++q)
+      std::cerr << "\tdelta_bwd[q" << q << "] = " << delta_bwd[q].toString() << "\n";
     int dist[Rnfa->n_states];
     for (int q = 0; q < Rnfa->n_states; ++q)
       dist[q] = B.contains(q) ? 0 : DashedString::_MAX_STR_LENGTH;
@@ -169,7 +172,8 @@ namespace Gecode { namespace String {
       if (d < DashedString::_MAX_STR_LENGTH)
         ++d;
       if (d <= b.u - b.l)
-        for (int q1 : delta_bwd[q]) {
+        for (NSIntSet::iterator it(delta_bwd[q]); it(); ++it) {
+          int q1 = *it;
           if (dist[q1] > d && Q[l + 1].contains(q1)) {
             Q_bfs.push_back(q1);
             if (Q[l].in(q1))
@@ -185,14 +189,15 @@ namespace Gecode { namespace String {
       NSIntSet B1;
       for (NSIntSet::iterator it(B); it(); ++it) {
         int q = *it;
-        for (int q1 : delta_bwd[q]) {
+        for (NSIntSet::iterator it(delta_bwd[q]); it(); ++it) {
+          int q1 = *it;
           if (Q[i - 1].contains(q1)) {
             Q1.add(q1);
-            if (k == 0)
+            if (q1 == Rnfa->bot && k == 0)
               k = i;
           }
         }
-        if (Q1.size() == 1 && Q1.in(1))
+        if (Q1.size() == 1 && Q1.in(Rnfa->bot))
           j = i;
         B1.include(Q1);
       }
@@ -283,9 +288,9 @@ namespace Gecode { namespace String {
     int i  = 0, j = 0, i_lb = 0, i_ub = 0, j_lb = 0, j_ub = 0, k = 0;
     for (int i = n; i >= 0; --i) {      
       reachBwd(i, B, F[i], j, k);
-//      std::cerr << "Bwd pass after " << x.at(i) << ": last(F[" << i << "]) = " 
-//        << DSIntSet(home, F[i].back()).toIntSet() << ", B = " 
-//        << DSIntSet(home, B).toIntSet() << ", j = " << j << ", k = " << k << "\n";
+      std::cerr << "Bwd pass after " << x.at(i) << ": last(F[" << i << "]) = " 
+        << DSIntSet(home, F[i].back()).toIntSet() << ", B = " 
+        << DSIntSet(home, B).toIntSet() << ", j = " << j << ", k = " << k << "\n";
       if (j > 0) {
         i_lb = i;
         j_lb = j;
@@ -373,7 +378,7 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   MatchNew::propagate(Space& home, const ModEventDelta& med) {
-//    std::cerr << "\nMatchNew::propagate: Var " << x1.varimp() << ": " << x1 << " = MatchNew " << x0 << " in " << *Rnfa << "\n";
+    std::cerr << "\nMatchNew::propagate: Var " << x1.varimp() << ": " << x1 << " = MatchNew " << x0 << " in " << *Rnfa << "\n";
     GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
     do {
       // x1 fixed and val(x1) in {0,1}.
@@ -441,7 +446,7 @@ namespace Gecode { namespace String {
           return ES_FAILED;
       }
       else if (!x1.assigned()) {
-//        std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
+        std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
         return ES_FIX;
       }
       if (pref.size() == 0)
@@ -469,7 +474,7 @@ namespace Gecode { namespace String {
       GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
       assert (X.is_normalized());     
     } while (x0.assigned() || (x1.assigned() && x1.val() <= 1));
-//   std::cerr << "\nMatchNew::propagated: " << x1 << " = MatchNew " << x0 << "\n";
+   std::cerr << "\nMatchNew::propagated: " << x1 << " = MatchNew " << x0 << "\n";
     return ES_FIX;
   }
   
