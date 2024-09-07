@@ -143,7 +143,7 @@ namespace Gecode { namespace String {
   forceinline void
   MatchNew::reachBwd(int i, NSIntSet& B, const std::vector<NSIntSet>& Q,
                      int& j, int& k) const {
-    std::cerr<<"\nMatchNew::reachBwd: X["<<i<<"] = "<<x0.pdomain()->at(i)<<", B=" <<B.toString()<<'\n';
+//    std::cerr<<"\nMatchNew::reachBwd: X["<<i<<"] = "<<x0.pdomain()->at(i)<<", B=" <<B.toString()<<'\n';
     const DSBlock& b = x0.pdomain()->at(i);
     int l = b.l;
     std::vector<NSIntSet> delta_bwd(Rnfa->n_states);
@@ -156,8 +156,7 @@ namespace Gecode { namespace String {
           }
           else
             delta_bwd[x.second].add(q);
-    for (int q = 0; q < Rnfa->n_states; ++q)
-      std::cerr << "\tdelta_bwd[q" << q << "] = " << delta_bwd[q].toString() << "\n";
+//    for (int q = 0; q < Rnfa->n_states; ++q) std::cerr << "\tdelta_bwd[q" << q << "] = " << delta_bwd[q].toString() << "\n";
     int dist[Rnfa->n_states];
     for (int q = 0; q < Rnfa->n_states; ++q)
       dist[q] = B.contains(q) ? 0 : DashedString::_MAX_STR_LENGTH;
@@ -175,7 +174,7 @@ namespace Gecode { namespace String {
         for (NSIntSet::iterator it(delta_bwd[q]); it(); ++it) {
           int q1 = *it;          
           if (dist[q1] > d && Q[l + 1].contains(q1)) {
-          std::cerr << "q = "<<q<<", q'= " << q1 << ", dist = "<<dist[q1]<<" > d = "<<d<<", Q[l+1] = " << Q[l+1].toString() << "\n";
+//            std::cerr << "q = "<<q<<", q'= " << q1 << ", dist = "<<dist[q1]<<" > d = "<<d<<", Q[l+1] = " << Q[l+1].toString() << "\n";
             Q_bfs.push_back(q1);
             if (Q[l].in(q1))
               B.include(q1);
@@ -187,18 +186,18 @@ namespace Gecode { namespace String {
       }
     }    
     B.intersect(Q[l]); //FIXME: Check reg.
-    std::cerr<<"After opt. B = "<< B.toString() << ", k = " << k << ".\n------\n";
+//    std::cerr<<"After opt. B = "<< B.toString() << ", k = " << k << ".\n------\n";
     // Mandatory region
     for (int i = l; i > 0; --i) {
-      std::cerr<<"i = "<<i<<"\n";
+//      std::cerr<<"i = "<<i<<"\n";
       NSIntSet B1;
       for (NSIntSet::iterator it(B); it(); ++it) {
         int q = *it;
-        std::cerr << "\tq = "<<q<<", delta_bwd[q]=" << delta_bwd[q].toString() << "\n";
+//        std::cerr << "\tq = "<<q<<", delta_bwd[q]=" << delta_bwd[q].toString() << "\n";
         for (NSIntSet::iterator it(delta_bwd[q]); it(); ++it) {
           int q1 = *it;
           if (Q[i - 1].contains(q1)) {
-            std::cerr << "\tq'= " << q1 << ", Q["<<i-1<<"] = " << Q[i-1].toString() << "\n";
+//            std::cerr << "\tq'= " << q1 << ", Q["<<i-1<<"] = " << Q[i-1].toString() << "\n";
             B1.add(q1);
             if (q1 == Rnfa->bot && k == 0)
               k = i;
@@ -206,12 +205,12 @@ namespace Gecode { namespace String {
         }
         if (B1.size() == 1 && B1.in(Rnfa->bot))
           j = i + 1; //FIXME: Fix paper.
-        std::cerr << "\tB' = " << B1.toString() << ", j = " << j << ", k = " << k << "\n";
+//        std::cerr << "\tB' = " << B1.toString() << ", j = " << j << ", k = " << k << "\n";
       }
       B = B1;
-      std::cerr << "B = " << B.toString() << "\n";
+//      std::cerr << "B = " << B.toString() << "\n";
     }
-    std::cerr<<"After mand. B = "<< B.toString() << ", j = " << j << ", k = " << k << "\n";
+//    std::cerr<<"After mand. B = "<< B.toString() << ", j = " << j << ", k = " << k << "\n";
   }
   
   forceinline ExecStatus
@@ -298,9 +297,9 @@ namespace Gecode { namespace String {
     int i_ub = 0, j_ub = 0;
     for (int i = n, j = 0, k = 0; i >= 0; --i) {      
       reachBwd(i, B, F[i], j, k);
-      std::cerr << "Bwd pass after " << x.at(i) << ": last(F[" << i << "]) = " 
-        << DSIntSet(home, F[i].back()).toIntSet() << ", B = " 
-        << DSIntSet(home, B).toIntSet() << ", j = " << j << ", k = " << k << "\n";
+//      std::cerr << "Bwd pass after " << x.at(i) << ": last(F[" << i << "]) = " 
+//        << DSIntSet(home, F[i].back()).toIntSet() << ", B = " 
+//        << DSIntSet(home, B).toIntSet() << ", j = " << j << ", k = " << k << "\n";
       if (j > 0) {
         i_lb = i;
         j_lb = j;
@@ -310,7 +309,7 @@ namespace Gecode { namespace String {
         j_ub = k;
       }
     }
-    std::cerr << "(i_lb,j_lb)=("<<i_lb<<","<<j_lb<<"), (i_ub,j_ub)=("<<i_ub<<","<<j_ub<<")\n";    
+//    std::cerr << "(i_lb,j_lb)=("<<i_lb<<","<<j_lb<<"), (i_ub,j_ub)=("<<i_ub<<","<<j_ub<<")\n";    
     int u = j_ub;
     for (int i = 0; i < i_ub; ++i)
       u += x.at(i).u;
@@ -320,7 +319,7 @@ namespace Gecode { namespace String {
   
   forceinline NSIntSet
   MatchNew::reachFwdLazy(const DSBlock& b, const NSIntSet& Q_in) const {
-    std::cerr << "reachFwdLazy " << b << ' '<< Q_in.toString() << ", Rfull: " << *Rfull << '\n';
+//    std::cerr << "reachFwdLazy " << b << ' '<< Q_in.toString() << ", Rfull: " << *Rfull << '\n';
     int l = b.l, j = 0;
     NSIntSet Q_prev = Q_in;
     // Mandatory region.
@@ -328,7 +327,7 @@ namespace Gecode { namespace String {
       NSIntSet Qi;
       for (NSIntSet::iterator it(Q_prev); it(); ++it)
         Qi.include(Rfull->neighbours(*it, b.S));
-      std::cerr << "Qi after block " << b << ": " << Qi.toString() << '\n';
+//      std::cerr << "Qi after block " << b << ": " << Qi.toString() << '\n';
       if (Qi.size() == 1 && Qi.in(1))
         return Qi;
       if (Qi == Q_prev)
@@ -361,7 +360,7 @@ namespace Gecode { namespace String {
     for (int q = 0; q < Rfull->n_states; ++q)
       if (dist[q] <= DashedString::_MAX_STR_LENGTH)
         Qf.add(q);
-    std::cerr << "Qf: " << Qf.toString() << '\n';
+//    std::cerr << "Qf: " << Qf.toString() << '\n';
     return Qf;
   }
   
@@ -379,7 +378,7 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   MatchNew::propagate(Space& home, const ModEventDelta& med) {
-    std::cerr << "\nMatchNew::propagate: Var " << x1.varimp() << ": " << x1 << " = MatchNew " << x0 << " in " << *Rnfa << "\n";
+//    std::cerr << "\nMatchNew::propagate: Var " << x1.varimp() << ": " << x1 << " = MatchNew " << x0 << " in " << *Rnfa << "\n";
     GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
     do {
       // x1 fixed and val(x1) in {0,1}.
@@ -421,7 +420,7 @@ namespace Gecode { namespace String {
         IntSetRanges is(s);  
         GECODE_ME_CHECK(x1.minus_r(home, is));
       }
-      std::cerr << x1 << '\n';
+//      std::cerr << x1 << '\n';
       if (x1.in(0)) {
         if (must_match())
           GECODE_ME_CHECK(x1.gq(home,1));
@@ -464,20 +463,20 @@ namespace Gecode { namespace String {
         continue;
       if (pref.size() == 0)
         pref = prefix(h, k);
-      std::cerr << "Pref: " << pref << "\n";
+//      std::cerr << "Pref: " << pref << "\n";
       suff = suffix(h, k);
-      std::cerr << "Suff: " << suff << ' ' << x1 << "\n";
+//      std::cerr << "Suff: " << suff << ' ' << x1 << "\n";
       int es_suff = x1.assigned() ? propagateReg(home, suff, Rpref) 
                                   : propagateReg(home, suff, Rfull);
       if (es_suff == ES_FAILED)
         return ES_FAILED;
-      std::cerr << "New suff: " << suff << "\n";
+//      std::cerr << "New suff: " << suff << "\n";
       if (es_pref == ES_NOFIX || es_suff == ES_NOFIX) {
         // Udpating x0.
         NSBlocks x_new;
         pref.concat(suff, x_new);
         x_new.normalize();
-        std::cerr << "x_new: " << x_new << "\n";
+//        std::cerr << "x_new: " << x_new << "\n";
         StringDelta d(true);
         X.update(home, x_new);
         GECODE_ME_CHECK(x0.varimp()->notify(
@@ -487,7 +486,7 @@ namespace Gecode { namespace String {
       GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
       assert (X.is_normalized());     
     } while (x0.assigned() || (x1.assigned() && x1.val() <= 1));
-    std::cerr << "\nMatchNew::propagated: " << x1 << " = MatchNew " << x0 << "\n";
+//    std::cerr << "\nMatchNew::propagated: " << x1 << " = MatchNew " << x0 << "\n";
     return ES_FIX;
   }
   

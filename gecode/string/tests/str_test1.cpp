@@ -953,11 +953,10 @@ int main() {
   (new StrTest())->test23();  
   (new StrTest())->test24();
   (new StrTest())->test25();
-//// FIXME: MatchNew tests not passing yet. 
   (new StrTest())->test26();
   (new StrTest())->test27();
   (new StrTest())->test28();
-//  (new StrTest())->test29();
-//  (new StrTest())->test30();
+  (new StrTest())->test29();
+  (new StrTest())->test30();
   return 0;
 }
