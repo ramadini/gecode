@@ -542,6 +542,7 @@ namespace Gecode { namespace String {
     }
     NSBlocks y(l + 1);
     NSIntSet E(Q1);
+    E.intersect(Q[l]);
     if (l1 > l) {
       changed = true;
       y[l] = NSBlock(S_opt, l1, b.u - l);
