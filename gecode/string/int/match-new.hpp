@@ -320,7 +320,7 @@ namespace Gecode { namespace String {
   
   forceinline NSIntSet
   MatchNew::reachFwdLazy(const DSBlock& b, const NSIntSet& Q_in) const {
-    std::cerr << "reachFwdLazy " << b << ' '<< Q_in <<'\n';
+    std::cerr << "reachFwdLazy " << b << ' '<< Q_in.toString() << ", Rfull: " << *Rfull << '\n';
     int l = b.l, j = 0;
     NSIntSet Q_prev = Q_in;
     // Mandatory region.
@@ -328,6 +328,7 @@ namespace Gecode { namespace String {
       NSIntSet Qi;
       for (NSIntSet::iterator it(Q_prev); it(); ++it)
         Qi.include(Rfull->neighbours(*it, b.S));
+      std::cerr << "Qi after block " << b << ": " << Qi.toString() << '\n';
       if (Qi.size() == 1 && Qi.in(1))
         return Qi;
       if (Qi == Q_prev)
@@ -354,15 +355,13 @@ namespace Gecode { namespace String {
             dist[q1] = d;
           }
         }
-        if (Nq.size() == 1 && Nq.in(1))
-          // Final state in the neighbourhood of q.
-          return Nq;
       }
     }
     NSIntSet Qf;
     for (int q = 0; q < Rfull->n_states; ++q)
       if (dist[q] <= DashedString::_MAX_STR_LENGTH)
         Qf.add(q);
+    std::cerr << "Qf: " << Qf.toString() << '\n';
     return Qf;
   }
   
@@ -370,7 +369,6 @@ namespace Gecode { namespace String {
   MatchNew::must_match(void) const {
     DashedString& px = *x0.pdomain();
     NSIntSet Q(0);
-    int i = 0, j = 0, h = 0, k = 0, n = px.length();
     for (int i = 0; i < px.length(); ++i) {
       Q = reachFwdLazy(px.at(i), Q);
       if (Q.size() == 1 && Q.in(1))

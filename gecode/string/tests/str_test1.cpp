@@ -956,7 +956,7 @@ int main() {
 //// FIXME: MatchNew tests not passing yet. 
   (new StrTest())->test26();
   (new StrTest())->test27();
-//  (new StrTest())->test28();
+  (new StrTest())->test28();
 //  (new StrTest())->test29();
 //  (new StrTest())->test30();
   return 0;
