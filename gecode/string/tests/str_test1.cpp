@@ -807,7 +807,7 @@ public:
     stringDFA* R = new stringDFA(regex->dfa());
     stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(R1->toMatchNFA(x.may_chars()));
-    assert(match(*this, x, i, 1, R, R1, R2).propagate(*this, 0) == ES_FAILED);
+    assert(match(*this, x, i, 1, R1, R, R2).propagate(*this, 0) == ES_FAILED);
     std::cerr << "===== i = match(x, R) UNSATISFIABLE =====\n" << std::endl;
   }
   
@@ -833,7 +833,7 @@ public:
     stringDFA* R = new stringDFA(regex->dfa());
     stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(R1->toMatchNFA(x.may_chars()));
-    assert(match(*this, x, i, 1, R, R1, R2).propagate(*this, 0) == ES_FAILED);
+    assert(match(*this, x, i, 1, R1, R, R2).propagate(*this, 0) == ES_FAILED);
     std::cerr << "===== i = match(x, R) UNSATISFIABLE =====\n" << std::endl;
   }
   
@@ -862,7 +862,7 @@ public:
     matchNFA* R2 = new matchNFA(R1->toMatchNFA(x.may_chars()));
     double lx = x.domain().logdim();
     std::cerr << "===== After i = match(x, R) =====" << std::endl;
-    assert(match(*this, x, i, 1, R, R1, R2).propagate(*this, 0) == ES_FIX);
+    assert(match(*this, x, i, 1, R1, R, R2).propagate(*this, 0) == ES_FIX);
     std::cerr << "x = " << x << std::endl;
     assert(x.domain().logdim() == lx);
     std::cerr << "i = " << i << std::endl;
@@ -894,7 +894,7 @@ public:
     stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(R1->toMatchNFA(x.may_chars()));
     std::cerr << "===== After i = match(x, R) =====" << std::endl;
-    assert(match(*this, x, i, 1, R, R1, R2).propagate(*this, 0) == ES_FIX);
+    assert(match(*this, x, i, 1, R1, R, R2).propagate(*this, 0) == ES_FIX);
     std::cerr << "x = " << x << std::endl;
     assert(x.domain().at(1).val() == "c");
   }
@@ -921,7 +921,7 @@ public:
     stringDFA* R = new stringDFA(regex->dfa());
     stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(R1->toMatchNFA(x.may_chars()));
-    assert(match(*this, x, i, 1, R, R1, R2).propagate(*this, 0) == ES_FAILED);
+    assert(match(*this, x, i, 1, R1, R, R2).propagate(*this, 0) == ES_FAILED);
     std::cerr << "===== i = match(x, R) UNSATISFIABLE =====\n" << std::endl;
   }
 
@@ -953,9 +953,9 @@ int main() {
   (new StrTest())->test23();  
   (new StrTest())->test24();
   (new StrTest())->test25();
-// FIXME: MatchNew tests not passing yet. 
+//// FIXME: MatchNew tests not passing yet. 
   (new StrTest())->test26();
-//  (new StrTest())->test27();
+  (new StrTest())->test27();
 //  (new StrTest())->test28();
 //  (new StrTest())->test29();
 //  (new StrTest())->test30();

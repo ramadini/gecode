@@ -297,6 +297,8 @@ namespace Gecode { namespace String {
           sRsC->negate(may_chars);
         }
         es_pref = propagateReg(home, pref, sRsC);
+//        std::cerr << "Rfull: " << *sRs << '\n';
+//        std::cerr << "Rcomp: " << *sRsC << '\n';
         if (es_pref == ES_FAILED)
           return ES_FAILED; 
       }

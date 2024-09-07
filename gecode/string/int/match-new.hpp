@@ -49,7 +49,7 @@ namespace Gecode { namespace String {
 //    std::cerr << "RE: " << re << ", minlen: " << r << ", i: " << i << '\n';
     stringDFA* Rp = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* Rn = new matchNFA(Rp->toMatchNFA(x.may_chars()));
-    (void) new (home) MatchNew(home, x, i, r, Rp, R, Rn);
+    (void) new (home) MatchNew(home, x, i, r, Rp, R, Rn);    
     return ES_OK;
   }
 
@@ -320,7 +320,7 @@ namespace Gecode { namespace String {
   
   forceinline NSIntSet
   MatchNew::reachFwdLazy(const DSBlock& b, const NSIntSet& Q_in) const {
-//    std::cerr << "reachFwdLazy " << b << '\n';
+    std::cerr << "reachFwdLazy " << b << ' '<< Q_in <<'\n';
     int l = b.l, j = 0;
     NSIntSet Q_prev = Q_in;
     // Mandatory region.
@@ -373,7 +373,7 @@ namespace Gecode { namespace String {
     int i = 0, j = 0, h = 0, k = 0, n = px.length();
     for (int i = 0; i < px.length(); ++i) {
       Q = reachFwdLazy(px.at(i), Q);
-      if (Q.size() == 1 && Q.min() == 1)
+      if (Q.size() == 1 && Q.in(1))
         return true;
     }
     return false;
@@ -419,10 +419,11 @@ namespace Gecode { namespace String {
       for (int i = 0; i < h; ++i)
         l += X.at(i).l;
       if (l > 1) {
-        IntSet s(1, l);
+        IntSet s(1, l-1);
         IntSetRanges is(s);  
         GECODE_ME_CHECK(x1.minus_r(home, is));
       }
+      std::cerr << x1 << '\n';
       if (x1.in(0)) {
         if (must_match())
           GECODE_ME_CHECK(x1.gq(home,1));
@@ -430,7 +431,7 @@ namespace Gecode { namespace String {
           return ES_FIX;
       }
       
-      // General case.
+      // General case.      Rfull->compute_univ(may_chars);
       NSBlocks pref, suff;
       int es_pref = ES_FIX;      
       if (l < x1.min()) { //FIXME: Fix paper.
@@ -442,13 +443,17 @@ namespace Gecode { namespace String {
         }
 //        std::cerr << "(h,k)=" << "("<<h<<","<<k<<")\n";
         pref = prefix(h, k);
-        std::cerr << "Pref: " << pref << "\n"; 
+//        std::cerr << "Pref: " << pref << "\n"; 
         if (Rcomp == nullptr) {
-          Rcomp = new stringDFA(*Rfull);
           NSIntSet may_chars = x0.may_chars();
-          Rcomp->negate(may_chars);
-        }
+          Rcomp = new stringDFA(*Rfull);
+          Rcomp->negate(may_chars);         
+        }        
         es_pref = propagateReg(home, pref, Rcomp);
+//        std::cerr << "Rpref: " << *Rpref << '\n';
+//        std::cerr << "Rfull: " << *Rfull << '\n';
+//        std::cerr << "Rcomp: " << *Rcomp << '\n';
+//        std::cerr << "Pref: " << pref << "\n";
         if (es_pref == ES_FAILED)
           return ES_FAILED;
       }
@@ -484,7 +489,7 @@ namespace Gecode { namespace String {
       GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
       assert (X.is_normalized());     
     } while (x0.assigned() || (x1.assigned() && x1.val() <= 1));
-   std::cerr << "\nMatchNew::propagated: " << x1 << " = MatchNew " << x0 << "\n";
+    std::cerr << "\nMatchNew::propagated: " << x1 << " = MatchNew " << x0 << "\n";
     return ES_FIX;
   }
   

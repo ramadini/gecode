@@ -41,44 +41,39 @@ namespace Gecode { namespace String {
   	// For a minimal DFA, there is at most 1 universal accepted/rejected state.
 	  ua = -1;
     ur = -1;
-    if (ur == -1) {
-      for (int i = 0; i < final_fst; ++i) {
-        ur = i;
-        for (auto& x : delta[i])
-          if (x.second != i) {
-            ur = -1;
-            break;
-          }
-        if (ur == i)
+    for (int i = 0; i < final_fst; ++i) {
+      ur = i;
+      for (auto& x : delta[i])
+        if (x.second != i) {
+          ur = -1;
           break;
-      }
-    }
-    if (ua == -1) {
-      for (int i = final_fst; i <= final_lst; ++i) {
-        ua = i;
-        const std::vector<std::pair<int, int>>& di = delta[i];
-        if ((int) di.size() < domain.size()) {
-          ua = -1;
-          continue;
         }
-        for (auto& x : di)
-          if (x.second != i || !domain.contains(x.first)) {
-            ua = -1;
-            break;
-          }
+      if (ur == i)
+        break;
+    }
+    for (int i = final_fst; i <= final_lst; ++i) {
+      ua = i;
+      if ((int) delta[i].size() < domain.size()) {
+        ua = -1;
+        continue;
+      }
+      for (NSIntSet::iterator it(domain); it(); ++it) {
+        if (search(i, *it) != i) {
+          ua = -1;
+          break;
+        }
       }
     }
-    if (ur == -1)
-      for (int i = final_lst + 1; i < n_states; ++i) {
-        ur = i;
-        for (auto& x : delta[i])
-          if (x.second != i) {
-            ur = -1;
-            break;
-          }
-        if (ur == i)
+    for (int i = final_lst + 1; i < n_states; ++i) {
+      ur = i;
+      for (auto& x : delta[i])
+        if (x.second != i) {
+          ur = -1;
           break;
-      }
+        }
+      if (ur == i)
+        break;
+    }
   }
 
   forceinline
@@ -165,7 +160,7 @@ namespace Gecode { namespace String {
 
   forceinline void
   stringDFA::negate(const NSIntSet& alphabet) {
-    // std::cerr << "stringDFA::negate: " << *this << ' ' << alphabet << '\n';
+     std::cerr << "stringDFA::negate: " << *this << ' ' << alphabet << '\n';
     bool complete = true;
     for (int i = 0; i < n_states; i++) {
       NSIntSet a(alphabet);
