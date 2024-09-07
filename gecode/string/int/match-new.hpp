@@ -185,7 +185,7 @@ namespace Gecode { namespace String {
         }
       }
     }    
-    B.intersect(Q[l]); //FIXME: Check reg.
+    B.intersect(Q[l]);
 //    std::cerr<<"After opt. B = "<< B.toString() << ", k = " << k << ".\n------\n";
     // Mandatory region
     for (int i = l; i > 0; --i) {
@@ -204,7 +204,7 @@ namespace Gecode { namespace String {
           }
         }
         if (B1.size() == 1 && B1.in(Rnfa->bot))
-          j = i + 1; //FIXME: Fix paper.
+          j = i + 1;
 //        std::cerr << "\tB' = " << B1.toString() << ", j = " << j << ", k = " << k << "\n";
       }
       B = B1;
@@ -431,7 +431,7 @@ namespace Gecode { namespace String {
       // General case.      Rfull->compute_univ(may_chars);
       NSBlocks pref, suff;
       int es_pref = ES_FIX;      
-      if (l < x1.min()) { //FIXME: Fix paper.
+      if (l < x1.min()) {
         // Updating (h,k) from the lower bound of x1.
         h = 0, k = x1.min() - 1;
         while (h < X.length() && k >= X.at(h).u) {      
