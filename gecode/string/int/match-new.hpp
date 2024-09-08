@@ -410,11 +410,6 @@ namespace Gecode { namespace String {
               return home.ES_SUBSUMED(*this);            
             }
         }
-        // i = 0 \/ i > k.
-        IntSet s(1, k);
-        IntSetRanges is(s);
-        GECODE_ME_CHECK(x1.minus_r(home, is));
-//        std::cerr << x1 << '\n';
       }      
       int h = 0;
       GECODE_ES_CHECK(refine_idx(home, h, k));
@@ -427,14 +422,16 @@ namespace Gecode { namespace String {
         IntSetRanges is(s);  
         GECODE_ME_CHECK(x1.minus_r(home, is));
         std::cerr << "Refined i = " << x1 << '\n';
-      }      
+      }
       if (x1.in(0)) {
-        if (must_match())
+        if (must_match()) {
           GECODE_ME_CHECK(x1.gq(home,1));
+          l = 1;
+        }
         else
           return ES_FIX;
       }
-      std::cerr << "x: " << x0 << ", l = " <<l<<"\n";
+      std::cerr << "x: " << x0 << ", l = " <<l<<' '<<x1<<"\n";
       
       // General case.
       NSBlocks pref, suff;
@@ -446,9 +443,9 @@ namespace Gecode { namespace String {
           k -= X.at(h).u;
           h++;
         }
-//        std::cerr << "(h,k)=" << "("<<h<<","<<k<<")\n";
+        std::cerr << "(h,k)=" << "("<<h<<","<<k<<")\n";
         pref = prefix(h, k);
-//        std::cerr << "Pref: " << pref << "\n"; 
+        std::cerr << "Pref: " << pref << "\n"; 
         if (Rcomp == nullptr) {
           NSIntSet may_chars = x0.may_chars();
           Rcomp = new stringDFA(*Rfull);

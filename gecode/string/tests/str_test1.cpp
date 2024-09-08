@@ -1106,6 +1106,64 @@ public:
     assert (lx == x.domain().logdim());
     assert (i.min() == 0 && !i.in(1) && i.max() == 2);
   }
+  
+  void test37() {
+    std::cerr << "\n*** Test 37 ***" << std::endl;
+    NSBlocks v;
+    v.push_back(NSBlock(NSIntSet('a'), 1, 5));
+    v.push_back(NSBlock(NSIntSet('c','d'), 1, 3));
+    StringVar x(*this, v, 0, 100);
+    IntVar i(*this, 0, 100);
+    double lx = x.domain().logdim();
+    class match : public Match {
+    public:
+      match(Home h, StringView x, IntView i, stringDFA* R, stringDFA* R1, int r)
+        : Match(h, x, i, R, R1, r) {};
+    };
+    string re = "(ab)*(c|ad)";
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "i = " << i << std::endl;
+    std::cerr << "R = " << re << std::endl;
+    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
+    stringDFA* R = new stringDFA(regex->dfa());
+    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    std::cerr << "===== After i = match(x, R) =====" << std::endl;
+    assert(match(*this, x, i, R, R1, 1).propagate(*this, 0) == ES_FIX);
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "i = " << i << std::endl;
+    assert (lx == x.domain().logdim());
+    assert (i.min() == 1 && i.max() == 8);
+  }
+
+  void test38() {
+    std::cerr << "\n*** Test 38 ***" << std::endl;
+    NSBlocks v;
+    v.push_back(NSBlock(NSIntSet('a'), 1, 5));
+    v.push_back(NSBlock(NSIntSet('c','d'), 1, 3));
+    StringVar x(*this, v, 0, 100);
+    IntVar i(*this, 0, 100);
+    double lx = x.domain().logdim();
+    class match : public MatchNew {
+    public:
+      match(Home h, StringView x, IntView i, int r,
+            stringDFA* R, stringDFA* R1, matchNFA* R2)
+        : MatchNew(h, x, i, r, R, R1, R2) {};
+    };
+    string re = "(ab)*(c|ad)";
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "i = " << i << std::endl;
+    std::cerr << "R = " << re << std::endl;
+    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();   
+    stringDFA* R = new stringDFA(regex->dfa());
+    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    matchNFA* R2 = new matchNFA(R1->toMatchNFA(x.may_chars()));
+    assert(match(*this, x, i, 1, R1, R, R2).propagate(*this, 0) == ES_FIX);
+    std::cerr << "===== After i = match(x, R) =====\n" << std::endl;
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "i = " << i << std::endl;
+    assert (lx == x.domain().logdim());
+    assert (i.min() == 1 && i.max() == 8);
+  }
 
 };
 
@@ -1146,5 +1204,7 @@ int main() {
   (new StrTest())->test34();
   (new StrTest())->test35();
   (new StrTest())->test36();
+  (new StrTest())->test37();
+  (new StrTest())->test38();
   return 0;
 }
