@@ -422,7 +422,7 @@ namespace Gecode { namespace String {
       int l = k;
       for (int i = 0; i < h; ++i)
         l += X.at(i).l;
-      if (l > 1) {
+      if (l > 1 && l > x1.min()) {
         IntSet s(1, l-1);
         IntSetRanges is(s);  
         GECODE_ME_CHECK(x1.minus_r(home, is));
