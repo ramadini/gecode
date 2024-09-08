@@ -186,10 +186,12 @@ namespace Gecode { namespace String {
       }
     }    
     B.intersect(Q[l]);
-//    std::cerr<<"After opt. B = "<< B.toString() << ", k = " << k << ".\n------\n";
+    std::cerr<<"After opt. B = "<< B.toString() << ", k = " << k << ".\n------\n";
+    if (B.size() == 1 && B.in(Rnfa->bot))
+      j = l+1;
     // Mandatory region
     for (int i = l; i > 0; --i) {
-//      std::cerr<<"i = "<<i<<"\n";
+      std::cerr<<"i = "<<i<<"\n";
       NSIntSet B1;
       for (NSIntSet::iterator it(B); it(); ++it) {
         int q = *it;
@@ -199,16 +201,16 @@ namespace Gecode { namespace String {
           if (Q[i - 1].contains(q1)) {
 //            std::cerr << "\tq'= " << q1 << ", Q["<<i-1<<"] = " << Q[i-1].toString() << "\n";
             B1.add(q1);
-            if (q1 == Rnfa->bot && k == 0)
+            if (k == 0 && q1 == Rnfa->bot)
               k = i;
           }
         }
-        if (B1.size() == 1 && B1.in(Rnfa->bot))
-          j = i + 1;
-//        std::cerr << "\tB' = " << B1.toString() << ", j = " << j << ", k = " << k << "\n";
+        if (j == 0 && B1.size() == 1 && B1.in(Rnfa->bot))
+          j = i;
+        std::cerr << "\tB' = " << B1.toString() << ", j = " << j << ", k = " << k << "\n";
       }
       B = B1;
-//      std::cerr << "B = " << B.toString() << "\n";
+      std::cerr << "B = " << B.toString() << "\n";
     }
 //    std::cerr<<"After mand. B = "<< B.toString() << ", j = " << j << ", k = " << k << "\n";
   }
