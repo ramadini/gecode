@@ -925,6 +925,66 @@ public:
     std::cerr << "===== i = match(x, R) UNSATISFIABLE =====\n" << std::endl;
   }
 
+  void test31() {
+    std::cerr << "\n*** Test 31 ***" << std::endl;
+    NSBlocks v;
+    v.push_back(NSBlock(NSIntSet('c'), 1, 2));
+    v.push_back(NSBlock(NSIntSet('a'), 2, 4));
+    v.push_back(NSBlock(NSIntSet('b'), 1, 3));
+    v.push_back(NSBlock(NSIntSet('d'), 3, 4));
+    StringVar x(*this, v, 0, 100);
+    IntVar i(*this, 0, 100);
+    double lx = x.domain().logdim();
+    class match : public Match {
+    public:
+      match(Home h, StringView x, IntView i, stringDFA* R, stringDFA* R1, int r)
+        : Match(h, x, i, R, R1, r) {};
+    };
+    string re = "a*b";
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "i = " << i << std::endl;
+    std::cerr << "R = " << re << std::endl;
+    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
+    stringDFA* R = new stringDFA(regex->dfa());
+    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    std::cerr << "===== After i = match(x, R) =====" << std::endl;
+    assert(match(*this, x, i, R, R1, 1).propagate(*this, 0) == ES_FIX);
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "i = " << i << std::endl;
+    assert (lx == x.domain().logdim());
+    assert (i.min() == 2 && i.max() == 9);
+  }
+
+  void test32() {
+    std::cerr << "\n*** Test 32 ***" << std::endl;
+    NSBlocks v;
+    v.push_back(NSBlock(NSIntSet('c'), 1, 2));
+    v.push_back(NSBlock(NSIntSet('a'), 2, 4));
+    v.push_back(NSBlock(NSIntSet('b'), 1, 3));
+    v.push_back(NSBlock(NSIntSet('d'), 3, 4));
+    StringVar x(*this, v, 0, 100);
+    IntVar i(*this, 0, 100);
+    class match : public MatchNew {
+    public:
+      match(Home h, StringView x, IntView i, int r,
+            stringDFA* R, stringDFA* R1, matchNFA* R2)
+        : MatchNew(h, x, i, r, R, R1, R2) {};
+    };
+    string re = "a*b";
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "i = " << i << std::endl;
+    std::cerr << "R = " << re << std::endl;
+    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();   
+    stringDFA* R = new stringDFA(regex->dfa());
+    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    matchNFA* R2 = new matchNFA(R1->toMatchNFA(x.may_chars()));
+//FIXME: assert(match(*this, x, i, 1, R1, R, R2).propagate(*this, 0) == ES_FIX);
+    match(*this, x, i, 1, R1, R, R2).propagate(*this, 0);
+    std::cerr << "===== After i = match(x, R) =====\n" << std::endl;
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "i = " << i << std::endl;
+  }
+
 };
 
 int main() {
@@ -958,5 +1018,7 @@ int main() {
   (new StrTest())->test28();
   (new StrTest())->test29();
   (new StrTest())->test30();
+  (new StrTest())->test31();
+  (new StrTest())->test32();
   return 0;
 }
