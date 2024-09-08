@@ -964,6 +964,7 @@ public:
     v.push_back(NSBlock(NSIntSet('d'), 3, 4));
     StringVar x(*this, v, 0, 100);
     IntVar i(*this, 0, 100);
+    double lx = x.domain().logdim();
     class match : public MatchNew {
     public:
       match(Home h, StringView x, IntView i, int r,
@@ -978,11 +979,12 @@ public:
     stringDFA* R = new stringDFA(regex->dfa());
     stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(R1->toMatchNFA(x.may_chars()));
-//FIXME: assert(match(*this, x, i, 1, R1, R, R2).propagate(*this, 0) == ES_FIX);
-    match(*this, x, i, 1, R1, R, R2).propagate(*this, 0);
+    assert(match(*this, x, i, 1, R1, R, R2).propagate(*this, 0) == ES_FIX);
     std::cerr << "===== After i = match(x, R) =====\n" << std::endl;
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
+    assert (lx == x.domain().logdim());
+    assert (i.min() == 2 && i.max() == 3);
   }
 
 };

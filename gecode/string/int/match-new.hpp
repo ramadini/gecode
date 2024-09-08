@@ -279,9 +279,10 @@ namespace Gecode { namespace String {
       F[i] = reachFwd(x.at(i), Fi);
       assert (!F[i].empty());
       Fi = F[i].back();
+      std::cerr << "last(F[" << i << "]): " << Fi.toString() << "\n";
       if (Fi.size() == 1 && Fi.in(1)) {
-        GECODE_ME_CHECK(x1.gq(home, 0));
-        n = i;
+        GECODE_ME_CHECK(x1.gq(home, 1));
+        n = i + 1;
         break;
       }
     }
@@ -297,9 +298,9 @@ namespace Gecode { namespace String {
     int i_ub = 0, j_ub = 0;
     for (int i = n, j = 0, k = 0; i >= 0; --i) {      
       reachBwd(i, B, F[i], j, k);
-//      std::cerr << "Bwd pass after " << x.at(i) << ": last(F[" << i << "]) = " 
-//        << DSIntSet(home, F[i].back()).toIntSet() << ", B = " 
-//        << DSIntSet(home, B).toIntSet() << ", j = " << j << ", k = " << k << "\n";
+      std::cerr << "Bwd pass after " << x.at(i) << ": last(F[" << i << "]) = " 
+        << DSIntSet(home, F[i].back()).toIntSet() << ", B = " 
+        << DSIntSet(home, B).toIntSet() << ", j = " << j << ", k = " << k << "\n";
       if (j > 0) {
         i_lb = i;
         j_lb = j;
@@ -309,7 +310,7 @@ namespace Gecode { namespace String {
         j_ub = k;
       }
     }
-//    std::cerr << "(i_lb,j_lb)=("<<i_lb<<","<<j_lb<<"), (i_ub,j_ub)=("<<i_ub<<","<<j_ub<<")\n";    
+    std::cerr << "(i_lb,j_lb)=("<<i_lb<<","<<j_lb<<"), (i_ub,j_ub)=("<<i_ub<<","<<j_ub<<")\n";    
     int u = j_ub;
     for (int i = 0; i < i_ub; ++i)
       u += x.at(i).u;
@@ -378,7 +379,7 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   MatchNew::propagate(Space& home, const ModEventDelta& med) {
-//    std::cerr << "\nMatchNew::propagate: Var " << x1.varimp() << ": " << x1 << " = MatchNew " << x0 << " in " << *Rnfa << "\n";
+    std::cerr << "\nMatchNew::propagate: Var " << x1.varimp() << ": " << x1 << " = MatchNew " << x0 << " in " << *Rnfa << "\n";
     GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
     do {
       // x1 fixed and val(x1) in {0,1}.
@@ -395,7 +396,7 @@ namespace Gecode { namespace String {
       }
       DashedString& X = *x0.pdomain();
       std::string w = X.known_pref();
-      int k = w.size();
+      int k = w.size();std::cerr << "w: " << w << '\n';
       if (k > 0) {
         if (Rfull->accepted(w)) {
           for (int i = 0; i < k; ++i)
@@ -408,10 +409,11 @@ namespace Gecode { namespace String {
         IntSet s(1, k);
         IntSetRanges is(s);
         GECODE_ME_CHECK(x1.minus_r(home, is));
-      }
-      
+//        std::cerr << x1 << '\n';
+      }      
       int h = 0;
       GECODE_ES_CHECK(refine_idx(home, h, k));
+      std::cerr << "After refine: " << x0 << ", (h,k)=" << "("<<h<<","<<k<<")\n";
       int l = k;
       for (int i = 0; i < h; ++i)
         l += X.at(i).l;
@@ -419,16 +421,16 @@ namespace Gecode { namespace String {
         IntSet s(1, l-1);
         IntSetRanges is(s);  
         GECODE_ME_CHECK(x1.minus_r(home, is));
-      }
-//      std::cerr << x1 << '\n';
+      }      
       if (x1.in(0)) {
         if (must_match())
           GECODE_ME_CHECK(x1.gq(home,1));
         else
           return ES_FIX;
       }
+      std::cerr << "x: " << x0 << ", (h,k)=" << "("<<h<<","<<k<<")\n";
       
-      // General case.      Rfull->compute_univ(may_chars);
+      // General case.
       NSBlocks pref, suff;
       int es_pref = ES_FIX;      
       if (l < x1.min()) {
