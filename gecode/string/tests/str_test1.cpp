@@ -766,7 +766,7 @@ public:
     v.push_back(NSBlock(s0, 2, 5));
     v.push_back(NSBlock(s1, 0, 3));
     StringVar x(*this, v, 0, 100);
-    IntVar i(*this, 3, 3);
+    IntVar i(*this, 1, 3);
     class match : public Match {
     public:
       match(Home h, StringView x, IntView i, stringDFA* R, stringDFA* R1, int r)
@@ -782,7 +782,7 @@ public:
     std::cerr << "===== After i = match(x, R) =====" << std::endl;
     assert(match(*this, x, i, R, R1, 1).propagate(*this, 0) == ES_FIX);
     std::cerr << "x = " << x << std::endl;
-    assert(x.domain().at(1).val() == "c");
+    assert(i.val() == 3 && x.domain().at(1).val() == "c");
   }
   
   void test26() {
@@ -878,7 +878,7 @@ public:
     v.push_back(NSBlock(s0, 2, 5));
     v.push_back(NSBlock(s1, 0, 3));
     StringVar x(*this, v, 0, 100);
-    IntVar i(*this, 3, 3);
+    IntVar i(*this, 1, 3);
     class match : public MatchNew {
     public:
       match(Home h, StringView x, IntView i, int r,
@@ -896,7 +896,7 @@ public:
     std::cerr << "===== After i = match(x, R) =====" << std::endl;
     assert(match(*this, x, i, 1, R1, R, R2).propagate(*this, 0) == ES_FIX);
     std::cerr << "x = " << x << std::endl;
-    assert(x.domain().at(1).val() == "c");
+    assert(i.val() == 3 && x.domain().at(1).val() == "c");
   }
   
   void test30() {

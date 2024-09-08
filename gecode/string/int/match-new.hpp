@@ -187,8 +187,10 @@ namespace Gecode { namespace String {
     }    
     B.intersect(Q[l]);
     std::cerr<<"After opt. B = "<< B.toString() << ", k = " << k << ".\n------\n";
-    if (B.size() == 1 && B.in(Rnfa->bot))
+    if (B.size() == 1 && B.in(Rnfa->bot)) {
       j = l+1;
+      return;
+    }
     // Mandatory region
     for (int i = l; i > 0; --i) {
       std::cerr<<"i = "<<i<<"\n";
@@ -302,14 +304,15 @@ namespace Gecode { namespace String {
       reachBwd(i, B, F[i], j, k);
       std::cerr << "Bwd pass after " << x.at(i) << ": last(F[" << i << "]) = " 
         << DSIntSet(home, F[i].back()).toIntSet() << ", B = " 
-        << DSIntSet(home, B).toIntSet() << ", j = " << j << ", k = " << k << "\n";
-      if (j > 0) {
-        i_lb = i;
-        j_lb = j;
-      }
+        << DSIntSet(home, B).toIntSet() << ", j = " << j << ", k = " << k << "\n";      
       if (k > 0 && i_ub == 0 && j_ub == 0) {
         i_ub = i;
         j_ub = k;
+      }
+      if (j > 0) {
+        i_lb = i;
+        j_lb = j;
+        break;
       }
     }
     std::cerr << "(i_lb,j_lb)=("<<i_lb<<","<<j_lb<<"), (i_ub,j_ub)=("<<i_ub<<","<<j_ub<<")\n";    
@@ -423,6 +426,7 @@ namespace Gecode { namespace String {
         IntSet s(1, l-1);
         IntSetRanges is(s);  
         GECODE_ME_CHECK(x1.minus_r(home, is));
+        std::cerr << "Refined i = " << x1 << '\n';
       }      
       if (x1.in(0)) {
         if (must_match())
@@ -430,11 +434,11 @@ namespace Gecode { namespace String {
         else
           return ES_FIX;
       }
-      std::cerr << "x: " << x0 << ", (h,k)=" << "("<<h<<","<<k<<")\n";
+      std::cerr << "x: " << x0 << ", l = " <<l<<"\n";
       
       // General case.
       NSBlocks pref, suff;
-      int es_pref = ES_FIX;      
+      int es_pref = ES_FIX;  
       if (l < x1.min()) {
         // Updating (h,k) from the lower bound of x1.
         h = 0, k = x1.min() - 1;
@@ -465,11 +469,18 @@ namespace Gecode { namespace String {
       }
       else if (x1.val() <= 1)
         continue;
-      if (pref.size() == 0)
+      else {
+        // x1 fixed and greater than 1.
+        h = 0, k = x1.min() - 1;
+        while (h < X.length() && k >= X.at(h).u) {      
+          k -= X.at(h).u;
+          h++;
+        }
         pref = prefix(h, k);
-//      std::cerr << "Pref: " << pref << "\n";
+      }
+      std::cerr << "Pref: " << pref << "\n";
       suff = suffix(h, k);
-//      std::cerr << "Suff: " << suff << ' ' << x1 << "\n";
+      std::cerr << "Suff: " << suff << ' ' << x1 << "\n";
       int es_suff = x1.assigned() ? propagateReg(home, suff, Rpref) 
                                   : propagateReg(home, suff, Rfull);
       if (es_suff == ES_FAILED)
