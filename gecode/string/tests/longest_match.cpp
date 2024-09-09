@@ -14,7 +14,12 @@ class StringOptions : public Options {
 
 public:
 
-  StringOptions(const char* s): Options(s) {
+  bool newMatch;
+
+  StringOptions(const char* s): Options(s), newMatch(false) {
+      this->c_d(1);
+  }
+  StringOptions(const char* s, bool newM): Options(s), newMatch(newM) {
       this->c_d(1);
   }
 
@@ -31,11 +36,11 @@ class MaxMatchStr : public IntMaximizeScript {
 
 public:
 
-
   MaxMatchStr(MaxMatchStr& s): IntMaximizeScript(s) {
     string_vars.update(*this, s.string_vars);
     int_vars.update(*this, s.int_vars);
   }
+  
   virtual Space* copy() {
     return new MaxMatchStr(*this);
   }
@@ -52,7 +57,10 @@ public:
     IntVarArray start_idx(*this, N, 1, n);
     iva << start_idx[0];
     substr(*this, target, start_idx[0], IntVar(*this, n, n), sub0);
-    match(*this, sub0, PATTERN, IntVar(*this,1,1));
+    if (so.newMatch)
+      match_new(*this, sub0, PATTERN, IntVar(*this,1,1));
+    else
+      match(*this, sub0, PATTERN, IntVar(*this,1,1));
     for (int i = 1; i < N; ++i) {      
       IntVar idx0(*this, 1, n);
       rel(*this, idx0 == start_idx[i-1] + 1);
@@ -60,7 +68,10 @@ public:
       substr(*this, target, idx0, IntVar(*this, n, n), sub_i);
       
       IntVar idx_i(*this, 1, n);
-      match(*this, sub_i, PATTERN, idx_i);
+      if (so.newMatch)
+        match_new(*this, sub_i, PATTERN, idx_i);
+      else
+        match(*this, sub_i, PATTERN, idx_i);
       rel(*this, start_idx[i] == idx_i + start_idx[i-1]);      
       
       IntVar idx1(*this, 1, n);
@@ -88,16 +99,22 @@ public:
   virtual void
   print(std::ostream& os) const {
     L = int_vars[0].val();
-    int i = int_vars[1].val();
-    os << "Substring: " << TARGET.substr(i-1, L) << " (length: " << L << ")\n";
-    os << "Matching indexes: " << int_vars << "\n---------\n";
+//    int i = int_vars[1].val();
+//    os << "Substring: " << TARGET.substr(i-1, L) << " (length: " << L << ")\n";
+//    os << "Matching indexes: " << int_vars << "\n---------\n";
   }
 
 };
 
 int main() {
   StringOptions opt("*** Longest repeating substring ***");
+  std::cerr << "Old propagator\n";
   opt.solutions(0);
+  Script::run<MaxMatchStr, BAB, StringOptions>(opt);
+  assert (L == 84);
+  std::cerr << "New propagator\n";
+  opt.solutions(0);
+  opt.newMatch = true;
   Script::run<MaxMatchStr, BAB, StringOptions>(opt);
   assert (L == 84);
   return 0;

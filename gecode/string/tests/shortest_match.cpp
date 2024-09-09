@@ -18,7 +18,9 @@ class StringOptions : public Options {
 
 public:
 
-  StringOptions(const char* s): Options(s) {
+  bool newMatch;
+
+  StringOptions(const char* s): Options(s), newMatch(false) {
       this->c_d(1);
   }
 
@@ -63,7 +65,10 @@ public:
       else {
         IntVar i(*this, 1, n);
         iva << i;
-        match(*this, w, ri, i);
+        if (so.newMatch)
+          match_new(*this, w, ri, i);
+        else
+          match(*this, w, ri, i);
       }
     }
     
@@ -89,6 +94,10 @@ public:
 
 int main() {
   StringOptions opt("*** Shortest matching super-string ***");
+  opt.solutions(0);
+  Script::run<MinMatchStr, BAB, StringOptions>(opt);
+  assert (N == 11);
+  opt.newMatch = true;
   opt.solutions(0);
   Script::run<MinMatchStr, BAB, StringOptions>(opt);
   assert (N == 11);

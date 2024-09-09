@@ -160,7 +160,7 @@ namespace Gecode { namespace String {
 
   forceinline void
   stringDFA::negate(const NSIntSet& alphabet) {
-     std::cerr << "stringDFA::negate: " << *this << ' ' << alphabet << '\n';
+//     std::cerr << "stringDFA::negate: " << *this << ' ' << alphabet << '\n';
     bool complete = true;
     for (int i = 0; i < n_states; i++) {
       NSIntSet a(alphabet);
