@@ -70,6 +70,9 @@ public:
         else
           match(*this, w, ri, i);
       }
+      //FIXME w ="dqdrgqqhxea"
+//      rel(*this, l, IRT_EQ, 11);
+//      rel(*this, StringVar(*this, "dqdrgqqhxea"), StringVar(*this), STRT_CAT, w);
     }
     
     int_vars = IntVarArray(*this, iva);
@@ -87,7 +90,7 @@ public:
   virtual void
   print(std::ostream& os) const {
     N = string_vars[0].min_length();
-    os << "substring = " << string_vars[0] << " (length: " << N << ")\n";    
+    os << "substring = " << string_vars[0] << " (length: " << N << ")\n";
   }
 
 };
@@ -101,5 +104,6 @@ int main() {
   opt.solutions(0);
   Script::run<MinMatchStr, BAB, StringOptions>(opt);
   assert (N == 11);
+  // FIXME: substring = Var. 0x5aa7f2fab970: "dqdrgqqhxea" [11..11] (length: 11)
   return 0;
 }

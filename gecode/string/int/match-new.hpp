@@ -206,11 +206,11 @@ namespace Gecode { namespace String {
             if (k == 0 && q1 == Rnfa->bot)
               k = i;
           }
-        }
-        if (j == 0 && B1.size() == 1 && B1.in(Rnfa->bot))
-          j = i;
-//        std::cerr << "\tB' = " << B1.toString() << ", j = " << j << ", k = " << k << "\n";
+        }        
       }
+      if (j == 0 && B1.size() == 1 && B1.in(Rnfa->bot))
+        j = i;
+//      std::cerr << "\tB' = " << B1.toString() << ", j = " << j << ", k = " << k << "\n";
       B = B1;
 //      std::cerr << "B = " << B.toString() << "\n";
     }
@@ -414,7 +414,7 @@ namespace Gecode { namespace String {
       }      
       int h = 0;
       GECODE_ES_CHECK(refine_idx(home, h, k));
-//      std::cerr << "After refine: " << x0 << ", (h,k)=" << "("<<h<<","<<k<<")\n";
+//      std::cerr << "After refine: " << x1 << ", " << x0 << ", (h,k)=" << "("<<h<<","<<k<<")\n";
       int l = k;
       for (int i = 0; i < h; ++i)
         l += X.at(i).l;
