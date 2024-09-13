@@ -225,7 +225,7 @@ namespace Gecode { namespace String {
       return d->accepted(x.val()) ? ES_FIX : ES_FAILED;    
     bool changed, nofix = false;
     do {
-      d->compute_univ(x.may_chars());
+//      d->compute_univ(x.may_chars());
       int n = x.length();
       std::vector<std::vector<NSIntSet>> F(n);
       NSIntSet Fi(0);
@@ -480,7 +480,7 @@ namespace Gecode { namespace String {
       suff = suffix(h, k);
 //      std::cerr << "Suff: " << suff << ' ' << x1 << "\n";
       int es_suff = x1.assigned() ? propagateReg(home, suff, Rpref) 
-                                  : propagateReg(home, suff, Rfull);
+                                  : ES_FIX;//FIXME propagateReg(home, suff, Rfull);
       if (es_suff == ES_FAILED)
         return ES_FAILED;
 //      std::cerr << "New suff: " << suff << "\n";
