@@ -210,6 +210,8 @@ let {
 
 function var int: str_match(var string: x, string: regexp) :: promise_total;
 
+function var int: str_match_new(var string: x, string: regexp) :: promise_total;
+
 annotation none;
 annotation lenmin;
 annotation lenmax;

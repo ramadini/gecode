@@ -3,6 +3,10 @@
 int: MAX_LEN = 1000;
 
 function var int:
+str_match_new(var string: x, string: regexp) :: promise_total = 
+  str_match(x, regexp, MAX_LEN);
+
+function var int:
 str_match(var string: x, string: regexp) :: promise_total = 
   str_match(x, regexp, MAX_LEN);
 

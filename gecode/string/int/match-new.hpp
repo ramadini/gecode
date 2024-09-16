@@ -419,7 +419,7 @@ namespace Gecode { namespace String {
           GECODE_ME_CHECK(x1.eq(home, 0));
           return home.ES_SUBSUMED(*this);            
         }  
-      }      
+      }
       int h = 0;
       GECODE_ES_CHECK(refine_idx(home, h, k));
 //      std::cerr << "After refine: " << x1 << ", " << x0 << ", (h,k)=" << "("<<h<<","<<k<<")\n";
@@ -488,7 +488,7 @@ namespace Gecode { namespace String {
       suff = suffix(h, k);
 //      std::cerr << "Suff: " << suff << ' ' << x1 << "\n";
       int es_suff = x1.assigned() ? propagateReg(home, suff, Rpref) 
-                                  : ES_FIX;//FIXME propagateReg(home, suff, Rfull);
+                                  : ES_FIX;
       if (es_suff == ES_FAILED)
         return ES_FAILED;
 //      std::cerr << "New suff: " << suff << "\n";
