@@ -168,11 +168,8 @@ namespace Gecode { namespace String {
       if (E.empty())
         return ES_FAILED;
       changed = false;
-      int k = 0;
-      for (int i = n - 1; i >= 0; --i) {
+      for (int i = n - 1; i >= 0; --i)
         y[i] = Reg::reach_bwd(d, F[i], E, DSBlock(home,x[i]), changed);
-        k += y[i].size();
-      }
       if (changed) {
         nofix = true;
         NSBlocks z;

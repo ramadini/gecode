@@ -610,11 +610,8 @@ namespace Gecode { namespace String {
     if (E.empty())
       return ES_FAILED;
     bool changed = false;
-    int k = 0;
-    for (int i = n - 1; i >= 0; --i) {
+    for (int i = n - 1; i >= 0; --i)
       y[i] = reach_bwd(dfa, F[i], E, x->at(i), changed);
-      k += y[i].size();
-    }
     if (changed) {
       StringDelta d(true);
       NSBlocks z;
@@ -652,11 +649,9 @@ namespace Gecode { namespace String {
       else
         return ES_FAILED;
       changed = false;
-      k = 0;
       for (int i = 0; i < n; ++i) {
         y[i] = reach_bwd(dfa, F[n - i - 1], E, x->at(i), changed, true);
         std::reverse(y[i].begin(), y[i].end());
-        k += y[i].size();
       }
       if (changed) {
         StringDelta d(true);
