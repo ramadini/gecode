@@ -1,0 +1,14 @@
+L = 32;
+N = 10;
+PATTERNS = [
+	"(G|k|D)*",
+	"(G|m|j|r)*",
+	"(n|2|H|q|4)*",
+	"KG(n|X|O)*",
+	"G(zC|si|Fn|pm)*Ojc",
+	"v(G|m|h|R)*",
+	"(ggZn|brxj|2he6|t8Ut|cAJZ|jjaa)",
+	"(n|e|8|m)*XGO",
+	"(c|d|m)n",
+	"nmy(c|j|5|P)nnXG",
+]

@@ -1,0 +1,73 @@
+#! /bin/bash
+
+EXP_PATH=$HOME'/papers/regular_match/experiments/latin_square'
+
+# Time-out in seconds for constraint solving.
+TIMEOUT=300
+
+# Errors log file.
+ERRORS=$EXP_PATH'/errors_gstrings_ls.log'
+
+# Output log file.
+OUTPUT=$EXP_PATH'/output_gstrings_ls.log'
+
+# Output log file.
+RESULTS=$EXP_PATH'/results_gstrings_ls.log'
+
+# Auxiliary files
+ERR=$EXP_PATH'/tmp.err'
+OUT=$EXP_PATH'/tmp.out'
+TMP=$EXP_PATH'/tmp.tmp'
+FZN=$EXP_PATH'/tmp.fzn'
+echo '' > $ERR
+echo '' > $OUT
+echo '' > $TMP
+echo '' > $FZN
+
+for solver in 'G-Strings' 'G-Strings_dec'
+do
+  for i in {2..26}
+  do
+    dzn="-D\"N=$i\""
+    header="$solver|$i"
+    echo $header >> $ERRORS
+    echo $header >> $OUTPUT
+    if
+      [[ "$solver" == 'G-Strings_dec' ]]
+    then
+      mzn=$EXP_PATH'/latin_square_dec.mzn'
+    else
+      mzn=$EXP_PATH'/latin_square.mzn'
+    fi
+    echo "Converting MiniZinc model to FlatZinc..."
+    echo "mzn2fzn-gstrings -D\"N=$i\" $mzn -o $FZN"
+    mzn2fzn-gstrings -D"N=$i" $mzn -o $FZN
+    echo "Solving FlatZinc instance..."
+    
+    start=`awk 'BEGIN {print systime()}'`
+    time -p (timeout $TIMEOUT fzn-gstrings $FZN 2>$ERR | gawk -v s=$start \
+    '{print $0, (systime() - s)}') 1>$OUT 2>$TMP
+    ret=$?
+    ini_time=0 # Here one can put fzn time...
+    tot_time=`cat $TMP | awk -v it=$ini_time 'NR == 1 {print $2 - it}'`
+    
+    if
+      [[ -n "`grep "\----------" $OUT`" ]]
+    then
+      s='sat'
+    else
+      s='unk'
+    fi
+    
+    cat $ERR >> $ERRORS
+    cat $OUT >> $OUTPUT
+    echo $header'|'$s'|'$tot_time >> $RESULTS
+    cp $RESULTS ~/Dropbox
+    echo "Sleeping 3 seconds..."
+    sleep 3
+  done
+    echo "Sleeping 10 seconds..."
+    sleep 10
+done
+
+rm $OUT $ERR $TMP $FZN

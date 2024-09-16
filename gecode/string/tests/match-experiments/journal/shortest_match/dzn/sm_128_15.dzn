@@ -1,0 +1,19 @@
+L = 128;
+N = 15;
+PATTERNS = [
+	"C(ae|Ix)*g",
+	"(9|E|A|F)*BE3fjK(DJ7XC|RMZFa|rkq3Y|X9VrC|vSBsO|TQGX6)Wv3d(akdO|5g5g)N(Ix|Sy|H5|q1)*hPl",
+	"g(9|9|p|T|d|2)*C",
+	"zI(EY|bp|31|Xc|lu)*blVl",
+	"ll(Vlik|eaao|gsmO)C",
+	"gzKWIIkd(ON|2t|Iw|pQ|ed|J1)*Ixh",
+	"Ig(z|d)*",
+	"(kC|uO|7l|Pw)*",
+	"(kC|je|t3|CQ)*KWII",
+	"(Cz|uZ|eF|9L)*",
+	"Vl(f|H|B|Q|U)*6KllVli(kCae|0x6g|Gf85|VpZn)NIIhCu",
+	"(Cz|IQ|wa|Qa|RG|S4)*",
+	"k(C|4|D|V)",
+	"CEY(blVlf6|Z7cbq4|ivWtqn|hWA25O|TyZr7K)*KllVlikCae",
+	"(KllVli|cpQPjN|buMRLg|2gP8po)kCaeW",
+]

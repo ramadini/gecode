@@ -1,0 +1,19 @@
+L = 256;
+N = 15;
+PATTERNS = [
+	"(e|E|S)",
+	"(h|M)",
+	"Mf(DW|wP|zo|BE)*TglSh",
+	"c0zPh(Q|X|U|M)*NeXJjYi(GxL|JDE|J1v|o03)*lGt",
+	"d(MfDWTgz0|9ILhZO6I|0kgx9SuY|PD6UVaYE|x4MgXPqq)a2",
+	"MfDW(Tgz0asDy|bYFaHPA4|zRrMTjjA|wa0zXFK1)T(N|w|o|7)4(U|T|1|A|0|c)U(8c|pZ|wt)NOx(KpUf3f|xWnoVm|U4W2kz|9eHk6q|UTYZmp)FKoUX(JjYi|qO6e|fPvr|4mke)GxLlG",
+	"(JjYi|IAU4)*Gx(Ll|7Q|vm|1D)*Gtw6y",
+	"e(C|e|f)*CqTbRJW(U2I7D|NcH2j|1m5P8|fMMsu|dETOg|Lx6S9)*13",
+	"G4Ev(yo0t|WuxV|VaRu|zd2R|EdnO|eEm2)*fRO(hOPyWhSqeCCq|jE6kRSY8DbAl|SQUqdDKKxi3N)*TiGx(L|g)*lGuc(IvkQ|VHAv|NR4X|NZsQ|Oxqg|Xz8u)*lVjWlK(C|U|2|p|6)*V(u|s)*H(xNsC|8Kzh)SBm(3D7er|IIG49|FsBxC|D7TaO|Ugeli)bR(JYQMfDWTgz0aIXlaNfZMr60|IAOm6h2GdIc2JpmuYNaTE0l|1haanVwfEMTK2vSLD94iIPB)1cM",
+	"th7(erb|zzJ|O74|ern)Ry",
+	"3D7erbRJG4E(vyo|S5s|90O|pWV|V04|IVb)0tfROhOPy(WhSqed|hT7qjj|80EFCZ)9lO",
+	"th9l(OTQ|Vgs)*Ne",
+	"d9(l|O)OT",
+	"(h|L|P|U|s|j)*",
+	"(Mt|sn|ac|Dh)*h",
+]

@@ -1,0 +1,24 @@
+L = 32;
+N = 20;
+PATTERNS = [
+	"(O1|Ue|3t)",
+	"(O|I)*",
+	"(O|o|R|F|R|A)A",
+	"A(gD|MP|dN|u1)",
+	"(D|g|w|V|h|Y)*",
+	"(V|j|h|2|X)",
+	"(D|M|P|E)",
+	"(DDr|SDW)*",
+	"w(As8|g65|OtL|gWg)*",
+	"(r|u|P|A|S)*",
+	"(D|G|a|o|O)*",
+	"(0D|ZX|fC)*",
+	"(D|d|M|V|X)",
+	"(D|s|A)",
+	"(D|G)",
+	"(D|J|8|K|S)*",
+	"(w|9|l|e|g|q)",
+	"(w|R|L|f|k|4)*Aw",
+	"(w|i|p)",
+	"(D|n|s|4|K)*",
+]

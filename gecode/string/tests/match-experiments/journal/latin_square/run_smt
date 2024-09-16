@@ -1,0 +1,79 @@
+#! /bin/bash
+
+EXP_PATH=$HOME'/papers/regular_match/experiments/latin_square'
+
+# Time-out in seconds for constraint solving.
+TIMEOUT=300
+
+# Errors log file.
+ERRORS=$EXP_PATH'/errors_smt_ls.log'
+
+# Output log file.
+OUTPUT=$EXP_PATH'/output_smt_ls.log'
+
+# Output log file.
+RESULTS=$EXP_PATH'/results_smt_ls.log'
+
+# Auxiliary files
+ERR=$EXP_PATH'/tmp.err'
+OUT=$EXP_PATH'/tmp.out'
+TMP=$EXP_PATH'/tmp.tmp'
+SMT=$EXP_PATH'/tmp.smt2'
+echo '' > $ERR
+echo '' > $OUT
+echo '' > $TMP
+echo '' > $SMT
+
+for solver in z3seq #FIXME cvc5 z3str
+do
+  for smt in `ls $EXP_PATH/smt/*.smt2 | sort -n`
+  do
+    header="$solver|$smt"
+    echo $header >> $ERRORS
+    echo $header >> $OUTPUT
+
+    if
+      [ "$solver" == "z3str" ]
+    then
+      CMD="z3 -smt2 smt.string_solver=z3str3 "
+    elif
+      [ "$solver" == "z3seq"  ]
+    then
+      CMD="z3 -smt2 smt.string_solver=seq"
+    elif 
+      [ "$solver" == "cvc5" ]
+    then
+      CMD="cvc5 --lang smt --strings-exp "
+    else
+      exit 1
+    fi
+    
+    echo "Solving $smt with $solver..."
+    start=`awk 'BEGIN {print systime()}'`
+    time -p (timeout $TIMEOUT $CMD $smt 2>$ERR | \
+      gawk -v s=$start '{print $0, (systime() - s)}' 1>$OUT) 2>$TMP
+    ret=$?
+
+    ini_time=0
+    tot_time=`cat $TMP | awk -v it=$ini_time 'NR == 1 {print $2 - it}'`
+ 
+    if
+      [[ -n "`grep "sat" $OUT`" ]]
+    then
+      s='sat'
+    else
+      s='unk'
+    fi
+    
+    cat $ERR >> $ERRORS
+    cat $OUT >> $OUTPUT
+    echo $header'|'$s'|'$tot_time >> $RESULTS
+    cp $RESULTS ~/Dropbox
+    echo "Sleeping 3 seconds..."
+    sleep 3
+  done
+  echo "Sleeping 10 seconds..."
+  sleep 10
+done
+
+rm $OUT $ERR $TMP

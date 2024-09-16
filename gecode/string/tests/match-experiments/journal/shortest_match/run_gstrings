@@ -1,0 +1,102 @@
+#! /bin/bash
+
+EXP_PATH=$HOME'/papers/regular_match/experiments/shortest_match'
+
+# Time-out in seconds for constraint solving.
+TIMEOUT=300
+
+# Errors log file.
+ERRORS=$EXP_PATH'/errors_gstrings_sm.log'
+
+# Output log file.
+OUTPUT=$EXP_PATH'/output_gstrings_sm.log'
+
+# Output log file.
+RESULTS=$EXP_PATH'/results_gstrings_sm.log'
+
+# Auxiliary files
+ERR=$EXP_PATH'/tmp.err'
+OUT=$EXP_PATH'/tmp.out'
+TMP=$EXP_PATH'/tmp.tmp'
+FZN=$EXP_PATH'/tmp.fzn'
+echo '' > $ERR
+echo '' > $OUT
+echo '' > $TMP
+echo '' > $FZN
+
+for solver in 'G-Strings' #'G-Strings_dec'
+do
+  for dzn in `ls $EXP_PATH/dzn/sm* | sort -n`
+  do
+    header="$solver|$dzn"
+    echo $header >> $ERRORS
+    echo $header >> $OUTPUT
+    if
+      [[ "$solver" == 'G-Strings_dec' ]]
+    then
+      mzn=$EXP_PATH'/shortest_match_dec.mzn'
+    else
+      mzn=$EXP_PATH'/shortest_match.mzn'
+    fi
+    echo "Converting MiniZinc model to FlatZinc..."
+    echo "mzn2fzn-gstrings $mzn $dzn -o $FZN"
+    mzn2fzn-gstrings $mzn $dzn -o $FZN
+    echo "Solving FlatZinc instance..."
+    
+    start=`awk 'BEGIN {print systime()}'`
+    time -p (unbuffer timeout $TIMEOUT fzn-gstrings -a $FZN 2>$ERR | gawk -v s=$start \
+    '{print $0, (systime() - s)}' 1>$OUT) 2>$TMP
+    ret=$?
+    ini_time=0 # Here one can put fzn time...
+    tot_time=`cat $TMP | awk -v it=$ini_time 'NR == 1 {print $2 - it}'`
+    cat $OUT | grep 'len = ' | awk '{print $3, $4}' | sed 's/;//g' | sed 's/ /_,_/g' > $TMP
+    vals='{'
+    for i in `cat $TMP`
+    do
+      key=`echo $i | awk -F"_,_" '{print $1}'`
+      value=`echo $i | awk -v it=$ini_time -F"_,_" '{print $2 - it}'`
+      vals=$vals''$key': '$value', '
+    done
+    if 
+      [ "$vals" == '{' ]
+    then
+      val='nan'
+    else
+      val=$key
+    fi
+    vals=$vals'}'
+    
+    if
+      [[ -n "`grep =====UNKNOWN===== $OUT`" ]]
+    then
+      s='unk'
+    elif
+      [[ -n "`grep "\----------" $OUT`" ]]
+    then
+      if
+        [[ -n "`grep ========== $OUT`"  ]]
+      then
+        s='opt'
+      else
+        s='sat'
+      fi
+    elif
+      [[ -n "`grep =====UNSATISFIABLE===== $OUT`" ]]
+    then
+      s='uns'
+    else
+      s='unk'
+    fi
+    
+    cat $ERR >> $ERRORS
+    cat $OUT >> $OUTPUT
+    echo $header'|'$s'|'$val'|'$vals'|'$tot_time >> $RESULTS
+    cp $RESULTS ~/Dropbox
+    echo "Sleeping 3 seconds..."
+    sleep 3
+  done
+  echo "Sleeping 10 seconds..."
+  sleep 10
+done
+
+rm $OUT $ERR $TMP $FZN

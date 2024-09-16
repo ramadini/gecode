@@ -1,0 +1,14 @@
+L = 64;
+N = 10;
+PATTERNS = [
+	"QW(u|5)*n",
+	"(nv|gG|x7|us|Mt)*",
+	"(m|e|e|b)*1",
+	"(vlv|F8d|fzz|iVI)Vlv(fsk|3GN|ZQH|6G9|IXa|DeS)*1m1",
+	"Wu(n|t|4|j)v",
+	"Vl(vf|9A|Pw|go)sk1IJ",
+	"sk1(m1K1LlvXLNTZl|kUvGOW8rkEqvD)*9",
+	"I(J|m|v|Q|F|a)",
+	"(IJU|KGD|OG4|sIA)GH",
+	"(JoHQW|QHkGV|IBfqT|s9hNz|BVgZs|oW80w)*un",
+]

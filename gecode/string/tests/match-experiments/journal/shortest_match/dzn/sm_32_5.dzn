@@ -1,0 +1,11 @@
+L = 32;
+N = 5;
+PATTERNS = [
+	"(e|a|x|S|g|p)*h",
+	"(sq|Qz|xA|lS|Mf|0Y)",
+	"zXZ(Ok21je|4V0QLc|ysBJNC)*",
+	"hA(n67|CBO)*",
+	"sqAYITf(q|A|Y|p|a|A)*V573yC",
+]
+
+% FIXME: Decomposition can solve easily only with 1st and 4th pattern.

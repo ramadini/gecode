@@ -1,0 +1,19 @@
+L = 64;
+N = 15;
+PATTERNS = [
+	"W2HkhA1lBXe(U|e)*",
+	"(lBP|yoZ)",
+	"s(H|u|5|r)iHJoD(X|k|c|a|3)*eU",
+	"(X|n)eU",
+	"(IH|Ah|6b)",
+	"(eU|yl|0o|jp|Gl|Ya)1oU",
+	"(2H|RB)",
+	"(o|D)",
+	"2(Q|G|D|p|E)*P",
+	"2HP(1o|YI|3a)",
+	"HP(2|H|I|0|Y)*",
+	"W2U(1|b|a|Q)o",
+	"(Xe|7P|cx|Ww|q0|FU)*U1o",
+	"(W|t|r)2",
+	"2(HP|G9|ZC|yF)",
+]

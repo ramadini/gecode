@@ -1,0 +1,125 @@
+#! /bin/bash
+
+EXP_PATH=$HOME'/papers/regular_match/experiments/shortest_match'
+
+# Time-out in seconds for constraint solving.
+TIMEOUT=300
+
+# Errors log file.
+ERRORS=$EXP_PATH'/errors_smt_sm.log'
+
+# Output log file.
+OUTPUT=$EXP_PATH'/output_smt_sm.log'
+
+# Output log file.
+RESULTS=$EXP_PATH'/results_smt_sm.log'
+
+# Auxiliary files
+ERR=$EXP_PATH'/tmp.err'
+OUT=$EXP_PATH'/tmp.out'
+TMP=$EXP_PATH'/tmp.tmp'
+SMT=$EXP_PATH'/tmp.smt2'
+echo '' > $ERR
+echo '' > $OUT
+echo '' > $TMP
+echo '' > $SMT
+
+Z3SEQ="z3 -smt2 smt.string_solver=seq "
+Z3STR="z3 -smt2 smt.string_solver=z3str3 "
+CVC5="cvc5 --produce-models --lang smt --strings-exp "
+CMD="$EXP_PATH/smt_min"
+OBJ=min
+OBJVAR=L
+
+for solver in z3seq cvc5 z3str
+do
+  for smt in `ls $EXP_PATH/smt/*.smt2 | sort -n`
+  do
+    header="$solver|$smt"
+    echo $header >> $ERRORS
+    echo $header >> $OUTPUT
+   
+    echo "Extracting initial bound for $smt..."
+    cp $smt $SMT
+    echo '(get-model)' >> $SMT
+    if
+      [ "$solver" == "z3str" ]
+    then
+      v=`timeout 1 $Z3STR $SMT | tr '\n' ' ' | sed 's/define-fun/\n/g' | grep "$OBJVAR ()" | awk '{print $4}' | sed 's/)//g'`
+    elif
+      [ "$solver" == "z3seq" ]
+    then
+      v=`timeout 1 $Z3SEQ $SMT | tr '\n' ' ' | sed 's/define-fun/\n/g' | grep "$OBJVAR ()" | awk '{print $4}' | sed 's/)//g'`
+    elif 
+      [ "$solver" == "cvc5" ]
+    then
+      v=`timeout 1 $CVC5 $SMT | grep "$OBJVAR ()" | awk '{print $5}' | sed 's/)//g'`
+    else
+      exit 1
+    fi
+    if
+      [ -n "$v" ]
+    then
+      val=$v
+    else
+      val=`basename $smt | awk -F"_" '{print $2}' | sed 's/.smt2//g'`
+    fi
+    echo "Initial bound = $val. Solving $smt with $solver..."
+    start=`awk 'BEGIN {print systime()}'`
+    time -p (unbuffer timeout $TIMEOUT $CMD $smt $OBJVAR $val $solver $OBJ 2>$ERR | \
+    gawk -v s=$start '{print $0, (systime() - s)}' 1>$OUT) 2>$TMP
+    ret=$?
+#    pkill sleep
+
+    ini_time=0
+    tot_time=`cat $TMP | awk -v it=$ini_time 'NR == 1 {print $2 - it}'`
+    cat $OUT | grep "$OBJVAR = " | awk '{print $3, $4}' | sed 's/;//g' | sed 's/ /_,_/g' > $TMP
+    vals='{'
+    for i in `cat $TMP`
+    do
+      key=`echo $i | awk -F"_,_" '{print $1}'`
+      value=`echo $i | awk -v it=$ini_time -F"_,_" '{print $2 - it}'`
+      vals=$vals''$key': '$value', '
+    done
+    if 
+      [ "$vals" == '{' ]
+    then
+      val='nan'
+    else
+      val=$key
+    fi
+    vals=$vals'}'
+    
+    if
+      [[ -n "`grep =====UNKNOWN===== $OUT`" ]]
+    then
+      s='unk'
+    elif
+      [[ -n "`grep "\----------" $OUT`" ]]
+    then
+      if
+        [[ -n "`grep ========== $OUT`"  ]]
+      then
+        s='opt'
+      else
+        s='sat'
+      fi
+    elif
+      [[ -n "`grep =====UNSATISFIABLE===== $OUT`" ]]
+    then
+      s='uns'
+    else
+      s='unk'
+    fi
+    cat $ERR >> $ERRORS
+    cat $OUT >> $OUTPUT
+    echo $header'|'$s'|'$val'|'$vals'|'$tot_time >> $RESULTS
+    cp $RESULTS ~/Dropbox
+    echo "Sleeping 3 seconds..."
+    sleep 3
+  done
+  echo "Sleeping 10 seconds..."
+  sleep 10
+done
+
+rm $OUT $ERR $TMP

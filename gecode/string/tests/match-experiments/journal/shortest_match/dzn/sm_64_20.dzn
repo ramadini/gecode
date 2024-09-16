@@ -1,0 +1,24 @@
+L = 64;
+N = 20;
+PATTERNS = [
+	"(Pm|Se|Ae|h0)*",
+	"(iF|To)*7rJ",
+	"(J|Q|a|Y|m)*",
+	"(JgYH|HJkD|jvJ8|Pr1D|RH4K|EK8s)Pm",
+	"F(7|X|n|v|F|M)",
+	"(J|0)",
+	"(a|Z|b)",
+	"(7|0|i|l|h|C)*",
+	"Is(2|i)orm",
+	"(k|B|L|j|Z|X)*pR",
+	"(J|q|1|7|2|X)*",
+	"(7m|td|fX|wf)*fw(eq8O6Q|PdMRDG|HjLSpE|qtzdO7)0a",
+	"(a|0)*",
+	"(J|o|J|L|p|l)*",
+	"7(a|M)",
+	"(J|7)*7",
+	"(a|9|T|f)*",
+	"J(0a|j3|6V|0y)",
+	"0aQ(0a|34|3s|7Q)m",
+	"0a(Q0|Wn)*amJ",
+]
