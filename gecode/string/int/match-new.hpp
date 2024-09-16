@@ -5,7 +5,11 @@ namespace Gecode { namespace String {
              stringDFA* Rp, stringDFA* Rf, matchNFA* Rn)
   : MixBinaryPropagator
   <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM>
-    (home, x, i), minR(r), Rpref(Rp), Rfull(Rf), Rcomp(nullptr), Rnfa(Rn) {}
+    (home, x, i), minR(r), Rpref(Rp), Rfull(Rf), Rcomp(nullptr), Rnfa(Rn) {
+    NSIntSet may_chars = x.may_chars();
+    Rcomp = new stringDFA(*Rfull);
+    Rcomp->negate(may_chars);         
+  }
 
   forceinline ExecStatus
   MatchNew::post(Home home, StringView x, string re, Gecode::Int::IntView i) {  
@@ -411,6 +415,10 @@ namespace Gecode { namespace String {
               return home.ES_SUBSUMED(*this);            
             }
         }
+        if (X.known())  {
+          GECODE_ME_CHECK(x1.eq(home, 0));
+          return home.ES_SUBSUMED(*this);            
+        }  
       }      
       int h = 0;
       GECODE_ES_CHECK(refine_idx(home, h, k));
@@ -450,7 +458,7 @@ namespace Gecode { namespace String {
         if (Rcomp == nullptr) {
           NSIntSet may_chars = x0.may_chars();
           Rcomp = new stringDFA(*Rfull);
-          Rcomp->negate(may_chars);         
+          Rcomp->negate(may_chars);
         }        
         es_pref = propagateReg(home, pref, Rcomp);
 //        std::cerr << "Rpref: " << *Rpref << '\n';
@@ -497,8 +505,8 @@ namespace Gecode { namespace String {
         ));
       }
       GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
-      assert (X.is_normalized());     
-    } while (x0.assigned() || (x1.assigned() && x1.val() <= 1));
+      assert (X.is_normalized());
+    } while (x1.assigned() && x1.val() <= 1);
 //    std::cerr << "\nMatchNew::propagated: " << x1 << " = MatchNew " << x0 << "\n";
     return ES_FIX;
   }
