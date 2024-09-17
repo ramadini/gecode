@@ -267,7 +267,7 @@ namespace Gecode { namespace String {
         GECODE_ME_CHECK(x1.minus_r(home, is));
 //        std::cerr << "Refined i = " << x1 << '\n';
       }
-      if (0 && "compute_upper_bound") { //FIXME: It should be an option.
+      if (0 && "compute_upper_bound") { //FIXME: Should it be an option?
         for (int j = 0; j <= h; ++j) {
           u += px.at(j).u;
   //        std::cerr << j << ' ' << u << '\n';

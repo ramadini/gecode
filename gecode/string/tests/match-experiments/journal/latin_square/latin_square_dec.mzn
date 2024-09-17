@@ -15,7 +15,7 @@ constraint forall (k in 1..N) (
 );
 
 solve
-  %::int_search([m_row[i,j] | i,j in 1..N], dom_w_deg, indomain_min, complete)
+  ::int_search([m_row[i,j] | i,j in 1..N], dom_w_deg, indomain_min, complete)
 satisfy;
 
 include "match.mzn";
