@@ -1,6 +1,6 @@
 #! /bin/bash
 
-EXP_PATH=$HOME'/papers/regular_match/experiments/latin_square'
+EXP_PATH=$HOME/G-Strings/gecode/gecode/string/tests/match-experiments/journal/latin_square
 
 # Time-out in seconds for constraint solving.
 TIMEOUT=300
@@ -24,9 +24,9 @@ echo '' > $OUT
 echo '' > $TMP
 echo '' > $FZN
 
-for solver in 'G-Strings' 'G-Strings_dec'
+for solver in 'G-Strings_old' 'G-Strings_new' #'G-Strings_old' 'G-Strings_dec'
 do
-  for i in {2..26}
+  for i in {26..33}
   do
     dzn="-D\"N=$i\""
     header="$solver|$i"
@@ -36,6 +36,10 @@ do
       [[ "$solver" == 'G-Strings_dec' ]]
     then
       mzn=$EXP_PATH'/latin_square_dec.mzn'
+    elif
+      [[ "$solver" == 'G-Strings_new' ]]
+    then
+      mzn=$EXP_PATH'/latin_square_new.mzn'
     else
       mzn=$EXP_PATH'/latin_square.mzn'
     fi
@@ -45,7 +49,7 @@ do
     echo "Solving FlatZinc instance..."
     
     start=`awk 'BEGIN {print systime()}'`
-    time -p (timeout $TIMEOUT fzn-gstrings $FZN 2>$ERR | gawk -v s=$start \
+    time -p (timeout $TIMEOUT fzn-gstrings -s $FZN 2>$ERR | gawk -v s=$start \
     '{print $0, (systime() - s)}') 1>$OUT 2>$TMP
     ret=$?
     ini_time=0 # Here one can put fzn time...

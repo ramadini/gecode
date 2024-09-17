@@ -242,7 +242,7 @@ namespace Gecode { namespace String {
       }
       
       // Compute l as the leftmost position for a match, if any.
-      int l = 1;
+      int l = 1, u = 0;
       for (int i = 0; i < h || (i == h && k > 0); ++i) {
         NSBlocks x_suff = suffix(i, 0);
         if (x_suff[0].l > 1)
@@ -259,22 +259,36 @@ namespace Gecode { namespace String {
         }
         else
           l += i < h ? px.at(i).l : k ;
-//        std::cerr << "l: " << l << "\n";
       }
-//      std::cerr << x1 << "\n";
+//      std::cerr << "l: " << l << ", h: " << h << "\n";
+      if (l > 1 && l > x1.min()) {
+        IntSet s(1, l-1);
+        IntSetRanges is(s);  
+        GECODE_ME_CHECK(x1.minus_r(home, is));
+//        std::cerr << "Refined i = " << x1 << '\n';
+      }
+      if (0 && "compute_upper_bound") { //FIXME: It should be an option.
+        for (int j = 0; j <= h; ++j) {
+          u += px.at(j).u;
+  //        std::cerr << j << ' ' << u << '\n';
+        }
+        for (int i = h+1; i < n; ++i) {
+          NSBlocks x_suff = suffix(i, 0);
+          if (x_suff[0].l > 1)
+            x_suff[0].l = 1;
+          if (propagateReg(home, x_suff, Rs) != ES_FAILED)
+            for (int j = h+1; j <= i; ++j)
+              u += px.at(j).u;
+        }
+  //      std::cerr << "u: " << u << "\n";
+        GECODE_ME_CHECK(x1.lq(home, u));
+      }
+//      std::cerr << "i: " << x1 << "\n";
       // Can't refine x1.
       if (x1.in(0)) {
-        if (l > 1) {
-          IntSet s(1, l-1);
-          IntSetRanges is(s);
-          GECODE_ME_CHECK(x1.minus_r(home, is));
-        }
 //        std::cerr << "\nMatch::propagated: " << x1 << ' ' << x0 << "\n";
         return ES_FIX;
-      }
-      else
-        GECODE_ME_CHECK(x1.gq(home, l));
-      
+      }      
       // General case.
       NSBlocks pref, suff;
       int es_pref = ES_FIX;

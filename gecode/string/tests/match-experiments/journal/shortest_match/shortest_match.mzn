@@ -12,5 +12,5 @@ constraint len = str_len(str);
 constraint forall (i in 1..N) ( idx[i] = str_match(str, PATTERNS[i]) );
 
 solve
-%  ::int_search(idx, first_fail, indomain_min, complete)
+  ::int_search(idx, dom_w_deg, indomain_min, complete)
 minimize len;

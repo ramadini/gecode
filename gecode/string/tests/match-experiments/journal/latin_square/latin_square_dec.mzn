@@ -1,4 +1,4 @@
-array[int] of string: alpha = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
+array[int] of string: alpha = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
 int: N;
 
 array[1..N] of var string: row_str;
@@ -15,7 +15,7 @@ constraint forall (k in 1..N) (
 );
 
 solve
-  ::string_search(row_str ++ col_str, blockmin, lllm, complete)
+  %::int_search([m_row[i,j] | i,j in 1..N], dom_w_deg, indomain_min, complete)
 satisfy;
 
 include "match.mzn";

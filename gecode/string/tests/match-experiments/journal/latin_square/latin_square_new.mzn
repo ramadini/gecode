@@ -14,6 +14,8 @@ constraint forall (k in 1..N) (
   forall (j in 1..N) ( m_col[j,k] = str_match_new(col_str[j], alpha[k]) )
 );
 
-solve ::string_search(row_str ++ col_str, blockmin, lllm, complete) satisfy;
+solve 
+  ::int_search([m_row[i,j] | i,j in 1..N], dom_w_deg, indomain_min, complete)
+satisfy;
 
 %include "match.mzn";
