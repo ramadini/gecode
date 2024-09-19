@@ -294,17 +294,16 @@ namespace Gecode { namespace String {
         break;
       }
     }
-    n--;
-    assert (!F[n].back().empty());
-    if (!F[n].back().in(1)) {
+    assert (!F[n-1].back().empty());
+    if (!F[n-1].back().in(1)) {
       GECODE_ME_CHECK(x1.eq(home, 0));
       return ES_OK;
     }
     // Bwd pass.
     NSIntSet B(1);
     i_lb = j_lb = 0;
-    int i_ub = 0, j_ub = 0;
-    for (int i = n, j = 0, k = 0; i >= 0; --i) {      
+    int i_ub = n, j_ub = 0;
+    for (int i = n-1, j = 0, k = 0; i >= 0; --i) {      
       reachBwd(i, B, F[i], j, k);
 //      std::cerr << "Bwd pass after " << x.at(i) << ": last(F[" << i << "]) = " 
 //        << DSIntSet(home, F[i].back()).toIntSet() << ", B = " 
@@ -313,7 +312,7 @@ namespace Gecode { namespace String {
         i_lb = i;
         j_lb = j;
       }
-      if (k > 0 && i_ub == 0 && j_ub == 0) {
+      if (k > 0 && i_ub == n && j_ub == 0) {
         i_ub = i;
         j_ub = k;
       }
