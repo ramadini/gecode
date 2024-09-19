@@ -306,15 +306,18 @@ namespace Gecode { namespace String {
     for (int i = n-1, j = 0, k = 0; i >= 0; --i) {      
       reachBwd(i, B, F[i], j, k);
 //      std::cerr << "Bwd pass after " << x.at(i) << ": last(F[" << i << "]) = " 
-//        << DSIntSet(home, F[i].back()).toIntSet() << ", B = " 
-//        << DSIntSet(home, B).toIntSet() << ", j = " << j << ", k = " << k << "\n";      
-      if (j > 0) {
-        i_lb = i;
-        j_lb = j;
-      }
+//        << F[i].back().toString() << ", B = " << B.toString() 
+//        << ", j = " << j << ", k = " << k << "\n";            
+      assert(!B.empty());
       if (k > 0 && i_ub == n && j_ub == 0) {
         i_ub = i;
         j_ub = k;
+      }
+      if (j > 0) {
+        i_lb = i;
+        j_lb = j;
+        assert (i_ub < n);
+        break;
       }
     }
 //    std::cerr << "(i_lb,j_lb)=("<<i_lb<<","<<j_lb<<"), (i_ub,j_ub)=("<<i_ub<<","<<j_ub<<")\n";
@@ -386,7 +389,7 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   MatchNew::propagate(Space& home, const ModEventDelta& med) {
-//    std::cerr << "\nMatchNew::propagate: Var " << x1.varimp() << ": " << x1 << " = MatchNew " << x0 << " in " << *Rnfa << "\n";
+//    std::cerr << "\nMatchNew::propagate: Var " << x1.varimp() << ": " << x1 << " = MatchNew " << x0 << " in\n";// << *Rnfa << "\n";
     GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
     do {
       // x1 fixed and val(x1) in {0,1}.
@@ -409,6 +412,7 @@ namespace Gecode { namespace String {
         if (Rfull->accepted(w)) {
           for (int i = 0; i < k; ++i)
             if (Rpref->accepted(w.substr(i))) {
+//              std::cerr << "\nMatch::propagated: i = " << i+1 << '\n';
               GECODE_ME_CHECK(x1.eq(home, i+1));
               return home.ES_SUBSUMED(*this);            
             }
@@ -421,7 +425,7 @@ namespace Gecode { namespace String {
       int h = 0;
       GECODE_ES_CHECK(refine_idx(home, h, k));
 //      std::cerr << "After refine: " << x1 << ", " << x0 << ", (h,k)=" << "("<<h<<","<<k<<")\n";
-      int l = k;
+      int l = max(1, k);
       for (int i = 0; i < h; ++i)
         l += X.at(i).l;
       if (l > 1 && l > x1.min()) {
@@ -486,7 +490,7 @@ namespace Gecode { namespace String {
       suff = suffix(h, k);
 //      std::cerr << "Suff: " << suff << ' ' << x1 << "\n";
       int es_suff = x1.assigned() ? propagateReg(home, suff, Rpref) 
-                                  : ES_FIX;
+                                  : ES_FIX;//propagateReg(home, suff, Rfull);
       if (es_suff == ES_FAILED)
         return ES_FAILED;
 //      std::cerr << "New suff: " << suff << "\n";
