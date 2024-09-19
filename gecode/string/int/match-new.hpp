@@ -309,17 +309,16 @@ namespace Gecode { namespace String {
 //      std::cerr << "Bwd pass after " << x.at(i) << ": last(F[" << i << "]) = " 
 //        << DSIntSet(home, F[i].back()).toIntSet() << ", B = " 
 //        << DSIntSet(home, B).toIntSet() << ", j = " << j << ", k = " << k << "\n";      
+      if (j > 0) {
+        i_lb = i;
+        j_lb = j;
+      }
       if (k > 0 && i_ub == 0 && j_ub == 0) {
         i_ub = i;
         j_ub = k;
       }
-      if (j > 0) {
-        i_lb = i;
-        j_lb = j;
-        break;
-      }
     }
-//    std::cerr << "(i_lb,j_lb)=("<<i_lb<<","<<j_lb<<"), (i_ub,j_ub)=("<<i_ub<<","<<j_ub<<")\n";    
+//    std::cerr << "(i_lb,j_lb)=("<<i_lb<<","<<j_lb<<"), (i_ub,j_ub)=("<<i_ub<<","<<j_ub<<")\n";
     int u = j_ub;
     for (int i = 0; i < i_ub; ++i)
       u += x.at(i).u;
