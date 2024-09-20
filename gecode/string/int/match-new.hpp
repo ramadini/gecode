@@ -108,9 +108,10 @@ namespace Gecode { namespace String {
         qi.include(qj);
       }
       assert (!qi.empty());
-      if ((qi.size() == 1 && qi.min() == qi.max()) || qi == Q[i]) {        
+      if ((qi.size() == 1 && qi.in(1)) || qi == Q[i]) {        
         for (int j = i + 1; j <= l + 1; ++j)
           Q[j] = qi;
+//        std::cerr << "\tQ["<<i<<".."<<l+1<<"] = " << qi.toString() << "\n";
         return Q;
       }
       Q[i + 1] = qi;
@@ -140,7 +141,8 @@ namespace Gecode { namespace String {
           }
         }
       }
-    }
+    }    
+//    for (int i = 0; i < l + 2; ++i) std::cerr << "\tQ["<<i<<"] = " << Q[i].toString() << "\n";
     return Q;
   }
   
@@ -176,9 +178,9 @@ namespace Gecode { namespace String {
         ++d;
       if (d <= b.u - b.l) {
         for (NSIntSet::iterator it(delta_bwd[q]); it(); ++it) {
-          int q1 = *it;          
+          int q1 = *it;
+//          std::cerr << "q = "<<q<<", q'= " << q1 << ", dist = "<<dist[q1]<<" > d = "<<d<<", Q[l+1] = " << Q[l+1].toString() << "\n";
           if (dist[q1] > d && Q[l + 1].contains(q1)) {
-//            std::cerr << "q = "<<q<<", q'= " << q1 << ", dist = "<<dist[q1]<<" > d = "<<d<<", Q[l+1] = " << Q[l+1].toString() << "\n";
             Q_bfs.push_back(q1);
             if (Q[l].in(q1))
               B.include(q1);
@@ -204,8 +206,8 @@ namespace Gecode { namespace String {
 //        std::cerr << "\tq = "<<q<<", delta_bwd[q]=" << delta_bwd[q].toString() << "\n";
         for (NSIntSet::iterator it(delta_bwd[q]); it(); ++it) {
           int q1 = *it;
+//          std::cerr << "\tq'= " << q1 << ", Q["<<i-1<<"] = " << Q[i-1].toString() << "\n";
           if (Q[i - 1].contains(q1)) {
-//            std::cerr << "\tq'= " << q1 << ", Q["<<i-1<<"] = " << Q[i-1].toString() << "\n";
             B1.add(q1);
             if (k == 0 && q1 == Rnfa->bot)
               k = i;
@@ -284,6 +286,7 @@ namespace Gecode { namespace String {
     int n = x.length();
     // Fwd pass.
     for (int i = 0; i < n; ++i) {
+//      std::cerr << "ReachFwd Block x["<<i<<"] = " << x.at(i) << ":\n";
       F[i] = reachFwd(x.at(i), Fi);
       assert (!F[i].empty());
       Fi = F[i].back();
@@ -308,7 +311,13 @@ namespace Gecode { namespace String {
 //      std::cerr << "Bwd pass after " << x.at(i) << ": last(F[" << i << "]) = " 
 //        << F[i].back().toString() << ", B = " << B.toString() 
 //        << ", j = " << j << ", k = " << k << "\n";            
-      assert(!B.empty());
+//      if (B.empty()) {
+//        std::cerr << x << " in " << *Rnfa << '\n';
+//        std::cerr << "Bwd pass after " << x.at(i) << ": last(F[" << i << "]) = " 
+//        << F[i].back().toString() << ", B = " << B.toString() 
+//        << ", j = " << j << ", k = " << k << "\n";            
+//      }
+      assert (!B.empty());
       if (k > 0 && i_ub == n && j_ub == 0) {
         i_ub = i;
         j_ub = k;
