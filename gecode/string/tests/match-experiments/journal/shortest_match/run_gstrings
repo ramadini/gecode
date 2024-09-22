@@ -1,6 +1,6 @@
 #! /bin/bash
 
-EXP_PATH=$HOME'/papers/regular_match/experiments/shortest_match'
+EXP_PATH=$HOME/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match
 
 # Time-out in seconds for constraint solving.
 TIMEOUT=300
@@ -24,7 +24,7 @@ echo '' > $OUT
 echo '' > $TMP
 echo '' > $FZN
 
-for solver in 'G-Strings' #'G-Strings_dec'
+for solver in 'G-Strings_new' 'G-Strings_ori' #'G-Strings_dec'
 do
   for dzn in `ls $EXP_PATH/dzn/sm* | sort -n`
   do
@@ -35,6 +35,10 @@ do
       [[ "$solver" == 'G-Strings_dec' ]]
     then
       mzn=$EXP_PATH'/shortest_match_dec.mzn'
+    elif
+      [[ "$solver" == 'G-Strings_new' ]]
+    then  
+      mzn=$EXP_PATH'/shortest_match_new.mzn'
     else
       mzn=$EXP_PATH'/shortest_match.mzn'
     fi

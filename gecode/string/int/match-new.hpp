@@ -499,7 +499,7 @@ namespace Gecode { namespace String {
       suff = suffix(h, k);
 //      std::cerr << "Suff: " << suff << ' ' << x1 << "\n";
       int es_suff = x1.assigned() ? propagateReg(home, suff, Rpref) 
-                                  : ES_FIX;//propagateReg(home, suff, Rfull);
+                                  : propagateReg(home, suff, Rfull);
       if (es_suff == ES_FAILED)
         return ES_FAILED;
 //      std::cerr << "New suff: " << suff << "\n";
