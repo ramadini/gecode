@@ -261,11 +261,13 @@ namespace Gecode { namespace String {
           l += i < h ? px.at(i).l : k ;
       }
 //      std::cerr << "l: " << l << ", h: " << h << "\n";
+      bool updatedI = false;
       if (l > 1 && l > x1.min()) {
         IntSet s(1, l-1);
         IntSetRanges is(s);  
         GECODE_ME_CHECK(x1.minus_r(home, is));
 //        std::cerr << "Refined i = " << x1 << '\n';
+        updatedI = true;
       }
       if (0 && "compute_upper_bound") { //FIXME: Should it be an option?
         for (int j = 0; j <= h; ++j) {
@@ -292,7 +294,7 @@ namespace Gecode { namespace String {
       // General case.
       NSBlocks pref, suff;
       int es_pref = ES_FIX;
-      if (l < x1.min()) {
+      if (updatedI || l < x1.min()) {
         // Updating (h,k) from the lower bound of x1.
         h = 0, k = x1.min() - 1;
         while (h < n && k >= px.at(h).u) {      

@@ -437,11 +437,13 @@ namespace Gecode { namespace String {
       int l = max(1, k);
       for (int i = 0; i < h; ++i)
         l += X.at(i).l;
+      bool updatedI = false;
       if (l > 1 && l > x1.min()) {
         IntSet s(1, l-1);
         IntSetRanges is(s);  
         GECODE_ME_CHECK(x1.minus_r(home, is));
 //        std::cerr << "Refined i = " << x1 << '\n';
+        updatedI = true;
       }
       if (x1.in(0)) {
         if (must_match()) {
@@ -456,7 +458,7 @@ namespace Gecode { namespace String {
       // General case.
       NSBlocks pref, suff;
       int es_pref = ES_FIX;  
-      if (l < x1.min()) {
+      if (updatedI || l < x1.min()) {
         // Updating (h,k) from the lower bound of x1.
         h = 0, k = x1.min() - 1;
         while (h < X.length() && k >= X.at(h).u) {      

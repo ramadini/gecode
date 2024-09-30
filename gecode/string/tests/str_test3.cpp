@@ -284,6 +284,70 @@ public:
     assert (lx == x.domain().logdim());
     assert (i.min() == 1 && i.max() == 8);
   }
+  
+  void test09() {
+    std::cerr << "\n*** Test 09 ***" << std::endl;
+    NSBlocks v;
+    NSIntSet s('b'); s.add('d');
+    v.push_back(NSBlock(s, 1, 1));
+    v.push_back(NSBlock(NSIntSet('c'), 1, 1));
+    v.push_back(NSBlock(NSIntSet('b', 'd'), 10, 10));
+    v.push_back(NSBlock(NSIntSet('a'), 1, 1));
+    v.push_back(NSBlock(NSIntSet('d', 'e'), 0, 10));
+    StringVar x(*this, v, 0, 100);
+    IntVar i(*this, 0, 100);
+    class match : public MatchNew {
+    public:
+      match(Home h, StringView x, IntView i, int r,
+            stringDFA* R, stringDFA* R1, matchNFA* R2)
+        : MatchNew(h, x, i, r, R, R1, R2) {};
+    };
+    string re = "ca";
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "i = " << i << std::endl;
+    std::cerr << "R = " << re << std::endl;
+    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();   
+    stringDFA* R = new stringDFA(regex->dfa());
+    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    matchNFA* R2 = new matchNFA(R1->toMatchNFA(x.may_chars()));
+    assert(match(*this, x, i, 1, R1, R, R2).propagate(*this, 0) == ES_FIX);
+    std::cerr << "===== After i = match(x, R) =====\n" << std::endl;
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "i = " << i << std::endl;
+    assert (i.size() == 2);
+    assert (i.min() == 0 && i.max() == 12);
+  }
+  
+  void test10() {
+    std::cerr << "\n*** Test 10 ***" << std::endl;
+    NSBlocks v;
+    NSIntSet s('b'); s.add('d');
+    v.push_back(NSBlock(s, 1, 1));
+    v.push_back(NSBlock(NSIntSet('c'), 1, 1));
+    v.push_back(NSBlock(NSIntSet('b', 'd'), 10, 10));
+    v.push_back(NSBlock(NSIntSet('a'), 1, 1));
+    v.push_back(NSBlock(NSIntSet('d', 'e'), 0, 10));
+    StringVar x(*this, v, 0, 100);
+    IntVar i(*this, 0, 100);
+    class match : public Match {
+    public:
+      match(Home h, StringView x, IntView i, stringDFA* R, stringDFA* R1, int r)
+        : Match(h, x, i, R, R1, r) {};
+    };
+    string re = "ca";
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "i = " << i << std::endl;
+    std::cerr << "R = " << re << std::endl;
+    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();   
+    stringDFA* R = new stringDFA(regex->dfa());
+    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    std::cerr << "===== After i = match(x, R) =====" << std::endl;
+    assert(match(*this, x, i, R, R1, 1).propagate(*this, 0) == ES_FIX);
+    std::cerr << "x = " << x << std::endl;
+    std::cerr << "i = " << i << std::endl;
+    assert (i.size() == 23);
+    assert (i.min() == 0 && i.max() == 23 && !i.in(1));
+  }
 
 };
 
@@ -296,5 +360,7 @@ int main() {
   (new StrTest())->test06();
   (new StrTest())->test07();
   (new StrTest())->test08();
+  (new StrTest())->test09();
+  (new StrTest())->test10();
   return 0;
 }
