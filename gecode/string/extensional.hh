@@ -11,7 +11,6 @@ namespace Gecode { namespace String {
     // delta_t[i][j] = k >= 0 means δ(i,j) = {k}.
     // delta_t[i][j] = k <  0 means δ(i,j) = {-k,bot}.
     delta_t delta;
-    NSIntSet neighbours(int) const;
     NSIntSet neighbours(int, const DSIntSet&) const;
   };
 

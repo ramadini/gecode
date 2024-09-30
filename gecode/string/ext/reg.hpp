@@ -241,21 +241,7 @@ namespace Gecode { namespace String {
 //    std::cerr << "matchNFA: " << R << "\n";
     return R;
   }
-  
-  forceinline NSIntSet
-  matchNFA::neighbours(int q) const {
-    NSIntSet Q;
-    for (auto& x : delta[q]) {
-      if (x.second < 0) {
-        Q.add(-x.second);
-        Q.add(bot);
-      }
-      else
-        Q.add(x.second);
-    }
-    return Q;
-  };
-  
+
   forceinline NSIntSet
   matchNFA::neighbours(int q, const DSIntSet& S) const {
     NSIntSet Q;
