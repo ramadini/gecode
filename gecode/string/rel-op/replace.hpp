@@ -196,7 +196,7 @@ namespace Gecode { namespace String {
   // For replace, it returns 1 if q must occur in x[0], 0 otherwise.
   // For decomp_all, it returns the minimum number of occurrences of q in x[0].
   forceinline int
-  Replace::occur(string q) const {
+  Replace::occur(const string& q) const {
     int min_occur = 0;
     string curr = "";
     DashedString* p = x[0].pdomain();

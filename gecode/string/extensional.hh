@@ -27,7 +27,7 @@ namespace Gecode { namespace String {
     void negate(const NSIntSet&);
     bool final(int) const;
     int search(int, int) const;
-    bool accepted(string) const;
+    bool accepted(const string& s) const;
     bool univ_accepted(const NSIntSet& Q) const;
     bool univ_rejected(const NSIntSet& Q) const;
     NSIntSet alphabet() const;

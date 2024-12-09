@@ -122,7 +122,7 @@ namespace Gecode { namespace String {
   }
 
   forceinline bool
-  stringDFA::accepted(string s) const {
+  stringDFA::accepted(const string& s) const {
     int q = 0;
     for (auto& c : s) {
       q = search(q, char2int(c));
