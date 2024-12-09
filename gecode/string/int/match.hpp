@@ -16,7 +16,7 @@ namespace Gecode { namespace String {
     }
     GECODE_ME_CHECK(x.lb(home, 1));
     stringDFA* R = new stringDFA(regex->dfa());
-    assert (R->final(1) && R->final_lst == 1);
+    assert (R->accepting(1) && R->accepting_states().size() == 1);
     assert (R->neighbours(1) == NSIntSet(1));
     // BFS to find minimal-length word accepted by R.
     int r = 0, n = R->n_states;
@@ -29,7 +29,7 @@ namespace Gecode { namespace String {
     while (!s.empty()) {
       int q = s.front();
       s.pop_front();
-      if (R->final(q)) {
+      if (R->accepting(q)) {
         assert (q == 1);
         r = dist[q];
         break;
@@ -163,7 +163,7 @@ namespace Gecode { namespace String {
       }
       NSIntSet E(F.back().back());
       NSBlocks y[n];
-      Fi = NSIntSet(d->final_fst, d->final_lst);
+      Fi = d->accepting_states();
       E.intersect(Fi);
       if (E.empty())
         return ES_FAILED;

@@ -90,7 +90,7 @@ namespace Gecode { namespace String {
   }
 
   forceinline bool
-  stringDFA::final(int q) const {
+  stringDFA::accepting(int q) const {
     return final_fst <= q && q <= final_lst;
   }
 
@@ -121,6 +121,11 @@ namespace Gecode { namespace String {
     return Q.size() <= 1 && (Q.empty() || Q.min() == ur);
   }
 
+  forceinline NSIntSet
+  stringDFA::accepting_states() const {
+    return NSIntSet(final_fst, final_lst);
+  }
+
   forceinline bool
   stringDFA::accepted(const string& s) const {
     int q = 0;
@@ -129,7 +134,7 @@ namespace Gecode { namespace String {
       if (q == -1)
         return false;
     }
-    return final(q);
+    return accepting(q);
   }
 
   forceinline NSIntSet
@@ -177,7 +182,7 @@ namespace Gecode { namespace String {
         delta[n_states].push_back(std::make_pair(*it, n_states));
       n_states++;
     }
-    if (final(0)) {
+    if (accepting(0)) {
       final_fst = final_lst + 1;
       final_lst = n_states - 1;
       for (int i = 0; i < n_states; ++i)
@@ -279,7 +284,7 @@ namespace Gecode { namespace String {
       while (!s.empty()) {
         int q = s.front();
         s.pop_front();
-        if (dfa->final(q)) {
+        if (dfa->accepting(q)) {
           l = dist[q];
           break;
         }
@@ -591,7 +596,7 @@ namespace Gecode { namespace String {
     }
     NSIntSet E(F.back().back());
     NSBlocks y[n];
-    Fi = NSIntSet(dfa->final_fst, dfa->final_lst);
+    Fi = dfa->accepting_states();
     E.intersect(Fi);
     if (E.empty())
       return ES_FAILED;

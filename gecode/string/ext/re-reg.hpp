@@ -27,7 +27,7 @@ namespace Gecode { namespace String {
 
   forceinline void
   stringCDFA::negate() {
-    if (final(0)) {
+    if (accepting(0)) {
       final_fst = final_lst + 1;
       final_lst = n_states - 1;
       for (int i = 0; i < n_states; ++i)
@@ -176,7 +176,7 @@ namespace Gecode { namespace String {
       }
     }
     NSIntSet E(F.back().back());
-    Fi = NSIntSet(dfa->final_fst, dfa->final_lst);
+    Fi = dfa->accepting_states();
     if (Fi.contains(E)) {
       GECODE_ME_CHECK(b.eq(home, 1));
       return propagate(home, m);

@@ -15,19 +15,24 @@ namespace Gecode { namespace String {
   };
 
   // DFA data structure for non-reified regular.
-  struct stringDFA {
-    typedef std::vector<std::vector<std::pair<int, int>>> delta_t;
+  class stringDFA {
+  protected:
     int ua;
-    int ur;
-    int n_states;
+    int ur;    
     int final_fst;
     int final_lst;
+  public:
+    typedef std::vector<std::vector<std::pair<int, int>>> delta_t;
+    int n_states;    
     delta_t delta;
     stringDFA(const DFA&);
     void negate(const NSIntSet&);
-    bool final(int) const;
+    bool accepting(int) const;
+    NSIntSet accepting_states(void) const;
     int search(int, int) const;
     bool accepted(const string& s) const;
+    bool univ_accepted(int) const;
+    bool univ_rejected(int) const;
     bool univ_accepted(const NSIntSet& Q) const;
     bool univ_rejected(const NSIntSet& Q) const;
     NSIntSet alphabet() const;
@@ -35,14 +40,14 @@ namespace Gecode { namespace String {
     NSIntSet neighbours(int, const DSIntSet&) const;
     void compute_univ(const NSIntSet&);
     matchNFA toMatchNFA(const NSIntSet&);
-    protected:
-      int nstate(int) const;
+  protected:
+    int nstate(int) const;
   };
 
-  // Complete DFA for reified regular.
+  // DFA data structure for reified regular.
   struct stringCDFA : public stringDFA {
     stringCDFA(const DFA&, const NSIntSet&);
-    void negate();
+    void negate(); //FIXME: Specialize.
   };
 
 
