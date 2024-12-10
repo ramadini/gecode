@@ -13,14 +13,14 @@ namespace Gecode { namespace String {
   class Match : public MixBinaryPropagator
     <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM> {
   private:
-    stringDFA* Rs;
-    stringDFA* sRs;    
-    stringDFA* sRsC;
+    trimDFA* Rs;
+    trimDFA* sRs;    
+    trimDFA* sRsC;
     int minR;
     std::pair<NSIntSet,int> checkBlock(const DSBlock&, const NSIntSet&) const;
     NSBlocks prefix(int,int) const;
     NSBlocks suffix(int,int) const;
-    static ExecStatus propagateReg(Space&, NSBlocks&, stringDFA*);
+    static ExecStatus propagateReg(Space&, NSBlocks&, trimDFA*);
   protected:
     using MixBinaryPropagator<StringView, PC_STRING_DOM, Gecode::Int::IntView, 
       Gecode::Int::PC_INT_DOM>::x0;
@@ -29,7 +29,7 @@ namespace Gecode { namespace String {
     /// Constructor for cloning \a p
     Match(Space& home, Match& p);
     /// Constructor for posting
-    Match(Home, StringView, Gecode::Int::IntView, stringDFA*, stringDFA*, int);
+    Match(Home, StringView, Gecode::Int::IntView, trimDFA*, trimDFA*, int);
   public:
     /// Copy propagator during cloning
     virtual Actor* copy(Space& home);
@@ -44,9 +44,9 @@ namespace Gecode { namespace String {
   class MatchNew : public MixBinaryPropagator
     <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM> {
   private:
-    stringDFA* Rpref;
-    stringDFA* Rfull;    
-    stringDFA* Rcomp;
+    trimDFA* Rpref;
+    trimDFA* Rfull;    
+    trimDFA* Rcomp;
     matchNFA* Rnfa;
     int minR;    
     bool must_match(void) const;
@@ -56,7 +56,7 @@ namespace Gecode { namespace String {
     NSIntSet reachFwdLazy(const DSBlock&, const NSIntSet&) const;
     NSBlocks prefix(int,int) const;
     NSBlocks suffix(int,int) const;
-    static ExecStatus propagateReg(Space&, NSBlocks&, stringDFA*);
+    static ExecStatus propagateReg(Space&, NSBlocks&, trimDFA*);
   protected:
     using MixBinaryPropagator<StringView, PC_STRING_DOM, Gecode::Int::IntView, 
       Gecode::Int::PC_INT_DOM>::x0;
@@ -66,7 +66,7 @@ namespace Gecode { namespace String {
     MatchNew(Space& home, MatchNew& p);
     /// Constructor for posting
     MatchNew(Home, StringView, Gecode::Int::IntView, int, 
-             stringDFA*, stringDFA*, matchNFA*);
+             trimDFA*, trimDFA*, matchNFA*);
   public:
     /// Copy propagator during cloning
     virtual Actor* copy(Space& home);

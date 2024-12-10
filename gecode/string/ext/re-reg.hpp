@@ -3,7 +3,7 @@
 namespace Gecode { namespace String {
 
   forceinline
-  stringCDFA::stringCDFA(const DFA& d, const NSIntSet& alphabet): stringDFA(d) {
+  stringCDFA::stringCDFA(const DFA& d, const NSIntSet& alphabet): trimDFA(d) {
     bool complete = true;
     for (int i = 0; i < n_states; i++) {
       NSIntSet a(alphabet);

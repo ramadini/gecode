@@ -2,12 +2,12 @@ namespace Gecode { namespace String {
 
   forceinline
   MatchNew::MatchNew(Home home, StringView x, Gecode::Int::IntView i, int r, 
-             stringDFA* Rp, stringDFA* Rf, matchNFA* Rn)
+             trimDFA* Rp, trimDFA* Rf, matchNFA* Rn)
   : MixBinaryPropagator
   <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM>
     (home, x, i), minR(r), Rpref(Rp), Rfull(Rf), Rcomp(nullptr), Rnfa(Rn) {
     NSIntSet may_chars = x.may_chars();
-    Rcomp = new stringDFA(*Rfull);
+    Rcomp = new trimDFA(*Rfull);
     Rcomp->negate(may_chars);         
   }
 
@@ -19,7 +19,7 @@ namespace Gecode { namespace String {
       return ES_OK;
     }
     GECODE_ME_CHECK(x.lb(home, 1));
-    stringDFA* R = new stringDFA(regex->dfa());
+    trimDFA* R = new trimDFA(regex->dfa());
     assert (R->accepting(1) && R->accepting_states().size() == 1);
     assert (R->neighbours(1) == NSIntSet(1));
     // BFS to find minimal-length word accepted by R.
@@ -51,7 +51,7 @@ namespace Gecode { namespace String {
     GECODE_ME_CHECK(i.le(home, x.max_length() - r));
     GECODE_ME_CHECK(x.lb(home, r));
 //    std::cerr << "RE: " << re << ", minlen: " << r << ", i: " << i << '\n';
-    stringDFA* Rp = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    trimDFA* Rp = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* Rn = new matchNFA(Rp->toMatchNFA(x.may_chars()));
     (void) new (home) MatchNew(home, x, i, r, Rp, R, Rn);    
     return ES_OK;
@@ -224,7 +224,7 @@ namespace Gecode { namespace String {
   }
   
   forceinline ExecStatus
-  MatchNew::propagateReg(Space& home, NSBlocks& x, stringDFA* d) {
+  MatchNew::propagateReg(Space& home, NSBlocks& x, trimDFA* d) {
 //    std::cerr << "\npropagateReg: "<<x<<" in "<<*d<<std::endl;
     // Returns ES_FAILED, ES_FIX (no changes) or ES_NOFIX (x changed).
     if (x.known())
@@ -470,7 +470,7 @@ namespace Gecode { namespace String {
 //        std::cerr << "Pref: " << pref << "\n"; 
         if (Rcomp == nullptr) {
           NSIntSet may_chars = x0.may_chars();
-          Rcomp = new stringDFA(*Rfull);
+          Rcomp = new trimDFA(*Rfull);
           Rcomp->negate(may_chars);
         }        
         es_pref = propagateReg(home, pref, Rcomp);

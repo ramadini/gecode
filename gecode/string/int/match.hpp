@@ -1,8 +1,8 @@
 namespace Gecode { namespace String {
 
   forceinline
-  Match::Match(Home home, StringView x, Gecode::Int::IntView i, stringDFA* R, 
-    stringDFA* R1, int r)
+  Match::Match(Home home, StringView x, Gecode::Int::IntView i, trimDFA* R, 
+    trimDFA* R1, int r)
   : MixBinaryPropagator
   <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM>
     (home, x, i), sRsC(nullptr), sRs(R), Rs(R1), minR(r) {}
@@ -15,7 +15,7 @@ namespace Gecode { namespace String {
       return ES_OK;
     }
     GECODE_ME_CHECK(x.lb(home, 1));
-    stringDFA* R = new stringDFA(regex->dfa());
+    trimDFA* R = new trimDFA(regex->dfa());
     assert (R->accepting(1) && R->accepting_states().size() == 1);
     assert (R->neighbours(1) == NSIntSet(1));
     // BFS to find minimal-length word accepted by R.
@@ -47,7 +47,7 @@ namespace Gecode { namespace String {
     GECODE_ME_CHECK(i.le(home, x.max_length() - r));
     GECODE_ME_CHECK(x.lb(home, r));
 //    std::cerr << "RE: " << re << ", minlen: " << r << ", i: " << i << '\n';
-    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     (void) new (home) Match(home, x, i, R, R1, r);
     return ES_OK;
   }
@@ -142,7 +142,7 @@ namespace Gecode { namespace String {
   }
   
   forceinline ExecStatus
-  Match::propagateReg(Space& home, NSBlocks& x, stringDFA* d) {
+  Match::propagateReg(Space& home, NSBlocks& x, trimDFA* d) {
 //    std::cerr << "\npropagateReg: "<<x<<" in "<<*d<<std::endl;
     // Returns ES_FAILED, ES_FIX (no changes) or ES_NOFIX (x changed).
     if (x.known())
@@ -305,7 +305,7 @@ namespace Gecode { namespace String {
         pref = prefix(h, k);
 //        std::cerr << "Pref: " << pref << "\n"; 
         if (sRsC == nullptr) {
-          sRsC = new stringDFA(*sRs);
+          sRsC = new trimDFA(*sRs);
           NSIntSet may_chars = x0.may_chars();
           sRsC->negate(may_chars);
         }

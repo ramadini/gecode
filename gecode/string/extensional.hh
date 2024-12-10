@@ -14,18 +14,18 @@ namespace Gecode { namespace String {
     NSIntSet neighbours(int, const DSIntSet&) const;
   };
 
-  // DFA data structure for non-reified regular.
-  class stringDFA {
+  // trimmed-DFA data structure for non-reified regular.
+  class trimDFA {
   protected:
     int ua;
-    int ur;    
+    int ur;
     int final_fst;
     int final_lst;
   public:
     typedef std::vector<std::vector<std::pair<int, int>>> delta_t;
     int n_states;    
     delta_t delta;
-    stringDFA(const DFA&);
+    trimDFA(const DFA&);
     void negate(const NSIntSet&);
     bool accepting(int) const;
     NSIntSet accepting_states(void) const;
@@ -44,8 +44,8 @@ namespace Gecode { namespace String {
     int nstate(int) const;
   };
 
-  // DFA data structure for reified regular.
-  struct stringCDFA : public stringDFA {
+  // complete-DFA data structure for reified regular.
+  struct stringCDFA : public trimDFA {
     stringCDFA(const DFA&, const NSIntSet&);
     void negate(); //FIXME: Specialize.
   };
@@ -57,13 +57,13 @@ namespace Gecode { namespace String {
    */
   class Reg : public UnaryPropagator<StringView, PC_STRING_DOM> {
   private:
-    stringDFA* dfa;
+    trimDFA* dfa;
   protected:
     using UnaryPropagator<StringView, PC_STRING_DOM>::x0;
     /// Constructor for cloning \a p
     Reg(Space& home, Reg& p);
     /// Constructor for posting
-    Reg(Home home, StringView, stringDFA* p);
+    Reg(Home home, StringView, trimDFA* p);
   public:
     /// Copy propagator during cloning
     virtual Actor* copy(Space& home);
@@ -71,13 +71,13 @@ namespace Gecode { namespace String {
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator
     static ExecStatus post(Home home, StringView x, const DFA& dfa);
-    static ExecStatus post(Home home, StringView x, stringDFA* pdfa);
-    static NSBlocks dom(stringDFA*);
+    static ExecStatus post(Home home, StringView x, trimDFA* pdfa);
+    static NSBlocks dom(trimDFA*);
     static std::vector<NSIntSet> reach_fwd(
-      stringDFA*, const NSIntSet&, const DSBlock&,
+      trimDFA*, const NSIntSet&, const DSBlock&,
       bool reif = false, bool bwd = false
     );
-    static NSBlocks reach_bwd(stringDFA*, 
+    static NSBlocks reach_bwd(trimDFA*, 
       const std::vector<NSIntSet>&, NSIntSet&, const DSBlock&, bool&,
       bool rev = false
     );

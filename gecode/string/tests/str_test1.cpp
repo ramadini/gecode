@@ -713,7 +713,7 @@ public:
     IntVar i(*this, 10, 100);
     class match : public Match {
     public:
-      match(Home h, StringView x, IntView i, stringDFA* R, stringDFA* R1, int r)
+      match(Home h, StringView x, IntView i, trimDFA* R, trimDFA* R1, int r)
         : Match(h, x, i, R, R1, r) {};
     };
     string re = "(ab|c)";
@@ -721,8 +721,8 @@ public:
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
     String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
-    stringDFA* R = new stringDFA(regex->dfa());
-    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    trimDFA* R = new trimDFA(regex->dfa());
+    trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     assert(match(*this, x, i, R, R1, 1).propagate(*this, 0) == ES_FAILED);
     std::cerr << "===== i = match(x, R) UNSATISFIABLE =====\n" << std::endl;
   }
@@ -738,7 +738,7 @@ public:
     IntVar i(*this, 0, 100);
     class match : public Match {
     public:
-      match(Home h, StringView x, IntView i, stringDFA* R, stringDFA* R1, int r)
+      match(Home h, StringView x, IntView i, trimDFA* R, trimDFA* R1, int r)
         : Match(h, x, i, R, R1, r) {};
     };
     string re = "(ab|c)";
@@ -746,8 +746,8 @@ public:
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
     String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
-    stringDFA* R = new stringDFA(regex->dfa());
-    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    trimDFA* R = new trimDFA(regex->dfa());
+    trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     double lx = x.domain().logdim();
     std::cerr << "===== After i = match(x, R) =====" << std::endl;
     assert(match(*this, x, i, R, R1, 1).propagate(*this, 0) == ES_FIX);
@@ -769,7 +769,7 @@ public:
     IntVar i(*this, 1, 3);
     class match : public Match {
     public:
-      match(Home h, StringView x, IntView i, stringDFA* R, stringDFA* R1, int r)
+      match(Home h, StringView x, IntView i, trimDFA* R, trimDFA* R1, int r)
         : Match(h, x, i, R, R1, r) {};
     };
     string re = "(ab|c)";
@@ -777,8 +777,8 @@ public:
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
     String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
-    stringDFA* R = new stringDFA(regex->dfa());
-    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    trimDFA* R = new trimDFA(regex->dfa());
+    trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     std::cerr << "===== After i = match(x, R) =====" << std::endl;
     assert(match(*this, x, i, R, R1, 1).propagate(*this, 0) == ES_FIX);
     std::cerr << "x = " << x << std::endl;
@@ -796,7 +796,7 @@ public:
     class match : public MatchNew {
     public:
       match(Home h, StringView x, IntView i, int r,
-            stringDFA* R, stringDFA* R1, matchNFA* R2)
+            trimDFA* R, trimDFA* R1, matchNFA* R2)
         : MatchNew(h, x, i, r, R, R1, R2) {};
     };
     string re = "(ab|c)";
@@ -804,8 +804,8 @@ public:
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
     String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
-    stringDFA* R = new stringDFA(regex->dfa());
-    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    trimDFA* R = new trimDFA(regex->dfa());
+    trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(R1->toMatchNFA(x.may_chars()));
     assert(match(*this, x, i, 1, R1, R, R2).propagate(*this, 0) == ES_FAILED);
     std::cerr << "===== i = match(x, R) UNSATISFIABLE =====\n" << std::endl;
@@ -822,7 +822,7 @@ public:
     class match : public MatchNew {
     public:
       match(Home h, StringView x, IntView i, int r,
-            stringDFA* R, stringDFA* R1, matchNFA* R2)
+            trimDFA* R, trimDFA* R1, matchNFA* R2)
         : MatchNew(h, x, i, r, R, R1, R2) {};
     };
     string re = "(ab|c)";
@@ -830,8 +830,8 @@ public:
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
     String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
-    stringDFA* R = new stringDFA(regex->dfa());
-    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    trimDFA* R = new trimDFA(regex->dfa());
+    trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(R1->toMatchNFA(x.may_chars()));
     assert(match(*this, x, i, 1, R1, R, R2).propagate(*this, 0) == ES_FAILED);
     std::cerr << "===== i = match(x, R) UNSATISFIABLE =====\n" << std::endl;
@@ -849,7 +849,7 @@ public:
     class match : public MatchNew {
     public:
       match(Home h, StringView x, IntView i, int r,
-            stringDFA* R, stringDFA* R1, matchNFA* R2)
+            trimDFA* R, trimDFA* R1, matchNFA* R2)
         : MatchNew(h, x, i, r, R, R1, R2) {};
     };
     string re = "(ab|c)";
@@ -857,8 +857,8 @@ public:
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
     String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
-    stringDFA* R = new stringDFA(regex->dfa());
-    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    trimDFA* R = new trimDFA(regex->dfa());
+    trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(R1->toMatchNFA(x.may_chars()));
     double lx = x.domain().logdim();
     std::cerr << "===== After i = match(x, R) =====" << std::endl;
@@ -882,7 +882,7 @@ public:
     class match : public MatchNew {
     public:
       match(Home h, StringView x, IntView i, int r,
-            stringDFA* R, stringDFA* R1, matchNFA* R2)
+            trimDFA* R, trimDFA* R1, matchNFA* R2)
         : MatchNew(h, x, i, r, R, R1, R2) {};
     };
     string re = "(ab|c)";
@@ -890,8 +890,8 @@ public:
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
     String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
-    stringDFA* R = new stringDFA(regex->dfa());
-    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    trimDFA* R = new trimDFA(regex->dfa());
+    trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(R1->toMatchNFA(x.may_chars()));
     std::cerr << "===== After i = match(x, R) =====" << std::endl;
     assert(match(*this, x, i, 1, R1, R, R2).propagate(*this, 0) == ES_FIX);
@@ -910,7 +910,7 @@ public:
     class match : public MatchNew {
     public:
       match(Home h, StringView x, IntView i, int r,
-            stringDFA* R, stringDFA* R1, matchNFA* R2)
+            trimDFA* R, trimDFA* R1, matchNFA* R2)
         : MatchNew(h, x, i, r, R, R1, R2) {};
     };
     string re = "(ab|c)";
@@ -918,8 +918,8 @@ public:
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
     String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();   
-    stringDFA* R = new stringDFA(regex->dfa());
-    stringDFA* R1 = new stringDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    trimDFA* R = new trimDFA(regex->dfa());
+    trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(R1->toMatchNFA(x.may_chars()));
     assert(match(*this, x, i, 1, R1, R, R2).propagate(*this, 0) == ES_FAILED);
     std::cerr << "===== i = match(x, R) UNSATISFIABLE =====\n" << std::endl;

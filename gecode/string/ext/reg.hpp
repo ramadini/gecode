@@ -2,7 +2,7 @@ namespace Gecode { namespace String {
 
   template<class Char, class Traits>
   forceinline std::basic_ostream<Char,Traits>&
-  operator <<(std::basic_ostream<Char,Traits>& os, const stringDFA& d) {
+  operator <<(std::basic_ostream<Char,Traits>& os, const trimDFA& d) {
     os << '[';
     for (int i = 0; i < d.n_states; i++) {
       std::vector<NSIntSet> qi(d.n_states);
@@ -37,7 +37,7 @@ namespace Gecode { namespace String {
   }
 
   forceinline void
-  stringDFA::compute_univ(const NSIntSet& domain) {
+  trimDFA::compute_univ(const NSIntSet& domain) {
   	// For a minimal DFA, there is at most 1 universal accepted/rejected state.
 	  ua = -1;
     ur = -1;
@@ -77,7 +77,7 @@ namespace Gecode { namespace String {
   }
 
   forceinline
-  stringDFA::stringDFA(const DFA& d) : n_states(d.n_states()),
+  trimDFA::trimDFA(const DFA& d) : n_states(d.n_states()),
   final_fst(d.final_fst()), final_lst(d.final_lst() - 1), delta(d.n_states()) {
     NSIntSet S;
     for (DFA::Transitions t(d); t(); ++t) {
@@ -90,12 +90,12 @@ namespace Gecode { namespace String {
   }
 
   forceinline bool
-  stringDFA::accepting(int q) const {
+  trimDFA::accepting(int q) const {
     return final_fst <= q && q <= final_lst;
   }
 
   forceinline int
-  stringDFA::search(int q, int c) const {
+  trimDFA::search(int q, int c) const {
     std::vector<std::pair<int, int>> d = delta[q];
     int l = 0, u = d.size() - 1;
     // Binary search, assuming delta[q] is lexicographically sorted.
@@ -112,22 +112,22 @@ namespace Gecode { namespace String {
   }
 
   forceinline bool
-  stringDFA::univ_accepted(const NSIntSet& Q) const {
+  trimDFA::univ_accepted(const NSIntSet& Q) const {
     return Q.size() <= 1 && (Q.empty() || Q.min() == ua);
   }
 
   forceinline bool
-  stringDFA::univ_rejected(const NSIntSet& Q) const {
+  trimDFA::univ_rejected(const NSIntSet& Q) const {
     return Q.size() <= 1 && (Q.empty() || Q.min() == ur);
   }
 
   forceinline NSIntSet
-  stringDFA::accepting_states() const {
+  trimDFA::accepting_states() const {
     return NSIntSet(final_fst, final_lst);
   }
 
   forceinline bool
-  stringDFA::accepted(const string& s) const {
+  trimDFA::accepted(const string& s) const {
     int q = 0;
     for (auto& c : s) {
       q = search(q, char2int(c));
@@ -138,7 +138,7 @@ namespace Gecode { namespace String {
   }
 
   forceinline NSIntSet
-  stringDFA::alphabet() const {
+  trimDFA::alphabet() const {
     NSIntSet s;
     for (int i = 0; i < n_states; i++)
       for (auto& x : delta[i])
@@ -147,7 +147,7 @@ namespace Gecode { namespace String {
   }
 
   forceinline NSIntSet
-  stringDFA::neighbours(int q) const {
+  trimDFA::neighbours(int q) const {
     NSIntSet s;
     for (auto& x : delta[q])
       s.add(x.second);
@@ -155,7 +155,7 @@ namespace Gecode { namespace String {
   }
 
   forceinline NSIntSet
-  stringDFA::neighbours(int q, const DSIntSet& S) const {
+  trimDFA::neighbours(int q, const DSIntSet& S) const {
     NSIntSet s;
     for (auto& x : delta[q])
       if (S.in(x.first))
@@ -164,8 +164,8 @@ namespace Gecode { namespace String {
   }
 
   forceinline void
-  stringDFA::negate(const NSIntSet& alphabet) {
-//     std::cerr << "stringDFA::negate: " << *this << ' ' << alphabet << '\n';
+  trimDFA::negate(const NSIntSet& alphabet) {
+//     std::cerr << "trimDFA::negate: " << *this << ' ' << alphabet << '\n';
     bool complete = true;
     for (int i = 0; i < n_states; i++) {
       NSIntSet a(alphabet);
@@ -201,7 +201,7 @@ namespace Gecode { namespace String {
   }
 
   forceinline int
-  stringDFA::nstate(int q) const {
+  trimDFA::nstate(int q) const {
     if (q < final_fst)
       return q;
     else if (q > final_lst)
@@ -211,13 +211,13 @@ namespace Gecode { namespace String {
   }
   
   forceinline matchNFA
-  stringDFA::toMatchNFA(const NSIntSet& domain) {
+  trimDFA::toMatchNFA(const NSIntSet& domain) {
     int qbot;
     matchNFA R;
     compute_univ(domain);
     // Proper pattern: not empty, not containing empty string.
     assert (ur == -1);
-//    std::cerr << "stringDFA::toMatchNFA of " << *this << "\n";
+//    std::cerr << "trimDFA::toMatchNFA of " << *this << "\n";
     R.delta = delta;
     R.n_states = n_states + 1;
     qbot = delta.size();
@@ -263,11 +263,11 @@ namespace Gecode { namespace String {
   };
 
   forceinline
-  Reg::Reg(Home home, StringView x, stringDFA* p)
+  Reg::Reg(Home home, StringView x, trimDFA* p)
   : UnaryPropagator<StringView, PC_STRING_DOM>(home, x), dfa(p) {}
 
   forceinline NSBlocks
-  Reg::dom(stringDFA* dfa) {
+  Reg::dom(trimDFA* dfa) {
     // std::cerr << "dom: " << dfa << '\n';    
     NSIntSet S = dfa->alphabet();
     int l = 0, u = 0, n_states = dfa->n_states;
@@ -385,7 +385,7 @@ namespace Gecode { namespace String {
       }
       return q < d.final_fst() || q >= d.final_lst() ? ES_FAILED : ES_OK;
     }
-    stringDFA* dfa = new stringDFA(d);
+    trimDFA* dfa = new trimDFA(d);
     NSBlocks dx(dom(dfa));
     // std::cerr << "ExtDFA dom: " << dx << '\n';
     rel(home, x, STRT_DOM, dx, x.min_length(), x.max_length());
@@ -394,7 +394,7 @@ namespace Gecode { namespace String {
   }
 
   forceinline ExecStatus
-  Reg::post(Home home, StringView x, stringDFA* p) {
+  Reg::post(Home home, StringView x, trimDFA* p) {
     // std::cerr << "Reg::post" << x << ' ' << *p << '\n';
     (void) new (home) Reg(home, x, p);
     return ES_OK;
@@ -407,14 +407,14 @@ namespace Gecode { namespace String {
 
   forceinline std::vector<NSIntSet>
   Reg::reach_fwd(
-    stringDFA* dfa, const NSIntSet& Qf, const DSBlock& b, bool reif, bool rev
+    trimDFA* dfa, const NSIntSet& Qf, const DSBlock& b, bool reif, bool rev
   ) {
     int l = b.l;
     std::vector<NSIntSet> Q(l + 2);
     Q[0] = Qf;
-    stringDFA::delta_t delta_rev;
+    trimDFA::delta_t delta_rev;
     if (rev) {
-      delta_rev = stringDFA::delta_t(dfa->n_states);
+      delta_rev = trimDFA::delta_t(dfa->n_states);
       for (int q = 0; q < dfa->n_states; ++q)
         for (auto& x : dfa->delta[q])
           if (b.S.in(x.first))
@@ -480,10 +480,10 @@ namespace Gecode { namespace String {
 
   forceinline NSBlocks
   Reg::reach_bwd(
-    stringDFA* dfa, const std::vector<NSIntSet>& Q, NSIntSet& Qe, 
+    trimDFA* dfa, const std::vector<NSIntSet>& Q, NSIntSet& Qe, 
     const DSBlock& b, bool& changed, bool rev
   ) {
-    stringDFA::delta_t delta_bwd(dfa->n_states);
+    trimDFA::delta_t delta_bwd(dfa->n_states);
     if (!rev)
       for (int q = 0; q < dfa->n_states; ++q)
         for (auto& x : dfa->delta[q])
