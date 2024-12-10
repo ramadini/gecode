@@ -22,7 +22,6 @@ namespace Gecode { namespace String {
       for (int i = 0; i < n_states; ++i)
         std::sort(delta[i].begin(), delta[i].end());
     }
-    ua = ur = -1;
   }
 
   forceinline void
@@ -32,9 +31,6 @@ namespace Gecode { namespace String {
       final_lst = n_states - 1;
       for (int i = 0; i < n_states; ++i)
         std::sort(delta[i].begin(), delta[i].end());
-      int tmp = ur;
-      ur = ua;
-      ua = tmp;
       return;
     }
     delta_t rdelta(n_states);
@@ -158,7 +154,6 @@ namespace Gecode { namespace String {
       GECODE_REWRITE(*this, (Reg::post(home(*this), x0, dfa)));
     }
     // std::cerr<<"ReDFA::propagated "<<b<<" <> "<<x0<<std::endl;
-    dfa->compute_univ(x0.may_chars());
     DashedString* x = x0.pdomain();
     std::vector<std::vector<NSIntSet>> F(x->length());
     NSIntSet Fi(0);
@@ -166,14 +161,6 @@ namespace Gecode { namespace String {
     for (int i = 0; i < n; ++i) {
       F[i] = Reg::reach_fwd(dfa, Fi, x->at(i), true);
       Fi = F[i].back();
-      if (dfa->univ_rejected(Fi)) {
-        GECODE_ME_CHECK(b.eq(home, 0));
-        return propagate(home, m);
-      }
-      if (dfa->univ_accepted(Fi)) {
-        GECODE_ME_CHECK(b.eq(home, 1));
-        return propagate(home, m);
-      }
     }
     NSIntSet E(F.back().back());
     Fi = dfa->accepting_states();

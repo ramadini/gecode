@@ -149,7 +149,6 @@ namespace Gecode { namespace String {
       return d->accepted(x.val()) ? ES_FIX : ES_FAILED;    
     bool changed, nofix = false;
     do {
-      d->compute_univ(x.may_chars());
       int n = x.length();
       std::vector<std::vector<NSIntSet>> F(n);
       NSIntSet Fi(0);
@@ -158,8 +157,6 @@ namespace Gecode { namespace String {
         if (F[i].empty())
           return ES_FAILED;
         Fi = F[i].back();
-        if (d->univ_rejected(Fi))
-          return ES_FAILED;
       }
       NSIntSet E(F.back().back());
       NSBlocks y[n];

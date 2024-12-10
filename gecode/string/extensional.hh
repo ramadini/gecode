@@ -17,8 +17,6 @@ namespace Gecode { namespace String {
   // trimmed-DFA data structure for non-reified regular.
   class trimDFA {
   protected:
-    int ua;
-    int ur;
     int final_fst;
     int final_lst;
   public:
@@ -31,14 +29,9 @@ namespace Gecode { namespace String {
     NSIntSet accepting_states(void) const;
     int search(int, int) const;
     bool accepted(const string& s) const;
-    bool univ_accepted(int) const;
-    bool univ_rejected(int) const;
-    bool univ_accepted(const NSIntSet& Q) const;
-    bool univ_rejected(const NSIntSet& Q) const;
     NSIntSet alphabet() const;
     NSIntSet neighbours(int) const;
     NSIntSet neighbours(int, const DSIntSet&) const;
-    void compute_univ(const NSIntSet&);
     matchNFA toMatchNFA(const NSIntSet&);
   protected:
     int nstate(int) const;

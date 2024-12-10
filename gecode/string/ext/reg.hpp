@@ -12,8 +12,7 @@ namespace Gecode { namespace String {
         if (!qi[j].empty())
           os << "(q" << i << ", " << qi[j] << ", q" << j << "), ";
     }
-    return os << "F: " << d.final_fst << ".." << d.final_lst << ", ua = "
-          << d.ua << ", ur = " << d.ur << "]";
+    return os << "F: " << d.accepting_states() << "]";
   }
   template<class Char, class Traits>
   forceinline std::basic_ostream<Char,Traits>&
@@ -36,46 +35,6 @@ namespace Gecode { namespace String {
     return os << "qbot = " << R.bot << "]";
   }
 
-  forceinline void
-  trimDFA::compute_univ(const NSIntSet& domain) {
-  	// For a minimal DFA, there is at most 1 universal accepted/rejected state.
-	  ua = -1;
-    ur = -1;
-    for (int i = 0; i < final_fst; ++i) {
-      ur = i;
-      for (auto& x : delta[i])
-        if (x.second != i) {
-          ur = -1;
-          break;
-        }
-      if (ur == i)
-        break;
-    }
-    for (int i = final_fst; i <= final_lst; ++i) {
-      ua = i;
-      if ((int) delta[i].size() < domain.size()) {
-        ua = -1;
-        continue;
-      }
-      for (NSIntSet::iterator it(domain); it(); ++it) {
-        if (search(i, *it) != i) {
-          ua = -1;
-          break;
-        }
-      }
-    }
-    for (int i = final_lst + 1; i < n_states; ++i) {
-      ur = i;
-      for (auto& x : delta[i])
-        if (x.second != i) {
-          ur = -1;
-          break;
-        }
-      if (ur == i)
-        break;
-    }
-  }
-
   forceinline
   trimDFA::trimDFA(const DFA& d) : n_states(d.n_states()),
   final_fst(d.final_fst()), final_lst(d.final_lst() - 1), delta(d.n_states()) {
@@ -86,7 +45,6 @@ namespace Gecode { namespace String {
     }
     for (int i = 0; i < n_states; ++i)
       std::sort(delta[i].begin(), delta[i].end());
-    ua = ur = -1;
   }
 
   forceinline bool
@@ -109,16 +67,6 @@ namespace Gecode { namespace String {
         u = m - 1;
     }
     return -1;
-  }
-
-  forceinline bool
-  trimDFA::univ_accepted(const NSIntSet& Q) const {
-    return Q.size() <= 1 && (Q.empty() || Q.min() == ua);
-  }
-
-  forceinline bool
-  trimDFA::univ_rejected(const NSIntSet& Q) const {
-    return Q.size() <= 1 && (Q.empty() || Q.min() == ur);
   }
 
   forceinline NSIntSet
@@ -214,9 +162,8 @@ namespace Gecode { namespace String {
   trimDFA::toMatchNFA(const NSIntSet& domain) {
     int qbot;
     matchNFA R;
-    compute_univ(domain);
     // Proper pattern: not empty, not containing empty string.
-    assert (ur == -1);
+    assert (!accepted(""));
 //    std::cerr << "trimDFA::toMatchNFA of " << *this << "\n";
     R.delta = delta;
     R.n_states = n_states + 1;
@@ -438,8 +385,6 @@ namespace Gecode { namespace String {
           Q[j] = qi;
         return Q;
       }
-      if (reif && (dfa->univ_accepted(qi) || dfa->univ_rejected(qi)))
-        return std::vector<NSIntSet>(1, qi);
       Q[i + 1] = qi;
     }
     Q[l + 1] = Q[l];
@@ -581,7 +526,6 @@ namespace Gecode { namespace String {
       // std::cerr << dfa->accepted(x0.val()) << std::endl;
       return dfa->accepted(x0.val()) ? home.ES_SUBSUMED(*this) : ES_FAILED;
     }
-    dfa->compute_univ(x0.may_chars());
     DashedString* x = x0.pdomain();
     std::vector<std::vector<NSIntSet>> F(x->length());
     NSIntSet Fi(0);
@@ -591,8 +535,6 @@ namespace Gecode { namespace String {
       if (F[i].empty())
         return ES_FAILED;
       Fi = F[i].back();
-      if (dfa->univ_rejected(Fi))
-        return ES_FAILED;
     }
     NSIntSet E(F.back().back());
     NSBlocks y[n];
