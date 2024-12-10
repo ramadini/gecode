@@ -45,8 +45,8 @@ namespace Gecode { namespace String {
   };
 
   // complete-DFA data structure for reified regular.
-  struct stringCDFA : public trimDFA {
-    stringCDFA(const DFA&, const NSIntSet&);
+  struct compDFA : public trimDFA {
+    compDFA(const DFA&, const NSIntSet&);
     void negate(); //FIXME: Specialize.
   };
 
@@ -96,9 +96,9 @@ namespace Gecode { namespace String {
     /// Constructor for cloning \a p
     ReReg(Space& home, ReReg&);
     /// Constructor for posting
-    ReReg(Home home, StringView x, stringCDFA* d, CtrlView b);
+    ReReg(Home home, StringView x, compDFA* d, CtrlView b);
   private:
-    stringCDFA* dfa;
+    compDFA* dfa;
   public:
     /// Copy propagator during cloning
     virtual Actor* copy(Space& home);

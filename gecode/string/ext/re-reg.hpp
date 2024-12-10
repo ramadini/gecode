@@ -3,7 +3,7 @@
 namespace Gecode { namespace String {
 
   forceinline
-  stringCDFA::stringCDFA(const DFA& d, const NSIntSet& alphabet): trimDFA(d) {
+  compDFA::compDFA(const DFA& d, const NSIntSet& alphabet): trimDFA(d) {
     bool complete = true;
     for (int i = 0; i < n_states; i++) {
       NSIntSet a(alphabet);
@@ -26,7 +26,7 @@ namespace Gecode { namespace String {
   }
 
   forceinline void
-  stringCDFA::negate() {
+  compDFA::negate() {
     if (accepting(0)) {
       final_fst = final_lst + 1;
       final_lst = n_states - 1;
@@ -50,7 +50,7 @@ namespace Gecode { namespace String {
 
   template <class CtrlView, ReifyMode rm>
   forceinline
-  ReReg<CtrlView, rm>::ReReg(Home home, StringView x, stringCDFA* d, CtrlView c)
+  ReReg<CtrlView, rm>::ReReg(Home home, StringView x, compDFA* d, CtrlView c)
   : Propagator(home), x0(x), b(c), dfa(d) {
     b .subscribe (home, *this, Gecode::Int::PC_INT_VAL);
     x0.subscribe (home, *this, PC_STRING_DOM);
@@ -118,7 +118,7 @@ namespace Gecode { namespace String {
         GECODE_ME_CHECK(b.eq(home, 1));
       return ES_OK;
     }
-    (void) new (home) ReReg(home, x, new stringCDFA(d, x.may_chars()), b);
+    (void) new (home) ReReg(home, x, new compDFA(d, x.may_chars()), b);
     return ES_OK;
   }
 
@@ -148,7 +148,7 @@ namespace Gecode { namespace String {
       if (b.zero()) {
         if (rm == RM_IMP)
           return home.ES_SUBSUMED(*this);
-        stringCDFA* ndfa = new stringCDFA(*dfa);
+        compDFA* ndfa = new compDFA(*dfa);
         ndfa->negate();
         // std::cerr << "Negated DFA: " << *dfa << '\n';
         GECODE_REWRITE(*this, (Reg::post(home(*this), x0, ndfa)));
