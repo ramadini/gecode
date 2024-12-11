@@ -32,11 +32,19 @@ namespace Gecode { namespace String {
     NSIntSet accepting_states(void) const {
       return NSIntSet(final_fst, final_lst);
     }
+    bool accepted(const string& s) const {
+      int q = 0;
+      for (auto& c : s) {
+        q = search(q, char2int(c));
+        if (q == -1)
+          return false;
+      }
+      return accepting(q);
+    };
     virtual NSIntSet alphabet() const = 0;
     virtual int search(int, int) const = 0;
     virtual NSIntSet neighbours(int) const = 0;
-    virtual NSIntSet neighbours(int, const DSIntSet&) const = 0;
-    virtual bool accepted(const string& s) const = 0;
+    virtual NSIntSet neighbours(int, const DSIntSet&) const = 0;    
   };
 
   // trimmed-DFA data structure for non-reified regular.
@@ -49,7 +57,6 @@ namespace Gecode { namespace String {
     int search(int, int) const;
     NSIntSet neighbours(int) const;
     NSIntSet neighbours(int, const DSIntSet&) const;
-    bool accepted(const string& s) const;
     //TODO: Better if a constructor of matchNFA.
     matchNFA toMatchNFA(const NSIntSet&); 
   };
@@ -67,7 +74,6 @@ namespace Gecode { namespace String {
     int search(int, int) const;
     NSIntSet neighbours(int) const;
     NSIntSet neighbours(int, const DSIntSet&) const;
-    bool accepted(const string& s) const;
   };
 
 

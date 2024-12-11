@@ -76,17 +76,6 @@ namespace Gecode { namespace String {
     }
     return -1;
   }
-  
-  forceinline bool
-  trimDFA::accepted(const string& s) const {
-    int q = 0;
-    for (auto& c : s) {
-      q = search(q, char2int(c));
-      if (q == -1)
-        return false;
-    }
-    return accepting(q);
-  }
 
   forceinline NSIntSet
   trimDFA::alphabet() const {

@@ -106,12 +106,6 @@ namespace Gecode { namespace String {
         s.add(x.second);
     return s;
   };
-  
-  forceinline bool 
-  compDFA::accepted(const string& s) const {
-    //TODO
-    return false;
-  };
 
   forceinline void
   compDFA::negate() {
