@@ -4,9 +4,28 @@ namespace Gecode { namespace String {
 
   forceinline
   compDFA::compDFA(const trimDFA& d, const NSIntSet& alphabet) : stringDFA(d),
-  delta(d.n_states) { 
-    //TODO
-    GECODE_NEVER;
+  delta(d.n_states) {
+    bool complete = true;
+    for (int q = 0; q < n_states; ++q) {
+      std::vector<std::pair<int, int>> delta_q = d.delta[q];
+      bool addBot = delta_q.size() < alphabet.size();
+      complete &= !addBot;
+      NSIntSet a(alphabet);
+      for (auto& x : delta_q) {
+        delta[q].push_back(std::pair<NSIntSet,int>(NSIntSet(x.first),x.second));
+        if (addBot)
+          a.remove(x.first);
+      }
+      if (addBot) {
+        assert (!a.empty());
+        delta[q].push_back(std::pair<NSIntSet,int>(a, n_states));
+      }
+    }
+    if (!complete) {
+      n_states++;
+      for (int i = 0; i < n_states; ++i)
+        std::sort(delta[i].begin(), delta[i].end());
+    }
   }
   
   forceinline
@@ -48,7 +67,6 @@ namespace Gecode { namespace String {
         }
       n_states++;
       for (int i = 0; i < n_states; ++i)
-        // FIXME: Define operator < for NSIntSet
         std::sort(delta[i].begin(), delta[i].end());
     }
   }

@@ -57,7 +57,7 @@ namespace Gecode { namespace String {
     int search(int, int) const;
     NSIntSet neighbours(int) const;
     NSIntSet neighbours(int, const DSIntSet&) const;
-    //TODO: Better if a constructor of matchNFA.
+    //TODO: Better a matchNFA constructor.
     matchNFA toMatchNFA(const NSIntSet&); 
   };
 
