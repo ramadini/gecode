@@ -73,21 +73,38 @@ namespace Gecode { namespace String {
   }
   
   forceinline int
-  compDFA::search(int, int) const {
-    //TODO:
-    return 0;
+  compDFA::search(int q, int s) const {
+    std::vector<std::pair<NSIntSet, int>> d = delta[q];
+    int l = 0, u = d.size() - 1;
+    // Binary search, assuming delta[q] is lexicographically sorted.
+    while (l <= u) {
+      int m = l + (u - l) / 2;
+      NSIntSet dm = d[m].first;
+      if (dm == s)
+        return d[m].second;
+      if (dm < s)
+        l = m + 1;
+      else
+        u = m - 1;
+    }
+    return -1;
   };
   
   forceinline NSIntSet
-  compDFA::neighbours(int) const {
-    //TODO
-    return NSIntSet();
+  compDFA::neighbours(int q) const {
+    NSIntSet s;
+    for (auto& x : delta[q])
+      s.add(x.second);
+    return s;
   };
   
   forceinline NSIntSet 
-  compDFA::neighbours(int, const DSIntSet&) const {
-    //TODO
-    return NSIntSet();
+  compDFA::neighbours(int q, const DSIntSet& S) const {
+    NSIntSet s;
+    for (auto& x : delta[q])
+      if (!S.disjoint(x.first))
+        s.add(x.second);
+    return s;
   };
   
   forceinline bool 
