@@ -141,8 +141,9 @@ namespace Gecode { namespace String {
     return std::make_pair(Qf, j);
   }
   
+  template <typename DFA_t>
   forceinline ExecStatus
-  Match::propagateReg(Space& home, NSBlocks& x, trimDFA* d) {
+  Match::propagateReg(Space& home, NSBlocks& x, DFA_t* d) {
 //    std::cerr << "\npropagateReg: "<<x<<" in "<<*d<<std::endl;
     // Returns ES_FAILED, ES_FIX (no changes) or ES_NOFIX (x changed).
     if (x.known())
@@ -197,17 +198,10 @@ namespace Gecode { namespace String {
     do {
       // x1 fixed and val(x1) in {0,1}.
       if (x1.assigned() && x1.val() <= 1) {
-        if (x1.val() == 0) {
-          if (sRsC == nullptr) {
-            sRsC = sRs;
-            NSIntSet may_chars = x0.may_chars();
-            sRsC->negate(may_chars);
-          }
-          GECODE_REWRITE(*this, Reg::post(home, x0, sRsC));
-        }
+        if (x1.val() == 0)
+          GECODE_REWRITE(*this, (ReReg<Gecode::Int::NegBoolView,RM_PMI>::post(home, x0, new compDFA(*sRs, x0.may_chars()), Gecode::Int::NegBoolView())));
         GECODE_REWRITE(*this, Reg::post(home, x0, Rs));
       }
-
       DashedString& px = *x0.pdomain();
       NSIntSet Q(0);
       int i = 0, j = 0, h = 0, k = 0, n = px.length();
@@ -302,9 +296,8 @@ namespace Gecode { namespace String {
         pref = prefix(h, k);
 //        std::cerr << "Pref: " << pref << "\n"; 
         if (sRsC == nullptr) {
-          sRsC = new trimDFA(*sRs);
-          NSIntSet may_chars = x0.may_chars();
-          sRsC->negate(may_chars);
+          sRsC = new compDFA(*sRs, x0.may_chars());
+          sRsC->negate();
         }
         es_pref = propagateReg(home, pref, sRsC);
 //        std::cerr << "Rfull: " << *sRs << '\n';

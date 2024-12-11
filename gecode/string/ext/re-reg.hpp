@@ -3,26 +3,98 @@
 namespace Gecode { namespace String {
 
   forceinline
-  compDFA::compDFA(const DFA& d, const NSIntSet& alphabet): trimDFA(d) {
-    bool complete = true;
-    for (int i = 0; i < n_states; i++) {
-      NSIntSet a(alphabet);
-      for (int j = 0; j < (int) delta[i].size(); ++j)
-        a.remove(delta[i][j].first);
-      complete &= a.empty();
-      for (NSIntSet::iterator it(a); it(); ++it)
-        delta[i].push_back(std::make_pair(*it, n_states));
+  compDFA::compDFA(const trimDFA& d, const NSIntSet& alphabet) : stringDFA(d),
+  delta(d.n_states) { 
+    //TODO
+    GECODE_NEVER;
+  }
+  
+  forceinline
+  compDFA::compDFA(const DFA& d, const NSIntSet& alphabet) : stringDFA(d),
+  delta(d.n_states()) {
+    int chars_count[n_states];
+    for (auto& q : chars_count)
+      q = 0;
+    for (DFA::Transitions t(d); t(); ++t) {
+      int q_in = t.i_state(), a = t.symbol(), q_out = t.o_state();
+      chars_count[q_in]++;
+      std::vector<std::pair<NSIntSet, int>>& delta_q = delta[q_in];
+      bool new_state = true;
+      for (auto& x : delta_q)
+        if (x.second == q_out) {
+          x.first.add(a);
+          new_state = false;
+          break;
+        }
+      if (new_state)
+        delta_q.push_back(std::pair<NSIntSet,int>(NSIntSet(a), q_out));
     }
-    // Adding the "bottom" state before negating, if DFA is not complete.
+    bool complete = true;
+    for (int i = 0; i < n_states; ++i) {
+      std::sort(delta[i].begin(), delta[i].end());
+      complete &= chars_count[i] == alphabet.size();
+    }
+    // Adding a "bottom" state if DFA is not complete.
     if (!complete) {
-      delta.push_back(std::vector<std::pair<int, int>>());
+      delta.push_back(std::vector<std::pair<NSIntSet, int>>());
       for (NSIntSet::iterator it(alphabet); it(); ++it)
         delta[n_states].push_back(std::make_pair(*it, n_states));
+      for (int i = 0; i < n_states; ++i)
+        if (chars_count[i] < alphabet.size()) {
+          NSIntSet s(alphabet);
+          for (auto& x : delta[i])
+            s.exclude(x.first);
+          delta[i].push_back(std::pair<NSIntSet,int>(s, n_states));
+        }
       n_states++;
       for (int i = 0; i < n_states; ++i)
+        // FIXME: Define operator < for NSIntSet
         std::sort(delta[i].begin(), delta[i].end());
     }
   }
+  
+  forceinline int
+  compDFA::nstate(int q) const {
+    if (q < final_fst)
+      return q;
+    else if (q > final_lst)
+      return q + final_fst - final_lst - 1;
+    else
+      return q + n_states - final_lst - 1;
+  }
+  
+  forceinline NSIntSet
+  compDFA::alphabet() const {
+    NSIntSet s;
+    for (int i = 0; i < n_states; i++)
+      for (auto& x : delta[i])
+        s.include(x.first);
+    return s;
+  }
+  
+  forceinline int
+  compDFA::search(int, int) const {
+    //TODO:
+    return 0;
+  };
+  
+  forceinline NSIntSet
+  compDFA::neighbours(int) const {
+    //TODO
+    return NSIntSet();
+  };
+  
+  forceinline NSIntSet 
+  compDFA::neighbours(int, const DSIntSet&) const {
+    //TODO
+    return NSIntSet();
+  };
+  
+  forceinline bool 
+  compDFA::accepted(const string& s) const {
+    //TODO
+    return false;
+  };
 
   forceinline void
   compDFA::negate() {
@@ -33,7 +105,7 @@ namespace Gecode { namespace String {
         std::sort(delta[i].begin(), delta[i].end());
       return;
     }
-    delta_t rdelta(n_states);
+    Delta_t rdelta(n_states);
     for (int i = 0; i < n_states; i++)
       for (auto& x : delta[i])
         rdelta[nstate(i)].push_back(std::make_pair(x.first, nstate(x.second)));
@@ -82,6 +154,13 @@ namespace Gecode { namespace String {
     (void) Propagator::dispose(home);
     return sizeof(*this);
   }
+  
+  template <class CtrlView, ReifyMode rm>
+  forceinline ExecStatus
+  ReReg<CtrlView, rm>::post(Home home, StringView x, compDFA* d, CtrlView b) {
+    (void) new (home) ReReg(home, x, d, b);
+    return ES_OK;
+  }
 
   template <class CtrlView, ReifyMode rm>
   forceinline ExecStatus
@@ -123,7 +202,7 @@ namespace Gecode { namespace String {
   ReReg<CtrlView, rm>::copy(Space& home) {
     return new (home) ReReg(home, *this);
   }
-
+  
   template<class CtrlView, ReifyMode rm>
   forceinline ExecStatus
   ReReg<CtrlView, rm>::propagate(Space& home, const ModEventDelta& m) {
@@ -144,14 +223,9 @@ namespace Gecode { namespace String {
       if (b.zero()) {
         if (rm == RM_IMP)
           return home.ES_SUBSUMED(*this);
-        compDFA* ndfa = new compDFA(*dfa);
-        ndfa->negate();
-        // std::cerr << "Negated DFA: " << *dfa << '\n';
-        GECODE_REWRITE(*this, (Reg::post(home(*this), x0, ndfa)));
       }
       else if (rm == RM_PMI)
         return home.ES_SUBSUMED(*this);
-      GECODE_REWRITE(*this, (Reg::post(home(*this), x0, dfa)));
     }
     // std::cerr<<"ReDFA::propagated "<<b<<" <> "<<x0<<std::endl;
     DashedString* x = x0.pdomain();
@@ -159,19 +233,15 @@ namespace Gecode { namespace String {
     NSIntSet Fi(0);
     int n = x->length();
     for (int i = 0; i < n; ++i) {
-      F[i] = Reg::reach_fwd(dfa, Fi, x->at(i), true);
+      F[i] = Reg::reach_fwd(dfa, Fi, x->at(i));
       Fi = F[i].back();
     }
     NSIntSet E(F.back().back());
     Fi = dfa->accepting_states();
-    if (Fi.contains(E)) {
+    if (Fi.contains(E))
       GECODE_ME_CHECK(b.eq(home, 1));
-      return propagate(home, m);
-    }
-    if (Fi.comp().contains(E)) {
+    if (Fi.comp().contains(E))
       GECODE_ME_CHECK(b.eq(home, 0));
-      return propagate(home, m);
-    }
     if (b.one())
       E.intersect(Fi);
     else if (b.zero())

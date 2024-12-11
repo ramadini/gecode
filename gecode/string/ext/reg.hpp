@@ -8,11 +8,25 @@ namespace Gecode { namespace String {
       std::vector<NSIntSet> qi(d.n_states);
       for (auto& x : d.delta[i])
         qi[x.second].add(x.first);
-      for (unsigned j = 0; j < qi.size(); ++j)
-        if (!qi[j].empty())
-          os << "(q" << i << ", " << qi[j] << ", q" << j << "), ";
+      for (unsigned j = 0; j < qi.size(); ++j) {
+        assert (!qi[j].empty());
+        os << "(q" << i << ", " << qi[j] << ", q" << j << "), ";
+      }
     }
-    return os << "F: " << d.accepting_states() << "]";
+    return os << "], F: " << d.stringDFA::accepting_states();
+  }
+  template<class Char, class Traits>
+  forceinline std::basic_ostream<Char,Traits>&
+  operator <<(std::basic_ostream<Char,Traits>& os, const compDFA& d) {
+    os << '[';
+    for (int i = 0; i < d.n_states; i++) {
+      for (auto& x : d.delta[i]){
+        NSIntSet S = x.first;
+        assert (!S.empty());
+        os << "(q" << i << ", " << S.toString() << ", q" << x.second << "), ";
+      }
+    }
+    return os << "], F: " << d.accepting_states();
   }
   template<class Char, class Traits>
   forceinline std::basic_ostream<Char,Traits>&
@@ -36,8 +50,7 @@ namespace Gecode { namespace String {
   }
 
   forceinline
-  trimDFA::trimDFA(const DFA& d) : n_states(d.n_states()),
-  final_fst(d.final_fst()), final_lst(d.final_lst() - 1), delta(d.n_states()) {
+  trimDFA::trimDFA(const DFA& d) : stringDFA(d), delta(d.n_states()) {
     NSIntSet S;
     for (DFA::Transitions t(d); t(); ++t) {
       S.add(t.symbol());
@@ -46,12 +59,7 @@ namespace Gecode { namespace String {
     for (int i = 0; i < n_states; ++i)
       std::sort(delta[i].begin(), delta[i].end());
   }
-
-  forceinline bool
-  trimDFA::accepting(int q) const {
-    return final_fst <= q && q <= final_lst;
-  }
-
+  
   forceinline int
   trimDFA::search(int q, int c) const {
     std::vector<std::pair<int, int>> d = delta[q];
@@ -68,12 +76,7 @@ namespace Gecode { namespace String {
     }
     return -1;
   }
-
-  forceinline NSIntSet
-  trimDFA::accepting_states() const {
-    return NSIntSet(final_fst, final_lst);
-  }
-
+  
   forceinline bool
   trimDFA::accepted(const string& s) const {
     int q = 0;
@@ -109,53 +112,6 @@ namespace Gecode { namespace String {
       if (S.in(x.first))
         s.add(x.second);
     return s;
-  }
-
-  forceinline void
-  trimDFA::negate(const NSIntSet& alphabet) {
-//     std::cerr << "trimDFA::negate: " << *this << ' ' << alphabet << '\n';
-    bool complete = true;
-    for (int i = 0; i < n_states; i++) {
-      NSIntSet a(alphabet);
-      for (int j = 0; j < (int) delta[i].size(); ++j)
-        a.remove(delta[i][j].first);
-      complete &= a.empty();
-      for (NSIntSet::iterator it(a); it(); ++it)
-        delta[i].push_back(std::make_pair(*it, n_states));
-    }
-    // Adding the "bottom" state before negating, if DFA is not complete.
-    if (!complete) {
-      delta.push_back(std::vector<std::pair<int, int>>());
-      for (NSIntSet::iterator it(alphabet); it(); ++it)
-        delta[n_states].push_back(std::make_pair(*it, n_states));
-      n_states++;
-    }
-    if (accepting(0)) {
-      final_fst = final_lst + 1;
-      final_lst = n_states - 1;
-      for (int i = 0; i < n_states; ++i)
-        std::sort(delta[i].begin(), delta[i].end());
-      return;
-    }
-    delta_t rdelta(n_states);
-    for (int i = 0; i < n_states; i++)
-      for (auto& x : delta[i])
-        rdelta[nstate(i)].push_back(std::make_pair(x.first, nstate(x.second)));
-    delta = rdelta;
-    final_lst = n_states - final_lst + final_fst - 2;
-    final_fst = 0;
-    for (int i = 0; i < n_states; ++i)
-      std::sort(delta[i].begin(), delta[i].end());
-  }
-
-  forceinline int
-  trimDFA::nstate(int q) const {
-    if (q < final_fst)
-      return q;
-    else if (q > final_lst)
-      return q + final_fst - final_lst - 1;
-    else
-      return q + n_states - final_lst - 1;
   }
   
   forceinline matchNFA
@@ -354,7 +310,7 @@ namespace Gecode { namespace String {
 
   forceinline std::vector<NSIntSet>
   Reg::reach_fwd(
-    trimDFA* dfa, const NSIntSet& Qf, const DSBlock& b, bool reif, bool rev
+    trimDFA* dfa, const NSIntSet& Qf, const DSBlock& b, bool rev
   ) {
     int l = b.l;
     std::vector<NSIntSet> Q(l + 2);
@@ -519,6 +475,146 @@ namespace Gecode { namespace String {
     return y;
   }
 
+  forceinline NSBlocks
+  Reg::reach_bwd(
+    compDFA* dfa, const std::vector<NSIntSet>& Q, NSIntSet& Qe, 
+    const DSBlock& b, bool& changed
+  ) {
+    compDFA::Delta_t delta_bwd(dfa->n_states);
+    for (int q = 0; q < dfa->n_states; ++q)
+      for (auto& x : dfa->delta[q])
+        if (!b.S.disjoint(x.first)) {
+          NSIntSet s(b.S);
+          s.intersect(x.first);
+          delta_bwd[x.second].push_back(std::pair<NSIntSet, int>(s, q));
+        }
+    int l = b.l, l1 = DashedString::_MAX_STR_LENGTH;
+    NSIntSet Q1(Qe);
+    int dist[dfa->n_states];
+    for (int q = 0; q < dfa->n_states; ++q)
+      if (Qe.contains(q))
+        dist[q] = 0;
+      else
+        dist[q] = DashedString::_MAX_STR_LENGTH;
+    std::list<int> Q_bfs;
+    for (NSIntSet::iterator i(Q1); i(); ++i)
+      Q_bfs.push_back(*i);
+    NSIntSet S_opt;
+    while (!Q_bfs.empty()) {
+      int q = Q_bfs.front(), d = dist[q];
+      Q_bfs.pop_front();
+      if (Q[l].contains(q))
+        l1 = min(l1, dist[q]);
+      if (d < DashedString::_MAX_STR_LENGTH)
+        ++d;
+      if (d <= b.u - b.l) {
+        std::vector<std::pair<NSIntSet, int>> dx;
+        dx = delta_bwd[q];
+        for (auto& x : dx) {
+          NSIntSet s = x.first;
+          int q1 = x.second;
+          if (Q[l + 1].contains(q1)) {
+            S_opt.include(s);
+            if (dist[q1] > d) {
+              Q_bfs.push_back(q1);
+              if (Q[l].in(q1))
+                Q1.include(q1);
+              dist[q1] = d;
+            }
+          }
+        }
+      }
+    }
+    NSBlocks y(l + 1);
+    NSIntSet E(Q1);
+    E.intersect(Q[l]);
+    if (l1 > l) {
+      changed = true;
+      y[l] = NSBlock(S_opt, l1, b.u - l);
+    }
+    else {
+      if (b.u > l && S_opt.size() < (int) b.S.size())
+        changed = true;
+      y[l] = NSBlock(S_opt, 0, b.u - l);
+    }
+    for (int i = l; i > 0; --i) {
+      NSIntSet S_man, B1;
+      for (NSIntSet::iterator it(E); it(); ++it) {
+        int q = *it;
+        std::vector<std::pair<NSIntSet, int>> dx;
+        dx = delta_bwd[q];
+        for (auto& x : dx) {
+          NSIntSet s = x.first; 
+          int q1 = x.second;
+          S_opt.include(s);
+          if (Q[i - 1].contains(q1)) {
+            S_man.include(s);
+            B1.add(q1);
+          }
+        }
+      }
+      E = B1;
+      if (S_man.size() < (int) b.S.size())
+        changed = true;
+      y[i - 1] = NSBlock(S_man, 1, 1);
+    }
+    y.normalize();
+    Qe = E;
+    return y;
+  }
+  
+  forceinline std::vector<NSIntSet>
+  Reg::reach_fwd(compDFA* dfa, const NSIntSet& Qf, const DSBlock& b) {
+    int l = b.l;
+    std::vector<NSIntSet> Q(l + 2);
+    Q[0] = Qf;
+    // Mandatory region.
+    for (int i = 0; i < l; ++i) {
+      NSIntSet qi;
+      for (NSIntSet::iterator it(Q[i]); it(); ++it)
+        qi.include(dfa->neighbours(*it, b.S));
+      if (qi.empty())
+        return std::vector<NSIntSet>();
+      if (qi == Q[i]) {
+        // Fixpoint.
+        for (int j = i + 1; j <= l + 1; ++j)
+          Q[j] = qi;
+        return Q;
+      }
+      Q[i + 1] = qi;
+    }
+    Q[l + 1] = Q[l];
+    int dist[dfa->n_states];
+    for (int q = 0; q < dfa->n_states; ++q)
+      if (Q[l].contains(q))
+        dist[q] = l;
+      else
+        dist[q] = DashedString::_MAX_STR_LENGTH;
+    std::list<int> Q_bfs;
+    for (NSIntSet::iterator i(Q[l]); i(); ++i)
+      Q_bfs.push_back(*i);
+    // BFS over optional region.
+    while (!Q_bfs.empty()) {
+      int q = Q_bfs.front(), d = dist[q];
+      Q_bfs.pop_front();
+      if (d < DashedString::_MAX_STR_LENGTH)
+        ++d;
+      if (d <= b.u) {
+        NSIntSet nq;
+        nq = dfa->neighbours(q, b.S);
+        for (NSIntSet::iterator j(nq); j(); ++j) {
+          int q1 = *j;
+          if (dist[q1] > d) {
+            Q_bfs.push_back(q1);
+            Q[l + 1].include(q1);
+            dist[q1] = d;
+          }
+        }
+      }
+    }
+    return Q;
+  }
+
   forceinline ExecStatus
   Reg::propagate(Space& home, const ModEventDelta& m) {
     // std::cerr<<"\nExtDFA<StringView>::propagate "<<x0<<" in dfa "<<*dfa<<std::endl;
@@ -571,7 +667,7 @@ namespace Gecode { namespace String {
     if (DashedString::_REVERSE_REGEX) {
       // std::cerr << "Reverse propagation\n";
       for (int i = 0; i < n; ++i) {
-        F[i] = reach_fwd(dfa, Fi, x->at(n - i - 1), false, true);
+        F[i] = reach_fwd(dfa, Fi, x->at(n - i - 1), true);
         if (F[i].empty())
           return ES_FAILED;
         Fi = F[i].back();

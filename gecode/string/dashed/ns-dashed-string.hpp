@@ -162,6 +162,11 @@ namespace Gecode { namespace String {
     iterator begin() const;
 
     iterator end() const;
+    
+    forceinline bool
+    operator<(const NSIntSet& that) const {
+        return this->min() < that.min();
+    }
 
   };
 
@@ -1489,7 +1494,7 @@ namespace Gecode { namespace String {
       return suff;
     }
     
-    friend std::ostream& operator<<(std::ostream& os, const NSBlocks& v);
+    friend std::ostream& operator<<(std::ostream& os, const NSBlocks& v);    
 
   };
 

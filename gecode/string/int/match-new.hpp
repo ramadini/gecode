@@ -6,9 +6,8 @@ namespace Gecode { namespace String {
   : MixBinaryPropagator
   <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM>
     (home, x, i), minR(r), Rpref(Rp), Rfull(Rf), Rcomp(nullptr), Rnfa(Rn) {
-    NSIntSet may_chars = x.may_chars();
-    Rcomp = new trimDFA(*Rfull);
-    Rcomp->negate(may_chars);         
+    Rcomp = new compDFA(*Rfull,  x.may_chars());
+    Rcomp->negate();         
   }
 
   forceinline ExecStatus
@@ -223,8 +222,9 @@ namespace Gecode { namespace String {
 //    std::cerr<<"After mand. B = "<< B.toString() << ", j = " << j << ", k = " << k << "\n";
   }
   
+  template <typename DFA_t>
   forceinline ExecStatus
-  MatchNew::propagateReg(Space& home, NSBlocks& x, trimDFA* d) {
+  MatchNew::propagateReg(Space& home, NSBlocks& x, DFA_t* d) {
 //    std::cerr << "\npropagateReg: "<<x<<" in "<<*d<<std::endl;
     // Returns ES_FAILED, ES_FIX (no changes) or ES_NOFIX (x changed).
     if (x.known())
@@ -400,14 +400,8 @@ namespace Gecode { namespace String {
     do {
       // x1 fixed and val(x1) in {0,1}.
       if (x1.assigned() && x1.val() <= 1) {
-        if (x1.val() == 0) {
-          if (Rcomp == nullptr) {
-            Rcomp = Rfull;
-            NSIntSet may_chars = x0.may_chars();
-            Rcomp->negate(may_chars);
-          }
-          GECODE_REWRITE(*this, Reg::post(home, x0, Rcomp));
-        }
+        if (x1.val() == 0)
+          GECODE_REWRITE(*this, (ReReg<Gecode::Int::NegBoolView,RM_PMI>::post(home, x0, Rcomp, Gecode::Int::NegBoolView())));
         GECODE_REWRITE(*this, Reg::post(home, x0, Rpref));
       }
       DashedString& X = *x0.pdomain();
@@ -465,11 +459,8 @@ namespace Gecode { namespace String {
 //        std::cerr << "(h,k)=" << "("<<h<<","<<k<<")\n";
         pref = prefix(h, k);
 //        std::cerr << "Pref: " << pref << "\n"; 
-        if (Rcomp == nullptr) {
-          NSIntSet may_chars = x0.may_chars();
-          Rcomp = new trimDFA(*Rfull);
-          Rcomp->negate(may_chars);
-        }        
+        if (Rcomp == nullptr)
+          Rcomp = new compDFA(*Rfull, x0.may_chars());
         es_pref = propagateReg(home, pref, Rcomp);
 //        std::cerr << "Rpref: " << *Rpref << '\n';
 //        std::cerr << "Rfull: " << *Rfull << '\n';

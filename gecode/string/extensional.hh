@@ -12,35 +12,62 @@ namespace Gecode { namespace String {
     // delta_t[i][j] = k <  0 means δ(i,j) = {-k,bot}.
     delta_t delta;
     NSIntSet neighbours(int, const DSIntSet&) const;
+    bool accepting(int) const;
+    NSIntSet accepting_states(void) const;
   };
 
-  // trimmed-DFA data structure for non-reified regular.
-  class trimDFA {
+  // Abstract class for trimDFA and compDFA.  
+  class stringDFA {
   protected:
     int final_fst;
     int final_lst;
   public:
+    int n_states;
+    stringDFA(const DFA& d): final_fst(d.final_fst()), 
+                             final_lst(d.final_lst()-1),
+                             n_states(d.n_states()) {};
+    bool accepting(int q) const {
+      return final_fst <= q && q <= final_lst; 
+    }
+    NSIntSet accepting_states(void) const {
+      return NSIntSet(final_fst, final_lst);
+    }
+    virtual NSIntSet alphabet() const = 0;
+    virtual int search(int, int) const = 0;
+    virtual NSIntSet neighbours(int) const = 0;
+    virtual NSIntSet neighbours(int, const DSIntSet&) const = 0;
+    virtual bool accepted(const string& s) const = 0;
+  };
+
+  // trimmed-DFA data structure for non-reified regular.
+  class trimDFA : public stringDFA {
+  public:
     typedef std::vector<std::vector<std::pair<int, int>>> delta_t;
-    int n_states;    
     delta_t delta;
     trimDFA(const DFA&);
-    void negate(const NSIntSet&);
-    bool accepting(int) const;
-    NSIntSet accepting_states(void) const;
-    int search(int, int) const;
-    bool accepted(const string& s) const;
     NSIntSet alphabet() const;
+    int search(int, int) const;
     NSIntSet neighbours(int) const;
     NSIntSet neighbours(int, const DSIntSet&) const;
-    matchNFA toMatchNFA(const NSIntSet&);
-  protected:
-    int nstate(int) const;
+    bool accepted(const string& s) const;
+    //TODO: Better if a constructor of matchNFA.
+    matchNFA toMatchNFA(const NSIntSet&); 
   };
 
   // complete-DFA data structure for reified regular.
-  struct compDFA : public trimDFA {
+  class compDFA : public stringDFA {
+    int nstate(int) const;
+  public:  
+    typedef std::vector<std::vector<std::pair<NSIntSet, int>>> Delta_t;    
+    Delta_t delta;
     compDFA(const DFA&, const NSIntSet&);
-    void negate(); //FIXME: Specialize.
+    compDFA(const trimDFA&, const NSIntSet&);
+    void negate();
+    NSIntSet alphabet() const;
+    int search(int, int) const;
+    NSIntSet neighbours(int) const;
+    NSIntSet neighbours(int, const DSIntSet&) const;
+    bool accepted(const string& s) const;
   };
 
 
@@ -66,14 +93,16 @@ namespace Gecode { namespace String {
     static ExecStatus post(Home home, StringView x, const DFA& dfa);
     static ExecStatus post(Home home, StringView x, trimDFA* pdfa);
     static NSBlocks dom(trimDFA*);
-    static std::vector<NSIntSet> reach_fwd(
-      trimDFA*, const NSIntSet&, const DSBlock&,
-      bool reif = false, bool bwd = false
+    static std::vector<NSIntSet> reach_fwd(trimDFA*, const NSIntSet&,
+      const DSBlock&, bool bwd = false
     );
-    static NSBlocks reach_bwd(trimDFA*, 
-      const std::vector<NSIntSet>&, NSIntSet&, const DSBlock&, bool&,
-      bool rev = false
+    static NSBlocks reach_bwd(trimDFA*, const std::vector<NSIntSet>&,
+      NSIntSet&, const DSBlock&, bool&, bool rev = false
     );
+    static std::vector<NSIntSet> reach_fwd(compDFA*, const NSIntSet&,
+                                                     const DSBlock&);
+    static NSBlocks reach_bwd(compDFA*, const std::vector<NSIntSet>&, NSIntSet&,
+                                                      const DSBlock&, bool&);
     ~Reg();
   };
 
@@ -105,6 +134,7 @@ namespace Gecode { namespace String {
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator for \f$ (x=y) \Leftrightarrow b\f$
     static ExecStatus post(Home home, StringView x, const DFA& d, CtrlView b);
+    static ExecStatus post(Home home, StringView x, compDFA* d, CtrlView b);
     ~ReReg();
   };
 

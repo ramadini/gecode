@@ -15,12 +15,12 @@ namespace Gecode { namespace String {
   private:
     trimDFA* Rs;
     trimDFA* sRs;    
-    trimDFA* sRsC;
+    compDFA* sRsC;
     int minR;
     std::pair<NSIntSet,int> checkBlock(const DSBlock&, const NSIntSet&) const;
     NSBlocks prefix(int,int) const;
     NSBlocks suffix(int,int) const;
-    static ExecStatus propagateReg(Space&, NSBlocks&, trimDFA*);
+    template <typename DFA_t> static ExecStatus propagateReg(Space&, NSBlocks&, DFA_t*);
   protected:
     using MixBinaryPropagator<StringView, PC_STRING_DOM, Gecode::Int::IntView, 
       Gecode::Int::PC_INT_DOM>::x0;
@@ -46,7 +46,7 @@ namespace Gecode { namespace String {
   private:
     trimDFA* Rpref;
     trimDFA* Rfull;    
-    trimDFA* Rcomp;
+    compDFA* Rcomp;
     matchNFA* Rnfa;
     int minR;    
     bool must_match(void) const;
@@ -56,7 +56,7 @@ namespace Gecode { namespace String {
     NSIntSet reachFwdLazy(const DSBlock&, const NSIntSet&) const;
     NSBlocks prefix(int,int) const;
     NSBlocks suffix(int,int) const;
-    static ExecStatus propagateReg(Space&, NSBlocks&, trimDFA*);
+    template <typename DFA_t> static ExecStatus propagateReg(Space&, NSBlocks&, DFA_t*);
   protected:
     using MixBinaryPropagator<StringView, PC_STRING_DOM, Gecode::Int::IntView, 
       Gecode::Int::PC_INT_DOM>::x0;
