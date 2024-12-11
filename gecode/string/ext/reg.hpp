@@ -13,42 +13,9 @@ namespace Gecode { namespace String {
         os << "(q" << i << ", " << qi[j] << ", q" << j << "), ";
       }
     }
-    return os << "], F: " << d.stringDFA::accepting_states();
+    return os << "], F: " << d.accepting_states().toString();
   }
-  template<class Char, class Traits>
-  forceinline std::basic_ostream<Char,Traits>&
-  operator <<(std::basic_ostream<Char,Traits>& os, const compDFA& d) {
-    os << '[';
-    for (int i = 0; i < d.n_states; i++) {
-      for (auto& x : d.delta[i]){
-        NSIntSet S = x.first;
-        assert (!S.empty());
-        os << "(q" << i << ", " << S.toString() << ", q" << x.second << "), ";
-      }
-    }
-    return os << "], F: " << d.accepting_states();
-  }
-  template<class Char, class Traits>
-  forceinline std::basic_ostream<Char,Traits>&
-  operator <<(std::basic_ostream<Char,Traits>& os, const matchNFA& R) {
-    os << '[';
-    for (int i = 0; i < R.n_states; i++) {
-      std::vector<NSIntSet> Si(R.n_states);
-      for (auto& x : R.delta[i]) {
-        if (x.second < 0) {
-          Si[-x.second].add(x.first);
-          Si[R.bot].add(x.first);
-        }
-        else
-          Si[x.second].add(x.first);
-      }
-      for (unsigned j = 0; j < Si.size(); ++j)
-        if (!Si[j].empty())
-          os << "(q" << i << ", " << Si[j] << ", q" << j << "), ";
-    }
-    return os << "qbot = " << R.bot << "]";
-  }
-
+  
   forceinline
   trimDFA::trimDFA(const DFA& d) : stringDFA(d), delta(d.n_states()) {
     NSIntSet S;

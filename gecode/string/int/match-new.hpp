@@ -1,4 +1,25 @@
 namespace Gecode { namespace String {
+  
+  template<class Char, class Traits>
+  forceinline std::basic_ostream<Char,Traits>&
+  operator <<(std::basic_ostream<Char,Traits>& os, const matchNFA& R) {
+    os << '[';
+    for (int i = 0; i < R.n_states; i++) {
+      std::vector<NSIntSet> Si(R.n_states);
+      for (auto& x : R.delta[i]) {
+        if (x.second < 0) {
+          Si[-x.second].add(x.first);
+          Si[R.bot].add(x.first);
+        }
+        else
+          Si[x.second].add(x.first);
+      }
+      for (unsigned j = 0; j < Si.size(); ++j)
+        if (!Si[j].empty())
+          os << "(q" << i << ", " << Si[j] << ", q" << j << "), ";
+    }
+    return os << "qbot = " << R.bot << "]";
+  }
 
   forceinline
   MatchNew::MatchNew(Home home, StringView x, Gecode::Int::IntView i, int r, 

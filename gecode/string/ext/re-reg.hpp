@@ -2,6 +2,21 @@
 
 namespace Gecode { namespace String {
 
+  template<class Char, class Traits>
+  forceinline std::basic_ostream<Char,Traits>&
+  operator <<(std::basic_ostream<Char,Traits>& os, const compDFA& d) {
+    os << '[';
+    for (int i = 0; i < d.n_states; i++) {
+      for (auto& x : d.delta[i]){
+        NSIntSet S = x.first;
+        assert (!S.empty());
+        os << "(q" << i << ", " << S.toString() << ", q" << x.second << "), ";
+      }
+    }
+    return os << "], |Q| = " << d.n_states << ", F: " << 
+                                d.accepting_states().toString();
+  }
+
   forceinline
   compDFA::compDFA(const trimDFA& d, const NSIntSet& alphabet) : stringDFA(d),
   delta(d.n_states) {
@@ -31,6 +46,7 @@ namespace Gecode { namespace String {
   forceinline
   compDFA::compDFA(const DFA& d, const NSIntSet& alphabet) : stringDFA(d),
   delta(d.n_states()) {
+    // std::cerr << d << "\n";
     int chars_count[n_states];
     for (auto& q : chars_count)
       q = 0;
@@ -49,15 +65,13 @@ namespace Gecode { namespace String {
         delta_q.push_back(std::pair<NSIntSet,int>(NSIntSet(a), q_out));
     }
     bool complete = true;
-    for (int i = 0; i < n_states; ++i) {
-      std::sort(delta[i].begin(), delta[i].end());
+    for (int i = 0; complete && i < n_states; ++i)
       complete &= chars_count[i] == alphabet.size();
-    }
     // Adding a "bottom" state if DFA is not complete.
     if (!complete) {
       delta.push_back(std::vector<std::pair<NSIntSet, int>>());
-      for (NSIntSet::iterator it(alphabet); it(); ++it)
-        delta[n_states].push_back(std::make_pair(*it, n_states));
+      NSIntSet s;
+      delta[n_states].push_back(std::make_pair(alphabet, n_states));
       for (int i = 0; i < n_states; ++i)
         if (chars_count[i] < alphabet.size()) {
           NSIntSet s(alphabet);
@@ -66,9 +80,10 @@ namespace Gecode { namespace String {
           delta[i].push_back(std::pair<NSIntSet,int>(s, n_states));
         }
       n_states++;
-      for (int i = 0; i < n_states; ++i)
-        std::sort(delta[i].begin(), delta[i].end());
     }
+    for (int i = 0; i < n_states; ++i)
+      std::sort(delta[i].begin(), delta[i].end());
+    // std::cerr << *this << '\n';
   }
   
   forceinline int
@@ -235,7 +250,7 @@ namespace Gecode { namespace String {
   template<class CtrlView, ReifyMode rm>
   forceinline ExecStatus
   ReReg<CtrlView, rm>::propagate(Space& home, const ModEventDelta& m) {
-    // std::cerr<<"ReDFA::propagate "<<b<<" <> "<<x0<<" in dfa "<<*dfa<<std::endl;
+//    std::cerr<<"ReDFA::propagate "<<b<<" <> "<<x0<<" in dfa "<<*dfa<<std::endl;
     if (x0.assigned()) {
       if (dfa->accepted(x0.val())) {
         if (rm != RM_IMP)
@@ -256,7 +271,6 @@ namespace Gecode { namespace String {
       else if (rm == RM_PMI)
         return home.ES_SUBSUMED(*this);
     }
-    // std::cerr<<"ReDFA::propagated "<<b<<" <> "<<x0<<std::endl;
     DashedString* x = x0.pdomain();
     std::vector<std::vector<NSIntSet>> F(x->length());
     NSIntSet Fi(0);
@@ -267,6 +281,7 @@ namespace Gecode { namespace String {
     }
     NSIntSet E(F.back().back());
     Fi = dfa->accepting_states();
+//    std::cerr << "E = " << E.toString() << ", Fi = " << Fi.toString() << '\n';
     if (Fi.contains(E))
       GECODE_ME_CHECK(b.eq(home, 1));
     if (Fi.comp().contains(E))
@@ -278,10 +293,9 @@ namespace Gecode { namespace String {
     else
       return ES_FIX;
     NSBlocks y[n];
-    E.intersect(Fi);
+//    std::cerr << "E = " << E.toString() << ", comp(Fi) = " << Fi.comp().toString() << '\n';    
     if (E.empty())
       return ES_FAILED;
-    // std::cerr << E << '\n';
     bool changed = false;
     int k = 0;
     for (int i = n - 1; i >= 0; --i) {
