@@ -35,7 +35,7 @@ namespace Gecode { namespace String {
     bool accepted(const string& s) const {
       int q = 0;
       for (auto& c : s) {
-        q = search(q, char2int(c));
+        q = search(q, c);
         if (q == -1)
           return false;
       }
@@ -64,7 +64,8 @@ namespace Gecode { namespace String {
   // complete-DFA data structure for reified regular.
   class compDFA : public stringDFA {
     int nstate(int) const;
-  public:  
+  public:
+    int q_bot;
     typedef std::vector<std::vector<std::pair<NSIntSet, int>>> Delta_t;    
     Delta_t delta;
     compDFA(const DFA&, const NSIntSet&);

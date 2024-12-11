@@ -90,18 +90,18 @@ then
   exit 1
 fi &&
 cat $X && 
-#echo "Solving ex_js.mzn"
-#mzn-gstrings $TEST_DIR/ex_js.mzn > $X;
-#x=`grep SVAL_TMP3 "$X" | awk -F" = " '{print $2}'`
-#if
-#  [ "$x" == "Hello0;" ]
-#then
-#  cat $X
-#else
-#  echo "Error! MZN output not expected!"
-#  cat $X
-#  exit 1
-#fi &&
+echo "Solving ex_js.mzn"
+mzn-gstrings $TEST_DIR/ex_js.mzn > $X;
+x=`grep SVAL_TMP3 "$X" | awk -F" = " '{print $2}'`
+if
+  [ "$x" == "Hello0;" ]
+then
+  cat $X
+else
+  echo "Error! MZN output not expected!"
+  cat $X
+  exit 1
+fi &&
 echo "Solving decode.mzn"
 mzn-gstrings $TEST_DIR/decode.mzn > $X
 x=`grep "x = array1d" "$X" | awk -F"[" '{print $2}' | sed "s/]);//g"`

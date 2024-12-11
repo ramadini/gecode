@@ -18,34 +18,30 @@ namespace Gecode { namespace String {
   }
 
   forceinline
-  compDFA::compDFA(const trimDFA& d, const NSIntSet& alphabet) : stringDFA(d),
-  delta(d.n_states) {
-    bool complete = true;
+  compDFA::compDFA(const trimDFA& d, const NSIntSet& alphabet) : q_bot(-1),
+  stringDFA(d), delta(d.n_states) {
+    bool add_bot = false;
     for (int q = 0; q < n_states; ++q) {
       std::vector<std::pair<int, int>> delta_q = d.delta[q];
-      bool addBot = delta_q.size() < alphabet.size();
-      complete &= !addBot;
+      add_bot |= delta_q.size() < alphabet.size();
       NSIntSet a(alphabet);
       for (auto& x : delta_q) {
         delta[q].push_back(std::pair<NSIntSet,int>(NSIntSet(x.first),x.second));
-        if (addBot)
+        if (add_bot)
           a.remove(x.first);
       }
-      if (addBot) {
+      if (add_bot) {
         assert (!a.empty());
         delta[q].push_back(std::pair<NSIntSet,int>(a, n_states));
       }
     }
-    if (!complete) {
-      n_states++;
-      for (int i = 0; i < n_states; ++i)
-        std::sort(delta[i].begin(), delta[i].end());
-    }
+    if (add_bot)
+      q_bot = n_states++;
   }
   
   forceinline
-  compDFA::compDFA(const DFA& d, const NSIntSet& alphabet) : stringDFA(d),
-  delta(d.n_states()) {
+  compDFA::compDFA(const DFA& d, const NSIntSet& alphabet) : q_bot(-1),
+  stringDFA(d), delta(d.n_states()) {
     // std::cerr << d << "\n";
     int chars_count[n_states];
     for (auto& q : chars_count)
@@ -79,10 +75,8 @@ namespace Gecode { namespace String {
             s.exclude(x.first);
           delta[i].push_back(std::pair<NSIntSet,int>(s, n_states));
         }
-      n_states++;
+      q_bot = n_states++;
     }
-    for (int i = 0; i < n_states; ++i)
-      std::sort(delta[i].begin(), delta[i].end());
     // std::cerr << *this << '\n';
   }
   
@@ -106,20 +100,11 @@ namespace Gecode { namespace String {
   }
   
   forceinline int
-  compDFA::search(int q, int s) const {
-    std::vector<std::pair<NSIntSet, int>> d = delta[q];
-    int l = 0, u = d.size() - 1;
-    // Binary search, assuming delta[q] is lexicographically sorted.
-    while (l <= u) {
-      int m = l + (u - l) / 2;
-      NSIntSet dm = d[m].first;
-      if (dm == s)
-        return d[m].second;
-      if (dm < s)
-        l = m + 1;
-      else
-        u = m - 1;
-    }
+  compDFA::search(int q, int c) const {
+//    std::cerr << "search(q" << q << ", " << c << ")\n";
+    for (auto& x : delta[q])
+      if (x.first.in(c))
+        return x.second;
     return -1;
   };
   
@@ -145,8 +130,6 @@ namespace Gecode { namespace String {
     if (accepting(0)) {
       final_fst = final_lst + 1;
       final_lst = n_states - 1;
-      for (int i = 0; i < n_states; ++i)
-        std::sort(delta[i].begin(), delta[i].end());
       return;
     }
     Delta_t rdelta(n_states);
@@ -156,8 +139,6 @@ namespace Gecode { namespace String {
     delta = rdelta;
     final_lst = n_states - final_lst + final_fst - 2;
     final_fst = 0;
-    for (int i = 0; i < n_states; ++i)
-      std::sort(delta[i].begin(), delta[i].end());
   }
 
   template <class CtrlView, ReifyMode rm>
@@ -278,18 +259,29 @@ namespace Gecode { namespace String {
     for (int i = 0; i < n; ++i) {
       F[i] = Reg::reach_fwd(dfa, Fi, x->at(i));
       Fi = F[i].back();
+//      std::cerr << Fi.toString() << ' ' << dfa->q_bot << "\n";
+      if (Fi.size() == 1 && Fi.min() == dfa->q_bot) {
+        n = i + 1;
+        break;
+      }
     }
-    NSIntSet E(F.back().back());
+    NSIntSet E(Fi);
     Fi = dfa->accepting_states();
 //    std::cerr << "E = " << E.toString() << ", Fi = " << Fi.toString() << '\n';
     if (Fi.contains(E))
       GECODE_ME_CHECK(b.eq(home, 1));
     if (Fi.comp().contains(E))
       GECODE_ME_CHECK(b.eq(home, 0));
-    if (b.one())
+    if (b.one()) {
+      if (rm == RM_PMI)
+        return home.ES_SUBSUMED(*this);
       E.intersect(Fi);
-    else if (b.zero())
+    }
+    else if (b.zero()) {
+      if (rm == RM_IMP)
+        return home.ES_SUBSUMED(*this);
       E.intersect(Fi.comp());
+    }
     else
       return ES_FIX;
     NSBlocks y[n];
