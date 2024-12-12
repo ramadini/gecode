@@ -9,47 +9,53 @@ namespace Gecode { namespace String {
     for (int i = 0; i < d.n_states; i++) {
       for (auto& x : d.delta[i]){
         NSIntSet S = x.first;
-        assert (!S.empty());
         os << "(q" << i << ", " << S.toString() << ", q" << x.second << "), ";
       }
     }
-    return os << "], |Q| = " << d.n_states << ", F: " << 
-                                d.accepting_states().toString();
+    return os << "], |Q| = " << d.n_states << ", q_bot: " << d.q_bot << ", F: "
+                             << d.accepting_states().toString();
   }
 
   forceinline
   compDFA::compDFA(const trimDFA& d, const NSIntSet& alphabet) : q_bot(-1),
   stringDFA(d), delta(d.n_states) {
+//    std::cerr << d << "\n";
     bool add_bot = false;
-    for (int q = 0; q < n_states; ++q) {
-      std::vector<std::pair<int, int>> delta_q = d.delta[q];
+    for (int q = 0; q < d.n_states; ++q) {
+      const std::vector<std::pair<int, int>>& delta_q = d.delta[q];
       add_bot |= delta_q.size() < alphabet.size();
-      NSIntSet a(alphabet);
-      for (auto& x : delta_q) {
-        delta[q].push_back(std::pair<NSIntSet,int>(NSIntSet(x.first),x.second));
-        if (add_bot)
-          a.remove(x.first);
-      }
-      if (add_bot) {
-        assert (!a.empty());
-        delta[q].push_back(std::pair<NSIntSet,int>(a, n_states));
+      NSIntSet S[n_states];
+      for (auto& x : delta_q)
+        S[x.second].add(x.first);
+      for (int i = 0; i < d.n_states; ++i)
+        if (!S[i].empty())
+          delta[q].push_back(std::pair<NSIntSet, int>(S[i], i));
+      if (delta_q.size() < alphabet.size()) {
+        add_bot = true;
+        NSIntSet a(alphabet);
+        for (int i = 0; i < n_states; ++i)
+          a.exclude(S[i]);
+        delta[q].push_back(std::pair<NSIntSet, int>(a, n_states));
       }
     }
-    if (add_bot)
+    if (add_bot) {
+      delta.push_back(std::vector<std::pair<NSIntSet, int>>(1));
+      delta[n_states][0] = std::make_pair(alphabet, n_states);
       q_bot = n_states++;
+    }
+//    std::cerr << *this << '\n';
   }
   
   forceinline
   compDFA::compDFA(const DFA& d, const NSIntSet& alphabet) : q_bot(-1),
   stringDFA(d), delta(d.n_states()) {
-    // std::cerr << d << "\n";
+//    std::cerr << d << "\n";
     int chars_count[n_states];
-    for (auto& q : chars_count)
-      q = 0;
+    for (auto& q : chars_count) q = 0;
     for (DFA::Transitions t(d); t(); ++t) {
       int q_in = t.i_state(), a = t.symbol(), q_out = t.o_state();
-      chars_count[q_in]++;
       std::vector<std::pair<NSIntSet, int>>& delta_q = delta[q_in];
+      chars_count[q_in]++;
       bool new_state = true;
       for (auto& x : delta_q)
         if (x.second == q_out) {
@@ -73,11 +79,12 @@ namespace Gecode { namespace String {
           NSIntSet s(alphabet);
           for (auto& x : delta[i])
             s.exclude(x.first);
+          assert (!s.empty());
           delta[i].push_back(std::pair<NSIntSet,int>(s, n_states));
         }
       q_bot = n_states++;
     }
-    // std::cerr << *this << '\n';
+//    std::cerr << *this << '\n';
   }
   
   forceinline int
@@ -248,9 +255,11 @@ namespace Gecode { namespace String {
       if (b.zero()) {
         if (rm == RM_IMP)
           return home.ES_SUBSUMED(*this);
+        //FIXME: Transform into trimDFA?
       }
       else if (rm == RM_PMI)
         return home.ES_SUBSUMED(*this);
+      //FIXME: Transform into trimDFA?
     }
     DashedString* x = x0.pdomain();
     std::vector<std::vector<NSIntSet>> F(x->length());
@@ -258,6 +267,10 @@ namespace Gecode { namespace String {
     int n = x->length();
     for (int i = 0; i < n; ++i) {
       F[i] = Reg::reach_fwd(dfa, Fi, x->at(i));
+      if (F[i].empty()) {
+        GECODE_ME_CHECK(b.eq(home, 0));
+        return home.ES_SUBSUMED(*this);
+      }
       Fi = F[i].back();
 //      std::cerr << Fi.toString() << ' ' << dfa->q_bot << "\n";
       if (Fi.size() == 1 && Fi.min() == dfa->q_bot) {
@@ -270,7 +283,7 @@ namespace Gecode { namespace String {
 //    std::cerr << "E = " << E.toString() << ", Fi = " << Fi.toString() << '\n';
     if (Fi.contains(E))
       GECODE_ME_CHECK(b.eq(home, 1));
-    if (Fi.comp().contains(E))
+    else if (Fi.comp().contains(E))
       GECODE_ME_CHECK(b.eq(home, 0));
     if (b.one()) {
       if (rm == RM_PMI)

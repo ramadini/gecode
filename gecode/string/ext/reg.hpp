@@ -8,10 +8,9 @@ namespace Gecode { namespace String {
       std::vector<NSIntSet> qi(d.n_states);
       for (auto& x : d.delta[i])
         qi[x.second].add(x.first);
-      for (unsigned j = 0; j < qi.size(); ++j) {
-        assert (!qi[j].empty());
-        os << "(q" << i << ", " << qi[j] << ", q" << j << "), ";
-      }
+      for (unsigned j = 0; j < qi.size(); ++j)
+        if (!qi[j].empty())
+          os << "(q" << i << ", " << qi[j] << ", q" << j << "), ";
     }
     return os << "], F: " << d.accepting_states().toString();
   }

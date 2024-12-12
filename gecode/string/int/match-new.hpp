@@ -71,8 +71,11 @@ namespace Gecode { namespace String {
     GECODE_ME_CHECK(i.le(home, x.max_length() - r));
     GECODE_ME_CHECK(x.lb(home, r));
 //    std::cerr << "RE: " << re << ", minlen: " << r << ", i: " << i << '\n';
-    trimDFA* Rp = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
+    trimDFA* Rp = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());    
     matchNFA* Rn = new matchNFA(Rp->toMatchNFA(x.may_chars()));
+//    std::cerr << "Rn: " << *Rn << "\n";
+//    std::cerr << "Rp: " << *Rp << "\n";
+//    std::cerr << "compDFA(Rp): " << compDFA(*Rp, x.may_chars()) << "\n";
     (void) new (home) MatchNew(home, x, i, r, Rp, R, Rn);    
     return ES_OK;
   }
@@ -161,7 +164,7 @@ namespace Gecode { namespace String {
           }
         }
       }
-    }    
+    }
 //    for (int i = 0; i < l + 2; ++i) std::cerr << "\tQ["<<i<<"] = " << Q[i].toString() << "\n";
     return Q;
   }
