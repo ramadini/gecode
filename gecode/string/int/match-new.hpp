@@ -159,10 +159,8 @@ namespace Gecode { namespace String {
     // Mandatory region.
     for (int i = 0; i < l; ++i) {
       NSIntSet qi;
-      for (NSIntSet::iterator it(Q[i]); it(); ++it) {
-        NSIntSet qj = Rnfa->neighbours(*it, b.S);
-        qi.include(qj);
-      }
+      for (NSIntSet::iterator it(Q[i]); it(); ++it)
+        qi.include(Rnfa->neighbours(*it, b.S));
       assert (!qi.empty());
       if ((qi.size() == 1 && qi.in(1)) || qi == Q[i]) {        
         for (int j = i + 1; j <= l + 1; ++j)
