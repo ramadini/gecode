@@ -3,19 +3,6 @@
 
 namespace Gecode { namespace String {
 
-  struct matchNFA {
-    // 0 = initial state q_0, 1 = accepting state q_F, bot = q_⊥ state.    
-    typedef std::vector<std::vector<std::pair<int, int>>> delta_t;
-    int bot;    
-    int n_states;
-    // delta_t[i][j] = k >= 0 means δ(i,j) = {k}.
-    // delta_t[i][j] = k <  0 means δ(i,j) = {-k,bot}.
-    delta_t delta;
-    NSIntSet neighbours(int, const DSIntSet&) const;
-    bool accepting(int) const;
-    NSIntSet accepting_states(void) const;
-  };
-
   // Abstract class for trimDFA and compDFA.  
   class stringDFA {
   protected:
@@ -57,8 +44,6 @@ namespace Gecode { namespace String {
     int search(int, int) const;
     NSIntSet neighbours(int) const;
     NSIntSet neighbours(int, const DSIntSet&) const;
-    //TODO: Better a matchNFA constructor.
-    matchNFA toMatchNFA(const NSIntSet&); 
   };
 
   // complete-DFA data structure for reified regular.
@@ -66,7 +51,7 @@ namespace Gecode { namespace String {
     int nstate(int) const;
   public:
     int q_bot;
-    typedef std::vector<std::vector<std::pair<NSIntSet, int>>> Delta_t;    
+    typedef std::vector<std::vector<std::pair<NSIntSet, int>>> Delta_t;
     Delta_t delta;
     compDFA(const DFA&, const NSIntSet&);
     compDFA(const trimDFA&, const NSIntSet&);
@@ -75,6 +60,15 @@ namespace Gecode { namespace String {
     int search(int, int) const;
     NSIntSet neighbours(int) const;
     NSIntSet neighbours(int, const DSIntSet&) const;
+  };
+  
+  struct matchNFA : public compDFA {
+    // 0 = initial state q_0, 1 = accepting state q_F, bot = q_⊥ state.
+    // delta[i][j] =  k means δ(i,j) = {k}
+    // delta[i][j] = -k means δ(i,j) = {k,q_bot}
+    matchNFA(const trimDFA&, const NSIntSet&);
+    NSIntSet neighbours(int, const DSIntSet&) const;
+    bool accepting(int) const;
   };
 
 

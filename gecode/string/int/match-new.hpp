@@ -2,24 +2,57 @@ namespace Gecode { namespace String {
   
   template<class Char, class Traits>
   forceinline std::basic_ostream<Char,Traits>&
-  operator <<(std::basic_ostream<Char,Traits>& os, const matchNFA& R) {
+  operator <<(std::basic_ostream<Char,Traits>& os, const matchNFA& d) {
     os << '[';
-    for (int i = 0; i < R.n_states; i++) {
-      std::vector<NSIntSet> Si(R.n_states);
-      for (auto& x : R.delta[i]) {
+    for (int i = 0; i < d.n_states; i++) {
+      for (auto& x : d.delta[i]){
+        NSIntSet S = x.first;
+        os << "(q" << i << ", " << S.toString();
+        if (x.second < 0)
+          os << ", {q" << -x.second << ", q" << d.q_bot << "}), ";
+        else
+          os << ", q" << x.second << "), ";
+      }
+    }
+    return os << "], |Q| = " << d.n_states << ", q_bot: q" << d.q_bot << ", F: "
+                             << d.accepting_states().toString();
+  }
+
+  forceinline
+  matchNFA::matchNFA(const trimDFA& dfa, const NSIntSet& domain) : 
+  compDFA(dfa, domain) {
+    // Proper pattern: not empty, not containing empty string.
+    assert (dfa.n_states > 0 && !dfa.accepted(""));
+//    std::cerr << static_cast<compDFA&>(*this) << "\n";
+    delta[q_bot][0] = delta[0][0];
+    for (int i = 1; i < delta[0].size(); ++i)
+      delta[q_bot].push_back(delta[0][i]);
+    for (int i = 0; i < delta.size(); ++i) {      
+      if (i != q_bot) {   
+        for (int j = 0; j < delta[i].size(); ++j) {
+          int q = delta[i][j].second;
+          if (q > 1 && q != q_bot)
+            delta[i][j].second = -q;
+        }
+      }
+    }
+//    std::cerr << "matchNFA: " << *this << "\n";
+  }
+
+  forceinline NSIntSet
+  matchNFA::neighbours(int q, const DSIntSet& S) const {
+    NSIntSet Q;
+    for (auto& x : delta[q]) {
+      if (!S.disjoint(x.first))
         if (x.second < 0) {
-          Si[-x.second].add(x.first);
-          Si[R.bot].add(x.first);
+          Q.add(-x.second);
+          Q.add(q_bot);
         }
         else
-          Si[x.second].add(x.first);
-      }
-      for (unsigned j = 0; j < Si.size(); ++j)
-        if (!Si[j].empty())
-          os << "(q" << i << ", " << Si[j] << ", q" << j << "), ";
+          Q.add(x.second);
     }
-    return os << "qbot = " << R.bot << "]";
-  }
+    return Q;
+  };
 
   forceinline
   MatchNew::MatchNew(Home home, StringView x, Gecode::Int::IntView i, int r, 
@@ -72,7 +105,7 @@ namespace Gecode { namespace String {
     GECODE_ME_CHECK(x.lb(home, r));
 //    std::cerr << "RE: " << re << ", minlen: " << r << ", i: " << i << '\n';
     trimDFA* Rp = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());    
-    matchNFA* Rn = new matchNFA(Rp->toMatchNFA(x.may_chars()));
+    matchNFA* Rn = new matchNFA(*Rp, x.may_chars());
 //    std::cerr << "Rn: " << *Rn << "\n";
 //    std::cerr << "Rp: " << *Rp << "\n";
 //    std::cerr << "compDFA(Rp): " << compDFA(*Rp, x.may_chars()) << "\n";
@@ -178,10 +211,10 @@ namespace Gecode { namespace String {
     std::vector<NSIntSet> delta_bwd(Rnfa->n_states);
     for (int q = 0; q < Rnfa->n_states; ++q)
       for (auto& x : Rnfa->delta[q])
-        if (b.S.in(x.first))
+        if (!b.S.disjoint(x.first))
           if (x.second < 0) {
             delta_bwd[-x.second].add(q);
-            delta_bwd[Rnfa->bot].add(q);
+            delta_bwd[Rnfa->q_bot].add(q);
           }
           else
             delta_bwd[x.second].add(q);
@@ -208,7 +241,7 @@ namespace Gecode { namespace String {
             if (Q[l].in(q1))
               B.include(q1);
             dist[q1] = d;
-            if (q1 == Rnfa->bot && k == 0)
+            if (q1 == Rnfa->q_bot && k == 0)
               k = b.u - d + 1;
           }
         }
@@ -216,7 +249,7 @@ namespace Gecode { namespace String {
     }    
     B.intersect(Q[l]);
 //    std::cerr<<"After opt. B = "<< B.toString() << ", k = " << k << ".\n------\n";
-    if (B.size() == 1 && B.in(Rnfa->bot)) {
+    if (B.size() == 1 && B.in(Rnfa->q_bot)) {
       j = l+1;
       return;
     }
@@ -232,12 +265,12 @@ namespace Gecode { namespace String {
 //          std::cerr << "\tq'= " << q1 << ", Q["<<i-1<<"] = " << Q[i-1].toString() << "\n";
           if (Q[i - 1].contains(q1)) {
             B1.add(q1);
-            if (k == 0 && q1 == Rnfa->bot)
+            if (k == 0 && q1 == Rnfa->q_bot)
               k = i;
           }
         }        
       }
-      if (j == 0 && B1.size() == 1 && B1.in(Rnfa->bot))
+      if (j == 0 && B1.size() == 1 && B1.in(Rnfa->q_bot))
         j = i;
 //      std::cerr << "\tB' = " << B1.toString() << ", j = " << j << ", k = " << k << "\n";
       B = B1;

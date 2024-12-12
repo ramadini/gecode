@@ -68,57 +68,6 @@ namespace Gecode { namespace String {
         s.add(x.second);
     return s;
   }
-  
-  forceinline matchNFA
-  trimDFA::toMatchNFA(const NSIntSet& domain) {
-    int qbot;
-    matchNFA R;
-    // Proper pattern: not empty, not containing empty string.
-    assert (!accepted(""));
-//    std::cerr << "trimDFA::toMatchNFA of " << *this << "\n";
-    R.delta = delta;
-    R.n_states = n_states + 1;
-    qbot = delta.size();
-    R.delta.push_back(std::vector<std::pair<int, int>>());
-    R.bot = qbot;
-    NSIntSet S = alphabet();
-    S.include(domain);
-    for (NSIntSet::iterator it = S.begin(); it(); ++it)
-      R.delta[qbot].push_back(std::make_pair(*it, qbot));
-    for (auto& x : delta[0])
-      R.delta[qbot][x.first].second = x.second;
-//    std::cerr << "matchNFA: " << R << "\n";
-    for (int i = 0; i < delta.size(); ++i) {      
-      if (i != qbot) {
-        NSIntSet T(S);      
-        for (int j = 0; j < delta[i].size(); ++j) {
-          T.remove(delta[i][j].first);
-          int q = delta[i][j].second;
-          if (q > 1 && q != qbot)
-            R.delta[i][j].second = -q;
-        }
-        for (NSIntSet::iterator it = T.begin(); it(); ++it)
-          R.delta[i].push_back(std::make_pair(*it, qbot));
-      }
-    }
-//    std::cerr << "matchNFA: " << R << "\n";
-    return R;
-  }
-
-  forceinline NSIntSet
-  matchNFA::neighbours(int q, const DSIntSet& S) const {
-    NSIntSet Q;
-    for (auto& x : delta[q]) {
-      if (S.in(x.first))
-        if (x.second < 0) {
-          Q.add(-x.second);
-          Q.add(bot);
-        }
-        else
-          Q.add(x.second);
-    }
-    return Q;
-  };
 
   forceinline
   Reg::Reg(Home home, StringView x, trimDFA* p)
