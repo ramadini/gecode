@@ -257,16 +257,13 @@ namespace Gecode { namespace String {
       }
       
       // Compute l as the leftmost position for a match, if any.
-      int l = 1, u = 0;
+      int l = 1;
       for (int i = 0; i < h || (i == h && k > 0); ++i) {
         NSBlocks x_suff = suffix(i, 0);
         if (x_suff[0].l > 1)
           x_suff[0].l = 1;
 //        std::cerr << i << ": " << x_suff << "\n";
         if (checkReg(home, x_suff, Rs)) {
-          l = 1;
-          for (int j = 0; j < i; ++j)
-            l += px.at(j).l;
           h = i;
           k = 0;
 //          std::cerr << "[" << x0.varimp() << "] updated l and (h,k)\n";
@@ -285,6 +282,7 @@ namespace Gecode { namespace String {
         updatedI = true;
       }
       if (0 && "compute_upper_bound") { //FIXME: Should it be an option?
+        int u = 0;
         for (int j = 0; j <= h; ++j) {
           u += px.at(j).u;
   //        std::cerr << j << ' ' << u << '\n';
@@ -311,10 +309,12 @@ namespace Gecode { namespace String {
       int es_pref = ES_FIX;
       if (updatedI || l < x1.min()) {
         // Updating (h,k) from the lower bound of x1.
-        h = 0, k = x1.min() - 1;
-        while (h < n && k >= px.at(h).u) {      
-          k -= px.at(h).u;
-          h++;
+        if (!updatedI) {
+          h = 0, k = x1.min() - 1;
+          while (h < n && k >= px.at(h).u) {      
+            k -= px.at(h).u;
+            h++;
+          }
         }
 //        std::cerr << "Updated (h,k) = ("<<h<<", "<<k<<") from position " << x1.min() << "\n";
         pref = prefix(h, k);
