@@ -21,6 +21,7 @@ namespace Gecode { namespace String {
     NSBlocks prefix(int,int) const;
     NSBlocks suffix(int,int) const;
     template <typename DFA_t> static ExecStatus propagateReg(Space&, NSBlocks&, DFA_t*);
+    template <typename DFA_t> bool checkReg(Space& home, const NSBlocks& x, DFA_t* d) const;
   protected:
     using MixBinaryPropagator<StringView, PC_STRING_DOM, Gecode::Int::IntView, 
       Gecode::Int::PC_INT_DOM>::x0;

@@ -255,11 +255,11 @@ namespace Gecode { namespace String {
       if (b.zero()) {
         if (rm == RM_IMP)
           return home.ES_SUBSUMED(*this);
-        //FIXME: Transform into trimDFA?
+        //FIXME: Transform into trimDFA if corresponding delta is smaller?
       }
       else if (rm == RM_PMI)
         return home.ES_SUBSUMED(*this);
-      //FIXME: Transform into trimDFA?
+      //FIXME: Transform into trimDFA if corresponding delta is smaller?
     }
     DashedString* x = x0.pdomain();
     std::vector<std::vector<NSIntSet>> F(x->length());

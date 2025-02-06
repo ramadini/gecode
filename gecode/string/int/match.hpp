@@ -190,6 +190,30 @@ namespace Gecode { namespace String {
     } while (changed);
     return nofix ? ES_NOFIX : ES_FIX;
   }
+  
+  template <typename DFA_t>
+  forceinline bool
+  Match::checkReg(Space& home, const NSBlocks& x, DFA_t* d) const {
+//    std::cerr << "\ncheckReg: "<<x<<" in "<<*d<<std::endl;
+    // Returns ES_FAILED, ES_FIX (no changes) or ES_NOFIX (x changed).
+    if (x.known())
+      return d->accepted(x.val());
+    int n = x.length();
+    std::vector<std::vector<NSIntSet>> F(n);
+    NSIntSet Fi(0);
+    for (int i = 0; i < n; ++i) {
+      F[i] = Reg::reach_fwd(d, Fi, DSBlock(home,x[i]));
+      if (F[i].empty())
+        return false;
+      Fi = F[i].back();
+    }
+    NSIntSet E(F.back().back());
+    NSBlocks y[n];
+    Fi = d->accepting_states();
+    E.intersect(Fi);
+//    std::cerr << "E: " << E.toString() << ", F: " << Fi.toString() << '\n';
+    return !E.empty();
+  }
 
   forceinline ExecStatus
   Match::propagate(Space& home, const ModEventDelta& med) {
@@ -222,7 +246,7 @@ namespace Gecode { namespace String {
         return me_failed(x1.eq(home,0)) ? ES_FAILED : ES_FIX;
         
       // Surely a match: possibly refining lower and upper bound of x1.
-      if (Q.size() == 1 && Q.max() == 1) {   
+      if (Q.size() == 1 && Q.max() == 1) {
         GECODE_ME_CHECK(x1.gq(home, 1));
         if (i < n) {
           int u = -minR + 1;
@@ -239,7 +263,7 @@ namespace Gecode { namespace String {
         if (x_suff[0].l > 1)
           x_suff[0].l = 1;
 //        std::cerr << i << ": " << x_suff << "\n";
-        if (propagateReg(home, x_suff, Rs) != ES_FAILED) {
+        if (checkReg(home, x_suff, Rs)) {
           l = 1;
           for (int j = 0; j < i; ++j)
             l += px.at(j).l;
@@ -269,7 +293,7 @@ namespace Gecode { namespace String {
           NSBlocks x_suff = suffix(i, 0);
           if (x_suff[0].l > 1)
             x_suff[0].l = 1;
-          if (propagateReg(home, x_suff, Rs) != ES_FAILED)
+          if (checkReg(home, x_suff, Rs))
             for (int j = h+1; j <= i; ++j)
               u += px.at(j).u;
         }
