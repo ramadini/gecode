@@ -233,10 +233,10 @@ namespace Gecode { namespace String {
         //FIXME: Positions are 0-based, not 1-based.
         std::pair<NSIntSet,int> p = checkBlock(px.at(i), Q);
         Q = p.first; j = p.second;
-        if (Q.size() == 1 && Q.max() == 0) {
+        if (h == 0 && k == 0 && Q.size() == 1 && Q.max() == 0) {
           // Q = {q0}.
           h = i; k = j;
-//          std::cerr << "(h,k) = (" << h << "," << k << ")\n";
+//        std::cerr << "(h,k) = (" << h << "," << k << ")\n";       
         }
         ++i;
       }

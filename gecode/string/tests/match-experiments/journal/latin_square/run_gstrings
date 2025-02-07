@@ -24,9 +24,9 @@ echo '' > $OUT
 echo '' > $TMP
 echo '' > $FZN
 
-for solver in 'G-Strings_ori' #'G-Strings_new' 'G-Strings_dec'
+for solver in 'G-Strings_new' #'G-Strings_ori' #'G-Strings_dec'
 do
-  for i in {1..40}
+  for i in {2..40}
   do
     dzn="-D\"N=$i\""
     header="$solver|$i"
