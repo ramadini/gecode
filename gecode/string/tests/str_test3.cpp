@@ -345,8 +345,8 @@ public:
     assert(match(*this, x, i, R, R1, 1).propagate(*this, 0) == ES_FIX);
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
-    assert (i.size() == 23);
-    assert (i.min() == 0 && i.max() == 23 && !i.in(1));
+    assert (i.size() == 22);
+    assert (i.min() == 0 && i.max() == 23 && !i.in(1) && !i.in(2));
   }
 
 };
