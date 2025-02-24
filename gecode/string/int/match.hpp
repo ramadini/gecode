@@ -228,17 +228,18 @@ namespace Gecode { namespace String {
       }
       DashedString& px = *x0.pdomain();
       NSIntSet Q(0);
-      int i = 0, j = 0, h = 0, k = 0, n = px.length();
+      int i = 0, j = 0, k = 0, h = px.length(), n = h;
       while (i < n && !Q.in(1)) {        
         //FIXME: Positions are 0-based, not 1-based.
         std::pair<NSIntSet,int> p = checkBlock(px.at(i), Q);
-        Q = p.first; j = p.second;
-        if (Q.in(0)) {
-          h = i; k = j;
-//        std::cerr << "(h,k) = (" << h << "," << k << ")\n";       
-        }
+        Q = p.first; j = p.second;        
+//        if (Q.in(0)) {
+//          h = i; k = j;
+////        std::cerr << "(h,k) = (" << h << "," << k << ")\n";       
+//        }
         ++i;
       }
+      std::cerr << "Q = " << Q.toString() << "\n";
       
       // No match.
       if (!Q.in(1)) 
@@ -255,7 +256,7 @@ namespace Gecode { namespace String {
         }
       }
       
-      // Compute l as the leftmost position for a match, if any.
+      // Compute l as the leftmost position for a match.
       int l = 1;
       for (int i = 0; i < h || (i == h && k > 0); ++i) {
         NSBlocks x_suff = suffix(i, 0);
@@ -271,6 +272,8 @@ namespace Gecode { namespace String {
         else
           l += i < h ? px.at(i).l : k ;
       }
+      assert (k == 0);
+      
 //      std::cerr << "l: " << l << ", h: " << h << "\n";
       bool updatedI = false;
       if (l > 1 && l > x1.min()) {
