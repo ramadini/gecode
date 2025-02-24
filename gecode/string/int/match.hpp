@@ -89,25 +89,19 @@ namespace Gecode { namespace String {
     return suff;
   }
 
-  forceinline std::pair<NSIntSet,int>
+  forceinline NSIntSet
   Match::checkBlock(const DSBlock& b, const NSIntSet& Q_in) const {
 //    std::cerr << "checkBlock " << b << '\n';
-    int l = b.l, j = 0;
+    int l = b.l;
     NSIntSet Q_prev = Q_in;
     // Mandatory region.
     for (int i = 0; i < l; ++i) {
       NSIntSet Qi;
       for (NSIntSet::iterator it(Q_prev); it(); ++it)
         Qi.include(sRs->neighbours(*it, b.S));
-      if (Qi.max() == 0)
-        // All paths lead to q0.
-        j = i;
-      else if (Qi.in(1))
-        // Final state q1 belongs to Qi.
-        return std::make_pair(Qi, j);
-      if (Qi == Q_prev)
-        // Fixpoint.
-        return std::make_pair(Qi, Qi.max() == 0 ? l : j);
+      if (Qi.in(1) || Qi == Q_prev)
+        // Final state q1 belongs to Qi, or fixpoint reached.
+        return Qi;
       Q_prev = Qi;
     }
     // BFS over optional region.
@@ -138,7 +132,7 @@ namespace Gecode { namespace String {
     for (int q = 0; q < sRs->n_states; ++q)
       if (dist[q] <= DashedString::_MAX_STR_LENGTH)
         Qf.add(q);
-    return std::make_pair(Qf, j);
+    return Qf;
   }
   
   template <typename DFA_t>
@@ -228,18 +222,11 @@ namespace Gecode { namespace String {
       }
       DashedString& px = *x0.pdomain();
       NSIntSet Q(0);
-      int i = 0, j = 0, k = 0, h = px.length(), n = h;
-      while (i < n && !Q.in(1)) {        
+      int i = 0, j = 0, n = px.length();
+      while (i < n && !Q.in(1))
         //FIXME: Positions are 0-based, not 1-based.
-        std::pair<NSIntSet,int> p = checkBlock(px.at(i), Q);
-        Q = p.first; j = p.second;        
-//        if (Q.in(0)) {
-//          h = i; k = j;
-////        std::cerr << "(h,k) = (" << h << "," << k << ")\n";       
-//        }
-        ++i;
-      }
-      std::cerr << "Q = " << Q.toString() << "\n";
+        Q = checkBlock(px.at(i++), Q);
+//      std::cerr << "Q = " << Q.toString() << "\n";
       
       // No match.
       if (!Q.in(1)) 
@@ -257,8 +244,8 @@ namespace Gecode { namespace String {
       }
       
       // Compute l as the leftmost position for a match.
-      int l = 1;
-      for (int i = 0; i < h || (i == h && k > 0); ++i) {
+      int l = 1, k = 0, h = n;
+      for (int i = 0; i < n; ++i) {
         NSBlocks x_suff = suffix(i, 0);
         if (x_suff[0].l > 1)
           x_suff[0].l = 1;
@@ -272,7 +259,7 @@ namespace Gecode { namespace String {
         else
           l += i < h ? px.at(i).l : k ;
       }
-      assert (k == 0);
+      assert (h < n && k == 0);
       
 //      std::cerr << "l: " << l << ", h: " << h << "\n";
       bool updatedI = false;

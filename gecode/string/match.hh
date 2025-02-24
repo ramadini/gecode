@@ -17,7 +17,7 @@ namespace Gecode { namespace String {
     trimDFA* sRs;    
     compDFA* sRsC;
     int minR;
-    std::pair<NSIntSet,int> checkBlock(const DSBlock&, const NSIntSet&) const;
+    NSIntSet checkBlock(const DSBlock&, const NSIntSet&) const;
     NSBlocks prefix(int,int) const;
     NSBlocks suffix(int,int) const;
     template <typename DFA_t> static ExecStatus propagateReg(Space&, NSBlocks&, DFA_t*);
