@@ -192,18 +192,15 @@ namespace Gecode { namespace String {
     // Returns ES_FAILED, ES_FIX (no changes) or ES_NOFIX (x changed).
     if (x.known())
       return d->accepted(x.val());
-    int n = x.length();
-    std::vector<std::vector<NSIntSet>> F(n);
     NSIntSet Fi(0);
-    for (int i = 0; i < n; ++i) {
-      F[i] = Reg::reach_fwd(d, Fi, DSBlock(home,x[i]));
-      if (F[i].empty())
+    for (int i = 0; i < x.length(); ++i) {
+      std::vector<NSIntSet> F = Reg::reach_fwd(d, Fi, DSBlock(home,x[i]));
+      if (F.empty())
         return false;
-      Fi = F[i].back();
+      Fi = F.back();
       if (Fi.in(1))
         return true;
     }
-    assert (!F.back().back().in(1));
     return false;
   }
 
