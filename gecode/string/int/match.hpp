@@ -200,13 +200,11 @@ namespace Gecode { namespace String {
       if (F[i].empty())
         return false;
       Fi = F[i].back();
+      if (Fi.in(1))
+        return true;
     }
-    NSIntSet E(F.back().back());
-    NSBlocks y[n];
-    Fi = d->accepting_states();
-    E.intersect(Fi);
-//    std::cerr << "E: " << E.toString() << ", F: " << Fi.toString() << '\n';
-    return !E.empty();
+    assert (!F.back().back().in(1));
+    return false;
   }
 
   forceinline ExecStatus
@@ -257,7 +255,7 @@ namespace Gecode { namespace String {
           break;
         }
         else
-          l += i < h ? px.at(i).l : k ;
+          l += px.at(i).l;
       }
       assert (h < n && k == 0);
       
