@@ -187,21 +187,21 @@ namespace Gecode { namespace String {
   
   template <typename DFA_t>
   forceinline int
-  Match::checkReg(Space& home, int k, const NSBlocks& x, DFA_t* d) const {
+  Match::checkReg(Space& home, int i, const NSBlocks& x, DFA_t* d) const {
 //    std::cerr << "\ncheckReg: "<<x<<" in "<<*d<<std::endl;
-    NSIntSet Fi(0);
-    for (int i = 0; i < x.length(); ++i) {
-      std::vector<NSIntSet> F = Reg::reach_fwd(d, Fi, DSBlock(home,x[i]));
+    NSIntSet Fj(0);
+    for (int j = 0; j < x.length(); ++j) {
+      std::vector<NSIntSet> F = Reg::reach_fwd(d, Fj, DSBlock(home,x[j]));
       if (F.empty())
         return -1;
-      Fi = F.back();
-//      std::cerr << "After x[" << i << "] = " << x[i] << ": " << Fi.toString() << "\n";
-      if (Fi.in(1)) {
-        if (Fi.size() > 1 || !must_match())
+      Fj = F.back();
+//      std::cerr << "After x[" << j << "] = " << x[j] << ": " << Fj.toString() << "\n";
+      if (Fj.in(1)) {
+        if (Fj.size() > 1 || !must_match())
           return 0;
         int u = 0;
-        for (int j = 0; j <= k; ++j)
-          u += x0.pdomain()->at(j).u;
+        for (int k = 0; k <= i + j; ++k)
+          u += x0.pdomain()->at(k).u;
 //        std::cerr << "x0: "<< x0 << ", x:" << x << ", i: " << i << ", u: " << u << ", minR: " << minR << "\n";
         return u;
       }
