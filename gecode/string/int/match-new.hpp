@@ -390,19 +390,21 @@ namespace Gecode { namespace String {
   };
   
   forceinline NSIntSet
-  MatchNew::reachFwdLazy(const DSBlock& b, const NSIntSet& Q_in) const {
-//    std::cerr << "reachFwdLazy " << b << ' '<< Q_in.toString() << ", Rfull: " << *Rfull << '\n';
+  MatchNew::reachMust(const DSBlock& b, const NSIntSet& Q_in) const {
+//    std::cerr << "reachMust " << b << ' '<< Q_in.toString() << ", Rfull: " << *Rfull << '\n';
     int l = b.l, j = 0;
     NSIntSet Q_prev = Q_in;
     // Mandatory region.
     for (int i = 0; i < l; ++i) {
       NSIntSet Qi;
-      for (NSIntSet::iterator it(Q_prev); it(); ++it)
-        Qi.include(Rfull->neighbours(*it, b.S));
+      for (NSIntSet::iterator it(Q_prev); it(); ++it) {
+        NSIntSet Q = Rfull->neighbot(*it, b.S);
+        if (Q.empty())
+          return Q;
+        Qi.include(Q);
+      }
 //      std::cerr << "Qi after block " << b << ": " << Qi.toString() << '\n';
-      if (Qi.size() == 1 && Qi.in(1))
-        return Qi;
-      if (Qi == Q_prev)
+      if ((Qi.size() == 1 && Qi.in(1)) || Qi == Q_prev)
         // Fixpoint.
         return Qi;
       Q_prev = Qi;
@@ -418,7 +420,9 @@ namespace Gecode { namespace String {
       int q = U.front(), d = dist[q] + 1;
       U.pop_front();
       if (d <= b.u) {
-        NSIntSet Nq = Rfull->neighbours(q, b.S);
+        NSIntSet Nq = Rfull->neighbot(q, b.S);
+        if (Nq.empty())
+          return Nq;
         for (NSIntSet::iterator j(Nq); j(); ++j) {
           int q1 = *j;
           if (dist[q1] > d) {
@@ -441,7 +445,9 @@ namespace Gecode { namespace String {
     DashedString& px = *x0.pdomain();
     NSIntSet Q(0);
     for (int i = 0; i < px.length(); ++i) {
-      Q = reachFwdLazy(px.at(i), Q);
+      Q = reachMust(px.at(i), Q);
+      if (Q.empty())
+        return false;
       if (Q.size() == 1 && Q.in(1))
         return true;
     }

@@ -72,7 +72,7 @@ public:
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
     assert (lx == x.domain().logdim());
-    assert (i.min() == 2 && i.max() == 9);
+    assert (i.min() == 2 && i.max() == 6);
   }
 
   void test02() {
@@ -252,7 +252,7 @@ public:
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
     assert (lx == x.domain().logdim());
-    assert (i.min() == 1 && i.max() == 8);
+    assert (i.min() == 1 && i.max() == 5);
   }
 
   void test08() {
@@ -310,7 +310,7 @@ public:
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(*R1, x.may_chars());
-    assert(match(*this, x, i, 1, R1, R, R2).propagate(*this, 0) == ES_FIX);
+    assert(match(*this, x, i, 2, R1, R, R2).propagate(*this, 0) == ES_FIX);
     std::cerr << "===== After i = match(x, R) =====\n" << std::endl;
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
@@ -342,11 +342,11 @@ public:
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     std::cerr << "===== After i = match(x, R) =====" << std::endl;
-    assert(match(*this, x, i, R, R1, 1).propagate(*this, 0) == ES_FIX);
+    assert(match(*this, x, i, R, R1, 2).propagate(*this, 0) == ES_FIX);
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
-    assert (i.size() == 22);
-    assert (i.min() == 0 && i.max() == 23 && !i.in(1) && !i.in(2));
+    assert (i.size() == 21);
+    assert (i.min() == 0 && i.max() == 22 && !i.in(1) && !i.in(2));
   }
 
 };

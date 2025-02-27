@@ -17,11 +17,13 @@ namespace Gecode { namespace String {
     trimDFA* sRs;    
     compDFA* sRsC;
     int minR;
+    bool must_match(void) const;
+    NSIntSet reachMust(const DSBlock&, const NSIntSet&) const;
     NSIntSet checkBlock(const DSBlock&, const NSIntSet&) const;
     NSBlocks prefix(int,int) const;
     NSBlocks suffix(int,int) const;
     template <typename DFA_t> static ExecStatus propagateReg(Space&, NSBlocks&, DFA_t*);
-    template <typename DFA_t> bool checkReg(Space& home, const NSBlocks& x, DFA_t* d) const;
+    template <typename DFA_t> int checkReg(Space& home, int i, const NSBlocks& x, DFA_t* d) const;
   protected:
     using MixBinaryPropagator<StringView, PC_STRING_DOM, Gecode::Int::IntView, 
       Gecode::Int::PC_INT_DOM>::x0;
@@ -54,7 +56,7 @@ namespace Gecode { namespace String {
     ExecStatus refine_idx(Space& home, int&, int&);
     std::vector<NSIntSet> reachFwd(const DSBlock&, const NSIntSet&) const;
     void reachBwd(int, NSIntSet&, const std::vector<NSIntSet>&, int&, int&) const;
-    NSIntSet reachFwdLazy(const DSBlock&, const NSIntSet&) const;
+    NSIntSet reachMust(const DSBlock&, const NSIntSet&) const;
     NSBlocks prefix(int,int) const;
     NSBlocks suffix(int,int) const;
     template <typename DFA_t> static ExecStatus propagateReg(Space&, NSBlocks&, DFA_t*);

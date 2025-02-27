@@ -186,23 +186,93 @@ namespace Gecode { namespace String {
   }
   
   template <typename DFA_t>
-  forceinline bool
-  Match::checkReg(Space& home, const NSBlocks& x, DFA_t* d) const {
+  forceinline int
+  Match::checkReg(Space& home, int k, const NSBlocks& x, DFA_t* d) const {
 //    std::cerr << "\ncheckReg: "<<x<<" in "<<*d<<std::endl;
-    // Returns ES_FAILED, ES_FIX (no changes) or ES_NOFIX (x changed).
-    if (x.known())
-      return d->accepted(x.val());
     NSIntSet Fi(0);
     for (int i = 0; i < x.length(); ++i) {
       std::vector<NSIntSet> F = Reg::reach_fwd(d, Fi, DSBlock(home,x[i]));
       if (F.empty())
-        return false;
+        return -1;
       Fi = F.back();
-      if (Fi.in(1))
+//      std::cerr << "After x[" << i << "] = " << x[i] << ": " << Fi.toString() << "\n";
+      if (Fi.in(1)) {
+        if (Fi.size() > 1 || !must_match())
+          return 0;
+        int u = 0;
+        for (int j = 0; j <= k; ++j)
+          u += x0.pdomain()->at(j).u;
+//        std::cerr << "x0: "<< x0 << ", x:" << x << ", i: " << i << ", u: " << u << ", minR: " << minR << "\n";
+        return u;
+      }
+    }
+    return -1;
+  }
+
+  forceinline NSIntSet
+  Match::reachMust(const DSBlock& b, const NSIntSet& Q_in) const {
+//    std::cerr << "reachMust " << b << ' '<< Q_in.toString() << ", Rfull: " << *Rfull << '\n';
+    int l = b.l, j = 0;
+    NSIntSet Q_prev = Q_in;
+    // Mandatory region.
+    for (int i = 0; i < l; ++i) {
+      NSIntSet Qi;
+      for (NSIntSet::iterator it(Q_prev); it(); ++it) {
+        NSIntSet Q = sRs->neighbot(*it, b.S);
+        if (Q.empty())
+          return Q;
+        Qi.include(Q);
+      }
+//      std::cerr << "Qi after block " << b << ": " << Qi.toString() << '\n';
+      if ((Qi.size() == 1 && Qi.in(1)) || Qi == Q_prev)
+        // Fixpoint.
+        return Qi;
+      Q_prev = Qi;
+    }
+    // BFS over optional region.
+    int dist[sRs->n_states];
+    for (int q = 0; q < sRs->n_states; ++q)
+      dist[q] = Q_prev.contains(q) ? l : DashedString::_MAX_STR_LENGTH + 1;
+    std::list<int> U;
+    for (NSIntSet::iterator i(Q_prev); i(); ++i)
+      U.push_back(*i);    
+    while (!U.empty()) {
+      int q = U.front(), d = dist[q] + 1;
+      U.pop_front();
+      if (d <= b.u) {
+        NSIntSet Nq = sRs->neighbot(q, b.S);
+        if (Nq.empty())
+          return Nq;
+        for (NSIntSet::iterator j(Nq); j(); ++j) {
+          int q1 = *j;
+          if (dist[q1] > d) {
+            U.push_back(q1);
+            dist[q1] = d;
+          }
+        }
+      }
+    }
+    NSIntSet Qf;
+    for (int q = 0; q < sRs->n_states; ++q)
+      if (dist[q] <= DashedString::_MAX_STR_LENGTH)
+        Qf.add(q);
+//    std::cerr << "Qf: " << Qf.toString() << '\n';
+    return Qf;
+  }
+
+  forceinline bool
+  Match::must_match(void) const {
+    DashedString& px = *x0.pdomain();
+    NSIntSet Q(0);
+    for (int i = 0; i < px.length(); ++i) {
+      Q = reachMust(px.at(i), Q);
+      if (Q.empty())
+        return false;
+      if (Q.size() == 1 && Q.in(1))
         return true;
     }
     return false;
-  }
+  };
 
   forceinline ExecStatus
   Match::propagate(Space& home, const ModEventDelta& med) {
@@ -228,7 +298,7 @@ namespace Gecode { namespace String {
         return me_failed(x1.eq(home,0)) ? ES_FAILED : ES_FIX;
         
       // Surely a match: possibly refining lower and upper bound of x1.
-      if (Q.size() == 1 && Q.max() == 1) {
+      if (Q.size() == 1 && Q.in(1) && must_match()) {
         GECODE_ME_CHECK(x1.gq(home, 1));
         if (i < n) {
           int u = -minR + 1;
@@ -245,9 +315,12 @@ namespace Gecode { namespace String {
         if (x_suff[0].l > 1)
           x_suff[0].l = 1;
 //        std::cerr << i << ": " << x_suff << "\n";
-        if (checkReg(home, x_suff, Rs)) {
+        int u = checkReg(home, i, x_suff, Rs);
+        if (u >= 0) {
           h = i;
           k = 0;
+          if (u > 0)
+            GECODE_ME_CHECK(x1.lq(home, u));
 //          std::cerr << "[" << x0.varimp() << "] updated l and (h,k)\n";
           break;
         }
@@ -264,23 +337,6 @@ namespace Gecode { namespace String {
         GECODE_ME_CHECK(x1.minus_r(home, is));
 //        std::cerr << "Refined i = " << x1 << '\n';
         updatedI = true;
-      }
-      if (0 && "compute_upper_bound") { //FIXME: Should it be an option?
-        int u = 0;
-        for (int j = 0; j <= h; ++j) {
-          u += px.at(j).u;
-  //        std::cerr << j << ' ' << u << '\n';
-        }
-        for (int i = h+1; i < n; ++i) {
-          NSBlocks x_suff = suffix(i, 0);
-          if (x_suff[0].l > 1)
-            x_suff[0].l = 1;
-          if (checkReg(home, x_suff, Rs))
-            for (int j = h+1; j <= i; ++j)
-              u += px.at(j).u;
-        }
-  //      std::cerr << "u: " << u << "\n";
-        GECODE_ME_CHECK(x1.lq(home, u));
       }
 //      std::cerr << "i: " << x1 << "\n";
       // Can't refine x1.

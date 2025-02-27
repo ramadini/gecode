@@ -68,6 +68,17 @@ namespace Gecode { namespace String {
         s.add(x.second);
     return s;
   }
+  
+  forceinline NSIntSet
+  trimDFA::neighbot(int q, const DSIntSet& S) const {
+    NSIntSet s, s_delta;
+    for (auto& x : delta[q]) {
+      if (S.in(x.first))
+        s.add(x.second);
+      s_delta.add(x.first);
+    }
+    return s_delta.contains(s) ? s : NSIntSet();
+  }
 
   forceinline
   Reg::Reg(Home home, StringView x, trimDFA* p)

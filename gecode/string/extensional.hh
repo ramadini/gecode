@@ -44,6 +44,7 @@ namespace Gecode { namespace String {
     int search(int, int) const;
     NSIntSet neighbours(int) const;
     NSIntSet neighbours(int, const DSIntSet&) const;
+    NSIntSet neighbot(int, const DSIntSet&) const;
   };
 
   // complete-DFA data structure for reified regular.
