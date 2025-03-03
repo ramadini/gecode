@@ -286,6 +286,25 @@ namespace Gecode { namespace String {
         GECODE_REWRITE(*this, Reg::post(home, x0, Rs));
       }
       DashedString& px = *x0.pdomain();
+      
+      std::string w = px.known_pref();
+//      std::cerr << "w: " << w << '\n';
+      int z = w.size();
+      if (z > 0) {
+        if (sRs->accepted(w)) {
+          for (int i = 0; i < z; ++i)
+            if (Rs->accepted(w.substr(i))) {
+//              std::cerr << "\nMatch::propagated: i = " << i+1 << '\n';
+              GECODE_ME_CHECK(x1.eq(home, i+1));
+              return home.ES_SUBSUMED(*this);            
+            }
+        }
+        if (px.known())  {
+          GECODE_ME_CHECK(x1.eq(home, 0));
+          return home.ES_SUBSUMED(*this);            
+        }  
+      }
+      
       NSIntSet Q(0);
       int i = 0, j = 0, n = px.length();
       while (i < n && !Q.in(1))
