@@ -200,7 +200,7 @@ namespace Gecode { namespace String {
         if (Fj.size() > 1 || !must_match())
           return 0;
         int u = 0;
-        for (int k = 0; k <= i + j; ++k)
+        for (int k = 0; k <= i; ++k)
           u += x0.pdomain()->at(k).u;
 //        std::cerr << "x0: "<< x0 << ", x:" << x << ", i: " << i << ", u: " << u << ", minR: " << minR << "\n";
         return u;
