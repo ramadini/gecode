@@ -1,6 +1,6 @@
 #! /bin/bash
 
-EXP_PATH=$HOME'/papers/regular_match/experiments/latin_square'
+EXP_PATH=$HOME'/G-Strings/gecode/gecode/string/tests/match-experiments/journal/latin_square'
 
 # Time-out in seconds for constraint solving.
 TIMEOUT=300
@@ -24,9 +24,9 @@ echo '' > $OUT
 echo '' > $TMP
 echo '' > $SMT
 
-for solver in z3seq #FIXME cvc5 z3str
+for solver in z3str #cvc5 #z3seq
 do
-  for smt in `ls $EXP_PATH/smt/*.smt2 | sort -n`
+  for smt in `ls $EXP_PATH/smt/*.smt2 | sort -n | grep ls_[3-5].smt2` #FIXME
   do
     header="$solver|$smt"
     echo $header >> $ERRORS

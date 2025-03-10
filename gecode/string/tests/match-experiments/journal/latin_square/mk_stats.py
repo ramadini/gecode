@@ -4,11 +4,11 @@ import matplotlib
 matplotlib.rcParams['text.usetex'] = True
 import matplotlib.pyplot as plt
 
-PATH = '/home/roberto/papers/regular_match/experiments/latin_square/results/results_tot.log'
-SOLVERS = ['cvc5', 'G-Strings', 'G-Strings_dec']
+PATH = '/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/latin_square/results_tot.log'
+SOLVERS = ['cvc5', 'G-Strings_ori', 'G-Strings_dec', 'G-Strings_new', 'z3seq']
 
 TIMEOUT = 300.0
-NUM_PROBLEMS = 26
+NUM_PROBLEMS = 39
 
 reader = csv.reader(open(PATH), delimiter = '|')
 results = dict((s, {'sat': 0.0, 'unk': 0.0, 'time': 0.0}) for s in SOLVERS)
@@ -22,6 +22,8 @@ times = dict(
 for row in reader:
 #  print(row)
   solv = row[0]
+  if solv == 'z3str':
+    continue
   inst = row[1] 
   if inst not in infos.keys():
     infos[inst] = {}
@@ -44,8 +46,10 @@ print (times)
 labels = []
 solv2lab = {
   'cvc5': (r'\textsc{CVC5}', '-^'), 
-  'G-Strings_dec': (r'\textsc{G-Strings}$_{dec}$', '-s'),
-  'G-Strings': (r'\textsc{G-Strings}', '-o'),
+  'G-Strings_dec': (r'\textsc{Decomp}', '-s'),
+  'G-Strings_ori': (r'\textsc{PropDFA}', '-o'),
+  'G-Strings_new': (r'\textsc{PropDFA}', '-^'),
+  'z3seq': (r'\textsc{Z3seq}', '-^'),
 }
 for solver, vals in sorted(times.items()):
   lab = solv2lab[solver]
