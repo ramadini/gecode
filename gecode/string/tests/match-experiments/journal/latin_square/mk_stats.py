@@ -14,7 +14,7 @@ reader = csv.reader(open(PATH), delimiter = '|')
 results = dict((s, {'sat': 0.0, 'unk': 0.0, 'time': 0.0}) for s in SOLVERS)
 infos = {}
 times = dict(
-  (s, dict((str(i), 0.0) for i in range(2, NUM_PROBLEMS + 1))) for s in SOLVERS
+  (s, dict((str(i), TIMEOUT) for i in range(2, NUM_PROBLEMS + 1))) for s in SOLVERS
 )
 
 
@@ -45,11 +45,11 @@ print (times)
 
 labels = []
 solv2lab = {
-  'cvc5': (r'\textsc{CVC5}', '-^'), 
+  'cvc5': (r'\textsc{CVC5}', '-.'), 
   'G-Strings_dec': (r'\textsc{Decomp}', '-s'),
   'G-Strings_ori': (r'\textsc{PropDFA}', '-o'),
   'G-Strings_new': (r'\textsc{PropDFA}', '-^'),
-  'z3seq': (r'\textsc{Z3seq}', '-^'),
+  'z3seq': (r'\textsc{Z3seq}', '-*'),
 }
 for solver, vals in sorted(times.items()):
   lab = solv2lab[solver]
@@ -58,7 +58,7 @@ plt.xticks(
   range(NUM_PROBLEMS-1), range(2,NUM_PROBLEMS+1), rotation=45, fontsize=35
 )
 plt.yticks(fontsize=40)
-plt.legend(numpoints=3, handles=labels, loc='upper left', fontsize=32)
+plt.legend(numpoints=3, handles=labels, loc='best', fontsize=32)
 plt.xlabel('n', fontsize=50)
 plt.ylabel('runtime [s]', fontsize=50)
 plt.subplots_adjust(left=0.10, bottom=0.14, right=0.95, top=0.95)
