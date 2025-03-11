@@ -5,8 +5,8 @@ matplotlib.rcParams['text.usetex'] = True
 matplotlib.rcParams['text.latex.unicode'] = True
 import matplotlib.pyplot as plt
 '''
-PATH = '/home/roberto/papers/regular_match/experiments/shortest_match/results/results_tot.log'
-SOLVERS = ['cvc5', 'z3str', 'z3seq', 'G-Strings']
+PATH = '/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/results_tot.log'
+SOLVERS = ['cvc5', 'z3str', 'z3', 'G-Strings_ori', 'G-Strings_new']
 MIN = True
 
 TIMEOUT = 300.0
