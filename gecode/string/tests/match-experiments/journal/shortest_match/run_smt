@@ -33,7 +33,7 @@ OBJVAR=L
 
 for solver in z3seq cvc5 z3str
 do
-  for smt in `ls $EXP_PATH/dzn/sm* | grep "_512_\|_25.dzn" | sort -n` #FIXME
+  for smt in `ls $EXP_PATH/smt/sm* | grep "_512_\|_25.smt" | sort -n` #FIXME
   do
     header="$solver|$smt"
     echo $header >> $ERRORS
