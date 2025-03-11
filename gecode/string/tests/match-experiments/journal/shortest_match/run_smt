@@ -1,6 +1,6 @@
 #! /bin/bash
 
-EXP_PATH=$HOME'/papers/regular_match/experiments/shortest_match'
+EXP_PATH=$HOME'/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match'
 
 # Time-out in seconds for constraint solving.
 TIMEOUT=300
@@ -33,7 +33,7 @@ OBJVAR=L
 
 for solver in z3seq cvc5 z3str
 do
-  for smt in `ls $EXP_PATH/smt/*.smt2 | sort -n`
+  for smt in `ls $EXP_PATH/dzn/sm* | grep "_512_\|_25.dzn" | sort -n` #FIXME
   do
     header="$solver|$smt"
     echo $header >> $ERRORS

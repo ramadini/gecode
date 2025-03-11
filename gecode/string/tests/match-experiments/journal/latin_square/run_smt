@@ -24,9 +24,9 @@ echo '' > $OUT
 echo '' > $TMP
 echo '' > $SMT
 
-for solver in z3str cvc5 z3seq
+for solver in z3str #cvc5 #z3seq
 do
-  for smt in `ls $EXP_PATH/smt/*.smt2 | sort -n | grep "_512_\|_25.dzn"` #FIXME
+  for smt in `ls $EXP_PATH/smt/*.smt2 | sort -n | grep ls_[3-5].smt2` #FIXME
   do
     header="$solver|$smt"
     echo $header >> $ERRORS
