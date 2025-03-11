@@ -1,7 +1,7 @@
 from random import randint, choice
 
-DZN_PATH = '/home/roberto/papers/regular_match/experiments/shortest_match/dzn/sm_'
-SMT_PATH = '/home/roberto/papers/regular_match/experiments/shortest_match/smt/sm_'
+DZN_PATH = '/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_'
+SMT_PATH = '/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/smt/sm_'
 
 def randchar(idx = sorted(set.union(set(range(48,58)),
                                     set(range(65,91)),
@@ -47,8 +47,10 @@ def output_smt(L, N, W):
       f.write(f'(assert (str.in_re W {parse_match(tokens)}))\n')
     f.write('(check-sat)\n')
 
-for L in [32, 64, 128, 256]:
-  for N in [5, 10, 15, 20]:
+for L in [32, 64, 128, 256, 512]:
+  for N in [5, 10, 15, 20, 25]:
+    if L < 512 and N < 25:
+      continue
     w = ''.join([randchar() for _ in range(0, L)])
     indexes = [0, 0]
     while (len(indexes) > len(set(indexes))):

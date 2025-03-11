@@ -1,0 +1,24 @@
+L = 512;
+N = 20;
+PATTERNS = [
+	"(y|r|o)7Izsz",
+	"(zh|sW|OF|GQ|8P|Se)*",
+	"(b|V|A|S)",
+	"(q1K|2fP|i4U)pUbjpS(zDl|YOG|JSZ|sWf|KCH|kNs)53C0R7(m|M|x|X|t|A)*5t6(2X|wQ|ac|dy|hs)V(ab|OE)*evInQR(MVW|Mde|FtT|DG6)xJUu(B0|W2)*HM7Q",
+	"h(EzqHUuB0HM|0v3DoPkLKq|77qTAL8N1E)7QI(iWoFCU|LHkMjC|I6howe|gpnzUz)*Y8pKpWxvU5Y7ZQIy",
+	"(D6TB0H|JIZTUI|2m85E6|cQks4P|J4VbDB|DdcKEd)M7Q",
+	"zvI90yZhIWxc(S6fpX9vPpdO|zcbycBrqLzy|3WQCfgvj5V1|2v7hF6K5pJO|m5joPqVEhzZ|ddjbm1rclyM)D6TwK",
+	"q(HQ|Mb|8n|C8|hZ)",
+	"hEzqHM7(Q|g|6)*",
+	"VMx(j|A|J|J|B)y(7I|RG|Dl|6P)zsBq1(K|g|F|o|Q)*pUC(0R|Q6|fR|MR|Oe|qj)7m",
+	"LBzvI90yZhIWxcS(6|l|q)*fpX9vPpdOD6TC0R7mq",
+	"(w|a|C|C|r)K",
+	"pdOD(6|3|Y|1)TwKp(U|i|L|f)",
+	"(ZQ|cc)*",
+	"v(3dUU7q1KpUbjp|3EggJ5PJY8NV7|IGh1X6bs6mVw4|fC3Fx0dCzhjJZ)*S(zDl53|zOoqY|moRPD|ZOTSb|kv3Wt|er2LA)*C0(R7|uD|60|nP|cU|rR)m5t62(X|K|B|X)*V(a|j|o|G)be(vI|hd|1z|c1|9O|pP)n(QR|5d|Uu)MV(W|3|8|N)*xQ(BdA|PFz|ce4|z8b|2AQ|fJh)u(gM|Zl|F1|iH|5E)R(7|D|U|F|g)*ZQKM7QX(R|Z)F(r3ZagM|KX3YhT|9X80TE)*FNwK(NYVMxjy7Iz|cuvJ9WVMjr|sPkT9tYhcX|E59LUqZKUU|jYojVhol9a)*s",
+	"Q(u6T|wuj|qFY|1SA)w(K|2)*z7OwnG(6w|z9|4R|NL|fD|KM)G4x(sa|zv|u2|Uv)J(zGcHj0pg9Q9x|MnldCwfjduiv|hr7d4OiCnPLJ|pcxW8B1xI0yt)aq5lvm4(YmPsBxnF|DuYGTwR6|kN95hchl)*BAUhKn(CJ|M7|QZ|n7|ei|AO)*p(dO|12|Pv)KNYVM(x|Z|a|w|n)jy7Izs(P|W|X|h|q)p(dOD|Cfm|Pac|xsT)6TC0R(7mqW|0KHu)*xvU5Y7ZQ9(0yZhIWxcS|Uxd00oo23|8rTtpjSYv)*6(fp|kW|Mj|DW)*X(9vP|DRd|u5V|BAo)pd(OD6T|sKrc|HoMf)*",
+	"qWxvU5Y7ZQnG6wG4xsaJzG(cHj0pg9Q9|LNTGUrvvN|lbAxCW447|UdcFqwYPi|imnen5TG9)x(aq5lvm|efwOSA|bDuDm0)*4Ym(PsBxnF|yRkjCj)BAUh(Kn|HI|CN|0J|CN|qk)*CJp(dOD6T1KpUbF|yk38uVFuPRN|rKAsu4E7XrM|r3n2Wz4IBJN|AhUJK863p6i|sOk4FuPJdLV)",
+	"F(K|2|C)",
+	"KNYV(Mxjy7IzsPpdOD6TC0R7mqWxvU|bQOM3cO1q83NmHImht7ilfJDn|OlqIaQ0FnyHCnllVLgnaFj0Pl|HJZBcyh04Zi1u4E9QefC5c2VD|j5p1xt7mp6hWTSaTc7AEKdhbF|LoL8A7xGeyaxMlfCCMBXDDORU)*5Y7ZQ",
+	"K(pUb|J9W|Yqk|JOi|50Z)*F",
+]

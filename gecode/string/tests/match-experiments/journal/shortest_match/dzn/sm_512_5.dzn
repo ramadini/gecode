@@ -1,0 +1,9 @@
+L = 512;
+N = 5;
+PATTERNS = [
+	"E4(y1|5V|nE|L6|ua|Jc)*vSv90iK(o|0|U|6|G)UfPJy2e(x94|JsA|mw3|ouv|COh|TNN)*fq54(CXau|aVxG)*Q(IY|Jd|zr|JE)uwzqDJnfi(N|C|Z|b|x)1(5J|Op|yl|7H|E0|hp)*ZN(9zP|g00)Fl(g|k)*eRiqN(0v|uk|4H|e3|s1|dW)*n(E|r|h)*iJgQ(zUlPHJJe|qua9C94W|ppguzPnP|bYdzoYlF|0kUbq6Fr)*Hr59(GL5lGt|nju21G)xsE5vQ(8|V|8|Q|h|S)",
+	"(Enoqtf|GTpPuf|tKmOBL|Ds5EYb|ZhDqph|1PRwnP)*",
+	"VjXYxkm1d(y|Z|K|i|8|F)E4y1vSs(X7G|O0s|JZr)*s",
+	"bB0x(z|d|y|5|Q|1)b(6|p)*x5D(U|k|W|T|2|t)f(VDRAgC|BwVupK|s3GYNK|VFkoml)M8xyA(HB|LZ|GW|8y|N6)0oWumgdvFh3H(H|Q|z|0)r(4x7|6Nc|KES|MK3)EU3(KvaKU|XvrhJ|1H1GD|vth9W)*RC2(Ll3DA|fAs5r|ElEs6|Zebri)*z(cWcTeV|PQY1yU|ipjziC|NnF4zs|0MDCWk)*Vj(X|m|t|x|D)Yxkm1dyE4y1vS",
+	"Bjp(kIq|GSQ|DtT|k9U|Chw|0Qo)p1244(Q2NV|SFh6|7XST|imEG|ukvd)JI0(rduNSU9|sVQ7IjM)QGq(tE|Ki|XY)y5s(ToAA6tcGWxY5|9CfA6kzO2cQr|IvbKrlD3WewX|omBlwF4HSjfO)G(CapUvs|BEPpFT|dWIazs)*Muf(sg|Bp|Sy|du)lvj(i4I|OKR|PMW|Oms|hbe|D1q)*6l(eA|k9|kG|d7)*uyn(Y5IJbbf2VJS|sBnwOjRohOd)*pKA(wY|BJ)*I(2|8|K|h|T|V)e(ApPvFC|xxYpJ2|k8lrn1|bK9daa|4aF4Cy|ZErSbT)*OIgmM(2kC0U|KVTlC)*GXlj4R(V6DgVj|PT278U|PUhcHO|GqemuE|VoVQXs)*XYxkm1d(yE4|L07|pFv|yYK|SjD|ctK)*y1vSsX(7G|86|3N|Ox)s(eux|EaJ|A10|jQz|zgH)2Z4hA(3saMUy9T|fGKN5EOO)L(yhpN8aZo|C3G0gHBd)et(O|P)*p9(OhdAm|nwDG3|aN9Gq|9l2Zt)o(03na|I7aH|mnqH|AfrQ|JwvW|7LG4)*i(m|L|6)*7(e3S6mv8o|fH9eyWqb)*mN(Axl1i|nmbxQ|OXXTw|8GhUr|K3nPP|XmANo)*tN69ixLK(Q|R|Y|5)Vvaz(Z|w|B|d|K)*DF703(R|k|x)*U29(gYPm|BQJ5|vprC|1QsM|SGbC|0i18)*H(6Zy|ZCD|0hx|PWE|hyr|sYZ)*vaJ(U|1|V|K|F|Q)i3(e|q|B)*aFz(sdbPFj4L|FRSkgKsL|FZtXRqRQ|30GEcwHu|l4Z4DN3x)*f(1|f|t|B|r|r)qmz(Q|7|k|p|U|x)94r(ib|SS|8J|Ki)*P(1fgE0so2R9|UdpPk4N2oY|wZN2k7Srs4)*d90F(nIg|IYt|maV|pMZ|ah2)7hVGv2v(d|4|J|o|M)*I(aC|Jl|wp|2S|wm|8e)*swWv1YPYQT2QxFT(6r|oV|0V|xM|ca)oglO(E|7|0)SShP(dEn|m7j)*",
+]

@@ -24,9 +24,9 @@ echo '' > $OUT
 echo '' > $TMP
 echo '' > $FZN
 
-for solver in 'G-Strings_ori' #'G-Strings_new' #'G-Strings_dec'
+for solver in 'G-Strings_ori' 'G-Strings_new' #'G-Strings_dec'
 do
-  for dzn in `ls $EXP_PATH/dzn/sm* | sort -n`
+  for dzn in `ls $EXP_PATH/dzn/sm* | grep "_512_\|_25.dzn" | sort -n`
   do
     header="$solver|$dzn"
     echo $header >> $ERRORS
