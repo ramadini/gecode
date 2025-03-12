@@ -1,57 +1,3 @@
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_10.dzn|sat|87|{99: 0, 97: 1, 91: 36, 89: 36, 88: 143, 87: 147, }|300
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_15.dzn|opt|74|{92: 0, 85: 1, 84: 1, 83: 1, 82: 1, 80: 7, 79: 7, 77: 11, 76: 11, 75: 12, 74: 12, }|166
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_20.dzn|sat|73|{84: 1, 80: 1, 77: 1, 74: 15, 73: 24, }|300
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_5.dzn|opt|90|{91: 0, 90: 0, }|1
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_10.dzn|sat|162|{191: 1, 186: 1, 184: 1, 171: 49, 169: 49, 164: 252, 162: 253, }|300
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_15.dzn|sat|203|{205: 2, 204: 19, 203: 277, }|300
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_20.dzn|sat|167|{169: 1, 168: 1, 167: 55, }|300
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_5.dzn|opt|175|{193: 6, 189: 14, 179: 30, 175: 37, }|141
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_10.dzn|opt|17|{22: 0, 20: 0, 19: 0, 18: 0, 17: 0, }|0
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_15.dzn|opt|13|{14: 0, 13: 0, }|0
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_20.dzn|opt|9|{10: 0, 9: 0, }|0
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_5.dzn|opt|18|{18: 0, }|0
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_10.dzn|opt|29|{34: 0, 32: 0, 31: 0, 30: 0, 29: 0, }|1
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_15.dzn|opt|40|{45: 0, 43: 0, 42: 0, 41: 3, 40: 3, }|114
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_20.dzn|opt|36|{39: 0, 38: 0, 37: 1, 36: 1, }|145
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_5.dzn|opt|48|{51: 0, 48: 0, }|0
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_10.dzn|sat|87|{99: 1, 98: 12, 97: 21, 91: 112, 89: 113, 88: 240, 87: 284, }|300
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_15.dzn|sat|74|{91: 10, 88: 11, 87: 12, 81: 14, 80: 23, 79: 41, 77: 150, 75: 150, 74: 150, }|300
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_20.dzn|sat|73|{84: 1, 83: 1, 82: 1, 80: 1, 77: 1, 74: 55, 73: 86, }|300
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_5.dzn|opt|90|{91: 0, 90: 0, }|1
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_10.dzn|sat|184|{191: 1, 186: 1, 184: 2, }|300
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_15.dzn|sat|217|{217: 6, }|300
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_20.dzn|sat|167|{168: 131, 167: 132, }|300
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_5.dzn|opt|175|{189: 2, 175: 30, }|92
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_10.dzn|opt|17|{22: 0, 20: 0, 19: 0, 17: 0, }|0
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_15.dzn|opt|13|{14: 0, 13: 0, }|0
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_20.dzn|opt|9|{10: 0, 9: 0, }|0
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_5.dzn|opt|18|{18: 0, }|0
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_10.dzn|opt|29|{34: 0, 32: 0, 31: 0, 29: 0, }|2
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_15.dzn|opt|40|{45: 0, 43: 0, 42: 0, 41: 12, 40: 12, }|260
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_20.dzn|sat|36|{39: 1, 38: 1, 37: 3, 36: 3, }|300
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_5.dzn|opt|48|{51: 1, 48: 1, }|1
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_25.dzn|sat|88|{127: 1, 94: 1, 93: 1, 92: 2, 91: 2, 90: 7, 89: 8, 88: 51, }|300
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_25.dzn|unk|nan|{}|300
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_25.dzn|opt|5|{5: 0, }|0
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_10.dzn|sat|400|{400: 17, }|300
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_15.dzn|sat|380|{384: 18, 380: 201, }|300
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_20.dzn|unk|nan|{}|300
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_25.dzn|sat|376|{378: 12, 377: 80, 376: 120, }|300
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_5.dzn|sat|348|{359: 34, 348: 39, }|300
-G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_25.dzn|sat|32|{33: 0, 32: 0, }|300
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_25.dzn|sat|92|{96: 0, 95: 0, 94: 0, 93: 0, 92: 54, }|300
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_25.dzn|sat|191|{196: 1, 195: 1, 194: 2, 193: 2, 192: 3, 191: 6, }|300
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_25.dzn|opt|5|{5: 0, }|0
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_10.dzn|sat|396|{400: 9, 396: 11, }|300
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_15.dzn|sat|380|{384: 6, 380: 7, }|300
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_20.dzn|sat|386|{387: 15, 386: 27, }|300
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_25.dzn|sat|375|{376: 3, 375: 19, }|300
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_5.dzn|sat|348|{348: 27, }|300
-G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_25.dzn|sat|32|{34: 1, 33: 1, 32: 1, }|300
-G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_10.dzn|unk|nan|{}|300
-G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_15.dzn|unk|nan|{}|300
-G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_20.dzn|unk|nan|{}|300
-G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_25.dzn|unk|nan|{}|300
 z3seq|/home/roberto/papers/regular_match/experiments/shortest_match/smt/sm_128_10.smt2|unk|nan|{}|300
 z3seq|/home/roberto/papers/regular_match/experiments/shortest_match/smt/sm_128_15.smt2|unk|nan|{}|300
 z3seq|/home/roberto/papers/regular_match/experiments/shortest_match/smt/sm_128_20.smt2|unk|nan|{}|300
@@ -127,3 +73,78 @@ z3str|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journ
 z3str|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/smt/sm_512_25.smt2|unk|nan|{}|300
 z3str|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/smt/sm_512_5.smt2|unk|nan|{}|300
 z3str|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/smt/sm_64_25.smt2|unk|nan|{}|300
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_10.dzn|sat|87|{99: 0, 97: 1, 91: 36, 89: 36, 88: 143, 87: 147, }|300
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_15.dzn|opt|74|{92: 0, 85: 1, 84: 1, 83: 1, 82: 1, 80: 7, 79: 7, 77: 11, 76: 11, 75: 12, 74: 12, }|166
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_20.dzn|sat|73|{84: 1, 80: 1, 77: 1, 74: 15, 73: 24, }|300
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_5.dzn|opt|90|{91: 0, 90: 0, }|1
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_10.dzn|sat|162|{191: 1, 186: 1, 184: 1, 171: 49, 169: 49, 164: 252, 162: 253, }|300
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_15.dzn|sat|203|{205: 2, 204: 19, 203: 277, }|300
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_20.dzn|sat|167|{169: 1, 168: 1, 167: 55, }|300
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_5.dzn|opt|175|{193: 6, 189: 14, 179: 30, 175: 37, }|141
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_10.dzn|opt|17|{22: 0, 20: 0, 19: 0, 18: 0, 17: 0, }|0
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_15.dzn|opt|13|{14: 0, 13: 0, }|0
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_20.dzn|opt|9|{10: 0, 9: 0, }|0
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_5.dzn|opt|18|{18: 0, }|0
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_10.dzn|opt|29|{34: 0, 32: 0, 31: 0, 30: 0, 29: 0, }|1
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_15.dzn|opt|40|{45: 0, 43: 0, 42: 0, 41: 3, 40: 3, }|114
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_20.dzn|opt|36|{39: 0, 38: 0, 37: 1, 36: 1, }|145
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_5.dzn|opt|48|{51: 0, 48: 0, }|0
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_10.dzn|sat|87|{99: 1, 98: 12, 97: 21, 91: 112, 89: 113, 88: 240, 87: 284, }|300
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_15.dzn|sat|74|{91: 10, 88: 11, 87: 12, 81: 14, 80: 23, 79: 41, 77: 150, 75: 150, 74: 150, }|300
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_20.dzn|sat|73|{84: 1, 83: 1, 82: 1, 80: 1, 77: 1, 74: 55, 73: 86, }|300
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_5.dzn|opt|90|{91: 0, 90: 0, }|1
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_10.dzn|sat|184|{191: 1, 186: 1, 184: 2, }|300
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_15.dzn|sat|217|{217: 6, }|300
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_20.dzn|sat|167|{168: 131, 167: 132, }|300
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_5.dzn|opt|175|{189: 2, 175: 30, }|92
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_10.dzn|opt|17|{22: 0, 20: 0, 19: 0, 17: 0, }|0
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_15.dzn|opt|13|{14: 0, 13: 0, }|0
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_20.dzn|opt|9|{10: 0, 9: 0, }|0
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_5.dzn|opt|18|{18: 0, }|0
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_10.dzn|opt|29|{34: 0, 32: 0, 31: 0, 29: 0, }|2
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_15.dzn|opt|40|{45: 0, 43: 0, 42: 0, 41: 12, 40: 12, }|260
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_20.dzn|sat|36|{39: 1, 38: 1, 37: 3, 36: 3, }|300
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_5.dzn|opt|48|{51: 1, 48: 1, }|1
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_25.dzn|sat|88|{127: 1, 94: 1, 93: 1, 92: 2, 91: 2, 90: 7, 89: 8, 88: 51, }|300
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_25.dzn|unk|nan|{}|300
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_25.dzn|opt|5|{5: 0, }|0
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_10.dzn|sat|400|{400: 17, }|300
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_15.dzn|sat|380|{384: 18, 380: 201, }|300
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_20.dzn|unk|nan|{}|300
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_25.dzn|sat|376|{378: 12, 377: 80, 376: 120, }|300
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_5.dzn|sat|348|{359: 34, 348: 39, }|300
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_25.dzn|sat|32|{33: 0, 32: 0, }|300
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_25.dzn|sat|92|{96: 0, 95: 0, 94: 0, 93: 0, 92: 54, }|300
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_25.dzn|sat|191|{196: 1, 195: 1, 194: 2, 193: 2, 192: 3, 191: 6, }|300
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_25.dzn|opt|5|{5: 0, }|0
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_10.dzn|sat|396|{400: 9, 396: 11, }|300
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_15.dzn|sat|380|{384: 6, 380: 7, }|300
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_20.dzn|sat|386|{387: 15, 386: 27, }|300
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_25.dzn|sat|375|{376: 3, 375: 19, }|300
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_5.dzn|sat|348|{348: 27, }|300
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_25.dzn|sat|32|{34: 1, 33: 1, 32: 1, }|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_10.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_15.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_20.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_25.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_128_5.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_10.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_15.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_20.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_25.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_256_5.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_10.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_15.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_20.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_25.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_32_5.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_10.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_15.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_20.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_25.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_512_5.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_10.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_15.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_20.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_25.dzn|unk|nan|{}|300
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/dzn/sm_64_5.dzn|unk|nan|{}|300
