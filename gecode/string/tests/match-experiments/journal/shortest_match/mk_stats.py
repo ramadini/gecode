@@ -6,11 +6,11 @@ matplotlib.rcParams['text.latex.unicode'] = True
 import matplotlib.pyplot as plt
 '''
 PATH = '/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/results_tot.log'
-SOLVERS = ['cvc5', 'z3str', 'z3', 'G-Strings_ori', 'G-Strings_new']
+SOLVERS = ['cvc5', 'z3str', 'z3seq', 'G-Strings_ori', 'G-Strings_new', 'G-Strings_dec']
 MIN = True
 
 TIMEOUT = 300.0
-NUM_PROBLEMS = 16
+NUM_PROBLEMS = 25
 
 reader = csv.reader(open(PATH), delimiter = '|')
 results = dict((s, {'opt': 0.0, 'sat': 0.0, 'unk': 0.0, 'time': 0.0, 
