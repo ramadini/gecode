@@ -461,9 +461,12 @@ namespace Gecode { namespace String {
     do {
       // x1 fixed and val(x1) in {0,1}.
       if (x1.assigned() && x1.val() <= 1) {
-        if (x1.val() == 0)
-          GECODE_REWRITE(*this, (ReReg<Gecode::Int::NegBoolView,RM_PMI>::post(home, x0, Rcomp, Gecode::Int::NegBoolView())));
-        GECODE_REWRITE(*this, Reg::post(home, x0, Rpref));
+        if (x1.val() == 0) {
+          BoolVar b(home, 1, 1);
+          GECODE_REWRITE(*this, (ReReg<Gecode::Int::BoolView,RM_EQV>::post(home, x0, Rcomp, b)));
+        }
+        else
+          GECODE_REWRITE(*this, Reg::post(home, x0, Rpref));
       }
       DashedString& X = *x0.pdomain();
       std::string w = X.known_pref();
