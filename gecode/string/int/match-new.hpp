@@ -24,11 +24,15 @@ namespace Gecode { namespace String {
     // Proper pattern: not empty, not containing empty string.
     assert (dfa.n_states > 0 && !dfa.accepted(""));
 //    std::cerr << static_cast<compDFA&>(*this) << "\n";
-    delta[q_bot][0] = delta[0][0];
-    for (int i = 1; i < delta[0].size(); ++i)
-      delta[q_bot].push_back(delta[0][i]);
+    delta[q_bot].clear();
+    for (int i = 0; i < delta[0].size(); ++i) {
+      std::pair<NSIntSet, int> d0i = delta[0][i];
+      delta[q_bot].push_back(d0i);
+      if (d0i.second != q_bot)
+        delta[q_bot][i].second = -d0i.second;
+    }
     for (int i = 0; i < delta.size(); ++i) {      
-      if (i != q_bot) {   
+      if (i != q_bot) {
         for (int j = 0; j < delta[i].size(); ++j) {
           int q = delta[i][j].second;
           if (q > 1 && q != q_bot)
@@ -456,7 +460,7 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   MatchNew::propagate(Space& home, const ModEventDelta& med) {
-//    std::cerr << "\nMatchNew::propagate: Var " << x1.varimp() << ": " << x1 << " = MatchNew " << x0 << " in\n";// << *Rnfa << "\n";
+//    std::cerr << "\nMatchNew::propagate: Var " << x1.varimp() << ": " << x1 << " = MatchNew " << x0 << " in " << *Rnfa << "\n";
     GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
     do {
       // x1 fixed and val(x1) in {0,1}.
