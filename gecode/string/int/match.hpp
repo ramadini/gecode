@@ -43,8 +43,8 @@ namespace Gecode { namespace String {
         }
       }
     }
-    GECODE_ME_CHECK(i.gr(home, -1));
-    GECODE_ME_CHECK(i.le(home, x.max_length() - r));
+    GECODE_ME_CHECK(i.gq(home, 0));
+    GECODE_ME_CHECK(i.lq(home, x.max_length() - r + 1));
     GECODE_ME_CHECK(x.lb(home, r));
 //    std::cerr << "RE: " << re << ", minlen: " << r << ", i: " << i << '\n';
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
