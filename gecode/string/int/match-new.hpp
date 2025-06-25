@@ -106,7 +106,8 @@ namespace Gecode { namespace String {
     }
     GECODE_ME_CHECK(i.gq(home, 0));
     GECODE_ME_CHECK(i.lq(home, x.max_length() - r + 1));
-    GECODE_ME_CHECK(x.lb(home, r));
+    if (!i.in(0))
+      GECODE_ME_CHECK(x.lb(home, r));
 //    std::cerr << "RE: " << re << ", minlen: " << r << ", i: " << i << '\n';
     trimDFA* Rp = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());    
     matchNFA* Rn = new matchNFA(*Rp, x.may_chars());
@@ -461,7 +462,7 @@ namespace Gecode { namespace String {
   forceinline ExecStatus
   MatchNew::propagate(Space& home, const ModEventDelta& med) {
 //    std::cerr << "\nMatchNew::propagate: Var " << x1.varimp() << ": " << x1 << " = MatchNew " << x0 << " in " << *Rnfa << "\n";
-    GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
+    GECODE_ME_CHECK(x1.lq(home, std::max(0, x0.max_length() - minR + 1)));
     do {
       // x1 fixed and val(x1) in {0,1}.
       if (x1.assigned() && x1.val() <= 1) {
@@ -505,6 +506,7 @@ namespace Gecode { namespace String {
         updatedI = true;
       }
       if (x1.in(0)) {
+//        std::cerr << "0 in " << x1 << "\n";
         if (must_match()) {
           GECODE_ME_CHECK(x1.gq(home,1));
           l = 1;
@@ -573,7 +575,7 @@ namespace Gecode { namespace String {
           home, x0.assigned() ? ME_STRING_VAL : ME_STRING_DOM, d
         ));
       }
-      GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
+      GECODE_ME_CHECK(x1.lq(home, std::max(0, x0.max_length() - minR + 1)));
       assert (X.is_normalized());
     } while (x1.assigned() && x1.val() <= 1);
 //    std::cerr << "\nMatchNew::propagated: " << x1 << " = MatchNew " << x0 << "\n";
