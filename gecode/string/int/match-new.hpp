@@ -460,7 +460,7 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   MatchNew::propagate(Space& home, const ModEventDelta& med) {
-    std::cerr << "\nMatchNew::propagate: Var " << x1.varimp() << ": " << x1 << " = MatchNew " << x0 << " in " << *Rnfa << "\n";
+//    std::cerr << "\nMatchNew::propagate: Var " << x1.varimp() << ": " << x1 << " = MatchNew " << x0 << " in " << *Rnfa << "\n";
     GECODE_ME_CHECK(x1.lq(home, x0.max_length() - minR + 1));
     do {
       // x1 fixed and val(x1) in {0,1}.
@@ -474,13 +474,13 @@ namespace Gecode { namespace String {
       }
       DashedString& X = *x0.pdomain();
       std::string w = X.known_pref();
-      std::cerr << "w: " << w << '\n';
+//      std::cerr << "w: " << w << '\n';
       int k = w.size();
       if (k > 0) {
         if (Rfull->accepted(w)) {
           for (int i = 0; i < k; ++i)
             if (Rpref->accepted(w.substr(i))) {
-              std::cerr << "\nMatch::propagated: i = " << i+1 << '\n';
+//              std::cerr << "\nMatch::propagated: i = " << i+1 << '\n';
               GECODE_ME_CHECK(x1.eq(home, i+1));
               return home.ES_SUBSUMED(*this);            
             }
@@ -492,7 +492,7 @@ namespace Gecode { namespace String {
       }
       int h = 0;
       GECODE_ES_CHECK(refine_idx(home, h, k));
-      std::cerr << "After refine: " << x1 << ", " << x0 << ", (h,k)=" << "("<<h<<","<<k<<")\n";
+//      std::cerr << "After refine: " << x1 << ", " << x0 << ", (h,k)=" << "("<<h<<","<<k<<")\n";
       int l = max(1, k);
       for (int i = 0; i < h; ++i)
         l += X.at(i).l;
