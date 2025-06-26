@@ -1,18 +1,18 @@
 #! /bin/bash
 
-EXP_PATH=$HOME/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match
+EXP_PATH=$HOME/G-Strings/gecode/gecode/string/tests/match-experiments/journal/dna_match
 
 # Time-out in seconds for constraint solving.
 TIMEOUT=300
 
 # Errors log file.
-ERRORS=$EXP_PATH'/errors_gstrings_sm.log'
+ERRORS=$EXP_PATH'/errors_gstrings_dna.log'
 
 # Output log file.
-OUTPUT=$EXP_PATH'/output_gstrings_sm.log'
+OUTPUT=$EXP_PATH'/output_gstrings_dna.log'
 
 # Output log file.
-RESULTS=$EXP_PATH'/results_gstrings_sm.log'
+RESULTS=$EXP_PATH'/results_gstrings_dna.log'
 
 # Auxiliary files
 ERR=$EXP_PATH'/tmp.err'
@@ -24,36 +24,37 @@ echo '' > $OUT
 echo '' > $TMP
 echo '' > $FZN
 
-for solver in 'G-Strings_ori' #'G-Strings_new'
+for solver in 'G-Strings_new' 'G-Strings_ori'
 do
-  for dzn in `ls $EXP_PATH/dzn/sm* | sort -n`
+  mzn=$EXP_PATH/dna.mzn
+  for dzn in `ls $EXP_PATH/dzn/*.dzn | sort -n`
   do
     header="$solver|$dzn"
     echo $header >> $ERRORS
     echo $header >> $OUTPUT
+#    if
+#      [[ "$solver" == 'G-Strings_dec' ]]
+#    then
+#      mzn=$EXP_PATH'/shortest_match_dec.mzn'
     if
-      [[ "$solver" == 'G-Strings_dec' ]]
-    then
-      mzn=$EXP_PATH'/shortest_match_dec.mzn'
-    elif
       [[ "$solver" == 'G-Strings_new' ]]
     then  
-      mzn=$EXP_PATH'/shortest_match_new.mzn'
+      D=true
     else
-      mzn=$EXP_PATH'/shortest_match.mzn'
+      D=false
     fi
     echo "Converting MiniZinc model to FlatZinc..."
-    echo "mzn2fzn-gstrings $mzn $dzn -o $FZN"
-    mzn2fzn-gstrings $mzn $dzn -o $FZN
+    echo "mzn2fzn-gstrings -D"newM=$D" $mzn $dzn -o $FZN"
+    mzn2fzn-gstrings -D"newM=$D" $mzn $dzn -o $FZN
     echo "Solving FlatZinc instance..."
     
     start=`awk 'BEGIN {print systime()}'`
-    time -p (unbuffer timeout $TIMEOUT fzn-gstrings -a $FZN 2>$ERR | gawk -v s=$start \
+    time -p (unbuffer timeout $TIMEOUT fzn-gstrings -decomp-regex 0 -a $FZN 2>$ERR | gawk -v s=$start \
     '{print $0, (systime() - s)}' 1>$OUT) 2>$TMP
     ret=$?
     ini_time=0 # Here one can put fzn time...
     tot_time=`cat $TMP | awk -v it=$ini_time 'NR == 1 {print $2 - it}'`
-    cat $OUT | grep 'len = ' | awk '{print $3, $4}' | sed 's/;//g' | sed 's/ /_,_/g' > $TMP
+    cat $OUT | grep 'obj = ' | awk '{print $3, $4}' | sed 's/;//g' | sed 's/ /_,_/g' > $TMP
     vals='{'
     for i in `cat $TMP`
     do
@@ -96,11 +97,7 @@ do
     cat $OUT >> $OUTPUT
     echo $header'|'$s'|'$val'|'$vals'|'$tot_time >> $RESULTS
     cp $RESULTS ~/Dropbox
-    echo "Sleeping 3 seconds..."
-    sleep 3
   done
-  echo "Sleeping 10 seconds..."
-  sleep 10
 done
 
 rm $OUT $ERR $TMP $FZN

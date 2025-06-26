@@ -8,7 +8,7 @@ PATH = '/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/jou
 SOLVERS = ['cvc5', 'G-Strings_ori', 'G-Strings_dec', 'G-Strings_new', 'z3seq']
 MIN = False
 TIMEOUT = 300
-NUM_PROBLEMS = 39
+NUM_PROBLEMS = 40 - 2 + 1
 
 reader = csv.reader(open(PATH), delimiter = '|')
 results = dict((s, {'sat': 0.0, 'unk': 0.0, 'time': 0.0, 'mznc': 0.0}) for s in SOLVERS)
