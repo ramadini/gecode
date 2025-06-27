@@ -195,13 +195,17 @@ namespace Gecode { namespace String {
       std::vector<NSIntSet> F = Reg::reach_fwd(d, Fj, DSBlock(home,x[j]));
       if (F.empty())
         return -1;
+//      for (auto x : F) std::cerr<<x.toString()<<'\n';
       Fj = F.back();
 //      std::cerr << "After x[" << j << "] = " << x[j] << ": " << Fj.toString() << "\n";
       if (Fj.in(1)) {
-        if (Fj.size() > 1 || !must_match())
+        if (Fj.size() > 1)
+          return 0;
+        int idx = must_idx();
+        if (idx == -1)
           return 0;
         int u = 0;
-        for (int k = 0; k <= i; ++k)
+        for (int k = 0; k <= idx; ++k)
           u += x0.pdomain()->at(k).u;
 //        std::cerr << "x0: "<< x0 << ", x:" << x << ", i: " << i << ", u: " << u << ", minR: " << minR << "\n";
         return u;
@@ -261,23 +265,25 @@ namespace Gecode { namespace String {
     return Qf;
   }
 
-  forceinline bool
-  Match::must_match(void) const {
+  forceinline int
+  Match::must_idx(void) const {
     DashedString& px = *x0.pdomain();
     NSIntSet Q(0);
     for (int i = 0; i < px.length(); ++i) {
+//      std::cerr << i << ", Q before:" << Q.toString() << "\n";
       Q = reachMust(px.at(i), Q);
+//      std::cerr << i << ", Q after:" << Q.toString() << "\n";
       if (Q.empty())
-        return false;
+        return -1;
       if (Q.size() == 1 && Q.in(1))
-        return true;
+        return i;
     }
-    return false;
+    return -1;
   };
 
   forceinline ExecStatus
   Match::propagate(Space& home, const ModEventDelta& med) {
-//    std::cerr << "\nMatch::propagate: Var " << x1.varimp() << ": " << x1 << " = Match " << x0 << " in\n ";// << *sRs << "\n";    
+//    std::cerr << "\nMatch::propagate: Var " << x1.varimp() << ": " << x1 << " = Match " << x0 << " in\n " << *sRs << "\n";    
     GECODE_ME_CHECK(x1.lq(home, std::max(0, x0.max_length() - minR + 1)));
     do {
       // x1 fixed and val(x1) in {0,1}.
@@ -321,18 +327,20 @@ namespace Gecode { namespace String {
         return me_failed(x1.eq(home,0)) ? ES_FAILED : ES_FIX;
         
       // Surely a match: possibly refining lower and upper bound of x1.
-      if (Q.size() == 1 && Q.in(1) && must_match()) {
+      if (Q.size() == 1 && Q.in(1)) {
         GECODE_ME_CHECK(x1.gq(home, 1));
         if (i < n) {
           int u = -minR + 1;
           for (int j = 0; j < i; ++j)
             u += px.at(j).u;
+//          std::cerr << u << '\n';
           GECODE_ME_CHECK(x1.lq(home, u));
         }
       }
       
       // Compute l as the leftmost position for a match.
       int l = 1, k = 0, h = n;
+//      std::cerr << *Rs << '\n';
       for (int i = 0; i < n; ++i) {
         NSBlocks x_suff = suffix(i, 0);
         if (x_suff[0].l > 1)
@@ -342,6 +350,7 @@ namespace Gecode { namespace String {
         if (u >= 0) {
           h = i;
           k = 0;
+//          std::cerr << u << '\n';
           if (u > 0)
             GECODE_ME_CHECK(x1.lq(home, u));
 //          std::cerr << "[" << x0.varimp() << "] updated l and (h,k)\n";

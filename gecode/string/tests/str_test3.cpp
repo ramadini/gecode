@@ -72,7 +72,7 @@ public:
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
     assert (lx == x.domain().logdim());
-    assert (i.min() == 2 && i.max() == 6);
+    assert (i.min() == 2 && i.max() == 9);
   }
 
   void test02() {
@@ -252,7 +252,7 @@ public:
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
     assert (lx == x.domain().logdim());
-    assert (i.min() == 1 && i.max() == 5);
+    assert (i.min() == 1 && i.max() == 8);
   }
 
   void test08() {

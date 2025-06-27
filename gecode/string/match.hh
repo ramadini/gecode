@@ -17,7 +17,7 @@ namespace Gecode { namespace String {
     trimDFA* sRs;    
     compDFA* sRsC;
     int minR;
-    bool must_match(void) const;
+    int must_idx(void) const;
     NSIntSet reachMust(const DSBlock&, const NSIntSet&) const;
     NSIntSet checkBlock(const DSBlock&, const NSIntSet&) const;
     NSBlocks prefix(int,int) const;
