@@ -8,12 +8,12 @@
 include "globals.mzn";
 
 % Parameters.
-int: L;
-int: K;
-string: S;
-bool: newM;
-array[int] of string: M;
-
+int: L = 17;
+int: K = 3;
+string: S = "CAC(T|G)TGCGTGGATAAAC";
+array[int] of string: M = [ "CACGTG", "(A|G)CGTG", "(A|G)(C|T)AAA(A|C|T)"];
+bool: newM = false;
+constraint matches[1] = 0 /\ matches[2] = 6 /\ matches[3] = 12;
 
 var string: target;
 array[1..K] of var 0..L: matches;

@@ -277,7 +277,7 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   Match::propagate(Space& home, const ModEventDelta& med) {
-//    std::cerr << "\nMatch::propagate: Var " << x1.varimp() << ": " << x1 << " = Match " << x0 << " in\n ";// << *sRs << "\n";
+//    std::cerr << "\nMatch::propagate: Var " << x1.varimp() << ": " << x1 << " = Match " << x0 << " in\n ";// << *sRs << "\n";    
     GECODE_ME_CHECK(x1.lq(home, std::max(0, x0.max_length() - minR + 1)));
     do {
       // x1 fixed and val(x1) in {0,1}.
