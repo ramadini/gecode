@@ -2,32 +2,35 @@ import json
 import random
 
 MOTIFS = [
-    "TATA(W|A)(A|G)R",               # TBP
-    "GGCCAATCT",                     # CAAT-box
-    "GGGCGG",                        # SP1
-    "GGG(R|A|G)(N|A|T|C|G)(N|A|T|C|G)(Y|C|T)(Y|C|T)CC",  # NF-κB
-    "TGA(N|A|T|C|G)TCA",             # AP-1
-    "TGACGTCA",                      # CREB
-    "GTTAAT(N|A|T|C|G)ATTAAC",       # HNF1
-    "TTT(S|C|G)(S|C|G)CGC",          # E2F
-    "(A|G)(C|T)AAA(A|C|T)",          # FOX
-    "(A|T)GATA(A|G)",                # GATA
-    "ATGCAAAT",                      # OCT
-    "CATTGT",                        # SOX
-    "CACGTG",                        # MYC (E-box)
-    "GGAAA",                         # NFAT
-    "TTC(N|A|T|C|G)(N|A|T|C|G)(N|A|T|C|G)GAA",  # STAT
+    "TATA(A|T)(A|G)(A|G)",                         # TBP (W=A/T, R=A/G)
+    "GGCCAATCT",                                   # CAAT-box
+    "GGGCGG",                                      # SP1
+    "GGG(A|G)(A|C|G|T)(A|C|G|T)(C|T)(C|T)CC",      # NF-κB
+    "TGA(A|C|G|T)TCA",                             # AP-1
+    "TGACGTCA",                                    # CREB
+    "GTTAAT(A|C|G|T)ATTAAC",                       # HNF1
+    "TTT(C|G)(C|G)CGC",                            # E2F (S=C/G)
+    "(A|G)(C|T)AAA(C|T)A",                         # FOX
+    "(A|T)GATA(A|G)",                              # GATA
+    "ATGCAAAT",                                    # OCT
+    "CATTGT",                                      # SOX
+    "CACGTG",                                      # MYC (E-box)
+    "GGAAA",                                       # NFAT
+    "TTC(A|C|G|T)(A|C|G|T)(A|C|G|T)GAA",           # STAT
     "(A|G)(A|G)(A|G)C(A|T)(A|T)G(C|T)(C|T)(C|T)",  # p53 half-site
-    "AGGTCA(N|A|T|C|G)AGGTCA",       # HNF4
-    "AGGTCA(N|A|T|C|G)(N|A|T|C|G)(N|A|T|C|G)TGACCT",    # ESR1
-    "AGAACA(N|A|T|C|G)(N|A|T|C|G)(N|A|T|C|G)TGTTCT",    # Androgen R
-    "GGTTATGGAATTCCC",               # ZNF143
-    "CCGCG(N|A|T|C|G)GG(N|A|T|C|G)GGCAG",  # CTCF
-    "(C|T)TA(A|T)(A|T)(A|T)(A|T)TA(A|G)",  # MEF2
-    "TG(C|T)GGT",                    # RUNX
-    "(A|G)CGTG",                     # HIF
-    "GGGAGGG"                        # MAZ
+    "AGGTCA(A|C|G|T)AGGTCA",                       # HNF4
+    "AGGTCA(A|C|G|T)(A|C|G|T)(A|C|G|T)TGACCT",     # ESR1
+    "AGAACA(A|C|G|T)(A|C|G|T)(A|C|G|T)TGTTCT",     # Androgen R
+    "GGTTATGGAATTCCC",                             # ZNF143
+    "CCGCG(A|C|G|T)GG(A|C|G|T)GGCAG",              # CTCF
+    "(C|T)TA(A|T)(A|T)TA(A|G)",                    # MEF2
+    "TG(C|T)GGT",                                  # RUNX
+    "(A|G)CGTG",                                   # HIF
+    "GGGAGGG"                                      # MAZ
 ]
+for motif in MOTIFS:
+  for base in motif:
+    assert base in {'A', 'C', 'G', 'T', '|', '(', ')'}
 
 def generate_degenerate_sequence(L, degenerate_fraction=0.1):
     bases = ['A', 'C', 'G', 'T']
