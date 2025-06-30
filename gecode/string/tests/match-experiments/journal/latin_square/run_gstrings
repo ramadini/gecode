@@ -23,8 +23,9 @@ echo '' > $ERR
 echo '' > $OUT
 echo '' > $TMP
 echo '' > $FZN
+echo '' > $RESULTS
 
-for solver in 'G-Strings_ori' #'G-Strings_new'
+for solver in 'G-Strings_new' 'G-Strings_ori'
 do
   for i in {2..40}
   do
