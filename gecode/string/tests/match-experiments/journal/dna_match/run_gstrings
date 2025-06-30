@@ -24,7 +24,7 @@ echo '' > $OUT
 echo '' > $TMP
 echo '' > $FZN
 
-for solver in 'G-Strings_ori' #'G-Strings_new'
+for solver in 'G-Strings_new' 'G-Strings_ori'
 do
   mzn=$EXP_PATH/dna.mzn
   for dzn in `ls $EXP_PATH/dzn/*.dzn | sort -n`
