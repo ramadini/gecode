@@ -95,12 +95,9 @@ do
     cat $ERR >> $ERRORS
     cat $OUT >> $OUTPUT
     echo $header'|'$s'|'$val'|'$vals'|'$tot_time >> $RESULTS
+    echo $header'|'$s'|'$val'|'$vals'|'$tot_time
     cp $RESULTS ~/Dropbox
-    echo "Sleeping 3 seconds..."
-    sleep 3
   done
-  echo "Sleeping 10 seconds..."
-  sleep 10
 done
 
 rm $OUT $ERR $TMP $FZN
