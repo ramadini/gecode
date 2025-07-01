@@ -29,7 +29,8 @@ for row in reader:
   oval = float(row[3])
   vals = eval(row[4])
   if vals:
-    results[solv]['ttf'] += min(vals.values())
+    ttf = min(vals.values())
+    results[solv]['ttf'] += ttf
   else:
     results[solv]['ttf'] += TIMEOUT
     time = TIMEOUT
@@ -44,6 +45,9 @@ for row in reader:
     time = TIMEOUT
     results[solv]['unk'] += 1
   results[solv]['time'] += time
+  if time < TIMEOUT and ttf > time:
+    assert (ttf == time + 1)
+    results[solv]['time'] += 1
   if inst not in infos.keys():
     infos[inst] = {'min': 1000, 'max': 0}
     for s in SOLVERS:
@@ -128,6 +132,7 @@ for inst, info in infos.items():
 for val in results.values():
   assert 0 <= val['ttf'] <= TIMEOUT
   assert 0 <= val['time'] <= TIMEOUT
+  assert val['ttf'] <= val['time']
   assert 0 <= val['score'] <= NUM_PROBLEMS
   assert 0 <= val['mznc'] <= (n - 1) * NUM_PROBLEMS
   assert 0 <= val['mznc-obj'] <= (n - 1) * NUM_PROBLEMS

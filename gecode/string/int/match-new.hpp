@@ -28,8 +28,10 @@ namespace Gecode { namespace String {
     for (int i = 0; i < delta[0].size(); ++i) {
       std::pair<NSIntSet, int> d0i = delta[0][i];
       delta[q_bot].push_back(d0i);
-      if (d0i.second != q_bot && d0i.second != 1)
+      if (d0i.second != q_bot && d0i.second > 1) {
+        std::cerr << i << ' ' << d0i.first << ' ' << d0i.second << '\n';
         delta[q_bot][i].second = -d0i.second;
+      }
     }
     for (int i = 0; i < delta.size(); ++i) {      
       if (i != q_bot) {
