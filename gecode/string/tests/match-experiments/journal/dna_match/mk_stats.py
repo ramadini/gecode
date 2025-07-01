@@ -1,21 +1,25 @@
 import csv
-'''
+
 import matplotlib
 matplotlib.rcParams['text.usetex'] = True
-matplotlib.rcParams['text.latex.unicode'] = True
 import matplotlib.pyplot as plt
-'''
+
 PATH = '/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/dna_match/results_tot.log'
 SOLVERS = ['G-Strings_ori', 'G-Strings_new']
 MIN = True
 
 TIMEOUT = 300.0
-NUM_PROBLEMS = 30
+NUM_PROBLEMS = 25
 
 reader = csv.reader(open(PATH), delimiter = '|')
 results = dict((s, {'opt': 0.0, 'sat': 0.0, 'unk': 0.0, 'time': 0.0, 
   'ttf': 0.0, 'mznc': 0.0, 'mznc-obj': 0.0, 'score': 0.0}) for s in SOLVERS)
 infos = {}
+times = dict(
+  (s, dict(((l,k), TIMEOUT)
+  for l in [256, 512, 1024, 2048, 4096] for k in [5, 10, 15, 20, 25]))
+  for s in SOLVERS
+)
 
 for row in reader:
 #  print(row)
@@ -44,7 +48,11 @@ for row in reader:
     infos[inst] = {'min': 1000, 'max': 0}
     for s in SOLVERS:
       infos[inst][s] = None
-  infos[inst][solv] = (time, oval)  
+  infos[inst][solv] = (time, oval)
+  i1 = inst.rfind('/L')
+  i2 = inst. find('_K')
+  lk = (int(inst[i1 + 2 : i2]), int(inst[i2 + 2:]))
+  times[solv][lk] = time
   if oval < infos[inst]['min']:
     infos[inst]['min'] = oval
   if oval > infos[inst]['max']:
@@ -132,27 +140,21 @@ for s, it in results.items():
   print(s,'&',it['opt'],'&',it['sat'],'&',it['unk'],'&',it['ttf'],'&',
         it['time'],'&',it['score'],'&',it['mznc'],'&',it['mznc-obj'],'\\\\')
 
-#cumsums = dict((s, [0]) for s in SOLVERS)
-#for key, val in sorted(scores.items()):
-#  for solver, score in val.items():
-#    cumsums[solver] += [cumsums[solver][-1] + score]
-#    
-
-#labels = plt.plot(range(0, NUM_PROBLEMS + 1), '--', color='gray', label='Max. Score')
-#solv2lab = {
-#  'cvc5': (r'\textsc{CVC5}', '-^'), 
-#  'z3': (r'\textsc{Z3str3}', '-s'),
-#  'G-Strings': (r'\textsc{G-Strings}', '-o'),
-#}
-#for solver, cumsum in sorted(cumsums.items()):
-#  lab = solv2lab[solver]
-#  labels += plt.plot(cumsum, lab[1], label = lab[0])
-#print(sorted(scores.keys()))
-#plt.xticks(
-#  range(NUM_PROBLEMS + 1), sorted(scores.keys()), rotation=45, fontsize=8
-#)
-#plt.legend(numpoints=1, handles=labels, loc='upper left')
-#plt.xlabel('Instances')
-#plt.ylabel('Cumulative scores')
-#plt.subplots_adjust(left=0.10, bottom=0.14, right=0.95, top=0.95)
-#plt.show()
+labels = []
+solv2lab = {
+  'G-Strings_ori': (r'\textsc{PropDFA}', '-s'),
+  'G-Strings_new': (r'\textsc{PropNFA}', '-*')
+}
+xvals = None
+for solver, vals in times.items():
+  lab = solv2lab[solver]
+  if not xvals:
+    xvals = list(vals.keys())
+  labels += plt.plot(list(vals.values()), lab[1], label = lab[0], linewidth=3, markersize=10)
+plt.xticks(range(NUM_PROBLEMS), xvals, rotation=45, fontsize=25)
+plt.yticks(fontsize=25)
+plt.legend(numpoints=3, handles=labels, loc='best', fontsize=25)
+plt.xlabel('(L,K)', fontsize=25)
+plt.ylabel('Runtime [s]', fontsize=25)
+plt.subplots_adjust(bottom=0.14, right=0.95, top=0.95)
+plt.show()
