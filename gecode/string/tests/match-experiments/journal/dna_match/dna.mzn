@@ -28,40 +28,19 @@ constraint matches = [
 constraint str_len(target) = L;
 constraint str_reg(target, S);
 
-var int: obj; constraint obj = K - count(matches, 0);
+var 0..L: obj; 
+
+constraint obj =
+  let {
+    var 0..L: maxM = max(matches);
+    % L+1 is a special value to avoid minM = 0 when 0 < count(matches, 0) < K.
+    array[int] of var 0..L+1: m0 = [[m, L+1][(m = 0) + 1] | m in matches];
+    var 0..L+1: minM = min(m0);
+    % At least 2 matches (or at most K-2 non-matches).
+    var bool: atLeast2 = (count(matches, 0) < K - 1);   
+  } in atLeast2 * (maxM - minM);
+
 solve minimize obj;
-
-%import random
-%
-%%def generate_degenerate_sequence(L, degenerate_fraction=0.05):
-%    bases = ['A', 'C', 'G', 'T']
-%    num_degenerate = int(L * degenerate_fraction)
-%    
-%    % Choose random positions for degenerate bases
-%    degenerate_positions = set(random.sample(range(L), num_degenerate))
-%    
-%    sequence = []
-%    for i in range(L):
-%        if i in degenerate_positions:
-%            % Randomly choose 2 to 4 unique bases for the degenerate position
-%            k = random.randint(2, 4)
-%            alleles = random.sample(bases, k)
-%            token = f"({'|'.join(alleles)})"
-%        else:
-%            token = random.choice(bases)
-%        sequence.append(token)
-%    
-%    return ''.join(sequence)
-%
-%% Example usage:
-%degenerate_seq = generate_degenerate_sequence(512)
-%print(degenerate_seq)
-
-
-
-
-
-
 
 
 
