@@ -3,20 +3,22 @@
 %  A set of N sequences S each having fixed length L (defined by a pattern S)
 %  A set of K motifs M = {M_1​,...,M_K​}
 %Objective:
-%  Find a string matching the least motifs from M.
+%  Find a string matching the least motifs from M, and if at least 2 match must
+% occur, find the minimal span between max and min matching position.
 
 include "globals.mzn";
 
 % Parameters.
-int: L;
-int: K;
-string: S;
-array[int] of string: M;
-bool: newM;
-%int: L = 17;
-%int: K = 3;
-%string: S = "CAC(T|G)TGCGTGGATAAAC";
-%array[int] of string: M = [ "CACGTG", "(A|G)CGTG", "(A|G)(C|T)AAA(A|C|T)"];
+%int: L;
+%int: K;
+%string: S;
+%array[int] of string: M;
+%bool: newM;
+bool: newM = true;
+int: L = 17;
+int: K = 3;
+string: S = "CAC(T|G)TGCGTGGATAAAC";
+array[int] of string: M = [ "CACGTG", "(A|G)CGTG", "(A|G)(C|T)AAA(A|C|T)"];
 
 var string: target;
 array[1..K] of var 0..L: matches;
