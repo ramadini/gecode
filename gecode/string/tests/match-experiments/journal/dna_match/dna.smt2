@@ -3,7 +3,7 @@
 
 ; ---------- Parameters ----------
 ; Length of the target string
-(define-const L Int 17)
+(define-const L Int 100)
 
 ; Number of motifs
 (define-const K Int 3)
@@ -14,7 +14,7 @@
   (re.++
     (str.to_re "CAC")
     (re.union (str.to_re "T") (str.to_re "G"))
-    (str.to_re "TGCGTGGATAAAC")
+    (str.to_re "TGCGTGGATAAACCGCGCGGGGTCTTGATGGCCATGTACGTCTCTCCACCATGAATATCCGGCTGCGTGGAACCGCGCGGGGTCTAACCGTCGCAT")
   )
 )
 
@@ -123,4 +123,9 @@
 ; ---------- Optional: Check model ----------
 (check-sat)
 (get-value (x i1 i2 i3 obj))
+(assert (< obj 11))
+(check-sat)
+(get-value (x i1 i2 i3 obj))
+(assert (< obj 6))
+(check-sat)
 
