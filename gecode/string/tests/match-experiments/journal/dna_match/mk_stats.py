@@ -17,7 +17,7 @@ results = dict((s, {'opt': 0.0, 'sat': 0.0, 'unk': 0.0, 'time': 0.0,
 infos = {}
 times = dict(
   (s, dict(((l,k), TIMEOUT)
-  for l in [256, 512, 1024, 2048, 4096] for k in [5, 10, 15, 20, 25]))
+  for l in [128,256, 512, 1024, 2048, 4096] for k in [5, 10, 15, 20, 25]))
   for s in SOLVERS
 )
 
