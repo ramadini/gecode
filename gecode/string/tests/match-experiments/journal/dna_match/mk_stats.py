@@ -9,7 +9,7 @@ SOLVERS = ['G-Strings_ori', 'G-Strings_new']
 MIN = True
 
 TIMEOUT = 300.0
-NUM_PROBLEMS = 25
+NUM_PROBLEMS = 30
 
 reader = csv.reader(open(PATH), delimiter = '|')
 results = dict((s, {'opt': 0.0, 'sat': 0.0, 'unk': 0.0, 'time': 0.0, 
