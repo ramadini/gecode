@@ -96,7 +96,8 @@ constraint forall (i in 2..N_MOVES) (
 constraint sum([DiffA[i] + DiffB[i] + DiffC[i] + DiffX[i] | i in MOVES]) = 0;
 
 % Total number of moves, to be minimized (upper bound improvable...).
-var MOVES: tot_moves = N_MOVES - count(Moves, 0);
+var MOVES: tot_moves;
+constraint tot_moves = N_MOVES - count(Moves, 0);
 solve minimize tot_moves;
 
 %constraint A[1] = "x4"     /\  X[1] = "312";
