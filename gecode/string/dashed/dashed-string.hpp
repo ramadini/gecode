@@ -2144,7 +2144,7 @@ namespace Gecode { namespace String {
     _min_length = max(_min_length, l);
     _max_length = min(_max_length, u);
     if (_min_length > _max_length) {
-      std::cerr << "Warning! Failure detected after normalization!\n";
+      //std::cerr << "Warning! Failure detected after normalization!\n";
       h.fail();
       return;
     }
