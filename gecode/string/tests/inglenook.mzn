@@ -57,11 +57,12 @@ constraint C[0] = C_ini /\ str_len(C_ini) <= C_cap;
 constraint X[0] = X_ini /\ str_len(C_ini) <= X_cap;
 % Intermediate moves.
 constraint forall (i in MOVES) (
+  % Domain and capacity constraints.
   str_reg(A[i], DOMAIN)  /\ str_reg(B[i], DOMAIN)  /\ 
   str_reg(C[i], DOMAIN)  /\ str_reg(X[i], DOMAIN)  /\
   str_len(A[i]) <= A_cap /\ str_len(B[i]) <= B_cap /\
   str_len(C[i]) <= C_cap /\ str_len(X[i]) <= X_cap /\
-  [% No move.
+  [% No-move: once no-move, always no-move.
    forall (j in i..N_MOVES) (
      A[i-1] = A[j] /\ B[i-1] = B[j] /\ C[i-1] = C[j] /\ Moves[j] = 0 /\
      DiffA[j] = 0  /\ DiffB[j] = 0  /\ DiffC[j] = 0  /\ DiffX[j] = 0
