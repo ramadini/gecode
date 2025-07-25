@@ -67,14 +67,14 @@ constraint forall (i in MOVES) (
      DiffA[j] = 0  /\ DiffB[j] = 0  /\ DiffC[j] = 0  /\ DiffX[j] = 0
    ),
    % A-move.
-   A[i] ++ X[i] = A[i-1] ++ X[i-1] /\ DiffA[i] != 0 /\ DiffA[i] = -DiffX[i]
-        /\ B[i] = B[i-1] /\ C[i] = C[i-1], 
+   A[i] ++ X[i] = A[i-1] ++ X[i-1] /\ B[i] = B[i-1] /\ C[i] = C[i-1] /\
+   DiffA[i] != 0 /\ DiffA[i] = -DiffX[i] /\ DiffB[i] = 0 /\ DiffC[i] = 0,
    % B-move.
-   B[i] ++ X[i] = B[i-1] ++ X[i-1] /\ DiffB[i] != 0 /\ DiffB[i] = -DiffX[i]
-        /\ A[i] = A[i-1] /\ C[i] = C[i-1],
+   B[i] ++ X[i] = B[i-1] ++ X[i-1] /\ A[i] = A[i-1] /\ C[i] = C[i-1] /\
+   DiffB[i] != 0 /\ DiffB[i] = -DiffX[i] /\ DiffA[i] = 0 /\ DiffC[i] = 0,
    % C-move.
-   C[i] ++ X[i] = C[i-1] ++ X[i-1] /\ DiffC[i] != 0 /\ DiffC[i] = -DiffX[i]
-        /\ A[i] = A[i-1] /\ B[i] = B[i-1]
+   C[i] ++ X[i] = C[i-1] ++ X[i-1] /\ A[i] = A[i-1] /\ B[i] = B[i-1] /\
+   DiffC[i] != 0 /\ DiffC[i] = -DiffX[i] /\ DiffA[i] = 0 /\ DiffB[i] = 0
   ][Moves[i] + 1] /\
   % Either a move (2 tracks involved) or no moves (0 tracks involed).
   count ([DiffA[i], DiffB[i], DiffC[i], DiffX[i]], 0) in {2,4}
@@ -85,17 +85,12 @@ constraint B[N_MOVES] = B_fin /\ str_len(B_fin) <= B_cap;
 constraint C[N_MOVES] = C_fin /\ str_len(C_fin) <= C_cap;
 constraint X[N_MOVES] = X_fin /\ str_len(X_fin) <= X_cap;
 
-% Enforcing invariants on the moves.
-constraint forall (i in 2..N_MOVES) (
-  % Not using the same track twice in a row: it can be done in one move.
-  (Moves[i-1] = Moves[i] -> Moves[i] = 0) /\
-  % Once no-move, always no-move.
-  (Moves[i-1] = 0 -> forall (j in i..N_MOVES) ( Moves[j] = 0 ))
-);
+% Not using the same track twice in a row: it can be done in one move.
+constraint forall (i in 2..N_MOVES) ( Moves[i-1] = Moves[i] -> Moves[i] = 0 );
 % Redundant constraint
 constraint sum([DiffA[i] + DiffB[i] + DiffC[i] + DiffX[i] | i in MOVES]) = 0;
 
-% Total number of moves, to be minimized (upper bound improvable...).
+% Total number of moves, to be minimized (lower bound improvable...).
 var MOVES: tot_moves;
 constraint tot_moves = N_MOVES - count(Moves, 0);
 solve minimize tot_moves;
