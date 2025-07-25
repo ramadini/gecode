@@ -55,6 +55,7 @@ constraint A[0] = A_ini /\ str_len(A_ini) <= A_cap;
 constraint B[0] = B_ini /\ str_len(B_ini) <= B_cap;
 constraint C[0] = C_ini /\ str_len(C_ini) <= C_cap;
 constraint X[0] = X_ini /\ str_len(C_ini) <= X_cap;
+
 % Intermediate moves.
 constraint forall (i in MOVES) (
   % Domain and capacity constraints.
@@ -88,8 +89,11 @@ constraint X[N_MOVES] = X_fin /\ str_len(X_fin) <= X_cap;
 
 % Not using the same track twice in a row: it can be done in one move.
 constraint forall (i in 2..N_MOVES) ( Moves[i-1] = Moves[i] -> Moves[i] = 0 );
-% Redundant constraint
+% Redundant constraints.
 constraint sum([DiffA[i] + DiffB[i] + DiffC[i] + DiffX[i] | i in MOVES]) = 0;
+constraint str_len(X[1]) != str_len(X_ini) /\ forall (i in 2..N_MOVES)(
+  str_len(X[i]) = 0 \/ str_len(X[i]) != str_len(X[i-1])
+);
 
 % Total number of moves, to be minimized (lower bound improvable...).
 var MOVES: tot_moves;
