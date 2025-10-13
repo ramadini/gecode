@@ -1623,7 +1623,7 @@ namespace Gecode { namespace String {
               that.blocks().insert(h, j, DSBlock(h, DSIntSet(h, s), 1, 1));
             if (that._changed)
               that.normalize(h);
-            return true;
+            return !h.failed();
           }
           break;
         }
@@ -1638,7 +1638,7 @@ namespace Gecode { namespace String {
         that.normalize(h);
       // std::cerr << "After lex: y = " << that << '\n';
     }
-    return true;
+    return !h.failed();
   }
 
   forceinline bool
@@ -2036,7 +2036,7 @@ namespace Gecode { namespace String {
       that._changed = true;
       return true;
     }
-    // std::cerr<<"refined: "<<*this<<' '<<that<<std::endl;
+//    std::cerr<<"refined: "<<*this<<' '<<that<<std::endl;
     if (!sweep_equate(h, *this, that))
       return false;
     if ((_changed || that._changed) && !refine_card_eq(h, that))
@@ -2144,7 +2144,7 @@ namespace Gecode { namespace String {
     _min_length = max(_min_length, l);
     _max_length = min(_max_length, u);
     if (_min_length > _max_length) {
-      //std::cerr << "Warning! Failure detected after normalization!\n";
+//      std::cerr << "Warning! Failure detected after normalization!\n";
       h.fail();
       return;
     }
@@ -2154,7 +2154,7 @@ namespace Gecode { namespace String {
       if (at(0).u > _max_length)
         at(0).u = _max_length;
     }
-    // assert (is_normalized());
+    assert (is_normalized());
   }
 
   forceinline void

@@ -26,6 +26,7 @@ namespace Gecode { namespace String {
   Eq::propagate(Space& home, const ModEventDelta& m) {
     // std::cerr<<"\nEq::propagate "<<x0<<" = "<<x1<<std::endl;
     GECODE_ME_CHECK(x0.eq(home, x1));
+    assert(!home.failed());
     // std::cerr<<"propagated: "<<x0<<" = "<<x1<<std::endl;
     assert (x0.pdomain()->is_normalized() && x1.pdomain()->is_normalized());
     switch (x0.assigned() + x1.assigned()) {

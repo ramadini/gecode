@@ -66,7 +66,8 @@ constraint forall (i in MOVES) (
   [% No-move: once no-move, always no-move.
     forall (j in i..N_MOVES) (
       A[i-1] = A[j] /\ B[i-1] = B[j] /\ C[i-1] = C[j] /\ Moves[j] = 0 /\
-      DiffA[j] = 0  /\ DiffB[j] = 0  /\ DiffC[j] = 0  /\ DiffX[j] = 0
+      DiffA[j] = 0  /\ DiffB[j] = 0  /\ DiffC[j] = 0  /\ DiffX[j] = 0 /\
+      Moves[j] = 0
     ),
     % A-move.
     A[i] ++ X[i] = A[i-1] ++ X[i-1] /\ B[i] = B[i-1] /\ C[i] = C[i-1] /\
@@ -94,11 +95,11 @@ constraint C[N_MOVES] = C_fin /\ str_len(C_fin) <= C_cap;
 constraint X[N_MOVES] = X_fin /\ str_len(X_fin) <= X_cap;
 
 % Not using the same track twice in a row: it can be done in one move.
-constraint forall (i in 2..N_MOVES) ( Moves[i-1] = Moves[i] -> Moves[i] = 0 );
+constraint forall (i in 2..N_MOVES) (Moves[i] = Moves[i-1] <-> Moves[i-1] = 0);
 % Redundant constraints.
 constraint sum([DiffA[i] + DiffB[i] + DiffC[i] + DiffX[i] | i in MOVES]) = 0;
 constraint str_len(X[1]) != str_len(X_ini) /\ forall (i in 2..N_MOVES)(
-  str_len(X[i]) = 0 \/ str_len(X[i]) != str_len(X[i-1])
+  Moves[i] = 0 \/ str_len(X[i]) != str_len(X[i-1])
 );
 
 % Total number of moves, to be minimized (lower bound improvable...).
