@@ -105,7 +105,7 @@ constraint str_len(X[1]) != str_len(X_ini) /\ forall (i in 2..N_MOVES)(
 % Total number of moves, to be minimized (lower bound improvable...).
 var MOVES: tot_moves;
 constraint tot_moves = N_MOVES - count(Moves, 0);
-solve 
+solve
 %  ::int_search(Moves, first_fail, indomain_min, complete)
 minimize tot_moves;
 

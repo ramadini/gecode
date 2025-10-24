@@ -1189,7 +1189,8 @@ namespace Gecode { namespace String {
     a == 0 ? _commit0(h, l, v, i) : _commit1(h, l, v, i);
     _changed = true;
     // std::cerr<<"Set: "<<*this<<" ["<<_min_length<<", "<< _max_length <<"]\n";   
-    assert (is_normalized());
+    if (!is_normalized())
+      normalize(h);
   }
   
   forceinline bool

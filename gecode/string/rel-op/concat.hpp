@@ -39,7 +39,8 @@ namespace Gecode { namespace String {
             x2.pdomain()->is_normalized());
     switch (x0.assigned() + x1.assigned() + x2.assigned()) {
       case 3:
-        assert (x2.val() == x0.val() + x1.val());
+        if (x2.val() != x0.val() + x1.val())
+          return ES_FAILED;
         return home.ES_SUBSUMED(*this);
       case 2:
         return propagate(home, m);
