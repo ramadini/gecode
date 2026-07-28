@@ -1,0 +1,54 @@
+# Dashed list variable implementation specification for Gecode 6.4.
+[General]
+Name:           List
+Namespace:      Gecode::Dashed
+Ifdef:          GECODE_HAS_DASHED_VARS
+Bits:           0
+Dispose:        true
+[ModEventHeader]
+  /** Modification events for generic dashed-list variables. */
+[ModEvent]
+Name:           FAILED=FAILED
+  /// Domain operation failed.
+[ModEvent]
+Name:           NONE=NONE
+  /// Domain operation made no change.
+[ModEvent]
+Name:           VAL=ASSIGNED
+Combine:        VAL=VAL,LEN=VAL,DOM=VAL,BOTH=VAL
+  /// Variable became assigned to one exact integer list.
+[ModEvent]
+Name:           LEN
+Combine:        VAL=VAL,LEN=LEN,DOM=BOTH,BOTH=BOTH
+  /// Only the global or block-derived length information changed.
+[ModEvent]
+Name:           DOM
+Combine:        VAL=VAL,LEN=BOTH,DOM=DOM,BOTH=BOTH
+  /// List language changed without changing its length interval.
+[ModEvent]
+Name:           BOTH=SUBSCRIBE
+Combine:        VAL=VAL,LEN=BOTH,DOM=BOTH,BOTH=BOTH
+  /// Both length and structural/domain information changed.
+[ModEventFooter]
+[PropCondHeader]
+[PropCond]
+Name:           NONE=NONE
+  /// Ignore this propagation condition.
+[PropCond]
+Name:           VAL=ASSIGNED
+ScheduledBy:    VAL
+  /// Propagate when the list becomes assigned.
+[PropCond]
+Name:           LEN
+ScheduledBy:    VAL,LEN,BOTH
+  /// Propagate when possible list lengths change.
+[PropCond]
+Name:           DOM
+ScheduledBy:    VAL,DOM,BOTH
+  /// Propagate on non-length language changes.
+[PropCond]
+Name:           ANY
+ScheduledBy:    VAL,LEN,DOM,BOTH
+  /// Propagate on any successful domain change.
+[PropCondFooter]
+[End]
