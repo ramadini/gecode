@@ -18,7 +18,7 @@ protected:
 
 public:
   static ExecStatus post(Home home, ListView x0, ListView x1) {
-    if (x0.varimp() == x1.varimp())
+    if (x0 == x1)
       return ES_OK;
     (void) new (home) Equal(home, x0, x1);
     return ES_OK;
@@ -46,7 +46,7 @@ protected:
 
 public:
   static ExecStatus post(Home home, ListView x0, ListView x1) {
-    if (x0.varimp() == x1.varimp())
+    if (x0 == x1)
       return ES_FAILED;
     (void) new (home) NotEqual(home, x0, x1);
     return ES_OK;
@@ -78,7 +78,7 @@ protected:
 public:
   static ExecStatus post(Home home, ListView x0, ListView x1,
                          Int::BoolView b) {
-    if (x0.varimp() == x1.varimp())
+    if (x0 == x1)
       return me_failed(b.one(home)) ? ES_FAILED : ES_OK;
     (void) new (home) ReEqual(home, x0, x1, b);
     return ES_OK;
@@ -110,7 +110,7 @@ protected:
 public:
   static ExecStatus post(Home home, ListView x0, ListView x1,
                          Int::BoolView b) {
-    if (x0.varimp() == x1.varimp())
+    if (x0 == x1)
       return me_failed(b.zero(home)) ? ES_FAILED : ES_OK;
     (void) new (home) ReNotEqual(home, x0, x1, b);
     return ES_OK;
