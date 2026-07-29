@@ -1,0 +1,107 @@
+#!/bin/bash
+
+TIMEOUT=1000
+infile=$1
+obj=$2
+init=$3
+solv=$4
+
+if
+  [ "$solv" = 'z3' ];
+then
+  solv="z3 -in -smt2 "
+elif
+  [ "$solv" = 'z3seq' ];
+then
+  solv="z3 -in -smt2 smt.string_solver=seq -in -smt2 "
+elif
+  [ "$solv" = 'z3str' ];
+then
+  solv="z3 -in smt.string_solver=z3str3 -smt2 "
+elif
+  [ "$solv" = 'cvc4' ];
+then
+  solv="cvc4 --strings-exp --incremental -"
+elif
+  [ "$solv" = 'cvc5' ];
+then
+  solv="cvc5 --strings-exp --incremental -"
+else
+  echo "No solver given!"
+  exit 1
+fi
+
+inpipe=$HOME'/papers/regular_match/experiments/shortest_match/pipe.in'
+outpipe=$HOME'/papers/regular_match/experiments/shortest_match/pipe.out'
+rm $inpipe $outpipe pkill sleep 2>/dev/null
+mkfifo $inpipe
+mkfifo $outpipe
+
+sleep $TIMEOUT > $inpipe &
+$solv < $inpipe > ${outpipe} &
+cat ${infile} >${inpipe}
+SOL=0
+
+if read line <$outpipe; then
+  if [ "$line" = 'sat' ]; then
+    obj_val=${init}
+    if [ "$5" = 'max' ]; then
+      echo "(assert (>= ${obj} ${obj_val}))" >${inpipe}
+    else
+      echo "(assert (<= ${obj} ${obj_val}))" >${inpipe}
+    fi
+    echo "(check-sat)" >${inpipe}
+  if read line <$outpipe; then
+    if [ "$line" = 'sat' ]; then
+      obj_val=${init}
+      if [ "$5" = 'max' ]; then
+        echo "(assert (>= ${obj} ${obj_val}))" >${inpipe}
+      else
+        echo "(assert (<= ${obj} ${obj_val}))" >${inpipe}
+      fi
+      echo "(check-sat)" >${inpipe}
+      while read line <${outpipe}
+      do
+        if [ ! "$line" = 'sat' ]; then
+          break;
+        fi
+        SOL=1
+        echo -e "$obj = $obj_val\n----------"
+        if [ "$5" = 'max' ]; then
+          obj_val=`expr ${obj_val} "+" 1`
+          echo "(assert (>= ${obj} ${obj_val}))" >${inpipe}
+        else
+          obj_val=`expr ${obj_val} "-" 1`
+          echo "(assert (<= ${obj} ${obj_val}))" >${inpipe}
+        fi
+        echo "(check-sat)" >${inpipe}
+      done
+      if
+        [[ $SOL -eq 0 ]]
+      then
+        SOL=1
+        echo -e "$obj = $obj_val\n----------"
+      fi
+    fi
+  fi
+    if
+      [[ $SOL -eq 0 ]]
+    then
+      SOL=1
+      echo -e "$obj = $obj_val\n----------"
+    fi
+  fi
+fi
+if
+  [[ $SOL -eq 0 ]]
+then
+  if [ "$line" = 'unsat' ]; then
+    echo '=====UNSATISFIABLE====='
+  else
+    echo '=====UNKNOWN====='
+  fi
+elif [ "$line" = 'unsat' ]; then
+  echo '=========='
+fi
+
+rm ${inpipe} ${outpipe} pkill sleep 2>/dev/null

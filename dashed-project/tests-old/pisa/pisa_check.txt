@@ -1,0 +1,12 @@
+pisa-000.mzn sat
+pisa-001.mzn sat
+pisa-002.mzn sat
+pisa-003.mzn uns
+pisa-004.mzn uns
+pisa-005.mzn sat
+pisa-006.mzn uns
+pisa-007.mzn uns
+pisa-008.mzn sat
+pisa-009.mzn sat
+pisa-010.mzn sat
+pisa-011.mzn sat

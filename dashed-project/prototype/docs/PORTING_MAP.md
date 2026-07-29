@@ -1,0 +1,29 @@
+# G-Strings to Dashed porting map
+
+| Old responsibility | Dashed destination |
+|---|---|
+| `DashedString` storage | `dashed::Domain` |
+| Character/range set | `dashed::ValueSet` over generic `int` |
+| Fixed symbol blocks | `LiteralSegment` / `LiteralSlice` |
+| Variable-width dashed block | `RepeatSegment` |
+| `StringVarImp` domain ownership | `ListVarImp` |
+| `StringVarImp::eq` | equality propagator + `propagate_equal` |
+| `StringVarImp::concat` | concat propagator + `propagate_concat` |
+| mutable `StringView::pdomain()` | removed |
+| view-level multi-variable operations | removed |
+| manual domain update in view cloning | `VarImpView<ListVar>::update` only |
+| string-specific alphabet constants | model-supplied `ValueSet` |
+| string length fields | canonical `Domain` length interval |
+| old `string.vis` | `integration/gecode/.../list.vis` |
+
+## Suggested migration sequence
+
+1. Freeze old tests and examples as behavioural fixtures.
+2. Add converters from old dashed domains into `dashed::Domain` for differential
+   testing only.
+3. Port equality sweeps.
+4. Port concatenation sweeps.
+5. Replace old public `StringVar` with `ListVar` in one example model.
+6. Add branching and printing.
+7. Port remaining constraints one family at a time.
+8. Remove the compatibility converter once all fixtures pass.

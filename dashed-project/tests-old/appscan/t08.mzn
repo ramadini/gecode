@@ -1,0 +1,15 @@
+var string: selKeyword_value;
+var string: selKeyword_value_trimed;
+var string: p1;
+var string: p2;
+var string: p3;
+constraint (selKeyword_value) = ((p1) ++ (p2) ++ (p3));
+constraint str_reg(p1, "(( )|(\t))*");
+constraint str_reg(p3, "(( )|(\t))*");
+constraint not (str_suffixof(" ", p2));
+constraint not (str_suffixof("\t", p2));
+constraint not (str_prefixof("\t", p2));
+constraint not (str_prefixof(" ", p2));
+constraint (selKeyword_value_trimed) = (p2);
+constraint ("\t \tLxxxx29886 \t") = (selKeyword_value);
+solve satisfy;

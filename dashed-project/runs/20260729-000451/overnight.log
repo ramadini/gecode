@@ -1,0 +1,186 @@
+
+============================================================
+STAGE: preflight
+time: 2026-07-29T00:04:51+02:00
+============================================================
+GECODE_SRC=/home/roberto/src/gecode-main
+DASHED_SRC=/home/roberto/dashed-milestone1/dashed-refactor
+GECODE_BUILD=/home/roberto/src/gecode-main/build-listvar-native
+CORE_BUILD=/home/roberto/dashed-milestone1/dashed-refactor/build-native-core
+ASAN_CORE_BUILD=/home/roberto/dashed-milestone1/dashed-refactor/build-nightly-asan-core
+RUN_DIR=/home/roberto/dashed-overnight-runs/20260729-000451
+
+Tool versions:
+cmake version 3.22.1
+g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+1.10.1
+
+Memory and disk before run:
+               total        used        free      shared  buff/cache   available
+Mem:           7.6Gi       2.2Gi       2.1Gi        83Mi       3.3Gi       5.1Gi
+Swap:          2.0Gi       1.0Mi       2.0Gi
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda7       110G   84G   21G  81% /
+
+============================================================
+STAGE: backup current Dashed integration
+time: 2026-07-29T00:04:51+02:00
+============================================================
+Backup saved under: /home/roberto/dashed-overnight-runs/20260729-000451/backup
+
+============================================================
+STAGE: verify required ListVar infrastructure patches
+time: 2026-07-29T00:04:51+02:00
+============================================================
+
+============================================================
+STAGE: reconfigure and rebuild minimal native Gecode libraries
+time: 2026-07-29T00:04:51+02:00
+============================================================
+-- GECODE_WITH_VIS activates GECODE_REGENERATE_VARIMP for generated headers
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/roberto/src/gecode-main/build-listvar-native
+[0/2] Re-checking globbed directories...
+ninja: no work to do.
+
+============================================================
+STAGE: rebuild standalone Dashed core
+time: 2026-07-29T00:04:51+02:00
+============================================================
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/roberto/dashed-milestone1/dashed-refactor/build-native-core
+ninja: no work to do.
+
+============================================================
+STAGE: install tested propagation adapter
+time: 2026-07-29T00:04:51+02:00
+============================================================
+
+============================================================
+STAGE: write equality, disequality, and equivalence-reification propagators
+time: 2026-07-29T00:04:51+02:00
+============================================================
+
+============================================================
+STAGE: write concatenation propagator
+time: 2026-07-29T00:04:51+02:00
+============================================================
+
+============================================================
+STAGE: write aggregate public header
+time: 2026-07-29T00:04:51+02:00
+============================================================
+
+============================================================
+STAGE: syntax-check new public headers
+time: 2026-07-29T00:04:51+02:00
+============================================================
+
+============================================================
+STAGE: write combined native runtime tests
+time: 2026-07-29T00:04:52+02:00
+============================================================
+
+============================================================
+STAGE: compile combined native runtime tests
+time: 2026-07-29T00:04:52+02:00
+============================================================
+
+============================================================
+STAGE: run combined native runtime tests
+time: 2026-07-29T00:04:55+02:00
+============================================================
+Dashed native constraint tests passed
+
+============================================================
+STAGE: run standalone Dashed regression tests
+time: 2026-07-29T00:04:55+02:00
+============================================================
+[ 33%] Built target dashed_core
+[ 46%] Built target dashed_example
+[ 60%] Built target dashed_core_tests
+[ 73%] Built target dashed_property_tests
+[ 86%] Built target dashed_fixed_sequence_bench
+[100%] Built target dashed_old_style_compaction_bench
+Internal ctest changing into directory: /home/roberto/dashed-milestone1/dashed-refactor/build
+Test project /home/roberto/dashed-milestone1/dashed-refactor/build
+    Start 1: dashed_core_tests
+1/3 Test #1: dashed_core_tests ................   Passed    0.24 sec
+    Start 2: dashed_property_tests
+2/3 Test #2: dashed_property_tests ............   Passed    0.20 sec
+    Start 3: dashed_vis_validation
+3/3 Test #3: dashed_vis_validation ............   Passed    0.03 sec
+
+100% tests passed, 0 tests failed out of 3
+
+Total Test time (real) =   0.47 sec
+
+============================================================
+STAGE: build sanitizer-instrumented standalone core
+time: 2026-07-29T00:04:56+02:00
+============================================================
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/roberto/dashed-milestone1/dashed-refactor/build-nightly-asan-core
+ninja: no work to do.
+
+============================================================
+STAGE: compile and run ASan/UBSan native constraint test
+time: 2026-07-29T00:04:56+02:00
+============================================================
+Dashed native constraint tests passed
+
+============================================================
+STAGE: collect results
+time: 2026-07-29T00:05:07+02:00
+============================================================
+
+Dashed overnight run completed successfully.
+
+Run directory:
+  /home/roberto/dashed-overnight-runs/20260729-000451
+
+Gecode source:
+  /home/roberto/src/gecode-main
+
+Standalone Dashed source:
+  /home/roberto/dashed-milestone1/dashed-refactor
+
+Generated/updated integration files:
+  gecode/dashed/propagator-adapter.hpp
+  gecode/dashed/rel.hpp
+  gecode/dashed/concat.hpp
+  gecode/dashed.hh
+
+Validated constraints:
+  equality
+  disequality
+  equivalence-reified equality
+  equivalence-reified disequality
+  concatenation (non-aliased variables)
+  length regression
+
+Intentional boundaries:
+  RM_IMP and RM_PMI are rejected.
+  concat aliases are rejected.
+  No git commit or push was performed.
+
+Useful artifacts:
+  overnight.log
+  dashed.patch
+  dashed-after.tar.gz
+  backup/dashed-before.tar.gz
+  git-status-before.txt
+  git-status-after.txt
+Elapsed seconds: 16
+Log: /home/roberto/dashed-overnight-runs/20260729-000451/overnight.log
+
+               total        used        free      shared  buff/cache   available
+Mem:           7.6Gi       2.1Gi       2.2Gi        80Mi       3.3Gi       5.1Gi
+Swap:          2.0Gi       1.0Mi       2.0Gi
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda7       110G   84G   21G  81% /
+
+SUCCESS: all unattended stages passed.

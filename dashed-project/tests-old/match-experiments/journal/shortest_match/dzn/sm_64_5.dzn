@@ -1,0 +1,9 @@
+L = 64;
+N = 5;
+PATTERNS = [
+	"xL(Gz7Dl|2dybR|G3F1a|5eQq4)*t5",
+	"(8G|wm|c8|Op|bz)z6G",
+	"tuiHrjn(QYC6WSZ|wrXmxOb)L7",
+	"cYC6(WSZL|ZuqZ|KU9T|CPsP|4yKk)7npfe(29p1v|dylE5|RA2q8|CZ0S2|SPMgm|Ur1fX)J8u(CMS|FcK|xOh)*7J8Gz(6|k|p|f|h|6)*",
+	"(r|4|6|N|o)jnQ",
+]
