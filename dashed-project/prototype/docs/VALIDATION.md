@@ -96,3 +96,10 @@ models. The native runner rejects missing, extra, and duplicate solutions and
 records nodes, failures, and maximum depth. It is not yet a substitute for a
 live side-by-side historical search-stat comparison. See
 `DIFFERENTIAL_TESTING.md` for the report protocols and remaining work.
+
+### Classified legacy root differences
+
+`dashed_gstrings_extended_tests` exercises legacy `str_test2` cases 03-08.
+For finite cases it enumerates the concrete languages and verifies soundness
+before assigning a differential classification. The deterministic classified
+TSV report is checked by `dashed_gstrings_extended_report`.

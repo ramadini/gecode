@@ -60,3 +60,12 @@ Measure before adding representation complexity. Candidate optimizations:
 - specialized cursors that compare repeat blocks with literal spans without
   materialization;
 - Gecode `Region` scratch allocation inside propagation.
+
+### Differential equality expansion
+
+- [x] Add `str_test2` equality cases 03-08 to the preserved-source corpus.
+- [x] Prevent region reconstruction from producing an unsound equality
+      failure when the value-only sweep remains feasible.
+- [x] Classify exact matches, matching failure, a corrected unsound legacy
+      expectation, and a sound-but-weaker List projection.
+- [ ] Continue the classified corpus with the remaining `str_test2` sweeps.

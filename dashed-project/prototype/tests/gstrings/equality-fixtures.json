@@ -58,6 +58,60 @@
         "vy[0].l = 1",
         "vz[2].S.remove('e')"
       ]
+    },
+    {
+      "id": "str_test2.test03",
+      "function": "test03",
+      "anchors": [
+        "NSBlock(NSIntSet('a', 'c'), 0, 300)",
+        "NSBlock(NSIntSet('a', 'b'), 1, 1)",
+        "NSBlock(NSIntSet('b', 'c'), 0, 200)"
+      ]
+    },
+    {
+      "id": "str_test2.test04",
+      "function": "test04",
+      "anchors": [
+        "NSBlock(NSIntSet('a', 'b'), 1, 1)",
+        "NSBlock(NSIntSet('a', 'd'), 0, 2)",
+        "vx[1].S = NSIntSet('d', 'd')"
+      ]
+    },
+    {
+      "id": "str_test2.test05",
+      "function": "test05",
+      "anchors": [
+        "NSBlock(NSIntSet('e', 'f'), 1, 1)",
+        "assert (!sweep_equate(*this, x, y)"
+      ]
+    },
+    {
+      "id": "str_test2.test06",
+      "function": "test06",
+      "anchors": [
+        "NSBlock(NSIntSet('x', 'z'), 1, 1)",
+        "NSBlock(NSIntSet('a', 'b'), 0, 2)",
+        "vy[2].S = NSIntSet('b', 'b')",
+        "vy[3].S = NSIntSet('y', 'y')"
+      ]
+    },
+    {
+      "id": "str_test2.test07",
+      "function": "test07",
+      "anchors": [
+        "NSBlock(NSIntSet('f', 'h'), 0, 2)",
+        "NSBlock(NSIntSet('c', 'd'), 1, 1)",
+        "assert (x == y"
+      ]
+    },
+    {
+      "id": "str_test2.test08",
+      "function": "test08",
+      "anchors": [
+        "NSBlock(NSIntSet('a', 'd'), 0, 2)",
+        "NSBlock(NSIntSet('b', 'c'), 1, 1)",
+        "assert (ns_blocks(x) == vx"
+      ]
     }
   ]
 }

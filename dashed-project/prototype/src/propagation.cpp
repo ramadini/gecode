@@ -1493,39 +1493,48 @@ Change project_sweep(
     const Domain& target) {
   Domain refined = subject;
 
-  detail::SweepStatus status =
+  const detail::SweepStatus exact_status =
       detail::project_against_exact_target(
           subject,
           target,
           refined);
 
-  if (status ==
-      detail::SweepStatus::unsupported) {
-    refined = subject;
-
-    status =
-        detail::project_repeat_regions(
-            subject,
-            target,
-            refined);
+  if (exact_status == detail::SweepStatus::feasible) {
+    return replace_domain(subject, refined);
+  }
+  if (exact_status == detail::SweepStatus::infeasible) {
+    subject.fail();
+    return Change::failed;
   }
 
-  if (status ==
-      detail::SweepStatus::unsupported) {
-    refined = subject;
-
-    status =
-        detail::project_repeat_values(
-            subject,
-            target,
-            refined);
-  }
-
-  switch (status) {
-    case detail::SweepStatus::feasible:
-      return replace_domain(
+  refined = subject;
+  const detail::SweepStatus region_status =
+      detail::project_repeat_regions(
           subject,
+          target,
           refined);
+
+  if (region_status == detail::SweepStatus::feasible) {
+    return replace_domain(subject, refined);
+  }
+
+  /*
+   * Region reconstruction is a strengthening layer, not the final
+   * feasibility oracle. Crossing start/end windows can mean that the exact
+   * common language is representable only after collapsing values, as in
+   * legacy str_test2::test06. In that case an "infeasible" region shape must
+   * fall through to the value-only projection rather than failing equality.
+   */
+  refined = subject;
+  const detail::SweepStatus value_status =
+      detail::project_repeat_values(
+          subject,
+          target,
+          refined);
+
+  switch (value_status) {
+    case detail::SweepStatus::feasible:
+      return replace_domain(subject, refined);
 
     case detail::SweepStatus::infeasible:
       subject.fail();
@@ -1537,7 +1546,6 @@ Change project_sweep(
 
   return Change::none;
 }
-
 
 PropagationResult propagate_equal(Domain& x, Domain& y) {
   PropagationResult result;

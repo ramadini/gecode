@@ -17,7 +17,7 @@ cmake \
 
 cmake \
   --build "$BUILD" \
-  --target dashed_gstrings_differential_tests \
+  --target dashed_gstrings_differential_tests dashed_gstrings_extended_tests \
   --parallel "$JOBS"
 
 python3 \
@@ -30,6 +30,11 @@ python3 \
   "$PROTOTYPE/tools/compare_differential_reports.py" \
   --expected "$PROTOTYPE/tests/gstrings/expected-equality.tsv" \
   --runner "$BUILD/dashed_gstrings_differential_tests"
+
+python3 \
+  "$PROTOTYPE/tools/compare_extended_differential_reports.py" \
+  --expected "$PROTOTYPE/tests/gstrings/expected-equality-extended.tsv" \
+  --runner "$BUILD/dashed_gstrings_extended_tests"
 
 python3 \
   "$PROTOTYPE/tools/generate_gstrings_solution_reference.py" \

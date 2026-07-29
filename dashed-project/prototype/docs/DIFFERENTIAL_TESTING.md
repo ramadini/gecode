@@ -87,3 +87,26 @@ This layer detects missing, extra, or duplicate native solutions.  A later
 live historical runner must still execute the same models under G-Strings so
 that node and failure counts, and any propagation-strength differences, can be
 classified directly.
+
+## Extended legacy equality classification
+
+The translated root-propagation corpus now also covers `str_test2::test03`
+through `test08`. These cases are not treated as blind golden outputs: small
+finite cases are checked against the concrete language intersection so that a
+legacy expectation can be classified rather than automatically copied.
+
+The current classifications are:
+
+- `test03`, `test07`, and `test08`: matching root propagation;
+- `test05`: matching unsatisfiability;
+- `test04`: the List result is the exact language intersection, while the
+  historical expected block update both removes valid lists and admits lists
+  outside the original intersection;
+- `test06`: both List operands remain sound, the right operand reaches the
+  exact historical common domain, and the left operand is a documented
+  over-approximation.
+
+`test06` also guards a critical failure mode. Region reconstruction may find
+crossing start/end windows even though the value-only sweep is feasible. The
+region layer is therefore no longer used as the final infeasibility oracle;
+the value projection must independently confirm failure.

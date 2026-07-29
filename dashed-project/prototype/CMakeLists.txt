@@ -59,6 +59,19 @@ if(DASHED_BUILD_TESTS)
   )
 
   add_executable(
+    dashed_gstrings_extended_tests
+    tests/test_gstrings_extended.cpp
+  )
+  target_link_libraries(
+    dashed_gstrings_extended_tests
+    PRIVATE Dashed::core
+  )
+  add_test(
+    NAME dashed_gstrings_extended_tests
+    COMMAND dashed_gstrings_extended_tests
+  )
+
+  add_executable(
     dashed_sweep_tests
     tests/test_sweep.cpp
   )
@@ -89,6 +102,15 @@ if(DASHED_BUILD_TESTS)
               ${CMAKE_CURRENT_SOURCE_DIR}/tests/gstrings/expected-equality.tsv
               --runner
               $<TARGET_FILE:dashed_gstrings_differential_tests>
+    )
+    add_test(
+      NAME dashed_gstrings_extended_report
+      COMMAND ${Python3_EXECUTABLE}
+              ${CMAKE_CURRENT_SOURCE_DIR}/tools/compare_extended_differential_reports.py
+              --expected
+              ${CMAKE_CURRENT_SOURCE_DIR}/tests/gstrings/expected-equality-extended.tsv
+              --runner
+              $<TARGET_FILE:dashed_gstrings_extended_tests>
     )
     add_test(
       NAME dashed_gstrings_search_reference
