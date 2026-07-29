@@ -522,6 +522,101 @@ void test_single_repeat_equality_refinement_guards() {
   }
 }
 
+void test_legacy_equality_variable_width_test09() {
+  // Port of old str_test2::test09 using generic integers.
+  //
+  // x = {1..3}^0..500 {4..5}^0..300
+  // y = {1..2}^0..200 {3..4}^0..900
+  //
+  // The common maximum length is 800.
+  //
+  // Value 5 is impossible anywhere in y, so it must be removed from
+  // x's second block. Value 3 must remain in x's first block because
+  // variable block boundaries allow it to align with y's second block.
+  Domain x(
+      {
+          RepeatSegment{
+              ValueSet(1, 3),
+              0,
+              500},
+          RepeatSegment{
+              ValueSet(4, 5),
+              0,
+              300},
+      },
+      0,
+      800);
+
+  Domain y(
+      {
+          RepeatSegment{
+              ValueSet(1, 2),
+              0,
+              200},
+          RepeatSegment{
+              ValueSet(3, 4),
+              0,
+              900},
+      },
+      0,
+      1100);
+
+  const Domain expected_x(
+      {
+          RepeatSegment{
+              ValueSet(1, 3),
+              0,
+              500},
+          RepeatSegment{
+              ValueSet(4),
+              0,
+              300},
+      },
+      0,
+      800);
+
+  const Domain expected_y(
+      {
+          RepeatSegment{
+              ValueSet(1, 2),
+              0,
+              200},
+          RepeatSegment{
+              ValueSet(3, 4),
+              0,
+              800},
+      },
+      0,
+      800);
+
+  const auto first =
+      dashed::propagate_equal(x, y);
+
+  assert(!first.failed());
+
+  const auto second =
+      dashed::propagate_equal(x, y);
+
+  assert(!second.failed());
+
+  std::cerr
+      << "variable-width x: "
+      << x << '\n';
+  std::cerr
+      << "variable-width y: "
+      << y << '\n';
+  std::cerr
+      << "expected x:       "
+      << expected_x << '\n';
+  std::cerr
+      << "expected y:       "
+      << expected_y << '\n';
+
+  assert(x == expected_x);
+  assert(y == expected_y);
+  assert(!second.subsumed);
+}
+
 void test_legacy_equality_multi_segment_sweep() {
   // Port of old str_test2::test02, replacing characters with integers.
   //
@@ -671,6 +766,7 @@ int main() {
   test_membership();
   test_length_propagation();
   test_segmented_equality_sweep_symmetry_and_failure();
+  test_legacy_equality_variable_width_test09();
   test_legacy_equality_multi_segment_sweep();
   test_single_repeat_equality_refinement_guards();
   test_legacy_equality_shape_refinement();

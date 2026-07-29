@@ -274,6 +274,79 @@ void test_projection_detects_mandatory_incompatibility() {
   assert(refined == subject);
 }
 
+void test_variable_width_value_projection() {
+  Domain x(
+      {
+          RepeatSegment{
+              ValueSet(1, 3),
+              0,
+              500},
+          RepeatSegment{
+              ValueSet(4, 5),
+              0,
+              300},
+      },
+      0,
+      800);
+
+  Domain y(
+      {
+          RepeatSegment{
+              ValueSet(1, 2),
+              0,
+              200},
+          RepeatSegment{
+              ValueSet(3, 4),
+              0,
+              900},
+      },
+      0,
+      1100);
+
+  const auto y_length =
+      y.tighten_length(0, 800);
+
+  assert(!dashed::failed(y_length));
+
+  const Domain expected_x(
+      {
+          RepeatSegment{
+              ValueSet(1, 3),
+              0,
+              500},
+          RepeatSegment{
+              ValueSet(4),
+              0,
+              300},
+      },
+      0,
+      800);
+
+  Domain refined_x = x;
+
+  const SweepStatus x_status =
+      dashed::detail::project_repeat_values(
+          x,
+          y,
+          refined_x);
+
+  assert(x_status == SweepStatus::feasible);
+  assert(refined_x == expected_x);
+
+  // The same operation is directional. Applying it in the reverse
+  // direction leaves y's values unchanged for this example.
+  Domain refined_y = y;
+
+  const SweepStatus y_status =
+      dashed::detail::project_repeat_values(
+          y,
+          x,
+          refined_y);
+
+  assert(y_status == SweepStatus::feasible);
+  assert(refined_y == y);
+}
+
 void test_literals_are_not_expanded() {
   const Domain literal =
       Domain::fixed({1, 2, 3});
@@ -305,6 +378,7 @@ int main() {
   test_legacy_test02_matching_bounds();
   test_legacy_test02_projection();
   test_projection_detects_mandatory_incompatibility();
+  test_variable_width_value_projection();
   test_literals_are_not_expanded();
 
   std::cout

@@ -67,4 +67,17 @@ enum class SweepStatus {
     const Domain& target,
     Domain& refined);
 
+
+/**
+ * Refine the value set of every repeat block in subject using the union of
+ * target-block value sets in its feasible sweep region.
+ *
+ * Block cardinalities and structure are preserved. This supports variable
+ * target widths but still requires RepeatSegment-only domains.
+ */
+[[nodiscard]] SweepStatus project_repeat_values(
+    const Domain& subject,
+    const Domain& target,
+    Domain& refined);
+
 }  // namespace dashed::detail

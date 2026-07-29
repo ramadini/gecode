@@ -586,6 +586,173 @@ SweepStatus analyze_repeat_sweep(
 }
 
 
+SweepStatus project_repeat_values(
+    const Domain& subject,
+    const Domain& target,
+    Domain& refined) {
+  SweepAnalysis analysis;
+
+  const SweepStatus analysis_status =
+      analyze_repeat_sweep(
+          subject,
+          target,
+          analysis);
+
+  if (analysis_status != SweepStatus::feasible) {
+    return analysis_status;
+  }
+
+  std::vector<const RepeatSegment*> subject_blocks;
+  std::vector<const RepeatSegment*> target_blocks;
+
+  subject_blocks.reserve(subject.segment_count());
+  target_blocks.reserve(target.segment_count());
+
+  for (const Segment& segment : subject.segments()) {
+    const auto* repeat =
+        std::get_if<RepeatSegment>(&segment);
+
+    if (repeat == nullptr) {
+      return SweepStatus::unsupported;
+    }
+
+    subject_blocks.push_back(repeat);
+  }
+
+  for (const Segment& segment : target.segments()) {
+    const auto* repeat =
+        std::get_if<RepeatSegment>(&segment);
+
+    if (repeat == nullptr) {
+      return SweepStatus::unsupported;
+    }
+
+    target_blocks.push_back(repeat);
+  }
+
+  if (analysis.blocks.size() !=
+          subject_blocks.size() ||
+      target_blocks.empty()) {
+    return SweepStatus::unsupported;
+  }
+
+  auto feasible_overlap =
+      [&](const SweepBlockMatch& match,
+          std::size_t target_index) {
+        if (match.earliest_start.segment < 0 ||
+            match.latest_end.segment < 0) {
+          return false;
+        }
+
+        const auto first =
+            static_cast<std::size_t>(
+                match.earliest_start.segment);
+
+        const auto last =
+            static_cast<std::size_t>(
+                match.latest_end.segment);
+
+        if (first >= target_blocks.size() ||
+            last >= target_blocks.size() ||
+            first > last ||
+            target_index < first ||
+            target_index > last) {
+          return false;
+        }
+
+        if (first == last) {
+          return
+              target_index == first &&
+              match.earliest_start.offset <
+                  match.latest_end.offset;
+        }
+
+        if (target_index == first) {
+          return
+              match.earliest_start.offset <
+              target_blocks[target_index]->upper;
+        }
+
+        if (target_index == last) {
+          return match.latest_end.offset > 0;
+        }
+
+        return true;
+      };
+
+  std::vector<Segment> projected;
+  projected.reserve(subject_blocks.size());
+
+  for (std::size_t subject_index = 0;
+       subject_index < subject_blocks.size();
+       ++subject_index) {
+    const RepeatSegment& subject_block =
+        *subject_blocks[subject_index];
+
+    const SweepBlockMatch& match =
+        analysis.blocks[subject_index];
+
+    std::vector<IntRange> feasible_ranges;
+
+    for (std::size_t target_index = 0;
+         target_index < target_blocks.size();
+         ++target_index) {
+      if (!feasible_overlap(
+              match,
+              target_index)) {
+        continue;
+      }
+
+      const std::vector<IntRange> ranges =
+          target_blocks[target_index]->
+              values.ranges();
+
+      feasible_ranges.insert(
+          feasible_ranges.end(),
+          ranges.begin(),
+          ranges.end());
+    }
+
+    const ValueSet feasible_values{
+        Span<const IntRange>(feasible_ranges)};
+
+    ValueSet refined_values =
+        subject_block.values.intersected(
+            feasible_values);
+
+    Length lower = subject_block.lower;
+    Length upper = subject_block.upper;
+
+    if (refined_values.empty()) {
+      if (lower > 0) {
+        return SweepStatus::infeasible;
+      }
+
+      // An optional block with no feasible value can only occur zero times.
+      upper = 0;
+    }
+
+    projected.push_back(
+        RepeatSegment{
+            std::move(refined_values),
+            lower,
+            upper});
+  }
+
+  Domain candidate(
+      std::move(projected),
+      subject.min_length(),
+      subject.max_length());
+
+  if (candidate.failed()) {
+    return SweepStatus::infeasible;
+  }
+
+  refined = std::move(candidate);
+  return SweepStatus::feasible;
+}
+
+
 SweepStatus project_against_exact_target(
     const Domain& subject,
     const Domain& target,

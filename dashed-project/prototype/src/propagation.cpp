@@ -115,16 +115,27 @@ Change BoolDomain::force(bool forced_value) noexcept {
   return Change::assigned;
 }
 
-Change project_exact_target(
+Change project_sweep(
     Domain& subject,
     const Domain& target) {
   Domain refined = subject;
 
-  const detail::SweepStatus status =
+  detail::SweepStatus status =
       detail::project_against_exact_target(
           subject,
           target,
           refined);
+
+  if (status ==
+      detail::SweepStatus::unsupported) {
+    refined = subject;
+
+    status =
+        detail::project_repeat_values(
+            subject,
+            target,
+            refined);
+  }
 
   switch (status) {
     case detail::SweepStatus::feasible:
@@ -200,12 +211,12 @@ PropagationResult propagate_equal(Domain& x, Domain& y) {
       // to the existing same-shape intersection.
       result.left = combine(
           result.left,
-          project_exact_target(x, y));
+          project_sweep(x, y));
 
       if (!result.failed()) {
         result.right = combine(
             result.right,
-            project_exact_target(y, x));
+            project_sweep(y, x));
       }
 
       if (!result.failed()) {
