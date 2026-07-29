@@ -26,8 +26,10 @@
 - exact assigned-side disequality pruning for one symbolic position and one
   endpoint singleton repetition count (included); extend further only when the
   result remains representable without an internal domain union;
-- compare every ported operation with exhaustive small-language semantics and
-  differential tests against G-Strings.
+- compare every ported operation with exhaustive small-language semantics;
+- fixture-backed differential reports for six preserved `str_test2` equality
+  sweeps are included; live historical-runner, solution-set, and search-stat
+  comparisons remain pending.
 
 ## Milestone 4 — modelling and search
 

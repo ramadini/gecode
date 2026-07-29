@@ -46,6 +46,19 @@ if(DASHED_BUILD_TESTS)
   add_test(NAME dashed_property_tests COMMAND dashed_property_tests)
 
   add_executable(
+    dashed_gstrings_differential_tests
+    tests/test_gstrings_differential.cpp
+  )
+  target_link_libraries(
+    dashed_gstrings_differential_tests
+    PRIVATE Dashed::core
+  )
+  add_test(
+    NAME dashed_gstrings_differential_tests
+    COMMAND dashed_gstrings_differential_tests
+  )
+
+  add_executable(
     dashed_sweep_tests
     tests/test_sweep.cpp
   )
@@ -60,6 +73,23 @@ if(DASHED_BUILD_TESTS)
 
   find_package(Python3 COMPONENTS Interpreter QUIET)
   if(Python3_Interpreter_FOUND)
+    add_test(
+      NAME dashed_gstrings_fixture_source
+      COMMAND ${Python3_EXECUTABLE}
+              ${CMAKE_CURRENT_SOURCE_DIR}/tools/verify_gstrings_fixtures.py
+              --manifest
+              ${CMAKE_CURRENT_SOURCE_DIR}/tests/gstrings/equality-fixtures.json
+              --optional
+    )
+    add_test(
+      NAME dashed_gstrings_differential_report
+      COMMAND ${Python3_EXECUTABLE}
+              ${CMAKE_CURRENT_SOURCE_DIR}/tools/compare_differential_reports.py
+              --expected
+              ${CMAKE_CURRENT_SOURCE_DIR}/tests/gstrings/expected-equality.tsv
+              --runner
+              $<TARGET_FILE:dashed_gstrings_differential_tests>
+    )
     add_test(
       NAME dashed_vis_validation
       COMMAND ${Python3_EXECUTABLE}

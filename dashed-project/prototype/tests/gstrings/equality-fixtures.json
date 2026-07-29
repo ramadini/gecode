@@ -1,0 +1,63 @@
+{
+  "source": "gecode/string/tests/str_test2.cpp",
+  "mapping": "Legacy characters are mapped injectively with a=1, b=2, ...",
+  "cases": [
+    {
+      "id": "str_test2.test01",
+      "function": "test01",
+      "anchors": [
+        "NSBlock(NSIntSet('a', 'b'), 0, 4)",
+        "NSBlock(NSIntSet('a', 'b'), 0, 2)",
+        "v[0].u = 1"
+      ]
+    },
+    {
+      "id": "str_test2.test02",
+      "function": "test02",
+      "anchors": [
+        "int n = 10",
+        "NSBlock(NSIntSet('a', 'c'), 0, 30 * n)",
+        "NSBlock(NSIntSet('b', 'd'), 26 * n, 26 * n)",
+        "NSBlock(NSIntSet('b', 'c'), 20 * n, 21 * n)"
+      ]
+    },
+    {
+      "id": "str_test2.test09",
+      "function": "test09",
+      "anchors": [
+        "NSBlock(NSIntSet('a', 'c'), 0, 500)",
+        "NSBlock(NSIntSet('d', 'e'), 0, 300)",
+        "vx[1].S.remove('e')",
+        "vy[1].u = 800"
+      ]
+    },
+    {
+      "id": "str_test2.test11",
+      "function": "test11",
+      "anchors": [
+        "NSBlock(NSIntSet('a', 'c'), 0, 400)",
+        "NSBlock(NSIntSet('d', 'd'), 0, 900)",
+        "y.null()"
+      ]
+    },
+    {
+      "id": "str_test2.test14",
+      "function": "test14",
+      "anchors": [
+        "NSBlock(NSIntSet('a', 'b'), 0, 6)",
+        "NSBlock(NSIntSet('a', 'c'), 0, 5)",
+        "NSBlock(NSIntSet('a', 'b'), 0, 4)"
+      ]
+    },
+    {
+      "id": "str_test2.test16",
+      "function": "test16",
+      "anchors": [
+        "NSBlock(NSIntSet('a', 'c'), 0, 3)",
+        "NSBlock(NSIntSet('b', 'd'), 0, 3)",
+        "vy[0].l = 1",
+        "vz[2].S.remove('e')"
+      ]
+    }
+  ]
+}

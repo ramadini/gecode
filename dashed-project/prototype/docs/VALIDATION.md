@@ -78,3 +78,18 @@ GECODE_SANITIZER=address-undefined
 
 That build must test space cloning and destruction repeatedly before more of the
 old sweep propagators are ported.
+
+## G-Strings differential baseline
+
+Run the translated equality corpus and verify it against the preserved legacy
+source:
+
+```sh
+./dashed-project/scripts/run-gstrings-differential.sh
+```
+
+The verifier first searches preserved filesystem copies and local Git history.
+The explicit runner may fetch `origin/master` or `origin/main` when the source
+is not already available. The current gate covers six `str_test2.cpp`
+root-domain fixtures; it is not yet a substitute for live side-by-side search.
+See `DIFFERENTIAL_TESTING.md` for the report protocol and remaining work.
