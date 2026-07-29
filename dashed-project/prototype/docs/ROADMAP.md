@@ -30,8 +30,9 @@
 - fixture-backed differential reports for six preserved `str_test2` equality
   sweeps are included; exact native DFS solution sets now cover equality,
   disequality, concatenation, length, and reified equality, with native search
-  statistics recorded and sanity-checked; live historical-runner and direct
-  G-Strings search-stat comparisons remain pending.
+  statistics recorded and sanity-checked; a cached live historical `str_test2`
+  runner now gates the normalized root-domain protocol; direct G-Strings
+  search-stat comparisons remain pending.
 
 ## Milestone 4 — modelling and search
 
@@ -73,4 +74,5 @@ Measure before adding representation complexity. Candidate optimizations:
 - [x] Classify the lower-level sweep stress cases 21 and 23 separately,
       including post-tightening canonicalization and the distinction between
       structural sweep feasibility and actual language intersection.
-- [ ] Build the live historical G-Strings runner and compare the shared report protocol.
+- [x] Build the live historical G-Strings runner and compare the shared report protocol.
+- [ ] Compare live historical and List search nodes, failures, and solution sets.

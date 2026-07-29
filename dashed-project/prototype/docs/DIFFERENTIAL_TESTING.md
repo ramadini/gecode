@@ -27,24 +27,35 @@ Run:
 
 Pass `--root PATH` when the legacy test tree is elsewhere.
 
-## Live runner seam
+## Live historical runner
 
-This checkpoint is fixture-backed: it verifies translated root-domain results
-against preserved legacy source, but it does not yet compile the historical
-G-Strings solver. A future adapter can implement the same `--report PATH` TSV
-protocol and be supplied as:
+The explicit differential command now resolves the newest reachable Git
+revision containing `gecode/string/tests/str_test2.cpp`, exports that revision
+into an ignored cache under `dashed-project/runs/gstrings-live`, builds and
+installs the historical G-Strings tree under that cache, and executes the real
+`str_test2` binary.
+
+The historical program's assertions remain the legacy oracle. After a
+successful run, `emit_live_gstrings_report.py` verifies that all six baseline
+cases completed and emits the normalized TSV protocol used by the List runner.
+This avoids parsing implementation-specific historical pretty-print syntax
+while still requiring the original solver and its assertions to execute.
+
+Run the complete comparison with:
 
 ```sh
-GSTRINGS_DIFFERENTIAL_RUNNER=/path/to/gstrings-runner \
-  ./dashed-project/scripts/run-gstrings-differential.sh
+./dashed-project/scripts/run-gstrings-differential.sh
 ```
 
-The script then compares live G-Strings output with the List kernel instead of
-only the committed fixture report.
+The first run can be substantially slower because it builds the historical
+checkout. Later runs reuse the revision-keyed cache. Override the automatically
+built runner with `GSTRINGS_DIFFERENTIAL_RUNNER`, select an exact historical
+revision with `GSTRINGS_LEGACY_REVISION`, or explicitly skip live execution in
+a constrained environment with `GSTRINGS_SKIP_LIVE=1`.
 
 ## Remaining differential coverage
 
-- live compilation and execution of the historical G-Strings checkout;
+- direct historical search-node and failure-count comparison;
 - satisfiability and complete solution sets for small searched models;
 - concatenation, disequality, reification, and length constraints;
 - objective values for optimization models;

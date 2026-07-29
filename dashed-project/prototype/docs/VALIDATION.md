@@ -92,10 +92,12 @@ The verifier first searches preserved filesystem copies and local Git history.
 The explicit runner may fetch `origin/master` or `origin/main` when the source
 is not already available. The gate covers six `str_test2.cpp` root-domain
 fixtures and an independent exact solution oracle for five small native DFS
-models. The native runner rejects missing, extra, and duplicate solutions and
-records nodes, failures, and maximum depth. It is not yet a substitute for a
-live side-by-side historical search-stat comparison. See
-`DIFFERENTIAL_TESTING.md` for the report protocols and remaining work.
+models. It also builds a revision-keyed historical G-Strings checkout, runs the
+real `str_test2` assertions, and compares its normalized six-case report with
+the List kernel. The native search runner rejects missing, extra, and duplicate
+solutions and records nodes, failures, and maximum depth. Direct historical
+search-stat comparison remains pending. See `DIFFERENTIAL_TESTING.md` for the
+report protocols and remaining work.
 
 ### Classified legacy root differences
 

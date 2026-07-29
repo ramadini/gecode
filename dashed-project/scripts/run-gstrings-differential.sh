@@ -71,19 +71,24 @@ python3 \
   "$PROTOTYPE/tools/generate_gstrings_solution_reference.py" \
   --check "$PROTOTYPE/tests/gstrings/expected-search-solutions.tsv"
 
-if [[ -n "${GSTRINGS_DIFFERENTIAL_RUNNER:-}" ]]; then
+if [[ "${GSTRINGS_SKIP_LIVE:-0}" == "1" ]]; then
+  echo "Fixture-backed differential baseline passed."
+  echo "Live historical execution was explicitly skipped with GSTRINGS_SKIP_LIVE=1."
+else
+  live_runner="${GSTRINGS_DIFFERENTIAL_RUNNER:-}"
+  if [[ -z "$live_runner" ]]; then
+    live_runner="$("$REPO_ROOT/dashed-project/scripts/build-gstrings-live-runner.sh")"
+  fi
+
   legacy_report="$(mktemp)"
   list_report="$(mktemp)"
   trap 'rm -rf "$fixed_fixture_directory"; rm -f "$legacy_report" "$list_report"' EXIT
 
-  "$GSTRINGS_DIFFERENTIAL_RUNNER" --report "$legacy_report"
+  "$live_runner" --report "$legacy_report"
   "$BUILD/dashed_gstrings_differential_tests" --report "$list_report"
   python3 \
     "$PROTOTYPE/tools/compare_differential_reports.py" \
     --expected "$legacy_report" \
     --actual "$list_report"
-  echo "Live G-Strings runner matches the List kernel."
-else
-  echo "Fixture-backed differential baseline passed."
-  echo "Set GSTRINGS_DIFFERENTIAL_RUNNER for live side-by-side execution."
+  echo "Live historical G-Strings runner matches the List kernel baseline."
 fi
