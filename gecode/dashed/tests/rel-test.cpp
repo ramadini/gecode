@@ -215,6 +215,98 @@ void equality_clone_is_independent() {
 }
 
 
+void segmented_equality_refines_mandatory_regions() {
+  dashed::Domain x(
+      {
+          dashed::RepeatSegment{
+              dashed::ValueSet(1, 3),
+              0,
+              3},
+          dashed::RepeatSegment{
+              dashed::ValueSet(4),
+              1,
+              1},
+          dashed::RepeatSegment{
+              dashed::ValueSet(3, 6),
+              0,
+              2},
+      },
+      1,
+      6);
+
+  dashed::Domain y(
+      {
+          dashed::RepeatSegment{
+              dashed::ValueSet(2, 4),
+              0,
+              3},
+          dashed::RepeatSegment{
+              dashed::ValueSet(6),
+              1,
+              1},
+      },
+      1,
+      4);
+
+  const dashed::Domain expected_x(
+      {
+          dashed::RepeatSegment{
+              dashed::ValueSet(2, 3),
+              0,
+              2},
+          dashed::RepeatSegment{
+              dashed::ValueSet(4),
+              1,
+              1},
+          dashed::RepeatSegment{
+              dashed::ValueSet(3, 4),
+              0,
+              1},
+          dashed::RepeatSegment{
+              dashed::ValueSet(6),
+              1,
+              1},
+      },
+      2,
+      4);
+
+  const dashed::Domain expected_y(
+      {
+          dashed::RepeatSegment{
+              dashed::ValueSet(2, 4),
+              1,
+              3},
+          dashed::RepeatSegment{
+              dashed::ValueSet(6),
+              1,
+              1},
+      },
+      2,
+      4);
+
+  auto* space =
+      new EqualitySpace(
+          std::move(x),
+          std::move(y));
+
+  assert(space->status() != Gecode::SS_FAILED);
+
+  assert(space->x.domain() == expected_x);
+  assert(space->y.domain() == expected_y);
+
+  assert(space->x.min_length() == 2);
+  assert(space->x.max_length() == 4);
+  assert(space->y.min_length() == 2);
+  assert(space->y.max_length() == 4);
+
+  // The domains are refined but still represent multiple concrete lists.
+  assert(!space->x.assigned());
+  assert(!space->y.assigned());
+
+  delete space;
+}
+
+
 void disequality_accepts_distinct_fixed_lists() {
   auto* space = new DisequalitySpace(
       fixed({-1, 0, 1}),
@@ -340,6 +432,7 @@ int main() {
   equality_assigns_unknown_side();
   equality_rejects_disjoint_lists();
   equality_clone_is_independent();
+  segmented_equality_refines_mandatory_regions();
 
   disequality_accepts_distinct_fixed_lists();
   disequality_rejects_equal_fixed_lists();
