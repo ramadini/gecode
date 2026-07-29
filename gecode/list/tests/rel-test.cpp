@@ -152,6 +152,55 @@ class ExactDomainBranchSpace final : public Space {
 };
 
 
+class ExactDomainNGLSpace final : public Space {
+ public:
+  ListVar x;
+  Gecode::NGL* literal;
+
+  explicit ExactDomainNGLSpace(
+      Gecode::List::Domain domain)
+      : Space(),
+        x(*this, std::move(domain)),
+        literal(nullptr) {
+    Gecode::branch_exact(*this, x);
+  }
+
+  ExactDomainNGLSpace(
+      ExactDomainNGLSpace& other)
+      : Space(other),
+        x(),
+        literal(nullptr) {
+    x.update(*this, other.x);
+
+    if (other.literal != nullptr) {
+      literal = other.literal->copy(*this);
+    }
+  }
+
+  Space* copy() override {
+    return new ExactDomainNGLSpace(*this);
+  }
+
+  void capture_literal(unsigned int alternative) {
+    assert(literal == nullptr);
+    assert(status() == Gecode::SS_BRANCH);
+
+    const Gecode::Choice* selected = choice();
+    literal = ngl(*selected, alternative);
+    delete selected;
+
+    assert(literal != nullptr);
+  }
+
+  void commit_current(unsigned int alternative) {
+    assert(status() == Gecode::SS_BRANCH);
+    const Gecode::Choice* selected = choice();
+    commit(*selected, alternative);
+    delete selected;
+  }
+};
+
+
 class ExactDomainArrayBranchSpace final : public Space {
  public:
   Gecode::ListVarArray x;
@@ -2947,6 +2996,134 @@ void exact_domain_branch_rejects_ambiguous_counts_native() {
 }
 
 
+void exact_domain_ngl_length_native() {
+  auto* root =
+      new ExactDomainNGLSpace(
+          Gecode::List::Domain::repeat(
+              Gecode::List::ValueSet(0, 1),
+              0,
+              3));
+
+  root->capture_literal(0);
+
+  assert(
+      root->literal->status(*root) ==
+      Gecode::NGL::NONE);
+
+  auto* clone =
+      static_cast<ExactDomainNGLSpace*>(
+          root->clone());
+
+  assert(clone->literal != nullptr);
+  assert(
+      clone->literal->status(*clone) ==
+      Gecode::NGL::NONE);
+
+  assert(
+      clone->literal->prune(*clone) ==
+      Gecode::ES_OK);
+
+  assert(
+      clone->status() !=
+      Gecode::SS_FAILED);
+  assert(clone->x.min_length() == 2);
+  assert(clone->x.max_length() == 3);
+  assert(
+      clone->literal->status(*clone) ==
+      Gecode::NGL::FAILED);
+
+  // Pruning the copied no-good literal must not affect its source space.
+  assert(root->x.min_length() == 0);
+  assert(root->x.max_length() == 3);
+
+  root->commit_current(0);
+
+  assert(
+      root->status() !=
+      Gecode::SS_FAILED);
+  assert(root->x.min_length() == 0);
+  assert(root->x.max_length() == 1);
+  assert(
+      root->literal->status(*root) ==
+      Gecode::NGL::SUBSUMED);
+
+  delete root;
+  delete clone;
+}
+
+
+void exact_domain_ngl_value_native() {
+  auto* root =
+      new ExactDomainNGLSpace(
+          Gecode::List::Domain::repeat(
+              Gecode::List::ValueSet(-2, 2),
+              1,
+              1));
+
+  root->capture_literal(0);
+
+  assert(
+      root->literal->status(*root) ==
+      Gecode::NGL::NONE);
+
+  assert(
+      root->literal->prune(*root) ==
+      Gecode::ES_OK);
+
+  assert(
+      root->status() !=
+      Gecode::SS_FAILED);
+  assert(
+      root->literal->status(*root) ==
+      Gecode::NGL::FAILED);
+
+  assert(
+      !root->x.domain().accepts(
+          fixed({-2})));
+  assert(
+      !root->x.domain().accepts(
+          fixed({-1})));
+  assert(
+      root->x.domain().accepts(
+          fixed({0})));
+  assert(
+      root->x.domain().accepts(
+          fixed({1})));
+  assert(
+      root->x.domain().accepts(
+          fixed({2})));
+
+  delete root;
+
+  auto* sibling =
+      new ExactDomainNGLSpace(
+          Gecode::List::Domain::repeat(
+              Gecode::List::ValueSet(-2, 2),
+              1,
+              1));
+
+  sibling->capture_literal(1);
+  assert(
+      sibling->literal->prune(*sibling) ==
+      Gecode::ES_OK);
+  assert(
+      sibling->literal->status(*sibling) ==
+      Gecode::NGL::FAILED);
+
+  assert(
+      sibling->x.domain().accepts(
+          fixed({-2})));
+  assert(
+      sibling->x.domain().accepts(
+          fixed({-1})));
+  assert(
+      !sibling->x.domain().accepts(
+          fixed({0})));
+
+  delete sibling;
+}
+
+
 void exact_domain_branch_choice_archive_native() {
   auto* root =
       new ExactDomainBranchSpace(
@@ -3237,6 +3414,8 @@ void list_var_arrays_clone_and_print_native() {
 
 
 int main() {
+  exact_domain_ngl_length_native();
+  exact_domain_ngl_value_native();
   exact_domain_branch_choice_archive_native();
   exact_domain_branch_rejects_ambiguous_counts_native();
   exact_domain_branching_array_native();

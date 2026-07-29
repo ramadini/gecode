@@ -16,6 +16,118 @@
 namespace Gecode { namespace List {
 
 /**
+ * Native no-good literal for one semantic exact-domain branch alternative.
+ *
+ * The literal owns a ListView plus a representation-independent backend
+ * decision. It therefore survives space cloning and domain normalization.
+ */
+class ExactDomainNGL final : public NGL {
+ private:
+  ListView variable_;
+  Backend::BranchDecision decision_;
+  unsigned int alternative_;
+
+  PropCond condition() const noexcept {
+    return decision_.kind == Backend::BranchKind::repeat_count
+        ? PC_LIST_LEN
+        : PC_LIST_ANY;
+  }
+
+ public:
+  ExactDomainNGL(
+      Space& home,
+      ListView variable,
+      Backend::BranchDecision decision,
+      unsigned int alternative)
+      : NGL(home),
+        variable_(variable),
+        decision_(std::move(decision)),
+        alternative_(alternative) {
+    assert(alternative_ < 2);
+  }
+
+  ExactDomainNGL(
+      Space& home,
+      ExactDomainNGL& other)
+      : NGL(home, other),
+        variable_(),
+        decision_(other.decision_),
+        alternative_(other.alternative_) {
+    variable_.update(home, other.variable_);
+  }
+
+  void subscribe(
+      Space& home,
+      Propagator& propagator) override {
+    variable_.subscribe(
+        home,
+        propagator,
+        condition());
+  }
+
+  void cancel(
+      Space& home,
+      Propagator& propagator) override {
+    variable_.cancel(
+        home,
+        propagator,
+        condition());
+  }
+
+  void reschedule(
+      Space& home,
+      Propagator& propagator) override {
+    variable_.reschedule(
+        home,
+        propagator,
+        condition());
+  }
+
+  Status status(const Space&) const override {
+    switch (Backend::branch_literal_status(
+        variable_.domain(),
+        decision_,
+        alternative_)) {
+      case Backend::BranchLiteralStatus::failed:
+        return FAILED;
+      case Backend::BranchLiteralStatus::subsumed:
+        return SUBSUMED;
+      case Backend::BranchLiteralStatus::undecided:
+        return NONE;
+    }
+
+    return NONE;
+  }
+
+  ExecStatus prune(Space& home) override {
+    Domain restricted =
+        Backend::prune_branch_literal(
+            variable_.domain(),
+            decision_,
+            alternative_);
+
+    const ModEvent event =
+        variable_.replace(
+            home,
+            std::move(restricted));
+
+    return me_failed(event)
+        ? ES_FAILED
+        : ES_OK;
+  }
+
+  NGL* copy(Space& home) override {
+    return new (home) ExactDomainNGL(
+        home,
+        *this);
+  }
+
+  std::size_t dispose(Space&) override {
+    return sizeof(*this);
+  }
+};
+
+/**
  * Binary brancher for the exact partition fragment supplied by the current
  * List backend.
  *
@@ -182,6 +294,27 @@ class ExactDomainBrancher final : public Brancher {
     return me_failed(event)
         ? ES_FAILED
         : ES_OK;
+  }
+
+  NGL* ngl(
+      Space& home,
+      const Gecode::Choice& raw_choice,
+      unsigned int alternative) const override {
+    const auto& selected =
+        static_cast<const Choice&>(raw_choice);
+
+    if (selected.position() < 0 ||
+        selected.position() >= variables_.size()) {
+      throw Exception(
+          "List::branch_exact",
+          "archived variable position is invalid");
+    }
+
+    return new (home) ExactDomainNGL(
+        home,
+        variables_[selected.position()],
+        selected.decision(),
+        alternative);
   }
 
   void print(

@@ -181,6 +181,28 @@ custom-brancher step without making dashed terminology public.
 
 The backend also exposes `branch_literal_status()` and `prune_branch_literal()`. Exhaustive descendant tests verify the three literal states (failed, subsumed, undecided) and prove that pruning a literal retains exactly the sibling language. This is the semantic prerequisite for implementing `Brancher::ngl()` without storing representation-dependent segment indexes.
 
+## Native no-good literals
+
+`ExactDomainBrancher::ngl()` now wraps each semantic branch alternative in an
+`ExactDomainNGL`. The literal stores one `ListView`, the stable backend decision,
+and the selected alternative. It never stores a segment pointer or segment
+index.
+
+The literal lifecycle follows Gecode's native protocol:
+
+```text
+subscribe/cancel/reschedule  -> PC_LIST_LEN for length choices;
+                                PC_LIST_ANY for position-value choices
+status                       -> FAILED, SUBSUMED, or NONE from the backend
+prune                        -> install the exact sibling language
+copy                         -> update the ListView in the cloned space
+```
+
+Both binary alternatives provide explicit no-good literals. Direct native tests
+cover length and value decisions, copied literals, independent pruning in a
+clone, and all three status outcomes. The pure backend oracle remains the source
+of truth for the literal semantics.
+
 ## Propagators
 
 A propagator follows this transaction pattern:

@@ -33,7 +33,7 @@
 - exact backend partitions for unambiguous block counts and one distinguishing symbol position (included);
 - native `branch_exact` brancher with cloned views, archived choices, deterministic printing, and explicit rejection of unsupported domains (included);
 - semantic branch choices based on total length or an absolute list position, with exact descendant-literal classification and negation pruning (included);
-- wrap semantic choices in native Gecode no-good literals;
+- wrap semantic choices in native Gecode no-good literals (included);
 - deterministic variable printing (included) and archive support;
 - MiniZinc/FlatZinc-facing predicates if desired.
 
