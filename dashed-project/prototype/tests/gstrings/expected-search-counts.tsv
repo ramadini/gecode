@@ -1,0 +1,6 @@
+case	solutions
+search.eq.optional_binary	7
+search.neq.binary_singleton	2
+search.concat.optional_binary	9
+search.length.binary_exact_one	2
+search.reified_eq.binary_singleton	4

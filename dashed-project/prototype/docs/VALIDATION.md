@@ -90,6 +90,9 @@ source:
 
 The verifier first searches preserved filesystem copies and local Git history.
 The explicit runner may fetch `origin/master` or `origin/main` when the source
-is not already available. The current gate covers six `str_test2.cpp`
-root-domain fixtures; it is not yet a substitute for live side-by-side search.
-See `DIFFERENTIAL_TESTING.md` for the report protocol and remaining work.
+is not already available. The gate covers six `str_test2.cpp` root-domain
+fixtures and an independent exact solution oracle for five small native DFS
+models. The native runner rejects missing, extra, and duplicate solutions and
+records nodes, failures, and maximum depth. It is not yet a substitute for a
+live side-by-side historical search-stat comparison. See
+`DIFFERENTIAL_TESTING.md` for the report protocols and remaining work.

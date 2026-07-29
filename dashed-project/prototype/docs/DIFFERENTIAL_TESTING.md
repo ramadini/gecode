@@ -50,3 +50,40 @@ only the committed fixture report.
 - objective values for optimization models;
 - root propagation, search-node, and failure-count comparisons;
 - an explicit explanation for every stronger or weaker result.
+
+## Exact searched solution baseline
+
+The second differential layer covers small finite models for equality,
+disequality, concatenation, length, and equivalence-reified equality.  A
+standalone Python generator enumerates the mathematical reference languages
+without calling either solver.  The native `ListVar` runner solves the same
+models through Gecode DFS and emits one canonical TSV row per solution.
+
+The gate compares solution sets rather than output order and rejects duplicate
+solutions.  It also records native search nodes, failures, and maximum depth.
+At this stage those statistics are validated for shape and solution-count
+consistency; they are not yet compared with historical G-Strings statistics.
+
+The exact corpus currently contains 24 solutions across five cases over the
+injective character map `{a -> 1, b -> 2}`:
+
+- equality over binary lists of length zero through two;
+- disequality over binary singleton lists;
+- concatenation of two binary lists of length zero or one;
+- length equal to one for a binary list;
+- equivalence-reified equality over binary singleton lists.
+
+The native gate is part of `gecode/list/tests/run-tests`.  The standalone
+reference can be checked independently with:
+
+```sh
+python3 \
+  dashed-project/prototype/tools/generate_gstrings_solution_reference.py \
+  --check \
+  dashed-project/prototype/tests/gstrings/expected-search-solutions.tsv
+```
+
+This layer detects missing, extra, or duplicate native solutions.  A later
+live historical runner must still execute the same models under G-Strings so
+that node and failure counts, and any propagation-strength differences, can be
+classified directly.

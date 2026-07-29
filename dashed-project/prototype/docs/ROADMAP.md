@@ -28,8 +28,10 @@
   result remains representable without an internal domain union;
 - compare every ported operation with exhaustive small-language semantics;
 - fixture-backed differential reports for six preserved `str_test2` equality
-  sweeps are included; live historical-runner, solution-set, and search-stat
-  comparisons remain pending.
+  sweeps are included; exact native DFS solution sets now cover equality,
+  disequality, concatenation, length, and reified equality, with native search
+  statistics recorded and sanity-checked; live historical-runner and direct
+  G-Strings search-stat comparisons remain pending.
 
 ## Milestone 4 — modelling and search
 

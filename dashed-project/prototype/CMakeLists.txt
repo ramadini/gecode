@@ -91,6 +91,13 @@ if(DASHED_BUILD_TESTS)
               $<TARGET_FILE:dashed_gstrings_differential_tests>
     )
     add_test(
+      NAME dashed_gstrings_search_reference
+      COMMAND ${Python3_EXECUTABLE}
+              ${CMAKE_CURRENT_SOURCE_DIR}/tools/generate_gstrings_solution_reference.py
+              --check
+              ${CMAKE_CURRENT_SOURCE_DIR}/tests/gstrings/expected-search-solutions.tsv
+    )
+    add_test(
       NAME dashed_vis_validation
       COMMAND ${Python3_EXECUTABLE}
               ${CMAKE_CURRENT_SOURCE_DIR}/tools/validate_vis.py

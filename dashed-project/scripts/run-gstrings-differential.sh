@@ -31,6 +31,10 @@ python3 \
   --expected "$PROTOTYPE/tests/gstrings/expected-equality.tsv" \
   --runner "$BUILD/dashed_gstrings_differential_tests"
 
+python3 \
+  "$PROTOTYPE/tools/generate_gstrings_solution_reference.py" \
+  --check "$PROTOTYPE/tests/gstrings/expected-search-solutions.tsv"
+
 if [[ -n "${GSTRINGS_DIFFERENTIAL_RUNNER:-}" ]]; then
   legacy_report="$(mktemp)"
   list_report="$(mktemp)"

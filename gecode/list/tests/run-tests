@@ -100,3 +100,82 @@ CXX="${CXX:-g++}"
   -o "$GECODE_BUILD/list-rel-test"
 
 "$GECODE_BUILD/list-rel-test"
+
+DIFFERENTIAL_BINARY="$GECODE_BUILD/list-search-differential"
+DIFFERENTIAL_TEST_OBJECT="$GECODE_BUILD/list-search-differential-test.o"
+DIFFERENTIAL_LIST_OBJECT="$GECODE_BUILD/list-search-list-var-imp.o"
+
+# Compile the new differential test itself with strict warnings.  The Gecode
+# source and generated include trees are system headers for this translation
+# unit: the differential gate must not turn pre-existing upstream warnings into
+# errors merely because it includes search.hh.
+"$CXX" \
+  -std=c++17 \
+  -Wall \
+  -Wextra \
+  -Wpedantic \
+  -Wconversion \
+  -Wshadow \
+  -Werror \
+  -DGECODE_HAS_LIST_VARS=1 \
+  -DGECODE_NO_AUTOLINK \
+  -isystem "$GECODE_BUILD" \
+  -isystem "$GECODE_ROOT" \
+  -isystem "$PROTOTYPE_ROOT/include" \
+  -c "$TEST_DIR/differential-search.cpp" \
+  -o "$DIFFERENTIAL_TEST_OBJECT"
+
+# ListVarImp is already exercised by the native module regression build above.
+# Compile it separately with the same warning policy used by the established
+# rel-test path, rather than retroactively imposing new warnings on all of
+# upstream Gecode.
+"$CXX" \
+  -std=c++17 \
+  -DGECODE_HAS_LIST_VARS=1 \
+  -DGECODE_NO_AUTOLINK \
+  -I"$GECODE_BUILD" \
+  -I"$GECODE_ROOT" \
+  -I"$PROTOTYPE_ROOT/include" \
+  -c "$GECODE_ROOT/gecode/list/list-var-imp.cpp" \
+  -o "$DIFFERENTIAL_LIST_OBJECT"
+
+"$CXX" \
+  "$DIFFERENTIAL_TEST_OBJECT" \
+  "$DIFFERENTIAL_LIST_OBJECT" \
+  "$CORE_BUILD/libdashed_core.a" \
+  -L"$GECODE_BUILD" \
+  -Wl,-rpath,"$GECODE_BUILD" \
+  -lgecodeint \
+  -lgecodesearch \
+  -lgecodekernel \
+  -lgecodesupport \
+  -pthread \
+  -o "$DIFFERENTIAL_BINARY"
+
+differential_directory="$(mktemp -d)"
+cleanup_differential() {
+  rm -rf "$differential_directory"
+}
+trap cleanup_differential EXIT
+
+reference_report="$differential_directory/reference.tsv"
+native_report="$differential_directory/native.tsv"
+native_stats="$differential_directory/native-stats.tsv"
+
+python3 \
+  "$PROTOTYPE_ROOT/tools/generate_gstrings_solution_reference.py" \
+  --report "$reference_report"
+
+"$DIFFERENTIAL_BINARY" \
+  --report "$native_report" \
+  --stats "$native_stats"
+
+python3 \
+  "$PROTOTYPE_ROOT/tools/compare_solution_reports.py" \
+  --expected "$reference_report" \
+  --actual "$native_report"
+
+python3 \
+  "$PROTOTYPE_ROOT/tools/validate_search_stats.py" \
+  --expected "$PROTOTYPE_ROOT/tests/gstrings/expected-search-counts.tsv" \
+  --actual "$native_stats"
