@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <vector>
 
 namespace {
 
@@ -525,6 +526,165 @@ void test_optional_suffix_literal_target_projection() {
   assert(refined == expected);
 }
 
+void test_fixed_literal_known_prefix_and_suffix() {
+  {
+    // Generic version of old Test 17.
+    //
+    // The leading 9 is accepted only by the first subject block, so the
+    // projected representation must preserve it as an exact known prefix.
+    const Domain target =
+        Domain::fixed({9, 1, 2, 3});
+
+    assert(target.segment_count() == 1);
+    assert(std::holds_alternative<dashed::LiteralSegment>(
+        target.segments().front()));
+
+    const std::size_t bytes_before =
+        target.referenced_dynamic_bytes();
+
+    Domain subject(
+        {
+            RepeatSegment{
+                ValueSet(0, 9),
+                1,
+                4},
+            RepeatSegment{
+                ValueSet(0, 8),
+                0,
+                4},
+        },
+        1,
+        8);
+
+    const auto length_change =
+        subject.tighten_length(4, 4);
+
+    assert(!dashed::failed(length_change));
+
+    Domain refined = subject;
+
+    const SweepStatus status =
+        dashed::detail::project_repeat_regions(
+            subject,
+            target,
+            refined);
+
+    const Domain expected(
+        {
+            RepeatSegment{
+                ValueSet(9),
+                1,
+                1},
+            RepeatSegment{
+                ValueSet(1, 3),
+                3,
+                3},
+        },
+        4,
+        4);
+
+    std::cerr
+        << "known-prefix projected: "
+        << refined << '\n';
+    std::cerr
+        << "known-prefix expected:  "
+        << expected << '\n';
+
+    assert(status == SweepStatus::feasible);
+    assert(refined == expected);
+
+    // The target remains one shared literal rather than being rewritten
+    // into one domain segment per value.
+    assert(target.segment_count() == 1);
+    assert(target.referenced_dynamic_bytes() ==
+           bytes_before);
+  }
+
+  {
+    // Generic stress version of old Test 18.
+    //
+    // The final 9 is accepted only by the second subject block, so it must
+    // be preserved as an exact known suffix. The long literal also checks
+    // that virtual traversal does not expand the target domain.
+    constexpr dashed::Length n = 4096;
+
+    std::vector<int> values(
+        static_cast<std::size_t>(n));
+
+    for (std::size_t i = 0;
+         i < values.size();
+         ++i) {
+      values[i] =
+          1 + static_cast<int>(i % 3);
+    }
+
+    values.back() = 9;
+
+    const Domain target =
+        Domain::fixed(std::move(values));
+
+    assert(target.segment_count() == 1);
+    assert(std::holds_alternative<dashed::LiteralSegment>(
+        target.segments().front()));
+
+    const std::size_t bytes_before =
+        target.referenced_dynamic_bytes();
+
+    Domain subject(
+        {
+            RepeatSegment{
+                ValueSet(0, 8),
+                0,
+                n},
+            RepeatSegment{
+                ValueSet(0, 9),
+                1,
+                n},
+        },
+        1,
+        static_cast<dashed::Length>(2 * n));
+
+    const auto length_change =
+        subject.tighten_length(n, n);
+
+    assert(!dashed::failed(length_change));
+
+    Domain refined = subject;
+
+    const SweepStatus status =
+        dashed::detail::project_repeat_regions(
+            subject,
+            target,
+            refined);
+
+    const Domain expected(
+        {
+            RepeatSegment{
+                ValueSet(1, 3),
+                static_cast<dashed::Length>(n - 1),
+                static_cast<dashed::Length>(n - 1)},
+            RepeatSegment{
+                ValueSet(9),
+                1,
+                1},
+        },
+        n,
+        n);
+
+    std::cerr
+        << "known-suffix segments: "
+        << refined.segment_count()
+        << '\n';
+
+    assert(status == SweepStatus::feasible);
+    assert(refined == expected);
+
+    assert(target.segment_count() == 1);
+    assert(target.referenced_dynamic_bytes() ==
+           bytes_before);
+  }
+}
+
 void test_literals_are_not_expanded() {
   const Domain subject =
       Domain::repeat(
@@ -570,6 +730,7 @@ int main() {
   test_variable_width_value_projection();
   test_boundary_cardinality_projection();
   test_optional_suffix_literal_target_projection();
+  test_fixed_literal_known_prefix_and_suffix();
   test_literals_are_not_expanded();
 
   std::cout
