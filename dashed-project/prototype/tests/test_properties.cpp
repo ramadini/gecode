@@ -378,6 +378,138 @@ void test_concat_kernel_soundness() {
   }
 }
 
+void test_length_kernel_signed_bounds() {
+  const auto domains =
+      sample_domains();
+
+  const auto universe =
+      all_lists(4);
+
+  for (const Domain& original :
+       domains) {
+    for (int lower = -2;
+         lower <= 4;
+         ++lower) {
+      for (int upper = -2;
+           upper <= 4;
+           ++upper) {
+        if (lower > upper) {
+          continue;
+        }
+
+        Domain x = original;
+
+        dashed::IntBounds length{
+            lower,
+            upper};
+
+        const auto result =
+            dashed::propagate_length(
+                x,
+                length);
+
+        bool has_solution = false;
+
+        for (const auto& value :
+             universe) {
+          const int size =
+              static_cast<int>(
+                  value.size());
+
+          const bool feasible =
+              original.accepts(value) &&
+              lower <= size &&
+              size <= upper;
+
+          if (!feasible) {
+            continue;
+          }
+
+          has_solution = true;
+
+          assert(!result.failed());
+          assert(x.accepts(value));
+          assert(length.lower <= size);
+          assert(size <= length.upper);
+        }
+
+        assert(
+            result.failed() ==
+            !has_solution);
+
+        if (!result.failed()) {
+          assert(length.lower >= 0);
+          assert(
+              length.lower <=
+              length.upper);
+        }
+      }
+    }
+  }
+
+  {
+    Domain x =
+        Domain::top(
+            ValueSet(-10, 10),
+            3,
+            dashed::kUnboundedLength);
+
+    dashed::IntBounds length{
+        -100,
+        std::numeric_limits<
+            std::int64_t>::max()};
+
+    const auto first =
+        dashed::propagate_length(
+            x,
+            length);
+
+    assert(!first.failed());
+    assert(length.lower == 3);
+
+    assert(
+        length.upper ==
+        static_cast<std::int64_t>(
+            dashed::kUnboundedLength));
+
+    assert(x.min_length() == 3);
+    assert(
+        x.max_length() ==
+        dashed::kUnboundedLength);
+
+    const auto second =
+        dashed::propagate_length(
+            x,
+            length);
+
+    assert(!second.failed());
+    assert(second.left == dashed::Change::none);
+    assert(second.result == dashed::Change::none);
+  }
+
+  {
+    Domain x =
+        Domain::top(
+            ValueSet(-10, 10),
+            0,
+            5);
+
+    dashed::IntBounds invalid{
+        4,
+        3};
+
+    const auto result =
+        dashed::propagate_length(
+            x,
+            invalid);
+
+    assert(result.failed());
+    assert(x.failed());
+    assert(invalid.failed);
+  }
+}
+
+
 void test_length_kernel_soundness() {
   const auto domains = sample_domains();
   const auto universe = all_lists(3);
@@ -420,6 +552,7 @@ int main() {
   test_reified_kernel_soundness();
   test_assigned_concat_split_filtering();
   test_concat_kernel_soundness();
+  test_length_kernel_signed_bounds();
   test_length_kernel_soundness();
   std::cout << "All Dashed property tests passed.\n";
   return 0;

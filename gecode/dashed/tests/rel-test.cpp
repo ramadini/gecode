@@ -144,6 +144,35 @@ public:
 
 
 
+class LengthSpace final : public Space {
+public:
+  ListVar x;
+  IntVar n;
+
+  LengthSpace(
+      dashed::Domain domain,
+      int minimum,
+      int maximum)
+      : Space(),
+        x(*this, std::move(domain)),
+        n(*this, minimum, maximum) {
+    Gecode::length(*this, x, n);
+  }
+
+  LengthSpace(LengthSpace& other)
+      : Space(other),
+        x(),
+        n() {
+    x.update(*this, other.x);
+    n.update(*this, other.n);
+  }
+
+  Space* copy() override {
+    return new LengthSpace(*this);
+  }
+};
+
+
 class ConcatSpace final : public Space {
 public:
   ListVar x;
@@ -1994,10 +2023,209 @@ void concat_assigned_result_split_filtering_native() {
   }
 }
 
+
+void length_bidirectional_native() {
+  {
+    auto* space = new LengthSpace(
+        lists(-100, 100, 2, 6),
+        0,
+        10);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(space->x.min_length() == 2);
+    assert(space->x.max_length() == 6);
+    assert(space->n.min() == 2);
+    assert(space->n.max() == 6);
+
+    delete space;
+  }
+
+  {
+    auto* space = new LengthSpace(
+        lists(-100, 100, 0, 8),
+        3,
+        5);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(space->x.min_length() == 3);
+    assert(space->x.max_length() == 5);
+    assert(space->n.min() == 3);
+    assert(space->n.max() == 5);
+
+    delete space;
+  }
+
+  {
+    const dashed::Domain domain(
+        {
+            dashed::RepeatSegment{
+                dashed::ValueSet(1, 3),
+                0,
+                3},
+            dashed::LiteralSegment{
+                dashed::LiteralSlice(
+                    std::vector<int>{9})},
+        },
+        1,
+        4);
+
+    auto* space = new LengthSpace(
+        domain,
+        2,
+        2);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    const dashed::Domain expected(
+        {
+            dashed::RepeatSegment{
+                dashed::ValueSet(1, 3),
+                1,
+                1},
+            dashed::RepeatSegment{
+                dashed::ValueSet(9),
+                1,
+                1},
+        },
+        2,
+        2);
+
+    assert(space->x.domain() == expected);
+    assert(!space->x.assigned());
+
+    assert(space->n.assigned());
+    assert(space->n.val() == 2);
+
+    delete space;
+  }
+
+  {
+    auto* space = new LengthSpace(
+        fixed({-50000, 0, 250000}),
+        0,
+        10);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(space->x.assigned());
+    assert(space->n.assigned());
+    assert(space->n.val() == 3);
+
+    delete space;
+  }
+}
+
+
+void length_failure_clone_and_unbounded_native() {
+  {
+    auto* space = new LengthSpace(
+        lists(-100, 100, 0, 5),
+        -5,
+        -1);
+
+    assert(
+        space->status() ==
+        Gecode::SS_FAILED);
+
+    delete space;
+  }
+
+  {
+    auto* space = new LengthSpace(
+        lists(-100, 100, 4, 6),
+        0,
+        3);
+
+    assert(
+        space->status() ==
+        Gecode::SS_FAILED);
+
+    delete space;
+  }
+
+  {
+    auto* root = new LengthSpace(
+        lists(-100, 100, 1, 5),
+        2,
+        4);
+
+    assert(
+        root->status() !=
+        Gecode::SS_FAILED);
+
+    assert(root->x.min_length() == 2);
+    assert(root->x.max_length() == 4);
+    assert(root->n.min() == 2);
+    assert(root->n.max() == 4);
+
+    auto* clone =
+        static_cast<LengthSpace*>(
+            root->clone());
+
+    Gecode::rel(
+        *clone,
+        clone->n,
+        Gecode::IRT_EQ,
+        3);
+
+    assert(
+        clone->status() !=
+        Gecode::SS_FAILED);
+
+    assert(clone->n.assigned());
+    assert(clone->n.val() == 3);
+    assert(clone->x.min_length() == 3);
+    assert(clone->x.max_length() == 3);
+
+    assert(root->n.min() == 2);
+    assert(root->n.max() == 4);
+    assert(root->x.min_length() == 2);
+    assert(root->x.max_length() == 4);
+
+    delete root;
+    delete clone;
+  }
+
+  {
+    auto* space = new LengthSpace(
+        dashed::Domain::top(
+            dashed::ValueSet(
+                -1000000,
+                1000000),
+            2,
+            dashed::kUnboundedLength),
+        0,
+        100);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(space->n.min() == 2);
+    assert(space->n.max() == 100);
+    assert(space->x.min_length() == 2);
+    assert(space->x.max_length() == 100);
+
+    delete space;
+  }
+}
+
 } // namespace
 
 
 int main() {
+  length_failure_clone_and_unbounded_native();
+  length_bidirectional_native();
   concat_assigned_result_split_filtering_native();
   concat_segmented_boundary_remainders_native();
   concat_mandatory_repeat_boundaries_native();

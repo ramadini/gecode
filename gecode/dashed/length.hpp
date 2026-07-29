@@ -1,7 +1,7 @@
 #ifndef __GECODE_DASHED_LENGTH_HPP__
 #define __GECODE_DASHED_LENGTH_HPP__
 
-#include <gecode/dashed/list-view.hpp>
+#include <gecode/dashed/propagator-adapter.hpp>
 #include <gecode/int.hh>
 
 namespace Gecode { namespace Dashed {
@@ -53,41 +53,11 @@ public:
   ExecStatus propagate(
       Space& home,
       const ModEventDelta&) override {
-    const unsigned int gecode_max =
-        static_cast<unsigned int>(Int::Limits::max);
-
-    // No Gecode IntVar can represent such a length.
-    if (x.min_length() > gecode_max)
-      return ES_FAILED;
-
-    const int xmin =
-        static_cast<int>(x.min_length());
-
-    const int xmax =
-        (x.max_length() > gecode_max)
-            ? Int::Limits::max
-            : static_cast<int>(x.max_length());
-
-    // List -> integer propagation.
-    GECODE_ME_CHECK(n.gq(home, xmin));
-    GECODE_ME_CHECK(n.lq(home, xmax));
-
-    // Integer -> list propagation.
-    // n is nonnegative after n.gq(home, xmin).
-    GECODE_ME_CHECK(
-        x.tighten_length(
-            home,
-            static_cast<unsigned int>(n.min()),
-            static_cast<unsigned int>(n.max())));
-
-    // The equation is permanently true once both length bounds
-    // coincide and n is assigned to that value.
-    if (n.assigned() &&
-        x.min_length() == x.max_length()) {
-      return home.ES_SUBSUMED(*this);
-    }
-
-    return ES_FIX;
+    return Adapter::length(
+        home,
+        *this,
+        x,
+        n);
   }
 
   size_t dispose(Space& home) override {
