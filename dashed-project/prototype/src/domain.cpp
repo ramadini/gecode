@@ -853,13 +853,41 @@ void Domain::tighten_segment_counts_from_global_length() {
       return;
     }
 
+    // Do not recover the contribution of the other segments by subtracting
+    // from a saturated total.  Once an unbounded/capped sum reaches
+    // kUnboundedLength, subtraction loses information: for example,
+    // kUnboundedLength + 1 is still kUnboundedLength, so removing the
+    // unbounded operand must leave 1 rather than 0.  Prefix/suffix sums retain
+    // the exact capped contribution of every domain with one segment omitted.
+    std::vector<Length> prefix_min(segments_.size() + 1, 0);
+    std::vector<Length> prefix_max(segments_.size() + 1, 0);
+    std::vector<Length> suffix_min(segments_.size() + 1, 0);
+    std::vector<Length> suffix_max(segments_.size() + 1, 0);
+
+    for (std::size_t i = 0; i < segments_.size(); ++i) {
+      prefix_min[i + 1] =
+          saturating_add(prefix_min[i], segment_min(segments_[i]));
+      prefix_max[i + 1] =
+          saturating_add(prefix_max[i], segment_max(segments_[i]));
+    }
+
+    for (std::size_t reverse = segments_.size(); reverse > 0; --reverse) {
+      const std::size_t i = reverse - 1;
+      suffix_min[i] =
+          saturating_add(segment_min(segments_[i]), suffix_min[i + 1]);
+      suffix_max[i] =
+          saturating_add(segment_max(segments_[i]), suffix_max[i + 1]);
+    }
+
     for (std::size_t i = 0; i < segments_.size(); ++i) {
       auto* repeat = std::get_if<RepeatSegment>(&segments_[i]);
       if (repeat == nullptr) {
         continue;
       }
-      const Length others_min = saturating_sub(total_min, repeat->lower);
-      const Length others_max = saturating_sub(total_max, repeat->upper);
+      const Length others_min =
+          saturating_add(prefix_min[i], suffix_min[i + 1]);
+      const Length others_max =
+          saturating_add(prefix_max[i], suffix_max[i + 1]);
 
       const Length forced_lower =
           min_length_ > others_max ? min_length_ - others_max : 0;

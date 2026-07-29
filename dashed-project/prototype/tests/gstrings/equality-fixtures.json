@@ -112,6 +112,44 @@
         "NSBlock(NSIntSet('b', 'c'), 1, 1)",
         "assert (ns_blocks(x) == vx"
       ]
+    },
+    {
+      "id": "str_test2.test10",
+      "function": "test10",
+      "anchors": [
+        "NSIntSet s('a', 'a')",
+        "NSBlock(NSIntSet('b', 'c'), 3, 3)",
+        "vx[2].S.remove('e')",
+        "vy[1].u = 800"
+      ]
+    },
+    {
+      "id": "str_test2.test12",
+      "function": "test12",
+      "anchors": [
+        "NSBlock(NSIntSet('b', 'b'), 0, 100000)",
+        "NSBlock(NSIntSet('b', 'c'), 0, 2000)",
+        "x.max_length(2000)"
+      ]
+    },
+    {
+      "id": "str_test2.test13",
+      "function": "test13",
+      "anchors": [
+        "int M = DashedString::_MAX_STR_LENGTH",
+        "NSBlock(NSIntSet('a', 'b'), 0, M)",
+        "NSBlock(NSIntSet('b', 'b'), 1, 1)",
+        "NSBlock(NSIntSet('a', 'b'), 0, M - 1)"
+      ]
+    },
+    {
+      "id": "str_test2.test15",
+      "function": "test15",
+      "anchors": [
+        "NSBlock(NSIntSet('a', 'a'), 0, 6)",
+        "NSBlock(NSIntSet('a', 'a'), 0, 5)",
+        "NSBlocks vz(1, NSBlock(NSIntSet('a', 'a'), 1, 6))"
+      ]
     }
   ]
 }

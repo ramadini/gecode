@@ -525,6 +525,72 @@ void equality_clone_is_independent() {
 }
 
 
+void unbounded_equality_preserves_empty_prefix_native() {
+  const Gecode::List::Domain left(
+      {
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(1, 2),
+              0,
+              Gecode::List::kUnboundedLength},
+      },
+      0,
+      Gecode::List::kUnboundedLength);
+
+  const Gecode::List::Domain right(
+      {
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(1, 3),
+              0,
+              Gecode::List::kUnboundedLength},
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(2),
+              1,
+              1},
+      },
+      1,
+      Gecode::List::kUnboundedLength);
+
+  auto* root = new EqualitySpace(left, right);
+  assert(root->status() != Gecode::SS_FAILED);
+
+  const Gecode::List::Domain expected(
+      {
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(1, 2),
+              0,
+              Gecode::List::kUnboundedLength - 1},
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(2),
+              1,
+              1},
+      },
+      1,
+      Gecode::List::kUnboundedLength);
+
+  assert(root->x.domain() == expected);
+  assert(root->y.domain() == expected);
+  assert(root->x.domain().accepts(std::vector<int>{2}));
+
+  auto* clone = static_cast<EqualitySpace*>(root->clone());
+  Gecode::List::ListView clone_x(clone->x);
+  const Gecode::ModEvent me =
+      clone_x.replace(*clone, fixed({2}));
+  if (Gecode::me_failed(me))
+    clone->fail();
+
+  assert(clone->status() != Gecode::SS_FAILED);
+  assert(clone->x.assigned());
+  assert(clone->y.assigned());
+  assert(clone->x.val() == std::vector<int>({2}));
+  assert(clone->y.val() == std::vector<int>({2}));
+
+  assert(!root->x.assigned());
+  assert(!root->y.assigned());
+
+  delete root;
+  delete clone;
+}
+
 void segmented_equality_refines_mandatory_regions() {
   Gecode::List::Domain x(
       {
@@ -3543,6 +3609,7 @@ int main() {
   equality_assigns_unknown_side();
   equality_rejects_disjoint_lists();
   equality_clone_is_independent();
+  unbounded_equality_preserves_empty_prefix_native();
   segmented_equality_refines_mandatory_regions();
 
   disequality_prunes_single_witness_native();

@@ -184,6 +184,57 @@ void test_normalization() {
   assert(domain.max_length() == 6);
 }
 
+void test_saturated_global_length_tightening() {
+  // A capped/unbounded segment followed by one mandatory value can still
+  // contribute zero values. Recovering "all other segments" by subtracting
+  // from a saturated total used to turn that zero into one.
+  const Domain suffix_fixed(
+      {
+          RepeatSegment{
+              ValueSet(1, 2),
+              0,
+              dashed::kUnboundedLength},
+          RepeatSegment{
+              ValueSet(2),
+              1,
+              1},
+      },
+      1,
+      dashed::kUnboundedLength);
+
+  assert(!suffix_fixed.failed());
+  assert(suffix_fixed.min_length() == 1);
+  assert(suffix_fixed.max_length() == dashed::kUnboundedLength);
+  assert(suffix_fixed.segment_count() == 2);
+
+  const auto& prefix =
+      std::get<RepeatSegment>(suffix_fixed.segments()[0]);
+  assert(prefix.lower == 0);
+  assert(prefix.upper == dashed::kUnboundedLength - 1);
+  assert(suffix_fixed.accepts(std::vector<int>{2}));
+
+  const Domain prefix_fixed(
+      {
+          RepeatSegment{
+              ValueSet(2),
+              1,
+              1},
+          RepeatSegment{
+              ValueSet(1, 2),
+              0,
+              dashed::kUnboundedLength},
+      },
+      1,
+      dashed::kUnboundedLength);
+
+  assert(!prefix_fixed.failed());
+  const auto& suffix =
+      std::get<RepeatSegment>(prefix_fixed.segments()[1]);
+  assert(suffix.lower == 0);
+  assert(suffix.upper == dashed::kUnboundedLength - 1);
+  assert(prefix_fixed.accepts(std::vector<int>{2}));
+}
+
 void test_membership() {
   Domain domain(
       {RepeatSegment{ValueSet(1, 2), 1, 2},
@@ -3622,6 +3673,7 @@ int main() {
   test_fixed_block_compaction();
   test_uniform_fixed_run_normalization();
   test_normalization();
+  test_saturated_global_length_tightening();
   test_membership();
   test_length_propagation();
   test_segmented_equality_sweep_symmetry_and_failure();

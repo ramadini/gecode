@@ -110,3 +110,24 @@ The current classifications are:
 crossing start/end windows even though the value-only sweep is feasible. The
 region layer is therefore no longer used as the final infeasibility oracle;
 the value projection must independently confirm failure.
+
+## Large and unbounded equality cases
+
+The classified root-propagation corpus now also covers `str_test2::test10`,
+`test12`, `test13`, and `test15`.
+
+- `test10` matches the historical normalized block updates. A scaled concrete
+  oracle confirms that both resulting operands are sound but intentionally
+  weaker than the exact intersection.
+- `test12` reaches the exact common language `b* c*` with total length at most
+  2000.
+- `test13` reaches `(a|b)^0..M-1 b`, including the one-element list `b`.
+  This case exposed a saturated-length subtraction bug in domain
+  normalization: removing an unbounded segment from a capped total incorrectly
+  erased the mandatory contribution of the remaining segment. Prefix/suffix
+  sums now compute each omitted-segment contribution without information loss.
+- `test15` canonicalizes the three adjacent unary blocks to `a^1..6`.
+
+The original large bounds are retained in the deterministic report. Scaled
+finite analogues provide exhaustive concrete-language checks where direct
+enumeration of the historical bounds would be impractical.

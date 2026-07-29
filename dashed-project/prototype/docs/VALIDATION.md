@@ -103,3 +103,11 @@ live side-by-side historical search-stat comparison. See
 For finite cases it enumerates the concrete languages and verifies soundness
 before assigning a differential classification. The deterministic classified
 TSV report is checked by `dashed_gstrings_extended_report`.
+
+### Saturated global-length regression
+
+`str_test2::test13` is a normalization regression for capped/unbounded length
+arithmetic. The domain `(a|b)^0..M` intersected with `(a|b|c)^0..M b` must
+retain the one-element list `b`. Unit and native-clone tests verify that an
+unbounded segment can still contribute zero values when another segment is
+mandatory.

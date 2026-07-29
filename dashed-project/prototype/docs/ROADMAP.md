@@ -68,4 +68,6 @@ Measure before adding representation complexity. Candidate optimizations:
       failure when the value-only sweep remains feasible.
 - [x] Classify exact matches, matching failure, a corrected unsound legacy
       expectation, and a sound-but-weaker List projection.
-- [ ] Continue the classified corpus with the remaining `str_test2` sweeps.
+- [x] Classify the large/unbounded equality cases 10, 12, 13, and 15.
+- [ ] Continue with fixed-literal boundary cases 17-20 and assignment case 22.
+- [ ] Classify the lower-level sweep stress cases 21 and 23 separately.
