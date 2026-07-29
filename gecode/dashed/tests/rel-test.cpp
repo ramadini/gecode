@@ -143,6 +143,40 @@ public:
 };
 
 
+
+class ConcatSpace final : public Space {
+public:
+  ListVar x;
+  ListVar y;
+  ListVar z;
+
+  ConcatSpace(
+      dashed::Domain dx,
+      dashed::Domain dy,
+      dashed::Domain dz)
+      : Space(),
+        x(*this, std::move(dx)),
+        y(*this, std::move(dy)),
+        z(*this, std::move(dz)) {
+    Gecode::concat(*this, x, y, z);
+  }
+
+  ConcatSpace(ConcatSpace& other)
+      : Space(other),
+        x(),
+        y(),
+        z() {
+    x.update(*this, other.x);
+    y.update(*this, other.y);
+    z.update(*this, other.z);
+  }
+
+  Space* copy() override {
+    return new ConcatSpace(*this);
+  }
+};
+
+
 void equality_assigns_unknown_side() {
   auto* space = new EqualitySpace(
       lists(-200000, 200000, 0, 20),
@@ -557,10 +591,100 @@ void reified_mandatory_disjoint_languages() {
   }
 }
 
+
+void concat_fixed_result_exact_split() {
+  {
+    auto* space = new ConcatSpace(
+        lists(-100, 100, 2, 2),
+        lists(-100, 100, 3, 3),
+        fixed({10, 20, 30, 40, 50}));
+
+    assert(space->status() != Gecode::SS_FAILED);
+
+    assert(space->x.assigned());
+    assert(space->y.assigned());
+    assert(space->z.assigned());
+
+    assert(
+        space->x.val() ==
+        std::vector<int>({10, 20}));
+
+    assert(
+        space->y.val() ==
+        std::vector<int>({30, 40, 50}));
+
+    assert(
+        space->z.val() ==
+        std::vector<int>(
+            {10, 20, 30, 40, 50}));
+
+    auto* clone =
+        static_cast<ConcatSpace*>(
+            space->clone());
+
+    assert(clone->status() != Gecode::SS_FAILED);
+    assert(
+        clone->x.val() ==
+        std::vector<int>({10, 20}));
+    assert(
+        clone->y.val() ==
+        std::vector<int>({30, 40, 50}));
+
+    delete space;
+    delete clone;
+  }
+
+  {
+    // The exact prefix is outside x's alphabet.
+    auto* space = new ConcatSpace(
+        lists(-5, 5, 1, 1),
+        lists(-100, 100, 2, 2),
+        fixed({10, 20, 30}));
+
+    assert(space->status() == Gecode::SS_FAILED);
+
+    delete space;
+  }
+
+  {
+    // The exact suffix is outside y's alphabet.
+    auto* space = new ConcatSpace(
+        lists(-100, 100, 2, 2),
+        lists(-5, 5, 1, 1),
+        fixed({1, 2, 50}));
+
+    assert(space->status() == Gecode::SS_FAILED);
+
+    delete space;
+  }
+
+  {
+    // Generic integer values are preserved, including negatives and
+    // values outside character ranges.
+    auto* space = new ConcatSpace(
+        lists(-1000000, 1000000, 1, 1),
+        lists(-1000000, 1000000, 2, 2),
+        fixed({-50000, 0, 250000}));
+
+    assert(space->status() != Gecode::SS_FAILED);
+
+    assert(
+        space->x.val() ==
+        std::vector<int>({-50000}));
+
+    assert(
+        space->y.val() ==
+        std::vector<int>({0, 250000}));
+
+    delete space;
+  }
+}
+
 } // namespace
 
 
 int main() {
+  concat_fixed_result_exact_split();
   equality_assigns_unknown_side();
   equality_rejects_disjoint_lists();
   equality_clone_is_independent();
