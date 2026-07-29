@@ -175,6 +175,10 @@ for supported finite domains and explicitly preserve the unsupported ambiguous
 count case. `Gecode::List::Backend` exposes this primitive for the next native
 custom-brancher step without making dashed terminology public.
 
+## Exact domain branching
+
+`branch_exact(home, x)` and its `ListVarArgs` overload wrap the pure backend partitions in a native binary Gecode brancher. Choices contain only the variable-array position and a stable `BranchDecision`; no domain pointer is archived. `commit()` reconstructs one child domain and installs it through `ListView::replace`, preserving normal event notification. Unsupported unassigned shapes raise an exception rather than being exposed as false solved leaves.
+
 ## Propagators
 
 A propagator follows this transaction pattern:

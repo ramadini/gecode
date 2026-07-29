@@ -1,10 +1,258 @@
 #ifndef __GECODE_LIST_BRANCH_HPP__
 #define __GECODE_LIST_BRANCH_HPP__
 
-#include <gecode/list/length.hpp>
 #include <gecode/int.hh>
+#include <gecode/kernel.hh>
+#include <gecode/list/backend.hpp>
+#include <gecode/list/length.hpp>
+#include <gecode/list/list-view.hpp>
 
-namespace Gecode { namespace List { namespace Branching {
+#include <cassert>
+#include <cstddef>
+#include <optional>
+#include <ostream>
+#include <utility>
+
+namespace Gecode { namespace List {
+
+/**
+ * Binary brancher for the exact partition fragment supplied by the current
+ * List backend.
+ *
+ * A choice stores only a variable position and a stable backend decision.
+ * It never stores a pointer into a domain, so archived choices remain valid
+ * during recomputation and across space clones.
+ */
+class ExactDomainBrancher final : public Brancher {
+ private:
+  ViewArray<ListView> variables_;
+  mutable int start_;
+
+ public:
+  class Choice final : public Gecode::Choice {
+   private:
+    int position_;
+    Backend::BranchDecision decision_;
+
+   public:
+    Choice(
+        const ExactDomainBrancher& brancher,
+        int position,
+        Backend::BranchDecision decision)
+        : Gecode::Choice(brancher, 2),
+          position_(position),
+          decision_(std::move(decision)) {}
+
+    int position() const noexcept {
+      return position_;
+    }
+
+    const Backend::BranchDecision& decision() const noexcept {
+      return decision_;
+    }
+
+    void archive(Archive& archive) const override {
+      Gecode::Choice::archive(archive);
+
+      archive
+          << position_
+          << static_cast<unsigned int>(decision_.kind)
+          << static_cast<unsigned int>(decision_.segment)
+          << static_cast<unsigned int>(decision_.count_pivot)
+          << decision_.value_pivot;
+    }
+  };
+
+  ExactDomainBrancher(
+      Home home,
+      ViewArray<ListView>& variables)
+      : Brancher(home),
+        variables_(variables),
+        start_(0) {}
+
+  ExactDomainBrancher(
+      Space& home,
+      ExactDomainBrancher& other)
+      : Brancher(home, other),
+        variables_(),
+        start_(other.start_) {
+    variables_.update(home, other.variables_);
+  }
+
+  bool status(const Space&) const override {
+    for (int index = start_;
+         index < variables_.size();
+         ++index) {
+      if (variables_[index].assigned())
+        continue;
+
+      if (Backend::choose_branch(
+              variables_[index].domain())) {
+        start_ = index;
+        return true;
+      }
+
+      // Returning false here would tell Gecode that search is solved even
+      // though this ListVar is still unassigned. Fail loudly instead.
+      throw Exception(
+          "List::branch_exact",
+          "domain is outside the exact partition fragment");
+    }
+
+    return false;
+  }
+
+  Gecode::Choice* choice(Space&) override {
+    const std::optional<Backend::BranchDecision> decision =
+        Backend::choose_branch(
+            variables_[start_].domain());
+
+    assert(decision.has_value());
+
+    return new Choice(
+        *this,
+        start_,
+        *decision);
+  }
+
+  Choice* choice(
+      const Space&,
+      Archive& archive) override {
+    int position = 0;
+    unsigned int kind = 0;
+    unsigned int segment = 0;
+    unsigned int count_pivot = 0;
+    int value_pivot = 0;
+
+    archive
+        >> position
+        >> kind
+        >> segment
+        >> count_pivot
+        >> value_pivot;
+
+    if (kind >
+        static_cast<unsigned int>(
+            Backend::BranchKind::value_set)) {
+      throw Exception(
+          "List::branch_exact",
+          "invalid archived branch kind");
+    }
+
+    Backend::BranchDecision decision;
+    decision.kind =
+        static_cast<Backend::BranchKind>(kind);
+    decision.segment =
+        static_cast<std::size_t>(segment);
+    decision.count_pivot =
+        static_cast<Length>(count_pivot);
+    decision.value_pivot = value_pivot;
+
+    return new Choice(
+        *this,
+        position,
+        std::move(decision));
+  }
+
+  ExecStatus commit(
+      Space& home,
+      const Gecode::Choice& raw_choice,
+      unsigned int alternative) override {
+    const auto& selected =
+        static_cast<const Choice&>(raw_choice);
+
+    if (selected.position() < 0 ||
+        selected.position() >= variables_.size()) {
+      throw Exception(
+          "List::branch_exact",
+          "archived variable position is invalid");
+    }
+
+    Domain restricted =
+        Backend::apply_branch(
+            variables_[selected.position()].domain(),
+            selected.decision(),
+            alternative);
+
+    const ModEvent event =
+        variables_[selected.position()].replace(
+            home,
+            std::move(restricted));
+
+    return me_failed(event)
+        ? ES_FAILED
+        : ES_OK;
+  }
+
+  void print(
+      const Space&,
+      const Gecode::Choice& raw_choice,
+      unsigned int alternative,
+      std::ostream& out) const override {
+    const auto& selected =
+        static_cast<const Choice&>(raw_choice);
+    const Backend::BranchDecision& decision =
+        selected.decision();
+
+    out << "list[" << selected.position() << "] ";
+
+    switch (decision.kind) {
+      case Backend::BranchKind::repeat_count:
+        out << "segment[" << decision.segment << "].count "
+            << (alternative == 0 ? "<= " : "> ")
+            << decision.count_pivot;
+        break;
+
+      case Backend::BranchKind::value_set:
+        out << "segment[" << decision.segment << "].head-value "
+            << (alternative == 0 ? "<= " : "> ")
+            << decision.value_pivot;
+        break;
+    }
+  }
+
+  Actor* copy(Space& home) override {
+    return new (home) ExactDomainBrancher(
+        home,
+        *this);
+  }
+
+  std::size_t dispose(Space&) override {
+    return sizeof(*this);
+  }
+
+  static void post(
+      Home home,
+      const ListVarArgs& variables) {
+    if (variables.size() == 0)
+      return;
+
+    ViewArray<ListView> views(
+        home,
+        variables.size());
+
+    for (int index = 0;
+         index < variables.size();
+         ++index) {
+      views[index] =
+          ListView(variables[index]);
+
+      if (!views[index].assigned() &&
+          !Backend::choose_branch(
+              views[index].domain())) {
+        throw Exception(
+            "List::branch_exact",
+            "domain is outside the exact partition fragment");
+      }
+    }
+
+    (void) new (home) ExactDomainBrancher(
+        home,
+        views);
+  }
+};
+
+namespace Branching {
 
 inline int lower_bound(ListVar variable) {
   const long long lower =
@@ -32,16 +280,42 @@ inline IntVar length_variable(
   return result;
 }
 
-}}} // namespace Gecode::List::Branching
+} // namespace Branching
+
+}} // namespace Gecode::List
 
 namespace Gecode {
 
 /**
- * Branch on the length of one list variable.
+ * Branch directly on one ListVar using exact backend language partitions.
  *
- * This deliberately reuses Gecode's integer value-selection policies. The
- * auxiliary IntVar is linked bidirectionally to the ListVar by length().
+ * This is intentionally stricter than branch_length(): an unsupported
+ * unassigned domain raises an exception rather than being reported as a
+ * solved search leaf.
  */
+inline void branch_exact(
+    Home home,
+    ListVar variable) {
+  GECODE_POST;
+
+  ListVarArgs variables(1);
+  variables[0] = variable;
+  List::ExactDomainBrancher::post(
+      home,
+      variables);
+}
+
+/** Branch directly on ListVars in argument order. */
+inline void branch_exact(
+    Home home,
+    const ListVarArgs& variables) {
+  GECODE_POST;
+  List::ExactDomainBrancher::post(
+      home,
+      variables);
+}
+
+/** Branch on the length of one list variable. */
 inline void branch_length(
     Home home,
     ListVar variable,
@@ -55,7 +329,6 @@ inline void branch_length(
 
   branch(home, length, values);
 }
-
 
 /** Branch on the lengths of several list variables. */
 inline void branch_length(

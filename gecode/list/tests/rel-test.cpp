@@ -128,6 +128,60 @@ class LengthArrayBranchSpace final : public Space {
 };
 
 
+class ExactDomainBranchSpace final : public Space {
+ public:
+  ListVar x;
+
+  explicit ExactDomainBranchSpace(
+      Gecode::List::Domain domain)
+      : Space(),
+        x(*this, std::move(domain)) {
+    Gecode::branch_exact(*this, x);
+  }
+
+  ExactDomainBranchSpace(
+      ExactDomainBranchSpace& other)
+      : Space(other),
+        x() {
+    x.update(*this, other.x);
+  }
+
+  Space* copy() override {
+    return new ExactDomainBranchSpace(*this);
+  }
+};
+
+
+class ExactDomainArrayBranchSpace final : public Space {
+ public:
+  Gecode::ListVarArray x;
+
+  ExactDomainArrayBranchSpace()
+      : Space(),
+        x(
+            *this,
+            2,
+            Gecode::List::Domain::repeat(
+                Gecode::List::ValueSet(-1, 1),
+                1,
+                1)) {
+    Gecode::ListVarArgs variables(x);
+    Gecode::branch_exact(*this, variables);
+  }
+
+  ExactDomainArrayBranchSpace(
+      ExactDomainArrayBranchSpace& other)
+      : Space(other),
+        x() {
+    x.update(*this, other.x);
+  }
+
+  Space* copy() override {
+    return new ExactDomainArrayBranchSpace(*this);
+  }
+};
+
+
 class EqualitySpace final : public Space {
 public:
   ListVar x;
@@ -2864,6 +2918,185 @@ void length_branching_array_native() {
 }
 
 
+void exact_domain_branch_rejects_ambiguous_counts_native() {
+  const Gecode::List::Domain ambiguous(
+      {
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(0, 1),
+              0,
+              1},
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(2, 3),
+              0,
+              1},
+      },
+      0,
+      2);
+
+  bool rejected = false;
+
+  try {
+    auto* space =
+        new ExactDomainBranchSpace(ambiguous);
+    delete space;
+  } catch (const Gecode::Exception&) {
+    rejected = true;
+  }
+
+  assert(rejected);
+}
+
+
+void exact_domain_branch_choice_archive_native() {
+  auto* root =
+      new ExactDomainBranchSpace(
+          Gecode::List::Domain::repeat(
+              Gecode::List::ValueSet(0, 1),
+              0,
+              3));
+
+  assert(root->status() == Gecode::SS_BRANCH);
+
+  const Gecode::Choice* original =
+      root->choice();
+
+  Gecode::Archive archive;
+  original->archive(archive);
+
+  std::ostringstream rendered;
+  root->print(*original, 0, rendered);
+
+  assert(
+      rendered.str() ==
+      "list[0] segment[0].count <= 1");
+
+  auto* replay =
+      static_cast<ExactDomainBranchSpace*>(
+          root->clone());
+
+  const Gecode::Choice* restored =
+      replay->choice(archive);
+
+  replay->commit(*restored, 1);
+
+  delete original;
+  delete restored;
+
+  assert(
+      replay->status() !=
+      Gecode::SS_FAILED);
+
+  assert(replay->x.min_length() == 2);
+  assert(replay->x.max_length() == 3);
+
+  // The archived commit must affect only the clone used for replay.
+  assert(root->x.min_length() == 0);
+  assert(root->x.max_length() == 3);
+
+  delete root;
+  delete replay;
+}
+
+
+void exact_domain_branching_array_native() {
+  Gecode::Search::Options options;
+  options.c_d = 8;
+  options.a_d = 2;
+
+  Gecode::DFS<ExactDomainArrayBranchSpace> search(
+      new ExactDomainArrayBranchSpace(),
+      options);
+
+  std::vector<std::vector<int>> pairs;
+
+  while (ExactDomainArrayBranchSpace* solution = search.next()) {
+    assert(solution->x[0].assigned());
+    assert(solution->x[1].assigned());
+
+    pairs.push_back(
+        std::vector<int>{
+            solution->x[0].val().front(),
+            solution->x[1].val().front()});
+
+    delete solution;
+  }
+
+  std::sort(pairs.begin(), pairs.end());
+
+  assert(pairs.size() == 9);
+  assert(
+      std::adjacent_find(
+          pairs.begin(),
+          pairs.end()) ==
+      pairs.end());
+
+  std::vector<std::vector<int>> expected;
+  for (int left = -1; left <= 1; ++left)
+    for (int right = -1; right <= 1; ++right)
+      expected.push_back({left, right});
+
+  assert(pairs == expected);
+}
+
+
+void exact_domain_branching_single_native() {
+  auto* root =
+      new ExactDomainBranchSpace(
+          Gecode::List::Domain::repeat(
+              Gecode::List::ValueSet(0, 1),
+              0,
+              3));
+
+  Gecode::DFS<ExactDomainBranchSpace> search(root);
+
+  std::vector<std::vector<int>> solutions;
+
+  while (ExactDomainBranchSpace* solution = search.next()) {
+    assert(solution->x.assigned());
+    solutions.push_back(solution->x.val());
+    delete solution;
+  }
+
+  std::sort(solutions.begin(), solutions.end());
+
+  assert(
+      std::adjacent_find(
+          solutions.begin(),
+          solutions.end()) ==
+      solutions.end());
+
+  std::vector<std::vector<int>> expected;
+
+  for (unsigned int length = 0;
+       length <= 3;
+       ++length) {
+    const unsigned int count =
+        1U << length;
+
+    for (unsigned int bits = 0;
+         bits < count;
+         ++bits) {
+      std::vector<int> value;
+      value.reserve(length);
+
+      for (unsigned int index = 0;
+           index < length;
+           ++index) {
+        value.push_back(
+            static_cast<int>(
+                (bits >> index) & 1U));
+      }
+
+      expected.push_back(std::move(value));
+    }
+  }
+
+  std::sort(expected.begin(), expected.end());
+
+  assert(solutions == expected);
+}
+
+
 void length_branching_single_native() {
   auto* root = new LengthBranchSpace(
       lists(-2, 2, 0, 3),
@@ -3004,6 +3237,10 @@ void list_var_arrays_clone_and_print_native() {
 
 
 int main() {
+  exact_domain_branch_choice_archive_native();
+  exact_domain_branch_rejects_ambiguous_counts_native();
+  exact_domain_branching_array_native();
+  exact_domain_branching_single_native();
   length_branching_bounds_native();
   length_branching_array_native();
   length_branching_single_native();

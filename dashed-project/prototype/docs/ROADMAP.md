@@ -31,7 +31,8 @@
 
 - branch on length through Gecode integer branchers (included);
 - exact backend partitions for unambiguous block counts and one distinguishing symbol position (included);
-- wrap those partitions in native ListVar branchers with archived choices and no-good support;
+- native `branch_exact` brancher with cloned views, archived choices, deterministic printing, and explicit rejection of unsupported domains (included);
+- add no-good literals for exact branch alternatives;
 - no-good literals where useful;
 - deterministic variable printing (included) and archive support;
 - MiniZinc/FlatZinc-facing predicates if desired.
