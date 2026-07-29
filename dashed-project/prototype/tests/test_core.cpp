@@ -215,6 +215,163 @@ void test_length_propagation() {
   assert(length.lower == 7 && length.upper == 7);
 }
 
+void test_legacy_equality_shape_refinement() {
+  // Port of old str_test2::test01, using generic integers:
+  //
+  // x = {1,2}^0..4
+  // y = {1,2}^0..2 {1}^3
+  //
+  // Equality restricts both domains to:
+  // {1,2}^0..1 {1}^3
+  Domain x =
+      Domain::repeat(ValueSet(1, 2), 0, 4);
+
+  Domain y(
+      {
+          RepeatSegment{ValueSet(1, 2), 0, 2},
+          RepeatSegment{ValueSet(1), 3, 3},
+      },
+      3,
+      5);
+
+  const Domain expected(
+      {
+          RepeatSegment{ValueSet(1, 2), 0, 1},
+          RepeatSegment{ValueSet(1), 3, 3},
+      },
+      3,
+      4);
+
+  const auto first =
+      dashed::propagate_equal(x, y);
+  assert(!first.failed());
+
+  // A second call checks fixpoint/idempotence, matching the old test.
+  const auto second =
+      dashed::propagate_equal(x, y);
+  assert(!second.failed());
+
+  std::cerr << "legacy equality x: " << x << '\n';
+  std::cerr << "legacy equality y: " << y << '\n';
+  std::cerr << "expected:          " << expected << '\n';
+
+  assert(x == expected);
+  assert(y == expected);
+
+  // Equal domains do not subsume x=y: the two variables could still
+  // independently select different concrete lists.
+  assert(!second.subsumed);
+}
+
+void test_single_repeat_equality_refinement_guards() {
+  {
+    // The common alphabet must be applied independently to each
+    // segment of the structured side.
+    Domain x =
+        Domain::repeat(
+            ValueSet(1, 3),
+            2,
+            3);
+
+    Domain y(
+        {
+            RepeatSegment{
+                ValueSet(2, 4),
+                1,
+                1},
+            RepeatSegment{
+                ValueSet(1, 2),
+                1,
+                2},
+        },
+        2,
+        3);
+
+    const Domain expected(
+        {
+            RepeatSegment{
+                ValueSet(2, 3),
+                1,
+                1},
+            RepeatSegment{
+                ValueSet(1, 2),
+                1,
+                2},
+        },
+        2,
+        3);
+
+    const auto result =
+        dashed::propagate_equal(x, y);
+
+    assert(!result.failed());
+    assert(x == expected);
+    assert(y == expected);
+    assert(!result.subsumed);
+  }
+
+  {
+    // A mandatory segment disjoint from the single block's alphabet
+    // makes equality impossible.
+    Domain x =
+        Domain::repeat(
+            ValueSet(1),
+            1,
+            2);
+
+    Domain y =
+        Domain::repeat(
+            ValueSet(2),
+            1,
+            2);
+
+    const auto result =
+        dashed::propagate_equal(x, y);
+
+    assert(result.failed());
+    assert(x.failed());
+  }
+
+  {
+    // A disjoint optional segment is reduced to zero width and removed.
+    Domain x =
+        Domain::repeat(
+            ValueSet(1),
+            1,
+            2);
+
+    Domain y(
+        {
+            RepeatSegment{
+                ValueSet(2),
+                0,
+                1},
+            RepeatSegment{
+                ValueSet(1),
+                1,
+                1},
+        },
+        1,
+        2);
+
+    const Domain expected =
+        Domain::repeat(
+            ValueSet(1),
+            1,
+            1);
+
+    const auto result =
+        dashed::propagate_equal(x, y);
+
+    assert(!result.failed());
+    assert(x == expected);
+    assert(y == expected);
+    assert(x.assigned());
+    assert(y.assigned());
+    assert(result.subsumed);
+  }
+}
+
 void test_equality() {
   Domain fixed = Domain::fixed({4, 5, 6});
   Domain generic = Domain::top(ValueSet(0, 10), 0, 8);
@@ -292,6 +449,8 @@ int main() {
   test_normalization();
   test_membership();
   test_length_propagation();
+  test_single_repeat_equality_refinement_guards();
+  test_legacy_equality_shape_refinement();
   test_equality();
   test_reified_relations();
   test_concat();

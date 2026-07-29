@@ -27,6 +27,48 @@ bool same_value(const Domain& lhs, const Domain& rhs) {
   return lhs.assigned_equal(rhs);
 }
 
+
+bool single_repeat_domain(
+    const Domain& domain) {
+  return
+      domain.segment_count() == 1 &&
+      std::holds_alternative<RepeatSegment>(
+          domain.segments().front());
+}
+
+Change replace_domain(
+    Domain& target,
+    const Domain& replacement) {
+  if (replacement.failed()) {
+    target.fail();
+    return Change::failed;
+  }
+
+  if (target == replacement) {
+    return Change::none;
+  }
+
+  const bool was_assigned =
+      target.assigned();
+
+  const bool length_changed =
+      target.min_length() !=
+          replacement.min_length() ||
+      target.max_length() !=
+          replacement.max_length();
+
+  target = replacement;
+
+  if (!was_assigned &&
+      target.assigned()) {
+    return Change::assigned;
+  }
+
+  return length_changed
+      ? Change::both
+      : Change::domain;
+}
+
 Length clamp_length(std::int64_t value) {
   if (value <= 0) {
     return 0;
@@ -100,9 +142,38 @@ PropagationResult propagate_equal(Domain& x, Domain& y) {
   }
 
   if (!x.assigned() && !y.assigned()) {
-    result.left = combine(result.left, x.intersect_same_shape(y));
-    if (!result.failed()) {
-      result.right = combine(result.right, y.intersect_same_shape(x));
+    if (single_repeat_domain(x)) {
+      result.left = combine(
+          result.left,
+          x.intersect_single_repeat(y));
+
+      if (!result.failed()) {
+        // x now represents the exact common language.
+        result.right = combine(
+            result.right,
+            replace_domain(y, x));
+      }
+    } else if (single_repeat_domain(y)) {
+      result.right = combine(
+          result.right,
+          y.intersect_single_repeat(x));
+
+      if (!result.failed()) {
+        // y now represents the exact common language.
+        result.left = combine(
+            result.left,
+            replace_domain(x, y));
+      }
+    } else {
+      result.left = combine(
+          result.left,
+          x.intersect_same_shape(y));
+
+      if (!result.failed()) {
+        result.right = combine(
+            result.right,
+            y.intersect_same_shape(x));
+      }
     }
   }
 

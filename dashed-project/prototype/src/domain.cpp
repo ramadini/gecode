@@ -349,6 +349,118 @@ Change Domain::intersect_same_shape(const Domain& other) {
   return change;
 }
 
+Change Domain::intersect_single_repeat(
+    const Domain& other) {
+  if (failed_ || other.failed_) {
+    fail();
+    return Change::failed;
+  }
+
+  Change change =
+      tighten_length(
+          other.min_length_,
+          other.max_length_);
+
+  if (dashed::failed(change)) {
+    return change;
+  }
+
+  if (segments_.size() != 1) {
+    return change;
+  }
+
+  const auto* source =
+      std::get_if<RepeatSegment>(
+          &segments_.front());
+
+  if (source == nullptr) {
+    return change;
+  }
+
+  // A single repeat segment imposes only:
+  //
+  //   1. one common alphabet for every position; and
+  //   2. a global minimum/maximum length.
+  //
+  // Intersecting every segment of the other domain with that alphabet,
+  // while retaining the already-intersected global length bounds, is
+  // therefore an exact representation of the language intersection.
+  const ValueSet alphabet = source->values;
+
+  std::vector<Segment> refined;
+  refined.reserve(other.segments_.size());
+
+  for (const Segment& segment :
+       other.segments_) {
+    if (const auto* repeat =
+            std::get_if<RepeatSegment>(
+                &segment)) {
+      ValueSet values =
+          alphabet.intersected(
+              repeat->values);
+
+      Length lower = repeat->lower;
+      Length upper = repeat->upper;
+
+      if (values.empty()) {
+        if (lower > 0) {
+          fail();
+          return Change::failed;
+        }
+
+        // An optional block with no remaining values can only have
+        // count zero. normalize() will subsequently remove it.
+        upper = 0;
+      }
+
+      refined.push_back(
+          RepeatSegment{
+              std::move(values),
+              lower,
+              upper});
+    } else {
+      const auto& literal =
+          std::get<LiteralSegment>(
+              segment);
+
+      for (int value :
+           literal.literal.span()) {
+        if (!alphabet.contains(value)) {
+          fail();
+          return Change::failed;
+        }
+      }
+
+      refined.push_back(literal);
+    }
+  }
+
+  Domain candidate(
+      std::move(refined),
+      min_length_,
+      max_length_);
+
+  if (candidate.failed()) {
+    fail();
+    return Change::failed;
+  }
+
+  if (candidate == *this) {
+    return change;
+  }
+
+  const bool was_assigned = assigned();
+
+  *this = std::move(candidate);
+
+  const Change refinement =
+      !was_assigned && assigned()
+          ? Change::assigned
+          : Change::domain;
+
+  return combine(change, refinement);
+}
+
 void Domain::normalize() {
   if (failed_) {
     return;

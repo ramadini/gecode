@@ -93,6 +93,7 @@ class Domain {
   Change restrict_to_fixed(std::vector<int> value);
   Change restrict_to_fixed(LiteralSlice value);
   Change intersect_same_shape(const Domain& other);
+  Change intersect_single_repeat(const Domain& other);
   void normalize();
   void fail() noexcept;
 
