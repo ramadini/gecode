@@ -23,7 +23,9 @@
 
 - port the original dashed equality sweeps as pure segmented-cursor algorithms;
 - port concat sweeps without materializing long literals;
-- extend disequality pruning beyond exact single-position witnesses;
+- exact assigned-side disequality pruning for one symbolic position and one
+  endpoint singleton repetition count (included); extend further only when the
+  result remains representable without an internal domain union;
 - compare every ported operation with exhaustive small-language semantics and
   differential tests against G-Strings.
 

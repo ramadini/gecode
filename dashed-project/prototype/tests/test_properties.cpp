@@ -584,6 +584,60 @@ void test_single_witness_disequality_exactness() {
 }
 
 
+
+void test_endpoint_count_disequality_exactness() {
+  const auto universe =
+      all_lists(3);
+
+  for (int symbol : {0, 1}) {
+    for (dashed::Length lower = 0;
+         lower < 3;
+         ++lower) {
+      for (dashed::Length upper = lower + 1;
+           upper <= 3;
+           ++upper) {
+        for (dashed::Length forbidden_count :
+             {lower, upper}) {
+          Domain candidate =
+              Domain::repeat(
+                  ValueSet(symbol),
+                  lower,
+                  upper);
+
+          const Domain original =
+              candidate;
+
+          Domain assigned =
+              Domain::fixed(
+                  std::vector<int>(
+                      forbidden_count,
+                      symbol));
+
+          const auto result =
+              dashed::propagate_not_equal(
+                  assigned,
+                  candidate);
+
+          assert(!result.failed());
+          assert(result.subsumed);
+
+          for (const auto& value :
+               universe) {
+            const bool expected =
+                original.accepts(value) &&
+                value != assigned.value();
+
+            assert(
+                candidate.accepts(value) ==
+                expected);
+          }
+        }
+      }
+    }
+  }
+}
+
+
 void test_half_reified_kernel_soundness() {
   using Kernel =
       dashed::PropagationResult (*)(
@@ -1071,6 +1125,7 @@ int main() {
   test_equal_kernel_soundness();
   test_not_equal_kernel_soundness();
   test_single_witness_disequality_exactness();
+  test_endpoint_count_disequality_exactness();
   test_half_reified_kernel_soundness();
   test_reified_kernel_soundness();
   test_assigned_concat_split_filtering();

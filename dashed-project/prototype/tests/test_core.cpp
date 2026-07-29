@@ -3188,6 +3188,193 @@ void test_disequality_single_witness_pruning() {
 }
 
 
+
+void test_disequality_endpoint_count_pruning() {
+  {
+    // The forbidden value is the lower endpoint of the only variable repeat
+    // count. Removing that endpoint is an exact interval refinement.
+    Domain assigned =
+        Domain::fixed({9, 2, 8});
+
+    Domain candidate(
+        {
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{9})},
+            RepeatSegment{
+                ValueSet(2),
+                1,
+                3},
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{8})},
+        },
+        3,
+        5);
+
+    const Domain expected(
+        {
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{9})},
+            RepeatSegment{
+                ValueSet(2),
+                2,
+                3},
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{8})},
+        },
+        4,
+        5);
+
+    const auto result =
+        dashed::propagate_not_equal(
+            assigned,
+            candidate);
+
+    assert(!result.failed());
+    assert(result.subsumed);
+    assert(result.right == Change::both);
+    assert(candidate == expected);
+    assert(
+        !candidate.accepts(
+            Domain::fixed({9, 2, 8})));
+    assert(
+        candidate.accepts(
+            Domain::fixed({9, 2, 2, 8})));
+  }
+
+  {
+    // The same operation is symmetric and can remove the upper endpoint.
+    Domain candidate(
+        {
+            RepeatSegment{
+                ValueSet(-1),
+                0,
+                2},
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{4})},
+        },
+        1,
+        3);
+
+    Domain assigned =
+        Domain::fixed({-1, -1, 4});
+
+    const Domain expected(
+        {
+            RepeatSegment{
+                ValueSet(-1),
+                0,
+                1},
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{4})},
+        },
+        1,
+        2);
+
+    const auto result =
+        dashed::propagate_not_equal(
+            candidate,
+            assigned);
+
+    assert(!result.failed());
+    assert(result.subsumed);
+    assert(result.left == Change::both);
+    assert(candidate == expected);
+  }
+
+  {
+    // An interior count would create a hole and is intentionally left
+    // unchanged by the interval representation.
+    Domain assigned =
+        Domain::fixed({7, 7});
+
+    Domain candidate =
+        Domain::repeat(
+            ValueSet(7),
+            1,
+            3);
+
+    const Domain original = candidate;
+
+    const auto result =
+        dashed::propagate_not_equal(
+            assigned,
+            candidate);
+
+    assert(!result.failed());
+    assert(!result.subsumed);
+    assert(result.right == Change::none);
+    assert(candidate == original);
+  }
+
+  {
+    // A non-singleton alphabet has several lists at the forbidden count;
+    // removing the entire count would therefore be unsound.
+    Domain assigned =
+        Domain::fixed({1});
+
+    Domain candidate =
+        Domain::repeat(
+            ValueSet(1, 2),
+            1,
+            2);
+
+    const Domain original = candidate;
+
+    const auto result =
+        dashed::propagate_not_equal(
+            assigned,
+            candidate);
+
+    assert(!result.failed());
+    assert(!result.subsumed);
+    assert(result.right == Change::none);
+    assert(candidate == original);
+  }
+
+  {
+    // Two variable count blocks do not identify one representable endpoint
+    // refinement, even when the assigned list is accepted.
+    Domain assigned =
+        Domain::fixed({1, 9});
+
+    Domain candidate(
+        {
+            RepeatSegment{
+                ValueSet(1),
+                0,
+                1},
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{9})},
+            RepeatSegment{
+                ValueSet(2),
+                0,
+                1},
+        },
+        1,
+        3);
+
+    const Domain original = candidate;
+
+    const auto result =
+        dashed::propagate_not_equal(
+            assigned,
+            candidate);
+
+    assert(!result.failed());
+    assert(!result.subsumed);
+    assert(result.right == Change::none);
+    assert(candidate == original);
+  }
+}
+
+
 void test_disequality_language_disjointness() {
   {
     // The length ranges overlap, but all nonempty values are incompatible.
@@ -3428,6 +3615,7 @@ int main() {
   test_concat_strips_partial_prefix_segments();
   test_concat_strips_exact_prefix();
   test_disequality_single_witness_pruning();
+  test_disequality_endpoint_count_pruning();
   test_disequality_language_disjointness();
   test_value_set();
   test_literal_slices_share();

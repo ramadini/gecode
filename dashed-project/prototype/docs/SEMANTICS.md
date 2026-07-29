@@ -30,9 +30,19 @@ because two equal concrete lists can have different internal segment splits.
 x != y
 ```
 
-The current kernel subsumes on disjoint length intervals and checks assigned
-values. Symbol-level exclusion from a nearly assigned domain is a later sweep
-optimization.
+The current kernel subsumes when equality propagation proves the represented
+languages disjoint and checks assigned values directly. When one side is
+assigned, it also performs two exact representable exclusions on the other
+side:
+
+- remove the forbidden value from the only one-position value block when all
+  other positions are fixed to the assigned list;
+- remove a forbidden endpoint repetition count when exactly one singleton
+  block has a variable count and every other segment is fixed.
+
+An interior forbidden count would create a hole in an interval, and excluding
+one list from a repeated non-singleton alphabet would require a disjunction.
+Those cases are therefore left unchanged rather than approximated unsafely.
 
 ## Reified equality and disequality
 

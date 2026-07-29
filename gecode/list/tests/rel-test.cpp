@@ -722,6 +722,108 @@ void disequality_prunes_single_witness_native() {
 }
 
 
+
+void disequality_prunes_endpoint_count_native() {
+  const Gecode::List::Domain candidate(
+      {
+          Gecode::List::LiteralSegment{
+              Gecode::List::LiteralSlice(
+                  std::vector<int>{9})},
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(2),
+              1,
+              3},
+          Gecode::List::LiteralSegment{
+              Gecode::List::LiteralSlice(
+                  std::vector<int>{8})},
+      },
+      3,
+      5);
+
+  const Gecode::List::Domain expected(
+      {
+          Gecode::List::LiteralSegment{
+              Gecode::List::LiteralSlice(
+                  std::vector<int>{9})},
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(2),
+              2,
+              3},
+          Gecode::List::LiteralSegment{
+              Gecode::List::LiteralSlice(
+                  std::vector<int>{8})},
+      },
+      4,
+      5);
+
+  {
+    auto* root = new DisequalitySpace(
+        fixed({9, 2, 8}),
+        candidate);
+
+    assert(
+        root->status() !=
+        Gecode::SS_FAILED);
+
+    assert(root->y.domain() == expected);
+    assert(root->y.min_length() == 4);
+    assert(root->y.max_length() == 5);
+
+    auto* clone =
+        static_cast<DisequalitySpace*>(
+            root->clone());
+
+    Gecode::List::ListView
+        clone_y(clone->y);
+
+    const Gecode::ModEvent me =
+        clone_y.replace(
+            *clone,
+            fixed({9, 2, 2, 8}));
+
+    if (Gecode::me_failed(me)) {
+      clone->fail();
+    }
+
+    assert(
+        clone->status() !=
+        Gecode::SS_FAILED);
+    assert(clone->y.assigned());
+    assert(
+        clone->y.val() ==
+        std::vector<int>({9, 2, 2, 8}));
+
+    assert(!root->y.assigned());
+    assert(root->y.domain() == expected);
+
+    delete root;
+    delete clone;
+  }
+
+  {
+    // (x = y) -> false delegates to disequality and therefore exposes the
+    // same endpoint-count pruning through reverse implication.
+    auto* space = new ReifiedSpace(
+        fixed({9, 2, 8}),
+        candidate,
+        0,
+        0,
+        Gecode::IRT_EQ,
+        Gecode::RM_PMI);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(space->b.assigned());
+    assert(space->b.val() == 0);
+    assert(space->y.domain() == expected);
+
+    delete space;
+  }
+}
+
+
 void disequality_accepts_distinct_fixed_lists() {
   auto* space = new DisequalitySpace(
       fixed({-1, 0, 1}),
@@ -3444,6 +3546,7 @@ int main() {
   segmented_equality_refines_mandatory_regions();
 
   disequality_prunes_single_witness_native();
+  disequality_prunes_endpoint_count_native();
   disequality_accepts_distinct_fixed_lists();
   disequality_rejects_equal_fixed_lists();
   alias_cases();

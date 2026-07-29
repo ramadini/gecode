@@ -22,7 +22,10 @@ struct PropagationResult {
 /** Conservative kernel for x = y. */
 PropagationResult propagate_equal(Domain& x, Domain& y);
 
-/** Conservative kernel for x != y, including exact single-position witness pruning. */
+/**
+ * Conservative kernel for x != y, including exact single-position and
+ * endpoint-repeat-count witness pruning against an assigned list.
+ */
 PropagationResult propagate_not_equal(Domain& x, Domain& y);
 
 struct BoolDomain {

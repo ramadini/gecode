@@ -27,7 +27,10 @@ and checks that propagation never removes a feasible tuple for:
 - concatenation;
 - length.
 
-It also checks domain-language preservation under normalization.
+It also checks domain-language preservation under normalization. Dedicated
+exactness oracles compare assigned-side disequality pruning against concrete
+language subtraction for both one-position witnesses and endpoint singleton
+repetition counts.
 
 ## Representation checks
 

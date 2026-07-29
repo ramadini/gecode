@@ -414,6 +414,169 @@ std::optional<Change> exclude_assigned_single_witness(
 }
 
 
+std::optional<Change> exclude_assigned_endpoint_count(
+    Domain& target,
+    const Domain& assigned) {
+  if (target.failed() ||
+      target.assigned() ||
+      !assigned.assigned()) {
+    return std::nullopt;
+  }
+
+  std::optional<std::size_t> variable_segment;
+  std::uint64_t fixed_width = 0;
+
+  for (std::size_t index = 0;
+       index < target.segments().size();
+       ++index) {
+    const Segment& segment =
+        target.segments()[index];
+
+    if (const auto* literal =
+            std::get_if<LiteralSegment>(
+                &segment)) {
+      fixed_width += literal->literal.size();
+      continue;
+    }
+
+    const auto& repeat =
+        std::get<RepeatSegment>(
+            segment);
+
+    if (!repeat.values.singleton()) {
+      return std::nullopt;
+    }
+
+    if (repeat.exact_count()) {
+      fixed_width += repeat.upper;
+      continue;
+    }
+
+    if (variable_segment.has_value()) {
+      return std::nullopt;
+    }
+
+    variable_segment = index;
+  }
+
+  if (!variable_segment.has_value() ||
+      assigned.min_length() < fixed_width) {
+    return std::nullopt;
+  }
+
+  const std::uint64_t selected_count =
+      static_cast<std::uint64_t>(
+          assigned.min_length()) -
+      fixed_width;
+
+  if (selected_count >
+      static_cast<std::uint64_t>(
+          kUnboundedLength)) {
+    return std::nullopt;
+  }
+
+  const auto& variable =
+      std::get<RepeatSegment>(
+          target.segments()[
+              *variable_segment]);
+
+  const Length count =
+      static_cast<Length>(
+          selected_count);
+
+  if (count < variable.lower ||
+      count > variable.upper) {
+    return std::nullopt;
+  }
+
+  AssignedCursor cursor(assigned);
+
+  for (std::size_t index = 0;
+       index < target.segments().size();
+       ++index) {
+    const Segment& segment =
+        target.segments()[index];
+
+    if (const auto* literal =
+            std::get_if<LiteralSegment>(
+                &segment)) {
+      for (int value :
+           literal->literal.span()) {
+        const auto assigned_value =
+            cursor.take_one();
+
+        if (!assigned_value.has_value() ||
+            *assigned_value != value) {
+          return std::nullopt;
+        }
+      }
+
+      continue;
+    }
+
+    const auto& repeat =
+        std::get<RepeatSegment>(
+            segment);
+
+    const auto singleton =
+        repeat.values.singleton_value();
+
+    if (!singleton.has_value()) {
+      return std::nullopt;
+    }
+
+    const Length width =
+        index == *variable_segment
+            ? count
+            : repeat.upper;
+
+    if (!cursor.match_value(
+            *singleton,
+            width)) {
+      return std::nullopt;
+    }
+  }
+
+  if (!cursor.done()) {
+    return std::nullopt;
+  }
+
+  if (count != variable.lower &&
+      count != variable.upper) {
+    // Removing an interior count would create a hole in the interval and is
+    // not representable by one canonical repeat segment.
+    return std::nullopt;
+  }
+
+  std::vector<Segment> refined =
+      target.segments();
+
+  auto& replacement_variable =
+      std::get<RepeatSegment>(
+          refined[*variable_segment]);
+
+  if (count == replacement_variable.lower) {
+    ++replacement_variable.lower;
+  } else {
+    --replacement_variable.upper;
+  }
+
+  Domain replacement(
+      std::move(refined),
+      target.min_length(),
+      target.max_length());
+
+  if (replacement.failed()) {
+    target.fail();
+    return Change::failed;
+  }
+
+  return replace_domain(
+      target,
+      replacement);
+}
+
+
 void append_segments(
     std::vector<Segment>& destination,
     const Domain& source) {
@@ -1504,10 +1667,17 @@ PropagationResult propagate_not_equal(Domain& x, Domain& y) {
   }
 
   if (x.assigned()) {
-    const auto pruning =
+    auto pruning =
         exclude_assigned_single_witness(
             y,
             x);
+
+    if (!pruning.has_value()) {
+      pruning =
+          exclude_assigned_endpoint_count(
+              y,
+              x);
+    }
 
     if (pruning.has_value()) {
       result.right = *pruning;
@@ -1518,10 +1688,17 @@ PropagationResult propagate_not_equal(Domain& x, Domain& y) {
   }
 
   if (y.assigned()) {
-    const auto pruning =
+    auto pruning =
         exclude_assigned_single_witness(
             x,
             y);
+
+    if (!pruning.has_value()) {
+      pruning =
+          exclude_assigned_endpoint_count(
+              x,
+              y);
+    }
 
     if (pruning.has_value()) {
       result.left = *pruning;
