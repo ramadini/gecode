@@ -983,6 +983,131 @@ void test_concat() {
   assert(suffix_lit.shares_storage_with(whole_lit));
 }
 
+void test_concat_fixed_result_exact_split() {
+  // z is fixed and both operand lengths are exact:
+  //
+  //   [10,20,30,40,50] = x ++ y
+  //   |x| = 2
+  //   |y| = 3
+  //
+  // Therefore both operands arex| = 2
+  //   |y| = 3
+  //
+  // Therefore both operands are uniquely determined.
+  Domain z =
+      Domain::fixed(
+          {10, 20, 30, 40, 50});
+
+  Domain x =
+      Domain::top(
+          ValueSet(-100, 100),
+          2,
+          2);
+
+  Domain y =
+      Domain::top(
+          ValueSet(-100, 100),
+          3,
+          3);
+
+  const Domain expected_x =
+      Domain::fixed({10, 20});
+
+  const Domain expected_y =
+      Domain::fixed({30, 40, 50});
+
+  const auto result =
+      dashed::propagate_concat(z, x, y);
+
+  std::cerr
+      << "concat split x: "
+      << x << '\n';
+  std::cerr
+      << "concat split y: "
+      << y << '\n';
+  std::cerr
+      << "expected x:     "
+      << expected_x << '\n';
+  std::cerr
+      << "expected y:     "
+      << expected_y << '\n';
+
+  assert(!result.failed());
+
+  assert(x == expected_x);
+  assert(y == expected_y);
+
+  assert(x.assigned());
+  assert(y.assigned());
+  assert(result.subsumed);
+
+
+  {
+    // The split prefix is outside x's alphabet.
+    Domain failed_z =
+        Domain::fixed({10, 20, 30});
+
+    Domain failed_x =
+        Domain::top(
+            ValueSet(-5, 5),
+            1,
+            1);
+
+    Domain failed_y =
+        Domain::top(
+            ValueSet(-100, 100),
+            2,
+            2);
+
+    const Domain original_y = failed_y;
+
+    const auto failed_result =
+        dashed::propagate_concat(
+            failed_z,
+            failed_x,
+            failed_y);
+
+    assert(failed_result.failed());
+    assert(failed_x.failed());
+
+    // Both halves are validated before either successful replacement.
+    assert(failed_y == original_y);
+    assert(!failed_y.assigned());
+  }
+
+  {
+    // The split suffix is outside y's alphabet.
+    Domain failed_z =
+        Domain::fixed({1, 2, 50});
+
+    Domain failed_x =
+        Domain::top(
+            ValueSet(-100, 100),
+            2,
+            2);
+
+    Domain failed_y =
+        Domain::top(
+            ValueSet(-5, 5),
+            1,
+            1);
+
+    const Domain original_x = failed_x;
+
+    const auto failed_result =
+        dashed::propagate_concat(
+            failed_z,
+            failed_x,
+            failed_y);
+
+    assert(failed_result.failed());
+    assert(failed_y.failed());
+
+    assert(failed_x == original_x);
+    assert(!failed_x.assigned());
+  }
+}
+
 void test_concat_length_failure() {
   Domain z = Domain::top(ValueSet(0, 1), 2, 2);
   Domain x = Domain::top(ValueSet(0, 1), 2, 3);
@@ -1105,6 +1230,7 @@ int main() {
   test_equality();
   test_reified_relations();
   test_concat();
+  test_concat_fixed_result_exact_split();
   test_concat_length_failure();
   std::cout << "All Dashed core tests passed.\n";
   return 0;

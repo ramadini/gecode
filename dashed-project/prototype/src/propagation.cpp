@@ -20,9 +20,15 @@ Change assign_exact(Domain& target, const Domain& exact) {
     target.fail();
     return Change::failed;
   }
-  if (target == exact) {
+  // Preserve the target's existing representation when both domains
+  // already denote the same concrete list. This is stronger than structural
+  // equality and retains shared LiteralSlice storage.
+  if (target == exact ||
+      (target.assigned() &&
+       target.assigned_equal(exact))) {
     return Change::none;
   }
+
   target = exact;
   return Change::assigned;
 }
@@ -384,6 +390,68 @@ PropagationResult propagate_concat(Domain& z, Domain& x, Domain& y) {
             old_x_min != x.min_length() || old_x_max != x.max_length() ||
             old_y_min != y.min_length() || old_y_max != y.max_length();
   }
+  if (result.failed()) {
+    return result;
+  }
+
+  if (z.assigned() &&
+      x.min_length() == x.max_length() &&
+      y.min_length() == y.max_length()) {
+    // Exact operand lengths determine a unique split point.
+    const std::uint64_t total_length =
+        static_cast<std::uint64_t>(
+            x.min_length()) +
+        static_cast<std::uint64_t>(
+            y.min_length());
+
+    if (total_length != z.min_length()) {
+      // The preceding length fixpoint should normally detect this, but
+      // retain a defensive consistency check at the structural step.
+      z.fail();
+      result.result = Change::failed;
+      return result;
+    }
+
+    const Domain prefix =
+        z.assigned_prefix(
+            x.min_length());
+
+    const Domain suffix =
+        z.assigned_suffix(
+            y.min_length());
+
+    // Validate both operands before replacing either one. This keeps the
+    // successful split atomic from the caller's perspective.
+    const bool prefix_accepted =
+        x.accepts(prefix);
+
+    const bool suffix_accepted =
+        y.accepts(suffix);
+
+    if (!prefix_accepted ||
+        !suffix_accepted) {
+      if (!prefix_accepted) {
+        x.fail();
+        result.left = Change::failed;
+      }
+
+      if (!suffix_accepted) {
+        y.fail();
+        result.right = Change::failed;
+      }
+
+      return result;
+    }
+
+    result.left = combine(
+        result.left,
+        assign_exact(x, prefix));
+
+    result.right = combine(
+        result.right,
+        assign_exact(y, suffix));
+  }
+
   if (result.failed()) {
     return result;
   }
