@@ -263,6 +263,156 @@ void test_legacy_equality_shape_refinement() {
   assert(!second.subsumed);
 }
 
+void test_segmented_equality_sweep_symmetry_and_failure() {
+  auto make_structured = []() -> Domain {
+    return Domain(
+        {
+            RepeatSegment{
+                ValueSet(1, 3),
+                0,
+                300},
+            RepeatSegment{
+                ValueSet(4),
+                50,
+                50},
+            RepeatSegment{
+                ValueSet(3, 6),
+                0,
+                20},
+        },
+        50,
+        370);
+  };
+
+  auto make_exact_target = []() -> Domain {
+    return Domain(
+        {
+            RepeatSegment{
+                ValueSet(2, 4),
+                260,
+                260},
+            RepeatSegment{
+                ValueSet(6),
+                10,
+                10},
+        },
+        270,
+        270);
+  };
+
+  const Domain expected_structured(
+      {
+          RepeatSegment{
+              ValueSet(2, 3),
+              200,
+              210},
+          RepeatSegment{
+              ValueSet(4),
+              50,
+              50},
+          RepeatSegment{
+              ValueSet(3, 4),
+              0,
+              10},
+          RepeatSegment{
+              ValueSet(6),
+              10,
+              10},
+      },
+      270,
+      270);
+
+  const Domain expected_exact =
+      make_exact_target();
+
+  {
+    // Put the exact-layout operand first. The directional projection must
+    // still refine the second operand.
+    Domain left = make_exact_target();
+    Domain right = make_structured();
+
+    const auto first =
+        dashed::propagate_equal(left, right);
+
+    assert(!first.failed());
+    assert(left == expected_exact);
+    assert(right == expected_structured);
+
+    const auto second =
+        dashed::propagate_equal(left, right);
+
+    assert(!second.failed());
+    assert(left == expected_exact);
+    assert(right == expected_structured);
+    assert(!second.subsumed);
+  }
+
+  auto make_incompatible_subject = []() -> Domain {
+    return Domain(
+        {
+            RepeatSegment{
+                ValueSet(1),
+                1,
+                2},
+            RepeatSegment{
+                ValueSet(2),
+                1,
+                1},
+        },
+        2,
+        3);
+  };
+
+  auto make_incompatible_target = []() -> Domain {
+    return Domain(
+        {
+            RepeatSegment{
+                ValueSet(1),
+                2,
+                2},
+            RepeatSegment{
+                ValueSet(3),
+                1,
+                1},
+        },
+        3,
+        3);
+  };
+
+  {
+    Domain left =
+        make_incompatible_subject();
+    Domain right =
+        make_incompatible_target();
+
+    const auto result =
+        dashed::propagate_equal(left, right);
+
+    assert(result.failed());
+
+    // Failure ownership depends on which propagation path detects the
+    // contradiction. The PropagationResult is the public guarantee.
+    assert(left.failed() || right.failed());
+  }
+
+  {
+    // Failure must also be detected with the exact target first.
+    Domain left =
+        make_incompatible_target();
+    Domain right =
+        make_incompatible_subject();
+
+    const auto result =
+        dashed::propagate_equal(left, right);
+
+    assert(result.failed());
+
+    // Failure ownership depends on which propagation path detects the
+    // contradiction. The PropagationResult is the public guarantee.
+    assert(left.failed() || right.failed());
+  }
+}
+
 void test_single_repeat_equality_refinement_guards() {
   {
     // The common alphabet must be applied independently to each
@@ -520,6 +670,7 @@ int main() {
   test_normalization();
   test_membership();
   test_length_propagation();
+  test_segmented_equality_sweep_symmetry_and_failure();
   test_legacy_equality_multi_segment_sweep();
   test_single_repeat_equality_refinement_guards();
   test_legacy_equality_shape_refinement();

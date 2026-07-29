@@ -223,6 +223,57 @@ void test_legacy_test02_projection() {
   assert(refined == expected);
 }
 
+void test_projection_detects_mandatory_incompatibility() {
+  // The common length forces the first subject block to occur twice.
+  // Its final {2} block must then align with the target's final {3},
+  // making equality impossible.
+  Domain subject(
+      {
+          RepeatSegment{
+              ValueSet(1),
+              1,
+              2},
+          RepeatSegment{
+              ValueSet(2),
+              1,
+              1},
+      },
+      2,
+      3);
+
+  const Domain target(
+      {
+          RepeatSegment{
+              ValueSet(1),
+              2,
+              2},
+          RepeatSegment{
+              ValueSet(3),
+              1,
+              1},
+      },
+      3,
+      3);
+
+  const auto length_change =
+      subject.tighten_length(3, 3);
+
+  assert(!dashed::failed(length_change));
+
+  Domain refined = subject;
+
+  const SweepStatus status =
+      dashed::detail::project_against_exact_target(
+          subject,
+          target,
+          refined);
+
+  assert(status == SweepStatus::infeasible);
+
+  // Projection is transactional: its output changes only on success.
+  assert(refined == subject);
+}
+
 void test_literals_are_not_expanded() {
   const Domain literal =
       Domain::fixed({1, 2, 3});
@@ -253,6 +304,7 @@ void test_literals_are_not_expanded() {
 int main() {
   test_legacy_test02_matching_bounds();
   test_legacy_test02_projection();
+  test_projection_detects_mandatory_incompatibility();
   test_literals_are_not_expanded();
 
   std::cout
