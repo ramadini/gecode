@@ -724,6 +724,54 @@ PropagationResult propagate_concat(Domain& z, Domain& x, Domain& y) {
     return result;
   }
 
+  {
+    // Concatenating the operand domains gives a forward approximation
+    // of the result language.
+    const Domain concatenated =
+        x.concatenated(y);
+
+    // This conservative test is safe to use as proof of failure.
+    if (!z.may_equal(concatenated)) {
+      z.fail();
+      result.result = Change::failed;
+      return result;
+    }
+
+    // General segmented equality propagation may fail conservatively.
+    // Restrict structural forward projection to the exact single-repeat
+    // intersection path.
+    if (z.segment_count() == 1 &&
+        std::holds_alternative<RepeatSegment>(
+            z.segments().front())) {
+      Domain refined_z = z;
+      Domain concatenated_probe =
+          concatenated;
+
+      const PropagationResult forward =
+          propagate_equal(
+              refined_z,
+              concatenated_probe);
+
+      // This restricted single-repeat intersection is exact, so failure
+      // proves that the concat result cannot match z.
+      if (forward.failed()) {
+        z.fail();
+        result.result = Change::failed;
+        return result;
+      }
+
+      result.result = combine(
+          result.result,
+          replace_domain(
+              z,
+              refined_z));
+    }
+  }
+
+  if (result.failed()) {
+    return result;
+  }
+
   if (x.assigned() && y.assigned()) {
     Domain exact = x.concatenated(y);
     result.result = combine(result.result, assign_exact(z, exact));

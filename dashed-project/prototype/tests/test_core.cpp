@@ -983,6 +983,132 @@ void test_concat() {
   assert(suffix_lit.shares_storage_with(whole_lit));
 }
 
+void test_concat_forward_projection_guards() {
+  {
+    Domain x =
+        Domain::fixed({1});
+
+    Domain y =
+        Domain::repeat(
+            ValueSet(2),
+            1,
+            2);
+
+    Domain z =
+        Domain::repeat(
+            ValueSet(9),
+            2,
+            3);
+
+    const auto result =
+        dashed::propagate_concat(
+            z,
+            x,
+            y);
+
+    assert(result.failed());
+    assert(z.failed());
+  }
+
+  {
+    Domain whole =
+        Domain::fixed(
+            {10, 11, 12, 13, 14});
+
+    Domain x =
+        whole.assigned_prefix(2);
+
+    Domain y =
+        whole.assigned_suffix(3);
+
+    Domain z =
+        Domain::top(
+            ValueSet(-100, 100),
+            5,
+            5);
+
+    const auto result =
+        dashed::propagate_concat(
+            z,
+            x,
+            y);
+
+    assert(!result.failed());
+    assert(result.subsumed);
+    assert(z.assigned());
+    assert(z.assigned_equal(whole));
+    assert(z.segment_count() == 1);
+
+    const auto& whole_literal =
+        std::get<LiteralSegment>(
+            whole.segments().front()).literal;
+
+    const auto& result_literal =
+        std::get<LiteralSegment>(
+            z.segments().front()).literal;
+
+    assert(
+        result_literal.shares_storage_with(
+            whole_literal));
+  }
+}
+
+
+void test_concat_projects_result_structure() {
+  Domain x =
+      Domain::fixed({10, 20});
+
+  Domain y =
+      Domain::repeat(
+          ValueSet(30, 40),
+          1,
+          3);
+
+  Domain z =
+      Domain::top(
+          ValueSet(-100, 100),
+          0,
+          10);
+
+  const Domain expected_z(
+      {
+          LiteralSegment{
+              LiteralSlice(
+                  std::vector<int>{
+                      10, 20})},
+          RepeatSegment{
+              ValueSet(30, 40),
+              1,
+              3},
+      },
+      3,
+      5);
+
+  const auto first =
+      dashed::propagate_concat(
+          z,
+          x,
+          y);
+
+  assert(!first.failed());
+  assert(z == expected_z);
+
+  const auto second =
+      dashed::propagate_concat(
+          z,
+          x,
+          y);
+
+  assert(!second.failed());
+  assert(z == expected_z);
+
+  assert(x.assigned());
+  assert(!y.assigned());
+  assert(!z.assigned());
+  assert(!second.subsumed);
+}
+
+
 void test_concat_fixed_result_wide_split_interval() {
   // Feasible split points are 1, 2, and 3:
   //
@@ -1450,6 +1576,8 @@ int main() {
   test_equality();
   test_reified_relations();
   test_concat();
+  test_concat_forward_projection_guards();
+  test_concat_projects_result_structure();
   test_concat_fixed_result_wide_split_interval();
   test_concat_fixed_result_split_interval();
   test_concat_fixed_result_exact_split();

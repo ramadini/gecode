@@ -868,10 +868,102 @@ void concat_fixed_result_empty_boundaries_native() {
   }
 }
 
+
+void concat_projects_result_structure_native() {
+  {
+    auto* space = new ConcatSpace(
+        fixed({10, 20}),
+        dashed::Domain::repeat(
+            dashed::ValueSet(30, 40),
+            1,
+            3),
+        lists(-100, 100, 0, 10));
+
+    assert(space->status() != Gecode::SS_FAILED);
+
+    const dashed::Domain expected_z(
+        {
+            dashed::LiteralSegment{
+                dashed::LiteralSlice(
+                    std::vector<int>{
+                        10, 20})},
+            dashed::RepeatSegment{
+                dashed::ValueSet(30, 40),
+                1,
+                3},
+        },
+        3,
+        5);
+
+    assert(space->z.domain() == expected_z);
+    assert(space->x.assigned());
+    assert(!space->y.assigned());
+    assert(!space->z.assigned());
+
+    auto* clone =
+        static_cast<ConcatSpace*>(
+            space->clone());
+
+    assert(clone->status() != Gecode::SS_FAILED);
+    assert(clone->z.domain() == expected_z);
+
+    delete space;
+    delete clone;
+  }
+
+  {
+    auto* space = new ConcatSpace(
+        fixed({1}),
+        dashed::Domain::repeat(
+            dashed::ValueSet(2),
+            1,
+            2),
+        dashed::Domain::repeat(
+            dashed::ValueSet(9),
+            2,
+            3));
+
+    assert(space->status() == Gecode::SS_FAILED);
+
+    delete space;
+  }
+
+  {
+    auto* space = new ConcatSpace(
+        fixed({-50000}),
+        dashed::Domain::repeat(
+            dashed::ValueSet(0, 250000),
+            1,
+            2),
+        lists(-1000000, 1000000, 0, 10));
+
+    assert(space->status() != Gecode::SS_FAILED);
+
+    const dashed::Domain expected_z(
+        {
+            dashed::RepeatSegment{
+                dashed::ValueSet(-50000),
+                1,
+                1},
+            dashed::RepeatSegment{
+                dashed::ValueSet(0, 250000),
+                1,
+                2},
+        },
+        2,
+        3);
+
+    assert(space->z.domain() == expected_z);
+
+    delete space;
+  }
+}
+
 } // namespace
 
 
 int main() {
+  concat_projects_result_structure_native();
   concat_fixed_result_empty_boundaries_native();
   concat_fixed_result_wide_split_interval_native();
   concat_fixed_result_split_interval_native();
