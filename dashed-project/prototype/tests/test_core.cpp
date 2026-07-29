@@ -983,6 +983,98 @@ void test_concat() {
   assert(suffix_lit.shares_storage_with(whole_lit));
 }
 
+void test_concat_fixed_result_split_interval() {
+  // z is fixed, but the split point can be after position 1 or 2:
+  //
+  //   z = [10,20,30,40]
+  //   |x| = 1..2
+  //   |y| = 2..3
+  //
+  // Therefore:
+  //
+  //   x = [10] {20}^0..1
+  //   y = {20}^0..1 [30,40]
+  Domain z =
+      Domain::fixed(
+          {10, 20, 30, 40});
+
+  Domain x =
+      Domain::top(
+          ValueSet(-100, 100),
+          1,
+          2);
+
+  Domain y =
+      Domain::top(
+          ValueSet(-100, 100),
+          2,
+          3);
+
+  const Domain expected_x(
+      {
+          RepeatSegment{
+              ValueSet(10),
+              1,
+              1},
+          RepeatSegment{
+              ValueSet(20),
+              0,
+              1},
+      },
+      1,
+      2);
+
+  const Domain expected_y(
+      {
+          RepeatSegment{
+              ValueSet(20),
+              0,
+              1},
+          LiteralSegment{
+              LiteralSlice(
+                  std::vector<int>{
+                      30, 40})},
+      },
+      2,
+      3);
+
+  const auto first =
+      dashed::propagate_concat(
+          z,
+          x,
+          y);
+
+  assert(!first.failed());
+
+  const auto second =
+      dashed::propagate_concat(
+          z,
+          x,
+          y);
+
+  assert(!second.failed());
+
+  std::cerr
+      << "concat interval x: "
+      << x << '\n';
+  std::cerr
+      << "concat interval y: "
+      << y << '\n';
+  std::cerr
+      << "expected x:       "
+      << expected_x << '\n';
+  std::cerr
+      << "expected y:       "
+      << expected_y << '\n';
+
+  assert(x == expected_x);
+  assert(y == expected_y);
+
+  assert(!x.assigned());
+  assert(!y.assigned());
+  assert(!second.subsumed);
+}
+
 void test_concat_fixed_result_exact_split() {
   // z is fixed and both operand lengths are exact:
   //
@@ -1230,6 +1322,7 @@ int main() {
   test_equality();
   test_reified_relations();
   test_concat();
+  test_concat_fixed_result_split_interval();
   test_concat_fixed_result_exact_split();
   test_concat_length_failure();
   std::cout << "All Dashed core tests passed.\n";

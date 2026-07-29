@@ -89,6 +89,171 @@ Length clamp_length(std::int64_t value) {
   return static_cast<Length>(value);
 }
 
+
+int assigned_value_at(
+    const Domain& assigned,
+    Length position) {
+  if (!assigned.assigned() ||
+      position >= assigned.min_length()) {
+    throw std::logic_error(
+        "assigned_value_at requires a valid assigned position");
+  }
+
+  std::uint64_t remaining = position;
+
+  for (const Segment& segment :
+       assigned.segments()) {
+    if (const auto* literal =
+            std::get_if<LiteralSegment>(
+                &segment)) {
+      const std::uint64_t count =
+          literal->literal.size();
+
+      if (remaining < count) {
+        return literal->literal[
+            static_cast<std::size_t>(
+                remaining)];
+      }
+
+      remaining -= count;
+      continue;
+    }
+
+    const auto& repeat =
+        std::get<RepeatSegment>(
+            segment);
+
+    const auto value =
+        repeat.values.singleton_value();
+
+    if (!repeat.exact_count() ||
+        !value.has_value()) {
+      throw std::logic_error(
+          "assigned domain contains a non-exact segment");
+    }
+
+    if (remaining < repeat.upper) {
+      return *value;
+    }
+
+    remaining -= repeat.upper;
+  }
+
+  throw std::logic_error(
+      "assigned domain length is inconsistent");
+}
+
+
+void append_segments(
+    std::vector<Segment>& destination,
+    const Domain& source) {
+  destination.insert(
+      destination.end(),
+      source.segments().begin(),
+      source.segments().end());
+}
+
+
+Domain assigned_prefix_interval_projection(
+    const Domain& assigned,
+    Length lower,
+    Length upper) {
+  if (!assigned.assigned() ||
+      lower > upper ||
+      upper > assigned.min_length()) {
+    throw std::logic_error(
+        "invalid assigned prefix interval");
+  }
+
+  std::vector<Segment> segments;
+
+  const Domain mandatory =
+      assigned.assigned_prefix(lower);
+
+  segments.reserve(
+      mandatory.segment_count() +
+      static_cast<std::size_t>(
+          upper - lower));
+
+  append_segments(
+      segments,
+      mandatory);
+
+  for (Length position = lower;
+       position < upper;
+       ++position) {
+    segments.push_back(
+        RepeatSegment{
+            ValueSet(
+                assigned_value_at(
+                    assigned,
+                    position)),
+            0,
+            1});
+  }
+
+  return Domain(
+      std::move(segments),
+      lower,
+      upper);
+}
+
+
+Domain assigned_suffix_interval_projection(
+    const Domain& assigned,
+    Length split_lower,
+    Length split_upper) {
+  if (!assigned.assigned() ||
+      split_lower > split_upper ||
+      split_upper > assigned.min_length()) {
+    throw std::logic_error(
+        "invalid assigned suffix interval");
+  }
+
+  const Length total =
+      assigned.min_length();
+
+  std::vector<Segment> segments;
+
+  const Domain mandatory =
+      assigned.assigned_suffix(
+          static_cast<Length>(
+              total - split_upper));
+
+  segments.reserve(
+      mandatory.segment_count() +
+      static_cast<std::size_t>(
+          split_upper - split_lower));
+
+  // A suffix can begin anywhere in the uncertain split window.
+  // Optional singleton blocks preserve value order. For windows wider
+  // than one position this is a sound dashed over-approximation.
+  for (Length position = split_lower;
+       position < split_upper;
+       ++position) {
+    segments.push_back(
+        RepeatSegment{
+            ValueSet(
+                assigned_value_at(
+                    assigned,
+                    position)),
+            0,
+            1});
+  }
+
+  append_segments(
+      segments,
+      mandatory);
+
+  return Domain(
+      std::move(segments),
+      static_cast<Length>(
+          total - split_upper),
+      static_cast<Length>(
+          total - split_lower));
+}
+
+
 }  // namespace
 
 bool BoolDomain::value() const {
@@ -450,6 +615,109 @@ PropagationResult propagate_concat(Domain& z, Domain& x, Domain& y) {
     result.right = combine(
         result.right,
         assign_exact(y, suffix));
+  }
+
+  if (result.failed()) {
+    return result;
+  }
+
+
+  if (z.assigned()) {
+    // A range of operand lengths determines an interval of split points.
+    //
+    // For every feasible split s:
+    //
+    //   x = z[0..s)
+    //   y = z[s..|z|)
+    //
+    // The certain portions become exact prefix/suffix segments and values
+    // around the movable boundary become optional singleton segments.
+    const Length total =
+        z.min_length();
+
+    const Length split_lower =
+        std::max(
+            x.min_length(),
+            total > y.max_length()
+                ? static_cast<Length>(
+                      total - y.max_length())
+                : Length{0});
+
+    const Length split_upper =
+        std::min(
+            x.max_length(),
+            total >= y.min_length()
+                ? static_cast<Length>(
+                      total - y.min_length())
+                : Length{0});
+
+    if (split_lower > split_upper) {
+      z.fail();
+      result.result = Change::failed;
+      return result;
+    }
+
+    if (split_lower < split_upper) {
+      const Domain prefix_projection =
+          assigned_prefix_interval_projection(
+              z,
+              split_lower,
+              split_upper);
+
+      const Domain suffix_projection =
+          assigned_suffix_interval_projection(
+              z,
+              split_lower,
+              split_upper);
+
+      // Refine copies first. Neither real operand changes unless both
+      // directional intersections are consistent.
+      Domain refined_x = x;
+      Domain refined_y = y;
+
+      Domain prefix_probe =
+          prefix_projection;
+
+      Domain suffix_probe =
+          suffix_projection;
+
+      const PropagationResult x_probe =
+          propagate_equal(
+              refined_x,
+              prefix_probe);
+
+      const PropagationResult y_probe =
+          propagate_equal(
+              refined_y,
+              suffix_probe);
+
+      if (x_probe.failed() ||
+          y_probe.failed()) {
+        if (x_probe.failed()) {
+          x.fail();
+          result.left = Change::failed;
+        }
+
+        if (y_probe.failed()) {
+          y.fail();
+          result.right = Change::failed;
+        }
+
+        return result;
+      }
+
+      result.left = combine(
+          result.left,
+          replace_domain(
+              x,
+              refined_x));
+
+      result.right = combine(
+          result.right,
+          replace_domain(
+              y,
+              refined_y));
+    }
   }
 
   if (result.failed()) {
