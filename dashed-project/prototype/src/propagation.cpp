@@ -9,6 +9,9 @@
 namespace dashed {
 namespace {
 
+
+
+
 Change assign_exact(Domain& target, const Domain& exact) {
   if (!exact.assigned()) {
     throw std::logic_error("assign_exact requires an assigned source");
@@ -248,13 +251,38 @@ PropagationResult propagate_equal(Domain& x, Domain& y) {
   return result;
 }
 
+static bool equality_may_be_possible(
+    const Domain& x,
+    const Domain& y) {
+  // Preserve the inexpensive checks for failed domains, incompatible
+  // lengths, and assigned-value membership.
+  if (!x.may_equal(y)) {
+    return false;
+  }
+
+  // Run the equality propagator transactionally on copies. A detected
+  // failure proves that the two represented languages are disjoint.
+  //
+  // A non-failure is conservative: propagation may not prove every
+  // impossible intersection, so this function never claims more than the
+  // current equality algorithm establishes.
+  Domain probe_x = x;
+  Domain probe_y = y;
+
+  const PropagationResult probe =
+      propagate_equal(probe_x, probe_y);
+
+  return !probe.failed();
+}
+
+
 PropagationResult propagate_not_equal(Domain& x, Domain& y) {
   PropagationResult result;
   if (x.failed() || y.failed()) {
     result.left = result.right = Change::failed;
     return result;
   }
-  if (x.max_length() < y.min_length() || y.max_length() < x.min_length()) {
+  if (!equality_may_be_possible(x, y)) {
     result.subsumed = true;
     return result;
   }
@@ -277,7 +305,7 @@ PropagationResult propagate_reified_equal(Domain& x, Domain& y,
     return result;
   }
 
-  if (!x.may_equal(y)) {
+  if (!equality_may_be_possible(x, y)) {
     result.result = b.force(false);
     result.subsumed = !result.failed() && b.assigned();
     return result;

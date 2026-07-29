@@ -480,6 +480,83 @@ void reified_disequality() {
   delete equal;
 }
 
+
+void reified_mandatory_disjoint_languages() {
+  const auto left = [] {
+    return dashed::Domain::repeat(
+        dashed::ValueSet(1, 3),
+        1,
+        4);
+  };
+
+  const auto right = [] {
+    return dashed::Domain::repeat(
+        dashed::ValueSet(10, 12),
+        1,
+        4);
+  };
+
+  {
+    // Equality is impossible despite overlapping length intervals.
+    auto* space = new ReifiedSpace(
+        left(),
+        right(),
+        0,
+        1,
+        Gecode::IRT_EQ);
+
+    assert(space->status() != Gecode::SS_FAILED);
+    assert(space->b.assigned());
+    assert(space->b.val() == 0);
+
+    delete space;
+  }
+
+  {
+    // The same language-disjointness entails disequality.
+    auto* space = new ReifiedSpace(
+        left(),
+        right(),
+        0,
+        1,
+        Gecode::IRT_NQ);
+
+    assert(space->status() != Gecode::SS_FAILED);
+    assert(space->b.assigned());
+    assert(space->b.val() == 1);
+
+    delete space;
+  }
+
+  {
+    // Requiring equality must fail.
+    auto* space = new ReifiedSpace(
+        left(),
+        right(),
+        1,
+        1,
+        Gecode::IRT_EQ);
+
+    assert(space->status() == Gecode::SS_FAILED);
+
+    delete space;
+  }
+
+  {
+    // Requiring disequality is consistent.
+    auto* space = new ReifiedSpace(
+        left(),
+        right(),
+        1,
+        1,
+        Gecode::IRT_NQ);
+
+    assert(space->status() != Gecode::SS_FAILED);
+
+    delete space;
+  }
+}
+
 } // namespace
 
 
@@ -493,6 +570,7 @@ int main() {
   disequality_rejects_equal_fixed_lists();
   alias_cases();
 
+  reified_mandatory_disjoint_languages();
   reified_empty_only_equality();
   reified_equality_becomes_true();
   reified_equality_becomes_false();

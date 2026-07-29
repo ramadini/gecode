@@ -991,9 +991,102 @@ void test_concat_length_failure() {
   assert(result.failed());
 }
 
+
+void test_disequality_language_disjointness() {
+  {
+    // The length ranges overlap, but all nonempty values are incompatible.
+    // Since both lists must be nonempty, equality is impossible.
+    Domain x =
+        Domain::repeat(
+            ValueSet(1, 3),
+            1,
+            4);
+
+    Domain y =
+        Domain::repeat(
+            ValueSet(10, 12),
+            1,
+            4);
+
+    // may_equal() is intentionally a cheap conservative check. Both
+    // domains are unassigned and their length intervals overlap, so it
+    // does not prove language disjointness by itself.
+    assert(x.may_equal(y));
+
+    const auto result =
+        dashed::propagate_not_equal(x, y);
+
+    assert(!result.failed());
+    assert(result.subsumed);
+
+    // Entailment must not modify either operand.
+    assert(
+        x == Domain::repeat(
+            ValueSet(1, 3),
+            1,
+            4));
+
+    assert(
+        y == Domain::repeat(
+            ValueSet(10, 12),
+            1,
+            4));
+  }
+
+  {
+    // Disjoint alphabets are insufficient when both domains contain [].
+    Domain x =
+        Domain::repeat(
+            ValueSet(1, 3),
+            0,
+            4);
+
+    Domain y =
+        Domain::repeat(
+            ValueSet(10, 12),
+            0,
+            4);
+
+    assert(x.may_equal(y));
+
+    const auto result =
+        dashed::propagate_not_equal(x, y);
+
+    assert(!result.failed());
+    assert(!result.subsumed);
+  }
+
+  {
+    // Only x contains [], so no common concrete list exists.
+    Domain x =
+        Domain::repeat(
+            ValueSet(1, 3),
+            0,
+            4);
+
+    Domain y =
+        Domain::repeat(
+            ValueSet(10, 12),
+            1,
+            4);
+
+    // may_equal() is intentionally a cheap conservative check. Both
+    // domains are unassigned and their length intervals overlap, so it
+    // does not prove language disjointness by itself.
+    assert(x.may_equal(y));
+
+    const auto result =
+        dashed::propagate_not_equal(x, y);
+
+    assert(!result.failed());
+    assert(result.subsumed);
+  }
+}
+
 }  // namespace
 
 int main() {
+  test_disequality_language_disjointness();
   test_value_set();
   test_literal_slices_share();
   test_fixed_block_compaction();
