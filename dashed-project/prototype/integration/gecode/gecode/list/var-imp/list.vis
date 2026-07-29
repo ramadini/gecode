@@ -1,12 +1,12 @@
-# Dashed list variable implementation specification for Gecode 6.4.
+# List variable implementation specification for Gecode 6.4.
 [General]
 Name:           List
-Namespace:      Gecode::Dashed
-Ifdef:          GECODE_HAS_DASHED_VARS
+Namespace:      Gecode::List
+Ifdef:          GECODE_HAS_LIST_VARS
 Bits:           0
 Dispose:        true
 [ModEventHeader]
-  /** Modification events for generic dashed-list variables. */
+  /** Modification events for generic list variables. */
 [ModEvent]
 Name:           FAILED=FAILED
   /// Domain operation failed.

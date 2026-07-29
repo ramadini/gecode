@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Small structural validator for Dashed's Gecode .vis specification.
+"""Small structural validator for the ListVar Gecode .vis specification.
 
 This is not a replacement for Gecode's genvarimp.py. It catches incomplete or
 asymmetric modification-event matrices before the source tree is integrated.
@@ -32,7 +32,7 @@ def fields(lines: list[str], section: str) -> list[dict[str, str]]:
 
 def main() -> int:
     path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(
-        "integration/gecode/gecode/dashed/var-imp/list.vis"
+        "integration/gecode/gecode/list/var-imp/list.vis"
     )
     lines = path.read_text(encoding="utf-8").splitlines()
     events = fields(lines, "ModEvent")

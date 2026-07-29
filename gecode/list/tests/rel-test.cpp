@@ -1,4 +1,4 @@
-#include <gecode/dashed.hh>
+#include <gecode/list.hh>
 
 #include <cassert>
 #include <iostream>
@@ -15,15 +15,15 @@ using Gecode::IntVar;
 using Gecode::ListVar;
 using Gecode::Space;
 
-dashed::Domain fixed(std::initializer_list<int> values) {
-  return dashed::Domain::fixed(std::vector<int>(values));
+Gecode::List::Domain fixed(std::initializer_list<int> values) {
+  return Gecode::List::Domain::fixed(std::vector<int>(values));
 }
 
-dashed::Domain lists(int lo, int hi,
+Gecode::List::Domain lists(int lo, int hi,
                      unsigned int min_length,
                      unsigned int max_length) {
-  return dashed::Domain::top(
-      dashed::ValueSet(lo, hi),
+  return Gecode::List::Domain::top(
+      Gecode::List::ValueSet(lo, hi),
       min_length,
       max_length);
 }
@@ -36,7 +36,7 @@ class ListArraySpace final : public Space {
   explicit ListArraySpace(bool construct_through_arguments)
       : Space(),
         x() {
-    const dashed::Domain initial =
+    const Gecode::List::Domain initial =
         lists(-20, 20, 1, 4);
 
     if (construct_through_arguments) {
@@ -72,7 +72,7 @@ public:
   ListVar x;
   ListVar y;
 
-  EqualitySpace(dashed::Domain dx, dashed::Domain dy)
+  EqualitySpace(Gecode::List::Domain dx, Gecode::List::Domain dy)
       : Space(),
         x(*this, std::move(dx)),
         y(*this, std::move(dy)) {
@@ -98,7 +98,7 @@ public:
   ListVar x;
   ListVar y;
 
-  DisequalitySpace(dashed::Domain dx, dashed::Domain dy)
+  DisequalitySpace(Gecode::List::Domain dx, Gecode::List::Domain dy)
       : Space(),
         x(*this, std::move(dx)),
         y(*this, std::move(dy)) {
@@ -126,8 +126,8 @@ public:
   BoolVar b;
 
   ReifiedSpace(
-      dashed::Domain dx,
-      dashed::Domain dy,
+      Gecode::List::Domain dx,
+      Gecode::List::Domain dy,
       int b_min = 0,
       int b_max = 1,
       Gecode::IntRelType relation =
@@ -233,7 +233,7 @@ public:
   IntVar n;
 
   LengthSpace(
-      dashed::Domain domain,
+      Gecode::List::Domain domain,
       int minimum,
       int maximum)
       : Space(),
@@ -263,9 +263,9 @@ public:
   ListVar z;
 
   ConcatSpace(
-      dashed::Domain dx,
-      dashed::Domain dy,
-      dashed::Domain dz)
+      Gecode::List::Domain dx,
+      Gecode::List::Domain dy,
+      Gecode::List::Domain dz)
       : Space(),
         x(*this, std::move(dx)),
         y(*this, std::move(dy)),
@@ -334,7 +334,7 @@ void equality_clone_is_independent() {
   auto* clone =
       static_cast<EqualitySpace*>(root->clone());
 
-  Gecode::Dashed::ListView clone_x(clone->x);
+  Gecode::List::ListView clone_x(clone->x);
 
   Gecode::ModEvent me =
       clone_x.replace(*clone, fixed({2, 3}));
@@ -362,68 +362,68 @@ void equality_clone_is_independent() {
 
 
 void segmented_equality_refines_mandatory_regions() {
-  dashed::Domain x(
+  Gecode::List::Domain x(
       {
-          dashed::RepeatSegment{
-              dashed::ValueSet(1, 3),
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(1, 3),
               0,
               3},
-          dashed::RepeatSegment{
-              dashed::ValueSet(4),
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(4),
               1,
               1},
-          dashed::RepeatSegment{
-              dashed::ValueSet(3, 6),
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(3, 6),
               0,
               2},
       },
       1,
       6);
 
-  dashed::Domain y(
+  Gecode::List::Domain y(
       {
-          dashed::RepeatSegment{
-              dashed::ValueSet(2, 4),
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(2, 4),
               0,
               3},
-          dashed::RepeatSegment{
-              dashed::ValueSet(6),
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(6),
               1,
               1},
       },
       1,
       4);
 
-  const dashed::Domain expected_x(
+  const Gecode::List::Domain expected_x(
       {
-          dashed::RepeatSegment{
-              dashed::ValueSet(2, 3),
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(2, 3),
               0,
               2},
-          dashed::RepeatSegment{
-              dashed::ValueSet(4),
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(4),
               1,
               1},
-          dashed::RepeatSegment{
-              dashed::ValueSet(3, 4),
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(3, 4),
               0,
               1},
-          dashed::RepeatSegment{
-              dashed::ValueSet(6),
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(6),
               1,
               1},
       },
       2,
       4);
 
-  const dashed::Domain expected_y(
+  const Gecode::List::Domain expected_y(
       {
-          dashed::RepeatSegment{
-              dashed::ValueSet(2, 4),
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(2, 4),
               1,
               3},
-          dashed::RepeatSegment{
-              dashed::ValueSet(6),
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(6),
               1,
               1},
       },
@@ -454,33 +454,33 @@ void segmented_equality_refines_mandatory_regions() {
 
 
 void disequality_prunes_single_witness_native() {
-  const dashed::Domain candidate(
+  const Gecode::List::Domain candidate(
       {
-          dashed::LiteralSegment{
-              dashed::LiteralSlice(
+          Gecode::List::LiteralSegment{
+              Gecode::List::LiteralSlice(
                   std::vector<int>{1})},
-          dashed::RepeatSegment{
-              dashed::ValueSet(2, 4),
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(2, 4),
               1,
               1},
-          dashed::LiteralSegment{
-              dashed::LiteralSlice(
+          Gecode::List::LiteralSegment{
+              Gecode::List::LiteralSlice(
                   std::vector<int>{3})},
       },
       3,
       3);
 
-  const dashed::Domain expected(
+  const Gecode::List::Domain expected(
       {
-          dashed::LiteralSegment{
-              dashed::LiteralSlice(
+          Gecode::List::LiteralSegment{
+              Gecode::List::LiteralSlice(
                   std::vector<int>{1})},
-          dashed::RepeatSegment{
-              dashed::ValueSet(3, 4),
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(3, 4),
               1,
               1},
-          dashed::LiteralSegment{
-              dashed::LiteralSlice(
+          Gecode::List::LiteralSegment{
+              Gecode::List::LiteralSlice(
                   std::vector<int>{3})},
       },
       3,
@@ -506,7 +506,7 @@ void disequality_prunes_single_witness_native() {
         static_cast<DisequalitySpace*>(
             root->clone());
 
-    Gecode::Dashed::ListView
+    Gecode::List::ListView
         clone_y(clone->y);
 
     const Gecode::ModEvent me =
@@ -593,15 +593,15 @@ void alias_cases() {
 
 void reified_empty_only_equality() {
   const auto optional_disjoint_left = [] {
-    return dashed::Domain::repeat(
-        dashed::ValueSet(1, 3),
+    return Gecode::List::Domain::repeat(
+        Gecode::List::ValueSet(1, 3),
         0,
         400);
   };
 
   const auto optional_disjoint_right = [] {
-    return dashed::Domain::repeat(
-        dashed::ValueSet(4),
+    return Gecode::List::Domain::repeat(
+        Gecode::List::ValueSet(4),
         0,
         900);
   };
@@ -734,15 +734,15 @@ void reified_disequality() {
 
 void reified_mandatory_disjoint_languages() {
   const auto left = [] {
-    return dashed::Domain::repeat(
-        dashed::ValueSet(1, 3),
+    return Gecode::List::Domain::repeat(
+        Gecode::List::ValueSet(1, 3),
         1,
         4);
   };
 
   const auto right = [] {
-    return dashed::Domain::repeat(
-        dashed::ValueSet(10, 12),
+    return Gecode::List::Domain::repeat(
+        Gecode::List::ValueSet(10, 12),
         1,
         4);
   };
@@ -906,28 +906,28 @@ void concat_fixed_result_split_interval_native() {
 
   assert(space->status() != Gecode::SS_FAILED);
 
-  const dashed::Domain expected_x(
+  const Gecode::List::Domain expected_x(
       {
-          dashed::RepeatSegment{
-              dashed::ValueSet(10),
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(10),
               1,
               1},
-          dashed::RepeatSegment{
-              dashed::ValueSet(20),
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(20),
               0,
               1},
       },
       1,
       2);
 
-  const dashed::Domain expected_y(
+  const Gecode::List::Domain expected_y(
       {
-          dashed::RepeatSegment{
-              dashed::ValueSet(20),
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(20),
               0,
               1},
-          dashed::LiteralSegment{
-              dashed::LiteralSlice(
+          Gecode::List::LiteralSegment{
+              Gecode::List::LiteralSlice(
                   std::vector<int>{
                       30, 40})},
       },
@@ -953,36 +953,36 @@ void concat_fixed_result_wide_split_interval_native() {
 
   assert(space->status() != Gecode::SS_FAILED);
 
-  const dashed::Domain expected_x(
+  const Gecode::List::Domain expected_x(
       {
-          dashed::RepeatSegment{
-              dashed::ValueSet(10),
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(10),
               1,
               1},
-          dashed::RepeatSegment{
-              dashed::ValueSet(20),
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(20),
               0,
               1},
-          dashed::RepeatSegment{
-              dashed::ValueSet(30),
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(30),
               0,
               1},
       },
       1,
       3);
 
-  const dashed::Domain expected_y(
+  const Gecode::List::Domain expected_y(
       {
-          dashed::RepeatSegment{
-              dashed::ValueSet(20),
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(20),
               0,
               1},
-          dashed::RepeatSegment{
-              dashed::ValueSet(30),
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(30),
               0,
               1},
-          dashed::LiteralSegment{
-              dashed::LiteralSlice(
+          Gecode::List::LiteralSegment{
+              Gecode::List::LiteralSlice(
                   std::vector<int>{
                       40, 50})},
       },
@@ -1054,24 +1054,24 @@ void concat_fixed_result_empty_boundaries_native() {
 
     assert(space->status() != Gecode::SS_FAILED);
 
-    const dashed::Domain expected_x(
+    const Gecode::List::Domain expected_x(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(7),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(7),
                 0,
                 1},
         },
         0,
         1);
 
-    const dashed::Domain expected_y(
+    const Gecode::List::Domain expected_y(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(7),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(7),
                 0,
                 1},
-            dashed::RepeatSegment{
-                dashed::ValueSet(8),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(8),
                 1,
                 1},
         },
@@ -1090,22 +1090,22 @@ void concat_projects_result_structure_native() {
   {
     auto* space = new ConcatSpace(
         fixed({10, 20}),
-        dashed::Domain::repeat(
-            dashed::ValueSet(30, 40),
+        Gecode::List::Domain::repeat(
+            Gecode::List::ValueSet(30, 40),
             1,
             3),
         lists(-100, 100, 0, 10));
 
     assert(space->status() != Gecode::SS_FAILED);
 
-    const dashed::Domain expected_z(
+    const Gecode::List::Domain expected_z(
         {
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         10, 20})},
-            dashed::RepeatSegment{
-                dashed::ValueSet(30, 40),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(30, 40),
                 1,
                 3},
         },
@@ -1131,12 +1131,12 @@ void concat_projects_result_structure_native() {
   {
     auto* space = new ConcatSpace(
         fixed({1}),
-        dashed::Domain::repeat(
-            dashed::ValueSet(2),
+        Gecode::List::Domain::repeat(
+            Gecode::List::ValueSet(2),
             1,
             2),
-        dashed::Domain::repeat(
-            dashed::ValueSet(9),
+        Gecode::List::Domain::repeat(
+            Gecode::List::ValueSet(9),
             2,
             3));
 
@@ -1148,22 +1148,22 @@ void concat_projects_result_structure_native() {
   {
     auto* space = new ConcatSpace(
         fixed({-50000}),
-        dashed::Domain::repeat(
-            dashed::ValueSet(0, 250000),
+        Gecode::List::Domain::repeat(
+            Gecode::List::ValueSet(0, 250000),
             1,
             2),
         lists(-1000000, 1000000, 0, 10));
 
     assert(space->status() != Gecode::SS_FAILED);
 
-    const dashed::Domain expected_z(
+    const Gecode::List::Domain expected_z(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(-50000),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(-50000),
                 1,
                 1},
-            dashed::RepeatSegment{
-                dashed::ValueSet(0, 250000),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(0, 250000),
                 1,
                 2},
         },
@@ -1179,14 +1179,14 @@ void concat_projects_result_structure_native() {
 
 void concat_exact_structural_boundaries_native() {
   {
-    const dashed::Domain result_domain(
+    const Gecode::List::Domain result_domain(
         {
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         10, 20})},
-            dashed::RepeatSegment{
-                dashed::ValueSet(30, 40),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(30, 40),
                 1,
                 3},
         },
@@ -1202,9 +1202,9 @@ void concat_exact_structural_boundaries_native() {
         space->status() !=
         Gecode::SS_FAILED);
 
-    const dashed::Domain expected_y =
-        dashed::Domain::repeat(
-            dashed::ValueSet(30, 40),
+    const Gecode::List::Domain expected_y =
+        Gecode::List::Domain::repeat(
+            Gecode::List::ValueSet(30, 40),
             1,
             3);
 
@@ -1229,14 +1229,14 @@ void concat_exact_structural_boundaries_native() {
   }
 
   {
-    const dashed::Domain result_domain(
+    const Gecode::List::Domain result_domain(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(10, 20),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(10, 20),
                 1,
                 3},
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         30, 40})},
         },
@@ -1252,9 +1252,9 @@ void concat_exact_structural_boundaries_native() {
         space->status() !=
         Gecode::SS_FAILED);
 
-    const dashed::Domain expected_x =
-        dashed::Domain::repeat(
-            dashed::ValueSet(10, 20),
+    const Gecode::List::Domain expected_x =
+        Gecode::List::Domain::repeat(
+            Gecode::List::ValueSet(10, 20),
             1,
             3);
 
@@ -1266,14 +1266,14 @@ void concat_exact_structural_boundaries_native() {
   }
 
   {
-    const dashed::Domain result_domain(
+    const Gecode::List::Domain result_domain(
         {
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         -50000, 0})},
-            dashed::RepeatSegment{
-                dashed::ValueSet(
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(
                     250000,
                     300000),
                 1,
@@ -1295,9 +1295,9 @@ void concat_exact_structural_boundaries_native() {
         space->status() !=
         Gecode::SS_FAILED);
 
-    const dashed::Domain expected_y =
-        dashed::Domain::repeat(
-            dashed::ValueSet(
+    const Gecode::List::Domain expected_y =
+        Gecode::List::Domain::repeat(
+            Gecode::List::ValueSet(
                 250000,
                 300000),
             1,
@@ -1311,14 +1311,14 @@ void concat_exact_structural_boundaries_native() {
   }
 
   {
-    const dashed::Domain result_domain(
+    const Gecode::List::Domain result_domain(
         {
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         10, 20})},
-            dashed::RepeatSegment{
-                dashed::ValueSet(30, 40),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(30, 40),
                 1,
                 3},
         },
@@ -1341,14 +1341,14 @@ void concat_exact_structural_boundaries_native() {
 
 void concat_partial_exact_boundaries_native() {
   {
-    const dashed::Domain result_domain(
+    const Gecode::List::Domain result_domain(
         {
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         10, 20, 30, 40})},
-            dashed::RepeatSegment{
-                dashed::ValueSet(50, 60),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(50, 60),
                 1,
                 2},
         },
@@ -1364,14 +1364,14 @@ void concat_partial_exact_boundaries_native() {
         space->status() !=
         Gecode::SS_FAILED);
 
-    const dashed::Domain expected_y(
+    const Gecode::List::Domain expected_y(
         {
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         30, 40})},
-            dashed::RepeatSegment{
-                dashed::ValueSet(50, 60),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(50, 60),
                 1,
                 2},
         },
@@ -1399,14 +1399,14 @@ void concat_partial_exact_boundaries_native() {
   }
 
   {
-    const dashed::Domain result_domain(
+    const Gecode::List::Domain result_domain(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(7),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(7),
                 5,
                 5},
-            dashed::RepeatSegment{
-                dashed::ValueSet(10, 20),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(10, 20),
                 1,
                 2},
         },
@@ -1422,14 +1422,14 @@ void concat_partial_exact_boundaries_native() {
         space->status() !=
         Gecode::SS_FAILED);
 
-    const dashed::Domain expected_y(
+    const Gecode::List::Domain expected_y(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(7),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(7),
                 3,
                 3},
-            dashed::RepeatSegment{
-                dashed::ValueSet(10, 20),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(10, 20),
                 1,
                 2},
         },
@@ -1444,14 +1444,14 @@ void concat_partial_exact_boundaries_native() {
   }
 
   {
-    const dashed::Domain result_domain(
+    const Gecode::List::Domain result_domain(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(10, 20),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(10, 20),
                 1,
                 2},
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         30, 40, 50, 60})},
         },
@@ -1467,14 +1467,14 @@ void concat_partial_exact_boundaries_native() {
         space->status() !=
         Gecode::SS_FAILED);
 
-    const dashed::Domain expected_x(
+    const Gecode::List::Domain expected_x(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(10, 20),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(10, 20),
                 1,
                 2},
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         30, 40})},
         },
@@ -1489,16 +1489,16 @@ void concat_partial_exact_boundaries_native() {
   }
 
   {
-    const dashed::Domain result_domain(
+    const Gecode::List::Domain result_domain(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(
                     -50000,
                     250000),
                 1,
                 2},
-            dashed::RepeatSegment{
-                dashed::ValueSet(70000),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(70000),
                 5,
                 5},
         },
@@ -1519,16 +1519,16 @@ void concat_partial_exact_boundaries_native() {
         space->status() !=
         Gecode::SS_FAILED);
 
-    const dashed::Domain expected_x(
+    const Gecode::List::Domain expected_x(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(
                     -50000,
                     250000),
                 1,
                 2},
-            dashed::RepeatSegment{
-                dashed::ValueSet(70000),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(70000),
                 2,
                 2},
         },
@@ -1556,14 +1556,14 @@ void concat_partial_exact_boundaries_native() {
   }
 
   {
-    const dashed::Domain result_domain(
+    const Gecode::List::Domain result_domain(
         {
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         10, 20, 30, 40})},
-            dashed::RepeatSegment{
-                dashed::ValueSet(50, 60),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(50, 60),
                 1,
                 2},
         },
@@ -1583,14 +1583,14 @@ void concat_partial_exact_boundaries_native() {
   }
 
   {
-    const dashed::Domain result_domain(
+    const Gecode::List::Domain result_domain(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(10, 20),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(10, 20),
                 1,
                 2},
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         30, 40, 50, 60})},
         },
@@ -1613,16 +1613,16 @@ void concat_partial_exact_boundaries_native() {
 
 void concat_mandatory_repeat_boundaries_native() {
   {
-    const dashed::Domain result_domain(
+    const Gecode::List::Domain result_domain(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(
                     -50000,
                     250000),
                 3,
                 5},
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         70000, 80000})},
         },
@@ -1642,16 +1642,16 @@ void concat_mandatory_repeat_boundaries_native() {
         space->status() !=
         Gecode::SS_FAILED);
 
-    const dashed::Domain expected_y(
+    const Gecode::List::Domain expected_y(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(
                     -50000,
                     250000),
                 1,
                 3},
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         70000, 80000})},
         },
@@ -1679,14 +1679,14 @@ void concat_mandatory_repeat_boundaries_native() {
   }
 
   {
-    const dashed::Domain result_domain(
+    const Gecode::List::Domain result_domain(
         {
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         -90000, 0})},
-            dashed::RepeatSegment{
-                dashed::ValueSet(
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(
                     70000,
                     90000),
                 3,
@@ -1708,14 +1708,14 @@ void concat_mandatory_repeat_boundaries_native() {
         space->status() !=
         Gecode::SS_FAILED);
 
-    const dashed::Domain expected_x(
+    const Gecode::List::Domain expected_x(
         {
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         -90000, 0})},
-            dashed::RepeatSegment{
-                dashed::ValueSet(
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(
                     70000,
                     90000),
                 1,
@@ -1745,14 +1745,14 @@ void concat_mandatory_repeat_boundaries_native() {
   }
 
   {
-    const dashed::Domain result_domain(
+    const Gecode::List::Domain result_domain(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(7),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(7),
                 1,
                 3},
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         7, 20})},
         },
@@ -1775,14 +1775,14 @@ void concat_mandatory_repeat_boundaries_native() {
   }
 
   {
-    const dashed::Domain result_domain(
+    const Gecode::List::Domain result_domain(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(7, 9),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(7, 9),
                 3,
                 5},
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         20, 30})},
         },
@@ -1802,14 +1802,14 @@ void concat_mandatory_repeat_boundaries_native() {
   }
 
   {
-    const dashed::Domain result_domain(
+    const Gecode::List::Domain result_domain(
         {
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         20, 30})},
-            dashed::RepeatSegment{
-                dashed::ValueSet(7, 9),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(7, 9),
                 3,
                 5},
         },
@@ -1832,32 +1832,32 @@ void concat_mandatory_repeat_boundaries_native() {
 
 void concat_segmented_boundary_remainders_native() {
   {
-    const dashed::Domain result_domain(
+    const Gecode::List::Domain result_domain(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(10),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(10),
                 1,
                 1},
-            dashed::RepeatSegment{
-                dashed::ValueSet(30, 40),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(30, 40),
                 1,
                 3},
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         50, 51})},
         },
         4,
         6);
 
-    const dashed::Domain right_domain(
+    const Gecode::List::Domain right_domain(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(35, 45),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(35, 45),
                 2,
                 4},
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         50, 51})},
         },
@@ -1873,14 +1873,14 @@ void concat_segmented_boundary_remainders_native() {
         space->status() !=
         Gecode::SS_FAILED);
 
-    const dashed::Domain expected_y(
+    const Gecode::List::Domain expected_y(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(35, 40),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(35, 40),
                 2,
                 3},
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         50, 51})},
         },
@@ -1908,28 +1908,28 @@ void concat_segmented_boundary_remainders_native() {
   }
 
   {
-    const dashed::Domain result_domain(
+    const Gecode::List::Domain result_domain(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(30, 40),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(30, 40),
                 1,
                 3},
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         50, 51, 90})},
         },
         4,
         6);
 
-    const dashed::Domain left_domain(
+    const Gecode::List::Domain left_domain(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(35, 45),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(35, 45),
                 2,
                 4},
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         50, 51})},
         },
@@ -1945,14 +1945,14 @@ void concat_segmented_boundary_remainders_native() {
         space->status() !=
         Gecode::SS_FAILED);
 
-    const dashed::Domain expected_x(
+    const Gecode::List::Domain expected_x(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(35, 40),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(35, 40),
                 2,
                 3},
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         50, 51})},
         },
@@ -1980,32 +1980,32 @@ void concat_segmented_boundary_remainders_native() {
   }
 
   {
-    const dashed::Domain result_domain(
+    const Gecode::List::Domain result_domain(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(10),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(10),
                 1,
                 1},
-            dashed::RepeatSegment{
-                dashed::ValueSet(30, 40),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(30, 40),
                 1,
                 3},
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         50, 51})},
         },
         4,
         6);
 
-    const dashed::Domain disjoint_right(
+    const Gecode::List::Domain disjoint_right(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(60, 70),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(60, 70),
                 2,
                 4},
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         50, 51})},
         },
@@ -2025,32 +2025,32 @@ void concat_segmented_boundary_remainders_native() {
   }
 
   {
-    const dashed::Domain result_domain(
+    const Gecode::List::Domain result_domain(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(
                     -50000,
                     250000),
                 1,
                 5},
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         70000, 80000, 90000})},
         },
         4,
         8);
 
-    const dashed::Domain left_domain(
+    const Gecode::List::Domain left_domain(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(
                     150000,
                     300000),
                 3,
                 8},
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         70000, 80000})},
         },
@@ -2066,16 +2066,16 @@ void concat_segmented_boundary_remainders_native() {
         space->status() !=
         Gecode::SS_FAILED);
 
-    const dashed::Domain expected_x(
+    const Gecode::List::Domain expected_x(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(
                     150000,
                     250000),
                 3,
                 5},
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{
                         70000, 80000})},
         },
@@ -2094,12 +2094,12 @@ void concat_segmented_boundary_remainders_native() {
 void concat_assigned_result_split_filtering_native() {
   {
     auto* space = new ConcatSpace(
-        dashed::Domain::repeat(
-            dashed::ValueSet(10, 20),
+        Gecode::List::Domain::repeat(
+            Gecode::List::ValueSet(10, 20),
             1,
             2),
-        dashed::Domain::repeat(
-            dashed::ValueSet(30),
+        Gecode::List::Domain::repeat(
+            Gecode::List::ValueSet(30),
             1,
             2),
         fixed({10, 20, 30}));
@@ -2142,12 +2142,12 @@ void concat_assigned_result_split_filtering_native() {
 
   {
     auto* space = new ConcatSpace(
-        dashed::Domain::repeat(
-            dashed::ValueSet(1),
+        Gecode::List::Domain::repeat(
+            Gecode::List::ValueSet(1),
             1,
             2),
-        dashed::Domain::repeat(
-            dashed::ValueSet(3),
+        Gecode::List::Domain::repeat(
+            Gecode::List::ValueSet(3),
             1,
             2),
         fixed({1, 2, 3}));
@@ -2161,14 +2161,14 @@ void concat_assigned_result_split_filtering_native() {
 
   {
     auto* space = new ConcatSpace(
-        dashed::Domain::repeat(
-            dashed::ValueSet(
+        Gecode::List::Domain::repeat(
+            Gecode::List::ValueSet(
                 -50000,
                 0),
             1,
             2),
-        dashed::Domain::repeat(
-            dashed::ValueSet(250000),
+        Gecode::List::Domain::repeat(
+            Gecode::List::ValueSet(250000),
             1,
             2),
         fixed(
@@ -2250,14 +2250,14 @@ void length_bidirectional_native() {
   }
 
   {
-    const dashed::Domain domain(
+    const Gecode::List::Domain domain(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(1, 3),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(1, 3),
                 0,
                 3},
-            dashed::LiteralSegment{
-                dashed::LiteralSlice(
+            Gecode::List::LiteralSegment{
+                Gecode::List::LiteralSlice(
                     std::vector<int>{9})},
         },
         1,
@@ -2272,14 +2272,14 @@ void length_bidirectional_native() {
         space->status() !=
         Gecode::SS_FAILED);
 
-    const dashed::Domain expected(
+    const Gecode::List::Domain expected(
         {
-            dashed::RepeatSegment{
-                dashed::ValueSet(1, 3),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(1, 3),
                 1,
                 1},
-            dashed::RepeatSegment{
-                dashed::ValueSet(9),
+            Gecode::List::RepeatSegment{
+                Gecode::List::ValueSet(9),
                 1,
                 1},
         },
@@ -2386,12 +2386,12 @@ void length_failure_clone_and_unbounded_native() {
 
   {
     auto* space = new LengthSpace(
-        dashed::Domain::top(
-            dashed::ValueSet(
+        Gecode::List::Domain::top(
+            Gecode::List::ValueSet(
                 -1000000,
                 1000000),
             2,
-            dashed::kUnboundedLength),
+            Gecode::List::kUnboundedLength),
         0,
         100);
 
@@ -2760,7 +2760,7 @@ void list_var_arrays_clone_and_print_native() {
         static_cast<ListArraySpace*>(
             root->clone());
 
-    Gecode::Dashed::ListView
+    Gecode::List::ListView
         clone_middle(clone->x[1]);
 
     const Gecode::ModEvent me =
@@ -2832,6 +2832,6 @@ int main() {
   reified_disequality();
 
   std::cout
-      << "Dashed relation regression tests passed\n";
+      << "List relation regression tests passed\n";
   return 0;
 }

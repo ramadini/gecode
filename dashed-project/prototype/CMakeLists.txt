@@ -63,7 +63,7 @@ if(DASHED_BUILD_TESTS)
       NAME dashed_vis_validation
       COMMAND ${Python3_EXECUTABLE}
               ${CMAKE_CURRENT_SOURCE_DIR}/tools/validate_vis.py
-              ${CMAKE_CURRENT_SOURCE_DIR}/integration/gecode/gecode/dashed/var-imp/list.vis
+              ${CMAKE_CURRENT_SOURCE_DIR}/integration/gecode/gecode/list/var-imp/list.vis
     )
   endif()
 endif()

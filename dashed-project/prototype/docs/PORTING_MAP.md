@@ -1,12 +1,12 @@
-# G-Strings to Dashed porting map
+# G-Strings to ListVar porting map
 
-| Old responsibility | Dashed destination |
+| Old responsibility | ListVar destination |
 |---|---|
-| `DashedString` storage | `dashed::Domain` |
+| `DashedString` storage | `Gecode::List::Domain` (currently backed by `dashed::Domain`) |
 | Character/range set | `dashed::ValueSet` over generic `int` |
 | Fixed symbol blocks | `LiteralSegment` / `LiteralSlice` |
 | Variable-width dashed block | `RepeatSegment` |
-| `StringVarImp` domain ownership | `ListVarImp` |
+| `StringVarImp` domain ownership | `Gecode::List::ListVarImp` |
 | `StringVarImp::eq` | equality propagator + `propagate_equal` |
 | `StringVarImp::concat` | concat propagator + `propagate_concat` |
 | mutable `StringView::pdomain()` | removed |
@@ -14,7 +14,7 @@
 | manual domain update in view cloning | `VarImpView<ListVar>::update` only |
 | string-specific alphabet constants | model-supplied `ValueSet` |
 | string length fields | canonical `Domain` length interval |
-| old `string.vis` | `integration/gecode/.../list.vis` |
+| old `string.vis` | `gecode/list/var-imp/list.vis` |
 
 ## Suggested migration sequence
 

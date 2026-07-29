@@ -68,7 +68,7 @@ claim of a completed native variable module.
 The next validation gate is a Gecode source build with:
 
 ```text
-GECODE_WITH_VIS=gecode/dashed/var-imp/list.vis
+GECODE_WITH_VIS=gecode/list/var-imp/list.vis
 GECODE_REGENERATE_VARIMP=ON
 GECODE_SANITIZER=address-undefined
 ```

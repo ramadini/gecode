@@ -7,10 +7,35 @@ GECODE_ROOT="$(cd -- "$TEST_DIR/../../.." && pwd)"
 PROJECT_ROOT="$GECODE_ROOT/dashed-project"
 PROTOTYPE_ROOT="$PROJECT_ROOT/prototype"
 
-GECODE_BUILD="$GECODE_ROOT/build-dashed-native"
+GECODE_BUILD="$GECODE_ROOT/build-list-native"
 CORE_BUILD="$PROTOTYPE_ROOT/build-native-core"
 
 JOBS="${JOBS:-1}"
+
+if [[ -e "$GECODE_ROOT/gecode/dashed" || \
+      -e "$GECODE_ROOT/gecode/dashed.hh" ]]; then
+  echo "Obsolete public Dashed module path still exists." >&2
+  exit 1
+fi
+
+if grep -RInE \
+    'Gecode::Dashed|namespace[[:space:]]+Dashed|GECODE_HAS_DASHED_VARS|<gecode/dashed|Dashed::' \
+    --exclude=run-tests \
+    "$GECODE_ROOT/gecode/list" \
+    "$GECODE_ROOT/gecode/list.hh"; then
+  echo "Obsolete Gecode-facing Dashed terminology remains." >&2
+  exit 1
+fi
+
+if grep -RIn \
+    --exclude=run-tests \
+    --exclude=domain.hpp \
+    --exclude=backend.hpp \
+    '[d]ashed::' \
+    "$GECODE_ROOT/gecode/list"; then
+  echo "The dashed backend leaked outside domain.hpp/backend.hpp." >&2
+  exit 1
+fi
 
 echo "Gecode root:    $GECODE_ROOT"
 echo "Prototype root: $PROTOTYPE_ROOT"
@@ -34,8 +59,8 @@ cmake \
   -B "$GECODE_BUILD" \
   -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_CXX_FLAGS="-DGECODE_HAS_DASHED_VARS=1" \
-  -DGECODE_WITH_VIS=gecode/dashed/var-imp/list.vis \
+  -DCMAKE_CXX_FLAGS="-DGECODE_HAS_LIST_VARS=1" \
+  -DGECODE_WITH_VIS=gecode/list/var-imp/list.vis \
   -DGECODE_ENABLE_QT=OFF \
   -DGECODE_ENABLE_GIST=OFF \
   -DGECODE_ENABLE_MPFR=OFF \
@@ -57,13 +82,13 @@ CXX="${CXX:-g++}"
 
 "$CXX" \
   -std=c++17 \
-  -DGECODE_HAS_DASHED_VARS=1 \
+  -DGECODE_HAS_LIST_VARS=1 \
   -DGECODE_NO_AUTOLINK \
   -I"$GECODE_BUILD" \
   -I"$GECODE_ROOT" \
   -I"$PROTOTYPE_ROOT/include" \
   "$TEST_DIR/rel-test.cpp" \
-  "$GECODE_ROOT/gecode/dashed/list-var-imp.cpp" \
+  "$GECODE_ROOT/gecode/list/list-var-imp.cpp" \
   "$CORE_BUILD/libdashed_core.a" \
   -L"$GECODE_BUILD" \
   -Wl,-rpath,"$GECODE_BUILD" \
@@ -71,6 +96,6 @@ CXX="${CXX:-g++}"
   -lgecodekernel \
   -lgecodesupport \
   -pthread \
-  -o "$GECODE_BUILD/dashed-rel-test"
+  -o "$GECODE_BUILD/list-rel-test"
 
-"$GECODE_BUILD/dashed-rel-test"
+"$GECODE_BUILD/list-rel-test"

@@ -3,7 +3,7 @@
 // Public-variable shape. This is a blueprint until compiled with generated
 // ListVarImpBase support in Gecode 6.4.
 
-#include <dashed/domain.hpp>
+#include <gecode/list/domain.hpp>
 #include <gecode/kernel.hh>
 
 #include "list-var-imp.hpp"
@@ -14,27 +14,27 @@
 
 namespace Gecode {
 
-namespace Dashed { class ListView; }
+namespace List { class ListView; }
 
-class ListVar : public VarImpVar<Dashed::ListVarImp> {
-  friend class Dashed::ListView;
-  using VarImpVar<Dashed::ListVarImp>::x;
+class ListVar : public VarImpVar<List::ListVarImp> {
+  friend class List::ListView;
+  using VarImpVar<List::ListVarImp>::x;
 
  public:
   ListVar() = default;
   ListVar(const ListVar& y)
-      : VarImpVar<Dashed::ListVarImp>(y.varimp()) {}
+      : VarImpVar<List::ListVarImp>(y.varimp()) {}
 
-  explicit ListVar(Space& home, dashed::Domain domain) {
+  explicit ListVar(Space& home, List::Domain domain) {
     if (domain.failed())
       throw Exception("ListVar", "empty list domain");
-    x = new (home) Dashed::ListVarImp(home, std::move(domain));
+    x = new (home) List::ListVarImp(home, std::move(domain));
   }
 
   bool assigned() const noexcept { return x->assigned(); }
   unsigned int min_length() const noexcept { return x->min_length(); }
   unsigned int max_length() const noexcept { return x->max_length(); }
-  const dashed::Domain& domain() const noexcept { return x->domain(); }
+  const List::Domain& domain() const noexcept { return x->domain(); }
   std::vector<int> val() const { return x->domain().value(); }
 
   ListVar& operator=(const ListVar&) = default;
@@ -80,7 +80,7 @@ class ListVarArgs : public VarArgArray<ListVar> {
   ListVarArgs(
       Space& home,
       int n,
-      const dashed::Domain& domain)
+      const List::Domain& domain)
       : VarArgArray<ListVar>(n) {
     if (domain.failed())
       throw Exception("ListVarArgs", "empty list domain");
@@ -109,7 +109,7 @@ class ListVarArray : public VarArray<ListVar> {
   ListVarArray(
       Space& home,
       int n,
-      const dashed::Domain& domain)
+      const List::Domain& domain)
       : VarArray<ListVar>(home, n) {
     if (domain.failed())
       throw Exception("ListVarArray", "empty list domain");
@@ -121,7 +121,7 @@ class ListVarArray : public VarArray<ListVar> {
   ListVarArray& operator=(const ListVarArray&) = default;
 };
 
-/** Print the canonical dashed domain of a list variable. */
+/** Print the canonical list domain of a list variable. */
 inline std::ostream& operator<<(
     std::ostream& out,
     const ListVar& variable) {

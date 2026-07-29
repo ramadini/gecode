@@ -102,6 +102,13 @@ auto result = dashed::propagate_equal(x, y);
 
 ## Gecode integration status
 
+
+The native Gecode surface is intentionally named **List**, not Dashed: models
+include `<gecode/list.hh>`, public variables remain `Gecode::ListVar`, and
+implementation classes live in `Gecode::List`. The lowercase `dashed` namespace
+in this standalone project names only the current domain and propagation
+engine; it is not the Gecode variable type.
+
 The integration directory is deliberately separated from the tested kernel.
 It documents the native Gecode architecture and includes the `.vis`
 specification required to generate `ListVarImpBase`.

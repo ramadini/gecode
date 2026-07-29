@@ -115,7 +115,7 @@ CMakeUserPresets.json
 CMakePresets.json.user
 
 # Dashed development builds
-/build-dashed-native/
+/build-list-native/
 /dashed-project/prototype/build-native-core/
 /dashed-project/prototype/build-nightly-asan-core/
 /dashed-project/runs/

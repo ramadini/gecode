@@ -9,13 +9,13 @@ COMMIT_MESSAGE="Replace with commit message"
 ALLOWED_PATHS=(
   "dashed-project/prototype/src/propagation.cpp"
   "dashed-project/prototype/tests/test_core.cpp"
-  "gecode/dashed/tests/rel-test.cpp"
+  "gecode/list/tests/rel-test.cpp"
 )
 
 STAGE_PATHS=(
   "dashed-project/prototype/src/propagation.cpp"
   "dashed-project/prototype/tests/test_core.cpp"
-  "gecode/dashed/tests/rel-test.cpp"
+  "gecode/list/tests/rel-test.cpp"
 )
 
 step_1() {
@@ -49,7 +49,7 @@ step_3() {
 }
 
 test_3() {
-  JOBS="$JOBS" ./gecode/dashed/tests/run-tests
+  JOBS="$JOBS" ./gecode/list/tests/run-tests
 }
 
 final_tests() {
@@ -62,5 +62,5 @@ final_tests() {
     --output-on-failure \
     -j "$JOBS"
 
-  JOBS="$JOBS" ./gecode/dashed/tests/run-tests
+  JOBS="$JOBS" ./gecode/list/tests/run-tests
 }

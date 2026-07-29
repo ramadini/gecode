@@ -2,7 +2,7 @@
 
 #include "list-var.hpp"
 
-namespace Gecode { namespace Dashed {
+namespace Gecode { namespace List {
 
 class ListView : public VarImpView<ListVar> {
  protected:
@@ -13,13 +13,13 @@ class ListView : public VarImpView<ListVar> {
   explicit ListView(const ListVar& y) : VarImpView<ListVar>(y) {}
   explicit ListView(ListVarImp* y) : VarImpView<ListVar>(y) {}
 
-  const dashed::Domain& domain() const noexcept { return x->domain(); }
+  const Domain& domain() const noexcept { return x->domain(); }
   bool assigned() const noexcept { return x->assigned(); }
   unsigned int min_length() const noexcept { return x->min_length(); }
   unsigned int max_length() const noexcept { return x->max_length(); }
   std::vector<int> val() const { return x->domain().value(); }
 
-  ModEvent replace(Space& home, dashed::Domain restricted) {
+  ModEvent replace(Space& home, Domain restricted) {
     return x->replace(home, std::move(restricted));
   }
 
@@ -36,4 +36,4 @@ class ListView : public VarImpView<ListVar> {
   }
 };
 
-}}  // namespace Gecode::Dashed
+}}  // namespace Gecode::List

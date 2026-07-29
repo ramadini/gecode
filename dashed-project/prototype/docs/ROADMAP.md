@@ -11,6 +11,7 @@
 
 ## Milestone 2 — compile native `ListVar`
 
+- native module naming is list-based (`gecode/list.hh`, `gecode/list/`, `Gecode::List`); the dashed engine is isolated behind a backend seam (included);
 - integrate `.vis` generation in a Gecode 6.4 source tree;
 - finish `ListVarImp`, `ListVar`, and `ListView` against generated signatures;
 - Gecode-style `ListVarArgs`/`ListVarArray` traits, construction, and cloning (included);

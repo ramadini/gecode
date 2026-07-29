@@ -4,9 +4,26 @@ The target is Gecode 6.4 and its generated variable-implementation mechanism.
 The integration is source-level because a new native variable type needs entries
 in generated `var-type.hpp` and `var-imp.hpp`.
 
+
+## Native module and backend boundary
+
+The Gecode-facing module is named **List**:
+
+```text
+aggregate header:  <gecode/list.hh>
+module directory:  gecode/list/
+internal namespace: Gecode::List
+public variables:  Gecode::ListVar, ListVarArgs, ListVarArray
+```
+
+The lowercase `dashed` namespace and `Dashed::core` target remain the current
+standalone domain/propagation engine. Native code reaches that engine only
+through `gecode/list/domain.hpp` and `gecode/list/backend.hpp`. This keeps the
+variable identity and public module independent from the chosen domain engine.
+
 ## Generated type specification
 
-`integration/gecode/gecode/dashed/var-imp/list.vis` defines:
+`integration/gecode/gecode/list/var-imp/list.vis` defines:
 
 - assignment;
 - length-only change;
@@ -21,7 +38,7 @@ From a Gecode source checkout, copy or add the integration tree and configure:
 
 ```bash
 cmake -S . -B build \
-  -DGECODE_WITH_VIS=gecode/dashed/var-imp/list.vis \
+  -DGECODE_WITH_VIS=gecode/list/var-imp/list.vis \
   -DGECODE_REGENERATE_VARIMP=ON
 cmake --build build
 ```
@@ -30,7 +47,7 @@ Generation currently requires the Python/`uv` toolchain described by Gecode's
 build documentation.
 
 The Gecode source inventory and exported library target must then include the
-Dashed adapter sources. The standalone core can either be built as an object
+List module adapter sources. The standalone core can either be built as an object
 library inside Gecode or linked as `Dashed::core`.
 
 ## Modification-event mapping
@@ -104,12 +121,12 @@ ListVarArray  space-owned arrays with clone/update support.
 ```
 
 Both support construction of independent variables from one immutable
-`dashed::Domain` descriptor. Heavy literal and sparse-value-set payloads remain
+`Gecode::List::Domain` descriptor. Heavy literal and sparse-value-set payloads remain
 shared, while every array element owns separate mutable domain metadata.
 `ArrayTraits` specializations allow the standard Gecode argument-array
 concatenation operators to work with `ListVar`.
 
-Streaming a `ListVar` prints the canonical `dashed::Domain` representation. It
+Streaming a `ListVar` prints the canonical `Gecode::List::Domain` representation. It
 is deterministic and observational only; it does not enumerate the represented
 language or modify the variable.
 

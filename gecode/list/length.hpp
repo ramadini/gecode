@@ -1,18 +1,18 @@
-#ifndef __GECODE_DASHED_LENGTH_HPP__
-#define __GECODE_DASHED_LENGTH_HPP__
+#ifndef __GECODE_LIST_LENGTH_HPP__
+#define __GECODE_LIST_LENGTH_HPP__
 
-#include <gecode/dashed/propagator-adapter.hpp>
+#include <gecode/list/propagator-adapter.hpp>
 #include <gecode/int.hh>
 
-namespace Gecode { namespace Dashed {
+namespace Gecode { namespace List {
 
 /// Propagator for n = length(x).
-class Length final : public Propagator {
+class LengthPropagator final : public Propagator {
 private:
   ListView x;
   Int::IntView n;
 
-  Length(Home home, ListView x0, Int::IntView n0)
+  LengthPropagator(Home home, ListView x0, Int::IntView n0)
       : Propagator(home),
         x(x0),
         n(n0) {
@@ -20,7 +20,7 @@ private:
     n.subscribe(home, *this, Int::PC_INT_BND);
   }
 
-  Length(Space& home, Length& other)
+  LengthPropagator(Space& home, LengthPropagator& other)
       : Propagator(home, other) {
     x.update(home, other.x);
     n.update(home, other.n);
@@ -31,12 +31,12 @@ public:
       Home home,
       ListView x,
       Int::IntView n) {
-    (void) new (home) Length(home, x, n);
+    (void) new (home) LengthPropagator(home, x, n);
     return ES_OK;
   }
 
   Actor* copy(Space& home) override {
-    return new (home) Length(home, *this);
+    return new (home) LengthPropagator(home, *this);
   }
 
   PropCost cost(
@@ -69,7 +69,7 @@ public:
   }
 };
 
-}} // namespace Gecode::Dashed
+}} // namespace Gecode::List
 
 
 namespace Gecode {
@@ -80,9 +80,9 @@ length(Home home, ListVar x, IntVar n) {
   GECODE_POST;
 
   GECODE_ES_FAIL(
-      Dashed::Length::post(
+      List::LengthPropagator::post(
           home,
-          Dashed::ListView(x),
+          List::ListView(x),
           Int::IntView(n)));
 }
 

@@ -1,10 +1,10 @@
-#ifndef __GECODE_DASHED_CONCAT_HPP__
-#define __GECODE_DASHED_CONCAT_HPP__
+#ifndef __GECODE_LIST_CONCAT_HPP__
+#define __GECODE_LIST_CONCAT_HPP__
 
-#include <gecode/dashed/propagator-adapter.hpp>
+#include <gecode/list/propagator-adapter.hpp>
 #include <gecode/int.hh>
 
-namespace Gecode { namespace Dashed {
+namespace Gecode { namespace List {
 
 /// Propagator for z = x ++ y.
 class Concat final : public TernaryPropagator<ListView, PC_LIST_ANY> {
@@ -35,7 +35,7 @@ public:
   }
 };
 
-}} // namespace Gecode::Dashed
+}} // namespace Gecode::List
 
 namespace Gecode {
 
@@ -48,11 +48,11 @@ inline void concat(Home home, ListVar x, ListVar y, ListVar z) {
   if (x.varimp() == y.varimp() ||
       x.varimp() == z.varimp() ||
       y.varimp() == z.varimp())
-    throw Int::ArgumentSame("Dashed::concat");
+    throw Int::ArgumentSame("List::concat");
 
-  GECODE_ES_FAIL(Dashed::Concat::post(
-      home, Dashed::ListView(z),
-      Dashed::ListView(x), Dashed::ListView(y)));
+  GECODE_ES_FAIL(List::Concat::post(
+      home, List::ListView(z),
+      List::ListView(x), List::ListView(y)));
 }
 
 } // namespace Gecode

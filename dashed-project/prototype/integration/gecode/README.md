@@ -14,12 +14,12 @@ propagation-condition, and base-class definitions. Gecode 6.4 accepts additional
 ## Proposed source placement
 
 ```text
-gecode/dashed.hh
-gecode/dashed/var-imp/list.vis
-gecode/dashed/var-imp.hpp
-gecode/dashed/var.hpp
-gecode/dashed/view.hpp
-gecode/dashed/propagator.hpp
+gecode/list.hh
+gecode/list/var-imp/list.vis
+gecode/list/var-imp.hpp
+gecode/list/var.hpp
+gecode/list/view.hpp
+gecode/list/propagator.hpp
 ```
 
 Only `list.vis` and design headers are included here so far. The final adapter
@@ -29,7 +29,7 @@ should be added to Gecode's source inventory and public package exports.
 
 ```bash
 cmake -S /path/to/gecode -B /path/to/build \
-  -DGECODE_WITH_VIS=gecode/dashed/var-imp/list.vis \
+  -DGECODE_WITH_VIS=gecode/list/var-imp/list.vis \
   -DGECODE_REGENERATE_VARIMP=ON \
   -DGECODE_SANITIZER=address-undefined
 ```
@@ -40,7 +40,7 @@ older fork.
 
 ## Adapter contract
 
-- `ListVarImp` owns one `dashed::Domain`.
+- `ListVarImp` owns one `Gecode::List::Domain`; the current backend maps it to `dashed::Domain`.
 - All updates are monotone and notify once.
 - `ListView` is thin.
 - Propagators own cross-variable logic.

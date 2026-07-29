@@ -1,10 +1,10 @@
-#ifndef __GECODE_DASHED_REL_HPP__
-#define __GECODE_DASHED_REL_HPP__
+#ifndef __GECODE_LIST_REL_HPP__
+#define __GECODE_LIST_REL_HPP__
 
-#include <gecode/dashed/propagator-adapter.hpp>
+#include <gecode/list/propagator-adapter.hpp>
 #include <gecode/int.hh>
 
-namespace Gecode { namespace Dashed {
+namespace Gecode { namespace List {
 
 class Equal final : public BinaryPropagator<ListView, PC_LIST_ANY> {
   using Base = BinaryPropagator<ListView, PC_LIST_ANY>;
@@ -228,7 +228,7 @@ public:
 };
 
 
-}} // namespace Gecode::Dashed
+}} // namespace Gecode::List
 
 namespace Gecode {
 
@@ -238,15 +238,15 @@ inline void rel(Home home, ListVar x, IntRelType relation, ListVar y,
 
   switch (relation) {
   case IRT_EQ:
-    GECODE_ES_FAIL(Dashed::Equal::post(
-        home, Dashed::ListView(x), Dashed::ListView(y)));
+    GECODE_ES_FAIL(List::Equal::post(
+        home, List::ListView(x), List::ListView(y)));
     break;
   case IRT_NQ:
-    GECODE_ES_FAIL(Dashed::NotEqual::post(
-        home, Dashed::ListView(x), Dashed::ListView(y)));
+    GECODE_ES_FAIL(List::NotEqual::post(
+        home, List::ListView(x), List::ListView(y)));
     break;
   default:
-    throw Int::UnknownRelation("Dashed::rel");
+    throw Int::UnknownRelation("List::rel");
   }
 }
 
@@ -258,23 +258,23 @@ inline void rel(Home home, ListVar x, IntRelType relation, ListVar y,
   Int::BoolView b(reification.var());
   switch (relation) {
   case IRT_EQ:
-    GECODE_ES_FAIL(Dashed::ReEqual::post(
+    GECODE_ES_FAIL(List::ReEqual::post(
         home,
-        Dashed::ListView(x),
-        Dashed::ListView(y),
+        List::ListView(x),
+        List::ListView(y),
         b,
         reification.mode()));
     break;
   case IRT_NQ:
-    GECODE_ES_FAIL(Dashed::ReNotEqual::post(
+    GECODE_ES_FAIL(List::ReNotEqual::post(
         home,
-        Dashed::ListView(x),
-        Dashed::ListView(y),
+        List::ListView(x),
+        List::ListView(y),
         b,
         reification.mode()));
     break;
   default:
-    throw Int::UnknownRelation("Dashed::rel");
+    throw Int::UnknownRelation("List::rel");
   }
 }
 
