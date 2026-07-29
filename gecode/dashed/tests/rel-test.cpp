@@ -340,6 +340,61 @@ void alias_cases() {
 }
 
 
+void reified_empty_only_equality() {
+  const auto optional_disjoint_left = [] {
+    return dashed::Domain::repeat(
+        dashed::ValueSet(1, 3),
+        0,
+        400);
+  };
+
+  const auto optional_disjoint_right = [] {
+    return dashed::Domain::repeat(
+        dashed::ValueSet(4),
+        0,
+        900);
+  };
+
+  {
+    // Disjoint alphabets do not imply inequality: the empty list is
+    // contained in both domains.
+    auto* space = new ReifiedSpace(
+        optional_disjoint_left(),
+        optional_disjoint_right());
+
+    assert(space->status() != Gecode::SS_FAILED);
+    assert(!space->b.assigned());
+
+    assert(!space->x.assigned());
+    assert(!space->y.assigned());
+
+    delete space;
+  }
+
+  {
+    // When equality is required, the unique common value is [].
+    auto* space = new ReifiedSpace(
+        optional_disjoint_left(),
+        optional_disjoint_right(),
+        1,
+        1);
+
+    assert(space->status() != Gecode::SS_FAILED);
+
+    assert(space->b.assigned());
+    assert(space->b.val() == 1);
+
+    assert(space->x.assigned());
+    assert(space->y.assigned());
+
+    assert(space->x.val().empty());
+    assert(space->y.val().empty());
+
+    delete space;
+  }
+}
+
+
 void reified_equality_becomes_true() {
   auto* space = new ReifiedSpace(
       fixed({-100, 0, 50000}),
@@ -438,6 +493,7 @@ int main() {
   disequality_rejects_equal_fixed_lists();
   alias_cases();
 
+  reified_empty_only_equality();
   reified_equality_becomes_true();
   reified_equality_becomes_false();
   true_boolean_enforces_equality();

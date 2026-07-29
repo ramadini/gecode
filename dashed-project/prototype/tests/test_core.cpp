@@ -522,6 +522,51 @@ void test_single_repeat_equality_refinement_guards() {
   }
 }
 
+void test_legacy_equality_empty_only_intersection_test11() {
+  // Port of old str_test2::test11 using generic integers.
+  //
+  // The value sets are disjoint, but both blocks are optional. Therefore
+  // the empty list is the unique common value and equality must not fail.
+  Domain x =
+      Domain::repeat(
+          ValueSet(1, 3),
+          0,
+          400);
+
+  Domain y =
+      Domain::repeat(
+          ValueSet(4),
+          0,
+          900);
+
+  const Domain expected =
+      Domain::fixed(std::vector<int>{});
+
+  const auto result =
+      dashed::propagate_equal(x, y);
+
+  std::cerr
+      << "empty-only x: "
+      << x << '\n';
+  std::cerr
+      << "empty-only y: "
+      << y << '\n';
+  std::cerr
+      << "empty expected: "
+      << expected << '\n';
+
+  assert(!result.failed());
+  assert(x == expected);
+  assert(y == expected);
+
+  assert(x.assigned());
+  assert(y.assigned());
+  assert(x.value().empty());
+  assert(y.value().empty());
+
+  assert(result.subsumed);
+}
+
 void test_legacy_equality_optional_suffix_test14() {
   // Port of old str_test2::test14 using generic integers:
   //
@@ -957,6 +1002,7 @@ int main() {
   test_membership();
   test_length_propagation();
   test_segmented_equality_sweep_symmetry_and_failure();
+  test_legacy_equality_empty_only_intersection_test11();
   test_legacy_equality_optional_suffix_test14();
   test_legacy_equality_boundary_cardinality_test16();
   test_legacy_equality_variable_width_test09();
