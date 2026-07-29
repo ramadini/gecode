@@ -3043,6 +3043,151 @@ void test_concat_length_failure() {
 }
 
 
+void test_disequality_single_witness_pruning() {
+  {
+    Domain fixed_value =
+        Domain::fixed({1, 2, 3});
+
+    Domain candidate(
+        {
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{1})},
+            RepeatSegment{
+                ValueSet(1, 3),
+                1,
+                1},
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{3})},
+        },
+        3,
+        3);
+
+    const auto result =
+        dashed::propagate_not_equal(
+            fixed_value,
+            candidate);
+
+    assert(!result.failed());
+    assert(result.subsumed);
+    assert(result.right == Change::domain);
+
+    assert(
+        !candidate.accepts(
+            Domain::fixed({1, 2, 3})));
+
+    assert(
+        candidate.accepts(
+            Domain::fixed({1, 1, 3})));
+
+    assert(
+        candidate.accepts(
+            Domain::fixed({1, 3, 3})));
+
+    const auto& witness =
+        std::get<RepeatSegment>(
+            candidate.segments()[1]);
+
+    assert(
+        witness.values ==
+        ValueSet({
+            IntRange{1, 1},
+            IntRange{3, 3}}));
+  }
+
+  {
+    // The operation is symmetric when the assigned operand is on the right.
+    Domain candidate(
+        {
+            RepeatSegment{
+                ValueSet(4, 5),
+                1,
+                1},
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{8})},
+        },
+        2,
+        2);
+
+    Domain fixed_value =
+        Domain::fixed({4, 8});
+
+    const auto result =
+        dashed::propagate_not_equal(
+            candidate,
+            fixed_value);
+
+    assert(!result.failed());
+    assert(result.subsumed);
+    assert(result.left == Change::assigned);
+    assert(candidate.assigned());
+    assert(
+        candidate.value() ==
+        std::vector<int>({5, 8}));
+  }
+
+  {
+    // Two independently variable positions cannot be represented by
+    // removing the assigned value from either block alone.
+    Domain fixed_value =
+        Domain::fixed({1, 2});
+
+    Domain candidate(
+        {
+            RepeatSegment{
+                ValueSet(1, 3),
+                1,
+                1},
+            RepeatSegment{
+                ValueSet(2, 4),
+                1,
+                1},
+        },
+        2,
+        2);
+
+    const Domain original = candidate;
+
+    const auto result =
+        dashed::propagate_not_equal(
+            fixed_value,
+            candidate);
+
+    assert(!result.failed());
+    assert(!result.subsumed);
+    assert(result.right == Change::none);
+    assert(candidate == original);
+  }
+
+  {
+    // A repeated non-singleton block represents several possible witness
+    // positions. Removing one value from the shared set would be unsound.
+    Domain fixed_value =
+        Domain::fixed({1, 1});
+
+    Domain candidate =
+        Domain::repeat(
+            ValueSet(1, 2),
+            2,
+            2);
+
+    const Domain original = candidate;
+
+    const auto result =
+        dashed::propagate_not_equal(
+            fixed_value,
+            candidate);
+
+    assert(!result.failed());
+    assert(!result.subsumed);
+    assert(result.right == Change::none);
+    assert(candidate == original);
+  }
+}
+
+
 void test_disequality_language_disjointness() {
   {
     // The length ranges overlap, but all nonempty values are incompatible.
@@ -3145,6 +3290,7 @@ int main() {
   test_concat_strips_mandatory_repeat_prefix();
   test_concat_strips_partial_prefix_segments();
   test_concat_strips_exact_prefix();
+  test_disequality_single_witness_pruning();
   test_disequality_language_disjointness();
   test_value_set();
   test_literal_slices_share();

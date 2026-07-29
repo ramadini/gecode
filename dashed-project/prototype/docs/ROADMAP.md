@@ -22,7 +22,7 @@
 
 - port the original dashed equality sweeps as pure segmented-cursor algorithms;
 - port concat sweeps without materializing long literals;
-- add disequality single-witness pruning;
+- extend disequality pruning beyond exact single-position witnesses;
 - compare every ported operation with exhaustive small-language semantics and
   differential tests against G-Strings.
 

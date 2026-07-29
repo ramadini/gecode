@@ -412,6 +412,111 @@ void segmented_equality_refines_mandatory_regions() {
 }
 
 
+void disequality_prunes_single_witness_native() {
+  const dashed::Domain candidate(
+      {
+          dashed::LiteralSegment{
+              dashed::LiteralSlice(
+                  std::vector<int>{1})},
+          dashed::RepeatSegment{
+              dashed::ValueSet(2, 4),
+              1,
+              1},
+          dashed::LiteralSegment{
+              dashed::LiteralSlice(
+                  std::vector<int>{3})},
+      },
+      3,
+      3);
+
+  const dashed::Domain expected(
+      {
+          dashed::LiteralSegment{
+              dashed::LiteralSlice(
+                  std::vector<int>{1})},
+          dashed::RepeatSegment{
+              dashed::ValueSet(3, 4),
+              1,
+              1},
+          dashed::LiteralSegment{
+              dashed::LiteralSlice(
+                  std::vector<int>{3})},
+      },
+      3,
+      3);
+
+  {
+    auto* root = new DisequalitySpace(
+        fixed({1, 2, 3}),
+        candidate);
+
+    assert(
+        root->status() !=
+        Gecode::SS_FAILED);
+
+    assert(root->y.domain() == expected);
+    assert(!root->y.assigned());
+
+    assert(
+        !root->y.domain().accepts(
+            fixed({1, 2, 3})));
+
+    auto* clone =
+        static_cast<DisequalitySpace*>(
+            root->clone());
+
+    Gecode::Dashed::ListView
+        clone_y(clone->y);
+
+    const Gecode::ModEvent me =
+        clone_y.replace(
+            *clone,
+            fixed({1, 3, 3}));
+
+    if (Gecode::me_failed(me)) {
+      clone->fail();
+    }
+
+    assert(
+        clone->status() !=
+        Gecode::SS_FAILED);
+
+    assert(clone->y.assigned());
+    assert(
+        clone->y.val() ==
+        std::vector<int>({1, 3, 3}));
+
+    assert(!root->y.assigned());
+    assert(root->y.domain() == expected);
+
+    delete root;
+    delete clone;
+  }
+
+  {
+    // (x = y) -> false delegates to disequality and must expose the same
+    // pruning through the half-reified adapter.
+    auto* space = new ReifiedSpace(
+        fixed({1, 2, 3}),
+        candidate,
+        0,
+        0,
+        Gecode::IRT_EQ,
+        Gecode::RM_PMI);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(space->b.assigned());
+    assert(space->b.val() == 0);
+    assert(space->y.domain() == expected);
+
+    delete space;
+  }
+}
+
+
 void disequality_accepts_distinct_fixed_lists() {
   auto* space = new DisequalitySpace(
       fixed({-1, 0, 1}),
@@ -2569,6 +2674,7 @@ int main() {
   equality_clone_is_independent();
   segmented_equality_refines_mandatory_regions();
 
+  disequality_prunes_single_witness_native();
   disequality_accepts_distinct_fixed_lists();
   disequality_rejects_equal_fixed_lists();
   alias_cases();

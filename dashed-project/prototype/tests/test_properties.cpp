@@ -206,6 +206,87 @@ void test_not_equal_kernel_soundness() {
   }
 }
 
+void test_single_witness_disequality_exactness() {
+  const auto universe =
+      all_lists(3);
+
+  for (const auto& forbidden :
+       universe) {
+    if (forbidden.size() != 3) {
+      continue;
+    }
+
+    for (std::size_t witness = 0;
+         witness < forbidden.size();
+         ++witness) {
+      std::vector<dashed::Segment>
+          segments;
+
+      if (witness != 0) {
+        segments.push_back(
+            dashed::LiteralSegment{
+                dashed::LiteralSlice(
+                    std::vector<int>(
+                        forbidden.begin(),
+                        forbidden.begin() +
+                            static_cast<
+                                std::ptrdiff_t>(
+                                witness)))});
+      }
+
+      segments.push_back(
+          RepeatSegment{
+              ValueSet(0, 1),
+              1,
+              1});
+
+      if (witness + 1 <
+          forbidden.size()) {
+        segments.push_back(
+            dashed::LiteralSegment{
+                dashed::LiteralSlice(
+                    std::vector<int>(
+                        forbidden.begin() +
+                            static_cast<
+                                std::ptrdiff_t>(
+                                witness + 1),
+                        forbidden.end()))});
+      }
+
+      Domain assigned =
+          Domain::fixed(forbidden);
+
+      Domain candidate(
+          std::move(segments),
+          3,
+          3);
+
+      const Domain original =
+          candidate;
+
+      const auto result =
+          dashed::propagate_not_equal(
+              assigned,
+              candidate);
+
+      assert(!result.failed());
+      assert(result.subsumed);
+
+      for (const auto& value :
+           universe) {
+        const bool expected =
+            original.accepts(value) &&
+            value != forbidden;
+
+        assert(
+            candidate.accepts(value) ==
+            expected);
+      }
+    }
+  }
+}
+
+
 void test_half_reified_kernel_soundness() {
   using Kernel =
       dashed::PropagationResult (*)(
@@ -688,6 +769,7 @@ int main() {
   test_literal_memory_accounting();
   test_equal_kernel_soundness();
   test_not_equal_kernel_soundness();
+  test_single_witness_disequality_exactness();
   test_half_reified_kernel_soundness();
   test_reified_kernel_soundness();
   test_assigned_concat_split_filtering();

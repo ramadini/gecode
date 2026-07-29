@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <optional>
 #include <stdexcept>
 #include <vector>
 
@@ -141,6 +142,275 @@ int assigned_value_at(
 
   throw std::logic_error(
       "assigned domain length is inconsistent");
+}
+
+
+class AssignedCursor {
+ public:
+  explicit AssignedCursor(
+      const Domain& assigned)
+      : assigned_(assigned) {
+    if (!assigned_.assigned()) {
+      throw std::logic_error(
+          "AssignedCursor requires an assigned domain");
+    }
+  }
+
+  [[nodiscard]] bool done() const noexcept {
+    return segment_index_ >=
+        assigned_.segments().size();
+  }
+
+  [[nodiscard]] std::optional<int> take_one() {
+    if (done()) {
+      return std::nullopt;
+    }
+
+    const Segment& segment =
+        assigned_.segments()[segment_index_];
+
+    int value = 0;
+    std::uint64_t width = 0;
+
+    if (const auto* literal =
+            std::get_if<LiteralSegment>(
+                &segment)) {
+      width = literal->literal.size();
+      value = literal->literal[
+          static_cast<std::size_t>(
+              offset_)];
+    } else {
+      const auto& repeat =
+          std::get<RepeatSegment>(
+              segment);
+
+      const auto singleton =
+          repeat.values.singleton_value();
+
+      if (!repeat.exact_count() ||
+          !singleton.has_value()) {
+        throw std::logic_error(
+            "assigned domain contains a non-exact segment");
+      }
+
+      width = repeat.upper;
+      value = *singleton;
+    }
+
+    ++offset_;
+
+    if (offset_ == width) {
+      ++segment_index_;
+      offset_ = 0;
+    }
+
+    return value;
+  }
+
+  [[nodiscard]] bool match_value(
+      int expected,
+      std::uint64_t count) {
+    while (count != 0) {
+      if (done()) {
+        return false;
+      }
+
+      const Segment& segment =
+          assigned_.segments()[segment_index_];
+
+      if (const auto* literal =
+              std::get_if<LiteralSegment>(
+                  &segment)) {
+        const std::uint64_t width =
+            literal->literal.size();
+
+        const std::uint64_t available =
+            width - offset_;
+
+        const std::uint64_t take =
+            std::min(
+                available,
+                count);
+
+        for (std::uint64_t index = 0;
+             index < take;
+             ++index) {
+          if (literal->literal[
+                  static_cast<std::size_t>(
+                      offset_ + index)] !=
+              expected) {
+            return false;
+          }
+        }
+
+        offset_ += take;
+        count -= take;
+
+        if (offset_ == width) {
+          ++segment_index_;
+          offset_ = 0;
+        }
+
+        continue;
+      }
+
+      const auto& repeat =
+          std::get<RepeatSegment>(
+              segment);
+
+      const auto singleton =
+          repeat.values.singleton_value();
+
+      if (!repeat.exact_count() ||
+          !singleton.has_value()) {
+        throw std::logic_error(
+            "assigned domain contains a non-exact segment");
+      }
+
+      if (*singleton != expected) {
+        return false;
+      }
+
+      const std::uint64_t width =
+          repeat.upper;
+
+      const std::uint64_t available =
+          width - offset_;
+
+      const std::uint64_t take =
+          std::min(
+              available,
+              count);
+
+      offset_ += take;
+      count -= take;
+
+      if (offset_ == width) {
+        ++segment_index_;
+        offset_ = 0;
+      }
+    }
+
+    return true;
+  }
+
+ private:
+  const Domain& assigned_;
+  std::size_t segment_index_ = 0;
+  std::uint64_t offset_ = 0;
+};
+
+
+std::optional<Change> exclude_assigned_single_witness(
+    Domain& target,
+    const Domain& assigned) {
+  if (target.failed() ||
+      target.assigned() ||
+      !assigned.assigned() ||
+      target.min_length() != target.max_length() ||
+      target.min_length() != assigned.min_length()) {
+    return std::nullopt;
+  }
+
+  // This exact pruning rule requires fixed segment boundaries. Exactly one
+  // position may vary, and it must be represented by a one-element repeat
+  // segment so removing the assigned value cannot affect another position.
+  AssignedCursor cursor(assigned);
+
+  std::optional<std::size_t>
+      witness_segment;
+  int forbidden = 0;
+
+  for (std::size_t index = 0;
+       index < target.segments().size();
+       ++index) {
+    const Segment& segment =
+        target.segments()[index];
+
+    if (const auto* literal =
+            std::get_if<LiteralSegment>(
+                &segment)) {
+      for (int value :
+           literal->literal.span()) {
+        const auto assigned_value =
+            cursor.take_one();
+
+        if (!assigned_value.has_value() ||
+            *assigned_value != value) {
+          return std::nullopt;
+        }
+      }
+
+      continue;
+    }
+
+    const auto& repeat =
+        std::get<RepeatSegment>(
+            segment);
+
+    if (!repeat.exact_count()) {
+      return std::nullopt;
+    }
+
+    if (const auto singleton =
+            repeat.values.singleton_value();
+        singleton.has_value()) {
+      if (!cursor.match_value(
+              *singleton,
+              repeat.upper)) {
+        return std::nullopt;
+      }
+
+      continue;
+    }
+
+    if (repeat.upper != 1 ||
+        witness_segment.has_value()) {
+      return std::nullopt;
+    }
+
+    const auto assigned_value =
+        cursor.take_one();
+
+    if (!assigned_value.has_value() ||
+        !repeat.values.contains(
+            *assigned_value)) {
+      return std::nullopt;
+    }
+
+    witness_segment = index;
+    forbidden = *assigned_value;
+  }
+
+  if (!witness_segment.has_value() ||
+      !cursor.done()) {
+    return std::nullopt;
+  }
+
+  std::vector<Segment> refined =
+      target.segments();
+
+  auto& witness =
+      std::get<RepeatSegment>(
+          refined[*witness_segment]);
+
+  witness.values =
+      witness.values.without(
+          forbidden);
+
+  Domain replacement(
+      std::move(refined),
+      target.min_length(),
+      target.max_length());
+
+  if (replacement.failed()) {
+    target.fail();
+    return Change::failed;
+  }
+
+  return replace_domain(
+      target,
+      replacement);
 }
 
 
@@ -1230,7 +1500,37 @@ PropagationResult propagate_not_equal(Domain& x, Domain& y) {
     } else {
       result.subsumed = true;
     }
+    return result;
   }
+
+  if (x.assigned()) {
+    const auto pruning =
+        exclude_assigned_single_witness(
+            y,
+            x);
+
+    if (pruning.has_value()) {
+      result.right = *pruning;
+      result.subsumed =
+          !result.failed();
+      return result;
+    }
+  }
+
+  if (y.assigned()) {
+    const auto pruning =
+        exclude_assigned_single_witness(
+            x,
+            y);
+
+    if (pruning.has_value()) {
+      result.left = *pruning;
+      result.subsumed =
+          !result.failed();
+      return result;
+    }
+  }
+
   return result;
 }
 
