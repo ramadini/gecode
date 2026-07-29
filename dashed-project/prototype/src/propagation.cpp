@@ -266,6 +266,73 @@ Length subtract_length_bound(
 }
 
 
+bool assigned_concat_split_bounds(
+    const Domain& result,
+    const Domain& left,
+    const Domain& right,
+    Length& feasible_lower,
+    Length& feasible_upper) {
+  if (!result.assigned()) {
+    throw std::logic_error(
+        "assigned concat split filtering requires an assigned result");
+  }
+
+  const Length total =
+      result.min_length();
+
+  const Length candidate_lower =
+      std::max(
+          left.min_length(),
+          total > right.max_length()
+              ? static_cast<Length>(
+                    total - right.max_length())
+              : Length{0});
+
+  const Length candidate_upper =
+      std::min(
+          left.max_length(),
+          total >= right.min_length()
+              ? static_cast<Length>(
+                    total - right.min_length())
+              : Length{0});
+
+  if (candidate_lower >
+      candidate_upper) {
+    return false;
+  }
+
+  bool found = false;
+
+  for (Length split = candidate_lower;
+       split <= candidate_upper;
+       ++split) {
+    const Domain prefix =
+        result.assigned_prefix(split);
+
+    const Domain suffix =
+        result.assigned_suffix(
+            static_cast<Length>(
+                total - split));
+
+    if (left.accepts(prefix) &&
+        right.accepts(suffix)) {
+      if (!found) {
+        feasible_lower = split;
+      }
+
+      feasible_upper = split;
+      found = true;
+    }
+
+    if (split == candidate_upper) {
+      break;
+    }
+  }
+
+  return found;
+}
+
+
 enum class ExactBoundaryStatus {
   unsupported,
   mismatch,
@@ -1256,6 +1323,53 @@ PropagationResult propagate_concat(Domain& z, Domain& x, Domain& y) {
   }
   if (result.failed()) {
     return result;
+  }
+
+  if (z.assigned()) {
+    // Exact feasible split points for an assigned result.
+    //
+    // Prefix and suffix membership must hold at the same split. Checking
+    // the operands independently can retain incompatible split choices.
+    Length feasible_lower = 0;
+    Length feasible_upper = 0;
+
+    if (!assigned_concat_split_bounds(
+            z,
+            x,
+            y,
+            feasible_lower,
+            feasible_upper)) {
+      // When both operand lengths are exact, the exact-split rule below
+      // assigns the concrete prefix and suffix and reports failure on
+      // the incompatible operand.
+      if (x.min_length() != x.max_length() ||
+          y.min_length() != y.max_length()) {
+        z.fail();
+        result.result = Change::failed;
+        return result;
+      }
+    } else {
+      result.left = combine(
+          result.left,
+          x.tighten_length(
+              feasible_lower,
+              feasible_upper));
+
+      const Length total =
+          z.min_length();
+
+      result.right = combine(
+          result.right,
+          y.tighten_length(
+              static_cast<Length>(
+                  total - feasible_upper),
+              static_cast<Length>(
+                  total - feasible_lower)));
+
+      if (result.failed()) {
+        return result;
+      }
+    }
   }
 
   if (z.assigned() &&

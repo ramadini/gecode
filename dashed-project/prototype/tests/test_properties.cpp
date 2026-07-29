@@ -252,6 +252,90 @@ void test_reified_kernel_soundness() {
   }
 }
 
+void test_assigned_concat_split_filtering() {
+  const auto domains =
+      sample_domains();
+
+  const auto fixed_results =
+      all_lists(4);
+
+  for (const auto& result_value :
+       fixed_results) {
+    for (const Domain& original_x :
+         domains) {
+      for (const Domain& original_y :
+           domains) {
+        bool has_solution = false;
+
+        for (std::size_t split = 0;
+             split <= result_value.size();
+             ++split) {
+          const std::vector<int> prefix(
+              result_value.begin(),
+              result_value.begin() +
+                  static_cast<std::ptrdiff_t>(
+                      split));
+
+          const std::vector<int> suffix(
+              result_value.begin() +
+                  static_cast<std::ptrdiff_t>(
+                      split),
+              result_value.end());
+
+          if (original_x.accepts(prefix) &&
+              original_y.accepts(suffix)) {
+            has_solution = true;
+          }
+        }
+
+        Domain z =
+            Domain::fixed(result_value);
+
+        Domain x = original_x;
+        Domain y = original_y;
+
+        const auto result =
+            dashed::propagate_concat(
+                z,
+                x,
+                y);
+
+        assert(
+            result.failed() ==
+            !has_solution);
+
+        if (!has_solution) {
+          continue;
+        }
+
+        for (std::size_t split = 0;
+             split <= result_value.size();
+             ++split) {
+          const std::vector<int> prefix(
+              result_value.begin(),
+              result_value.begin() +
+                  static_cast<std::ptrdiff_t>(
+                      split));
+
+          const std::vector<int> suffix(
+              result_value.begin() +
+                  static_cast<std::ptrdiff_t>(
+                      split),
+              result_value.end());
+
+          if (original_x.accepts(prefix) &&
+              original_y.accepts(suffix)) {
+            assert(x.accepts(prefix));
+            assert(y.accepts(suffix));
+            assert(z.accepts(result_value));
+          }
+        }
+      }
+    }
+  }
+}
+
+
 void test_concat_kernel_soundness() {
   const auto domains = sample_domains();
   const auto small_values = all_lists(2);
@@ -334,6 +418,7 @@ int main() {
   test_equal_kernel_soundness();
   test_not_equal_kernel_soundness();
   test_reified_kernel_soundness();
+  test_assigned_concat_split_filtering();
   test_concat_kernel_soundness();
   test_length_kernel_soundness();
   std::cout << "All Dashed property tests passed.\n";

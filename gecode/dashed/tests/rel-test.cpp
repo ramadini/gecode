@@ -1873,10 +1873,132 @@ void concat_segmented_boundary_remainders_native() {
   }
 }
 
+
+void concat_assigned_result_split_filtering_native() {
+  {
+    auto* space = new ConcatSpace(
+        dashed::Domain::repeat(
+            dashed::ValueSet(10, 20),
+            1,
+            2),
+        dashed::Domain::repeat(
+            dashed::ValueSet(30),
+            1,
+            2),
+        fixed({10, 20, 30}));
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(space->x.assigned());
+    assert(space->y.assigned());
+    assert(space->z.assigned());
+
+    assert(
+        space->x.val() ==
+        std::vector<int>({10, 20}));
+
+    assert(
+        space->y.val() ==
+        std::vector<int>({30}));
+
+    auto* clone =
+        static_cast<ConcatSpace*>(
+            space->clone());
+
+    assert(
+        clone->status() !=
+        Gecode::SS_FAILED);
+
+    assert(
+        clone->x.val() ==
+        std::vector<int>({10, 20}));
+
+    assert(
+        clone->y.val() ==
+        std::vector<int>({30}));
+
+    delete space;
+    delete clone;
+  }
+
+  {
+    auto* space = new ConcatSpace(
+        dashed::Domain::repeat(
+            dashed::ValueSet(1),
+            1,
+            2),
+        dashed::Domain::repeat(
+            dashed::ValueSet(3),
+            1,
+            2),
+        fixed({1, 2, 3}));
+
+    assert(
+        space->status() ==
+        Gecode::SS_FAILED);
+
+    delete space;
+  }
+
+  {
+    auto* space = new ConcatSpace(
+        dashed::Domain::repeat(
+            dashed::ValueSet(
+                -50000,
+                0),
+            1,
+            2),
+        dashed::Domain::repeat(
+            dashed::ValueSet(250000),
+            1,
+            2),
+        fixed(
+            {-50000, 0, 250000}));
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(
+        space->x.val() ==
+        std::vector<int>(
+            {-50000, 0}));
+
+    assert(
+        space->y.val() ==
+        std::vector<int>(
+            {250000}));
+
+    delete space;
+  }
+
+  {
+    auto* space = new ConcatSpace(
+        fixed({}),
+        lists(-100, 100, 0, 2),
+        fixed({7, 8}));
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(space->y.assigned());
+
+    assert(
+        space->y.val() ==
+        std::vector<int>({7, 8}));
+
+    delete space;
+  }
+}
+
 } // namespace
 
 
 int main() {
+  concat_assigned_result_split_filtering_native();
   concat_segmented_boundary_remainders_native();
   concat_mandatory_repeat_boundaries_native();
   concat_partial_exact_boundaries_native();

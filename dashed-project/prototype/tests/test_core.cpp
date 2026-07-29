@@ -2550,6 +2550,145 @@ void test_concat_projects_result_structure() {
 }
 
 
+void test_concat_filters_assigned_result_splits() {
+  {
+    // Both prefixes satisfy x, but only the split after 20 gives a
+    // suffix accepted by y.
+    Domain z =
+        Domain::fixed(
+            {10, 20, 30});
+
+    Domain x =
+        Domain::repeat(
+            ValueSet(10, 20),
+            1,
+            2);
+
+    Domain y =
+        Domain::repeat(
+            ValueSet(30),
+            1,
+            2);
+
+    const auto result =
+        dashed::propagate_concat(
+            z,
+            x,
+            y);
+
+    assert(!result.failed());
+    assert(result.subsumed);
+
+    assert(x.assigned());
+    assert(y.assigned());
+
+    assert(
+        x.value() ==
+        std::vector<int>({10, 20}));
+
+    assert(
+        y.value() ==
+        std::vector<int>({30}));
+  }
+
+  {
+    // x supports only the split after 1. y supports only the split
+    // after 2. Each operand is individually compatible with z, but
+    // there is no common split.
+    Domain z =
+        Domain::fixed(
+            {1, 2, 3});
+
+    Domain x =
+        Domain::repeat(
+            ValueSet(1),
+            1,
+            2);
+
+    Domain y =
+        Domain::repeat(
+            ValueSet(3),
+            1,
+            2);
+
+    const auto result =
+        dashed::propagate_concat(
+            z,
+            x,
+            y);
+
+    assert(result.failed());
+    assert(z.failed());
+  }
+
+  {
+    Domain z =
+        Domain::fixed(
+            {-50000, 0, 250000});
+
+    Domain x =
+        Domain::repeat(
+            ValueSet(-50000, 0),
+            1,
+            2);
+
+    Domain y =
+        Domain::repeat(
+            ValueSet(250000),
+            1,
+            2);
+
+    const auto result =
+        dashed::propagate_concat(
+            z,
+            x,
+            y);
+
+    assert(!result.failed());
+    assert(result.subsumed);
+
+    assert(
+        x.value() ==
+        std::vector<int>(
+            {-50000, 0}));
+
+    assert(
+        y.value() ==
+        std::vector<int>(
+            {250000}));
+  }
+
+  {
+    // Empty left and right boundary splits are included.
+    Domain z =
+        Domain::fixed({7, 8});
+
+    Domain x =
+        Domain::empty_list();
+
+    Domain y =
+        Domain::top(
+            ValueSet(-100, 100),
+            0,
+            2);
+
+    const auto result =
+        dashed::propagate_concat(
+            z,
+            x,
+            y);
+
+    assert(!result.failed());
+    assert(result.subsumed);
+    assert(y.assigned());
+
+    assert(
+        y.value() ==
+        std::vector<int>({7, 8}));
+  }
+}
+
+
 void test_concat_fixed_result_wide_split_interval() {
   // Feasible split points are 1, 2, and 3:
   //
@@ -3027,6 +3166,7 @@ int main() {
   test_concat();
   test_concat_forward_projection_guards();
   test_concat_projects_result_structure();
+  test_concat_filters_assigned_result_splits();
   test_concat_fixed_result_wide_split_interval();
   test_concat_fixed_result_split_interval();
   test_concat_fixed_result_exact_split();
