@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 #include <deque>
+#include <limits>
 #include <numeric>
 #include <ostream>
 #include <sstream>
@@ -33,6 +34,66 @@ bool segment_assigned(const Segment& segment) noexcept {
     return repeat->exact_count() && repeat->exact_value();
   }
   return true;
+}
+
+void merge_adjacent_literal_segments(std::vector<Segment>& segments) {
+  std::vector<Segment> merged;
+  merged.reserve(segments.size());
+
+  std::size_t begin = 0;
+  while (begin < segments.size()) {
+    auto* first = std::get_if<LiteralSegment>(&segments[begin]);
+    if (first == nullptr) {
+      merged.push_back(std::move(segments[begin]));
+      ++begin;
+      continue;
+    }
+
+    std::size_t end = begin + 1;
+    std::size_t total = first->literal.size();
+    LiteralSlice contiguous = first->literal;
+    bool zero_copy = true;
+
+    while (end < segments.size()) {
+      auto* next = std::get_if<LiteralSegment>(&segments[end]);
+      if (next == nullptr) {
+        break;
+      }
+
+      if (next->literal.size() >
+          std::numeric_limits<std::size_t>::max() - total) {
+        throw std::length_error("adjacent literal run is too large");
+      }
+      total += next->literal.size();
+
+      if (zero_copy && contiguous.contiguous_with(next->literal)) {
+        contiguous = contiguous.merged_with(next->literal);
+      } else {
+        zero_copy = false;
+      }
+      ++end;
+    }
+
+    if (end == begin + 1) {
+      merged.push_back(std::move(segments[begin]));
+    } else if (zero_copy) {
+      merged.push_back(LiteralSegment{std::move(contiguous)});
+    } else {
+      std::vector<int> values;
+      values.reserve(total);
+      for (std::size_t index = begin; index < end; ++index) {
+        const auto& literal =
+            std::get<LiteralSegment>(segments[index]).literal;
+        values.insert(values.end(), literal.span().begin(), literal.span().end());
+      }
+      merged.push_back(
+          LiteralSegment{LiteralSlice(std::move(values))});
+    }
+
+    begin = end;
+  }
+
+  segments = std::move(merged);
 }
 
 std::string literal_to_string(const LiteralSlice& literal) {
@@ -637,6 +698,12 @@ void Domain::normalize() {
     compact.push_back(std::move(segment));
   }
   segments_ = std::move(compact);
+
+  // Count tightening can remove a separator block and expose exact literal
+  // slices that came from different immutable payloads.  Canonicalize the
+  // whole adjacent run in one pass: contiguous slices keep sharing storage,
+  // while unrelated slices are copied exactly once into one immutable value.
+  merge_adjacent_literal_segments(segments_);
 }
 
 void Domain::fail() noexcept {

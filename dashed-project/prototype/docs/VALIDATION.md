@@ -111,3 +111,13 @@ arithmetic. The domain `(a|b)^0..M` intersected with `(a|b|c)^0..M b` must
 retain the one-element list `b`. Unit and native-clone tests verify that an
 unbounded segment can still contribute zero values when another segment is
 mandatory.
+
+
+### Fixed-literal differential regression
+
+`dashed_gstrings_fixed_tests` covers legacy equality cases 17-20 and 22. It
+checks exact assignment, long fixed-prefix/fixed-suffix boundaries, canonical
+merging of adjacent literals from unrelated storage, and convergence to the
+assigned list `aab`. The explicit G-Strings differential script additionally
+extracts and replays the exact historical fixed strings, including the large
+`test19` payload.

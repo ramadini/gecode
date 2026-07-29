@@ -131,3 +131,26 @@ The classified root-propagation corpus now also covers `str_test2::test10`,
 The original large bounds are retained in the deterministic report. Scaled
 finite analogues provide exhaustive concrete-language checks where direct
 enumeration of the historical bounds would be impractical.
+
+
+## Fixed-literal boundaries and assignment
+
+The root-propagation corpus now covers `str_test2::test17` through `test20`
+and assignment case `test22`.
+
+- `test17` and `test19` exercise a fixed prefix ending at the maximum legacy
+  alphabet symbol; the remaining suffix must stay below that symbol.
+- `test18` exercises the symmetric fixed suffix boundary.
+- `test20` removes an optional middle block and exposes literal slices backed
+  by unrelated immutable vectors. Normalization now copies the complete run
+  once into one canonical literal, so structural equality agrees with the
+  historical `x == y` assertion.
+- `test22` converges from two unassigned segmented domains to the single list
+  `aab`.
+
+The deterministic report uses a compact assigned-value hash rather than
+printing the very large literals. During the explicit differential run,
+`extract_gstrings_fixed_literals.py` extracts the exact C++ string literals
+from the preserved legacy source and the List kernel replays all four fixed
+cases. The committed `test19` case is also an 8193-element source-equivalent
+stress fixture so ordinary CTest runs do not depend on the historical tree.

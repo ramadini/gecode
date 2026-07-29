@@ -1,0 +1,6 @@
+case	status	classification	left	right
+str_test2.test17	sat	match-exact	len=3 segments=1 hash=fca217472a7a1247	len=3 segments=1 hash=fca217472a7a1247
+str_test2.test18	sat	match-exact	len=250 segments=1 hash=ec9ea3cf50b55806	len=250 segments=1 hash=ec9ea3cf50b55806
+str_test2.test19	sat	match-source-equivalent-stress	len=8193 segments=1 hash=94cb8e863d274482	len=8193 segments=1 hash=94cb8e863d274482
+str_test2.test20	sat	match-exact-canonical	len=6 segments=1 hash=93cc7e17a76c104a	len=6 segments=1 hash=93cc7e17a76c104a
+str_test2.test22	sat	match-exact-assigned	len=3 segments=2 hash=424656bda8ab7301	len=3 segments=2 hash=424656bda8ab7301

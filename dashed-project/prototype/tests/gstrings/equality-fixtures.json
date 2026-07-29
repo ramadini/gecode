@@ -150,6 +150,51 @@
         "NSBlock(NSIntSet('a', 'a'), 0, 5)",
         "NSBlocks vz(1, NSBlock(NSIntSet('a', 'a'), 1, 6))"
       ]
+    },
+    {
+      "id": "str_test2.test17",
+      "function": "test17",
+      "anchors": [
+        "DashedString x(*this, \"0=1\")",
+        "y.blocks().front().known()",
+        "y.length() == 2"
+      ]
+    },
+    {
+      "id": "str_test2.test18",
+      "function": "test18",
+      "anchors": [
+        "DashedString x(*this, \"Zz1xJr2yi3kD0njK4mjOWu5HaEnNDg9",
+        "y.blocks().back().known()",
+        "y.length() == 2"
+      ]
+    },
+    {
+      "id": "str_test2.test19",
+      "function": "test19",
+      "anchors": [
+        "DashedString x(*this, \"67FDM6EUFULST0LM1I7YJPE4XSX5DIEQ",
+        "y.blocks().front().known()",
+        "y.length() == 2"
+      ]
+    },
+    {
+      "id": "str_test2.test20",
+      "function": "test20",
+      "anchors": [
+        "DashedString x(*this, \"ab =ab\")",
+        "NSBlocks vy(\"ab =\")",
+        "assert (x == y)"
+      ]
+    },
+    {
+      "id": "str_test2.test22",
+      "function": "test22",
+      "anchors": [
+        "NSBlock(NSIntSet('a', 'a'), 1, 2)",
+        "NSBlock(NSIntSet('a', 'b'), 2, 3)",
+        "x.val() == \"aab\""
+      ]
     }
   ]
 }

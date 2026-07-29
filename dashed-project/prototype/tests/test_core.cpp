@@ -172,6 +172,42 @@ void test_uniform_fixed_run_normalization() {
       nonuniform.segments().front()));
 }
 
+void test_unrelated_literal_run_canonicalization() {
+  LiteralSlice first(std::vector<int>{1, 2, 3});
+  LiteralSlice second(std::vector<int>{4, 5});
+  assert(!first.shares_storage_with(second));
+
+  const Domain adjacent(
+      {
+          LiteralSegment{first},
+          LiteralSegment{second},
+      },
+      5,
+      5);
+
+  const Domain expected = Domain::fixed({1, 2, 3, 4, 5});
+  assert(adjacent == expected);
+  assert(adjacent.segment_count() == 1);
+  assert(adjacent.assigned());
+
+  // A zero-width repeat can disappear only after global length tightening.
+  // The newly adjacent literal slices must still end in the same canonical
+  // representation.
+  const Domain exposed_after_tightening(
+      {
+          LiteralSegment{
+              LiteralSlice(std::vector<int>{1, 2, 3})},
+          RepeatSegment{ValueSet(9), 0, 2},
+          LiteralSegment{
+              LiteralSlice(std::vector<int>{4, 5})},
+      },
+      5,
+      5);
+
+  assert(exposed_after_tightening == expected);
+  assert(exposed_after_tightening.segment_count() == 1);
+}
+
 void test_normalization() {
   ValueSet digits(-1000, 1000);
   Domain domain(
@@ -1019,7 +1055,9 @@ void test_concat() {
   assert(!result.failed());
   assert(result.subsumed);
   assert(z.value() == std::vector<int>({1, 2, 3, 4, 5}));
-  assert(z.segment_count() == 2);  // Different immutable backing buffers.
+  // Canonical assigned literals are merged even when the two inputs use
+  // different immutable backing buffers. The copy happens once for the run.
+  assert(z.segment_count() == 1);
 
   Domain whole = Domain::fixed({10, 11, 12, 13, 14});
   Domain prefix = Domain::fixed({10, 11});
@@ -3672,6 +3710,7 @@ int main() {
   test_literal_slices_share();
   test_fixed_block_compaction();
   test_uniform_fixed_run_normalization();
+  test_unrelated_literal_run_canonicalization();
   test_normalization();
   test_saturated_global_length_tightening();
   test_membership();

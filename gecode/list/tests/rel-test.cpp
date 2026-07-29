@@ -525,6 +525,111 @@ void equality_clone_is_independent() {
 }
 
 
+void fixed_literal_equality_canonicalizes_native() {
+  const Gecode::List::Domain left = fixed({
+      static_cast<int>('a'),
+      static_cast<int>('b'),
+      static_cast<int>(' '),
+      static_cast<int>('='),
+      static_cast<int>('a'),
+      static_cast<int>('b'),
+  });
+
+  const Gecode::List::Domain right(
+      {
+          Gecode::List::LiteralSegment{
+              Gecode::List::LiteralSlice(
+                  std::vector<int>{
+                      static_cast<int>('a'),
+                      static_cast<int>('b'),
+                      static_cast<int>(' '),
+                      static_cast<int>('='),
+                  })},
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(static_cast<int>('0')),
+              0,
+              2},
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(static_cast<int>('a')),
+              1,
+              1},
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(static_cast<int>('b')),
+              1,
+              1},
+      },
+      6,
+      8);
+
+  auto* root = new EqualitySpace(left, right);
+  assert(root->status() != Gecode::SS_FAILED);
+  assert(root->x.assigned());
+  assert(root->y.assigned());
+  assert(root->x.domain() == root->y.domain());
+  assert(root->y.domain().segment_count() == 1);
+
+  auto* clone = static_cast<EqualitySpace*>(root->clone());
+  assert(clone->status() != Gecode::SS_FAILED);
+  assert(clone->x.domain() == root->x.domain());
+  assert(clone->y.domain() == root->y.domain());
+
+  delete root;
+  delete clone;
+}
+
+
+void legacy_assignment_case22_native() {
+  const Gecode::List::Domain left(
+      {
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(static_cast<int>('a')),
+              1,
+              2},
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(static_cast<int>('b')),
+              1,
+              1},
+      },
+      2,
+      3);
+
+  const Gecode::List::Domain right(
+      {
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(static_cast<int>('a')),
+              1,
+              1},
+          Gecode::List::RepeatSegment{
+              Gecode::List::ValueSet(
+                  static_cast<int>('a'),
+                  static_cast<int>('b')),
+              2,
+              3},
+      },
+      3,
+      4);
+
+  auto* root = new EqualitySpace(left, right);
+  assert(root->status() != Gecode::SS_FAILED);
+  assert(root->x.assigned());
+  assert(root->y.assigned());
+  assert(root->x.val() == std::vector<int>({
+      static_cast<int>('a'),
+      static_cast<int>('a'),
+      static_cast<int>('b'),
+  }));
+  assert(root->x.val() == root->y.val());
+
+  auto* clone = static_cast<EqualitySpace*>(root->clone());
+  assert(clone->status() != Gecode::SS_FAILED);
+  assert(clone->x.val() == root->x.val());
+  assert(clone->y.val() == root->y.val());
+
+  delete root;
+  delete clone;
+}
+
+
 void unbounded_equality_preserves_empty_prefix_native() {
   const Gecode::List::Domain left(
       {
@@ -3609,6 +3714,8 @@ int main() {
   equality_assigns_unknown_side();
   equality_rejects_disjoint_lists();
   equality_clone_is_independent();
+  fixed_literal_equality_canonicalizes_native();
+  legacy_assignment_case22_native();
   unbounded_equality_preserves_empty_prefix_native();
   segmented_equality_refines_mandatory_regions();
 

@@ -17,7 +17,7 @@ cmake \
 
 cmake \
   --build "$BUILD" \
-  --target dashed_gstrings_differential_tests dashed_gstrings_extended_tests dashed_gstrings_large_tests \
+  --target dashed_gstrings_differential_tests dashed_gstrings_extended_tests dashed_gstrings_large_tests dashed_gstrings_fixed_tests \
   --parallel "$JOBS"
 
 python3 \
@@ -42,13 +42,34 @@ python3 \
   --runner "$BUILD/dashed_gstrings_large_tests"
 
 python3 \
+  "$PROTOTYPE/tools/compare_extended_differential_reports.py" \
+  --expected "$PROTOTYPE/tests/gstrings/expected-equality-fixed.tsv" \
+  --runner "$BUILD/dashed_gstrings_fixed_tests"
+
+fixed_fixture_directory="$(mktemp -d)"
+fixed_fixture_file="$fixed_fixture_directory/fixed-literals.tsv"
+cleanup_fixed_fixtures() {
+  rm -rf "$fixed_fixture_directory"
+}
+trap cleanup_fixed_fixtures EXIT
+
+python3 \
+  "$PROTOTYPE/tools/extract_gstrings_fixed_literals.py" \
+  --output "$fixed_fixture_file" \
+  --fetch-origin \
+  "$@"
+
+"$BUILD/dashed_gstrings_fixed_tests" \
+  --source-fixtures "$fixed_fixture_file"
+
+python3 \
   "$PROTOTYPE/tools/generate_gstrings_solution_reference.py" \
   --check "$PROTOTYPE/tests/gstrings/expected-search-solutions.tsv"
 
 if [[ -n "${GSTRINGS_DIFFERENTIAL_RUNNER:-}" ]]; then
   legacy_report="$(mktemp)"
   list_report="$(mktemp)"
-  trap 'rm -f "$legacy_report" "$list_report"' EXIT
+  trap 'rm -rf "$fixed_fixture_directory"; rm -f "$legacy_report" "$list_report"' EXIT
 
   "$GSTRINGS_DIFFERENTIAL_RUNNER" --report "$legacy_report"
   "$BUILD/dashed_gstrings_differential_tests" --report "$list_report"
