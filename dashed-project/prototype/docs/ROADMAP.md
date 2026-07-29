@@ -16,8 +16,9 @@
 - finish `ListVarImp`, `ListVar`, and `ListView` against generated signatures;
 - Gecode-style `ListVarArgs`/`ListVarArray` traits, construction, and cloning (included);
 - add native equality and length propagators;
-- test space cloning, disposal, subscriptions, failure, and subsumption under
-  ASan/UBSan.
+- standalone ASan/UBSan lifecycle and leak gate (included);
+- test native space cloning, disposal, subscriptions, failure, subsumption,
+  branchers, and no-good literals under ASan/UBSan.
 
 ## Milestone 3 — restore propagation strength
 

@@ -4,6 +4,8 @@ project(Dashed VERSION 0.1.0 LANGUAGES CXX)
 option(DASHED_BUILD_TESTS "Build Dashed tests" ON)
 option(DASHED_BUILD_BENCHMARKS "Build Dashed microbenchmarks" ON)
 option(DASHED_ENABLE_SANITIZERS "Enable ASan and UBSan on supported compilers" OFF)
+set(DASHED_SANITIZER_SET "address,undefined" CACHE STRING
+  "Comma-separated compiler sanitizers enabled when DASHED_ENABLE_SANITIZERS is ON")
 
 add_library(dashed_core
   src/branching.cpp
@@ -28,8 +30,15 @@ target_compile_options(dashed_core PRIVATE
 )
 
 if(DASHED_ENABLE_SANITIZERS AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-  target_compile_options(dashed_core PUBLIC -fsanitize=address,undefined -fno-omit-frame-pointer)
-  target_link_options(dashed_core PUBLIC -fsanitize=address,undefined)
+  target_compile_options(dashed_core PUBLIC
+    -fsanitize=${DASHED_SANITIZER_SET}
+    -fno-omit-frame-pointer
+    -fno-sanitize-recover=all
+  )
+  target_link_options(dashed_core PUBLIC
+    -fsanitize=${DASHED_SANITIZER_SET}
+    -fno-sanitize-recover=all
+  )
 endif()
 
 add_executable(dashed_example examples/basic.cpp)
@@ -44,6 +53,19 @@ if(DASHED_BUILD_TESTS)
   add_executable(dashed_property_tests tests/test_properties.cpp)
   target_link_libraries(dashed_property_tests PRIVATE Dashed::core)
   add_test(NAME dashed_property_tests COMMAND dashed_property_tests)
+
+  add_executable(
+    dashed_sanitizer_lifecycle_tests
+    tests/test_sanitizer_lifecycle.cpp
+  )
+  target_link_libraries(
+    dashed_sanitizer_lifecycle_tests
+    PRIVATE Dashed::core
+  )
+  add_test(
+    NAME dashed_sanitizer_lifecycle_tests
+    COMMAND dashed_sanitizer_lifecycle_tests
+  )
 
   add_executable(
     dashed_gstrings_differential_tests

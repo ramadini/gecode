@@ -134,3 +134,29 @@ mutating its inputs. Case 23 uses an independent exact pattern oracle to prove
 language disjointness while confirming that low-level sweep feasibility is not
 an equatability oracle and that unsupported mixed-domain projections remain
 transactional.
+
+## Reproducible standalone sanitizer gate
+
+Run the standalone memory-safety matrix with:
+
+```sh
+JOBS=1 ./dashed-project/scripts/run-standalone-sanitizers.sh
+```
+
+The gate configures independent Debug builds for AddressSanitizer and
+UndefinedBehaviorSanitizer, compiles the standalone kernel and tests with
+warnings treated as errors, and executes every CTest entry serially.
+AddressSanitizer enables leak detection and halts at the first error; UBSan
+prints a stack trace and does not recover from undefined behavior.
+
+`dashed_sanitizer_lifecycle_tests` adds explicit stress for:
+
+- immutable literal payloads surviving destruction of their source domain;
+- independent narrowing of thousands of persistent domain copies;
+- cleanup after failed equality, concatenation, length, and reified propagation;
+- repeated normalization of many-segment domains;
+- repeated literal slicing, concatenation, and propagation.
+
+This gate validates the standalone backend. Native Gecode space allocation,
+propagator disposal, brancher/NGL lifecycle, and DFS cloning remain a separate
+sanitizer milestone.
