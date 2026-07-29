@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
+#include <limits>
 #include <variant>
 #include <vector>
 
@@ -737,6 +738,499 @@ SweepStatus project_repeat_values(
             std::move(refined_values),
             lower,
             upper});
+  }
+
+  Domain candidate(
+      std::move(projected),
+      subject.min_length(),
+      subject.max_length());
+
+  if (candidate.failed()) {
+    return SweepStatus::infeasible;
+  }
+
+  refined = std::move(candidate);
+  return SweepStatus::feasible;
+}
+
+
+SweepStatus project_repeat_regions(
+    const Domain& subject,
+    const Domain& target,
+    Domain& refined) {
+  SweepAnalysis analysis;
+
+  const SweepStatus analysis_status =
+      analyze_repeat_sweep(
+          subject,
+          target,
+          analysis);
+
+  if (analysis_status != SweepStatus::feasible) {
+    return analysis_status;
+  }
+
+  std::vector<const RepeatSegment*> subject_blocks;
+  std::vector<const RepeatSegment*> target_blocks;
+
+  subject_blocks.reserve(subject.segment_count());
+  target_blocks.reserve(target.segment_count());
+
+  for (const Segment& segment : subject.segments()) {
+    const auto* repeat =
+        std::get_if<RepeatSegment>(&segment);
+
+    if (repeat == nullptr) {
+      return SweepStatus::unsupported;
+    }
+
+    subject_blocks.push_back(repeat);
+  }
+
+  for (const Segment& segment : target.segments()) {
+    const auto* repeat =
+        std::get_if<RepeatSegment>(&segment);
+
+    if (repeat == nullptr) {
+      return SweepStatus::unsupported;
+    }
+
+    target_blocks.push_back(repeat);
+  }
+
+  if (target_blocks.empty() ||
+      analysis.blocks.size() !=
+          subject_blocks.size()) {
+    return SweepStatus::unsupported;
+  }
+
+  struct Piece {
+    ValueSet values;
+    Length lower;
+    Length upper;
+  };
+
+  auto position_less =
+      [](const SweepPosition& lhs,
+         const SweepPosition& rhs) {
+        if (lhs.segment != rhs.segment) {
+          return lhs.segment < rhs.segment;
+        }
+
+        return lhs.offset < rhs.offset;
+      };
+
+  auto valid_position =
+      [&](const SweepPosition& position) {
+        if (position.segment < 0) {
+          return false;
+        }
+
+        const auto index =
+            static_cast<std::size_t>(
+                position.segment);
+
+        return
+            index < target_blocks.size() &&
+            position.offset <=
+                target_blocks[index]->upper;
+      };
+
+  auto append_optional =
+      [&](const SweepPosition& begin,
+          const SweepPosition& end,
+          std::vector<Piece>& pieces) {
+        if (begin == end) {
+          return true;
+        }
+
+        if (!valid_position(begin) ||
+            !valid_position(end) ||
+            !position_less(begin, end)) {
+          return false;
+        }
+
+        std::vector<IntRange> ranges;
+        std::uint64_t upper = 0;
+
+        const auto first =
+            static_cast<std::size_t>(
+                begin.segment);
+        const auto last =
+            static_cast<std::size_t>(
+                end.segment);
+
+        for (std::size_t index = first;
+             index <= last;
+             ++index) {
+          const RepeatSegment& block =
+              *target_blocks[index];
+
+          const Length local_begin =
+              index == first
+                  ? begin.offset
+                  : Length{0};
+
+          const Length local_end =
+              index == last
+                  ? end.offset
+                  : block.upper;
+
+          if (local_end < local_begin ||
+              local_end > block.upper) {
+            return false;
+          }
+
+          if (local_end == local_begin) {
+            continue;
+          }
+
+          upper +=
+              static_cast<std::uint64_t>(
+                  local_end - local_begin);
+
+          const std::vector<IntRange> block_ranges =
+              block.values.ranges();
+
+          ranges.insert(
+              ranges.end(),
+              block_ranges.begin(),
+              block_ranges.end());
+        }
+
+        if (upper == 0) {
+          return true;
+        }
+
+        if (upper >
+            std::numeric_limits<Length>::max()) {
+          return false;
+        }
+
+        pieces.push_back(
+            Piece{
+                ValueSet{
+                    Span<const IntRange>(ranges)},
+                0,
+                static_cast<Length>(upper)});
+
+        return true;
+      };
+
+  auto append_mandatory =
+      [&](const SweepPosition& begin,
+          const SweepPosition& end,
+          std::vector<Piece>& pieces) {
+        if (begin == end) {
+          return true;
+        }
+
+        if (!valid_position(begin) ||
+            !valid_position(end) ||
+            !position_less(begin, end)) {
+          return false;
+        }
+
+        const auto first =
+            static_cast<std::size_t>(
+                begin.segment);
+        const auto last =
+            static_cast<std::size_t>(
+                end.segment);
+
+        for (std::size_t index = first;
+             index <= last;
+             ++index) {
+          const RepeatSegment& block =
+              *target_blocks[index];
+
+          const Length local_begin =
+              index == first
+                  ? begin.offset
+                  : Length{0};
+
+          const Length local_end =
+              index == last
+                  ? end.offset
+                  : block.upper;
+
+          if (local_end < local_begin ||
+              local_end > block.upper) {
+            return false;
+          }
+
+          const Length upper =
+              static_cast<Length>(
+                  local_end - local_begin);
+
+          if (upper == 0) {
+            continue;
+          }
+
+          const std::uint64_t removed =
+              static_cast<std::uint64_t>(
+                  local_begin) +
+              static_cast<std::uint64_t>(
+                  block.upper - local_end);
+
+          const Length lower =
+              removed >= block.lower
+                  ? Length{0}
+                  : static_cast<Length>(
+                        block.lower - removed);
+
+          pieces.push_back(
+              Piece{
+                  block.values,
+                  lower,
+                  upper});
+        }
+
+        return true;
+      };
+
+  auto exact_singleton =
+      [](const Piece& piece) {
+        return
+            piece.lower == piece.upper &&
+            piece.upper > 0 &&
+            piece.values.singleton();
+      };
+
+  std::vector<Segment> projected;
+
+  for (std::size_t subject_index = 0;
+       subject_index < subject_blocks.size();
+       ++subject_index) {
+    const RepeatSegment& source =
+        *subject_blocks[subject_index];
+
+    const SweepBlockMatch& match =
+        analysis.blocks[subject_index];
+
+    if (!valid_position(match.earliest_start) ||
+        !valid_position(match.earliest_end) ||
+        !valid_position(match.latest_start) ||
+        !valid_position(match.latest_end) ||
+        position_less(
+            match.latest_start,
+            match.earliest_start) ||
+        position_less(
+            match.latest_end,
+            match.earliest_end)) {
+      return SweepStatus::infeasible;
+    }
+
+    std::vector<Piece> region;
+
+    // Optional prefix: earliest start to latest start.
+    if (!append_optional(
+            match.earliest_start,
+            match.latest_start,
+            region)) {
+      return SweepStatus::infeasible;
+    }
+
+    // Mandatory middle exists only when latest start precedes earliest end.
+    if (position_less(
+            match.latest_start,
+            match.earliest_end)) {
+      if (!append_mandatory(
+              match.latest_start,
+              match.earliest_end,
+              region)) {
+        return SweepStatus::infeasible;
+      }
+    }
+
+    // Optional suffix: earliest end to latest end.
+    if (!append_optional(
+            match.earliest_end,
+            match.latest_end,
+            region)) {
+      return SweepStatus::infeasible;
+    }
+
+    std::vector<Piece> compatible;
+    compatible.reserve(region.size());
+
+    std::uint64_t total_lower = 0;
+    std::uint64_t total_upper = 0;
+
+    for (Piece& piece : region) {
+      ValueSet values =
+          source.values.intersected(
+              piece.values);
+
+      if (values.empty()) {
+        if (piece.lower > 0) {
+          return SweepStatus::infeasible;
+        }
+
+        continue;
+      }
+
+      piece.values = std::move(values);
+
+      total_lower += piece.lower;
+      total_upper += piece.upper;
+
+      compatible.push_back(std::move(piece));
+    }
+
+    if (total_upper < source.lower ||
+        total_lower > source.upper) {
+      return SweepStatus::infeasible;
+    }
+
+    if (compatible.empty()) {
+      if (source.lower > 0) {
+        return SweepStatus::infeasible;
+      }
+
+      continue;
+    }
+
+    /*
+     * Preserve target segmentation only when the mandatory region itself
+     * fully explains the subject's cardinality interval.
+     *
+     * Otherwise collapse the uncertain region to one repeat segment while
+     * retaining exact singleton blocks forced at the outer boundaries.
+     */
+    const bool collapse =
+        total_lower == 0 ||
+        total_lower < source.lower ||
+        total_upper > source.upper;
+
+    if (!collapse) {
+      for (Piece& piece : compatible) {
+        projected.push_back(
+            RepeatSegment{
+                std::move(piece.values),
+                piece.lower,
+                piece.upper});
+      }
+
+      continue;
+    }
+
+    std::size_t prefix_end = 0;
+
+    while (prefix_end < compatible.size() &&
+           exact_singleton(
+               compatible[prefix_end])) {
+      ++prefix_end;
+    }
+
+    std::size_t suffix_begin =
+        compatible.size();
+
+    while (suffix_begin > prefix_end &&
+           exact_singleton(
+               compatible[suffix_begin - 1])) {
+      --suffix_begin;
+    }
+
+    std::uint64_t edge_count = 0;
+
+    for (std::size_t index = 0;
+         index < prefix_end;
+         ++index) {
+      edge_count += compatible[index].upper;
+    }
+
+    for (std::size_t index = suffix_begin;
+         index < compatible.size();
+         ++index) {
+      edge_count += compatible[index].upper;
+    }
+
+    const std::uint64_t refined_lower =
+        std::max<std::uint64_t>(
+            source.lower,
+            total_lower);
+
+    const std::uint64_t refined_upper =
+        std::min<std::uint64_t>(
+            source.upper,
+            total_upper);
+
+    if (refined_lower > refined_upper ||
+        edge_count > refined_upper) {
+      return SweepStatus::infeasible;
+    }
+
+    for (std::size_t index = 0;
+         index < prefix_end;
+         ++index) {
+      Piece& piece = compatible[index];
+
+      projected.push_back(
+          RepeatSegment{
+              std::move(piece.values),
+              piece.lower,
+              piece.upper});
+    }
+
+    const std::uint64_t core_lower =
+        refined_lower > edge_count
+            ? refined_lower - edge_count
+            : 0;
+
+    const std::uint64_t core_upper =
+        refined_upper - edge_count;
+
+    if (core_upper > 0) {
+      if (core_upper >
+          std::numeric_limits<Length>::max()) {
+        return SweepStatus::unsupported;
+      }
+
+      // Build the collapsed core alphabet only from pieces that remain
+      // inside the core. Exact singleton prefix/suffix pieces are emitted
+      // separately and must not leak their values back into this block.
+      std::vector<IntRange> core_ranges;
+
+      for (std::size_t index = prefix_end;
+           index < suffix_begin;
+           ++index) {
+        const std::vector<IntRange> ranges =
+            compatible[index].values.ranges();
+
+        core_ranges.insert(
+            core_ranges.end(),
+            ranges.begin(),
+            ranges.end());
+      }
+
+      const ValueSet core_values{
+          Span<const IntRange>(core_ranges)};
+
+      if (core_values.empty()) {
+        return SweepStatus::infeasible;
+      }
+
+      projected.push_back(
+          RepeatSegment{
+              core_values,
+              static_cast<Length>(
+                  core_lower),
+              static_cast<Length>(
+                  core_upper)});
+    }
+
+    for (std::size_t index = suffix_begin;
+         index < compatible.size();
+         ++index) {
+      Piece& piece = compatible[index];
+
+      projected.push_back(
+          RepeatSegment{
+              std::move(piece.values),
+              piece.lower,
+              piece.upper});
+    }
   }
 
   Domain candidate(

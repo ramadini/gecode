@@ -347,6 +347,85 @@ void test_variable_width_value_projection() {
   assert(refined_y == y);
 }
 
+void test_boundary_cardinality_projection() {
+  Domain x(
+      {
+          RepeatSegment{
+              ValueSet(1, 3),
+              0,
+              3},
+          RepeatSegment{
+              ValueSet(4),
+              1,
+              1},
+          RepeatSegment{
+              ValueSet(3, 6),
+              0,
+              2},
+      },
+      1,
+      6);
+
+  Domain y(
+      {
+          RepeatSegment{
+              ValueSet(2, 4),
+              0,
+              3},
+          RepeatSegment{
+              ValueSet(6),
+              1,
+              1},
+      },
+      1,
+      4);
+
+  assert(
+      !dashed::failed(
+          x.tighten_length(1, 4)));
+
+  Domain refined = x;
+
+  const SweepStatus status =
+      dashed::detail::project_repeat_regions(
+          x,
+          y,
+          refined);
+
+  assert(status == SweepStatus::feasible);
+
+  const Domain expected(
+      {
+          RepeatSegment{
+              ValueSet(2, 3),
+              0,
+              2},
+          RepeatSegment{
+              ValueSet(4),
+              1,
+              1},
+          RepeatSegment{
+              ValueSet(3, 4),
+              0,
+              1},
+          RepeatSegment{
+              ValueSet(6),
+              1,
+              1},
+      },
+      2,
+      4);
+
+  std::cerr
+      << "region projected: "
+      << refined << '\n';
+  std::cerr
+      << "region expected:  "
+      << expected << '\n';
+
+  assert(refined == expected);
+}
+
 void test_literals_are_not_expanded() {
   const Domain literal =
       Domain::fixed({1, 2, 3});
@@ -379,6 +458,7 @@ int main() {
   test_legacy_test02_projection();
   test_projection_detects_mandatory_incompatibility();
   test_variable_width_value_projection();
+  test_boundary_cardinality_projection();
   test_literals_are_not_expanded();
 
   std::cout

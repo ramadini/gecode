@@ -80,4 +80,17 @@ enum class SweepStatus {
     const Domain& target,
     Domain& refined);
 
+
+/**
+ * Refine a repeat-only subject using the optional and mandatory regions
+ * identified by sweep analysis.
+ *
+ * A subject block can be replaced by multiple repeat segments when a
+ * mandatory target prefix or suffix must be represented explicitly.
+ */
+[[nodiscard]] SweepStatus project_repeat_regions(
+    const Domain& subject,
+    const Domain& target,
+    Domain& refined);
+
 }  // namespace dashed::detail

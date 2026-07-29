@@ -131,6 +131,17 @@ Change project_sweep(
     refined = subject;
 
     status =
+        detail::project_repeat_regions(
+            subject,
+            target,
+            refined);
+  }
+
+  if (status ==
+      detail::SweepStatus::unsupported) {
+    refined = subject;
+
+    status =
         detail::project_repeat_values(
             subject,
             target,

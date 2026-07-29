@@ -522,6 +522,110 @@ void test_single_repeat_equality_refinement_guards() {
   }
 }
 
+void test_legacy_equality_boundary_cardinality_test16() {
+  // Port of old str_test2::test16 using generic integers:
+  //
+  // x = {1..3}^0..3 {4}^1 {3..6}^0..2
+  // y = {2..4}^0..3 {6}^1
+  //
+  // Equality makes the final 6 mandatory, tightens the blocks before it,
+  // and requires at least one occurrence of y's first block.
+  Domain x(
+      {
+          RepeatSegment{
+              ValueSet(1, 3),
+              0,
+              3},
+          RepeatSegment{
+              ValueSet(4),
+              1,
+              1},
+          RepeatSegment{
+              ValueSet(3, 6),
+              0,
+              2},
+      },
+      1,
+      6);
+
+  Domain y(
+      {
+          RepeatSegment{
+              ValueSet(2, 4),
+              0,
+              3},
+          RepeatSegment{
+              ValueSet(6),
+              1,
+              1},
+      },
+      1,
+      4);
+
+  const Domain expected_x(
+      {
+          RepeatSegment{
+              ValueSet(2, 3),
+              0,
+              2},
+          RepeatSegment{
+              ValueSet(4),
+              1,
+              1},
+          RepeatSegment{
+              ValueSet(3, 4),
+              0,
+              1},
+          RepeatSegment{
+              ValueSet(6),
+              1,
+              1},
+      },
+      2,
+      4);
+
+  const Domain expected_y(
+      {
+          RepeatSegment{
+              ValueSet(2, 4),
+              1,
+              3},
+          RepeatSegment{
+              ValueSet(6),
+              1,
+              1},
+      },
+      2,
+      4);
+
+  const auto first =
+      dashed::propagate_equal(x, y);
+
+  assert(!first.failed());
+
+  const auto second =
+      dashed::propagate_equal(x, y);
+
+  assert(!second.failed());
+
+  std::cerr
+      << "boundary-cardinality x: "
+      << x << '\n';
+  std::cerr
+      << "boundary-cardinality y: "
+      << y << '\n';
+  std::cerr
+      << "expected x:             "
+      << expected_x << '\n';
+  std::cerr
+      << "expected y:             "
+      << expected_y << '\n';
+
+  assert(x == expected_x);
+  assert(y == expected_y);
+  assert(!second.subsumed);
+}
+
 void test_legacy_equality_variable_width_test09() {
   // Port of old str_test2::test09 using generic integers.
   //
@@ -766,6 +870,7 @@ int main() {
   test_membership();
   test_length_propagation();
   test_segmented_equality_sweep_symmetry_and_failure();
+  test_legacy_equality_boundary_cardinality_test16();
   test_legacy_equality_variable_width_test09();
   test_legacy_equality_multi_segment_sweep();
   test_single_repeat_equality_refinement_guards();
