@@ -24,6 +24,6 @@
 3. Port equality sweeps.
 4. Port concatenation sweeps.
 5. Replace old public `StringVar` with `ListVar` in one example model.
-6. Add branching and printing.
+6. Add branching; Gecode-style list arrays and deterministic variable printing are included.
 7. Port remaining constraints one family at a time.
 8. Remove the compatibility converter once all fixtures pass.

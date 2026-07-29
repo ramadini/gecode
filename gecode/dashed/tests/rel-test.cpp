@@ -2,6 +2,9 @@
 
 #include <cassert>
 #include <iostream>
+#include <sstream>
+#include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -24,6 +27,44 @@ dashed::Domain lists(int lo, int hi,
       min_length,
       max_length);
 }
+
+
+class ListArraySpace final : public Space {
+ public:
+  Gecode::ListVarArray x;
+
+  explicit ListArraySpace(bool construct_through_arguments)
+      : Space(),
+        x() {
+    const dashed::Domain initial =
+        lists(-20, 20, 1, 4);
+
+    if (construct_through_arguments) {
+      Gecode::ListVarArgs arguments(
+          *this,
+          3,
+          initial);
+      x = Gecode::ListVarArray(
+          *this,
+          arguments);
+    } else {
+      x = Gecode::ListVarArray(
+          *this,
+          3,
+          initial);
+    }
+  }
+
+  ListArraySpace(ListArraySpace& other)
+      : Space(other),
+        x() {
+    x.update(*this, other.x);
+  }
+
+  Space* copy() override {
+    return new ListArraySpace(*this);
+  }
+};
 
 
 class EqualitySpace final : public Space {
@@ -2651,10 +2692,113 @@ void half_reification_alias_and_clone_native() {
   }
 }
 
+void list_var_arrays_clone_and_print_native() {
+  static_assert(
+      std::is_same_v<
+          Gecode::ArrayTraits<
+              Gecode::ListVarArgs>::ArgsType,
+          Gecode::ListVarArgs>);
+
+  static_assert(
+      std::is_same_v<
+          Gecode::ArrayTraits<
+              Gecode::ListVarArray>::ArgsType,
+          Gecode::ListVarArgs>);
+
+  for (bool through_arguments : {false, true}) {
+    auto* root =
+        new ListArraySpace(
+            through_arguments);
+
+    assert(
+        root->status() !=
+        Gecode::SS_FAILED);
+
+    assert(root->x.size() == 3);
+
+    for (int i = 0;
+         i < root->x.size();
+         ++i) {
+      assert(!root->x[i].assigned());
+      assert(root->x[i].min_length() == 1);
+      assert(root->x[i].max_length() == 4);
+    }
+
+    // Construction from VarArray and generic concatenation both depend on
+    // the ListVar ArrayTraits specializations.
+    Gecode::ListVarArgs arguments(
+        root->x);
+
+    assert(arguments.size() == 3);
+
+    Gecode::ListVarArgs prefixed =
+        root->x[0] + arguments;
+
+    assert(prefixed.size() == 4);
+    assert(
+        prefixed[0].varimp() ==
+        root->x[0].varimp());
+    assert(
+        prefixed[1].varimp() ==
+        root->x[0].varimp());
+    assert(
+        prefixed[3].varimp() ==
+        root->x[2].varimp());
+
+    std::ostringstream rendered;
+    rendered << root->x[0];
+
+    assert(
+        rendered.str() ==
+        root->x[0].domain().to_string());
+
+    std::ostringstream rendered_array;
+    rendered_array << root->x;
+    assert(!rendered_array.str().empty());
+
+    auto* clone =
+        static_cast<ListArraySpace*>(
+            root->clone());
+
+    Gecode::Dashed::ListView
+        clone_middle(clone->x[1]);
+
+    const Gecode::ModEvent me =
+        clone_middle.replace(
+            *clone,
+            fixed({7, -3, 11}));
+
+    if (Gecode::me_failed(me))
+      clone->fail();
+
+    assert(
+        clone->status() !=
+        Gecode::SS_FAILED);
+
+    assert(clone->x[1].assigned());
+    assert(
+        clone->x[1].val() ==
+        std::vector<int>({7, -3, 11}));
+
+    assert(!clone->x[0].assigned());
+    assert(!clone->x[2].assigned());
+
+    // Cloning the space must update every array element independently.
+    assert(!root->x[1].assigned());
+    assert(root->x[1].min_length() == 1);
+    assert(root->x[1].max_length() == 4);
+
+    delete root;
+    delete clone;
+  }
+}
+
+
 } // namespace
 
 
 int main() {
+  list_var_arrays_clone_and_print_native();
   half_reification_alias_and_clone_native();
   half_reification_modes_native();
   length_failure_clone_and_unbounded_native();

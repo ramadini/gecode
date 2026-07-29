@@ -13,7 +13,7 @@
 
 - integrate `.vis` generation in a Gecode 6.4 source tree;
 - finish `ListVarImp`, `ListVar`, and `ListView` against generated signatures;
-- add `ListVarArgs`/`ListVarArray` traits;
+- Gecode-style `ListVarArgs`/`ListVarArray` traits, construction, and cloning (included);
 - add native equality and length propagators;
 - test space cloning, disposal, subscriptions, failure, and subsumption under
   ASan/UBSan.
@@ -30,7 +30,7 @@
 
 - branch on length, block cardinality, or a distinguishing symbol position;
 - no-good literals where useful;
-- printing and archive support;
+- deterministic variable printing (included) and archive support;
 - MiniZinc/FlatZinc-facing predicates if desired.
 
 ## Milestone 5 — broader constraint set

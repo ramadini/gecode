@@ -93,6 +93,26 @@ tighten_length(home, lower, upper)
 It does not expose a mutable pointer to the domain and does not contain
 constraint algorithms.
 
+
+## Arrays and printing
+
+The native public layer provides:
+
+```text
+ListVarArgs   heap-backed argument arrays;
+ListVarArray  space-owned arrays with clone/update support.
+```
+
+Both support construction of independent variables from one immutable
+`dashed::Domain` descriptor. Heavy literal and sparse-value-set payloads remain
+shared, while every array element owns separate mutable domain metadata.
+`ArrayTraits` specializations allow the standard Gecode argument-array
+concatenation operators to work with `ListVar`.
+
+Streaming a `ListVar` prints the canonical `dashed::Domain` representation. It
+is deterministic and observational only; it does not enumerate the represented
+language or modify the variable.
+
 ## Propagators
 
 A propagator follows this transaction pattern:
