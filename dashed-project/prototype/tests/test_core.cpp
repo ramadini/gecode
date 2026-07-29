@@ -983,6 +983,134 @@ void test_concat() {
   assert(suffix_lit.shares_storage_with(whole_lit));
 }
 
+void test_concat_fixed_result_wide_split_interval() {
+  // Feasible split points are 1, 2, and 3:
+  //
+  //   z = [10,20,30,40,50]
+  //   |x| = 1..3
+  //   |y| = 2..4
+  //
+  // The optional singleton sequence is a sound dashed
+  // over-approximation of those three concrete splits.
+  Domain z =
+      Domain::fixed(
+          {10, 20, 30, 40, 50});
+
+  Domain x =
+      Domain::top(
+          ValueSet(-100, 100),
+          1,
+          3);
+
+  Domain y =
+      Domain::top(
+          ValueSet(-100, 100),
+          2,
+          4);
+
+  const Domain expected_x(
+      {
+          RepeatSegment{
+              ValueSet(10),
+              1,
+              1},
+          RepeatSegment{
+              ValueSet(20),
+              0,
+              1},
+          RepeatSegment{
+              ValueSet(30),
+              0,
+              1},
+      },
+      1,
+      3);
+
+  const Domain expected_y(
+      {
+          RepeatSegment{
+              ValueSet(20),
+              0,
+              1},
+          RepeatSegment{
+              ValueSet(30),
+              0,
+              1},
+          LiteralSegment{
+              LiteralSlice(
+                  std::vector<int>{
+                      40, 50})},
+      },
+      2,
+      4);
+
+  const auto first =
+      dashed::propagate_concat(
+          z,
+          x,
+          y);
+
+  assert(!first.failed());
+
+  const auto second =
+      dashed::propagate_concat(
+          z,
+          x,
+          y);
+
+  assert(!second.failed());
+
+  std::cerr
+      << "wide concat x: "
+      << x << '\n';
+  std::cerr
+      << "wide concat y: "
+      << y << '\n';
+  std::cerr
+      << "expected x:    "
+      << expected_x << '\n';
+  std::cerr
+      << "expected y:    "
+      << expected_y << '\n';
+
+  assert(x == expected_x);
+  assert(y == expected_y);
+
+  // Every concrete prefix represented by a feasible split is retained.
+  assert(
+      x.accepts(
+          Domain::fixed({10})));
+
+  assert(
+      x.accepts(
+          Domain::fixed({10, 20})));
+
+  assert(
+      x.accepts(
+          Domain::fixed(
+              {10, 20, 30})));
+
+  // Every corresponding suffix is also retained.
+  assert(
+      y.accepts(
+          Domain::fixed(
+              {20, 30, 40, 50})));
+
+  assert(
+      y.accepts(
+          Domain::fixed(
+              {30, 40, 50})));
+
+  assert(
+      y.accepts(
+          Domain::fixed(
+              {40, 50})));
+
+  assert(!x.assigned());
+  assert(!y.assigned());
+  assert(!second.subsumed);
+}
+
 void test_concat_fixed_result_split_interval() {
   // z is fixed, but the split point can be after position 1 or 2:
   //
@@ -1322,6 +1450,7 @@ int main() {
   test_equality();
   test_reified_relations();
   test_concat();
+  test_concat_fixed_result_wide_split_interval();
   test_concat_fixed_result_split_interval();
   test_concat_fixed_result_exact_split();
   test_concat_length_failure();
