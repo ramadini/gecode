@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+TEST_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+GECODE_ROOT="$(cd -- "$TEST_DIR/../../.." && pwd)"
+PROJECT_ROOT="$GECODE_ROOT/dashed-project"
+PROTOTYPE_ROOT="$PROJECT_ROOT/prototype"
+
+GECODE_BUILD="$GECODE_ROOT/build-dashed-native"
+CORE_BUILD="$PROTOTYPE_ROOT/build-native-core"
+
+JOBS="${JOBS:-1}"
+
+echo "Gecode root:    $GECODE_ROOT"
+echo "Prototype root: $PROTOTYPE_ROOT"
+echo "Build jobs:     $JOBS"
+
+cmake \
+  -S "$PROTOTYPE_ROOT" \
+  -B "$CORE_BUILD" \
+  -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DDASHED_BUILD_TESTS=OFF \
+  -DDASHED_BUILD_BENCHMARKS=OFF
+
+cmake \
+  --build "$CORE_BUILD" \
+  --target dashed_core \
+  --parallel "$JOBS"
+
+cmake \
+  -S "$GECODE_ROOT" \
+  -B "$GECODE_BUILD" \
+  -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_CXX_FLAGS="-DGECODE_HAS_DASHED_VARS=1" \
+  -DGECODE_WITH_VIS=gecode/dashed/var-imp/list.vis \
+  -DGECODE_ENABLE_QT=OFF \
+  -DGECODE_ENABLE_GIST=OFF \
+  -DGECODE_ENABLE_MPFR=OFF \
+  -DGECODE_ENABLE_EXAMPLES=OFF \
+  -DBUILD_TESTING=OFF \
+  -DGECODE_ENABLE_SEARCH=OFF \
+  -DGECODE_ENABLE_INT_VARS=ON \
+  -DGECODE_ENABLE_SET_VARS=OFF \
+  -DGECODE_ENABLE_FLOAT_VARS=OFF \
+  -DGECODE_ENABLE_MINIMODEL=OFF \
+  -DGECODE_ENABLE_DRIVER=OFF \
+  -DGECODE_ENABLE_FLATZINC=OFF
+
+cmake \
+  --build "$GECODE_BUILD" \
+  --parallel "$JOBS"
+
+CXX="${CXX:-g++}"
+
+"$CXX" \
+  -std=c++17 \
+  -DGECODE_HAS_DASHED_VARS=1 \
+  -DGECODE_NO_AUTOLINK \
+  -I"$GECODE_BUILD" \
+  -I"$GECODE_ROOT" \
+  -I"$PROTOTYPE_ROOT/include" \
+  "$TEST_DIR/rel-test.cpp" \
+  "$GECODE_ROOT/gecode/dashed/list-var-imp.cpp" \
+  "$CORE_BUILD/libdashed_core.a" \
+  -L"$GECODE_BUILD" \
+  -Wl,-rpath,"$GECODE_BUILD" \
+  -lgecodeint \
+  -lgecodekernel \
+  -lgecodesupport \
+  -pthread \
+  -o "$GECODE_BUILD/dashed-rel-test"
+
+"$GECODE_BUILD/dashed-rel-test"
