@@ -10,56 +10,133 @@
 namespace dashed::detail {
 namespace {
 
-class RepeatBlocks {
+class SweepBlocks {
  public:
   [[nodiscard]] bool initialize(
       const Domain& domain) {
-    blocks_.clear();
-    blocks_.reserve(domain.segment_count());
+    entries_.clear();
+    size_ = 0;
+
+    entries_.reserve(domain.segment_count());
 
     for (const Segment& segment :
          domain.segments()) {
-      const auto* repeat =
-          std::get_if<RepeatSegment>(&segment);
+      std::size_t count = 0;
 
-      if (repeat == nullptr) {
-        blocks_.clear();
+      if (std::holds_alternative<RepeatSegment>(
+              segment)) {
+        count = 1;
+      } else {
+        count =
+            std::get<LiteralSegment>(
+                segment).literal.size();
+      }
+
+      if (count == 0) {
+        continue;
+      }
+
+      if (count >
+          static_cast<std::size_t>(
+              std::numeric_limits<
+                  std::ptrdiff_t>::max()) -
+              size_) {
+        entries_.clear();
+        size_ = 0;
         return false;
       }
 
-      blocks_.push_back(repeat);
+      entries_.push_back(
+          Entry{
+              &segment,
+              size_,
+              count});
+
+      size_ += count;
     }
 
     return true;
   }
 
   [[nodiscard]] std::size_t size() const noexcept {
-    return blocks_.size();
+    return size_;
   }
 
-  [[nodiscard]] const RepeatSegment& at(
+  /**
+   * Return one logical sweep block.
+   *
+   * Repeat segments contribute one block. A literal contributes one exact
+   * singleton block per position, but no RepeatSegment vector is allocated.
+   */
+  [[nodiscard]] RepeatSegment at(
       std::ptrdiff_t index) const {
     assert(index >= 0);
+
+    const auto unsigned_index =
+        static_cast<std::size_t>(index);
+
+    assert(unsigned_index < size_);
+    assert(!entries_.empty());
+
+    auto iterator =
+        std::upper_bound(
+            entries_.begin(),
+            entries_.end(),
+            unsigned_index,
+            [](std::size_t value,
+               const Entry& entry) {
+              return value < entry.begin;
+            });
+
+    assert(iterator != entries_.begin());
+    --iterator;
+
     assert(
-        static_cast<std::size_t>(index) <
-        blocks_.size());
+        unsigned_index >= iterator->begin &&
+        unsigned_index <
+            iterator->begin + iterator->count);
 
-    return *blocks_[
-        static_cast<std::size_t>(index)];
+    if (const auto* repeat =
+            std::get_if<RepeatSegment>(
+                iterator->segment)) {
+      return *repeat;
+    }
+
+    const auto& literal =
+        std::get<LiteralSegment>(
+            *iterator->segment).literal;
+
+    const std::size_t literal_index =
+        unsigned_index - iterator->begin;
+
+    return RepeatSegment{
+        ValueSet(literal[literal_index]),
+        1,
+        1};
   }
 
-  [[nodiscard]] const RepeatSegment& front()
-      const {
-    return *blocks_.front();
+  [[nodiscard]] RepeatSegment front() const {
+    assert(size_ > 0);
+    return at(0);
   }
 
-  [[nodiscard]] const RepeatSegment& back()
-      const {
-    return *blocks_.back();
+  [[nodiscard]] RepeatSegment back() const {
+    assert(size_ > 0);
+
+    return at(
+        static_cast<std::ptrdiff_t>(
+            size_ - 1));
   }
 
  private:
-  std::vector<const RepeatSegment*> blocks_;
+  struct Entry {
+    const Segment* segment = nullptr;
+    std::size_t begin = 0;
+    std::size_t count = 0;
+  };
+
+  std::vector<Entry> entries_;
+  std::size_t size_ = 0;
 };
 
 
@@ -134,7 +211,7 @@ template<class Direction>
 
 
 [[nodiscard]] SweepPosition dual(
-    const RepeatBlocks& blocks,
+    const SweepBlocks& blocks,
     const SweepPosition& position) {
   assert(position.segment >= 0);
   const RepeatSegment& block =
@@ -151,7 +228,7 @@ template<class Direction>
 
 template<class Direction>
 [[nodiscard]] SweepPosition push_minimum(
-    const RepeatBlocks& target,
+    const SweepBlocks& target,
     const RepeatSegment& subject,
     SweepPosition& cursor,
     const SweepPosition& limit) {
@@ -225,7 +302,7 @@ template<class Direction>
 
 template<class Direction>
 [[nodiscard]] SweepPosition stretch_maximum(
-    const RepeatBlocks& target,
+    const SweepBlocks& target,
     const RepeatSegment& subject,
     SweepPosition cursor,
     const SweepPosition& limit) {
@@ -301,8 +378,8 @@ template<class Direction>
 
 
 [[nodiscard]] SweepStatus initialize_bounds(
-    const RepeatBlocks& subject,
-    const RepeatBlocks& target,
+    const SweepBlocks& subject,
+    const SweepBlocks& target,
     std::vector<SweepPosition>& earliest_start,
     std::vector<SweepPosition>& latest_end) {
   const std::size_t subject_size =
@@ -390,8 +467,8 @@ template<class Direction>
 
 
 [[nodiscard]] SweepStatus tighten_bounds(
-    const RepeatBlocks& subject,
-    const RepeatBlocks& target,
+    const SweepBlocks& subject,
+    const SweepBlocks& target,
     std::vector<SweepPosition>& earliest_start,
     std::vector<SweepPosition>& latest_end) {
   const std::size_t n = subject.size();
@@ -523,8 +600,8 @@ SweepStatus analyze_repeat_sweep(
     return SweepStatus::infeasible;
   }
 
-  RepeatBlocks subject;
-  RepeatBlocks target;
+  SweepBlocks subject;
+  SweepBlocks target;
 
   if (!subject.initialize(subject_domain) ||
       !target.initialize(target_domain)) {
@@ -771,10 +848,9 @@ SweepStatus project_repeat_regions(
   }
 
   std::vector<const RepeatSegment*> subject_blocks;
-  std::vector<const RepeatSegment*> target_blocks;
+  SweepBlocks target_blocks;
 
   subject_blocks.reserve(subject.segment_count());
-  target_blocks.reserve(target.segment_count());
 
   for (const Segment& segment : subject.segments()) {
     const auto* repeat =
@@ -787,18 +863,11 @@ SweepStatus project_repeat_regions(
     subject_blocks.push_back(repeat);
   }
 
-  for (const Segment& segment : target.segments()) {
-    const auto* repeat =
-        std::get_if<RepeatSegment>(&segment);
-
-    if (repeat == nullptr) {
-      return SweepStatus::unsupported;
-    }
-
-    target_blocks.push_back(repeat);
+  if (!target_blocks.initialize(target)) {
+    return SweepStatus::unsupported;
   }
 
-  if (target_blocks.empty() ||
+  if (target_blocks.size() == 0 ||
       analysis.blocks.size() !=
           subject_blocks.size()) {
     return SweepStatus::unsupported;
@@ -833,7 +902,9 @@ SweepStatus project_repeat_regions(
         return
             index < target_blocks.size() &&
             position.offset <=
-                target_blocks[index]->upper;
+                target_blocks.at(
+                static_cast<std::ptrdiff_t>(
+                    index)).upper;
       };
 
   auto append_optional =
@@ -863,8 +934,10 @@ SweepStatus project_repeat_regions(
         for (std::size_t index = first;
              index <= last;
              ++index) {
-          const RepeatSegment& block =
-              *target_blocks[index];
+          const RepeatSegment block =
+              target_blocks.at(
+                  static_cast<std::ptrdiff_t>(
+                      index));
 
           const Length local_begin =
               index == first
@@ -941,8 +1014,10 @@ SweepStatus project_repeat_regions(
         for (std::size_t index = first;
              index <= last;
              ++index) {
-          const RepeatSegment& block =
-              *target_blocks[index];
+          const RepeatSegment block =
+              target_blocks.at(
+                  static_cast<std::ptrdiff_t>(
+                      index));
 
           const Length local_begin =
               index == first

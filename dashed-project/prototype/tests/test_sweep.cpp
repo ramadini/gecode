@@ -426,28 +426,138 @@ void test_boundary_cardinality_projection() {
   assert(refined == expected);
 }
 
-void test_literals_are_not_expanded() {
-  const Domain literal =
-      Domain::fixed({1, 2, 3});
+void test_optional_suffix_literal_target_projection() {
+  // State after the first directional equality sweep in legacy Test 14.
+  const Domain target(
+      {
+          RepeatSegment{
+              ValueSet(1, 2),
+              0,
+              4},
+          RepeatSegment{
+              ValueSet(3),
+              1,
+              1},
+          RepeatSegment{
+              ValueSet(4),
+              1,
+              1},
+      },
+      2,
+      6);
 
-  const Domain repeated =
+  // Normalization should store the two exact singleton blocks as a literal.
+  assert(target.segment_count() == 2);
+  assert(std::holds_alternative<dashed::LiteralSegment>(
+      target.segments().back()));
+
+  const Domain subject(
+      {
+          RepeatSegment{
+              ValueSet(1, 3),
+              1,
+              5},
+          RepeatSegment{
+              ValueSet(4),
+              0,
+              1},
+      },
+      2,
+      6);
+
+  const Domain expected = target;
+
+  SweepAnalysis analysis;
+
+  const SweepStatus analysis_status =
+      dashed::detail::analyze_repeat_sweep(
+          subject,
+          target,
+          analysis);
+
+  std::cerr
+      << "literal-target analysis status: "
+      << static_cast<int>(analysis_status)
+      << '\n';
+
+  for (std::size_t i = 0;
+       i < analysis.blocks.size();
+       ++i) {
+    const auto& block = analysis.blocks[i];
+
+    std::cerr
+        << "block " << i
+        << " earliest-start=("
+        << block.earliest_start.segment << ','
+        << block.earliest_start.offset << ')'
+        << " earliest-end=("
+        << block.earliest_end.segment << ','
+        << block.earliest_end.offset << ')'
+        << " latest-start=("
+        << block.latest_start.segment << ','
+        << block.latest_start.offset << ')'
+        << " latest-end=("
+        << block.latest_end.segment << ','
+        << block.latest_end.offset << ')'
+        << '\n';
+  }
+
+  Domain refined = subject;
+
+  const SweepStatus status =
+      dashed::detail::project_repeat_regions(
+          subject,
+          target,
+          refined);
+
+  std::cerr
+      << "literal-target projection status: "
+      << static_cast<int>(status)
+      << '\n';
+  std::cerr
+      << "literal-target projected: "
+      << refined << '\n';
+  std::cerr
+      << "literal-target expected:  "
+      << expected << '\n';
+
+  assert(status == SweepStatus::feasible);
+  assert(refined == expected);
+}
+
+void test_literals_are_not_expanded() {
+  const Domain subject =
       Domain::repeat(
           ValueSet(1, 3),
           3,
           3);
 
+  const Domain target =
+      Domain::fixed({1, 2, 3});
+
+  assert(target.segment_count() == 1);
+  assert(std::holds_alternative<dashed::LiteralSegment>(
+      target.segments().front()));
+
+  const std::size_t bytes_before =
+      target.referenced_dynamic_bytes();
+
   SweepAnalysis analysis;
 
   const SweepStatus status =
       dashed::detail::analyze_repeat_sweep(
-          literal,
-          repeated,
+          subject,
+          target,
           analysis);
 
-  // Literal support will use a segmented literal cursor in a later
-  // checkpoint. It must not silently expand the literal here.
-  assert(status == SweepStatus::unsupported);
-  assert(analysis.blocks.empty());
+  assert(status == SweepStatus::feasible);
+
+  // The subject still has one logical block. The target literal is traversed
+  // through virtual singleton views and is not rewritten into three segments.
+  assert(analysis.blocks.size() == 1);
+  assert(target.segment_count() == 1);
+  assert(target.referenced_dynamic_bytes() ==
+         bytes_before);
 }
 
 }  // namespace
@@ -459,6 +569,7 @@ int main() {
   test_projection_detects_mandatory_incompatibility();
   test_variable_width_value_projection();
   test_boundary_cardinality_projection();
+  test_optional_suffix_literal_target_projection();
   test_literals_are_not_expanded();
 
   std::cout

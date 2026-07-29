@@ -522,6 +522,93 @@ void test_single_repeat_equality_refinement_guards() {
   }
 }
 
+void test_legacy_equality_optional_suffix_test14() {
+  // Port of old str_test2::test14 using generic integers:
+  //
+  // x = {1,2}^0..6 {3}^1 {4}^1
+  // y = {1,2,3}^0..5 {4}^0..1
+  //
+  // Equality forces y's final {4} block to occur once. The preceding
+  // {3} also becomes explicit, and x's first block is limited to four
+  // occurrences by the common maximum length.
+  Domain x(
+      {
+          RepeatSegment{
+              ValueSet(1, 2),
+              0,
+              6},
+          RepeatSegment{
+              ValueSet(3),
+              1,
+              1},
+          RepeatSegment{
+              ValueSet(4),
+              1,
+              1},
+      },
+      2,
+      8);
+
+  Domain y(
+      {
+          RepeatSegment{
+              ValueSet(1, 3),
+              0,
+              5},
+          RepeatSegment{
+              ValueSet(4),
+              0,
+              1},
+      },
+      0,
+      6);
+
+  const Domain expected(
+      {
+          RepeatSegment{
+              ValueSet(1, 2),
+              0,
+              4},
+          RepeatSegment{
+              ValueSet(3),
+              1,
+              1},
+          RepeatSegment{
+              ValueSet(4),
+              1,
+              1},
+      },
+      2,
+      6);
+
+  const auto first =
+      dashed::propagate_equal(x, y);
+
+  assert(!first.failed());
+
+  const auto second =
+      dashed::propagate_equal(x, y);
+
+  assert(!second.failed());
+
+  std::cerr
+      << "optional-suffix x: "
+      << x << '\n';
+  std::cerr
+      << "optional-suffix y: "
+      << y << '\n';
+  std::cerr
+      << "expected:          "
+      << expected << '\n';
+
+  assert(x == expected);
+  assert(y == expected);
+
+  // Equal abstract domains do not imply that independently selected
+  // concrete lists must already be equal.
+  assert(!second.subsumed);
+}
+
 void test_legacy_equality_boundary_cardinality_test16() {
   // Port of old str_test2::test16 using generic integers:
   //
@@ -870,6 +957,7 @@ int main() {
   test_membership();
   test_length_propagation();
   test_segmented_equality_sweep_symmetry_and_failure();
+  test_legacy_equality_optional_suffix_test14();
   test_legacy_equality_boundary_cardinality_test16();
   test_legacy_equality_variable_width_test09();
   test_legacy_equality_multi_segment_sweep();
