@@ -1054,6 +1054,182 @@ void test_concat_forward_projection_guards() {
 }
 
 
+void test_concat_strips_exact_suffix() {
+  {
+    Domain x =
+        Domain::top(
+            ValueSet(-100, 100),
+            0,
+            10);
+
+    Domain y =
+        Domain::fixed(
+            {30, 40});
+
+    Domain z(
+        {
+            RepeatSegment{
+                ValueSet(10, 20),
+                1,
+                3},
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{
+                        30, 40})},
+        },
+        3,
+        5);
+
+    const Domain expected_x =
+        Domain::repeat(
+            ValueSet(10, 20),
+            1,
+            3);
+
+    const auto first =
+        dashed::propagate_concat(
+            z,
+            x,
+            y);
+
+    assert(!first.failed());
+    assert(x == expected_x);
+
+    const auto second =
+        dashed::propagate_concat(
+            z,
+            x,
+            y);
+
+    assert(!second.failed());
+    assert(x == expected_x);
+    assert(!second.subsumed);
+  }
+
+  {
+    Domain x =
+        Domain::top(
+            ValueSet(-100, 100),
+            0,
+            10);
+
+    Domain y =
+        Domain::fixed(
+            {99, 40});
+
+    Domain z(
+        {
+            RepeatSegment{
+                ValueSet(10, 20),
+                1,
+                3},
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{
+                        30, 40})},
+        },
+        3,
+        5);
+
+    const auto result =
+        dashed::propagate_concat(
+            z,
+            x,
+            y);
+
+    assert(result.failed());
+  }
+}
+
+
+void test_concat_strips_exact_prefix() {
+  {
+    Domain x =
+        Domain::fixed(
+            {10, 20});
+
+    Domain y =
+        Domain::top(
+            ValueSet(-100, 100),
+            0,
+            10);
+
+    Domain z(
+        {
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{
+                        10, 20})},
+            RepeatSegment{
+                ValueSet(30, 40),
+                1,
+                3},
+        },
+        3,
+        5);
+
+    const Domain expected_y =
+        Domain::repeat(
+            ValueSet(30, 40),
+            1,
+            3);
+
+    const auto first =
+        dashed::propagate_concat(
+            z,
+            x,
+            y);
+
+    assert(!first.failed());
+    assert(y == expected_y);
+
+    const auto second =
+        dashed::propagate_concat(
+            z,
+            x,
+            y);
+
+    assert(!second.failed());
+    assert(y == expected_y);
+    assert(!second.subsumed);
+  }
+
+  {
+    Domain x =
+        Domain::fixed(
+            {10, 99});
+
+    Domain y =
+        Domain::top(
+            ValueSet(-100, 100),
+            0,
+            10);
+
+    Domain z(
+        {
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{
+                        10, 20})},
+            RepeatSegment{
+                ValueSet(30, 40),
+                1,
+                3},
+        },
+        3,
+        5);
+
+    const auto result =
+        dashed::propagate_concat(
+            z,
+            x,
+            y);
+
+    assert(result.failed());
+  }
+}
+
+
 void test_concat_projects_result_structure() {
   Domain x =
       Domain::fixed({10, 20});
@@ -1557,6 +1733,8 @@ void test_disequality_language_disjointness() {
 }  // namespace
 
 int main() {
+  test_concat_strips_exact_suffix();
+  test_concat_strips_exact_prefix();
   test_disequality_language_disjointness();
   test_value_set();
   test_literal_slices_share();

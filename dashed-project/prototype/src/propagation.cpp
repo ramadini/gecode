@@ -254,6 +254,268 @@ Domain assigned_suffix_interval_projection(
 }
 
 
+enum class ExactBoundaryStatus {
+  unsupported,
+  mismatch,
+  matched,
+};
+
+
+ExactBoundaryStatus strip_exact_prefix(
+    const Domain& whole,
+    const Domain& prefix,
+    Domain& remainder) {
+  if (!prefix.assigned()) {
+    return ExactBoundaryStatus::unsupported;
+  }
+
+  const std::vector<int> expected =
+      prefix.value();
+
+  std::size_t consumed = 0;
+  std::size_t segment_index = 0;
+
+  while (consumed < expected.size() &&
+         segment_index <
+             whole.segments().size()) {
+    const Segment& segment =
+        whole.segments()[segment_index];
+
+    if (const auto* literal =
+            std::get_if<LiteralSegment>(
+                &segment)) {
+      const std::size_t count =
+          literal->literal.size();
+
+      if (consumed + count >
+          expected.size()) {
+        return ExactBoundaryStatus::unsupported;
+      }
+
+      for (std::size_t offset = 0;
+           offset < count;
+           ++offset) {
+        if (literal->literal[offset] !=
+            expected[consumed + offset]) {
+          return ExactBoundaryStatus::mismatch;
+        }
+      }
+
+      consumed += count;
+      ++segment_index;
+      continue;
+    }
+
+    const auto& repeat =
+        std::get<RepeatSegment>(
+            segment);
+
+    const auto value =
+        repeat.values.singleton_value();
+
+    if (!repeat.exact_count() ||
+        !value.has_value()) {
+      return ExactBoundaryStatus::unsupported;
+    }
+
+    const std::size_t count =
+        static_cast<std::size_t>(
+            repeat.upper);
+
+    if (consumed + count >
+        expected.size()) {
+      return ExactBoundaryStatus::unsupported;
+    }
+
+    for (std::size_t offset = 0;
+         offset < count;
+         ++offset) {
+      if (expected[consumed + offset] !=
+          *value) {
+        return ExactBoundaryStatus::mismatch;
+      }
+    }
+
+    consumed += count;
+    ++segment_index;
+  }
+
+  if (consumed != expected.size()) {
+    return ExactBoundaryStatus::unsupported;
+  }
+
+  const Length prefix_length =
+      static_cast<Length>(
+          expected.size());
+
+  if (whole.min_length() < prefix_length ||
+      whole.max_length() < prefix_length) {
+    return ExactBoundaryStatus::mismatch;
+  }
+
+  std::vector<Segment> remainder_segments(
+      whole.segments().begin() +
+          static_cast<std::ptrdiff_t>(
+              segment_index),
+      whole.segments().end());
+
+  remainder = Domain(
+      std::move(remainder_segments),
+      static_cast<Length>(
+          whole.min_length() -
+          prefix_length),
+      static_cast<Length>(
+          whole.max_length() -
+          prefix_length));
+
+  return ExactBoundaryStatus::matched;
+}
+
+
+ExactBoundaryStatus strip_exact_suffix(
+    const Domain& whole,
+    const Domain& suffix,
+    Domain& remainder) {
+  if (!suffix.assigned()) {
+    return ExactBoundaryStatus::unsupported;
+  }
+
+  const std::vector<int> expected =
+      suffix.value();
+
+  std::size_t consumed = 0;
+  std::size_t segment_index =
+      whole.segments().size();
+
+  while (consumed < expected.size() &&
+         segment_index > 0) {
+    const Segment& segment =
+        whole.segments()[
+            segment_index - 1];
+
+    if (const auto* literal =
+            std::get_if<LiteralSegment>(
+                &segment)) {
+      const std::size_t count =
+          literal->literal.size();
+
+      if (consumed + count >
+          expected.size()) {
+        return ExactBoundaryStatus::unsupported;
+      }
+
+      const std::size_t expected_start =
+          expected.size() -
+          consumed -
+          count;
+
+      for (std::size_t offset = 0;
+           offset < count;
+           ++offset) {
+        if (literal->literal[offset] !=
+            expected[
+                expected_start +
+                offset]) {
+          return ExactBoundaryStatus::mismatch;
+        }
+      }
+
+      consumed += count;
+      --segment_index;
+      continue;
+    }
+
+    const auto& repeat =
+        std::get<RepeatSegment>(
+            segment);
+
+    const auto value =
+        repeat.values.singleton_value();
+
+    if (!repeat.exact_count() ||
+        !value.has_value()) {
+      return ExactBoundaryStatus::unsupported;
+    }
+
+    const std::size_t count =
+        static_cast<std::size_t>(
+            repeat.upper);
+
+    if (consumed + count >
+        expected.size()) {
+      return ExactBoundaryStatus::unsupported;
+    }
+
+    const std::size_t expected_start =
+        expected.size() -
+        consumed -
+        count;
+
+    for (std::size_t offset = 0;
+         offset < count;
+         ++offset) {
+      if (expected[
+              expected_start +
+              offset] !=
+          *value) {
+        return ExactBoundaryStatus::mismatch;
+      }
+    }
+
+    consumed += count;
+    --segment_index;
+  }
+
+  if (consumed != expected.size()) {
+    return ExactBoundaryStatus::unsupported;
+  }
+
+  const Length suffix_length =
+      static_cast<Length>(
+          expected.size());
+
+  if (whole.min_length() < suffix_length ||
+      whole.max_length() < suffix_length) {
+    return ExactBoundaryStatus::mismatch;
+  }
+
+  std::vector<Segment> remainder_segments(
+      whole.segments().begin(),
+      whole.segments().begin() +
+          static_cast<std::ptrdiff_t>(
+              segment_index));
+
+  remainder = Domain(
+      std::move(remainder_segments),
+      static_cast<Length>(
+          whole.min_length() -
+          suffix_length),
+      static_cast<Length>(
+          whole.max_length() -
+          suffix_length));
+
+  return ExactBoundaryStatus::matched;
+}
+
+
+Change project_boundary_remainder(
+    Domain& target,
+    const Domain& remainder) {
+  if (remainder.assigned()) {
+    return assign_exact(
+        target,
+        remainder);
+  }
+
+  if (single_repeat_domain(target)) {
+    return target.intersect_single_repeat(
+        remainder);
+  }
+
+  return Change::none;
+}
+
+
 }  // namespace
 
 bool BoolDomain::value() const {
@@ -770,6 +1032,72 @@ PropagationResult propagate_concat(Domain& z, Domain& x, Domain& y) {
 
   if (result.failed()) {
     return result;
+  }
+
+  if (!z.assigned() &&
+      x.assigned() &&
+      !y.assigned()) {
+    // An assigned left operand can consume an exact structural prefix.
+    Domain remainder;
+
+    const ExactBoundaryStatus status =
+        strip_exact_prefix(
+            z,
+            x,
+            remainder);
+
+    if (status ==
+        ExactBoundaryStatus::mismatch) {
+      z.fail();
+      result.result = Change::failed;
+      return result;
+    }
+
+    if (status ==
+        ExactBoundaryStatus::matched) {
+      result.right = combine(
+          result.right,
+          project_boundary_remainder(
+              y,
+              remainder));
+
+      if (result.failed()) {
+        return result;
+      }
+    }
+  }
+
+  if (!z.assigned() &&
+      y.assigned() &&
+      !x.assigned()) {
+    // An assigned right operand can consume an exact structural suffix.
+    Domain remainder;
+
+    const ExactBoundaryStatus status =
+        strip_exact_suffix(
+            z,
+            y,
+            remainder);
+
+    if (status ==
+        ExactBoundaryStatus::mismatch) {
+      z.fail();
+      result.result = Change::failed;
+      return result;
+    }
+
+    if (status ==
+        ExactBoundaryStatus::matched) {
+      result.left = combine(
+          result.left,
+          project_boundary_remainder(
+              x,
+              remainder));
+
+      if (result.failed()) {
+        return result;
+      }
+    }
   }
 
   if (x.assigned() && y.assigned()) {
