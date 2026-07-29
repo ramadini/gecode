@@ -1270,6 +1270,229 @@ PropagationResult propagate_reified_not_equal(Domain& x, Domain& y,
   return result;
 }
 
+PropagationResult propagate_implied_equal(
+    Domain& x,
+    Domain& y,
+    BoolDomain& b) {
+  PropagationResult result;
+
+  if (x.failed() || y.failed()) {
+    result.left = result.right =
+        Change::failed;
+    return result;
+  }
+
+  if (b.failed()) {
+    result.result = Change::failed;
+    return result;
+  }
+
+  if (b.assigned()) {
+    if (!b.value()) {
+      result.subsumed = true;
+      return result;
+    }
+
+    result =
+        propagate_equal(
+            x,
+            y);
+
+    result.result = Change::none;
+    return result;
+  }
+
+  if (!equality_may_be_possible(
+          x,
+          y)) {
+    result.result =
+        b.force(false);
+
+    result.subsumed =
+        !result.failed() &&
+        b.assigned();
+
+    return result;
+  }
+
+  if (x.assigned() &&
+      y.assigned() &&
+      x.assigned_equal(y)) {
+    // The consequent is already true, so either Boolean value
+    // satisfies the implication.
+    result.subsumed = true;
+  }
+
+  return result;
+}
+
+
+PropagationResult propagate_equal_implies(
+    Domain& x,
+    Domain& y,
+    BoolDomain& b) {
+  PropagationResult result;
+
+  if (x.failed() || y.failed()) {
+    result.left = result.right =
+        Change::failed;
+    return result;
+  }
+
+  if (b.failed()) {
+    result.result = Change::failed;
+    return result;
+  }
+
+  if (b.assigned()) {
+    if (b.value()) {
+      result.subsumed = true;
+      return result;
+    }
+
+    result =
+        propagate_not_equal(
+            x,
+            y);
+
+    result.result = Change::none;
+    return result;
+  }
+
+  if (!equality_may_be_possible(
+          x,
+          y)) {
+    // The antecedent is false.
+    result.subsumed = true;
+    return result;
+  }
+
+  if (x.assigned() &&
+      y.assigned() &&
+      x.assigned_equal(y)) {
+    result.result =
+        b.force(true);
+
+    result.subsumed =
+        !result.failed() &&
+        b.assigned();
+  }
+
+  return result;
+}
+
+
+PropagationResult propagate_implied_not_equal(
+    Domain& x,
+    Domain& y,
+    BoolDomain& b) {
+  PropagationResult result;
+
+  if (x.failed() || y.failed()) {
+    result.left = result.right =
+        Change::failed;
+    return result;
+  }
+
+  if (b.failed()) {
+    result.result = Change::failed;
+    return result;
+  }
+
+  if (b.assigned()) {
+    if (!b.value()) {
+      result.subsumed = true;
+      return result;
+    }
+
+    result =
+        propagate_not_equal(
+            x,
+            y);
+
+    result.result = Change::none;
+    return result;
+  }
+
+  if (!equality_may_be_possible(
+          x,
+          y)) {
+    // Disequality is already entailed.
+    result.subsumed = true;
+    return result;
+  }
+
+  if (x.assigned() &&
+      y.assigned() &&
+      x.assigned_equal(y)) {
+    result.result =
+        b.force(false);
+
+    result.subsumed =
+        !result.failed() &&
+        b.assigned();
+  }
+
+  return result;
+}
+
+
+PropagationResult propagate_not_equal_implies(
+    Domain& x,
+    Domain& y,
+    BoolDomain& b) {
+  PropagationResult result;
+
+  if (x.failed() || y.failed()) {
+    result.left = result.right =
+        Change::failed;
+    return result;
+  }
+
+  if (b.failed()) {
+    result.result = Change::failed;
+    return result;
+  }
+
+  if (b.assigned()) {
+    if (b.value()) {
+      result.subsumed = true;
+      return result;
+    }
+
+    result =
+        propagate_equal(
+            x,
+            y);
+
+    result.result = Change::none;
+    return result;
+  }
+
+  if (!equality_may_be_possible(
+          x,
+          y)) {
+    result.result =
+        b.force(true);
+
+    result.subsumed =
+        !result.failed() &&
+        b.assigned();
+
+    return result;
+  }
+
+  if (x.assigned() &&
+      y.assigned() &&
+      x.assigned_equal(y)) {
+    // Disequality is false, so the implication is already true.
+    result.subsumed = true;
+  }
+
+  return result;
+}
+
+
 PropagationResult propagate_concat(Domain& z, Domain& x, Domain& y) {
   PropagationResult result;
   if (z.failed() || x.failed() || y.failed()) {

@@ -84,11 +84,15 @@ public:
   ListVar y;
   BoolVar b;
 
-  ReifiedSpace(dashed::Domain dx,
-               dashed::Domain dy,
-               int b_min = 0,
-               int b_max = 1,
-               Gecode::IntRelType relation = Gecode::IRT_EQ)
+  ReifiedSpace(
+      dashed::Domain dx,
+      dashed::Domain dy,
+      int b_min = 0,
+      int b_max = 1,
+      Gecode::IntRelType relation =
+          Gecode::IRT_EQ,
+      Gecode::ReifyMode mode =
+          Gecode::RM_EQV)
       : Space(),
         x(*this, std::move(dx)),
         y(*this, std::move(dy)),
@@ -98,7 +102,9 @@ public:
         x,
         relation,
         y,
-        Gecode::Reify(b, Gecode::RM_EQV));
+        Gecode::Reify(
+            b,
+            mode));
   }
 
   ReifiedSpace(ReifiedSpace& other)
@@ -113,6 +119,42 @@ public:
 
   Space* copy() override {
     return new ReifiedSpace(*this);
+  }
+};
+
+
+class AliasReifiedSpace final : public Space {
+public:
+  ListVar x;
+  BoolVar b;
+
+  AliasReifiedSpace(
+      Gecode::IntRelType relation,
+      Gecode::ReifyMode mode)
+      : Space(),
+        x(*this, lists(-10, 10, 0, 4)),
+        b(*this, 0, 1) {
+    Gecode::rel(
+        *this,
+        x,
+        relation,
+        x,
+        Gecode::Reify(
+            b,
+            mode));
+  }
+
+  AliasReifiedSpace(
+      AliasReifiedSpace& other)
+      : Space(other),
+        x(),
+        b() {
+    x.update(*this, other.x);
+    b.update(*this, other.b);
+  }
+
+  Space* copy() override {
+    return new AliasReifiedSpace(*this);
   }
 };
 
@@ -2220,10 +2262,296 @@ void length_failure_clone_and_unbounded_native() {
   }
 }
 
+
+void half_reification_modes_native() {
+  {
+    // b -> equality, with b=true.
+    auto* space = new ReifiedSpace(
+        lists(-100, 100, 0, 5),
+        fixed({10, 20}),
+        1,
+        1,
+        Gecode::IRT_EQ,
+        Gecode::RM_IMP);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(space->x.assigned());
+    assert(
+        space->x.val() ==
+        std::vector<int>({10, 20}));
+
+    delete space;
+  }
+
+  {
+    // Equality is impossible, so b must be false.
+    auto* space = new ReifiedSpace(
+        fixed({1}),
+        fixed({2}),
+        0,
+        1,
+        Gecode::IRT_EQ,
+        Gecode::RM_IMP);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(space->b.assigned());
+    assert(space->b.val() == 0);
+
+    delete space;
+  }
+
+  {
+    // b -> true imposes no value on b.
+    auto* space = new ReifiedSpace(
+        fixed({7, 8}),
+        fixed({7, 8}),
+        0,
+        1,
+        Gecode::IRT_EQ,
+        Gecode::RM_IMP);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(!space->b.assigned());
+
+    delete space;
+  }
+
+  {
+    // Equality -> b.
+    auto* space = new ReifiedSpace(
+        fixed({-50000, 250000}),
+        fixed({-50000, 250000}),
+        0,
+        1,
+        Gecode::IRT_EQ,
+        Gecode::RM_PMI);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(space->b.assigned());
+    assert(space->b.val() == 1);
+
+    delete space;
+  }
+
+  {
+    // A false antecedent leaves b unconstrained.
+    auto* space = new ReifiedSpace(
+        fixed({1}),
+        fixed({2}),
+        0,
+        1,
+        Gecode::IRT_EQ,
+        Gecode::RM_PMI);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(!space->b.assigned());
+
+    delete space;
+  }
+
+  {
+    // Equality -> false means disequality.
+    auto* space = new ReifiedSpace(
+        fixed({3, 4}),
+        fixed({3, 4}),
+        0,
+        0,
+        Gecode::IRT_EQ,
+        Gecode::RM_PMI);
+
+    assert(
+        space->status() ==
+        Gecode::SS_FAILED);
+
+    delete space;
+  }
+
+  {
+    // b -> disequality, but disequality is impossible.
+    auto* space = new ReifiedSpace(
+        fixed({9}),
+        fixed({9}),
+        0,
+        1,
+        Gecode::IRT_NQ,
+        Gecode::RM_IMP);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(space->b.assigned());
+    assert(space->b.val() == 0);
+
+    delete space;
+  }
+
+  {
+    // Disequality -> b.
+    auto* space = new ReifiedSpace(
+        fixed({9}),
+        fixed({10}),
+        0,
+        1,
+        Gecode::IRT_NQ,
+        Gecode::RM_PMI);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(space->b.assigned());
+    assert(space->b.val() == 1);
+
+    delete space;
+  }
+
+  {
+    // Disequality -> false enforces equality.
+    auto* space = new ReifiedSpace(
+        lists(-100, 100, 0, 5),
+        fixed({30, 40}),
+        0,
+        0,
+        Gecode::IRT_NQ,
+        Gecode::RM_PMI);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(space->x.assigned());
+    assert(
+        space->x.val() ==
+        std::vector<int>({30, 40}));
+
+    delete space;
+  }
+}
+
+
+void half_reification_alias_and_clone_native() {
+  {
+    auto* space = new AliasReifiedSpace(
+        Gecode::IRT_EQ,
+        Gecode::RM_IMP);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(!space->b.assigned());
+    delete space;
+  }
+
+  {
+    auto* space = new AliasReifiedSpace(
+        Gecode::IRT_EQ,
+        Gecode::RM_PMI);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(space->b.assigned());
+    assert(space->b.val() == 1);
+    delete space;
+  }
+
+  {
+    auto* space = new AliasReifiedSpace(
+        Gecode::IRT_NQ,
+        Gecode::RM_IMP);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(space->b.assigned());
+    assert(space->b.val() == 0);
+    delete space;
+  }
+
+  {
+    auto* space = new AliasReifiedSpace(
+        Gecode::IRT_NQ,
+        Gecode::RM_PMI);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(!space->b.assigned());
+    delete space;
+  }
+
+  {
+    auto* root = new ReifiedSpace(
+        lists(-100, 100, 0, 5),
+        fixed({11, 12}),
+        0,
+        1,
+        Gecode::IRT_EQ,
+        Gecode::RM_IMP);
+
+    assert(
+        root->status() !=
+        Gecode::SS_FAILED);
+
+    assert(!root->b.assigned());
+    assert(!root->x.assigned());
+
+    auto* clone =
+        static_cast<ReifiedSpace*>(
+            root->clone());
+
+    Gecode::rel(
+        *clone,
+        clone->b,
+        Gecode::IRT_EQ,
+        1);
+
+    assert(
+        clone->status() !=
+        Gecode::SS_FAILED);
+
+    assert(clone->b.assigned());
+    assert(clone->b.val() == 1);
+    assert(clone->x.assigned());
+
+    assert(
+        clone->x.val() ==
+        std::vector<int>({11, 12}));
+
+    assert(!root->b.assigned());
+    assert(!root->x.assigned());
+
+    delete root;
+    delete clone;
+  }
+}
+
 } // namespace
 
 
 int main() {
+  half_reification_alias_and_clone_native();
+  half_reification_modes_native();
   length_failure_clone_and_unbounded_native();
   length_bidirectional_native();
   concat_assigned_result_split_filtering_native();

@@ -206,6 +206,145 @@ void test_not_equal_kernel_soundness() {
   }
 }
 
+void test_half_reified_kernel_soundness() {
+  using Kernel =
+      dashed::PropagationResult (*)(
+          Domain&,
+          Domain&,
+          dashed::BoolDomain&);
+
+  const auto domains =
+      sample_domains();
+
+  const auto universe =
+      all_lists(3);
+
+  const std::vector<dashed::BoolDomain>
+      bool_domains{
+          {true, true},
+          {true, false},
+          {false, true},
+      };
+
+  const auto verify =
+      [&](Kernel kernel,
+          const auto& relation) {
+        for (const Domain& original_x :
+             domains) {
+          for (const Domain& original_y :
+               domains) {
+            for (const auto original_b :
+                 bool_domains) {
+              Domain x = original_x;
+              Domain y = original_y;
+              auto b = original_b;
+
+              const auto result =
+                  kernel(
+                      x,
+                      y,
+                      b);
+
+              assert_subset(
+                  x,
+                  original_x,
+                  universe);
+
+              assert_subset(
+                  y,
+                  original_y,
+                  universe);
+
+              assert(
+                  !b.may_be_false ||
+                  original_b.may_be_false);
+
+              assert(
+                  !b.may_be_true ||
+                  original_b.may_be_true);
+
+              bool has_solution = false;
+
+              for (const auto& xv :
+                   universe) {
+                if (!original_x.accepts(xv)) {
+                  continue;
+                }
+
+                for (const auto& yv :
+                     universe) {
+                  if (!original_y.accepts(yv)) {
+                    continue;
+                  }
+
+                  const bool equal =
+                      xv == yv;
+
+                  for (const bool bv :
+                       {false, true}) {
+                    const bool allowed =
+                        bv
+                            ? original_b.may_be_true
+                            : original_b.may_be_false;
+
+                    const bool feasible =
+                        allowed &&
+                        relation(
+                            equal,
+                            bv);
+
+                    if (!feasible) {
+                      continue;
+                    }
+
+                    has_solution = true;
+
+                    assert(!result.failed());
+                    assert(x.accepts(xv));
+                    assert(y.accepts(yv));
+
+                    assert(
+                        bv
+                            ? b.may_be_true
+                            : b.may_be_false);
+                  }
+                }
+              }
+
+              if (result.failed()) {
+                assert(!has_solution);
+              }
+            }
+          }
+        }
+      };
+
+  verify(
+      dashed::propagate_implied_equal,
+      [](bool equal, bool truth) {
+        return !truth || equal;
+      });
+
+  verify(
+      dashed::propagate_equal_implies,
+      [](bool equal, bool truth) {
+        return !equal || truth;
+      });
+
+  verify(
+      dashed::propagate_implied_not_equal,
+      [](bool equal, bool truth) {
+        return !truth || !equal;
+      });
+
+  verify(
+      dashed::propagate_not_equal_implies,
+      [](bool equal, bool truth) {
+        return equal || truth;
+      });
+}
+
+
 void test_reified_kernel_soundness() {
   const auto domains = sample_domains();
   const auto universe = all_lists(3);
@@ -549,6 +688,7 @@ int main() {
   test_literal_memory_accounting();
   test_equal_kernel_soundness();
   test_not_equal_kernel_soundness();
+  test_half_reified_kernel_soundness();
   test_reified_kernel_soundness();
   test_assigned_concat_split_filtering();
   test_concat_kernel_soundness();

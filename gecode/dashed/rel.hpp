@@ -63,68 +63,170 @@ public:
 };
 
 class ReEqual final
-    : public Int::ReBinaryPropagator<ListView, PC_LIST_ANY,
-                                     Int::BoolView> {
-  using Base = Int::ReBinaryPropagator<ListView, PC_LIST_ANY,
-                                        Int::BoolView>;
+    : public Int::ReBinaryPropagator<
+          ListView,
+          PC_LIST_ANY,
+          Int::BoolView> {
+  using Base =
+      Int::ReBinaryPropagator<
+          ListView,
+          PC_LIST_ANY,
+          Int::BoolView>;
 
 protected:
-  ReEqual(Home home, ListView x0, ListView x1, Int::BoolView b)
-      : Base(home, x0, x1, b) {}
+  ReifyMode mode;
 
-  ReEqual(Space& home, ReEqual& other)
-      : Base(home, other) {}
+  ReEqual(
+      Home home,
+      ListView x0,
+      ListView x1,
+      Int::BoolView b,
+      ReifyMode mode0)
+      : Base(home, x0, x1, b),
+        mode(mode0) {}
+
+  ReEqual(
+      Space& home,
+      ReEqual& other)
+      : Base(home, other),
+        mode(other.mode) {}
 
 public:
-  static ExecStatus post(Home home, ListView x0, ListView x1,
-                         Int::BoolView b) {
-    if (x0 == x1)
-      return me_failed(b.one(home)) ? ES_FAILED : ES_OK;
-    (void) new (home) ReEqual(home, x0, x1, b);
+  static ExecStatus post(
+      Home home,
+      ListView x0,
+      ListView x1,
+      Int::BoolView b,
+      ReifyMode mode) {
+    if (x0 == x1) {
+      switch (mode) {
+        case RM_EQV:
+        case RM_PMI:
+          return me_failed(
+              b.one(home))
+              ? ES_FAILED
+              : ES_OK;
+
+        case RM_IMP:
+          return ES_OK;
+      }
+    }
+
+    (void) new (home)
+        ReEqual(
+            home,
+            x0,
+            x1,
+            b,
+            mode);
+
     return ES_OK;
   }
 
-  Actor* copy(Space& home) override {
-    return new (home) ReEqual(home, *this);
+  Actor* copy(
+      Space& home) override {
+    return new (home)
+        ReEqual(
+            home,
+            *this);
   }
 
-  ExecStatus propagate(Space& home,
-                       const ModEventDelta&) override {
-    return Adapter::reified_equal(home, *this, x0, x1, b);
+  ExecStatus propagate(
+      Space& home,
+      const ModEventDelta&) override {
+    return Adapter::reified_equal(
+        home,
+        *this,
+        x0,
+        x1,
+        b,
+        mode);
   }
 };
+
 
 class ReNotEqual final
-    : public Int::ReBinaryPropagator<ListView, PC_LIST_ANY,
-                                     Int::BoolView> {
-  using Base = Int::ReBinaryPropagator<ListView, PC_LIST_ANY,
-                                        Int::BoolView>;
+    : public Int::ReBinaryPropagator<
+          ListView,
+          PC_LIST_ANY,
+          Int::BoolView> {
+  using Base =
+      Int::ReBinaryPropagator<
+          ListView,
+          PC_LIST_ANY,
+          Int::BoolView>;
 
 protected:
-  ReNotEqual(Home home, ListView x0, ListView x1, Int::BoolView b)
-      : Base(home, x0, x1, b) {}
+  ReifyMode mode;
 
-  ReNotEqual(Space& home, ReNotEqual& other)
-      : Base(home, other) {}
+  ReNotEqual(
+      Home home,
+      ListView x0,
+      ListView x1,
+      Int::BoolView b,
+      ReifyMode mode0)
+      : Base(home, x0, x1, b),
+        mode(mode0) {}
+
+  ReNotEqual(
+      Space& home,
+      ReNotEqual& other)
+      : Base(home, other),
+        mode(other.mode) {}
 
 public:
-  static ExecStatus post(Home home, ListView x0, ListView x1,
-                         Int::BoolView b) {
-    if (x0 == x1)
-      return me_failed(b.zero(home)) ? ES_FAILED : ES_OK;
-    (void) new (home) ReNotEqual(home, x0, x1, b);
+  static ExecStatus post(
+      Home home,
+      ListView x0,
+      ListView x1,
+      Int::BoolView b,
+      ReifyMode mode) {
+    if (x0 == x1) {
+      switch (mode) {
+        case RM_EQV:
+        case RM_IMP:
+          return me_failed(
+              b.zero(home))
+              ? ES_FAILED
+              : ES_OK;
+
+        case RM_PMI:
+          return ES_OK;
+      }
+    }
+
+    (void) new (home)
+        ReNotEqual(
+            home,
+            x0,
+            x1,
+            b,
+            mode);
+
     return ES_OK;
   }
 
-  Actor* copy(Space& home) override {
-    return new (home) ReNotEqual(home, *this);
+  Actor* copy(
+      Space& home) override {
+    return new (home)
+        ReNotEqual(
+            home,
+            *this);
   }
 
-  ExecStatus propagate(Space& home,
-                       const ModEventDelta&) override {
-    return Adapter::reified_not_equal(home, *this, x0, x1, b);
+  ExecStatus propagate(
+      Space& home,
+      const ModEventDelta&) override {
+    return Adapter::reified_not_equal(
+        home,
+        *this,
+        x0,
+        x1,
+        b,
+        mode);
   }
 };
+
 
 }} // namespace Gecode::Dashed
 
@@ -152,20 +254,24 @@ inline void rel(Home home, ListVar x, IntRelType relation, ListVar y,
                 Reify reification, IntPropLevel = IPL_DEF) {
   GECODE_POST;
 
-  // The standalone kernel currently implements equivalence reification.
-  // Half-reification is intentionally rejected rather than approximated.
-  if (reification.mode() != RM_EQV)
-    throw Int::UnknownReifyMode("Dashed::rel");
 
   Int::BoolView b(reification.var());
   switch (relation) {
   case IRT_EQ:
     GECODE_ES_FAIL(Dashed::ReEqual::post(
-        home, Dashed::ListView(x), Dashed::ListView(y), b));
+        home,
+        Dashed::ListView(x),
+        Dashed::ListView(y),
+        b,
+        reification.mode()));
     break;
   case IRT_NQ:
     GECODE_ES_FAIL(Dashed::ReNotEqual::post(
-        home, Dashed::ListView(x), Dashed::ListView(y), b));
+        home,
+        Dashed::ListView(x),
+        Dashed::ListView(y),
+        b,
+        reification.mode()));
     break;
   default:
     throw Int::UnknownRelation("Dashed::rel");

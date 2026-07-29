@@ -72,36 +72,136 @@ inline ExecStatus not_equal(Space& home, Propagator& propagator,
   return result.subsumed ? home.ES_SUBSUMED(propagator) : ES_FIX;
 }
 
-inline ExecStatus reified_equal(Space& home, Propagator& propagator,
-                                ListView& x, ListView& y,
-                                Int::BoolView& truth) {
+inline ExecStatus reified_equal(
+    Space& home,
+    Propagator& propagator,
+    ListView& x,
+    ListView& y,
+    Int::BoolView& truth,
+    ReifyMode mode) {
   dashed::Domain dx = x.domain();
   dashed::Domain dy = y.domain();
-  dashed::BoolDomain db = read_bool(truth);
-  const auto result = dashed::propagate_reified_equal(dx, dy, db);
-  if (result.failed())
+  dashed::BoolDomain db =
+      read_bool(truth);
+
+  dashed::PropagationResult result;
+
+  switch (mode) {
+    case RM_EQV:
+      result =
+          dashed::propagate_reified_equal(
+              dx,
+              dy,
+              db);
+      break;
+
+    case RM_IMP:
+      result =
+          dashed::propagate_implied_equal(
+              dx,
+              dy,
+              db);
+      break;
+
+    case RM_PMI:
+      result =
+          dashed::propagate_equal_implies(
+              dx,
+              dy,
+              db);
+      break;
+  }
+
+  if (result.failed()) {
     return ES_FAILED;
-  if (!commit_list(home, x, std::move(dx), result.left) ||
-      !commit_list(home, y, std::move(dy), result.right) ||
-      !commit_bool(home, truth, db))
+  }
+
+  if (!commit_list(
+          home,
+          x,
+          std::move(dx),
+          result.left) ||
+      !commit_list(
+          home,
+          y,
+          std::move(dy),
+          result.right) ||
+      !commit_bool(
+          home,
+          truth,
+          db)) {
     return ES_FAILED;
-  return result.subsumed ? home.ES_SUBSUMED(propagator) : ES_FIX;
+  }
+
+  return result.subsumed
+      ? home.ES_SUBSUMED(propagator)
+      : ES_FIX;
 }
 
-inline ExecStatus reified_not_equal(Space& home, Propagator& propagator,
-                                    ListView& x, ListView& y,
-                                    Int::BoolView& truth) {
+inline ExecStatus reified_not_equal(
+    Space& home,
+    Propagator& propagator,
+    ListView& x,
+    ListView& y,
+    Int::BoolView& truth,
+    ReifyMode mode) {
   dashed::Domain dx = x.domain();
   dashed::Domain dy = y.domain();
-  dashed::BoolDomain db = read_bool(truth);
-  const auto result = dashed::propagate_reified_not_equal(dx, dy, db);
-  if (result.failed())
+  dashed::BoolDomain db =
+      read_bool(truth);
+
+  dashed::PropagationResult result;
+
+  switch (mode) {
+    case RM_EQV:
+      result =
+          dashed::propagate_reified_not_equal(
+              dx,
+              dy,
+              db);
+      break;
+
+    case RM_IMP:
+      result =
+          dashed::propagate_implied_not_equal(
+              dx,
+              dy,
+              db);
+      break;
+
+    case RM_PMI:
+      result =
+          dashed::propagate_not_equal_implies(
+              dx,
+              dy,
+              db);
+      break;
+  }
+
+  if (result.failed()) {
     return ES_FAILED;
-  if (!commit_list(home, x, std::move(dx), result.left) ||
-      !commit_list(home, y, std::move(dy), result.right) ||
-      !commit_bool(home, truth, db))
+  }
+
+  if (!commit_list(
+          home,
+          x,
+          std::move(dx),
+          result.left) ||
+      !commit_list(
+          home,
+          y,
+          std::move(dy),
+          result.right) ||
+      !commit_bool(
+          home,
+          truth,
+          db)) {
     return ES_FAILED;
-  return result.subsumed ? home.ES_SUBSUMED(propagator) : ES_FIX;
+  }
+
+  return result.subsumed
+      ? home.ES_SUBSUMED(propagator)
+      : ES_FIX;
 }
 
 inline ExecStatus concat(Space& home, Propagator& propagator,

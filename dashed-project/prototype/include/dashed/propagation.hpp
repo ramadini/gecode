@@ -45,6 +45,31 @@ PropagationResult propagate_reified_equal(Domain& x, Domain& y, BoolDomain& b);
 /** b <-> (x != y). */
 PropagationResult propagate_reified_not_equal(Domain& x, Domain& y, BoolDomain& b);
 
+
+/** b -> (x = y). */
+PropagationResult propagate_implied_equal(
+    Domain& x,
+    Domain& y,
+    BoolDomain& b);
+
+/** (x = y) -> b. */
+PropagationResult propagate_equal_implies(
+    Domain& x,
+    Domain& y,
+    BoolDomain& b);
+
+/** b -> (x != y). */
+PropagationResult propagate_implied_not_equal(
+    Domain& x,
+    Domain& y,
+    BoolDomain& b);
+
+/** (x != y) -> b. */
+PropagationResult propagate_not_equal_implies(
+    Domain& x,
+    Domain& y,
+    BoolDomain& b);
+
 /** Conservative kernel for z = x ++ y. */
 PropagationResult propagate_concat(Domain& z, Domain& x, Domain& y);
 
