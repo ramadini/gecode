@@ -3279,9 +3279,146 @@ void test_disequality_language_disjointness() {
   }
 }
 
+
+void test_exact_branch_splits() {
+  {
+    Domain domain =
+        Domain::repeat(
+            ValueSet(0, 1),
+            0,
+            5);
+
+    const auto decision =
+        dashed::choose_branch(domain);
+
+    assert(decision.has_value());
+    assert(
+        decision->kind ==
+        dashed::BranchKind::repeat_count);
+    assert(decision->segment == 0);
+    assert(decision->count_pivot == 2);
+
+    const Domain lower =
+        dashed::apply_branch(
+            domain,
+            *decision,
+            0);
+
+    const Domain upper =
+        dashed::apply_branch(
+            domain,
+            *decision,
+            1);
+
+    assert(
+        lower ==
+        Domain::repeat(
+            ValueSet(0, 1),
+            0,
+            2));
+
+    assert(
+        upper ==
+        Domain::repeat(
+            ValueSet(0, 1),
+            3,
+            5));
+  }
+
+  {
+    const ValueSet sparse{
+        IntRange{-5, -5},
+        IntRange{-1, 0},
+        IntRange{8, 8}};
+
+    Domain domain =
+        Domain::repeat(
+            sparse,
+            3,
+            3);
+
+    const auto decision =
+        dashed::choose_branch(domain);
+
+    assert(decision.has_value());
+    assert(
+        decision->kind ==
+        dashed::BranchKind::value_set);
+    assert(decision->value_pivot == -1);
+
+    const Domain lower =
+        dashed::apply_branch(
+            domain,
+            *decision,
+            0);
+
+    const Domain upper =
+        dashed::apply_branch(
+            domain,
+            *decision,
+            1);
+
+    const Domain expected_lower(
+        {
+            RepeatSegment{
+                ValueSet{
+                    IntRange{-5, -5},
+                    IntRange{-1, -1}},
+                1,
+                1},
+            RepeatSegment{
+                sparse,
+                2,
+                2},
+        },
+        3,
+        3);
+
+    const Domain expected_upper(
+        {
+            RepeatSegment{
+                ValueSet{
+                    IntRange{0, 0},
+                    IntRange{8, 8}},
+                1,
+                1},
+            RepeatSegment{
+                sparse,
+                2,
+                2},
+        },
+        3,
+        3);
+
+    assert(lower == expected_lower);
+    assert(upper == expected_upper);
+
+    assert(
+        lower.accepts(
+            std::vector<int>{-5, 8, 0}));
+    assert(
+        upper.accepts(
+            std::vector<int>{8, -5, 0}));
+    assert(
+        !lower.accepts(
+            std::vector<int>{8, -5, 0}));
+    assert(
+        !upper.accepts(
+            std::vector<int>{-5, 8, 0}));
+  }
+
+  {
+    const Domain assigned =
+        Domain::fixed({4, 5, 6});
+
+    assert(!dashed::choose_branch(assigned));
+  }
+}
+
 }  // namespace
 
 int main() {
+  test_exact_branch_splits();
   test_concat_projects_segmented_suffix_remainder();
   test_concat_strips_mandatory_repeat_suffix();
   test_concat_strips_partial_suffix_segments();

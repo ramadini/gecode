@@ -28,6 +28,32 @@ void enumerate(std::vector<int>& value, std::size_t target,
   }
 }
 
+
+void assert_exact_partition(
+    const Domain& original,
+    const Domain& left,
+    const Domain& right,
+    const std::vector<std::vector<int>>& universe) {
+  assert(!left.failed());
+  assert(!right.failed());
+  assert(!(left == original));
+  assert(!(right == original));
+
+  for (const auto& value : universe) {
+    const bool in_original =
+        original.accepts(value);
+    const bool in_left =
+        left.accepts(value);
+    const bool in_right =
+        right.accepts(value);
+
+    assert(
+        (in_left || in_right) ==
+        in_original);
+    assert(!(in_left && in_right));
+  }
+}
+
 void test_normalization_preserves_language() {
   const ValueSet bit(0, 1);
   Domain split({RepeatSegment{bit, 0, 2}, RepeatSegment{bit, 1, 2}}, 1, 4);
@@ -138,6 +164,132 @@ void assert_subset(const Domain& restricted, const Domain& original,
     if (restricted.accepts(value)) {
       assert(original.accepts(value));
     }
+  }
+}
+
+
+void test_branch_partition_exactness() {
+  const auto universe = all_lists(4);
+
+  std::vector<Domain> domains =
+      sample_domains();
+
+  domains.push_back(
+      Domain::repeat(
+          ValueSet(0, 1),
+          0,
+          4));
+
+  domains.push_back(
+      Domain::repeat(
+          ValueSet(0, 1),
+          3,
+          3));
+
+  for (const Domain& domain : domains) {
+    const auto decision =
+        dashed::choose_branch(domain);
+
+    if (!decision) {
+      assert(domain.assigned());
+      continue;
+    }
+
+    const Domain left =
+        dashed::apply_branch(
+            domain,
+            *decision,
+            0);
+
+    const Domain right =
+        dashed::apply_branch(
+            domain,
+            *decision,
+            1);
+
+    assert_exact_partition(
+        domain,
+        left,
+        right,
+        universe);
+  }
+}
+
+void test_ambiguous_count_split_is_deferred() {
+  const Domain ambiguous(
+      {
+          RepeatSegment{
+              ValueSet(0),
+              0,
+              2},
+          RepeatSegment{
+              ValueSet(0, 1),
+              1,
+              2},
+      },
+      1,
+      4);
+
+  assert(!ambiguous.assigned());
+  assert(!dashed::choose_branch(ambiguous));
+}
+
+void test_recursive_branch_completion() {
+  const Domain root =
+      Domain::repeat(
+          ValueSet(0, 1),
+          0,
+          4);
+
+  const auto universe = all_lists(4);
+  std::vector<Domain> pending{root};
+  std::vector<Domain> leaves;
+
+  while (!pending.empty()) {
+    Domain current =
+        std::move(pending.back());
+    pending.pop_back();
+
+    const auto decision =
+        dashed::choose_branch(current);
+
+    if (!decision) {
+      assert(current.assigned());
+      leaves.push_back(
+          std::move(current));
+      continue;
+    }
+
+    pending.push_back(
+        dashed::apply_branch(
+            current,
+            *decision,
+            0));
+
+    pending.push_back(
+        dashed::apply_branch(
+            current,
+            *decision,
+            1));
+
+    assert(
+        pending.size() +
+        leaves.size() < 512);
+  }
+
+  std::set<std::vector<int>> values;
+
+  for (const Domain& leaf : leaves) {
+    assert(leaf.assigned());
+    assert(
+        values.insert(
+            leaf.value()).second);
+  }
+
+  for (const auto& value : universe) {
+    assert(
+        (values.count(value) != 0) ==
+        root.accepts(value));
   }
 }
 
@@ -763,6 +915,9 @@ void test_length_kernel_soundness() {
 }  // namespace
 
 int main() {
+  test_branch_partition_exactness();
+  test_ambiguous_count_split_is_deferred();
+  test_recursive_branch_completion();
   test_normalization_preserves_language();
   test_concat_language_on_fixed_inputs();
   test_value_set_against_enumeration();

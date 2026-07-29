@@ -6,6 +6,7 @@ option(DASHED_BUILD_BENCHMARKS "Build Dashed microbenchmarks" ON)
 option(DASHED_ENABLE_SANITIZERS "Enable ASan and UBSan on supported compilers" OFF)
 
 add_library(dashed_core
+  src/branching.cpp
   src/domain.cpp
   src/literal_slice.cpp
   src/propagation.cpp

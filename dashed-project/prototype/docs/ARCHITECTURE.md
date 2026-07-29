@@ -97,6 +97,22 @@ none, length, domain, both, assigned, failed
 
 The eventual Gecode adapter maps these classes to generated modification events.
 
+## Exact search partitions
+
+Search decisions are first defined and exhaustively checked in the pure domain
+kernel. A count decision partitions one repeat-count interval at its midpoint
+only when all other counts are exact. A value decision first isolates one
+occurrence of an exact-count repeat block, then partitions only that logical
+position's sparse value set. Both operations preserve immutable payload sharing
+and construct normalized child domains.
+
+Several variable-width blocks can give one concrete list multiple internal
+segment decompositions, so splitting one such count would not form disjoint
+language alternatives. The kernel reports no exact decision for that case
+rather than introducing unsound search. This keeps branch semantics independent
+of Gecode lifecycle code. A native brancher can archive a supported compact
+decision and commit either exact child through `ListView::replace`.
+
 ## Separation of responsibilities
 
 ### Domain kernel

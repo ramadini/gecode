@@ -150,6 +150,31 @@ This establishes complete length enumeration without committing the public API
 to the current dashed representation. Direct block-count and symbol-position
 branchers remain later work.
 
+## Direct branching foundation
+
+Before adding a custom Gecode brancher, the standalone backend now provides a
+fully tested binary partition primitive:
+
+```cpp
+std::optional<BranchDecision> choose_branch(const Domain&);
+Domain apply_branch(const Domain&, const BranchDecision&, unsigned alternative);
+```
+
+The decision order is deterministic. A repeat-count interval is split only when
+all other segment counts are exact; this makes the alternatives disjoint by
+total length. Domains with several variable-width blocks are deliberately
+deferred because one concrete list can admit multiple internal decompositions.
+Once all counts are exact, one logical position is isolated from the first
+non-singleton repeated block and its sparse value set is divided into two
+non-empty ordered subsets. Isolating one occurrence is essential: splitting the
+alphabet of an entire repeated block would lose mixed lists.
+
+Exhaustive small-language tests prove that every returned pair is disjoint and
+its union equals the original language. They also verify recursive completion
+for supported finite domains and explicitly preserve the unsupported ambiguous
+count case. `Gecode::List::Backend` exposes this primitive for the next native
+custom-brancher step without making dashed terminology public.
+
 ## Propagators
 
 A propagator follows this transaction pattern:

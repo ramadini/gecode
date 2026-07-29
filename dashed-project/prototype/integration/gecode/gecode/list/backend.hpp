@@ -1,6 +1,7 @@
 #ifndef __GECODE_LIST_BACKEND_HPP__
 #define __GECODE_LIST_BACKEND_HPP__
 
+#include <dashed/branching.hpp>
 #include <dashed/propagation.hpp>
 #include <gecode/list/domain.hpp>
 
@@ -11,11 +12,15 @@ using Change = dashed::Change;
 using BoolDomain = dashed::BoolDomain;
 using IntBounds = dashed::IntBounds;
 using PropagationResult = dashed::PropagationResult;
+using BranchKind = dashed::BranchKind;
+using BranchDecision = dashed::BranchDecision;
 
 inline bool changed(Change change) noexcept {
   return dashed::changed(change);
 }
 
+using dashed::apply_branch;
+using dashed::choose_branch;
 using dashed::propagate_concat;
 using dashed::propagate_equal;
 using dashed::propagate_equal_implies;

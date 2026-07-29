@@ -30,7 +30,8 @@
 ## Milestone 4 — modelling and search
 
 - branch on length through Gecode integer branchers (included);
-- add direct branchers for block cardinality or a distinguishing symbol position;
+- exact backend partitions for unambiguous block counts and one distinguishing symbol position (included);
+- wrap those partitions in native ListVar branchers with archived choices and no-good support;
 - no-good literals where useful;
 - deterministic variable printing (included) and archive support;
 - MiniZinc/FlatZinc-facing predicates if desired.
