@@ -120,7 +120,7 @@ class Domain {
   [[nodiscard]] Length segment_max_sum() const noexcept;
   [[nodiscard]] bool append_assigned(std::vector<int>& out) const;
   [[nodiscard]] std::vector<LiteralSlice> assigned_literal_slices() const;
-  void tighten_segment_counts_from_global_length();
+  [[nodiscard]] bool tighten_segment_counts_from_global_length();
 };
 
 }  // namespace dashed

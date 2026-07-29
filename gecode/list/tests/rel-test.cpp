@@ -525,6 +525,49 @@ void equality_clone_is_independent() {
 }
 
 
+void post_tightening_recanonicalizes_native() {
+  std::vector<Gecode::List::Segment> segments;
+  std::vector<int> values;
+  segments.reserve(50);
+  values.reserve(50);
+
+  for (int index = 0; index < 50; ++index) {
+    const int value = 100 + index;
+    segments.push_back(
+        Gecode::List::RepeatSegment{
+            Gecode::List::ValueSet(value),
+            1,
+            50});
+    values.push_back(value);
+  }
+
+  const Gecode::List::Domain initial(
+      std::move(segments),
+      0,
+      50);
+  const Gecode::List::Domain expected =
+      Gecode::List::Domain::fixed(std::move(values));
+
+  assert(initial == expected);
+  assert(initial.segment_count() == 1);
+
+  auto* root = new EqualitySpace(initial, expected);
+  assert(root->status() != Gecode::SS_FAILED);
+  assert(root->x.assigned());
+  assert(root->y.assigned());
+  assert(root->x.domain() == expected);
+  assert(root->x.domain().segment_count() == 1);
+
+  auto* clone = static_cast<EqualitySpace*>(root->clone());
+  assert(clone->status() != Gecode::SS_FAILED);
+  assert(clone->x.domain() == expected);
+  assert(clone->y.domain() == expected);
+
+  delete root;
+  delete clone;
+}
+
+
 void fixed_literal_equality_canonicalizes_native() {
   const Gecode::List::Domain left = fixed({
       static_cast<int>('a'),
@@ -3714,6 +3757,7 @@ int main() {
   equality_assigns_unknown_side();
   equality_rejects_disjoint_lists();
   equality_clone_is_independent();
+  post_tightening_recanonicalizes_native();
   fixed_literal_equality_canonicalizes_native();
   legacy_assignment_case22_native();
   unbounded_equality_preserves_empty_prefix_native();

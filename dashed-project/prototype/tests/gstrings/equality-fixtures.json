@@ -195,6 +195,26 @@
         "NSBlock(NSIntSet('a', 'b'), 2, 3)",
         "x.val() == \"aab\""
       ]
+    },
+    {
+      "id": "str_test2.test21",
+      "function": "test21",
+      "anchors": [
+        "int N = 50, M = 100",
+        "vx.push_back(NSBlock(NSIntSet('a' + i), 1, N))",
+        "sweep_x<DSBlock, DSBlocks, DSBlock, DSBlocks>",
+        "assert (ns_blocks(x) == vx)"
+      ]
+    },
+    {
+      "id": "str_test2.test23",
+      "function": "test23",
+      "anchors": [
+        "NSBlocks vx({NSBlock(NSIntSet::top(), 43, 74)})",
+        "vx.extend(NSBlocks(\"bT]?e]qCu|B,LSV!W(\"))",
+        "// FIXME: x and y are not equatable.",
+        "check_sweep<DSBlock, DSBlocks, DSBlock, DSBlocks>"
+      ]
     }
   ]
 }

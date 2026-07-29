@@ -154,3 +154,25 @@ printing the very large literals. During the explicit differential run,
 from the preserved legacy source and the List kernel replays all four fixed
 cases. The committed `test19` case is also an 8193-element source-equivalent
 stress fixture so ordinary CTest runs do not depend on the historical tree.
+
+
+## Lower-level sweep stress cases
+
+The preserved corpus now also classifies `str_test2::test21` and `test23`.
+These are lower-level cursor tests, not ordinary equality golden cases.
+
+- `test21` creates 50 lower-bounded singleton blocks under a global maximum
+  length of 50. Global count tightening therefore fixes every block to one
+  occurrence. Normalization now repeats its canonicalization pass after count
+  bounds change, yielding one exact literal while preserving the 50 logical
+  sweep positions. `analyze_repeat_sweep` remains non-mutating and feasible.
+- `test23` intentionally documents that the historical `check_sweep` helper
+  can succeed for two languages that are not equatable. An independent exact
+  fixed-position oracle proves the two concrete pattern languages disjoint,
+  while the structural sweep analysis remains feasible. The projection layers
+  return `unsupported`, not `infeasible`, because mixed literal/repeat domains
+  are outside those directional projection contracts.
+
+This distinction is important: sweep-position feasibility is an internal
+cursor property and must never be used by itself as a proof that two complete
+list languages intersect.

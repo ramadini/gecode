@@ -70,4 +70,7 @@ Measure before adding representation complexity. Candidate optimizations:
       expectation, and a sound-but-weaker List projection.
 - [x] Classify the large/unbounded equality cases 10, 12, 13, and 15.
 - [x] Cover fixed-literal boundary cases 17-20 and assignment case 22, including canonical merging of unrelated adjacent literal slices.
-- [ ] Classify the lower-level sweep stress cases 21 and 23 separately.
+- [x] Classify the lower-level sweep stress cases 21 and 23 separately,
+      including post-tightening canonicalization and the distinction between
+      structural sweep feasibility and actual language intersection.
+- [ ] Build the live historical G-Strings runner and compare the shared report protocol.

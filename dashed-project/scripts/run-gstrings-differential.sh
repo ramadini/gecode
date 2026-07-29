@@ -17,7 +17,7 @@ cmake \
 
 cmake \
   --build "$BUILD" \
-  --target dashed_gstrings_differential_tests dashed_gstrings_extended_tests dashed_gstrings_large_tests dashed_gstrings_fixed_tests \
+  --target dashed_gstrings_differential_tests dashed_gstrings_extended_tests dashed_gstrings_large_tests dashed_gstrings_fixed_tests dashed_gstrings_sweep_stress_tests \
   --parallel "$JOBS"
 
 python3 \
@@ -45,6 +45,11 @@ python3 \
   "$PROTOTYPE/tools/compare_extended_differential_reports.py" \
   --expected "$PROTOTYPE/tests/gstrings/expected-equality-fixed.tsv" \
   --runner "$BUILD/dashed_gstrings_fixed_tests"
+
+python3 \
+  "$PROTOTYPE/tools/compare_extended_differential_reports.py" \
+  --expected "$PROTOTYPE/tests/gstrings/expected-equality-sweep-stress.tsv" \
+  --runner "$BUILD/dashed_gstrings_sweep_stress_tests"
 
 fixed_fixture_directory="$(mktemp -d)"
 fixed_fixture_file="$fixed_fixture_directory/fixed-literals.tsv"

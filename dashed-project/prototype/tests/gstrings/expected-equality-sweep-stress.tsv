@@ -1,0 +1,3 @@
+case	status	classification	left	right
+str_test2.test21	sat	match-sweep-feasible-canonicalized	len=50 segments=1 hash=6c45a5e053558970	analysis-blocks=50 target-segments=100
+str_test2.test23	unsat	match-low-level-sweep-feasible-non-oracle	analysis=feasible blocks=20	exact-language=disjoint

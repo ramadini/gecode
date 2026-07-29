@@ -121,3 +121,14 @@ merging of adjacent literals from unrelated storage, and convergence to the
 assigned list `aab`. The explicit G-Strings differential script additionally
 extracts and replays the exact historical fixed strings, including the large
 `test19` payload.
+
+
+### Lower-level sweep stress regression
+
+`dashed_gstrings_sweep_stress_tests` covers preserved `str_test2` cases 21 and
+23. Case 21 verifies that global count tightening is followed by another
+canonicalization pass and that a 50-position sweep remains feasible without
+mutating its inputs. Case 23 uses an independent exact pattern oracle to prove
+language disjointness while confirming that low-level sweep feasibility is not
+an equatability oracle and that unsupported mixed-domain projections remain
+transactional.

@@ -531,176 +531,171 @@ void Domain::normalize() {
     return;
   }
 
-  std::vector<Segment> normalized;
-  normalized.reserve(segments_.size());
+  bool counts_changed = false;
+  do {
+    std::vector<Segment> normalized;
+    normalized.reserve(segments_.size());
 
-  // Append a repeat segment while maintaining the invariant that adjacent
-  // repeat segments with equal value sets are merged.
-  auto append_repeat = [&](RepeatSegment repeat) {
-    if (repeat.upper == 0) {
-      return;
-    }
-
-    if (!normalized.empty()) {
-      if (auto* previous =
-              std::get_if<RepeatSegment>(&normalized.back());
-          previous != nullptr &&
-          previous->values == repeat.values) {
-        previous->lower =
-            saturating_add(previous->lower, repeat.lower);
-        previous->upper =
-            saturating_add(previous->upper, repeat.upper);
-        return;
-      }
-    }
-
-    normalized.push_back(std::move(repeat));
-  };
-
-  // Append an exact literal. Uniform literals are represented as exact
-  // singleton repeat segments, avoiding storage proportional to their length.
-  auto append_literal = [&](LiteralSegment literal) {
-    if (literal.literal.empty()) {
-      return;
-    }
-
-    const int first = literal.literal[0];
-    bool uniform = true;
-
-    for (std::size_t i = 1;
-         i < literal.literal.size();
-         ++i) {
-      if (literal.literal[i] != first) {
-        uniform = false;
-        break;
-      }
-    }
-
-    if (uniform) {
-      const Length count =
-          static_cast<Length>(literal.literal.size());
-
-      append_repeat(
-          RepeatSegment{ValueSet(first), count, count});
-      return;
-    }
-
-    if (!normalized.empty()) {
-      if (auto* previous =
-              std::get_if<LiteralSegment>(&normalized.back());
-          previous != nullptr &&
-          previous->literal.contiguous_with(
-              literal.literal)) {
-        previous->literal =
-            previous->literal.merged_with(
-                literal.literal);
-        return;
-      }
-    }
-
-    normalized.push_back(std::move(literal));
-  };
-
-  // G-Strings often represented a fixed sequence as one singleton block per
-  // element. Accumulate consecutive unit singleton blocks. Uniform runs become
-  // exact singleton repeat segments; mixed runs become one immutable literal.
-  std::vector<int> pending_unit_literals;
-
-  auto flush_pending_unit_literals = [&]() {
-    if (pending_unit_literals.empty()) {
-      return;
-    }
-
-    const int first = pending_unit_literals.front();
-    const bool uniform = std::all_of(
-        pending_unit_literals.begin(),
-        pending_unit_literals.end(),
-        [first](int value) {
-          return value == first;
-        });
-
-    if (uniform) {
-      const Length count =
-          static_cast<Length>(
-              pending_unit_literals.size());
-
-      append_repeat(
-          RepeatSegment{ValueSet(first), count, count});
-    } else {
-      append_literal(
-          LiteralSegment{
-              LiteralSlice(
-                  std::move(pending_unit_literals))});
-    }
-
-    pending_unit_literals.clear();
-  };
-
-  for (Segment& segment : segments_) {
-    if (auto* repeat =
-            std::get_if<RepeatSegment>(&segment)) {
-      if (repeat->lower > repeat->upper ||
-          (repeat->values.empty() &&
-           repeat->lower > 0)) {
-        fail();
+    // Append a repeat segment while maintaining the invariant that adjacent
+    // repeat segments with equal value sets are merged.
+    auto append_repeat = [&](RepeatSegment repeat) {
+      if (repeat.upper == 0) {
         return;
       }
 
-      if (repeat->upper == 0) {
-        continue;
+      if (!normalized.empty()) {
+        if (auto* previous =
+                std::get_if<RepeatSegment>(&normalized.back());
+            previous != nullptr &&
+            previous->values == repeat.values) {
+          previous->lower =
+              saturating_add(previous->lower, repeat.lower);
+          previous->upper =
+              saturating_add(previous->upper, repeat.upper);
+          return;
+        }
       }
 
-      if (repeat->lower == 1 &&
-          repeat->upper == 1 &&
-          repeat->values.singleton()) {
-        pending_unit_literals.push_back(
-            *repeat->values.singleton_value());
-        continue;
+      normalized.push_back(std::move(repeat));
+    };
+
+    // Append an exact literal. Uniform literals are represented as exact
+    // singleton repeat segments, avoiding storage proportional to their length.
+    auto append_literal = [&](LiteralSegment literal) {
+      if (literal.literal.empty()) {
+        return;
       }
 
-      flush_pending_unit_literals();
-      append_repeat(std::move(*repeat));
-    } else {
-      flush_pending_unit_literals();
+      const int first = literal.literal[0];
+      bool uniform = true;
 
-      append_literal(
-          std::get<LiteralSegment>(
-              std::move(segment)));
+      for (std::size_t i = 1;
+           i < literal.literal.size();
+           ++i) {
+        if (literal.literal[i] != first) {
+          uniform = false;
+          break;
+        }
+      }
+
+      if (uniform) {
+        const Length count =
+            static_cast<Length>(literal.literal.size());
+
+        append_repeat(
+            RepeatSegment{ValueSet(first), count, count});
+        return;
+      }
+
+      if (!normalized.empty()) {
+        if (auto* previous =
+                std::get_if<LiteralSegment>(&normalized.back());
+            previous != nullptr &&
+            previous->literal.contiguous_with(
+                literal.literal)) {
+          previous->literal =
+              previous->literal.merged_with(
+                  literal.literal);
+          return;
+        }
+      }
+
+      normalized.push_back(std::move(literal));
+    };
+
+    // G-Strings often represented a fixed sequence as one singleton block per
+    // element. Accumulate consecutive unit singleton blocks. Uniform runs become
+    // exact singleton repeat segments; mixed runs become one immutable literal.
+    std::vector<int> pending_unit_literals;
+
+    auto flush_pending_unit_literals = [&]() {
+      if (pending_unit_literals.empty()) {
+        return;
+      }
+
+      const int first = pending_unit_literals.front();
+      const bool uniform = std::all_of(
+          pending_unit_literals.begin(),
+          pending_unit_literals.end(),
+          [first](int value) {
+            return value == first;
+          });
+
+      if (uniform) {
+        const Length count =
+            static_cast<Length>(
+                pending_unit_literals.size());
+
+        append_repeat(
+            RepeatSegment{ValueSet(first), count, count});
+      } else {
+        append_literal(
+            LiteralSegment{
+                LiteralSlice(
+                    std::move(pending_unit_literals))});
+      }
+
+      pending_unit_literals.clear();
+    };
+
+    for (Segment& segment : segments_) {
+      if (auto* repeat =
+              std::get_if<RepeatSegment>(&segment)) {
+        if (repeat->lower > repeat->upper ||
+            (repeat->values.empty() &&
+             repeat->lower > 0)) {
+          fail();
+          return;
+        }
+
+        if (repeat->upper == 0) {
+          continue;
+        }
+
+        if (repeat->lower == 1 &&
+            repeat->upper == 1 &&
+            repeat->values.singleton()) {
+          pending_unit_literals.push_back(
+              *repeat->values.singleton_value());
+          continue;
+        }
+
+        flush_pending_unit_literals();
+        append_repeat(std::move(*repeat));
+      } else {
+        flush_pending_unit_literals();
+
+        append_literal(
+            std::get<LiteralSegment>(
+                std::move(segment)));
+      }
     }
-  }
 
-  flush_pending_unit_literals();
-  segments_ = std::move(normalized);
+    flush_pending_unit_literals();
+    segments_ = std::move(normalized);
 
-  const Length segment_minimum = segment_min_sum();
-  const Length segment_maximum = segment_max_sum();
-  min_length_ = std::max(min_length_, segment_minimum);
-  max_length_ = std::min(max_length_, segment_maximum);
-  if (min_length_ > max_length_) {
-    fail();
-    return;
-  }
-
-  tighten_segment_counts_from_global_length();
-  if (failed_) {
-    return;
-  }
-
-  // A second canonical merge may become possible when count tightening turns
-  // an optional empty-value block into a zero-width block.
-  std::vector<Segment> compact;
-  compact.reserve(segments_.size());
-  for (Segment& segment : segments_) {
-    if (const auto* repeat = std::get_if<RepeatSegment>(&segment);
-        repeat != nullptr && repeat->upper == 0) {
-      continue;
+    const Length segment_minimum = segment_min_sum();
+    const Length segment_maximum = segment_max_sum();
+    min_length_ = std::max(min_length_, segment_minimum);
+    max_length_ = std::min(max_length_, segment_maximum);
+    if (min_length_ > max_length_) {
+      fail();
+      return;
     }
-    compact.push_back(std::move(segment));
-  }
-  segments_ = std::move(compact);
+
+    counts_changed =
+        tighten_segment_counts_from_global_length();
+    if (failed_) {
+      return;
+    }
+
+    // A tightened count can expose a new zero-width separator, make adjacent
+    // repeat blocks mergeable, or turn several singleton blocks into one
+    // literal. Repeat the canonicalization pass until count bounds stabilize.
+  } while (counts_changed);
 
   // Count tightening can remove a separator block and expose exact literal
-  // slices that came from different immutable payloads.  Canonicalize the
+  // slices that came from different immutable payloads. Canonicalize the
   // whole adjacent run in one pass: contiguous slices keep sharing storage,
   // while unrelated slices are copied exactly once into one immutable value.
   merge_adjacent_literal_segments(segments_);
@@ -906,10 +901,11 @@ std::vector<LiteralSlice> Domain::assigned_literal_slices() const {
   return result;
 }
 
-void Domain::tighten_segment_counts_from_global_length() {
+bool Domain::tighten_segment_counts_from_global_length() {
   if (failed_) {
-    return;
+    return false;
   }
+  bool any_change = false;
   bool changed = true;
   while (changed) {
     changed = false;
@@ -917,7 +913,7 @@ void Domain::tighten_segment_counts_from_global_length() {
     const Length total_max = segment_max_sum();
     if (total_min > max_length_ || total_max < min_length_) {
       fail();
-      return;
+      return any_change;
     }
 
     // Do not recover the contribution of the other segments by subtracting
@@ -965,15 +961,18 @@ void Domain::tighten_segment_counts_from_global_length() {
       const Length new_upper = std::min(repeat->upper, permitted_upper);
       if (new_lower > new_upper || (repeat->values.empty() && new_lower > 0)) {
         fail();
-        return;
+        return any_change;
       }
       if (new_lower != repeat->lower || new_upper != repeat->upper) {
         repeat->lower = new_lower;
         repeat->upper = new_upper;
         changed = true;
+        any_change = true;
       }
     }
   }
+  return any_change;
 }
+
 
 }  // namespace dashed

@@ -208,6 +208,52 @@ void test_unrelated_literal_run_canonicalization() {
   assert(exposed_after_tightening.segment_count() == 1);
 }
 
+void test_post_tightening_recanonicalization() {
+  std::vector<dashed::Segment> singleton_blocks;
+  std::vector<int> expected_values;
+  singleton_blocks.reserve(50);
+  expected_values.reserve(50);
+
+  for (int index = 0; index < 50; ++index) {
+    const int value = 100 + index;
+    singleton_blocks.push_back(
+        RepeatSegment{ValueSet(value), 1, 50});
+    expected_values.push_back(value);
+  }
+
+  // The global maximum forces every block count from 1..50 to exactly one.
+  // Normalization must then run again and compact the newly fixed sequence.
+  Domain fixed_after_tightening(
+      std::move(singleton_blocks),
+      0,
+      50);
+
+  const Domain expected =
+      Domain::fixed(std::move(expected_values));
+
+  assert(fixed_after_tightening == expected);
+  assert(fixed_after_tightening.segment_count() == 1);
+  assert(fixed_after_tightening.assigned());
+
+  Domain idempotent = fixed_after_tightening;
+  idempotent.normalize();
+  assert(idempotent == fixed_after_tightening);
+
+  // Tightening can also remove a separator and expose two equal repeats.
+  const Domain merged_after_tightening(
+      {
+          RepeatSegment{ValueSet(7), 1, 2},
+          RepeatSegment{ValueSet(9), 0, 1},
+          RepeatSegment{ValueSet(7), 1, 2},
+      },
+      2,
+      2);
+
+  assert(
+      merged_after_tightening ==
+      Domain::repeat(ValueSet(7), 2, 2));
+}
+
 void test_normalization() {
   ValueSet digits(-1000, 1000);
   Domain domain(
@@ -3711,6 +3757,7 @@ int main() {
   test_fixed_block_compaction();
   test_uniform_fixed_run_normalization();
   test_unrelated_literal_run_canonicalization();
+  test_post_tightening_recanonicalization();
   test_normalization();
   test_saturated_global_length_tightening();
   test_membership();
