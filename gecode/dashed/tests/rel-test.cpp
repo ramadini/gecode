@@ -680,10 +680,201 @@ void concat_fixed_result_exact_split() {
   }
 }
 
+
+void concat_fixed_result_split_interval_native() {
+  auto* space = new ConcatSpace(
+      lists(-100, 100, 1, 2),
+      lists(-100, 100, 2, 3),
+      fixed({10, 20, 30, 40}));
+
+  assert(space->status() != Gecode::SS_FAILED);
+
+  const dashed::Domain expected_x(
+      {
+          dashed::RepeatSegment{
+              dashed::ValueSet(10),
+              1,
+              1},
+          dashed::RepeatSegment{
+              dashed::ValueSet(20),
+              0,
+              1},
+      },
+      1,
+      2);
+
+  const dashed::Domain expected_y(
+      {
+          dashed::RepeatSegment{
+              dashed::ValueSet(20),
+              0,
+              1},
+          dashed::LiteralSegment{
+              dashed::LiteralSlice(
+                  std::vector<int>{
+                      30, 40})},
+      },
+      2,
+      3);
+
+  assert(space->x.domain() == expected_x);
+  assert(space->y.domain() == expected_y);
+
+  assert(!space->x.assigned());
+  assert(!space->y.assigned());
+  assert(space->z.assigned());
+
+  delete space;
+}
+
+
+void concat_fixed_result_wide_split_interval_native() {
+  auto* space = new ConcatSpace(
+      lists(-100, 100, 1, 3),
+      lists(-100, 100, 2, 4),
+      fixed({10, 20, 30, 40, 50}));
+
+  assert(space->status() != Gecode::SS_FAILED);
+
+  const dashed::Domain expected_x(
+      {
+          dashed::RepeatSegment{
+              dashed::ValueSet(10),
+              1,
+              1},
+          dashed::RepeatSegment{
+              dashed::ValueSet(20),
+              0,
+              1},
+          dashed::RepeatSegment{
+              dashed::ValueSet(30),
+              0,
+              1},
+      },
+      1,
+      3);
+
+  const dashed::Domain expected_y(
+      {
+          dashed::RepeatSegment{
+              dashed::ValueSet(20),
+              0,
+              1},
+          dashed::RepeatSegment{
+              dashed::ValueSet(30),
+              0,
+              1},
+          dashed::LiteralSegment{
+              dashed::LiteralSlice(
+                  std::vector<int>{
+                      40, 50})},
+      },
+      2,
+      4);
+
+  assert(space->x.domain() == expected_x);
+  assert(space->y.domain() == expected_y);
+
+  auto* clone =
+      static_cast<ConcatSpace*>(
+          space->clone());
+
+  assert(clone->status() != Gecode::SS_FAILED);
+  assert(clone->x.domain() == expected_x);
+  assert(clone->y.domain() == expected_y);
+
+  delete space;
+  delete clone;
+}
+
+
+void concat_fixed_result_empty_boundaries_native() {
+  {
+    auto* space = new ConcatSpace(
+        lists(-100, 100, 0, 0),
+        lists(-100, 100, 2, 2),
+        fixed({7, 8}));
+
+    assert(space->status() != Gecode::SS_FAILED);
+
+    assert(space->x.assigned());
+    assert(space->y.assigned());
+
+    assert(space->x.val().empty());
+    assert(
+        space->y.val() ==
+        std::vector<int>({7, 8}));
+
+    delete space;
+  }
+
+  {
+    auto* space = new ConcatSpace(
+        lists(-100000, 100000, 2, 2),
+        lists(-100, 100, 0, 0),
+        fixed({-7, 80000}));
+
+    assert(space->status() != Gecode::SS_FAILED);
+
+    assert(space->x.assigned());
+    assert(space->y.assigned());
+
+    assert(
+        space->x.val() ==
+        std::vector<int>({-7, 80000}));
+
+    assert(space->y.val().empty());
+
+    delete space;
+  }
+
+  {
+    // The split can be before or after the first value.
+    auto* space = new ConcatSpace(
+        lists(-100, 100, 0, 1),
+        lists(-100, 100, 1, 2),
+        fixed({7, 8}));
+
+    assert(space->status() != Gecode::SS_FAILED);
+
+    const dashed::Domain expected_x(
+        {
+            dashed::RepeatSegment{
+                dashed::ValueSet(7),
+                0,
+                1},
+        },
+        0,
+        1);
+
+    const dashed::Domain expected_y(
+        {
+            dashed::RepeatSegment{
+                dashed::ValueSet(7),
+                0,
+                1},
+            dashed::RepeatSegment{
+                dashed::ValueSet(8),
+                1,
+                1},
+        },
+        1,
+        2);
+
+    assert(space->x.domain() == expected_x);
+    assert(space->y.domain() == expected_y);
+
+    delete space;
+  }
+}
+
 } // namespace
 
 
 int main() {
+  concat_fixed_result_empty_boundaries_native();
+  concat_fixed_result_wide_split_interval_native();
+  concat_fixed_result_split_interval_native();
   concat_fixed_result_exact_split();
   equality_assigns_unknown_side();
   equality_rejects_disjoint_lists();
