@@ -1121,10 +1121,283 @@ void concat_exact_structural_boundaries_native() {
   }
 }
 
+
+void concat_partial_exact_boundaries_native() {
+  {
+    const dashed::Domain result_domain(
+        {
+            dashed::LiteralSegment{
+                dashed::LiteralSlice(
+                    std::vector<int>{
+                        10, 20, 30, 40})},
+            dashed::RepeatSegment{
+                dashed::ValueSet(50, 60),
+                1,
+                2},
+        },
+        5,
+        6);
+
+    auto* space = new ConcatSpace(
+        fixed({10, 20}),
+        lists(-100, 100, 0, 10),
+        result_domain);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    const dashed::Domain expected_y(
+        {
+            dashed::LiteralSegment{
+                dashed::LiteralSlice(
+                    std::vector<int>{
+                        30, 40})},
+            dashed::RepeatSegment{
+                dashed::ValueSet(50, 60),
+                1,
+                2},
+        },
+        3,
+        4);
+
+    assert(
+        space->y.domain() ==
+        expected_y);
+
+    auto* clone =
+        static_cast<ConcatSpace*>(
+            space->clone());
+
+    assert(
+        clone->status() !=
+        Gecode::SS_FAILED);
+
+    assert(
+        clone->y.domain() ==
+        expected_y);
+
+    delete space;
+    delete clone;
+  }
+
+  {
+    const dashed::Domain result_domain(
+        {
+            dashed::RepeatSegment{
+                dashed::ValueSet(7),
+                5,
+                5},
+            dashed::RepeatSegment{
+                dashed::ValueSet(10, 20),
+                1,
+                2},
+        },
+        6,
+        7);
+
+    auto* space = new ConcatSpace(
+        fixed({7, 7}),
+        lists(-100, 100, 0, 10),
+        result_domain);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    const dashed::Domain expected_y(
+        {
+            dashed::RepeatSegment{
+                dashed::ValueSet(7),
+                3,
+                3},
+            dashed::RepeatSegment{
+                dashed::ValueSet(10, 20),
+                1,
+                2},
+        },
+        4,
+        5);
+
+    assert(
+        space->y.domain() ==
+        expected_y);
+
+    delete space;
+  }
+
+  {
+    const dashed::Domain result_domain(
+        {
+            dashed::RepeatSegment{
+                dashed::ValueSet(10, 20),
+                1,
+                2},
+            dashed::LiteralSegment{
+                dashed::LiteralSlice(
+                    std::vector<int>{
+                        30, 40, 50, 60})},
+        },
+        5,
+        6);
+
+    auto* space = new ConcatSpace(
+        lists(-100, 100, 0, 10),
+        fixed({50, 60}),
+        result_domain);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    const dashed::Domain expected_x(
+        {
+            dashed::RepeatSegment{
+                dashed::ValueSet(10, 20),
+                1,
+                2},
+            dashed::LiteralSegment{
+                dashed::LiteralSlice(
+                    std::vector<int>{
+                        30, 40})},
+        },
+        3,
+        4);
+
+    assert(
+        space->x.domain() ==
+        expected_x);
+
+    delete space;
+  }
+
+  {
+    const dashed::Domain result_domain(
+        {
+            dashed::RepeatSegment{
+                dashed::ValueSet(
+                    -50000,
+                    250000),
+                1,
+                2},
+            dashed::RepeatSegment{
+                dashed::ValueSet(70000),
+                5,
+                5},
+        },
+        6,
+        7);
+
+    auto* space = new ConcatSpace(
+        lists(
+            -1000000,
+            1000000,
+            0,
+            10),
+        fixed(
+            {70000, 70000, 70000}),
+        result_domain);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    const dashed::Domain expected_x(
+        {
+            dashed::RepeatSegment{
+                dashed::ValueSet(
+                    -50000,
+                    250000),
+                1,
+                2},
+            dashed::RepeatSegment{
+                dashed::ValueSet(70000),
+                2,
+                2},
+        },
+        3,
+        4);
+
+    assert(
+        space->x.domain() ==
+        expected_x);
+
+    auto* clone =
+        static_cast<ConcatSpace*>(
+            space->clone());
+
+    assert(
+        clone->status() !=
+        Gecode::SS_FAILED);
+
+    assert(
+        clone->x.domain() ==
+        expected_x);
+
+    delete space;
+    delete clone;
+  }
+
+  {
+    const dashed::Domain result_domain(
+        {
+            dashed::LiteralSegment{
+                dashed::LiteralSlice(
+                    std::vector<int>{
+                        10, 20, 30, 40})},
+            dashed::RepeatSegment{
+                dashed::ValueSet(50, 60),
+                1,
+                2},
+        },
+        5,
+        6);
+
+    auto* space = new ConcatSpace(
+        fixed({10, 99}),
+        lists(-100, 100, 0, 10),
+        result_domain);
+
+    assert(
+        space->status() ==
+        Gecode::SS_FAILED);
+
+    delete space;
+  }
+
+  {
+    const dashed::Domain result_domain(
+        {
+            dashed::RepeatSegment{
+                dashed::ValueSet(10, 20),
+                1,
+                2},
+            dashed::LiteralSegment{
+                dashed::LiteralSlice(
+                    std::vector<int>{
+                        30, 40, 50, 60})},
+        },
+        5,
+        6);
+
+    auto* space = new ConcatSpace(
+        lists(-100, 100, 0, 10),
+        fixed({99, 60}),
+        result_domain);
+
+    assert(
+        space->status() ==
+        Gecode::SS_FAILED);
+
+    delete space;
+  }
+}
+
 } // namespace
 
 
 int main() {
+  concat_partial_exact_boundaries_native();
   concat_exact_structural_boundaries_native();
   concat_projects_result_structure_native();
   concat_fixed_result_empty_boundaries_native();
