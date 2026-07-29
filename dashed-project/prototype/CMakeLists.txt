@@ -9,6 +9,7 @@ add_library(dashed_core
   src/domain.cpp
   src/literal_slice.cpp
   src/propagation.cpp
+  src/sweep.cpp
   src/value_set.cpp
 )
 add_library(Dashed::core ALIAS dashed_core)
@@ -42,6 +43,19 @@ if(DASHED_BUILD_TESTS)
   add_executable(dashed_property_tests tests/test_properties.cpp)
   target_link_libraries(dashed_property_tests PRIVATE Dashed::core)
   add_test(NAME dashed_property_tests COMMAND dashed_property_tests)
+
+  add_executable(
+    dashed_sweep_tests
+    tests/test_sweep.cpp
+  )
+  target_link_libraries(
+    dashed_sweep_tests
+    PRIVATE Dashed::core
+  )
+  add_test(
+    NAME dashed_sweep_tests
+    COMMAND dashed_sweep_tests
+  )
 
   find_package(Python3 COMPONENTS Interpreter QUIET)
   if(Python3_Interpreter_FOUND)

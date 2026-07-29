@@ -372,6 +372,77 @@ void test_single_repeat_equality_refinement_guards() {
   }
 }
 
+void test_legacy_equality_multi_segment_sweep() {
+  // Port of old str_test2::test02, replacing characters with integers.
+  //
+  // x = {1..3}^0..300 {4}^50 {3..6}^0..20
+  // y = {2..4}^260 {6}^10
+  //
+  // The common length is exactly 270. Aligning the boundary before the
+  // final ten 6s should refine x to the representation below.
+  Domain x(
+      {
+          RepeatSegment{ValueSet(1, 3), 0, 300},
+          RepeatSegment{ValueSet(4), 50, 50},
+          RepeatSegment{ValueSet(3, 6), 0, 20},
+      },
+      50,
+      370);
+
+  Domain y(
+      {
+          RepeatSegment{ValueSet(2, 4), 260, 260},
+          RepeatSegment{ValueSet(6), 10, 10},
+      },
+      270,
+      270);
+
+  const Domain expected_x(
+      {
+          RepeatSegment{ValueSet(2, 3), 200, 210},
+          RepeatSegment{ValueSet(4), 50, 50},
+          RepeatSegment{ValueSet(3, 4), 0, 10},
+          RepeatSegment{ValueSet(6), 10, 10},
+      },
+      270,
+      270);
+
+  const Domain expected_y(
+      {
+          RepeatSegment{ValueSet(2, 4), 260, 260},
+          RepeatSegment{ValueSet(6), 10, 10},
+      },
+      270,
+      270);
+
+  const auto first =
+      dashed::propagate_equal(x, y);
+
+  assert(!first.failed());
+
+  const auto second =
+      dashed::propagate_equal(x, y);
+
+  assert(!second.failed());
+
+  std::cerr
+      << "legacy multi-segment x: "
+      << x << '\n';
+  std::cerr
+      << "legacy multi-segment y: "
+      << y << '\n';
+  std::cerr
+      << "expected x:             "
+      << expected_x << '\n';
+  std::cerr
+      << "expected y:             "
+      << expected_y << '\n';
+
+  assert(x == expected_x);
+  assert(y == expected_y);
+  assert(!second.subsumed);
+}
+
 void test_equality() {
   Domain fixed = Domain::fixed({4, 5, 6});
   Domain generic = Domain::top(ValueSet(0, 10), 0, 8);
@@ -449,6 +520,7 @@ int main() {
   test_normalization();
   test_membership();
   test_length_propagation();
+  test_legacy_equality_multi_segment_sweep();
   test_single_repeat_equality_refinement_guards();
   test_legacy_equality_shape_refinement();
   test_equality();

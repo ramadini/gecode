@@ -1,4 +1,5 @@
 #include "dashed/propagation.hpp"
+#include "dashed/detail/sweep.hpp"
 
 #include <algorithm>
 #include <limits>
@@ -114,6 +115,35 @@ Change BoolDomain::force(bool forced_value) noexcept {
   return Change::assigned;
 }
 
+Change project_exact_target(
+    Domain& subject,
+    const Domain& target) {
+  Domain refined = subject;
+
+  const detail::SweepStatus status =
+      detail::project_against_exact_target(
+          subject,
+          target,
+          refined);
+
+  switch (status) {
+    case detail::SweepStatus::feasible:
+      return replace_domain(
+          subject,
+          refined);
+
+    case detail::SweepStatus::infeasible:
+      subject.fail();
+      return Change::failed;
+
+    case detail::SweepStatus::unsupported:
+      return Change::none;
+  }
+
+  return Change::none;
+}
+
+
 PropagationResult propagate_equal(Domain& x, Domain& y) {
   PropagationResult result;
   if (x.failed() || y.failed()) {
@@ -165,9 +195,24 @@ PropagationResult propagate_equal(Domain& x, Domain& y) {
             replace_domain(x, y));
       }
     } else {
+      // First try the segmented sweep when either operand provides an
+      // exact target layout. Unsupported cases deliberately fall through
+      // to the existing same-shape intersection.
       result.left = combine(
           result.left,
-          x.intersect_same_shape(y));
+          project_exact_target(x, y));
+
+      if (!result.failed()) {
+        result.right = combine(
+            result.right,
+            project_exact_target(y, x));
+      }
+
+      if (!result.failed()) {
+        result.left = combine(
+            result.left,
+            x.intersect_same_shape(y));
+      }
 
       if (!result.failed()) {
         result.right = combine(
