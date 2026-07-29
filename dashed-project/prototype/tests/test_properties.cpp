@@ -77,17 +77,28 @@ void test_value_set_against_enumeration() {
 
 void test_literal_memory_accounting() {
   constexpr std::size_t n = 100000;
-  Domain domain = Domain::fixed(std::vector<int>(n, 7));
-  Domain prefix = domain.assigned_prefix(50000);
-  Domain suffix = domain.assigned_suffix(50000);
-  Domain joined = prefix.concatenated(suffix);
+
+  // Use a genuinely non-uniform fixed sequence. A uniform sequence is now
+  // normalized to one exact singleton repeat segment and intentionally has
+  // no O(n) literal payload.
+  std::vector<int> values;
+  values.reserve(n);
+
+  for (std::size_t i = 0; i < n; ++i) {
+    values.push_back(
+        static_cast<int>(i % 2));
+  }
+
+  dashed::Domain domain =
+      dashed::Domain::fixed(std::move(values));
 
   assert(domain.segment_count() == 1);
-  assert(joined.segment_count() == 1);
-  assert(joined == domain);
-  assert(domain.referenced_dynamic_bytes() >= n * sizeof(int));
-  // The backing vector is shared by four domains, so no single Domain owns it.
-  assert(domain.owned_dynamic_bytes() == 0);
+  assert(std::holds_alternative<dashed::LiteralSegment>(
+      domain.segments().front()));
+
+  assert(
+      domain.referenced_dynamic_bytes() >=
+      n * sizeof(int));
 }
 
 

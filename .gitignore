@@ -119,3 +119,5 @@ CMakePresets.json.user
 /dashed-project/prototype/build-native-core/
 /dashed-project/prototype/build-nightly-asan-core/
 /dashed-project/runs/
+
+/dashed-project/prototype/build-normalization/

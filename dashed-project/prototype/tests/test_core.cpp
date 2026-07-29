@@ -89,6 +89,89 @@ void test_fixed_block_compaction() {
   assert(std::holds_alternative<LiteralSegment>(few_blocks.segments()[1]));
 }
 
+void test_uniform_fixed_run_normalization() {
+  constexpr std::size_t n = 100000;
+  const auto count = static_cast<dashed::Length>(n);
+
+  // A dense fixed sequence containing one repeated value should not retain
+  // an O(n) literal payload.
+  Domain fixed = Domain::fixed(std::vector<int>(n, 7));
+
+  assert(fixed.assigned());
+  assert(fixed.segment_count() == 1);
+  assert(std::holds_alternative<RepeatSegment>(
+      fixed.segments().front()));
+
+  const auto& fixed_run =
+      std::get<RepeatSegment>(fixed.segments().front());
+
+  const auto fixed_value =
+      fixed_run.values.singleton_value();
+
+  assert(fixed_value.has_value());
+  assert(*fixed_value == 7);
+  assert(fixed_run.lower == count);
+  assert(fixed_run.upper == count);
+  assert(fixed.referenced_dynamic_bytes() == 0);
+
+  // The old G-Strings representation used one exact singleton block for
+  // each position. An identical run should normalize to one repeat segment.
+  std::vector<dashed::Segment> old_style;
+  old_style.reserve(n);
+
+  for (std::size_t i = 0; i < n; ++i) {
+    old_style.push_back(
+        RepeatSegment{ValueSet(7), 1, 1});
+  }
+
+  Domain compact(
+      std::move(old_style),
+      count,
+      count);
+
+  assert(compact.segment_count() == 1);
+  assert(std::holds_alternative<RepeatSegment>(
+      compact.segments().front()));
+
+  const auto& compact_run =
+      std::get<RepeatSegment>(compact.segments().front());
+
+  assert(compact_run.values == ValueSet(7));
+  assert(compact_run.lower == count);
+  assert(compact_run.upper == count);
+  assert(compact.referenced_dynamic_bytes() == 0);
+
+  // Uniform literals must also merge with adjacent equal repeat segments.
+  Domain merged(
+      {
+          RepeatSegment{ValueSet(7), 2, 2},
+          LiteralSegment{
+              LiteralSlice(std::vector<int>{7, 7, 7})},
+          RepeatSegment{ValueSet(7), 1, 1},
+      },
+      6,
+      6);
+
+  assert(merged.segment_count() == 1);
+  assert(std::holds_alternative<RepeatSegment>(
+      merged.segments().front()));
+
+  const auto& merged_run =
+      std::get<RepeatSegment>(merged.segments().front());
+
+  assert(merged_run.values == ValueSet(7));
+  assert(merged_run.lower == 6);
+  assert(merged_run.upper == 6);
+
+  // A genuinely non-uniform fixed sequence must remain a literal.
+  Domain nonuniform =
+      Domain::fixed({7, 7, 8, 7});
+
+  assert(nonuniform.segment_count() == 1);
+  assert(std::holds_alternative<LiteralSegment>(
+      nonuniform.segments().front()));
+}
+
 void test_normalization() {
   ValueSet digits(-1000, 1000);
   Domain domain(
@@ -205,6 +288,7 @@ int main() {
   test_value_set();
   test_literal_slices_share();
   test_fixed_block_compaction();
+  test_uniform_fixed_run_normalization();
   test_normalization();
   test_membership();
   test_length_propagation();
