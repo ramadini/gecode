@@ -67,6 +67,12 @@ source "$BUNDLE_PATH"
 : "${EXPECTED_BRANCH:?Bundle must define EXPECTED_BRANCH}"
 : "${COMMIT_MESSAGE:?Bundle must define COMMIT_MESSAGE}"
 
+if [[ "$BUNDLE_NAME" == "replace-with-bundle-name" ]]; then
+  echo "The bundle template cannot be executed directly." >&2
+  echo "Copy it to a new bundle file and implement its three steps." >&2
+  exit 2
+fi
+
 if ! declare -p ALLOWED_PATHS >/dev/null 2>&1; then
   echo "Bundle must define ALLOWED_PATHS" >&2
   exit 2
