@@ -1393,10 +1393,230 @@ void concat_partial_exact_boundaries_native() {
   }
 }
 
+
+void concat_mandatory_repeat_boundaries_native() {
+  {
+    const dashed::Domain result_domain(
+        {
+            dashed::RepeatSegment{
+                dashed::ValueSet(
+                    -50000,
+                    250000),
+                3,
+                5},
+            dashed::LiteralSegment{
+                dashed::LiteralSlice(
+                    std::vector<int>{
+                        70000, 80000})},
+        },
+        5,
+        7);
+
+    auto* space = new ConcatSpace(
+        fixed({-50000, 0}),
+        lists(
+            -1000000,
+            1000000,
+            0,
+            10),
+        result_domain);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    const dashed::Domain expected_y(
+        {
+            dashed::RepeatSegment{
+                dashed::ValueSet(
+                    -50000,
+                    250000),
+                1,
+                3},
+            dashed::LiteralSegment{
+                dashed::LiteralSlice(
+                    std::vector<int>{
+                        70000, 80000})},
+        },
+        3,
+        5);
+
+    assert(
+        space->y.domain() ==
+        expected_y);
+
+    auto* clone =
+        static_cast<ConcatSpace*>(
+            space->clone());
+
+    assert(
+        clone->status() !=
+        Gecode::SS_FAILED);
+
+    assert(
+        clone->y.domain() ==
+        expected_y);
+
+    delete space;
+    delete clone;
+  }
+
+  {
+    const dashed::Domain result_domain(
+        {
+            dashed::LiteralSegment{
+                dashed::LiteralSlice(
+                    std::vector<int>{
+                        -90000, 0})},
+            dashed::RepeatSegment{
+                dashed::ValueSet(
+                    70000,
+                    90000),
+                3,
+                5},
+        },
+        5,
+        7);
+
+    auto* space = new ConcatSpace(
+        lists(
+            -1000000,
+            1000000,
+            0,
+            10),
+        fixed({70000, 90000}),
+        result_domain);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    const dashed::Domain expected_x(
+        {
+            dashed::LiteralSegment{
+                dashed::LiteralSlice(
+                    std::vector<int>{
+                        -90000, 0})},
+            dashed::RepeatSegment{
+                dashed::ValueSet(
+                    70000,
+                    90000),
+                1,
+                3},
+        },
+        3,
+        5);
+
+    assert(
+        space->x.domain() ==
+        expected_x);
+
+    auto* clone =
+        static_cast<ConcatSpace*>(
+            space->clone());
+
+    assert(
+        clone->status() !=
+        Gecode::SS_FAILED);
+
+    assert(
+        clone->x.domain() ==
+        expected_x);
+
+    delete space;
+    delete clone;
+  }
+
+  {
+    const dashed::Domain result_domain(
+        {
+            dashed::RepeatSegment{
+                dashed::ValueSet(7),
+                1,
+                3},
+            dashed::LiteralSegment{
+                dashed::LiteralSlice(
+                    std::vector<int>{
+                        7, 20})},
+        },
+        3,
+        5);
+
+    auto* space = new ConcatSpace(
+        fixed({7, 7}),
+        lists(-100, 100, 0, 10),
+        result_domain);
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(space->y.min_length() == 1);
+    assert(space->y.max_length() == 3);
+
+    delete space;
+  }
+
+  {
+    const dashed::Domain result_domain(
+        {
+            dashed::RepeatSegment{
+                dashed::ValueSet(7, 9),
+                3,
+                5},
+            dashed::LiteralSegment{
+                dashed::LiteralSlice(
+                    std::vector<int>{
+                        20, 30})},
+        },
+        5,
+        7);
+
+    auto* space = new ConcatSpace(
+        fixed({7, 99}),
+        lists(-100, 100, 0, 10),
+        result_domain);
+
+    assert(
+        space->status() ==
+        Gecode::SS_FAILED);
+
+    delete space;
+  }
+
+  {
+    const dashed::Domain result_domain(
+        {
+            dashed::LiteralSegment{
+                dashed::LiteralSlice(
+                    std::vector<int>{
+                        20, 30})},
+            dashed::RepeatSegment{
+                dashed::ValueSet(7, 9),
+                3,
+                5},
+        },
+        5,
+        7);
+
+    auto* space = new ConcatSpace(
+        lists(-100, 100, 0, 10),
+        fixed({99, 9}),
+        result_domain);
+
+    assert(
+        space->status() ==
+        Gecode::SS_FAILED);
+
+    delete space;
+  }
+}
+
 } // namespace
 
 
 int main() {
+  concat_mandatory_repeat_boundaries_native();
   concat_partial_exact_boundaries_native();
   concat_exact_structural_boundaries_native();
   concat_projects_result_structure_native();

@@ -254,6 +254,18 @@ Domain assigned_suffix_interval_projection(
 }
 
 
+Length subtract_length_bound(
+    Length bound,
+    Length amount) {
+  if (bound == kUnboundedLength) {
+    return kUnboundedLength;
+  }
+
+  return static_cast<Length>(
+      bound - amount);
+}
+
+
 enum class ExactBoundaryStatus {
   unsupported,
   mismatch,
@@ -280,6 +292,20 @@ ExactBoundaryStatus strip_exact_prefix(
       whole.max_length() < prefix_length) {
     return ExactBoundaryStatus::mismatch;
   }
+
+  const auto finish_remainder =
+      [&](std::vector<Segment> segments) {
+        remainder = Domain(
+            std::move(segments),
+            static_cast<Length>(
+                whole.min_length() -
+                prefix_length),
+            subtract_length_bound(
+                whole.max_length(),
+                prefix_length));
+
+        return ExactBoundaryStatus::matched;
+      };
 
   std::size_t consumed = 0;
   std::size_t segment_index = 0;
@@ -316,37 +342,27 @@ ExactBoundaryStatus strip_exact_prefix(
       consumed += take;
 
       if (take < count) {
-        std::vector<Segment>
-            remainder_segments;
+        std::vector<Segment> segments;
 
-        remainder_segments.reserve(
+        segments.reserve(
             whole.segments().size() -
             segment_index);
 
-        remainder_segments.push_back(
+        segments.push_back(
             LiteralSegment{
                 literal->literal.slice(
                     take,
                     count - take)});
 
-        remainder_segments.insert(
-            remainder_segments.end(),
+        segments.insert(
+            segments.end(),
             whole.segments().begin() +
                 static_cast<std::ptrdiff_t>(
                     segment_index + 1),
             whole.segments().end());
 
-        remainder = Domain(
-            std::move(
-                remainder_segments),
-            static_cast<Length>(
-                whole.min_length() -
-                prefix_length),
-            static_cast<Length>(
-                whole.max_length() -
-                prefix_length));
-
-        return ExactBoundaryStatus::matched;
+        return finish_remainder(
+            std::move(segments));
       }
 
       ++segment_index;
@@ -357,93 +373,137 @@ ExactBoundaryStatus strip_exact_prefix(
         std::get<RepeatSegment>(
             segment);
 
-    const auto value =
-        repeat.values.singleton_value();
+    const std::size_t remaining =
+        expected.size() - consumed;
 
-    if (!repeat.exact_count() ||
-        !value.has_value()) {
-      return ExactBoundaryStatus::unsupported;
+    if (repeat.exact_count()) {
+      const std::size_t count =
+          static_cast<std::size_t>(
+              repeat.upper);
+
+      const std::size_t take =
+          std::min(
+              count,
+              remaining);
+
+      for (std::size_t offset = 0;
+           offset < take;
+           ++offset) {
+        if (!repeat.values.contains(
+                expected[
+                    consumed + offset])) {
+          return ExactBoundaryStatus::mismatch;
+        }
+      }
+
+      consumed += take;
+
+      if (take < count) {
+        const Length remaining_count =
+            static_cast<Length>(
+                count - take);
+
+        std::vector<Segment> segments;
+
+        segments.reserve(
+            whole.segments().size() -
+            segment_index);
+
+        segments.push_back(
+            RepeatSegment{
+                repeat.values,
+                remaining_count,
+                remaining_count});
+
+        segments.insert(
+            segments.end(),
+            whole.segments().begin() +
+                static_cast<std::ptrdiff_t>(
+                    segment_index + 1),
+            whole.segments().end());
+
+        return finish_remainder(
+            std::move(segments));
+      }
+
+      ++segment_index;
+      continue;
     }
 
-    const std::size_t count =
+    // Only the lower-bound portion is guaranteed to belong to this
+    // repeat block. Crossing into its optional portion would make the
+    // structural boundary ambiguous.
+    const std::size_t mandatory =
         static_cast<std::size_t>(
-            repeat.upper);
+            repeat.lower);
 
     const std::size_t take =
         std::min(
-            count,
-            expected.size() - consumed);
+            mandatory,
+            remaining);
 
     for (std::size_t offset = 0;
          offset < take;
          ++offset) {
-      if (expected[consumed + offset] !=
-          *value) {
+      if (!repeat.values.contains(
+              expected[
+                  consumed + offset])) {
         return ExactBoundaryStatus::mismatch;
       }
     }
 
     consumed += take;
 
-    if (take < count) {
-      const Length remaining_count =
+    if (remaining <= mandatory) {
+      const Length consumed_count =
+          static_cast<Length>(take);
+
+      const Length remaining_lower =
           static_cast<Length>(
-              count - take);
+              repeat.lower -
+              consumed_count);
 
-      std::vector<Segment>
-          remainder_segments;
+      const Length remaining_upper =
+          subtract_length_bound(
+              repeat.upper,
+              consumed_count);
 
-      remainder_segments.reserve(
+      std::vector<Segment> segments;
+
+      segments.reserve(
           whole.segments().size() -
           segment_index);
 
-      remainder_segments.push_back(
-          RepeatSegment{
-              repeat.values,
-              remaining_count,
-              remaining_count});
+      if (remaining_upper != 0) {
+        segments.push_back(
+            RepeatSegment{
+                repeat.values,
+                remaining_lower,
+                remaining_upper});
+      }
 
-      remainder_segments.insert(
-          remainder_segments.end(),
+      segments.insert(
+          segments.end(),
           whole.segments().begin() +
               static_cast<std::ptrdiff_t>(
                   segment_index + 1),
           whole.segments().end());
 
-      remainder = Domain(
-          std::move(
-              remainder_segments),
-          static_cast<Length>(
-              whole.min_length() -
-              prefix_length),
-          static_cast<Length>(
-              whole.max_length() -
-              prefix_length));
-
-      return ExactBoundaryStatus::matched;
+      return finish_remainder(
+          std::move(segments));
     }
 
-    ++segment_index;
+    return ExactBoundaryStatus::unsupported;
   }
 
-  std::vector<Segment>
-      remainder_segments(
-          whole.segments().begin() +
-              static_cast<std::ptrdiff_t>(
-                  segment_index),
-          whole.segments().end());
+  std::vector<Segment> segments(
+      whole.segments().begin() +
+          static_cast<std::ptrdiff_t>(
+              segment_index),
+      whole.segments().end());
 
-  remainder = Domain(
-      std::move(
-          remainder_segments),
-      static_cast<Length>(
-          whole.min_length() -
-          prefix_length),
-      static_cast<Length>(
-          whole.max_length() -
-          prefix_length));
-
-  return ExactBoundaryStatus::matched;
+  return finish_remainder(
+      std::move(segments));
 }
 
 
@@ -466,6 +526,20 @@ ExactBoundaryStatus strip_exact_suffix(
       whole.max_length() < suffix_length) {
     return ExactBoundaryStatus::mismatch;
   }
+
+  const auto finish_remainder =
+      [&](std::vector<Segment> segments) {
+        remainder = Domain(
+            std::move(segments),
+            static_cast<Length>(
+                whole.min_length() -
+                suffix_length),
+            subtract_length_bound(
+                whole.max_length(),
+                suffix_length));
+
+        return ExactBoundaryStatus::matched;
+      };
 
   std::size_t consumed = 0;
   std::size_t segment_index =
@@ -513,36 +587,26 @@ ExactBoundaryStatus strip_exact_suffix(
       consumed += take;
 
       if (take < count) {
-        std::vector<Segment>
-            remainder_segments;
+        std::vector<Segment> segments;
 
-        remainder_segments.reserve(
+        segments.reserve(
             segment_index);
 
-        remainder_segments.insert(
-            remainder_segments.end(),
+        segments.insert(
+            segments.end(),
             whole.segments().begin(),
             whole.segments().begin() +
                 static_cast<std::ptrdiff_t>(
                     segment_index - 1));
 
-        remainder_segments.push_back(
+        segments.push_back(
             LiteralSegment{
                 literal->literal.slice(
                     0,
                     count - take)});
 
-        remainder = Domain(
-            std::move(
-                remainder_segments),
-            static_cast<Length>(
-                whole.min_length() -
-                suffix_length),
-            static_cast<Length>(
-                whole.max_length() -
-                suffix_length));
-
-        return ExactBoundaryStatus::matched;
+        return finish_remainder(
+            std::move(segments));
       }
 
       --segment_index;
@@ -553,22 +617,79 @@ ExactBoundaryStatus strip_exact_suffix(
         std::get<RepeatSegment>(
             segment);
 
-    const auto value =
-        repeat.values.singleton_value();
+    const std::size_t remaining =
+        expected.size() - consumed;
 
-    if (!repeat.exact_count() ||
-        !value.has_value()) {
-      return ExactBoundaryStatus::unsupported;
+    if (repeat.exact_count()) {
+      const std::size_t count =
+          static_cast<std::size_t>(
+              repeat.upper);
+
+      const std::size_t take =
+          std::min(
+              count,
+              remaining);
+
+      const std::size_t expected_start =
+          expected.size() -
+          consumed -
+          take;
+
+      for (std::size_t offset = 0;
+           offset < take;
+           ++offset) {
+        if (!repeat.values.contains(
+                expected[
+                    expected_start +
+                    offset])) {
+          return ExactBoundaryStatus::mismatch;
+        }
+      }
+
+      consumed += take;
+
+      if (take < count) {
+        const Length remaining_count =
+            static_cast<Length>(
+                count - take);
+
+        std::vector<Segment> segments;
+
+        segments.reserve(
+            segment_index);
+
+        segments.insert(
+            segments.end(),
+            whole.segments().begin(),
+            whole.segments().begin() +
+                static_cast<std::ptrdiff_t>(
+                    segment_index - 1));
+
+        segments.push_back(
+            RepeatSegment{
+                repeat.values,
+                remaining_count,
+                remaining_count});
+
+        return finish_remainder(
+            std::move(segments));
+      }
+
+      --segment_index;
+      continue;
     }
 
-    const std::size_t count =
+    // Only the lower-bound portion is guaranteed to belong to this
+    // repeat block. Crossing into its optional portion would make the
+    // structural boundary ambiguous.
+    const std::size_t mandatory =
         static_cast<std::size_t>(
-            repeat.upper);
+            repeat.lower);
 
     const std::size_t take =
         std::min(
-            count,
-            expected.size() - consumed);
+            mandatory,
+            remaining);
 
     const std::size_t expected_start =
         expected.size() -
@@ -578,73 +699,65 @@ ExactBoundaryStatus strip_exact_suffix(
     for (std::size_t offset = 0;
          offset < take;
          ++offset) {
-      if (expected[
-              expected_start + offset] !=
-          *value) {
+      if (!repeat.values.contains(
+              expected[
+                  expected_start +
+                  offset])) {
         return ExactBoundaryStatus::mismatch;
       }
     }
 
     consumed += take;
 
-    if (take < count) {
-      const Length remaining_count =
+    if (remaining <= mandatory) {
+      const Length consumed_count =
+          static_cast<Length>(take);
+
+      const Length remaining_lower =
           static_cast<Length>(
-              count - take);
+              repeat.lower -
+              consumed_count);
 
-      std::vector<Segment>
-          remainder_segments;
+      const Length remaining_upper =
+          subtract_length_bound(
+              repeat.upper,
+              consumed_count);
 
-      remainder_segments.reserve(
+      std::vector<Segment> segments;
+
+      segments.reserve(
           segment_index);
 
-      remainder_segments.insert(
-          remainder_segments.end(),
+      segments.insert(
+          segments.end(),
           whole.segments().begin(),
           whole.segments().begin() +
               static_cast<std::ptrdiff_t>(
                   segment_index - 1));
 
-      remainder_segments.push_back(
-          RepeatSegment{
-              repeat.values,
-              remaining_count,
-              remaining_count});
+      if (remaining_upper != 0) {
+        segments.push_back(
+            RepeatSegment{
+                repeat.values,
+                remaining_lower,
+                remaining_upper});
+      }
 
-      remainder = Domain(
-          std::move(
-              remainder_segments),
-          static_cast<Length>(
-              whole.min_length() -
-              suffix_length),
-          static_cast<Length>(
-              whole.max_length() -
-              suffix_length));
-
-      return ExactBoundaryStatus::matched;
+      return finish_remainder(
+          std::move(segments));
     }
 
-    --segment_index;
+    return ExactBoundaryStatus::unsupported;
   }
 
-  std::vector<Segment>
-      remainder_segments(
-          whole.segments().begin(),
-          whole.segments().begin() +
-              static_cast<std::ptrdiff_t>(
-                  segment_index));
+  std::vector<Segment> segments(
+      whole.segments().begin(),
+      whole.segments().begin() +
+          static_cast<std::ptrdiff_t>(
+              segment_index));
 
-  remainder = Domain(
-      std::move(
-          remainder_segments),
-      static_cast<Length>(
-          whole.min_length() -
-          suffix_length),
-      static_cast<Length>(
-          whole.max_length() -
-          suffix_length));
-
-  return ExactBoundaryStatus::matched;
+  return finish_remainder(
+      std::move(segments));
 }
 
 
