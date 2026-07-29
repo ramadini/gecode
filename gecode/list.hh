@@ -7,5 +7,6 @@
 #include <gecode/list/rel.hpp>
 #include <gecode/list/concat.hpp>
 #include <gecode/list/length.hpp>
+#include <gecode/list/branch.hpp>
 
 #endif

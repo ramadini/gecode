@@ -130,6 +130,26 @@ Streaming a `ListVar` prints the canonical `Gecode::List::Domain` representation
 is deterministic and observational only; it does not enumerate the represented
 language or modify the variable.
 
+## Length branching
+
+The first native search API is deliberately small:
+
+```cpp
+branch_length(home, x, INT_VAL_MIN());
+branch_length(home, xs, INT_VAR_SIZE_MIN(), INT_VAL_MIN());
+```
+
+Each `ListVar` receives a temporary `IntVar` linked by the bidirectional
+`length()` propagator, and standard Gecode integer branchers select and split
+those length variables. The handles may be temporary because the posted
+propagators and branchers retain their own views in the space. Unbounded list
+lengths are capped at `Int::Limits::max`, while a minimum length outside the
+Gecode integer range is rejected with `Int::OutOfLimits`.
+
+This establishes complete length enumeration without committing the public API
+to the current dashed representation. Direct block-count and symbol-position
+branchers remain later work.
+
 ## Propagators
 
 A propagator follows this transaction pattern:

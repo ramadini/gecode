@@ -1,5 +1,7 @@
 #include <gecode/list.hh>
+#include <gecode/search.hh>
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <sstream>
@@ -63,6 +65,65 @@ class ListArraySpace final : public Space {
 
   Space* copy() override {
     return new ListArraySpace(*this);
+  }
+};
+
+
+class LengthBranchSpace final : public Space {
+ public:
+  ListVar x;
+
+  LengthBranchSpace(
+      Gecode::List::Domain domain,
+      Gecode::IntValBranch values)
+      : Space(),
+        x(*this, std::move(domain)) {
+    Gecode::branch_length(
+        *this,
+        x,
+        values);
+  }
+
+  LengthBranchSpace(
+      LengthBranchSpace& other)
+      : Space(other),
+        x() {
+    x.update(*this, other.x);
+  }
+
+  Space* copy() override {
+    return new LengthBranchSpace(*this);
+  }
+};
+
+
+class LengthArrayBranchSpace final : public Space {
+ public:
+  Gecode::ListVarArray x;
+
+  LengthArrayBranchSpace()
+      : Space(),
+        x(
+            *this,
+            2,
+            lists(-1, 1, 0, 1)) {
+    Gecode::ListVarArgs variables(x);
+    Gecode::branch_length(
+        *this,
+        variables,
+        Gecode::INT_VAR_SIZE_MIN(),
+        Gecode::INT_VAL_MIN());
+  }
+
+  LengthArrayBranchSpace(
+      LengthArrayBranchSpace& other)
+      : Space(other),
+        x() {
+    x.update(*this, other.x);
+  }
+
+  Space* copy() override {
+    return new LengthArrayBranchSpace(*this);
   }
 };
 
@@ -2692,6 +2753,151 @@ void half_reification_alias_and_clone_native() {
   }
 }
 
+void length_branching_bounds_native() {
+  {
+    auto* space = new LengthBranchSpace(
+        Gecode::List::Domain::top(
+            Gecode::List::ValueSet(-1, 1),
+            2,
+            Gecode::List::kUnboundedLength),
+        Gecode::INT_VAL_MIN());
+
+    assert(
+        space->status() !=
+        Gecode::SS_FAILED);
+
+    assert(space->x.min_length() == 2);
+    assert(
+        space->x.max_length() ==
+        static_cast<unsigned int>(
+            Gecode::Int::Limits::max));
+
+    delete space;
+  }
+
+  {
+    const auto outside_integer_range =
+        static_cast<Gecode::List::Length>(
+            Gecode::Int::Limits::max) +
+        1U;
+
+    bool rejected = false;
+
+    try {
+      auto* space = new LengthBranchSpace(
+          Gecode::List::Domain::top(
+              Gecode::List::ValueSet(0),
+              outside_integer_range,
+              outside_integer_range),
+          Gecode::INT_VAL_MIN());
+      delete space;
+    } catch (const Gecode::Int::OutOfLimits&) {
+      rejected = true;
+    }
+
+    assert(rejected);
+  }
+
+  {
+    Gecode::DFS<LengthBranchSpace> search(
+        new LengthBranchSpace(
+            lists(-2, 2, 2, 2),
+            Gecode::INT_VAL_MIN()));
+
+    int solutions = 0;
+
+    while (LengthBranchSpace* solution = search.next()) {
+      ++solutions;
+      assert(solution->x.min_length() == 2);
+      assert(solution->x.max_length() == 2);
+      delete solution;
+    }
+
+    assert(solutions == 1);
+  }
+}
+
+
+void length_branching_array_native() {
+  Gecode::DFS<LengthArrayBranchSpace>
+      search(new LengthArrayBranchSpace());
+
+  std::vector<std::pair<unsigned int, unsigned int>>
+      lengths;
+
+  while (LengthArrayBranchSpace* solution = search.next()) {
+    assert(
+        solution->status() !=
+        Gecode::SS_FAILED);
+
+    assert(solution->x.size() == 2);
+
+    for (int index = 0;
+         index < solution->x.size();
+         ++index) {
+      assert(
+          solution->x[index].min_length() ==
+          solution->x[index].max_length());
+    }
+
+    lengths.emplace_back(
+        solution->x[0].min_length(),
+        solution->x[1].min_length());
+
+    delete solution;
+  }
+
+  std::sort(
+      lengths.begin(),
+      lengths.end());
+
+  const std::vector<
+      std::pair<unsigned int, unsigned int>>
+      expected{
+          {0, 0},
+          {0, 1},
+          {1, 0},
+          {1, 1},
+      };
+
+  assert(lengths == expected);
+}
+
+
+void length_branching_single_native() {
+  auto* root = new LengthBranchSpace(
+      lists(-2, 2, 0, 3),
+      Gecode::INT_VAL_MIN());
+
+  Gecode::DFS<LengthBranchSpace> search(root);
+
+  std::vector<unsigned int> lengths;
+
+  while (LengthBranchSpace* solution = search.next()) {
+    assert(
+        solution->status() !=
+        Gecode::SS_FAILED);
+
+    assert(
+        solution->x.min_length() ==
+        solution->x.max_length());
+
+    lengths.push_back(
+        solution->x.min_length());
+
+    delete solution;
+  }
+
+  std::sort(
+      lengths.begin(),
+      lengths.end());
+
+  assert(
+      lengths ==
+      std::vector<unsigned int>({0, 1, 2, 3}));
+}
+
+
 void list_var_arrays_clone_and_print_native() {
   static_assert(
       std::is_same_v<
@@ -2798,6 +3004,9 @@ void list_var_arrays_clone_and_print_native() {
 
 
 int main() {
+  length_branching_bounds_native();
+  length_branching_array_native();
+  length_branching_single_native();
   list_var_arrays_clone_and_print_native();
   half_reification_alias_and_clone_native();
   half_reification_modes_native();

@@ -66,7 +66,7 @@ cmake \
   -DGECODE_ENABLE_MPFR=OFF \
   -DGECODE_ENABLE_EXAMPLES=OFF \
   -DBUILD_TESTING=OFF \
-  -DGECODE_ENABLE_SEARCH=OFF \
+  -DGECODE_ENABLE_SEARCH=ON \
   -DGECODE_ENABLE_INT_VARS=ON \
   -DGECODE_ENABLE_SET_VARS=OFF \
   -DGECODE_ENABLE_FLOAT_VARS=OFF \
@@ -93,6 +93,7 @@ CXX="${CXX:-g++}"
   -L"$GECODE_BUILD" \
   -Wl,-rpath,"$GECODE_BUILD" \
   -lgecodeint \
+  -lgecodesearch \
   -lgecodekernel \
   -lgecodesupport \
   -pthread \
