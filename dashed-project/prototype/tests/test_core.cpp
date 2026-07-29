@@ -1054,6 +1054,177 @@ void test_concat_forward_projection_guards() {
 }
 
 
+void test_concat_projects_segmented_suffix_remainder() {
+  {
+    Domain z(
+        {
+            RepeatSegment{
+                ValueSet(30, 40),
+                1,
+                3},
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{
+                        50, 51, 90})},
+        },
+        4,
+        6);
+
+    Domain x(
+        {
+            RepeatSegment{
+                ValueSet(35, 45),
+                2,
+                4},
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{
+                        50, 51})},
+        },
+        4,
+        6);
+
+    Domain y =
+        Domain::fixed({90});
+
+    const Domain expected_x(
+        {
+            RepeatSegment{
+                ValueSet(35, 40),
+                2,
+                3},
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{
+                        50, 51})},
+        },
+        4,
+        5);
+
+    const auto first =
+        dashed::propagate_concat(
+            z,
+            x,
+            y);
+
+    assert(!first.failed());
+    assert(x == expected_x);
+
+    const auto second =
+        dashed::propagate_concat(
+            z,
+            x,
+            y);
+
+    assert(!second.failed());
+    assert(x == expected_x);
+    assert(!second.subsumed);
+  }
+
+  {
+    Domain z(
+        {
+            RepeatSegment{
+                ValueSet(30, 40),
+                1,
+                3},
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{
+                        50, 51, 90})},
+        },
+        4,
+        6);
+
+    Domain x(
+        {
+            RepeatSegment{
+                ValueSet(60, 70),
+                2,
+                4},
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{
+                        50, 51})},
+        },
+        4,
+        6);
+
+    Domain y =
+        Domain::fixed({90});
+
+    const auto result =
+        dashed::propagate_concat(
+            z,
+            x,
+            y);
+
+    assert(result.failed());
+    assert(x.failed());
+  }
+
+  {
+    Domain z(
+        {
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{
+                        70000, 80000})},
+            RepeatSegment{
+                ValueSet(100000, 200000),
+                1,
+                5},
+            RepeatSegment{
+                ValueSet(-50000),
+                1,
+                1},
+        },
+        4,
+        8);
+
+    Domain x(
+        {
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{
+                        70000, 80000})},
+            RepeatSegment{
+                ValueSet(150000, 250000),
+                3,
+                8},
+        },
+        5,
+        10);
+
+    Domain y =
+        Domain::fixed({-50000});
+
+    const Domain expected_x(
+        {
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{
+                        70000, 80000})},
+            RepeatSegment{
+                ValueSet(150000, 200000),
+                3,
+                5},
+        },
+        5,
+        7);
+
+    const auto result =
+        dashed::propagate_concat(
+            z,
+            x,
+            y);
+
+    assert(!result.failed());
+    assert(x == expected_x);
+  }
+}
+
+
 void test_concat_strips_mandatory_repeat_suffix() {
   {
     Domain z(
@@ -1560,6 +1731,189 @@ void test_concat_strips_exact_suffix() {
             y);
 
     assert(result.failed());
+  }
+}
+
+
+void test_concat_projects_segmented_prefix_remainder() {
+  {
+    Domain z(
+        {
+            RepeatSegment{
+                ValueSet(10),
+                1,
+                1},
+            RepeatSegment{
+                ValueSet(30, 40),
+                1,
+                3},
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{
+                        50, 51})},
+        },
+        4,
+        6);
+
+    Domain x =
+        Domain::fixed({10});
+
+    Domain y(
+        {
+            RepeatSegment{
+                ValueSet(35, 45),
+                2,
+                4},
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{
+                        50, 51})},
+        },
+        4,
+        6);
+
+    const Domain expected_y(
+        {
+            RepeatSegment{
+                ValueSet(35, 40),
+                2,
+                3},
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{
+                        50, 51})},
+        },
+        4,
+        5);
+
+    const auto first =
+        dashed::propagate_concat(
+            z,
+            x,
+            y);
+
+    assert(!first.failed());
+    assert(y == expected_y);
+
+    const auto second =
+        dashed::propagate_concat(
+            z,
+            x,
+            y);
+
+    assert(!second.failed());
+    assert(y == expected_y);
+    assert(!second.subsumed);
+  }
+
+  {
+    // The structural suffix agrees, but the repeat alphabets are
+    // disjoint. Boundary projection must prove failure.
+    Domain z(
+        {
+            RepeatSegment{
+                ValueSet(10),
+                1,
+                1},
+            RepeatSegment{
+                ValueSet(30, 40),
+                1,
+                3},
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{
+                        50, 51})},
+        },
+        4,
+        6);
+
+    Domain x =
+        Domain::fixed({10});
+
+    Domain y(
+        {
+            RepeatSegment{
+                ValueSet(60, 70),
+                2,
+                4},
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{
+                        50, 51})},
+        },
+        4,
+        6);
+
+    const auto result =
+        dashed::propagate_concat(
+            z,
+            x,
+            y);
+
+    assert(result.failed());
+    assert(y.failed());
+  }
+
+  {
+    // Global length narrowing participates in the segmented
+    // intersection before the structural projection is committed.
+    Domain z(
+        {
+            RepeatSegment{
+                ValueSet(-50000),
+                1,
+                1},
+            RepeatSegment{
+                ValueSet(100000, 200000),
+                1,
+                5},
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{
+                        70000, 80000})},
+        },
+        4,
+        8);
+
+    Domain x =
+        Domain::fixed({-50000});
+
+    Domain y(
+        {
+            RepeatSegment{
+                ValueSet(150000, 250000),
+                3,
+                8},
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{
+                        70000, 80000})},
+        },
+        5,
+        10);
+
+    const Domain expected_y(
+        {
+            RepeatSegment{
+                ValueSet(150000, 200000),
+                3,
+                5},
+            LiteralSegment{
+                LiteralSlice(
+                    std::vector<int>{
+                        70000, 80000})},
+        },
+        5,
+        7);
+
+    const auto result =
+        dashed::propagate_concat(
+            z,
+            x,
+            y);
+
+    assert(!result.failed());
+    assert(y == expected_y);
   }
 }
 
@@ -2644,9 +2998,11 @@ void test_disequality_language_disjointness() {
 }  // namespace
 
 int main() {
+  test_concat_projects_segmented_suffix_remainder();
   test_concat_strips_mandatory_repeat_suffix();
   test_concat_strips_partial_suffix_segments();
   test_concat_strips_exact_suffix();
+  test_concat_projects_segmented_prefix_remainder();
   test_concat_strips_mandatory_repeat_prefix();
   test_concat_strips_partial_prefix_segments();
   test_concat_strips_exact_prefix();

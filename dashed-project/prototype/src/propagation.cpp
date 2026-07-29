@@ -761,6 +761,152 @@ ExactBoundaryStatus strip_exact_suffix(
 }
 
 
+enum class AnchoredRepeatStatus {
+  unsupported,
+  infeasible,
+  feasible,
+};
+
+
+AnchoredRepeatStatus intersect_anchored_repeat(
+    const Domain& lhs,
+    const Domain& rhs,
+    Domain& refined) {
+  if (lhs.segment_count() != 2 ||
+      rhs.segment_count() != 2) {
+    return AnchoredRepeatStatus::unsupported;
+  }
+
+  std::size_t repeat_index = 2;
+  std::size_t literal_index = 2;
+
+  for (std::size_t index = 0;
+       index < 2;
+       ++index) {
+    const Segment& left =
+        lhs.segments()[index];
+
+    const Segment& right =
+        rhs.segments()[index];
+
+    if (std::holds_alternative<RepeatSegment>(left) &&
+        std::holds_alternative<RepeatSegment>(right)) {
+      if (repeat_index != 2) {
+        return AnchoredRepeatStatus::unsupported;
+      }
+
+      repeat_index = index;
+      continue;
+    }
+
+    if (std::holds_alternative<LiteralSegment>(left) &&
+        std::holds_alternative<LiteralSegment>(right)) {
+      if (literal_index != 2) {
+        return AnchoredRepeatStatus::unsupported;
+      }
+
+      const auto& left_literal =
+          std::get<LiteralSegment>(
+              left).literal;
+
+      const auto& right_literal =
+          std::get<LiteralSegment>(
+              right).literal;
+
+      if (!(left_literal == right_literal)) {
+        return AnchoredRepeatStatus::unsupported;
+      }
+
+      literal_index = index;
+      continue;
+    }
+
+    return AnchoredRepeatStatus::unsupported;
+  }
+
+  if (repeat_index == 2 ||
+      literal_index == 2) {
+    return AnchoredRepeatStatus::unsupported;
+  }
+
+  const auto& left_repeat =
+      std::get<RepeatSegment>(
+          lhs.segments()[repeat_index]);
+
+  const auto& right_repeat =
+      std::get<RepeatSegment>(
+          rhs.segments()[repeat_index]);
+
+  const Length lower =
+      std::max(
+          left_repeat.lower,
+          right_repeat.lower);
+
+  Length upper =
+      std::min(
+          left_repeat.upper,
+          right_repeat.upper);
+
+  if (lower > upper) {
+    return AnchoredRepeatStatus::infeasible;
+  }
+
+  ValueSet values =
+      left_repeat.values.intersected(
+          right_repeat.values);
+
+  if (values.empty()) {
+    if (lower != 0) {
+      return AnchoredRepeatStatus::infeasible;
+    }
+
+    upper = 0;
+  }
+
+  std::vector<Segment> segments =
+      lhs.segments();
+
+  if (upper == 0) {
+    segments.erase(
+        segments.begin() +
+        static_cast<std::ptrdiff_t>(
+            repeat_index));
+  } else {
+    segments[repeat_index] =
+        RepeatSegment{
+            std::move(values),
+            lower,
+            upper};
+  }
+
+  const Length domain_lower =
+      std::max(
+          lhs.min_length(),
+          rhs.min_length());
+
+  const Length domain_upper =
+      std::min(
+          lhs.max_length(),
+          rhs.max_length());
+
+  if (domain_lower > domain_upper) {
+    return AnchoredRepeatStatus::infeasible;
+  }
+
+  Domain candidate(
+      std::move(segments),
+      domain_lower,
+      domain_upper);
+
+  if (candidate.failed()) {
+    return AnchoredRepeatStatus::infeasible;
+  }
+
+  refined = std::move(candidate);
+  return AnchoredRepeatStatus::feasible;
+}
+
+
 Change project_boundary_remainder(
     Domain& target,
     const Domain& remainder) {
@@ -770,14 +916,42 @@ Change project_boundary_remainder(
         remainder);
   }
 
-  if (single_repeat_domain(target)) {
-    return target.intersect_single_repeat(
-        remainder);
+  Domain refined_target = target;
+  Domain remainder_probe = remainder;
+
+  const PropagationResult projection =
+      propagate_equal(
+          refined_target,
+          remainder_probe);
+
+  if (projection.failed()) {
+    target.fail();
+    return Change::failed;
+  }
+
+  Domain anchored_refinement;
+
+  switch (intersect_anchored_repeat(
+      refined_target,
+      remainder_probe,
+      anchored_refinement)) {
+    case AnchoredRepeatStatus::infeasible:
+      target.fail();
+      return Change::failed;
+
+    case AnchoredRepeatStatus::feasible:
+      return replace_domain(
+          target,
+          anchored_refinement);
+
+    case AnchoredRepeatStatus::unsupported:
+      return replace_domain(
+          target,
+          refined_target);
   }
 
   return Change::none;
 }
-
 
 }  // namespace
 
