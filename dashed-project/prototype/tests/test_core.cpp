@@ -3295,8 +3295,7 @@ void test_exact_branch_splits() {
     assert(
         decision->kind ==
         dashed::BranchKind::repeat_count);
-    assert(decision->segment == 0);
-    assert(decision->count_pivot == 2);
+    assert(decision->length_pivot == 2);
 
     const Domain lower =
         dashed::apply_branch(
@@ -3344,6 +3343,7 @@ void test_exact_branch_splits() {
     assert(
         decision->kind ==
         dashed::BranchKind::value_set);
+    assert(decision->position == 0);
     assert(decision->value_pivot == -1);
 
     const Domain lower =

@@ -14,13 +14,16 @@ using IntBounds = dashed::IntBounds;
 using PropagationResult = dashed::PropagationResult;
 using BranchKind = dashed::BranchKind;
 using BranchDecision = dashed::BranchDecision;
+using BranchLiteralStatus = dashed::BranchLiteralStatus;
 
 inline bool changed(Change change) noexcept {
   return dashed::changed(change);
 }
 
 using dashed::apply_branch;
+using dashed::branch_literal_status;
 using dashed::choose_branch;
+using dashed::prune_branch_literal;
 using dashed::propagate_concat;
 using dashed::propagate_equal;
 using dashed::propagate_equal_implies;

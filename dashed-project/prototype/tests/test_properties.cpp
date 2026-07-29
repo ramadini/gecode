@@ -293,6 +293,151 @@ void test_recursive_branch_completion() {
   }
 }
 
+
+void assert_branch_literal_semantics(
+    const Domain& current,
+    const dashed::BranchDecision& decision,
+    const std::vector<std::vector<int>>& universe) {
+  for (unsigned int alternative = 0;
+       alternative < 2;
+       ++alternative) {
+    const Domain selected =
+        dashed::apply_branch(
+            current,
+            decision,
+            alternative);
+    const Domain sibling =
+        dashed::apply_branch(
+            current,
+            decision,
+            1U - alternative);
+
+    bool selected_possible = false;
+    bool sibling_possible = false;
+
+    for (const auto& value : universe) {
+      if (!current.accepts(value)) {
+        continue;
+      }
+
+      selected_possible =
+          selected_possible ||
+          (!selected.failed() && selected.accepts(value));
+      sibling_possible =
+          sibling_possible ||
+          (!sibling.failed() && sibling.accepts(value));
+    }
+
+    const dashed::BranchLiteralStatus expected =
+        !selected_possible
+            ? dashed::BranchLiteralStatus::failed
+            : (!sibling_possible
+                   ? dashed::BranchLiteralStatus::subsumed
+                   : dashed::BranchLiteralStatus::undecided);
+
+    assert(
+        dashed::branch_literal_status(
+            current,
+            decision,
+            alternative) == expected);
+
+    const Domain pruned =
+        dashed::prune_branch_literal(
+            current,
+            decision,
+            alternative);
+
+    for (const auto& value : universe) {
+      const bool expected_membership =
+          current.accepts(value) &&
+          !selected.accepts(value);
+
+      assert(
+          (!pruned.failed() && pruned.accepts(value)) ==
+          expected_membership);
+    }
+  }
+}
+
+void test_branch_literal_descendant_semantics() {
+  const auto universe = all_lists(4);
+  const std::vector<Domain> roots{
+      Domain::repeat(ValueSet(0, 1), 0, 4),
+      Domain::repeat(ValueSet(0, 1), 3, 3),
+      Domain(
+          {
+              RepeatSegment{ValueSet(0, 1), 1, 1},
+              dashed::LiteralSegment{
+                  dashed::LiteralSlice({1})},
+          },
+          2,
+          2),
+  };
+
+  struct Literal {
+    dashed::BranchDecision decision;
+  };
+
+  struct Pending {
+    Domain domain;
+    std::vector<Literal> ancestors;
+  };
+
+  for (const Domain& root : roots) {
+    std::vector<Pending> pending{
+        Pending{root, {}}};
+    std::size_t visited = 0;
+
+    while (!pending.empty()) {
+      Pending state =
+          std::move(pending.back());
+      pending.pop_back();
+
+      ++visited;
+      assert(visited < 512);
+
+      for (const Literal& literal : state.ancestors) {
+        assert_branch_literal_semantics(
+            state.domain,
+            literal.decision,
+            universe);
+      }
+
+      const auto decision =
+          dashed::choose_branch(state.domain);
+
+      if (!decision) {
+        assert(state.domain.assigned());
+        continue;
+      }
+
+      assert_branch_literal_semantics(
+          state.domain,
+          *decision,
+          universe);
+
+      auto descendants = state.ancestors;
+      descendants.push_back(
+          Literal{*decision});
+
+      pending.push_back(
+          Pending{
+              dashed::apply_branch(
+                  state.domain,
+                  *decision,
+                  0),
+              descendants});
+      pending.push_back(
+          Pending{
+              dashed::apply_branch(
+                  state.domain,
+                  *decision,
+                  1),
+              std::move(descendants)});
+    }
+  }
+}
+
 void test_equal_kernel_soundness() {
   const auto domains = sample_domains();
   const auto universe = all_lists(3);
@@ -918,6 +1063,7 @@ int main() {
   test_branch_partition_exactness();
   test_ambiguous_count_split_is_deferred();
   test_recursive_branch_completion();
+  test_branch_literal_descendant_semantics();
   test_normalization_preserves_language();
   test_concat_language_on_fixed_inputs();
   test_value_set_against_enumeration();

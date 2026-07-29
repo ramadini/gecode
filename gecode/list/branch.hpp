@@ -57,8 +57,8 @@ class ExactDomainBrancher final : public Brancher {
       archive
           << position_
           << static_cast<unsigned int>(decision_.kind)
-          << static_cast<unsigned int>(decision_.segment)
-          << static_cast<unsigned int>(decision_.count_pivot)
+          << static_cast<unsigned int>(decision_.length_pivot)
+          << static_cast<unsigned int>(decision_.position)
           << decision_.value_pivot;
     }
   };
@@ -120,15 +120,15 @@ class ExactDomainBrancher final : public Brancher {
       Archive& archive) override {
     int position = 0;
     unsigned int kind = 0;
-    unsigned int segment = 0;
-    unsigned int count_pivot = 0;
+    unsigned int length_pivot = 0;
+    unsigned int logical_position = 0;
     int value_pivot = 0;
 
     archive
         >> position
         >> kind
-        >> segment
-        >> count_pivot
+        >> length_pivot
+        >> logical_position
         >> value_pivot;
 
     if (kind >
@@ -142,10 +142,10 @@ class ExactDomainBrancher final : public Brancher {
     Backend::BranchDecision decision;
     decision.kind =
         static_cast<Backend::BranchKind>(kind);
-    decision.segment =
-        static_cast<std::size_t>(segment);
-    decision.count_pivot =
-        static_cast<Length>(count_pivot);
+    decision.length_pivot =
+        static_cast<Length>(length_pivot);
+    decision.position =
+        static_cast<Length>(logical_position);
     decision.value_pivot = value_pivot;
 
     return new Choice(
@@ -198,13 +198,13 @@ class ExactDomainBrancher final : public Brancher {
 
     switch (decision.kind) {
       case Backend::BranchKind::repeat_count:
-        out << "segment[" << decision.segment << "].count "
+        out << "length "
             << (alternative == 0 ? "<= " : "> ")
-            << decision.count_pivot;
+            << decision.length_pivot;
         break;
 
       case Backend::BranchKind::value_set:
-        out << "segment[" << decision.segment << "].head-value "
+        out << "position[" << decision.position << "].value "
             << (alternative == 0 ? "<= " : "> ")
             << decision.value_pivot;
         break;

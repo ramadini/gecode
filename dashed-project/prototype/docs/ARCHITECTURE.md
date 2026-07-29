@@ -110,8 +110,14 @@ Several variable-width blocks can give one concrete list multiple internal
 segment decompositions, so splitting one such count would not form disjoint
 language alternatives. The kernel reports no exact decision for that case
 rather than introducing unsound search. This keeps branch semantics independent
-of Gecode lifecycle code. A native brancher can archive a supported compact
-decision and commit either exact child through `ListView::replace`.
+of Gecode lifecycle code.
+
+Archived decisions identify semantics rather than representation nodes. A count
+choice stores a total-length threshold; a value choice stores an absolute list
+position and an integer pivot. The same decision can therefore classify or
+prune descendant domains even when normalization has split, merged, or replaced
+the original segments. Exhaustive tests compare literal status and negation
+pruning with concrete languages at every recursively generated descendant.
 
 ## Separation of responsibilities
 

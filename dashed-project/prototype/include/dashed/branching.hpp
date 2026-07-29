@@ -22,9 +22,15 @@ enum class BranchKind {
  */
 struct BranchDecision {
   BranchKind kind = BranchKind::repeat_count;
-  std::size_t segment = 0;
-  Length count_pivot = 0;
+  Length length_pivot = 0;
+  Length position = 0;
   int value_pivot = 0;
+};
+
+enum class BranchLiteralStatus {
+  failed,
+  subsumed,
+  undecided
 };
 
 /** Choose the first deterministic exact split, or no exact decision yet. */
@@ -33,6 +39,18 @@ struct BranchDecision {
 
 /** Apply one alternative of a previously selected exact branch decision. */
 [[nodiscard]] Domain apply_branch(
+    const Domain& domain,
+    const BranchDecision& decision,
+    unsigned int alternative);
+
+/** Classify an archived branch alternative over any descendant domain. */
+[[nodiscard]] BranchLiteralStatus branch_literal_status(
+    const Domain& domain,
+    const BranchDecision& decision,
+    unsigned int alternative);
+
+/** Remove an archived branch alternative from a descendant domain. */
+[[nodiscard]] Domain prune_branch_literal(
     const Domain& domain,
     const BranchDecision& decision,
     unsigned int alternative);

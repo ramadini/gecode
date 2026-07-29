@@ -177,7 +177,9 @@ custom-brancher step without making dashed terminology public.
 
 ## Exact domain branching
 
-`branch_exact(home, x)` and its `ListVarArgs` overload wrap the pure backend partitions in a native binary Gecode brancher. Choices contain only the variable-array position and a stable `BranchDecision`; no domain pointer is archived. `commit()` reconstructs one child domain and installs it through `ListView::replace`, preserving normal event notification. Unsupported unassigned shapes raise an exception rather than being exposed as false solved leaves.
+`branch_exact(home, x)` and its `ListVarArgs` overload wrap the pure backend partitions in a native binary Gecode brancher. Choices contain only the variable-array position and a semantic `BranchDecision`; no domain pointer is archived. Count choices are represented as a total-length threshold and value choices as an absolute list position plus an integer pivot. They therefore remain meaningful after segment normalization and on descendant spaces. `commit()` reconstructs one child domain and installs it through `ListView::replace`, preserving normal event notification. Unsupported unassigned shapes raise an exception rather than being exposed as false solved leaves.
+
+The backend also exposes `branch_literal_status()` and `prune_branch_literal()`. Exhaustive descendant tests verify the three literal states (failed, subsumed, undecided) and prove that pruning a literal retains exactly the sibling language. This is the semantic prerequisite for implementing `Brancher::ngl()` without storing representation-dependent segment indexes.
 
 ## Propagators
 

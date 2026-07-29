@@ -11,6 +11,13 @@
 namespace dashed {
 namespace {
 
+void check_alternative(unsigned int alternative) {
+  if (alternative > 1) {
+    throw std::invalid_argument(
+        "branch alternative must be zero or one");
+  }
+}
+
 int balanced_value_pivot(const ValueSet& values) {
   const std::uint64_t cardinality = values.cardinality();
   if (cardinality < 2) {
@@ -18,8 +25,6 @@ int balanced_value_pivot(const ValueSet& values) {
         "balanced_value_pivot requires at least two values");
   }
 
-  // The left branch receives floor(cardinality / 2) values. This guarantees
-  // two non-empty alternatives and remains balanced for sparse range sets.
   std::uint64_t remaining = cardinality / 2;
 
   for (const IntRange& range : values.ranges()) {
@@ -40,35 +45,234 @@ int balanced_value_pivot(const ValueSet& values) {
       "could not select a ValueSet branch pivot");
 }
 
-Domain replace_repeat(
+ValueSet value_side(
+    int pivot,
+    unsigned int alternative) {
+  check_alternative(alternative);
+
+  if (alternative == 0) {
+    return ValueSet(
+        std::numeric_limits<int>::min(),
+        pivot);
+  }
+
+  if (pivot == std::numeric_limits<int>::max()) {
+    return ValueSet();
+  }
+
+  return ValueSet(
+      pivot + 1,
+      std::numeric_limits<int>::max());
+}
+
+Domain failed_copy(const Domain& domain) {
+  Domain failed = domain;
+  failed.fail();
+  return failed;
+}
+
+ValueSet position_values(
     const Domain& domain,
-    std::size_t segment_index,
-    std::vector<Segment> replacement) {
-  std::vector<Segment> segments;
-  segments.reserve(
-      domain.segments().size() - 1 + replacement.size());
+    Length position) {
+  if (domain.failed() ||
+      domain.min_length() != domain.max_length() ||
+      position >= domain.max_length()) {
+    throw std::invalid_argument(
+        "value branch requires a present fixed position");
+  }
 
-  segments.insert(
-      segments.end(),
-      domain.segments().begin(),
-      domain.segments().begin() +
-          static_cast<std::ptrdiff_t>(segment_index));
+  Length offset = 0;
 
-  segments.insert(
-      segments.end(),
-      std::make_move_iterator(replacement.begin()),
-      std::make_move_iterator(replacement.end()));
+  for (const Segment& segment : domain.segments()) {
+    if (const auto* literal =
+            std::get_if<LiteralSegment>(&segment)) {
+      const Length width =
+          static_cast<Length>(literal->literal.size());
 
-  segments.insert(
-      segments.end(),
-      domain.segments().begin() +
-          static_cast<std::ptrdiff_t>(segment_index + 1),
-      domain.segments().end());
+      if (position < offset + width) {
+        return ValueSet(
+            literal->literal[
+                static_cast<std::size_t>(position - offset)]);
+      }
+
+      offset = static_cast<Length>(offset + width);
+      continue;
+    }
+
+    const auto& repeat =
+        std::get<RepeatSegment>(segment);
+
+    if (!repeat.exact_count()) {
+      throw std::invalid_argument(
+          "value branch crossed a variable-width block");
+    }
+
+    if (position < offset + repeat.lower) {
+      return repeat.values;
+    }
+
+    offset = static_cast<Length>(offset + repeat.lower);
+  }
+
+  throw std::out_of_range(
+      "value branch position outside domain");
+}
+
+Domain restrict_position(
+    const Domain& domain,
+    Length position,
+    const ValueSet& allowed) {
+  if (domain.failed()) {
+    return domain;
+  }
+
+  if (domain.min_length() != domain.max_length() ||
+      position >= domain.max_length()) {
+    throw std::invalid_argument(
+        "value branch requires a present fixed position");
+  }
+
+  std::vector<Segment> result;
+  result.reserve(domain.segment_count() + 2);
+  Length offset = 0;
+  bool restricted = false;
+
+  for (const Segment& segment : domain.segments()) {
+    if (restricted) {
+      result.push_back(segment);
+      continue;
+    }
+
+    if (const auto* literal =
+            std::get_if<LiteralSegment>(&segment)) {
+      const Length width =
+          static_cast<Length>(literal->literal.size());
+
+      if (position >= offset + width) {
+        result.push_back(segment);
+        offset = static_cast<Length>(offset + width);
+        continue;
+      }
+
+      const int value =
+          literal->literal[
+              static_cast<std::size_t>(position - offset)];
+
+      if (!allowed.contains(value)) {
+        return failed_copy(domain);
+      }
+
+      result.push_back(segment);
+      restricted = true;
+      continue;
+    }
+
+    const auto& repeat =
+        std::get<RepeatSegment>(segment);
+
+    if (!repeat.exact_count()) {
+      throw std::invalid_argument(
+          "value branch crossed a variable-width block");
+    }
+
+    if (position >= offset + repeat.lower) {
+      result.push_back(segment);
+      offset = static_cast<Length>(offset + repeat.lower);
+      continue;
+    }
+
+    const ValueSet selected =
+        repeat.values.intersected(allowed);
+
+    if (selected.empty()) {
+      return failed_copy(domain);
+    }
+
+    const Length local =
+        static_cast<Length>(position - offset);
+
+    if (local > 0) {
+      result.push_back(
+          RepeatSegment{
+              repeat.values,
+              local,
+              local});
+    }
+
+    result.push_back(
+        RepeatSegment{
+            selected,
+            1,
+            1});
+
+    const Length suffix =
+        static_cast<Length>(repeat.lower - local - 1);
+
+    if (suffix > 0) {
+      result.push_back(
+          RepeatSegment{
+              repeat.values,
+              suffix,
+              suffix});
+    }
+
+    restricted = true;
+  }
+
+  if (!restricted) {
+    throw std::out_of_range(
+        "value branch position outside domain");
+  }
 
   return Domain(
-      std::move(segments),
+      std::move(result),
       domain.min_length(),
       domain.max_length());
+}
+
+Domain apply_semantic_branch(
+    const Domain& domain,
+    const BranchDecision& decision,
+    unsigned int alternative) {
+  check_alternative(alternative);
+
+  if (domain.failed()) {
+    return domain;
+  }
+
+  switch (decision.kind) {
+    case BranchKind::repeat_count: {
+      Domain restricted = domain;
+
+      if (alternative == 0) {
+        restricted.tighten_length(
+            0,
+            decision.length_pivot);
+      } else {
+        if (decision.length_pivot ==
+            std::numeric_limits<Length>::max()) {
+          restricted.fail();
+        } else {
+          restricted.tighten_length(
+              static_cast<Length>(
+                  decision.length_pivot + 1),
+              std::numeric_limits<Length>::max());
+        }
+      }
+
+      return restricted;
+    }
+
+    case BranchKind::value_set:
+      return restrict_position(
+          domain,
+          decision.position,
+          value_side(
+              decision.value_pivot,
+              alternative));
+  }
+
+  throw std::logic_error("unknown branch kind");
 }
 
 }  // namespace
@@ -79,28 +283,16 @@ std::optional<BranchDecision> choose_branch(
     return std::nullopt;
   }
 
-  // A count interval can be partitioned exactly only when every other
-  // segment count is fixed. With two variable-width neighboring blocks, the
-  // same concrete list can admit different internal decompositions and would
-  // occur in both count alternatives.
-  std::size_t variable_count_index =
-      domain.segments().size();
   std::size_t variable_count_segments = 0;
 
-  for (std::size_t index = 0;
-       index < domain.segments().size();
-       ++index) {
+  for (const Segment& segment : domain.segments()) {
     const auto* repeat =
-        std::get_if<RepeatSegment>(
-            &domain.segments()[index]);
+        std::get_if<RepeatSegment>(&segment);
 
-    if (repeat == nullptr ||
-        repeat->lower == repeat->upper) {
-      continue;
+    if (repeat != nullptr &&
+        repeat->lower != repeat->upper) {
+      ++variable_count_segments;
     }
-
-    variable_count_index = index;
-    ++variable_count_segments;
   }
 
   if (variable_count_segments > 1) {
@@ -108,43 +300,47 @@ std::optional<BranchDecision> choose_branch(
   }
 
   if (variable_count_segments == 1) {
-    const auto& repeat =
-        std::get<RepeatSegment>(
-            domain.segments()[variable_count_index]);
-
-    const std::uint64_t lower = repeat.lower;
-    const std::uint64_t upper = repeat.upper;
+    const std::uint64_t lower = domain.min_length();
+    const std::uint64_t upper = domain.max_length();
     const Length pivot =
         static_cast<Length>(
             lower + (upper - lower) / 2);
 
     return BranchDecision{
         BranchKind::repeat_count,
-        variable_count_index,
         pivot,
+        0,
         0};
   }
 
-  // Once counts are exact, split the first non-singleton block alphabet by
-  // value order. Literal runs are already exact and require no decisions.
-  for (std::size_t index = 0;
-       index < domain.segments().size();
-       ++index) {
-    const auto* repeat =
-        std::get_if<RepeatSegment>(
-            &domain.segments()[index]);
+  Length position = 0;
 
-    if (repeat == nullptr ||
-        repeat->values.cardinality() < 2) {
+  for (const Segment& segment : domain.segments()) {
+    if (const auto* literal =
+            std::get_if<LiteralSegment>(&segment)) {
+      position = static_cast<Length>(
+          position + literal->literal.size());
       continue;
     }
 
-    return BranchDecision{
-        BranchKind::value_set,
-        index,
-        0,
-        balanced_value_pivot(
-            repeat->values)};
+    const auto& repeat =
+        std::get<RepeatSegment>(segment);
+
+    if (!repeat.exact_count()) {
+      return std::nullopt;
+    }
+
+    if (repeat.lower > 0 &&
+        repeat.values.cardinality() >= 2) {
+      return BranchDecision{
+          BranchKind::value_set,
+          0,
+          position,
+          balanced_value_pivot(repeat.values)};
+    }
+
+    position = static_cast<Length>(
+        position + repeat.lower);
   }
 
   return std::nullopt;
@@ -154,111 +350,69 @@ Domain apply_branch(
     const Domain& domain,
     const BranchDecision& decision,
     unsigned int alternative) {
-  if (alternative > 1) {
-    throw std::invalid_argument(
-        "branch alternative must be zero or one");
-  }
+  return apply_semantic_branch(
+      domain,
+      decision,
+      alternative);
+}
+
+BranchLiteralStatus branch_literal_status(
+    const Domain& domain,
+    const BranchDecision& decision,
+    unsigned int alternative) {
+  check_alternative(alternative);
 
   if (domain.failed()) {
-    return domain;
+    return BranchLiteralStatus::failed;
   }
-
-  if (decision.segment >=
-      domain.segments().size()) {
-    throw std::out_of_range(
-        "branch segment index outside domain");
-  }
-
-  const auto* source =
-      std::get_if<RepeatSegment>(
-          &domain.segments()[decision.segment]);
-
-  if (source == nullptr) {
-    throw std::invalid_argument(
-        "branch decision does not select a repeat block");
-  }
-
-  RepeatSegment restricted = *source;
-  std::vector<Segment> replacement;
 
   switch (decision.kind) {
     case BranchKind::repeat_count:
-      if (decision.count_pivot < source->lower ||
-          decision.count_pivot >= source->upper) {
-        throw std::invalid_argument(
-            "invalid repeat-count branch pivot");
-      }
-
       if (alternative == 0) {
-        restricted.upper =
-            decision.count_pivot;
+        if (domain.min_length() > decision.length_pivot) {
+          return BranchLiteralStatus::failed;
+        }
+        if (domain.max_length() <= decision.length_pivot) {
+          return BranchLiteralStatus::subsumed;
+        }
       } else {
-        restricted.lower =
-            static_cast<Length>(
-                decision.count_pivot + 1);
+        if (domain.max_length() <= decision.length_pivot) {
+          return BranchLiteralStatus::failed;
+        }
+        if (domain.min_length() > decision.length_pivot) {
+          return BranchLiteralStatus::subsumed;
+        }
       }
-
-      replacement.push_back(
-          std::move(restricted));
-      break;
+      return BranchLiteralStatus::undecided;
 
     case BranchKind::value_set: {
-      if (!source->exact_count() ||
-          source->lower == 0 ||
-          source->values.cardinality() < 2 ||
-          decision.value_pivot <
-              source->values.min() ||
-          decision.value_pivot >=
-              source->values.max()) {
-        throw std::invalid_argument(
-            "invalid value-set branch pivot");
+      const ValueSet current =
+          position_values(domain, decision.position);
+      const ValueSet selected =
+          value_side(decision.value_pivot, alternative);
+
+      if (current.disjoint(selected)) {
+        return BranchLiteralStatus::failed;
       }
 
-      const int lower = alternative == 0
-          ? std::numeric_limits<int>::min()
-          : decision.value_pivot + 1;
-
-      const int upper = alternative == 0
-          ? decision.value_pivot
-          : std::numeric_limits<int>::max();
-
-      ValueSet selected =
-          source->values.intersected(
-              ValueSet(lower, upper));
-
-      if (selected.empty()) {
-        throw std::invalid_argument(
-            "value-set branch produced an empty side");
-      }
-
-      // Restricting the alphabet of the complete repeated block would lose
-      // mixed lists such as [0,1]. Isolate one logical occurrence and retain
-      // the original alphabet for the exact remainder instead.
-      replacement.push_back(
-          RepeatSegment{
-              std::move(selected),
-              1,
-              1});
-
-      if (source->lower > 1) {
-        const Length remainder =
-            static_cast<Length>(
-                source->lower - 1);
-
-        replacement.push_back(
-            RepeatSegment{
-                source->values,
-                remainder,
-                remainder});
-      }
-      break;
+      return selected.contains(current)
+          ? BranchLiteralStatus::subsumed
+          : BranchLiteralStatus::undecided;
     }
   }
 
-  return replace_repeat(
+  throw std::logic_error("unknown branch kind");
+}
+
+Domain prune_branch_literal(
+    const Domain& domain,
+    const BranchDecision& decision,
+    unsigned int alternative) {
+  check_alternative(alternative);
+  return apply_semantic_branch(
       domain,
-      decision.segment,
-      std::move(replacement));
+      decision,
+      1U - alternative);
 }
 
 }  // namespace dashed

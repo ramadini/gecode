@@ -15,7 +15,7 @@
 | string-specific alphabet constants | model-supplied `ValueSet` |
 | string length fields | canonical `Domain` length interval |
 | old `string.vis` | `gecode/list/var-imp/list.vis` |
-| Direct exact list branching | `Gecode::branch_exact` / `List::ExactDomainBrancher` | Native binary brancher over backend count/value partitions; choices support cloning and archive replay |
+| Direct exact list branching | `Gecode::branch_exact` / `List::ExactDomainBrancher` | Native binary brancher over semantic length/absolute-position partitions; choices support cloning, archive replay, and descendant literal operations |
 
 ## Suggested migration sequence
 

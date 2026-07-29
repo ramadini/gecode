@@ -2968,7 +2968,7 @@ void exact_domain_branch_choice_archive_native() {
 
   assert(
       rendered.str() ==
-      "list[0] segment[0].count <= 1");
+      "list[0] length <= 1");
 
   auto* replay =
       static_cast<ExactDomainBranchSpace*>(
