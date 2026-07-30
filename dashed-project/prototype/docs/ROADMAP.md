@@ -19,7 +19,8 @@
 - standalone ASan/UBSan lifecycle and leak gate (included);
 - native ASan/UBSan gate for space cloning, disposal, failure, subsumption,
   DFS recomputation, exact branchers, and no-good literals (included);
-- add Valgrind confirmation and quantitative allocation/peak-memory baselines.
+- native repeated-space, clone, and DFS RSS/peak-memory baseline (included);
+- add Valgrind confirmation and allocator-level attribution.
 
 ## Milestone 3 — restore propagation strength
 

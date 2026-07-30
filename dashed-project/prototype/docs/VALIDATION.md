@@ -233,3 +233,17 @@ acceptance profile remains the default and runs separate ASan and UBSan builds
 with both lifecycle and full relation-regression binaries. Subsequent runs
 reuse successful and partially completed compiler outputs instead of rebuilding
 all Gecode libraries.
+
+## Native List memory profile
+
+Run the short cached profile with:
+
+```sh
+./dashed-project/scripts/run-list-memory-profile.sh
+```
+
+Use `LIST_MEMORY_PROFILE_PROFILE=acceptance` for the longer milestone workload.
+The generated TSV records warmed start/end RSS, steady-state growth, peak RSS,
+operation counts, and solution counts for repeated space destruction, cloning,
+and complete DFS. Details and interpretation limits are documented in
+`MEMORY_PROFILING.md`.

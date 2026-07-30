@@ -130,3 +130,6 @@ __pycache__/
 /build-dashed-native/
 /build-list-sanitizer-*/
 /dashed-project/prototype/build-native-sanitizer-*/
+
+# Native List memory profile reports
+/dashed-project/runs/list-memory/
