@@ -192,24 +192,108 @@ std::vector<IntRange> ValueSet::ranges() const {
   return {};
 }
 
-ValueSet ValueSet::intersected(const ValueSet& other) const {
-  const auto lhs = ranges();
-  const auto rhs = other.ranges();
+ValueSet ValueSet::intersected(
+    const ValueSet& other) const {
+  IntRange lhs_inline{0, -1};
+  IntRange rhs_inline{0, -1};
+  const IntRange* lhs_data = nullptr;
+  const IntRange* rhs_data = nullptr;
+  std::size_t lhs_size = 0;
+  std::size_t rhs_size = 0;
+
+  const auto bind_ranges =
+      [](const auto& storage,
+         IntRange& inline_range,
+         const IntRange*& data,
+         std::size_t& size) {
+        if (const auto* singleton =
+                std::get_if<Singleton>(&storage)) {
+          inline_range = {
+              singleton->value,
+              singleton->value};
+          data = &inline_range;
+          size = 1;
+          return;
+        }
+
+        if (const auto* interval =
+                std::get_if<IntRange>(&storage)) {
+          data = interval;
+          size = 1;
+          return;
+        }
+
+        if (const auto* ranges =
+                std::get_if<SharedRanges>(&storage)) {
+          if (*ranges) {
+            const auto& values = **ranges;
+            data = values.data();
+            size = values.size();
+          }
+        }
+      };
+
+  bind_ranges(
+      storage_,
+      lhs_inline,
+      lhs_data,
+      lhs_size);
+  bind_ranges(
+      other.storage_,
+      rhs_inline,
+      rhs_data,
+      rhs_size);
+
+  if (lhs_size == 0 || rhs_size == 0) {
+    return ValueSet();
+  }
+
+  if (lhs_size == 1 && rhs_size == 1) {
+    const int lower =
+        std::max(
+            lhs_data[0].lower,
+            rhs_data[0].lower);
+    const int upper =
+        std::min(
+            lhs_data[0].upper,
+            rhs_data[0].upper);
+
+    return lower <= upper
+        ? ValueSet(lower, upper)
+        : ValueSet();
+  }
+
   std::vector<IntRange> result;
+
+  if (rhs_size <= result.max_size() &&
+      lhs_size <=
+          result.max_size() - rhs_size + 1) {
+    result.reserve(lhs_size + rhs_size - 1);
+  }
+
   std::size_t i = 0;
   std::size_t j = 0;
-  while (i < lhs.size() && j < rhs.size()) {
-    const int lower = std::max(lhs[i].lower, rhs[j].lower);
-    const int upper = std::min(lhs[i].upper, rhs[j].upper);
+  while (i < lhs_size && j < rhs_size) {
+    const int lower =
+        std::max(
+            lhs_data[i].lower,
+            rhs_data[j].lower);
+    const int upper =
+        std::min(
+            lhs_data[i].upper,
+            rhs_data[j].upper);
+
     if (lower <= upper) {
       result.push_back({lower, upper});
     }
-    if (lhs[i].upper < rhs[j].upper) {
+
+    if (lhs_data[i].upper < rhs_data[j].upper) {
       ++i;
     } else {
       ++j;
     }
   }
+
   return ValueSet(std::move(result));
 }
 

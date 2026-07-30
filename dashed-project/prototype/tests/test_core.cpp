@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cstddef>
 #include <iostream>
+#include <random>
 #include <numeric>
 #include <vector>
 
@@ -3848,7 +3849,141 @@ void test_exact_branch_splits() {
 
 }  // namespace
 
+
+std::vector<dashed::IntRange>
+reference_value_set_intersection_ranges(
+    const dashed::ValueSet& left,
+    const dashed::ValueSet& right) {
+  const auto lhs = left.ranges();
+  const auto rhs = right.ranges();
+  std::vector<dashed::IntRange> result;
+  std::size_t i = 0;
+  std::size_t j = 0;
+
+  while (i < lhs.size() && j < rhs.size()) {
+    const int lower =
+        std::max(lhs[i].lower, rhs[j].lower);
+    const int upper =
+        std::min(lhs[i].upper, rhs[j].upper);
+
+    if (lower <= upper) {
+      result.push_back({lower, upper});
+    }
+
+    if (lhs[i].upper < rhs[j].upper) {
+      ++i;
+    } else {
+      ++j;
+    }
+  }
+
+  return result;
+}
+
+std::uint64_t reference_range_cardinality(
+    const std::vector<dashed::IntRange>& ranges) {
+  std::uint64_t result = 0;
+  for (const dashed::IntRange& range : ranges) {
+    result += static_cast<std::uint64_t>(
+        static_cast<std::int64_t>(range.upper) -
+        static_cast<std::int64_t>(range.lower) +
+        1);
+  }
+  return result;
+}
+
+dashed::ValueSet randomized_public_value_set(
+    std::mt19937& generator) {
+  std::uniform_int_distribution<int> shape_distribution(0, 2);
+  std::uniform_int_distribution<int> lower_distribution(-500, 500);
+  std::uniform_int_distribution<int> width_distribution(0, 40);
+
+  const int shape = shape_distribution(generator);
+  if (shape == 0) {
+    return dashed::ValueSet();
+  }
+
+  const int lower = lower_distribution(generator);
+  if (shape == 1) {
+    return dashed::ValueSet(lower);
+  }
+
+  return dashed::ValueSet(
+      lower,
+      lower + width_distribution(generator));
+}
+
+void test_value_set_intersection_reference_equivalence() {
+  const std::vector<dashed::ValueSet> edge_cases{
+      dashed::ValueSet(),
+      dashed::ValueSet(-7),
+      dashed::ValueSet(0),
+      dashed::ValueSet(-10, 10),
+      dashed::ValueSet(
+          std::numeric_limits<int>::min(),
+          std::numeric_limits<int>::min() + 20),
+      dashed::ValueSet(
+          std::numeric_limits<int>::max() - 20,
+          std::numeric_limits<int>::max()),
+  };
+
+  for (const dashed::ValueSet& left : edge_cases) {
+    for (const dashed::ValueSet& right : edge_cases) {
+      const auto expected =
+          reference_value_set_intersection_ranges(
+              left,
+              right);
+      const dashed::ValueSet actual =
+          left.intersected(right);
+
+      assert(actual.ranges() == expected);
+      assert(
+          static_cast<std::uint64_t>(
+              actual.cardinality()) ==
+          reference_range_cardinality(expected));
+
+      for (int value = -32; value <= 32; ++value) {
+        bool expected_contains = false;
+        for (const dashed::IntRange& range : expected) {
+          if (range.lower <= value &&
+              value <= range.upper) {
+            expected_contains = true;
+            break;
+          }
+        }
+        assert(
+            actual.contains(value) ==
+            expected_contains);
+      }
+    }
+  }
+
+  std::mt19937 generator(0x5E7A11U);
+  for (std::size_t iteration = 0;
+       iteration < 60000;
+       ++iteration) {
+    const dashed::ValueSet left =
+        randomized_public_value_set(generator);
+    const dashed::ValueSet right =
+        randomized_public_value_set(generator);
+
+    const auto expected =
+        reference_value_set_intersection_ranges(
+            left,
+            right);
+    const dashed::ValueSet actual =
+        left.intersected(right);
+
+    assert(actual.ranges() == expected);
+    assert(
+        static_cast<std::uint64_t>(
+            actual.cardinality()) ==
+        reference_range_cardinality(expected));
+  }
+}
+
 int main() {
+  test_value_set_intersection_reference_equivalence();
   test_exact_branch_splits();
   test_concat_projects_segmented_suffix_remainder();
   test_concat_strips_mandatory_repeat_suffix();
