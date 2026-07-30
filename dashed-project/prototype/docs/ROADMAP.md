@@ -83,6 +83,8 @@ Measure before adding representation complexity. Candidate optimizations:
 ## Phase 14: benchmark-driven optimization
 
 
+- removed repeated global count-tightening passes and finite-path scratch allocation from the second Callgrind-selected optimization (included);
+
 - optimized canonical domain normalization and global count tightening from Callgrind attribution (included);
 - native List performance benchmark baseline for propagation, cloning, and DFS
   (included);

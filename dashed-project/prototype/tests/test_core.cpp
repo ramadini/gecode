@@ -306,6 +306,63 @@ void test_normalization_hotspot_fast_paths() {
       Domain::fixed(std::vector<int>{1, 2}));
 }
 
+
+void test_single_pass_global_count_tightening() {
+  // The finite common path tightens directly from exact total bounds without
+  // allocating prefix/suffix scratch vectors.
+  Domain finite(
+      {
+          RepeatSegment{ValueSet(1), 0, 100},
+          RepeatSegment{ValueSet(2), 0, 2},
+          LiteralSegment{
+              LiteralSlice(std::vector<int>{3, 4, 5, 6, 7})},
+      },
+      10,
+      12);
+  assert(!finite.failed());
+  assert(finite.segment_count() == 3);
+  const auto& finite_first =
+      std::get<RepeatSegment>(finite.segments()[0]);
+  const auto& finite_second =
+      std::get<RepeatSegment>(finite.segments()[1]);
+  assert(finite_first.lower == 3);
+  assert(finite_first.upper == 7);
+  assert(finite_second.lower == 0);
+  assert(finite_second.upper == 2);
+  const Domain finite_expected = finite;
+  finite.normalize();
+  assert(finite == finite_expected);
+
+  // Saturated totals retain the omission-safe prefix/suffix fallback. Both
+  // unbounded segments are narrowed using the exact contribution of the other
+  // two segments rather than subtraction from kUnboundedLength.
+  Domain saturated(
+      {
+          RepeatSegment{ValueSet(7), 0, dashed::kUnboundedLength},
+          RepeatSegment{ValueSet(8), 1, 1},
+          RepeatSegment{ValueSet(9), 0, dashed::kUnboundedLength},
+      },
+      2,
+      2);
+  assert(!saturated.failed());
+  assert(saturated.segment_count() == 3);
+  assert(std::get<RepeatSegment>(saturated.segments()[0]).upper == 1);
+  assert(std::get<RepeatSegment>(saturated.segments()[2]).upper == 1);
+
+  // A structural transition discovered by the single projection still causes
+  // normalize() to remove the zero-width block and canonicalize the result.
+  const Domain removed_unbounded(
+      {
+          RepeatSegment{ValueSet(7), 0, dashed::kUnboundedLength},
+          RepeatSegment{ValueSet(9), 1, 1},
+      },
+      1,
+      1);
+  assert(
+      removed_unbounded ==
+      Domain::fixed(std::vector<int>{9}));
+}
+
 void test_normalization() {
   ValueSet digits(-1000, 1000);
   Domain domain(
@@ -3811,6 +3868,7 @@ int main() {
   test_unrelated_literal_run_canonicalization();
   test_post_tightening_recanonicalization();
   test_normalization_hotspot_fast_paths();
+  test_single_pass_global_count_tightening();
   test_normalization();
   test_saturated_global_length_tightening();
   test_membership();

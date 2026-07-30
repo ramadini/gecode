@@ -139,3 +139,22 @@ The bundle compares the candidate against the exact pre-change implementation
 on deterministic randomized domains and runs a same-process microbenchmark.
 Native benchmark and Callgrind reports should be regenerated after the commit
 before selecting the next hotspot.
+
+## Second measured optimization: global count tightening
+
+The post-normalization Callgrind report still identified
+`tighten_segment_counts_from_global_length()` as the largest project self-cost
+in propagation and DFS. The second optimization keeps the same bounds closure
+while:
+
+- replacing the iterative Jacobi loop with the equivalent single simultaneous
+  projection for the unit-coefficient global length sum;
+- using exact total subtraction when both aggregate bounds are finite, which
+  removes all scratch allocation from the common path; and
+- retaining prefix/suffix omission sums only when a capped aggregate reaches
+  `kUnboundedLength`, where subtraction would lose information.
+
+Acceptance compares the candidate executable with the exact pre-change
+implementation on randomized and saturation-heavy domains. A same-process
+microbenchmark must improve finite count tightening without regressing the
+saturated fallback.

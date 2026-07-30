@@ -312,3 +312,19 @@ The normalization optimization is accepted only after all of these checks:
   non-structural tightening, and structural normalization workloads; and
 - regeneration of the native performance and Callgrind reports before the next
   optimization target is chosen.
+
+## Global count-tightening optimization validation
+
+The second profiler-selected optimization is accepted only after:
+
+- exhaustive small-interval comparison of the single projection with the
+  previous iterative closure;
+- randomized saturation-heavy comparison against the exact pre-change
+  executable;
+- unit coverage for finite subtraction, saturated omission sums, structural
+  transitions, and repeated-normalization idempotence;
+- the complete standalone core/property/sweep tests;
+- the normal native List regression, solution-set, and search-statistics tests;
+  and
+- a same-process benchmark demonstrating improvement on finite count
+  tightening with no material regression in the saturated fallback.

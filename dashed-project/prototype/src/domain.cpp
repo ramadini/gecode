@@ -983,77 +983,100 @@ Domain::tighten_segment_counts_from_global_length() {
     return result;
   }
 
-  bool changed = true;
+  Length total_min = 0;
+  Length total_max = 0;
+  for (const Segment& segment : segments_) {
+    total_min = saturating_add(total_min, segment_min(segment));
+    total_max = saturating_add(total_max, segment_max(segment));
+  }
+  if (total_min > max_length_ || total_max < min_length_) {
+    fail();
+    return result;
+  }
+
+  auto tighten_repeat = [&](RepeatSegment& repeat,
+                            Length others_min,
+                            Length others_max) {
+    const Length forced_lower =
+        min_length_ > others_max ? min_length_ - others_max : 0;
+    const Length permitted_upper =
+        max_length_ >= others_min ? max_length_ - others_min : 0;
+
+    const Length new_lower = std::max(repeat.lower, forced_lower);
+    const Length new_upper = std::min(repeat.upper, permitted_upper);
+    if (new_lower > new_upper ||
+        (repeat.values.empty() && new_lower > 0)) {
+      fail();
+      return;
+    }
+    if (new_lower == repeat.lower && new_upper == repeat.upper) {
+      return;
+    }
+
+    const bool was_unit_singleton =
+        repeat.lower == 1 && repeat.upper == 1 &&
+        repeat.values.singleton();
+    const bool is_unit_singleton =
+        new_lower == 1 && new_upper == 1 &&
+        repeat.values.singleton();
+    result.changed = true;
+    result.structural_change =
+        result.structural_change || new_upper == 0 ||
+        (!was_unit_singleton && is_unit_singleton);
+    repeat.lower = new_lower;
+    repeat.upper = new_upper;
+  };
+
+  // Bounds consistency for one positive unit-coefficient sum reaches its
+  // closure after this simultaneous projection. For finite totals, each
+  // segment's complement is available by exact subtraction, so the common
+  // path needs no scratch allocation.
+  if (total_min != kUnboundedLength && total_max != kUnboundedLength) {
+    for (Segment& segment : segments_) {
+      auto* repeat = std::get_if<RepeatSegment>(&segment);
+      if (repeat == nullptr) {
+        continue;
+      }
+      tighten_repeat(
+          *repeat,
+          total_min - repeat->lower,
+          total_max - repeat->upper);
+      if (failed_) {
+        return result;
+      }
+    }
+    return result;
+  }
+
+  // A saturated total cannot be safely "unsummed" by subtraction. Preserve
+  // each omitted segment's exact capped contribution with prefix/suffix sums.
   std::vector<Length> suffix_min(segments_.size() + 1, 0);
   std::vector<Length> suffix_max(segments_.size() + 1, 0);
+  for (std::size_t reverse = segments_.size(); reverse > 0; --reverse) {
+    const std::size_t index = reverse - 1;
+    suffix_min[index] = saturating_add(
+        segment_min(segments_[index]), suffix_min[index + 1]);
+    suffix_max[index] = saturating_add(
+        segment_max(segments_[index]), suffix_max[index + 1]);
+  }
 
-  while (changed) {
-    changed = false;
-    suffix_min.back() = 0;
-    suffix_max.back() = 0;
-    for (std::size_t reverse = segments_.size(); reverse > 0; --reverse) {
-      const std::size_t index = reverse - 1;
-      suffix_min[index] = saturating_add(
-          segment_min(segments_[index]), suffix_min[index + 1]);
-      suffix_max[index] = saturating_add(
-          segment_max(segments_[index]), suffix_max[index + 1]);
-    }
-
-    const Length total_min = suffix_min.front();
-    const Length total_max = suffix_max.front();
-    if (total_min > max_length_ || total_max < min_length_) {
-      fail();
-      return result;
-    }
-
-    Length prefix_min = 0;
-    Length prefix_max = 0;
-    for (std::size_t index = 0; index < segments_.size(); ++index) {
-      const Length current_min = segment_min(segments_[index]);
-      const Length current_max = segment_max(segments_[index]);
-      auto* repeat = std::get_if<RepeatSegment>(&segments_[index]);
-      if (repeat != nullptr) {
-        const Length others_min =
-            saturating_add(prefix_min, suffix_min[index + 1]);
-        const Length others_max =
-            saturating_add(prefix_max, suffix_max[index + 1]);
-
-        const Length forced_lower =
-            min_length_ > others_max ? min_length_ - others_max : 0;
-        const Length permitted_upper =
-            max_length_ >= others_min ? max_length_ - others_min : 0;
-
-        const Length new_lower = std::max(repeat->lower, forced_lower);
-        const Length new_upper = std::min(repeat->upper, permitted_upper);
-        if (new_lower > new_upper ||
-            (repeat->values.empty() && new_lower > 0)) {
-          fail();
-          return result;
-        }
-        if (new_lower != repeat->lower || new_upper != repeat->upper) {
-          const bool was_unit_singleton =
-              repeat->lower == 1 && repeat->upper == 1 &&
-              repeat->values.singleton();
-          const bool is_unit_singleton =
-              new_lower == 1 && new_upper == 1 &&
-              repeat->values.singleton();
-          result.changed = true;
-          result.structural_change =
-              result.structural_change || new_upper == 0 ||
-              (!was_unit_singleton && is_unit_singleton);
-
-          repeat->lower = new_lower;
-          repeat->upper = new_upper;
-          changed = true;
-        }
+  Length prefix_min = 0;
+  Length prefix_max = 0;
+  for (std::size_t index = 0; index < segments_.size(); ++index) {
+    const Length current_min = segment_min(segments_[index]);
+    const Length current_max = segment_max(segments_[index]);
+    auto* repeat = std::get_if<RepeatSegment>(&segments_[index]);
+    if (repeat != nullptr) {
+      tighten_repeat(
+          *repeat,
+          saturating_add(prefix_min, suffix_min[index + 1]),
+          saturating_add(prefix_max, suffix_max[index + 1]));
+      if (failed_) {
+        return result;
       }
-
-      // Preserve the previous implementation's Jacobi-style iteration: later
-      // segments observe this pass's original prefix bounds, not updates made
-      // earlier in the same pass.
-      prefix_min = saturating_add(prefix_min, current_min);
-      prefix_max = saturating_add(prefix_max, current_max);
     }
+    prefix_min = saturating_add(prefix_min, current_min);
+    prefix_max = saturating_add(prefix_max, current_max);
   }
 
   return result;
