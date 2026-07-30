@@ -49,3 +49,38 @@ growth without treating allocator noise as a List leak. Override them with
 
 Peak RSS is a baseline, not a cross-machine invariant. Compare reports only on
 the same compiler, build type, architecture, and representative workload.
+
+## Valgrind confirmation and allocation attribution
+
+Run the short Memcheck gate against the cached native profiler with:
+
+```sh
+./dashed-project/scripts/run-list-valgrind.sh
+```
+
+The smoke profile executes deliberately small repeated-space, clone, and DFS
+workloads. Memcheck fails on definite or indirect leaks and on all other
+reported memory errors. Results are fingerprinted from the runner, profiler,
+List implementation, native libraries, and Valgrind version, so an unchanged
+successful check is reused instead of repeated during the same validation run.
+
+For a longer milestone check, use:
+
+```sh
+LIST_VALGRIND_PROFILE=acceptance \
+  ./dashed-project/scripts/run-list-valgrind.sh
+```
+
+Massif attribution is explicit because it is slower and is not a leak gate:
+
+```sh
+LIST_VALGRIND_TOOLS=massif \
+LIST_VALGRIND_SCENARIOS="spaces clones dfs" \
+  ./dashed-project/scripts/run-list-valgrind.sh
+```
+
+Use `LIST_VALGRIND_TOOLS="memcheck massif"` to collect both outputs. Reports
+are stored below `dashed-project/runs/list-valgrind/<timestamp>/`; Massif's
+`ms_print` output and the peak allocated-byte value are retained per scenario.
+The normal Gecode and dashed build caches are reused, and no sanitizer tree is
+rebuilt.

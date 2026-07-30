@@ -119,6 +119,11 @@ if (( needs_compile )); then
     -o "$PROFILE_BINARY"
 fi
 
+if [[ "${LIST_MEMORY_PROFILE_COMPILE_ONLY:-0}" == "1" ]]; then
+  echo "Native List memory profiler is ready: $PROFILE_BINARY"
+  exit 0
+fi
+
 if [[ -n "${LIST_MEMORY_PROFILE_REPORT:-}" ]]; then
   report="$LIST_MEMORY_PROFILE_REPORT"
   mkdir -p "$(dirname -- "$report")"

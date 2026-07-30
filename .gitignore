@@ -133,3 +133,6 @@ __pycache__/
 
 # Native List memory profile reports
 /dashed-project/runs/list-memory/
+
+# Native List Valgrind and Massif reports
+/dashed-project/runs/list-valgrind/

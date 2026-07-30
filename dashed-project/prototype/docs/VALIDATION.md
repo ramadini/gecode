@@ -247,3 +247,18 @@ The generated TSV records warmed start/end RSS, steady-state growth, peak RSS,
 operation counts, and solution counts for repeated space destruction, cloning,
 and complete DFS. Details and interpretation limits are documented in
 `MEMORY_PROFILING.md`.
+
+## Native List Valgrind gate
+
+Run the short cached leak and memory-error confirmation with:
+
+```sh
+./dashed-project/scripts/run-list-valgrind.sh
+```
+
+The default profile checks repeated native space destruction, shared-literal
+space cloning, and complete recomputation-heavy DFS under Memcheck. Definite
+and indirect leaks are errors. `LIST_VALGRIND_PROFILE=acceptance` increases the
+workload, while `LIST_VALGRIND_TOOLS=massif` records allocator-level attribution
+without changing the leak gate. The runner fingerprints passing reports to
+avoid repeating unchanged checks.

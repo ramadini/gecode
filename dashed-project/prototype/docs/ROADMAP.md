@@ -20,7 +20,7 @@
 - native ASan/UBSan gate for space cloning, disposal, failure, subsumption,
   DFS recomputation, exact branchers, and no-good literals (included);
 - native repeated-space, clone, and DFS RSS/peak-memory baseline (included);
-- add Valgrind confirmation and allocator-level attribution.
+- Valgrind Memcheck confirmation and on-demand Massif attribution (included).
 
 ## Milestone 3 — restore propagation strength
 
