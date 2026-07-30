@@ -3218,10 +3218,11 @@ void length_branching_bounds_native() {
   }
 
   {
-    Gecode::DFS<LengthBranchSpace> search(
-        new LengthBranchSpace(
-            lists(-2, 2, 2, 2),
-            Gecode::INT_VAL_MIN()));
+    auto* root = new LengthBranchSpace(
+        lists(-2, 2, 2, 2),
+        Gecode::INT_VAL_MIN());
+    Gecode::DFS<LengthBranchSpace> search(root);
+    delete root;
 
     int solutions = 0;
 
@@ -3238,8 +3239,9 @@ void length_branching_bounds_native() {
 
 
 void length_branching_array_native() {
-  Gecode::DFS<LengthArrayBranchSpace>
-      search(new LengthArrayBranchSpace());
+  auto* root = new LengthArrayBranchSpace();
+  Gecode::DFS<LengthArrayBranchSpace> search(root);
+  delete root;
 
   std::vector<std::pair<unsigned int, unsigned int>>
       lengths;
@@ -3496,9 +3498,11 @@ void exact_domain_branching_array_native() {
   options.c_d = 8;
   options.a_d = 2;
 
+  auto* root = new ExactDomainArrayBranchSpace();
   Gecode::DFS<ExactDomainArrayBranchSpace> search(
-      new ExactDomainArrayBranchSpace(),
+      root,
       options);
+  delete root;
 
   std::vector<std::vector<int>> pairs;
 
@@ -3541,6 +3545,7 @@ void exact_domain_branching_single_native() {
               3));
 
   Gecode::DFS<ExactDomainBranchSpace> search(root);
+  delete root;
 
   std::vector<std::vector<int>> solutions;
 
@@ -3596,6 +3601,7 @@ void length_branching_single_native() {
       Gecode::INT_VAL_MIN());
 
   Gecode::DFS<LengthBranchSpace> search(root);
+  delete root;
 
   std::vector<unsigned int> lengths;
 

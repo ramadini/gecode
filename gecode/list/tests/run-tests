@@ -101,6 +101,29 @@ CXX="${CXX:-g++}"
 
 "$GECODE_BUILD/list-rel-test"
 
+NATIVE_SANITIZER_LIFECYCLE_BINARY="$GECODE_BUILD/list-sanitizer-lifecycle"
+
+"$CXX" \
+  -std=c++17 \
+  -DGECODE_HAS_LIST_VARS=1 \
+  -DGECODE_NO_AUTOLINK \
+  -I"$GECODE_BUILD" \
+  -I"$GECODE_ROOT" \
+  -I"$PROTOTYPE_ROOT/include" \
+  "$TEST_DIR/sanitizer-lifecycle.cpp" \
+  "$GECODE_ROOT/gecode/list/list-var-imp.cpp" \
+  "$CORE_BUILD/libdashed_core.a" \
+  -L"$GECODE_BUILD" \
+  -Wl,-rpath,"$GECODE_BUILD" \
+  -lgecodeint \
+  -lgecodesearch \
+  -lgecodekernel \
+  -lgecodesupport \
+  -pthread \
+  -o "$NATIVE_SANITIZER_LIFECYCLE_BINARY"
+
+"$NATIVE_SANITIZER_LIFECYCLE_BINARY"
+
 DIFFERENTIAL_BINARY="$GECODE_BUILD/list-search-differential"
 DIFFERENTIAL_TEST_OBJECT="$GECODE_BUILD/list-search-differential-test.o"
 DIFFERENTIAL_LIST_OBJECT="$GECODE_BUILD/list-search-list-var-imp.o"

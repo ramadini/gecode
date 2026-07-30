@@ -114,7 +114,6 @@ retain the one-element list `b`. Unit and native-clone tests verify that an
 unbounded segment can still contribute zero values when another segment is
 mandatory.
 
-
 ### Fixed-literal differential regression
 
 `dashed_gstrings_fixed_tests` covers legacy equality cases 17-20 and 22. It
@@ -123,7 +122,6 @@ merging of adjacent literals from unrelated storage, and convergence to the
 assigned list `aab`. The explicit G-Strings differential script additionally
 extracts and replays the exact historical fixed strings, including the large
 `test19` payload.
-
 
 ### Lower-level sweep stress regression
 
@@ -160,3 +158,78 @@ prints a stack trace and does not recover from undefined behavior.
 This gate validates the standalone backend. Native Gecode space allocation,
 propagator disposal, brancher/NGL lifecycle, and DFS cloning remain a separate
 sanitizer milestone.
+
+## Native List sanitizer gate
+
+Run the native Gecode lifecycle matrix with:
+
+```sh
+JOBS=1 ./dashed-project/scripts/run-native-list-sanitizers.sh
+```
+
+The runner configures separate Debug AddressSanitizer and
+UndefinedBehaviorSanitizer builds for both the standalone backend and the
+minimal Gecode libraries required by `ListVar`. It then compiles and runs the
+native relation regression suite and a dedicated lifecycle stress executable
+with the same sanitizer instrumentation.
+
+`list-sanitizer-lifecycle` covers:
+
+- immutable literal payloads shared across cloned spaces after the source
+  space is destroyed;
+- repeated cleanup of spaces failed by equality, concatenation, length, and
+  reified equality;
+- propagator subsumption followed by cloning and independent destruction;
+- complete DFS with aggressive recomputation;
+- exact brancher and no-good-literal copying, pruning, and space destruction.
+
+AddressSanitizer runs with leak detection enabled. UBSan halts at the first
+reported undefined operation. The native gate uses dedicated build directories
+and does not replace the normal incremental Gecode build.
+
+The sanitizer runner performs a source-level ownership audit before
+building. Gecode search engines snapshot the supplied source space but do not
+own that original pointer, so every List test deletes its DFS source space
+immediately after constructing the engine. This keeps test-harness leaks from
+masking implementation-level leak results.
+
+### Native UBSan vptr boundary
+
+The native sanitizer gate keeps all UndefinedBehaviorSanitizer checks enabled
+for the dashed backend, the List implementation, and model/test translation
+units, including `vptr`. Only the private Gecode shared-library build uses
+`-fno-sanitize=vptr`; every other UBSan check remains active there. This narrow
+compatibility boundary is required because Gecode's kernel uses standalone
+`ActorLink` sentinel nodes whose addresses are intentionally converted to
+`Brancher*` for list-end comparisons; UBSan's dynamic-type check rejects that
+upstream representation before any List variable is created.
+
+The private UBSan Gecode build also uses default RTTI visibility. The runner
+checks the required internal typeinfo exports before linking and executes a
+two-sided compiler-policy probe: full List flags must detect an invalid
+downcast, while the Gecode compatibility flags must allow it. Normal and
+release builds are unchanged.
+
+### Native sanitizer iteration speed
+
+The native sanitizer runner preserves compatible CMake caches, including a
+partially completed build. Sanitized Gecode translation units can consume
+several GiB each, so the runner selects conservative mode-specific build
+parallelism: UBSan uses one compiler job on machines below 32 GiB, while ASan
+uses at most one or two jobs on common developer machines. Set
+`LIST_NATIVE_SANITIZER_BUILD_JOBS` only when the machine has been observed to
+support higher concurrency. If a parallel compiler is killed for memory
+pressure, the runner automatically resumes the same Ninja build with one job.
+
+For a short development check, run:
+
+```sh
+LIST_NATIVE_SANITIZER_PROFILE=smoke \
+  ./dashed-project/scripts/run-native-list-sanitizers.sh
+```
+
+The smoke profile runs the ownership audit and ASan lifecycle binary. The
+acceptance profile remains the default and runs separate ASan and UBSan builds
+with both lifecycle and full relation-regression binaries. Subsequent runs
+reuse successful and partially completed compiler outputs instead of rebuilding
+all Gecode libraries.

@@ -17,8 +17,9 @@
 - Gecode-style `ListVarArgs`/`ListVarArray` traits, construction, and cloning (included);
 - add native equality and length propagators;
 - standalone ASan/UBSan lifecycle and leak gate (included);
-- test native space cloning, disposal, subscriptions, failure, subsumption,
-  branchers, and no-good literals under ASan/UBSan.
+- native ASan/UBSan gate for space cloning, disposal, failure, subsumption,
+  DFS recomputation, exact branchers, and no-good literals (included);
+- add Valgrind confirmation and quantitative allocation/peak-memory baselines.
 
 ## Milestone 3 — restore propagation strength
 
