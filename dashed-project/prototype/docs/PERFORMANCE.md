@@ -118,3 +118,24 @@ LIST_CALLGRIND_REPORT_DIR=dashed-project/runs/list-performance/callgrind-YYYYMMD
 
 Raw reuse requires an explicit report directory and matching profile/scenario
 metadata. It does not require the benchmark binary or Valgrind executable.
+
+## First measured optimization: domain normalization
+
+Callgrind attribution identified `dashed::Domain::normalize()` and
+`tighten_segment_counts_from_global_length()` as the dominant self-costs in
+both propagation and exact DFS. The first optimization keeps the same
+canonical results while:
+
+- scanning canonical segment vectors before allocating a replacement vector;
+- skipping adjacent-literal compaction when no adjacent literal run exists;
+- distinguishing ordinary count changes from changes that require structural
+  recanonicalization;
+- allocating two reusable suffix buffers per tightening call instead of four
+  prefix/suffix buffers on every fixpoint iteration; and
+- retaining the previous Jacobi-style tightening order so propagation results
+  do not depend on in-pass update order.
+
+The bundle compares the candidate against the exact pre-change implementation
+on deterministic randomized domains and runs a same-process microbenchmark.
+Native benchmark and Callgrind reports should be regenerated after the commit
+before selecting the next hotspot.

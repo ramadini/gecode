@@ -82,6 +82,8 @@ Measure before adding representation complexity. Candidate optimizations:
 
 ## Phase 14: benchmark-driven optimization
 
+
+- optimized canonical domain normalization and global count tightening from Callgrind attribution (included);
 - native List performance benchmark baseline for propagation, cloning, and DFS
   (included);
 - Callgrind hotspot attribution for propagation, cloning, and DFS

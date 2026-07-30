@@ -298,3 +298,17 @@ Callgrind report validation also rejects unresolved compressed numeric symbol
 IDs. Parser-only changes can be checked against existing raw data with
 `LIST_CALLGRIND_REUSE_RAW=1`; this path must not execute the benchmark or
 require Valgrind.
+
+## Normalization optimization validation
+
+The normalization optimization is accepted only after all of these checks:
+
+- exact output comparison against the pre-change implementation over at least
+  12,000 deterministic randomized domains;
+- repeated-normalization idempotence and structural-transition unit tests;
+- the complete standalone core/property/sweep tests;
+- the normal native List regression, solution-set, and search-statistics tests;
+- a same-process microbenchmark showing improvement in canonical,
+  non-structural tightening, and structural normalization workloads; and
+- regeneration of the native performance and Callgrind reports before the next
+  optimization target is chosen.

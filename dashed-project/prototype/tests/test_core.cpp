@@ -254,6 +254,58 @@ void test_post_tightening_recanonicalization() {
       Domain::repeat(ValueSet(7), 2, 2));
 }
 
+
+void test_normalization_hotspot_fast_paths() {
+  // Already canonical domains must remain stable across repeated normalization.
+  Domain canonical(
+      {
+          RepeatSegment{ValueSet(-2, 2), 0, 4},
+          LiteralSegment{
+              LiteralSlice(std::vector<int>{3, 4})},
+          RepeatSegment{ValueSet(5, 7), 1, 3},
+      },
+      3,
+      9);
+  const Domain expected_canonical = canonical;
+  for (int iteration = 0; iteration < 1000; ++iteration) {
+    canonical.normalize();
+    assert(canonical == expected_canonical);
+  }
+
+  // Count bounds can tighten without changing the segment structure.
+  Domain non_structural_tightening(
+      {
+          LiteralSegment{
+              LiteralSlice(std::vector<int>{1, 2, 3, 4})},
+          RepeatSegment{ValueSet(-2, 2), 0, 10},
+      },
+      6,
+      8);
+  assert(!non_structural_tightening.failed());
+  assert(non_structural_tightening.segment_count() == 2);
+  const auto& narrowed = std::get<RepeatSegment>(
+      non_structural_tightening.segments()[1]);
+  assert(narrowed.lower == 2);
+  assert(narrowed.upper == 4);
+  const Domain expected_narrowed = non_structural_tightening;
+  for (int iteration = 0; iteration < 1000; ++iteration) {
+    non_structural_tightening.normalize();
+    assert(non_structural_tightening == expected_narrowed);
+  }
+
+  // A count forced to one still triggers structural recanonicalization.
+  const Domain fixed_after_tightening(
+      {
+          RepeatSegment{ValueSet(1), 0, 1},
+          RepeatSegment{ValueSet(2), 1, 1},
+      },
+      2,
+      2);
+  assert(
+      fixed_after_tightening ==
+      Domain::fixed(std::vector<int>{1, 2}));
+}
+
 void test_normalization() {
   ValueSet digits(-1000, 1000);
   Domain domain(
@@ -3758,6 +3810,7 @@ int main() {
   test_uniform_fixed_run_normalization();
   test_unrelated_literal_run_canonicalization();
   test_post_tightening_recanonicalization();
+  test_normalization_hotspot_fast_paths();
   test_normalization();
   test_saturated_global_length_tightening();
   test_membership();
