@@ -96,3 +96,25 @@ Callgrind counts instructions rather than elapsed time, so confirm any proposed
 optimization with the same-machine timing baseline. The first optimization
 must target a function that is prominent in the affected scenario's project
 ranking and must preserve operation, solution, and checksum invariants.
+
+### Re-summarizing existing Callgrind data
+
+Callgrind compresses object, file, and function names into numeric IDs. The
+summarizer resolves definitions from both caller and callee records, including
+forward definitions, and aggregates inline source-location fragments by
+function name. A valid report must not contain unresolved entries such as
+`(1738)`.
+
+After changing only the summarizer, reuse existing raw profiles without
+running Valgrind again:
+
+```sh
+LIST_CALLGRIND_PROFILE=attribution \
+LIST_CALLGRIND_SCENARIOS="propagate clone dfs" \
+LIST_CALLGRIND_REUSE_RAW=1 \
+LIST_CALLGRIND_REPORT_DIR=dashed-project/runs/list-performance/callgrind-YYYYMMDDTHHMMSSZ \
+  ./dashed-project/scripts/run-list-callgrind.sh
+```
+
+Raw reuse requires an explicit report directory and matching profile/scenario
+metadata. It does not require the benchmark binary or Valgrind executable.

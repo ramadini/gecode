@@ -293,3 +293,8 @@ profiles propagation, cloning, and DFS. Raw Callgrind data and
 and `project` rankings for every requested scenario. Treat instruction counts
 as attribution evidence and use the timing benchmark for before/after speed
 claims.
+
+Callgrind report validation also rejects unresolved compressed numeric symbol
+IDs. Parser-only changes can be checked against existing raw data with
+`LIST_CALLGRIND_REUSE_RAW=1`; this path must not execute the benchmark or
+require Valgrind.
