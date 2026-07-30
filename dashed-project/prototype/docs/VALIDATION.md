@@ -277,3 +277,19 @@ median and p95 nanoseconds per operation plus invariant operation, solution, and
 checksum values for propagation, shared-literal cloning, and complete exact
 DFS. `LIST_PERF_BASELINE` enables an optional median-regression comparison;
 interpret timings only on equivalent hardware and build configurations.
+
+## Native List Callgrind attribution
+
+Run the cached smoke attribution with:
+
+```sh
+./dashed-project/scripts/run-list-callgrind.sh
+```
+
+The installer validates a single tiny propagation profile; the normal command
+profiles propagation, cloning, and DFS. Raw Callgrind data and
+`callgrind-hotspots.tsv` are stored below
+`dashed-project/runs/list-performance/`. A valid report must contain both `all`
+and `project` rankings for every requested scenario. Treat instruction counts
+as attribution evidence and use the timing benchmark for before/after speed
+claims.

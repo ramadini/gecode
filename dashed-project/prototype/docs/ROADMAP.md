@@ -84,6 +84,8 @@ Measure before adding representation complexity. Candidate optimizations:
 
 - native List performance benchmark baseline for propagation, cloning, and DFS
   (included);
+- Callgrind hotspot attribution for propagation, cloning, and DFS
+  (included);
 - collect a stable same-machine baseline and profiler attribution before
   changing algorithms;
 - optimize only measured hotspots and retain differential, sanitizer, memory,
