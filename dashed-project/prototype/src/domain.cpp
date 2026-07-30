@@ -754,6 +754,20 @@ void Domain::normalize() {
       return;
     }
 
+    // An already-canonical exact domain cannot be refined further.
+    //
+    // Equal segment minimum and maximum sums imply that every segment count
+    // is exact. Matching global bounds therefore leave nothing for count
+    // tightening to change. Because needs_structural_normalization() was
+    // false, there are also no adjacent literal segments left for the final
+    // merge pass.
+    if (!did_canonicalize &&
+        segment_minimum == segment_maximum &&
+        min_length_ == segment_minimum &&
+        max_length_ == segment_maximum) {
+      return;
+    }
+
     const CountTighteningResult tightening =
         tighten_segment_counts_from_global_length();
     if (failed_) {

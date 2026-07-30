@@ -3982,7 +3982,116 @@ void test_value_set_intersection_reference_equivalence() {
   }
 }
 
+
+void test_exact_canonical_normalization_fast_path_guards() {
+  {
+    const dashed::Domain actual(
+        std::vector<dashed::Segment>{
+            dashed::RepeatSegment{
+                dashed::ValueSet(1, 3),
+                2,
+                2},
+            dashed::RepeatSegment{
+                dashed::ValueSet(7, 9),
+                3,
+                3}},
+        5,
+        5);
+
+    assert(actual.min_length() == 5);
+    assert(actual.max_length() == 5);
+    assert(actual.segment_count() == 2);
+  }
+
+  {
+    const dashed::Domain actual(
+        std::vector<dashed::Segment>{
+            dashed::RepeatSegment{
+                dashed::ValueSet(1, 3),
+                1,
+                1},
+            dashed::RepeatSegment{
+                dashed::ValueSet(1, 3),
+                2,
+                2}},
+        3,
+        3);
+
+    const dashed::Domain expected =
+        dashed::Domain::repeat(
+            dashed::ValueSet(1, 3),
+            3,
+            3);
+
+    assert(actual == expected);
+  }
+
+  {
+    const dashed::Domain actual(
+        std::vector<dashed::Segment>{
+            dashed::RepeatSegment{
+                dashed::ValueSet(1),
+                1,
+                1},
+            dashed::RepeatSegment{
+                dashed::ValueSet(2),
+                1,
+                1},
+            dashed::RepeatSegment{
+                dashed::ValueSet(3),
+                1,
+                1}},
+        3,
+        3);
+
+    const dashed::Domain expected =
+        dashed::Domain::fixed(
+            std::vector<int>{1, 2, 3});
+
+    assert(actual == expected);
+  }
+
+  {
+    const dashed::Domain actual(
+        std::vector<dashed::Segment>{
+            dashed::LiteralSegment{
+                dashed::LiteralSlice(
+                    std::vector<int>{1, 2})},
+            dashed::LiteralSegment{
+                dashed::LiteralSlice(
+                    std::vector<int>{3, 4})}},
+        4,
+        4);
+
+    const dashed::Domain expected =
+        dashed::Domain::fixed(
+            std::vector<int>{1, 2, 3, 4});
+
+    assert(actual == expected);
+  }
+
+  {
+    const dashed::Domain actual(
+        std::vector<dashed::Segment>{
+            dashed::RepeatSegment{
+                dashed::ValueSet(4, 6),
+                0,
+                8}},
+        5,
+        5);
+
+    const dashed::Domain expected =
+        dashed::Domain::repeat(
+            dashed::ValueSet(4, 6),
+            5,
+            5);
+
+    assert(actual == expected);
+  }
+}
+
 int main() {
+  test_exact_canonical_normalization_fast_path_guards();
   test_value_set_intersection_reference_equivalence();
   test_exact_branch_splits();
   test_concat_projects_segmented_suffix_remainder();
