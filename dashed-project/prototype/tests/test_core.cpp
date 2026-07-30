@@ -4090,7 +4090,51 @@ void test_exact_canonical_normalization_fast_path_guards() {
   }
 }
 
+
+void test_cached_assignment_state_transitions() {
+  dashed::Domain empty;
+  assert(empty.assigned());
+
+  dashed::Domain flexible =
+      dashed::Domain::top(
+          dashed::ValueSet(0, 1),
+          0,
+          2);
+  assert(!flexible.assigned());
+
+  (void)flexible.tighten_length(1, 1);
+  assert(!flexible.failed());
+  assert(!flexible.assigned());
+
+  (void)flexible.restrict_to_fixed(
+      std::vector<int>{0});
+  assert(!flexible.failed());
+  assert(flexible.assigned());
+  assert(flexible.value() == std::vector<int>{0});
+
+  dashed::Domain copied = flexible;
+  assert(copied.assigned());
+
+  dashed::Domain moved = std::move(copied);
+  assert(moved.assigned());
+
+  moved.fail();
+  assert(moved.failed());
+  assert(!moved.assigned());
+
+  dashed::Domain exact_repeat =
+      dashed::Domain::repeat(
+          dashed::ValueSet(7),
+          3,
+          3);
+  assert(exact_repeat.assigned());
+  assert(
+      exact_repeat.value() ==
+      std::vector<int>({7, 7, 7}));
+}
+
 int main() {
+  test_cached_assignment_state_transitions();
   test_exact_canonical_normalization_fast_path_guards();
   test_value_set_intersection_reference_equivalence();
   test_exact_branch_splits();

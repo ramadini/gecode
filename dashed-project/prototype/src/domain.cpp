@@ -209,11 +209,14 @@ Domain Domain::top(ValueSet alphabet, Length min_length, Length max_length) {
   return repeat(std::move(alphabet), min_length, max_length);
 }
 
-bool Domain::assigned() const noexcept {
-  if (failed_ || min_length_ != max_length_) {
-    return false;
-  }
-  return std::all_of(segments_.begin(), segments_.end(), segment_assigned);
+void Domain::refresh_assigned() noexcept {
+  assigned_ =
+      !failed_ &&
+      min_length_ == max_length_ &&
+      std::all_of(
+          segments_.begin(),
+          segments_.end(),
+          segment_assigned);
 }
 
 std::vector<int> Domain::value() const {
@@ -590,6 +593,7 @@ Change Domain::intersect_single_repeat(
 
 void Domain::normalize() {
   if (failed_) {
+    assigned_ = false;
     return;
   }
   if (min_length_ > max_length_) {
@@ -765,6 +769,7 @@ void Domain::normalize() {
         segment_minimum == segment_maximum &&
         min_length_ == segment_minimum &&
         max_length_ == segment_maximum) {
+      refresh_assigned();
       return;
     }
 
@@ -788,6 +793,7 @@ void Domain::normalize() {
   // whole adjacent run in one pass: contiguous slices keep sharing storage,
   // while unrelated slices are copied exactly once into one immutable value.
   merge_adjacent_literal_segments(segments_);
+  refresh_assigned();
 }
 
 void Domain::fail() noexcept {
@@ -795,6 +801,7 @@ void Domain::fail() noexcept {
   min_length_ = 1;
   max_length_ = 0;
   failed_ = true;
+  assigned_ = false;
 }
 
 Domain Domain::concatenated(const Domain& other) const {

@@ -72,7 +72,9 @@ class Domain {
                                   Length max_length);
 
   [[nodiscard]] bool failed() const noexcept { return failed_; }
-  [[nodiscard]] bool assigned() const noexcept;
+  [[nodiscard]] bool assigned() const noexcept {
+    return assigned_;
+  }
   [[nodiscard]] Length min_length() const noexcept { return min_length_; }
   [[nodiscard]] Length max_length() const noexcept { return max_length_; }
   [[nodiscard]] const std::vector<Segment>& segments() const noexcept {
@@ -113,12 +115,14 @@ class Domain {
   Length min_length_ = 0;
   Length max_length_ = 0;
   bool failed_ = false;
+  bool assigned_ = true;
 
   [[nodiscard]] static Length saturating_add(Length lhs, Length rhs) noexcept;
   [[nodiscard]] static Length saturating_sub(Length lhs, Length rhs) noexcept;
   [[nodiscard]] Length segment_min_sum() const noexcept;
   [[nodiscard]] Length segment_max_sum() const noexcept;
   [[nodiscard]] bool append_assigned(std::vector<int>& out) const;
+  void refresh_assigned() noexcept;
   [[nodiscard]] std::vector<LiteralSlice> assigned_literal_slices() const;
   struct CountTighteningResult {
     bool changed = false;
