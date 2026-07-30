@@ -136,3 +136,6 @@ __pycache__/
 
 # Native List Valgrind and Massif reports
 /dashed-project/runs/list-valgrind/
+
+# Native List performance benchmark reports
+/dashed-project/runs/list-performance/

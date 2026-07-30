@@ -262,3 +262,18 @@ and indirect leaks are errors. `LIST_VALGRIND_PROFILE=acceptance` increases the
 workload, while `LIST_VALGRIND_TOOLS=massif` records allocator-level attribution
 without changing the leak gate. The runner fingerprints passing reports to
 avoid repeating unchanged checks.
+
+## Native List performance baseline
+
+Run the short cached benchmark with:
+
+```sh
+./dashed-project/scripts/run-list-performance-benchmark.sh
+```
+
+Use `LIST_PERF_PROFILE=baseline` for a stable same-machine baseline and
+`LIST_PERF_PROFILE=acceptance` for the longer milestone workload. Reports record
+median and p95 nanoseconds per operation plus invariant operation, solution, and
+checksum values for propagation, shared-literal cloning, and complete exact
+DFS. `LIST_PERF_BASELINE` enables an optional median-regression comparison;
+interpret timings only on equivalent hardware and build configurations.

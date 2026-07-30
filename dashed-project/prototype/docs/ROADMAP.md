@@ -79,3 +79,12 @@ Measure before adding representation complexity. Candidate optimizations:
       structural sweep feasibility and actual language intersection.
 - [x] Build the live historical G-Strings runner and compare the shared report protocol.
 - [ ] Compare live historical and List search nodes, failures, and solution sets.
+
+## Phase 14: benchmark-driven optimization
+
+- native List performance benchmark baseline for propagation, cloning, and DFS
+  (included);
+- collect a stable same-machine baseline and profiler attribution before
+  changing algorithms;
+- optimize only measured hotspots and retain differential, sanitizer, memory,
+  and Valgrind gates.
