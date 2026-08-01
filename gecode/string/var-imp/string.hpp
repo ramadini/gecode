@@ -22,7 +22,7 @@ namespace Gecode { namespace String {
 
   forceinline int
   StringVarImp::max_length() const {
-  return ds.max_length();
+    return ds.max_length();
   }
 
   forceinline ModEvent

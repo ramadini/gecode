@@ -925,38 +925,91 @@ public:
     std::cerr << "===== i = match(x, R) UNSATISFIABLE =====\n" << std::endl;
   }
 
+  void test31() {
+    std::cerr << "\n*** Test 31 ***" << std::endl;
+    DSBlocks blocks(*this, NSBlocks("ac"));
+    DSBlock middle(*this, NSBlock(NSIntSet('b'), 2, 3));
+    blocks.insert(*this, 1, middle);
+
+    middle.S.update(*this, 'z');
+    middle.l = middle.u = 1;
+
+    blocks.insert(*this, 0, DSBlock(*this, NSBlock(NSIntSet('x'), 1, 1)));
+    blocks.insert(*this, blocks.length(),
+                  DSBlock(*this, NSBlock(NSIntSet('y'), 1, 1)));
+
+    assert(blocks.length() == 5);
+    assert(blocks.at(0) == NSBlock(NSIntSet('x'), 1, 1));
+    assert(blocks.at(1) == NSBlock(NSIntSet('a'), 1, 1));
+    assert(blocks.at(2) == NSBlock(NSIntSet('b'), 2, 3));
+    assert(blocks.at(3) == NSBlock(NSIntSet('c'), 1, 1));
+    assert(blocks.at(4) == NSBlock(NSIntSet('y'), 1, 1));
+  }
+
+  void test32() {
+    std::cerr << "\n*** Test 32 ***" << std::endl;
+    NSIntSet values;
+    values.add('a');
+    values.add('c');
+    values.add('e');
+    DSIntSet set(*this, values);
+
+    set.remove(*this, 'c');
+  NSIntSet remaining;
+  remaining.add('a');
+  remaining.add('e');
+  assert(set == remaining);
+    assert(set.size() == 2);
+    assert(set.min() == 'a' && set.max() == 'e');
+
+    set.remove(*this, 'a');
+    assert(set.size() == 1);
+    assert(set.min() == 'e' && set.max() == 'e');
+
+    set.remove(*this, 'e');
+    assert(set.empty());
+    assert(set.ranges() == NULL);
+  }
+
 };
 
 int main() {
-  (new StrTest())->test01();
-  (new StrTest())->test02();
-  (new StrTest())->test03();
-  (new StrTest())->test04();
-  (new StrTest())->test05();
-  (new StrTest())->test06();
-  (new StrTest())->test07();
-  (new StrTest())->test08();
-  (new StrTest())->test09();
-  (new StrTest())->test10();
-  (new StrTest())->test11();
-  (new StrTest())->test12();
-  (new StrTest())->test13();
-  (new StrTest())->test14();
-  (new StrTest())->test15();
-  (new StrTest())->test16();
-  (new StrTest())->test17();
-  (new StrTest())->test18();
-  (new StrTest())->test19();
-  (new StrTest())->test20();
-  (new StrTest())->test21();
-  (new StrTest())->test22();
-  (new StrTest())->test23();  
-  (new StrTest())->test24();
-  (new StrTest())->test25();
-  (new StrTest())->test26();
-  (new StrTest())->test27();
-  (new StrTest())->test28();
-  (new StrTest())->test29();
-  (new StrTest())->test30();
+  const auto run = [](void (StrTest::*test)(void)) {
+    StrTest* space = new StrTest();
+    (space->*test)();
+    delete space;
+  };
+  run(&StrTest::test01);
+  run(&StrTest::test02);
+  run(&StrTest::test03);
+  run(&StrTest::test04);
+  run(&StrTest::test05);
+  run(&StrTest::test06);
+  run(&StrTest::test07);
+  run(&StrTest::test08);
+  run(&StrTest::test09);
+  run(&StrTest::test10);
+  run(&StrTest::test11);
+  run(&StrTest::test12);
+  run(&StrTest::test13);
+  run(&StrTest::test14);
+  run(&StrTest::test15);
+  run(&StrTest::test16);
+  run(&StrTest::test17);
+  run(&StrTest::test18);
+  run(&StrTest::test19);
+  run(&StrTest::test20);
+  run(&StrTest::test21);
+  run(&StrTest::test22);
+  run(&StrTest::test23);
+  run(&StrTest::test24);
+  run(&StrTest::test25);
+  run(&StrTest::test26);
+  run(&StrTest::test27);
+  run(&StrTest::test28);
+  run(&StrTest::test29);
+  run(&StrTest::test30);
+  run(&StrTest::test31);
+  run(&StrTest::test32);
   return 0;
 }

@@ -23,7 +23,7 @@ namespace Gecode { namespace String {
     (void) new (home) GConcat(home, x, y);
     return ES_OK;
   }
-  
+
   forceinline Actor*
   GConcat::copy(Space& home) {
     return new (home) GConcat(home, *this);
@@ -31,7 +31,7 @@ namespace Gecode { namespace String {
 
   forceinline bool
   GConcat::refine_card(Space& home) {
-    // std::cerr << "GConcat<StringView>::refine_card " << y << "\n";
+
     long lx = 0, ux = 0;
     for (auto& xi : x) {
       lx += xi.min_length();
@@ -41,9 +41,9 @@ namespace Gecode { namespace String {
       return false;
     bool again;
     do {
-      // std::cerr << "x: " << x << '\n' << "y: " << y << '\n';
-      // std::cerr << "lx: " << lx << " ux: " << ux
-      // << " minl(y): "<<y.min_length()<<" maxl(y): "<<y.max_length() << '\n';
+
+
+
       again = false;
       if (lx > y.min_length()) {
         y.lb(home, lx);
@@ -80,13 +80,13 @@ namespace Gecode { namespace String {
         return false;
     }
     while (again);
-    // std::cerr << "GConcat<StringView>::refined!\n";
+
     return true;
   }
 
   forceinline ExecStatus
   GConcat::propagate(Space& home, const ModEventDelta& m) {
-    // std::cerr<<"\nGConcat::propagate " <<y<< " = gconcat(" <<x<< ")\n";
+
     if (x.assigned()) {
       string val;
       for (auto& s : x)
@@ -95,7 +95,7 @@ namespace Gecode { namespace String {
         return val == y.val() ? home.ES_SUBSUMED(*this) : ES_FAILED;
       else
         rel(home, y, STRT_EQ, StringVar(home, val));
-      // std::cerr<<"propagated "<<y<<" = "<<val<<"\n";
+
       return home.ES_SUBSUMED(*this);
     }
     if (!refine_card(home))
@@ -126,7 +126,7 @@ namespace Gecode { namespace String {
         assert (xi.pdomain()->is_normalized());
       }
     }
-    // std::cerr<<"propagated "<<y<<" = gconcat("<<x<<")\n";
+
     return x.assigned() ? propagate(home, m) : ES_FIX;
   }
 

@@ -572,6 +572,42 @@ namespace Gecode { namespace String {
   }
 
   forceinline void
+  DSBlocks::dispose(Space& h, int begin, int end) {
+    for (int i = begin; i < end; ++i)
+      x[i].S.dispose(h);
+  }
+
+  forceinline void
+  DSBlocks::shrink(Space& h, int size) {
+    assert(size <= _size);
+    dispose(h, size, _size);
+    a.free(x + size, _size - size);
+    n = _size = size;
+  }
+
+  forceinline void
+  DSBlocks::reset(Space& h, int size) {
+    dispose(h, 0, _size);
+    a.free(x, n);
+    x = a.template alloc<DSBlock>(size);
+    n = _size = size;
+  }
+
+  forceinline void
+  DSBlocks::clear(Space& h) {
+    reset(h, 1);
+    x[0].init(h, DSBlock());
+  }
+
+  forceinline void
+  DSBlocks::replace(Space& h, DSBlock* blocks, int size) {
+    dispose(h, 0, _size);
+    a.free(x, n);
+    x = blocks;
+    n = _size = size;
+  }
+
+  forceinline void
   DSBlocks::update(Space& h, const DSBlocks& d) {
     // std::cerr<<"DSArray::update DSBlocks"<<std::endl;
     if (*this == d)
@@ -580,24 +616,14 @@ namespace Gecode { namespace String {
     if (m <= _size) {
       for (int i = 0; i < m; ++i)
         x[i].update(h, d.at(i));
-      if (m < _size) {
-        for (int i = m; i < _size; ++i)
-          x[i].S.dispose(h);
-        a.free(x + m, _size - m);
-      }
-      n = m;
-      _size = m;
+      if (m < _size)
+        shrink(h, m);
       // std::cerr<<"Updated: "<<*this<<std::endl;
       return;
     }
-    for (int i = 0; i < _size; ++i)
-      x[i].S.dispose(h);
-    a.free(x, n);
-    x = a.template alloc<DSBlock>(m);
+    reset(h, m);
     for (int i = 0; i < m; ++i)
       x[i].init(h, d.at(i));
-    n = m;
-    _size = m;
     // std::cerr<<"Updated: "<<*this<<std::endl;
   }
   
@@ -612,13 +638,8 @@ namespace Gecode { namespace String {
         ll += x[i].l;
         uu += x[i].u;
       }
-      if (m < _size) {
-        for (int i = m; i < _size; ++i)
-          x[i].S.dispose(h);
-        a.free(x + m, _size - m);
-      }
-      n = m;
-      _size = m;
+      if (m < _size)
+        shrink(h, m);
       if (ll > DashedString::_MAX_STR_LENGTH)
         h.fail();
       if (uu > DashedString::_MAX_STR_LENGTH)
@@ -628,17 +649,12 @@ namespace Gecode { namespace String {
       // std::cerr<<"Updated: "<<*this<<std::endl;
       return;
     }
-    for (int i = 0; i < _size; ++i)
-      x[i].S.dispose(h);
-    a.free(x, n);
-    x = a.template alloc<DSBlock>(m);
+    reset(h, m);
     for (int i = 0; i < m; ++i) {
       x[i].init(h, v[i]);
       ll += x[i].l;
       uu += x[i].u;
     }
-    n = m;
-    _size = m;
     if (ll > DashedString::_MAX_STR_LENGTH)
       h.fail();
     if (uu > DashedString::_MAX_STR_LENGTH)
@@ -652,12 +668,7 @@ namespace Gecode { namespace String {
   DSBlocks::update(Space& h, const string& s) {
     // std::cerr<<"DSArray::update " << *this << " with " << s <<std::endl;
     if (s.empty()) {
-      for (int i = 0; i < _size; ++i)
-        x[i].S.dispose(h);
-      a.free(x, n);
-      x = a.template alloc<DSBlock>(1);
-      n = 1;
-      _size = 1;
+      clear(h);
       return;
     }
     int m = 0, j = 0, ns = s.size();
@@ -686,17 +697,11 @@ namespace Gecode { namespace String {
           // std::cerr << "x_j: " << x[j] << '\n';
         }
       }
-      for (int i = m; i < _size; ++i)
-        x[i].S.dispose(h);
-      a.free(x + m, _size - m);
-      n = m;
-      _size = m;
+      if (m < _size)
+        shrink(h, m);
       return;
     }
-    for (int i = 0; i < _size; ++i)
-      x[i].S.dispose(h);
-    a.free(x, n);
-    x = a.template alloc<DSBlock>(m);
+    reset(h, m);
     prev_c = s[0] + 1;
     for (int i = 0; i < ns; ++i) {
       unsigned s_i = char2int(s[i]);
@@ -712,8 +717,6 @@ namespace Gecode { namespace String {
         ++j;
       }
     }
-    n = m;
-    _size = m;
   }
 
   forceinline void
@@ -721,41 +724,25 @@ namespace Gecode { namespace String {
     // std::cerr << "Inserting " << b << " at position " << k << " of " << *this << '\n';
     DSBlock* y = h.alloc<DSBlock>(n + 1);
     for (int i = 0; i < k; i++)
-      y[i].update(h, x[i]);
-    y[k].update(h, b);
+      y[i].init(h, x[i]);
+    y[k].init(h, b);
     for (int i = k; i < n; i++)
-      y[i + 1].update(h, x[i]);
-    for (int i = 0; i < _size; ++i)
-      x[i].S.dispose(h);
-    a.free(x, n);
-    x = y;
-    ++n;
-    _size = n;
+      y[i + 1].init(h, x[i]);
+    replace(h, y, n + 1);
     // std::cerr << "Inserted: " << *this << "\n";
   }
   
   forceinline void
   DSBlocks::become(Space& h, DSBlock* y, int m) {
-    for (int i = 0; i < _size; ++i)
-      x[i].S.dispose(h);
-    a.free(x, n);
-    x = y;
-    n = m;
-    _size = m;
+    replace(h, y, m);
   }
 
   forceinline void
   DSBlocks::set_null(Space& h) {
-    if (_size > 1) {
-      for (int i = 0; i < _size; ++i)
-        x[i].S.dispose(h);
-      a.free(x, n);
-      x = a.alloc<DSBlock>(1);
-      n = 1;
-      _size = 1;
-    }
+    if (_size > 1)
+      clear(h);
     else
-      x->S.excludeAll(h);
+      x[0].set_null(h);
   }
 
   forceinline void
@@ -787,10 +774,7 @@ namespace Gecode { namespace String {
     }    
     // std::cerr << "First pass: " << *this <<' '<<m<<' '<<ll<<' '<<uu<< "\n";
     if (m == 0) {
-      a.free(x, n);
-      n = 1;
-      _size = 1;      
-      x = h.alloc<DSBlock>(1);
+      clear(h);
       l = u = 0;
       return;
     }

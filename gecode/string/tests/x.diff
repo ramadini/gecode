@@ -1,0 +1,82 @@
+diff --git a/gecode/string/tests/inglenook.mzn b/gecode/string/tests/inglenook.mzn
+index b1bc1409f..59e8d5041 100644
+--- a/gecode/string/tests/inglenook.mzn
++++ b/gecode/string/tests/inglenook.mzn
+@@ -6,26 +6,26 @@ int: N_MOVES = 20;
+ int: N_TRACKS = 3;
+ set of int: MOVES = 1..N_MOVES;
+ set of int: TRACKS = 1..N_TRACKS;
+-string: DOMAIN = "(1|2|3|4|5|x)*";
++string: DOMAIN = "[A-E]*";
+ 
+ % Capacities of each track.
+-int: A_cap = 5;
++int: A_cap = 3;
+ int: B_cap = 3;
+ int: C_cap = 3;
+-int: X_cap = 3;
++int: X_cap = 5;
+ int: MAX_CAP = max([A_cap, B_cap, C_cap, X_cap]);
+ 
+ % Initial configuration.
+-string: A_ini = "x4312";
+-string: B_ini = "xx5";
+-string: C_ini = "";
++string: A_ini = "AD";
++string: B_ini = "CB";
++string: C_ini = "E";
+ string: X_ini = "";
+ 
+ % Final configuration.
+-string: A_fin = "12345";
+-string: B_fin = "xxx";
++string: A_fin = "";
++string: B_fin = "";
+ string: C_fin = "";
+-string: X_fin = "";
++string: X_fin = "EDCBA";
+ 
+ % Array of string variables recording the transitions after each move.
+ array[{0} union MOVES] of var string: A;
+@@ -65,8 +65,9 @@ constraint forall (i in MOVES) (
+   str_len(C[i]) <= C_cap /\ str_len(X[i]) <= X_cap /\
+   [% No-move: once no-move, always no-move.
+     forall (j in i..N_MOVES) (
+-      A[i-1] = A[j] /\ B[i-1] = B[j] /\ C[i-1] = C[j] /\ Moves[j] = 0 /\
+-      DiffA[j] = 0  /\ DiffB[j] = 0  /\ DiffC[j] = 0  /\ DiffX[j] = 0
++      A[i-1] = A[j] /\ B[i-1] = B[j] /\ C[i-1] = C[j] /\ X[i-1] = X[j] /\ 
++      Moves[j] = 0 /\
++      DiffA[j] = 0 /\ DiffB[j] = 0  /\ DiffC[j] = 0  /\ DiffX[j] = 0
+     ),
+     % A-move.
+     A[i] ++ X[i] = A[i-1] ++ X[i-1] /\ B[i] = B[i-1] /\ C[i] = C[i-1] /\
+@@ -94,19 +95,24 @@ constraint C[N_MOVES] = C_fin /\ str_len(C_fin) <= C_cap;
+ constraint X[N_MOVES] = X_fin /\ str_len(X_fin) <= X_cap;
+ 
+ % Not using the same track twice in a row: it can be done in one move.
+-constraint forall (i in 2..N_MOVES) ( Moves[i-1] = Moves[i] -> Moves[i] = 0 );
++constraint forall (i in 2..N_MOVES) (Moves[i] = Moves[i-1] <-> Moves[i-1] = 0);
+ % Redundant constraints.
+ constraint sum([DiffA[i] + DiffB[i] + DiffC[i] + DiffX[i] | i in MOVES]) = 0;
+ constraint str_len(X[1]) != str_len(X_ini) /\ forall (i in 2..N_MOVES)(
+-  str_len(X[i]) = 0 \/ str_len(X[i]) != str_len(X[i-1])
++  Moves[i] = 0 \/ str_len(X[i]) != str_len(X[i-1])
+ );
+ 
+ % Total number of moves, to be minimized (lower bound improvable...).
+ var MOVES: tot_moves;
+ constraint tot_moves = N_MOVES - count(Moves, 0);
+-solve 
+-%  ::int_search(Moves, first_fail, indomain_min, complete)
+-minimize tot_moves;
++solve minimize tot_moves;
++
++%constraint Moves[1] = 1 /\ A[1] = "A";
++%constraint Moves[2] = 3 /\ C[2] = "ED";
++%constraint Moves[3] = 1 /\ A[3] = "";
++%constraint Moves[4] = 2 /\ B[4] = "";
++%constraint Moves[5] = 3 /\ B[5] = "";
++%constraint Moves[6] = 0 /\ X[6] = "EDCBA";
+ 
+ %var 1..N_MOVES: a1; constraint DiffA[a1] < 0 /\ DiffB[a1] + DiffC[a1] = 0 /\ DiffX[a1] > 0;
+ %var 2..N_MOVES: i1; constraint DiffA[i1] = 0 /\ DiffB[i1] + DiffC[i1] > 0 /\ DiffX[i1] < 0;

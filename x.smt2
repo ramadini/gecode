@@ -1,0 +1,6 @@
+(declare-fun x () Int)
+(declare-fun y () Int)
+(declare-fun z () Int)
+(assert (distinct x y z))
+(check-sat)
+(get-model)

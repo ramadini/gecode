@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.5.1.  */
+/* A Bison parser, made by GNU Bison 3.8.2.  */
 
 /* Bison implementation for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2020 Free Software Foundation,
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2021 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -34,6 +34,10 @@
 /* C LALR(1) parser skeleton written by Richard Stallman, by
    simplifying the original so-called "semantic" parser.  */
 
+/* DO NOT RELY ON FEATURES THAT ARE NOT DOCUMENTED in the manual,
+   especially those whose name start with YY_ or yy_.  They are
+   private implementation details that can be changed or removed.  */
+
 /* All symbols defined below should begin with yy or YY, to avoid
    infringing on user name space.  This should be done even for local
    variables, as they might otherwise be expanded by user macros.
@@ -41,14 +45,11 @@
    define necessary library symbols; they are noted "INFRINGES ON
    USER NAME SPACE" below.  */
 
-/* Undocumented macros, especially those whose name start with YY_,
-   are private implementation details.  Do not rely on them.  */
+/* Identify Bison output, and Bison version.  */
+#define YYBISON 30802
 
-/* Identify Bison output.  */
-#define YYBISON 1
-
-/* Bison version.  */
-#define YYBISON_VERSION "3.5.1"
+/* Bison version string.  */
+#define YYBISON_VERSION "3.8.2"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -594,7 +595,7 @@ namespace Gecode { namespace FlatZinc {
 }}
 
 
-#line 598 "gecode/flatzinc/parser.tab.cpp"
+#line 599 "gecode/flatzinc/parser.tab.cpp"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -617,115 +618,149 @@ namespace Gecode { namespace FlatZinc {
 #  endif
 # endif
 
-/* Enabling verbose error messages.  */
-#ifdef YYERROR_VERBOSE
-# undef YYERROR_VERBOSE
-# define YYERROR_VERBOSE 1
-#else
-# define YYERROR_VERBOSE 1
-#endif
-
-/* Use api.header.include to #include this header
-   instead of duplicating it here.  */
-#ifndef YY_YY_GECODE_FLATZINC_PARSER_TAB_HPP_INCLUDED
-# define YY_YY_GECODE_FLATZINC_PARSER_TAB_HPP_INCLUDED
-/* Debug traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 1
-#endif
-#if YYDEBUG
-extern int yydebug;
-#endif
-
-/* Token type.  */
-#ifndef YYTOKENTYPE
-# define YYTOKENTYPE
-  enum yytokentype
-  {
-    FZ_INT_LIT = 258,
-    FZ_BOOL_LIT = 259,
-    FZ_FLOAT_LIT = 260,
-    FZ_ID = 261,
-    FZ_U_ID = 262,
-    FZ_STRING_LIT = 263,
-    FZ_VAR = 264,
-    FZ_PAR = 265,
-    FZ_ANNOTATION = 266,
-    FZ_ANY = 267,
-    FZ_ARRAY = 268,
-    FZ_BOOL = 269,
-    FZ_CASE = 270,
-    FZ_COLONCOLON = 271,
-    FZ_CONSTRAINT = 272,
-    FZ_DEFAULT = 273,
-    FZ_DOTDOT = 274,
-    FZ_ELSE = 275,
-    FZ_ELSEIF = 276,
-    FZ_ENDIF = 277,
-    FZ_ENUM = 278,
-    FZ_FLOAT = 279,
-    FZ_FUNCTION = 280,
-    FZ_IF = 281,
-    FZ_INCLUDE = 282,
-    FZ_INT = 283,
-    FZ_LET = 284,
-    FZ_MAXIMIZE = 285,
-    FZ_MINIMIZE = 286,
-    FZ_OF = 287,
-    FZ_SATISFY = 288,
-    FZ_OUTPUT = 289,
-    FZ_PREDICATE = 290,
-    FZ_RECORD = 291,
-    FZ_SET = 292,
-    FZ_SHOW = 293,
-    FZ_SHOWCOND = 294,
-    FZ_SOLVE = 295,
-    FZ_STRING = 296,
-    FZ_TEST = 297,
-    FZ_THEN = 298,
-    FZ_TUPLE = 299,
-    FZ_TYPE = 300,
-    FZ_VARIANT_RECORD = 301,
-    FZ_WHERE = 302
-  };
-#endif
-
-/* Value type.  */
-#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-union YYSTYPE
+#include "parser.tab.hpp"
+/* Symbol kind.  */
+enum yysymbol_kind_t
 {
-#line 565 "gecode/flatzinc/parser.yxx"
- int iValue; char* sValue; bool bValue; double dValue;
-         std::vector<int>* setValue;
-         Gecode::FlatZinc::AST::SetLit* setLit;
-         std::vector<double>* floatSetValue;
-         std::vector<std::string>* stringSetValue;
-         std::vector<Gecode::FlatZinc::AST::SetLit>* setValueList;
-         Gecode::FlatZinc::Option<Gecode::FlatZinc::AST::SetLit* > oSet;
-         Gecode::FlatZinc::Option<std::pair<double,double>* > oPFloat;
-         Gecode::FlatZinc::AST::CharSetLit* charsetLit;
-         Gecode::FlatZinc::Option<Gecode::FlatZinc::AST::StringDom*> oPString;
-         Gecode::FlatZinc::VarSpec* varSpec;
-         Gecode::FlatZinc::Option<Gecode::FlatZinc::AST::Node*> oArg;
-         std::vector<Gecode::FlatZinc::VarSpec*>* varSpecVec;
-         Gecode::FlatZinc::Option<std::vector<Gecode::FlatZinc::VarSpec*>* > oVarSpecVec;
-         Gecode::FlatZinc::AST::Node* arg;
-         Gecode::FlatZinc::AST::Array* argVec;
-       
-
-#line 717 "gecode/flatzinc/parser.tab.cpp"
-
+  YYSYMBOL_YYEMPTY = -2,
+  YYSYMBOL_YYEOF = 0,                      /* "end of file"  */
+  YYSYMBOL_YYerror = 1,                    /* error  */
+  YYSYMBOL_YYUNDEF = 2,                    /* "invalid token"  */
+  YYSYMBOL_FZ_INT_LIT = 3,                 /* FZ_INT_LIT  */
+  YYSYMBOL_FZ_BOOL_LIT = 4,                /* FZ_BOOL_LIT  */
+  YYSYMBOL_FZ_FLOAT_LIT = 5,               /* FZ_FLOAT_LIT  */
+  YYSYMBOL_FZ_ID = 6,                      /* FZ_ID  */
+  YYSYMBOL_FZ_U_ID = 7,                    /* FZ_U_ID  */
+  YYSYMBOL_FZ_STRING_LIT = 8,              /* FZ_STRING_LIT  */
+  YYSYMBOL_FZ_VAR = 9,                     /* FZ_VAR  */
+  YYSYMBOL_FZ_PAR = 10,                    /* FZ_PAR  */
+  YYSYMBOL_FZ_ANNOTATION = 11,             /* FZ_ANNOTATION  */
+  YYSYMBOL_FZ_ANY = 12,                    /* FZ_ANY  */
+  YYSYMBOL_FZ_ARRAY = 13,                  /* FZ_ARRAY  */
+  YYSYMBOL_FZ_BOOL = 14,                   /* FZ_BOOL  */
+  YYSYMBOL_FZ_CASE = 15,                   /* FZ_CASE  */
+  YYSYMBOL_FZ_COLONCOLON = 16,             /* FZ_COLONCOLON  */
+  YYSYMBOL_FZ_CONSTRAINT = 17,             /* FZ_CONSTRAINT  */
+  YYSYMBOL_FZ_DEFAULT = 18,                /* FZ_DEFAULT  */
+  YYSYMBOL_FZ_DOTDOT = 19,                 /* FZ_DOTDOT  */
+  YYSYMBOL_FZ_ELSE = 20,                   /* FZ_ELSE  */
+  YYSYMBOL_FZ_ELSEIF = 21,                 /* FZ_ELSEIF  */
+  YYSYMBOL_FZ_ENDIF = 22,                  /* FZ_ENDIF  */
+  YYSYMBOL_FZ_ENUM = 23,                   /* FZ_ENUM  */
+  YYSYMBOL_FZ_FLOAT = 24,                  /* FZ_FLOAT  */
+  YYSYMBOL_FZ_FUNCTION = 25,               /* FZ_FUNCTION  */
+  YYSYMBOL_FZ_IF = 26,                     /* FZ_IF  */
+  YYSYMBOL_FZ_INCLUDE = 27,                /* FZ_INCLUDE  */
+  YYSYMBOL_FZ_INT = 28,                    /* FZ_INT  */
+  YYSYMBOL_FZ_LET = 29,                    /* FZ_LET  */
+  YYSYMBOL_FZ_MAXIMIZE = 30,               /* FZ_MAXIMIZE  */
+  YYSYMBOL_FZ_MINIMIZE = 31,               /* FZ_MINIMIZE  */
+  YYSYMBOL_FZ_OF = 32,                     /* FZ_OF  */
+  YYSYMBOL_FZ_SATISFY = 33,                /* FZ_SATISFY  */
+  YYSYMBOL_FZ_OUTPUT = 34,                 /* FZ_OUTPUT  */
+  YYSYMBOL_FZ_PREDICATE = 35,              /* FZ_PREDICATE  */
+  YYSYMBOL_FZ_RECORD = 36,                 /* FZ_RECORD  */
+  YYSYMBOL_FZ_SET = 37,                    /* FZ_SET  */
+  YYSYMBOL_FZ_SHOW = 38,                   /* FZ_SHOW  */
+  YYSYMBOL_FZ_SHOWCOND = 39,               /* FZ_SHOWCOND  */
+  YYSYMBOL_FZ_SOLVE = 40,                  /* FZ_SOLVE  */
+  YYSYMBOL_FZ_STRING = 41,                 /* FZ_STRING  */
+  YYSYMBOL_FZ_TEST = 42,                   /* FZ_TEST  */
+  YYSYMBOL_FZ_THEN = 43,                   /* FZ_THEN  */
+  YYSYMBOL_FZ_TUPLE = 44,                  /* FZ_TUPLE  */
+  YYSYMBOL_FZ_TYPE = 45,                   /* FZ_TYPE  */
+  YYSYMBOL_FZ_VARIANT_RECORD = 46,         /* FZ_VARIANT_RECORD  */
+  YYSYMBOL_FZ_WHERE = 47,                  /* FZ_WHERE  */
+  YYSYMBOL_48_ = 48,                       /* ';'  */
+  YYSYMBOL_49_ = 49,                       /* '('  */
+  YYSYMBOL_50_ = 50,                       /* ')'  */
+  YYSYMBOL_51_ = 51,                       /* ','  */
+  YYSYMBOL_52_ = 52,                       /* ':'  */
+  YYSYMBOL_53_ = 53,                       /* '['  */
+  YYSYMBOL_54_ = 54,                       /* ']'  */
+  YYSYMBOL_55_ = 55,                       /* '='  */
+  YYSYMBOL_56_ = 56,                       /* '{'  */
+  YYSYMBOL_57_ = 57,                       /* '}'  */
+  YYSYMBOL_YYACCEPT = 58,                  /* $accept  */
+  YYSYMBOL_model = 59,                     /* model  */
+  YYSYMBOL_preddecl_items = 60,            /* preddecl_items  */
+  YYSYMBOL_preddecl_items_head = 61,       /* preddecl_items_head  */
+  YYSYMBOL_vardecl_items = 62,             /* vardecl_items  */
+  YYSYMBOL_vardecl_items_head = 63,        /* vardecl_items_head  */
+  YYSYMBOL_constraint_items = 64,          /* constraint_items  */
+  YYSYMBOL_constraint_items_head = 65,     /* constraint_items_head  */
+  YYSYMBOL_preddecl_item = 66,             /* preddecl_item  */
+  YYSYMBOL_pred_arg_list = 67,             /* pred_arg_list  */
+  YYSYMBOL_pred_arg_list_head = 68,        /* pred_arg_list_head  */
+  YYSYMBOL_pred_arg = 69,                  /* pred_arg  */
+  YYSYMBOL_pred_arg_type = 70,             /* pred_arg_type  */
+  YYSYMBOL_pred_arg_simple_type = 71,      /* pred_arg_simple_type  */
+  YYSYMBOL_pred_array_init = 72,           /* pred_array_init  */
+  YYSYMBOL_pred_array_init_arg = 73,       /* pred_array_init_arg  */
+  YYSYMBOL_var_par_id = 74,                /* var_par_id  */
+  YYSYMBOL_vardecl_item = 75,              /* vardecl_item  */
+  YYSYMBOL_int_init = 76,                  /* int_init  */
+  YYSYMBOL_int_init_list = 77,             /* int_init_list  */
+  YYSYMBOL_int_init_list_head = 78,        /* int_init_list_head  */
+  YYSYMBOL_list_tail = 79,                 /* list_tail  */
+  YYSYMBOL_int_var_array_literal = 80,     /* int_var_array_literal  */
+  YYSYMBOL_float_init = 81,                /* float_init  */
+  YYSYMBOL_float_init_list = 82,           /* float_init_list  */
+  YYSYMBOL_float_init_list_head = 83,      /* float_init_list_head  */
+  YYSYMBOL_float_var_array_literal = 84,   /* float_var_array_literal  */
+  YYSYMBOL_bool_init = 85,                 /* bool_init  */
+  YYSYMBOL_bool_init_list = 86,            /* bool_init_list  */
+  YYSYMBOL_bool_init_list_head = 87,       /* bool_init_list_head  */
+  YYSYMBOL_bool_var_array_literal = 88,    /* bool_var_array_literal  */
+  YYSYMBOL_set_init = 89,                  /* set_init  */
+  YYSYMBOL_set_init_list = 90,             /* set_init_list  */
+  YYSYMBOL_set_init_list_head = 91,        /* set_init_list_head  */
+  YYSYMBOL_set_var_array_literal = 92,     /* set_var_array_literal  */
+  YYSYMBOL_string_init = 93,               /* string_init  */
+  YYSYMBOL_string_init_list = 94,          /* string_init_list  */
+  YYSYMBOL_string_init_list_head = 95,     /* string_init_list_head  */
+  YYSYMBOL_string_var_array_literal = 96,  /* string_var_array_literal  */
+  YYSYMBOL_vardecl_int_var_array_init = 97, /* vardecl_int_var_array_init  */
+  YYSYMBOL_vardecl_bool_var_array_init = 98, /* vardecl_bool_var_array_init  */
+  YYSYMBOL_vardecl_float_var_array_init = 99, /* vardecl_float_var_array_init  */
+  YYSYMBOL_vardecl_set_var_array_init = 100, /* vardecl_set_var_array_init  */
+  YYSYMBOL_vardecl_string_var_array_init = 101, /* vardecl_string_var_array_init  */
+  YYSYMBOL_constraint_item = 102,          /* constraint_item  */
+  YYSYMBOL_solve_item = 103,               /* solve_item  */
+  YYSYMBOL_int_ti_expr_tail = 104,         /* int_ti_expr_tail  */
+  YYSYMBOL_bool_ti_expr_tail = 105,        /* bool_ti_expr_tail  */
+  YYSYMBOL_float_ti_expr_tail = 106,       /* float_ti_expr_tail  */
+  YYSYMBOL_string_ti_expr_tail = 107,      /* string_ti_expr_tail  */
+  YYSYMBOL_set_literal = 108,              /* set_literal  */
+  YYSYMBOL_int_list = 109,                 /* int_list  */
+  YYSYMBOL_int_list_head = 110,            /* int_list_head  */
+  YYSYMBOL_bool_list = 111,                /* bool_list  */
+  YYSYMBOL_bool_list_head = 112,           /* bool_list_head  */
+  YYSYMBOL_float_list = 113,               /* float_list  */
+  YYSYMBOL_float_list_head = 114,          /* float_list_head  */
+  YYSYMBOL_set_literal_list = 115,         /* set_literal_list  */
+  YYSYMBOL_set_literal_list_head = 116,    /* set_literal_list_head  */
+  YYSYMBOL_charset_literal = 117,          /* charset_literal  */
+  YYSYMBOL_flat_expr_list = 118,           /* flat_expr_list  */
+  YYSYMBOL_flat_expr = 119,                /* flat_expr  */
+  YYSYMBOL_string_list = 120,              /* string_list  */
+  YYSYMBOL_string_list_head = 121,         /* string_list_head  */
+  YYSYMBOL_non_array_expr_opt = 122,       /* non_array_expr_opt  */
+  YYSYMBOL_non_array_expr = 123,           /* non_array_expr  */
+  YYSYMBOL_non_array_expr_list = 124,      /* non_array_expr_list  */
+  YYSYMBOL_non_array_expr_list_head = 125, /* non_array_expr_list_head  */
+  YYSYMBOL_solve_expr = 126,               /* solve_expr  */
+  YYSYMBOL_minmax = 127,                   /* minmax  */
+  YYSYMBOL_annotations = 128,              /* annotations  */
+  YYSYMBOL_annotations_head = 129,         /* annotations_head  */
+  YYSYMBOL_annotation = 130,               /* annotation  */
+  YYSYMBOL_annotation_list = 131,          /* annotation_list  */
+  YYSYMBOL_annotation_expr = 132,          /* annotation_expr  */
+  YYSYMBOL_annotation_list_tail = 133,     /* annotation_list_tail  */
+  YYSYMBOL_ann_non_array_expr = 134        /* ann_non_array_expr  */
 };
-typedef union YYSTYPE YYSTYPE;
-# define YYSTYPE_IS_TRIVIAL 1
-# define YYSTYPE_IS_DECLARED 1
-#endif
+typedef enum yysymbol_kind_t yysymbol_kind_t;
 
-
-
-int yyparse (void *parm);
-
-#endif /* !YY_YY_GECODE_FLATZINC_PARSER_TAB_HPP_INCLUDED  */
 
 
 
@@ -764,6 +799,18 @@ typedef __INT_LEAST16_TYPE__ yytype_int16;
 typedef int_least16_t yytype_int16;
 #else
 typedef short yytype_int16;
+#endif
+
+/* Work around bug in HP-UX 11.23, which defines these macros
+   incorrectly for preprocessor constants.  This workaround can likely
+   be removed in 2023, as HPE has promised support for HP-UX 11.23
+   (aka HP-UX 11i v2) only through the end of 2022; see Table 2 of
+   <https://h20195.www2.hpe.com/V2/getpdf.aspx/4AA4-7673ENW.pdf>.  */
+#ifdef __hpux
+# undef UINT_LEAST8_MAX
+# undef UINT_LEAST16_MAX
+# define UINT_LEAST8_MAX 255
+# define UINT_LEAST16_MAX 65535
 #endif
 
 #if defined __UINT_LEAST8_MAX__ && __UINT_LEAST8_MAX__ <= __INT_MAX__
@@ -825,6 +872,7 @@ typedef int yytype_uint16;
 
 #define YYSIZEOF(X) YY_CAST (YYPTRDIFF_T, sizeof (X))
 
+
 /* Stored state numbers (used for stacks). */
 typedef yytype_int16 yy_state_t;
 
@@ -842,6 +890,7 @@ typedef int yy_state_fast_t;
 #  define YY_(Msgid) Msgid
 # endif
 #endif
+
 
 #ifndef YY_ATTRIBUTE_PURE
 # if defined __GNUC__ && 2 < __GNUC__ + (96 <= __GNUC_MINOR__)
@@ -861,17 +910,23 @@ typedef int yy_state_fast_t;
 
 /* Suppress unused-variable warnings by "using" E.  */
 #if ! defined lint || defined __GNUC__
-# define YYUSE(E) ((void) (E))
+# define YY_USE(E) ((void) (E))
 #else
-# define YYUSE(E) /* empty */
+# define YY_USE(E) /* empty */
 #endif
 
-#if defined __GNUC__ && ! defined __ICC && 407 <= __GNUC__ * 100 + __GNUC_MINOR__
 /* Suppress an incorrect diagnostic about yylval being uninitialized.  */
-# define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                            \
+#if defined __GNUC__ && ! defined __ICC && 406 <= __GNUC__ * 100 + __GNUC_MINOR__
+# if __GNUC__ * 100 + __GNUC_MINOR__ < 407
+#  define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                           \
+    _Pragma ("GCC diagnostic push")                                     \
+    _Pragma ("GCC diagnostic ignored \"-Wuninitialized\"")
+# else
+#  define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                           \
     _Pragma ("GCC diagnostic push")                                     \
     _Pragma ("GCC diagnostic ignored \"-Wuninitialized\"")              \
     _Pragma ("GCC diagnostic ignored \"-Wmaybe-uninitialized\"")
+# endif
 # define YY_IGNORE_MAYBE_UNINITIALIZED_END      \
     _Pragma ("GCC diagnostic pop")
 #else
@@ -900,7 +955,7 @@ typedef int yy_state_fast_t;
 
 #define YY_ASSERT(E) ((void) (0 && (E)))
 
-#if ! defined yyoverflow || YYERROR_VERBOSE
+#if 1
 
 /* The parser invokes alloca or malloc; define the necessary symbols.  */
 
@@ -965,8 +1020,7 @@ void free (void *); /* INFRINGES ON USER NAME SPACE */
 #   endif
 #  endif
 # endif
-#endif /* ! defined yyoverflow || YYERROR_VERBOSE */
-
+#endif /* 1 */
 
 #if (! defined yyoverflow \
      && (! defined __cplusplus \
@@ -1042,14 +1096,16 @@ union yyalloc
 /* YYNSTATES -- Number of states.  */
 #define YYNSTATES  409
 
-#define YYUNDEFTOK  2
+/* YYMAXUTOK -- Last valid token kind.  */
 #define YYMAXUTOK   302
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
    as returned by yylex, with out-of-bounds checking.  */
-#define YYTRANSLATE(YYX)                                                \
-  (0 <= (YYX) && (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
+#define YYTRANSLATE(YYX)                                \
+  (0 <= (YYX) && (YYX) <= YYMAXUTOK                     \
+   ? YY_CAST (yysymbol_kind_t, yytranslate[YYX])        \
+   : YYSYMBOL_YYUNDEF)
 
 /* YYTRANSLATE[TOKEN-NUM] -- Symbol number corresponding to TOKEN-NUM
    as returned by yylex.  */
@@ -1089,7 +1145,7 @@ static const yytype_int8 yytranslate[] =
 };
 
 #if YYDEBUG
-  /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
+/* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
        0,   677,   677,   679,   681,   684,   685,   687,   689,   692,
@@ -1114,21 +1170,28 @@ static const yytype_int16 yyrline[] =
 };
 #endif
 
-#if YYDEBUG || YYERROR_VERBOSE || 1
+/** Accessing symbol of state STATE.  */
+#define YY_ACCESSING_SYMBOL(State) YY_CAST (yysymbol_kind_t, yystos[State])
+
+#if 1
+/* The user-facing name of the symbol whose (internal) number is
+   YYSYMBOL.  No bounds checking.  */
+static const char *yysymbol_name (yysymbol_kind_t yysymbol) YY_ATTRIBUTE_UNUSED;
+
 /* YYTNAME[SYMBOL-NUM] -- String name of the symbol SYMBOL-NUM.
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "FZ_INT_LIT", "FZ_BOOL_LIT",
-  "FZ_FLOAT_LIT", "FZ_ID", "FZ_U_ID", "FZ_STRING_LIT", "FZ_VAR", "FZ_PAR",
-  "FZ_ANNOTATION", "FZ_ANY", "FZ_ARRAY", "FZ_BOOL", "FZ_CASE",
-  "FZ_COLONCOLON", "FZ_CONSTRAINT", "FZ_DEFAULT", "FZ_DOTDOT", "FZ_ELSE",
-  "FZ_ELSEIF", "FZ_ENDIF", "FZ_ENUM", "FZ_FLOAT", "FZ_FUNCTION", "FZ_IF",
-  "FZ_INCLUDE", "FZ_INT", "FZ_LET", "FZ_MAXIMIZE", "FZ_MINIMIZE", "FZ_OF",
-  "FZ_SATISFY", "FZ_OUTPUT", "FZ_PREDICATE", "FZ_RECORD", "FZ_SET",
-  "FZ_SHOW", "FZ_SHOWCOND", "FZ_SOLVE", "FZ_STRING", "FZ_TEST", "FZ_THEN",
-  "FZ_TUPLE", "FZ_TYPE", "FZ_VARIANT_RECORD", "FZ_WHERE", "';'", "'('",
-  "')'", "','", "':'", "'['", "']'", "'='", "'{'", "'}'", "$accept",
+  "\"end of file\"", "error", "\"invalid token\"", "FZ_INT_LIT",
+  "FZ_BOOL_LIT", "FZ_FLOAT_LIT", "FZ_ID", "FZ_U_ID", "FZ_STRING_LIT",
+  "FZ_VAR", "FZ_PAR", "FZ_ANNOTATION", "FZ_ANY", "FZ_ARRAY", "FZ_BOOL",
+  "FZ_CASE", "FZ_COLONCOLON", "FZ_CONSTRAINT", "FZ_DEFAULT", "FZ_DOTDOT",
+  "FZ_ELSE", "FZ_ELSEIF", "FZ_ENDIF", "FZ_ENUM", "FZ_FLOAT", "FZ_FUNCTION",
+  "FZ_IF", "FZ_INCLUDE", "FZ_INT", "FZ_LET", "FZ_MAXIMIZE", "FZ_MINIMIZE",
+  "FZ_OF", "FZ_SATISFY", "FZ_OUTPUT", "FZ_PREDICATE", "FZ_RECORD",
+  "FZ_SET", "FZ_SHOW", "FZ_SHOWCOND", "FZ_SOLVE", "FZ_STRING", "FZ_TEST",
+  "FZ_THEN", "FZ_TUPLE", "FZ_TYPE", "FZ_VARIANT_RECORD", "FZ_WHERE", "';'",
+  "'('", "')'", "','", "':'", "'['", "']'", "'='", "'{'", "'}'", "$accept",
   "model", "preddecl_items", "preddecl_items_head", "vardecl_items",
   "vardecl_items_head", "constraint_items", "constraint_items_head",
   "preddecl_item", "pred_arg_list", "pred_arg_list_head", "pred_arg",
@@ -1154,21 +1217,13 @@ static const char *const yytname[] =
   "annotations_head", "annotation", "annotation_list", "annotation_expr",
   "annotation_list_tail", "ann_non_array_expr", YY_NULLPTR
 };
-#endif
 
-# ifdef YYPRINT
-/* YYTOKNUM[NUM] -- (External) token number corresponding to the
-   (internal) symbol number NUM (which must be that of a token).  */
-static const yytype_int16 yytoknum[] =
+static const char *
+yysymbol_name (yysymbol_kind_t yysymbol)
 {
-       0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
-     265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
-     275,   276,   277,   278,   279,   280,   281,   282,   283,   284,
-     285,   286,   287,   288,   289,   290,   291,   292,   293,   294,
-     295,   296,   297,   298,   299,   300,   301,   302,    59,    40,
-      41,    44,    58,    91,    93,    61,   123,   125
-};
-# endif
+  return yytname[yysymbol];
+}
+#endif
 
 #define YYPACT_NINF (-144)
 
@@ -1180,8 +1235,8 @@ static const yytype_int16 yytoknum[] =
 #define yytable_value_is_error(Yyn) \
   0
 
-  /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
-     STATE-NUM.  */
+/* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
+   STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
        5,    54,    62,   297,     5,    28,    22,  -144,    99,    37,
@@ -1227,9 +1282,9 @@ static const yytype_int16 yypact[] =
     -144,  -144,  -144,  -144,  -144,  -144,   354,  -144,  -144
 };
 
-  /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
-     Performed when YYTABLE does not specify something else to do.  Zero
-     means the default is an error.  */
+/* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
+   Performed when YYTABLE does not specify something else to do.  Zero
+   means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
        3,     0,     0,     7,     4,     0,     0,     1,     0,     0,
@@ -1275,7 +1330,7 @@ static const yytype_uint8 yydefact[] =
       86,    58,    76,    68,    92,   139,     0,    88,    84
 };
 
-  /* YYPGOTO[NTERM-NUM].  */
+/* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
     -144,  -144,  -144,  -144,  -144,  -144,  -144,  -144,   392,  -144,
@@ -1288,10 +1343,10 @@ static const yytype_int16 yypgoto[] =
       23,  -144,  -104,   226,  -144,  -144,   222
 };
 
-  /* YYDEFGOTO[NTERM-NUM].  */
+/* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int16 yydefgoto[] =
 {
-      -1,     2,     3,     4,    15,    16,    40,    41,     5,    53,
+       0,     2,     3,     4,    15,    16,    40,    41,     5,    53,
       54,    55,    56,    57,   124,   125,   167,    17,   332,   333,
      334,    92,   313,   342,   343,   344,   317,   337,   338,   339,
      315,   382,   383,   384,   359,   347,   348,   349,   319,   299,
@@ -1301,9 +1356,9 @@ static const yytype_int16 yydefgoto[] =
      112,   113,   195,   196,   153,   226,   154
 };
 
-  /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
-     positive, shift that token.  If negative, reduce the rule whose
-     number is the opposite.  If YYTABLE_NINF, syntax error.  */
+/* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
+   positive, shift that token.  If negative, reduce the rule whose
+   number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int16 yytable[] =
 {
       76,    77,    78,    87,    80,   151,   197,   152,    29,   103,
@@ -1398,8 +1453,8 @@ static const yytype_int16 yycheck[] =
      198,   310,   210
 };
 
-  /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
-     symbol of state STATE-NUM.  */
+/* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
+   state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
        0,    35,    59,    60,    61,    66,     6,     0,     9,    13,
@@ -1445,7 +1500,7 @@ static const yytype_uint8 yystos[] =
       79,    54,    54,    54,    54,   108,     3,    89,    54
 };
 
-  /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
+/* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_uint8 yyr1[] =
 {
        0,    58,    59,    60,    60,    61,    61,    62,    62,    63,
@@ -1469,7 +1524,7 @@ static const yytype_uint8 yyr1[] =
      132,   133,   133,   134,   134,   134,   134,   134,   134,   134
 };
 
-  /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
+/* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
        0,     2,     5,     0,     1,     2,     3,     0,     1,     2,
@@ -1494,14 +1549,15 @@ static const yytype_int8 yyr2[] =
 };
 
 
+enum { YYENOMEM = -2 };
+
 #define yyerrok         (yyerrstatus = 0)
 #define yyclearin       (yychar = YYEMPTY)
-#define YYEMPTY         (-2)
-#define YYEOF           0
 
 #define YYACCEPT        goto yyacceptlab
 #define YYABORT         goto yyabortlab
 #define YYERROR         goto yyerrorlab
+#define YYNOMEM         goto yyexhaustedlab
 
 
 #define YYRECOVERING()  (!!yyerrstatus)
@@ -1523,10 +1579,9 @@ static const yytype_int8 yyr2[] =
       }                                                           \
   while (0)
 
-/* Error token number */
-#define YYTERROR        1
-#define YYERRCODE       256
-
+/* Backward compatibility with an undocumented macro.
+   Use YYerror or YYUNDEF. */
+#define YYERRCODE YYUNDEF
 
 
 /* Enable debugging if requested.  */
@@ -1543,19 +1598,16 @@ do {                                            \
     YYFPRINTF Args;                             \
 } while (0)
 
-/* This macro is provided for backward compatibility. */
-#ifndef YY_LOCATION_PRINT
-# define YY_LOCATION_PRINT(File, Loc) ((void) 0)
-#endif
 
 
-# define YY_SYMBOL_PRINT(Title, Type, Value, Location)                    \
+
+# define YY_SYMBOL_PRINT(Title, Kind, Value, Location)                    \
 do {                                                                      \
   if (yydebug)                                                            \
     {                                                                     \
       YYFPRINTF (stderr, "%s ", Title);                                   \
       yy_symbol_print (stderr,                                            \
-                  Type, Value, parm); \
+                  Kind, Value, parm); \
       YYFPRINTF (stderr, "\n");                                           \
     }                                                                     \
 } while (0)
@@ -1566,19 +1618,16 @@ do {                                                                      \
 `-----------------------------------*/
 
 static void
-yy_symbol_value_print (FILE *yyo, int yytype, YYSTYPE const * const yyvaluep, void *parm)
+yy_symbol_value_print (FILE *yyo,
+                       yysymbol_kind_t yykind, YYSTYPE const * const yyvaluep, void *parm)
 {
   FILE *yyoutput = yyo;
-  YYUSE (yyoutput);
-  YYUSE (parm);
+  YY_USE (yyoutput);
+  YY_USE (parm);
   if (!yyvaluep)
     return;
-# ifdef YYPRINT
-  if (yytype < YYNTOKENS)
-    YYPRINT (yyo, yytoknum[yytype], *yyvaluep);
-# endif
   YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
-  YYUSE (yytype);
+  YY_USE (yykind);
   YY_IGNORE_MAYBE_UNINITIALIZED_END
 }
 
@@ -1588,12 +1637,13 @@ yy_symbol_value_print (FILE *yyo, int yytype, YYSTYPE const * const yyvaluep, vo
 `---------------------------*/
 
 static void
-yy_symbol_print (FILE *yyo, int yytype, YYSTYPE const * const yyvaluep, void *parm)
+yy_symbol_print (FILE *yyo,
+                 yysymbol_kind_t yykind, YYSTYPE const * const yyvaluep, void *parm)
 {
   YYFPRINTF (yyo, "%s %s (",
-             yytype < YYNTOKENS ? "token" : "nterm", yytname[yytype]);
+             yykind < YYNTOKENS ? "token" : "nterm", yysymbol_name (yykind));
 
-  yy_symbol_value_print (yyo, yytype, yyvaluep, parm);
+  yy_symbol_value_print (yyo, yykind, yyvaluep, parm);
   YYFPRINTF (yyo, ")");
 }
 
@@ -1626,7 +1676,8 @@ do {                                                            \
 `------------------------------------------------*/
 
 static void
-yy_reduce_print (yy_state_t *yyssp, YYSTYPE *yyvsp, int yyrule, void *parm)
+yy_reduce_print (yy_state_t *yyssp, YYSTYPE *yyvsp,
+                 int yyrule, void *parm)
 {
   int yylno = yyrline[yyrule];
   int yynrhs = yyr2[yyrule];
@@ -1638,9 +1689,8 @@ yy_reduce_print (yy_state_t *yyssp, YYSTYPE *yyvsp, int yyrule, void *parm)
     {
       YYFPRINTF (stderr, "   $%d = ", yyi + 1);
       yy_symbol_print (stderr,
-                       yystos[+yyssp[yyi + 1 - yynrhs]],
-                       &yyvsp[(yyi + 1) - (yynrhs)]
-                                              , parm);
+                       YY_ACCESSING_SYMBOL (+yyssp[yyi + 1 - yynrhs]),
+                       &yyvsp[(yyi + 1) - (yynrhs)], parm);
       YYFPRINTF (stderr, "\n");
     }
 }
@@ -1655,8 +1705,8 @@ do {                                    \
    multiple parsers can coexist.  */
 int yydebug;
 #else /* !YYDEBUG */
-# define YYDPRINTF(Args)
-# define YY_SYMBOL_PRINT(Title, Type, Value, Location)
+# define YYDPRINTF(Args) ((void) 0)
+# define YY_SYMBOL_PRINT(Title, Kind, Value, Location)
 # define YY_STACK_PRINT(Bottom, Top)
 # define YY_REDUCE_PRINT(Rule)
 #endif /* !YYDEBUG */
@@ -1679,12 +1729,60 @@ int yydebug;
 #endif
 
 
-#if YYERROR_VERBOSE
+/* Context of a parse error.  */
+typedef struct
+{
+  yy_state_t *yyssp;
+  yysymbol_kind_t yytoken;
+} yypcontext_t;
 
-# ifndef yystrlen
-#  if defined __GLIBC__ && defined _STRING_H
-#   define yystrlen(S) (YY_CAST (YYPTRDIFF_T, strlen (S)))
-#  else
+/* Put in YYARG at most YYARGN of the expected tokens given the
+   current YYCTX, and return the number of tokens stored in YYARG.  If
+   YYARG is null, return the number of expected tokens (guaranteed to
+   be less than YYNTOKENS).  Return YYENOMEM on memory exhaustion.
+   Return 0 if there are more than YYARGN expected tokens, yet fill
+   YYARG up to YYARGN. */
+static int
+yypcontext_expected_tokens (const yypcontext_t *yyctx,
+                            yysymbol_kind_t yyarg[], int yyargn)
+{
+  /* Actual size of YYARG. */
+  int yycount = 0;
+  int yyn = yypact[+*yyctx->yyssp];
+  if (!yypact_value_is_default (yyn))
+    {
+      /* Start YYX at -YYN if negative to avoid negative indexes in
+         YYCHECK.  In other words, skip the first -YYN actions for
+         this state because they are default actions.  */
+      int yyxbegin = yyn < 0 ? -yyn : 0;
+      /* Stay within bounds of both yycheck and yytname.  */
+      int yychecklim = YYLAST - yyn + 1;
+      int yyxend = yychecklim < YYNTOKENS ? yychecklim : YYNTOKENS;
+      int yyx;
+      for (yyx = yyxbegin; yyx < yyxend; ++yyx)
+        if (yycheck[yyx + yyn] == yyx && yyx != YYSYMBOL_YYerror
+            && !yytable_value_is_error (yytable[yyx + yyn]))
+          {
+            if (!yyarg)
+              ++yycount;
+            else if (yycount == yyargn)
+              return 0;
+            else
+              yyarg[yycount++] = YY_CAST (yysymbol_kind_t, yyx);
+          }
+    }
+  if (yyarg && yycount == 0 && 0 < yyargn)
+    yyarg[0] = YYSYMBOL_YYEMPTY;
+  return yycount;
+}
+
+
+
+
+#ifndef yystrlen
+# if defined __GLIBC__ && defined _STRING_H
+#  define yystrlen(S) (YY_CAST (YYPTRDIFF_T, strlen (S)))
+# else
 /* Return the length of YYSTR.  */
 static YYPTRDIFF_T
 yystrlen (const char *yystr)
@@ -1694,13 +1792,13 @@ yystrlen (const char *yystr)
     continue;
   return yylen;
 }
-#  endif
 # endif
+#endif
 
-# ifndef yystpcpy
-#  if defined __GLIBC__ && defined _STRING_H && defined _GNU_SOURCE
-#   define yystpcpy stpcpy
-#  else
+#ifndef yystpcpy
+# if defined __GLIBC__ && defined _STRING_H && defined _GNU_SOURCE
+#  define yystpcpy stpcpy
+# else
 /* Copy YYSRC to YYDEST, returning the address of the terminating '\0' in
    YYDEST.  */
 static char *
@@ -1714,10 +1812,10 @@ yystpcpy (char *yydest, const char *yysrc)
 
   return yyd - 1;
 }
-#  endif
 # endif
+#endif
 
-# ifndef yytnamerr
+#ifndef yytnamerr
 /* Copy to YYRES the contents of YYSTR after stripping away unnecessary
    quotes and backslashes, so that it's suitable for yyerror.  The
    heuristic is that double-quoting is unnecessary unless the string
@@ -1732,7 +1830,6 @@ yytnamerr (char *yyres, const char *yystr)
     {
       YYPTRDIFF_T yyn = 0;
       char const *yyp = yystr;
-
       for (;;)
         switch (*++yyp)
           {
@@ -1766,31 +1863,15 @@ yytnamerr (char *yyres, const char *yystr)
   else
     return yystrlen (yystr);
 }
-# endif
+#endif
 
-/* Copy into *YYMSG, which is of size *YYMSG_ALLOC, an error message
-   about the unexpected token YYTOKEN for the state stack whose top is
-   YYSSP.
 
-   Return 0 if *YYMSG was successfully written.  Return 1 if *YYMSG is
-   not large enough to hold the message.  In that case, also set
-   *YYMSG_ALLOC to the required number of bytes.  Return 2 if the
-   required number of bytes is too large to store.  */
 static int
-yysyntax_error (YYPTRDIFF_T *yymsg_alloc, char **yymsg,
-                yy_state_t *yyssp, int yytoken)
+yy_syntax_error_arguments (const yypcontext_t *yyctx,
+                           yysymbol_kind_t yyarg[], int yyargn)
 {
-  enum { YYERROR_VERBOSE_ARGS_MAXIMUM = 5 };
-  /* Internationalized format string. */
-  const char *yyformat = YY_NULLPTR;
-  /* Arguments of yyformat: reported tokens (one for the "unexpected",
-     one per "expected"). */
-  char const *yyarg[YYERROR_VERBOSE_ARGS_MAXIMUM];
   /* Actual size of YYARG. */
   int yycount = 0;
-  /* Cumulated lengths of YYARG.  */
-  YYPTRDIFF_T yysize = 0;
-
   /* There are many possibilities here to consider:
      - If this state is a consistent state with a default action, then
        the only way this function was invoked is if the default action
@@ -1814,52 +1895,54 @@ yysyntax_error (YYPTRDIFF_T *yymsg_alloc, char **yymsg,
        one exception: it will still contain any token that will not be
        accepted due to an error action in a later state.
   */
-  if (yytoken != YYEMPTY)
+  if (yyctx->yytoken != YYSYMBOL_YYEMPTY)
     {
-      int yyn = yypact[+*yyssp];
-      YYPTRDIFF_T yysize0 = yytnamerr (YY_NULLPTR, yytname[yytoken]);
-      yysize = yysize0;
-      yyarg[yycount++] = yytname[yytoken];
-      if (!yypact_value_is_default (yyn))
-        {
-          /* Start YYX at -YYN if negative to avoid negative indexes in
-             YYCHECK.  In other words, skip the first -YYN actions for
-             this state because they are default actions.  */
-          int yyxbegin = yyn < 0 ? -yyn : 0;
-          /* Stay within bounds of both yycheck and yytname.  */
-          int yychecklim = YYLAST - yyn + 1;
-          int yyxend = yychecklim < YYNTOKENS ? yychecklim : YYNTOKENS;
-          int yyx;
-
-          for (yyx = yyxbegin; yyx < yyxend; ++yyx)
-            if (yycheck[yyx + yyn] == yyx && yyx != YYTERROR
-                && !yytable_value_is_error (yytable[yyx + yyn]))
-              {
-                if (yycount == YYERROR_VERBOSE_ARGS_MAXIMUM)
-                  {
-                    yycount = 1;
-                    yysize = yysize0;
-                    break;
-                  }
-                yyarg[yycount++] = yytname[yyx];
-                {
-                  YYPTRDIFF_T yysize1
-                    = yysize + yytnamerr (YY_NULLPTR, yytname[yyx]);
-                  if (yysize <= yysize1 && yysize1 <= YYSTACK_ALLOC_MAXIMUM)
-                    yysize = yysize1;
-                  else
-                    return 2;
-                }
-              }
-        }
+      int yyn;
+      if (yyarg)
+        yyarg[yycount] = yyctx->yytoken;
+      ++yycount;
+      yyn = yypcontext_expected_tokens (yyctx,
+                                        yyarg ? yyarg + 1 : yyarg, yyargn - 1);
+      if (yyn == YYENOMEM)
+        return YYENOMEM;
+      else
+        yycount += yyn;
     }
+  return yycount;
+}
+
+/* Copy into *YYMSG, which is of size *YYMSG_ALLOC, an error message
+   about the unexpected token YYTOKEN for the state stack whose top is
+   YYSSP.
+
+   Return 0 if *YYMSG was successfully written.  Return -1 if *YYMSG is
+   not large enough to hold the message.  In that case, also set
+   *YYMSG_ALLOC to the required number of bytes.  Return YYENOMEM if the
+   required number of bytes is too large to store.  */
+static int
+yysyntax_error (YYPTRDIFF_T *yymsg_alloc, char **yymsg,
+                const yypcontext_t *yyctx)
+{
+  enum { YYARGS_MAX = 5 };
+  /* Internationalized format string. */
+  const char *yyformat = YY_NULLPTR;
+  /* Arguments of yyformat: reported tokens (one for the "unexpected",
+     one per "expected"). */
+  yysymbol_kind_t yyarg[YYARGS_MAX];
+  /* Cumulated lengths of YYARG.  */
+  YYPTRDIFF_T yysize = 0;
+
+  /* Actual size of YYARG. */
+  int yycount = yy_syntax_error_arguments (yyctx, yyarg, YYARGS_MAX);
+  if (yycount == YYENOMEM)
+    return YYENOMEM;
 
   switch (yycount)
     {
-# define YYCASE_(N, S)                      \
+#define YYCASE_(N, S)                       \
       case N:                               \
         yyformat = S;                       \
-      break
+        break
     default: /* Avoid compiler warnings. */
       YYCASE_(0, YY_("syntax error"));
       YYCASE_(1, YY_("syntax error, unexpected %s"));
@@ -1867,17 +1950,23 @@ yysyntax_error (YYPTRDIFF_T *yymsg_alloc, char **yymsg,
       YYCASE_(3, YY_("syntax error, unexpected %s, expecting %s or %s"));
       YYCASE_(4, YY_("syntax error, unexpected %s, expecting %s or %s or %s"));
       YYCASE_(5, YY_("syntax error, unexpected %s, expecting %s or %s or %s or %s"));
-# undef YYCASE_
+#undef YYCASE_
     }
 
+  /* Compute error message size.  Don't count the "%s"s, but reserve
+     room for the terminator.  */
+  yysize = yystrlen (yyformat) - 2 * yycount + 1;
   {
-    /* Don't count the "%s"s in the final size, but reserve room for
-       the terminator.  */
-    YYPTRDIFF_T yysize1 = yysize + (yystrlen (yyformat) - 2 * yycount) + 1;
-    if (yysize <= yysize1 && yysize1 <= YYSTACK_ALLOC_MAXIMUM)
-      yysize = yysize1;
-    else
-      return 2;
+    int yyi;
+    for (yyi = 0; yyi < yycount; ++yyi)
+      {
+        YYPTRDIFF_T yysize1
+          = yysize + yytnamerr (YY_NULLPTR, yytname[yyarg[yyi]]);
+        if (yysize <= yysize1 && yysize1 <= YYSTACK_ALLOC_MAXIMUM)
+          yysize = yysize1;
+        else
+          return YYENOMEM;
+      }
   }
 
   if (*yymsg_alloc < yysize)
@@ -1886,7 +1975,7 @@ yysyntax_error (YYPTRDIFF_T *yymsg_alloc, char **yymsg,
       if (! (yysize <= *yymsg_alloc
              && *yymsg_alloc <= YYSTACK_ALLOC_MAXIMUM))
         *yymsg_alloc = YYSTACK_ALLOC_MAXIMUM;
-      return 1;
+      return -1;
     }
 
   /* Avoid sprintf, as that infringes on the user's name space.
@@ -1898,7 +1987,7 @@ yysyntax_error (YYPTRDIFF_T *yymsg_alloc, char **yymsg,
     while ((*yyp = *yyformat) != '\0')
       if (*yyp == '%' && yyformat[1] == 's' && yyi < yycount)
         {
-          yyp += yytnamerr (yyp, yyarg[yyi++]);
+          yyp += yytnamerr (yyp, yytname[yyarg[yyi++]]);
           yyformat += 2;
         }
       else
@@ -1909,25 +1998,28 @@ yysyntax_error (YYPTRDIFF_T *yymsg_alloc, char **yymsg,
   }
   return 0;
 }
-#endif /* YYERROR_VERBOSE */
+
 
 /*-----------------------------------------------.
 | Release the memory associated to this symbol.  |
 `-----------------------------------------------*/
 
 static void
-yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, void *parm)
+yydestruct (const char *yymsg,
+            yysymbol_kind_t yykind, YYSTYPE *yyvaluep, void *parm)
 {
-  YYUSE (yyvaluep);
-  YYUSE (parm);
+  YY_USE (yyvaluep);
+  YY_USE (parm);
   if (!yymsg)
     yymsg = "Deleting";
-  YY_SYMBOL_PRINT (yymsg, yytype, yyvaluep, yylocationp);
+  YY_SYMBOL_PRINT (yymsg, yykind, yyvaluep, yylocationp);
 
   YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
-  YYUSE (yytype);
+  YY_USE (yykind);
   YY_IGNORE_MAYBE_UNINITIALIZED_END
 }
+
+
 
 
 
@@ -1939,7 +2031,7 @@ yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, void *parm)
 int
 yyparse (void *parm)
 {
-/* The lookahead symbol.  */
+/* Lookahead token kind.  */
 int yychar;
 
 
@@ -1950,45 +2042,41 @@ YY_INITIAL_VALUE (static YYSTYPE yyval_default;)
 YYSTYPE yylval YY_INITIAL_VALUE (= yyval_default);
 
     /* Number of syntax errors so far.  */
-    int yynerrs;
+    int yynerrs = 0;
 
-    yy_state_fast_t yystate;
+    yy_state_fast_t yystate = 0;
     /* Number of tokens to shift before error messages enabled.  */
-    int yyerrstatus;
+    int yyerrstatus = 0;
 
-    /* The stacks and their tools:
-       'yyss': related to states.
-       'yyvs': related to semantic values.
-
-       Refer to the stacks through separate pointers, to allow yyoverflow
+    /* Refer to the stacks through separate pointers, to allow yyoverflow
        to reallocate them elsewhere.  */
 
-    /* The state stack.  */
+    /* Their size.  */
+    YYPTRDIFF_T yystacksize = YYINITDEPTH;
+
+    /* The state stack: array, bottom, top.  */
     yy_state_t yyssa[YYINITDEPTH];
-    yy_state_t *yyss;
-    yy_state_t *yyssp;
+    yy_state_t *yyss = yyssa;
+    yy_state_t *yyssp = yyss;
 
-    /* The semantic value stack.  */
+    /* The semantic value stack: array, bottom, top.  */
     YYSTYPE yyvsa[YYINITDEPTH];
-    YYSTYPE *yyvs;
-    YYSTYPE *yyvsp;
-
-    YYPTRDIFF_T yystacksize;
+    YYSTYPE *yyvs = yyvsa;
+    YYSTYPE *yyvsp = yyvs;
 
   int yyn;
+  /* The return value of yyparse.  */
   int yyresult;
-  /* Lookahead token as an internal (translated) token number.  */
-  int yytoken = 0;
+  /* Lookahead symbol kind.  */
+  yysymbol_kind_t yytoken = YYSYMBOL_YYEMPTY;
   /* The variables used to return semantic value and location from the
      action routines.  */
   YYSTYPE yyval;
 
-#if YYERROR_VERBOSE
   /* Buffer for error messages, and its allocated size.  */
   char yymsgbuf[128];
   char *yymsg = yymsgbuf;
   YYPTRDIFF_T yymsg_alloc = sizeof yymsgbuf;
-#endif
 
 #define YYPOPSTACK(N)   (yyvsp -= (N), yyssp -= (N))
 
@@ -1996,16 +2084,10 @@ YYSTYPE yylval YY_INITIAL_VALUE (= yyval_default);
      Keep to zero when no symbol should be popped.  */
   int yylen = 0;
 
-  yyssp = yyss = yyssa;
-  yyvsp = yyvs = yyvsa;
-  yystacksize = YYINITDEPTH;
-
   YYDPRINTF ((stderr, "Starting parse\n"));
 
-  yystate = 0;
-  yyerrstatus = 0;
-  yynerrs = 0;
   yychar = YYEMPTY; /* Cause a token to be read.  */
+
   goto yysetstate;
 
 
@@ -2027,10 +2109,11 @@ yysetstate:
   YY_IGNORE_USELESS_CAST_BEGIN
   *yyssp = YY_CAST (yy_state_t, yystate);
   YY_IGNORE_USELESS_CAST_END
+  YY_STACK_PRINT (yyss, yyssp);
 
   if (yyss + yystacksize - 1 <= yyssp)
 #if !defined yyoverflow && !defined YYSTACK_RELOCATE
-    goto yyexhaustedlab;
+    YYNOMEM;
 #else
     {
       /* Get the current used size of the three stacks, in elements.  */
@@ -2058,7 +2141,7 @@ yysetstate:
 # else /* defined YYSTACK_RELOCATE */
       /* Extend the stack our own way.  */
       if (YYMAXDEPTH <= yystacksize)
-        goto yyexhaustedlab;
+        YYNOMEM;
       yystacksize *= 2;
       if (YYMAXDEPTH < yystacksize)
         yystacksize = YYMAXDEPTH;
@@ -2069,10 +2152,10 @@ yysetstate:
           YY_CAST (union yyalloc *,
                    YYSTACK_ALLOC (YY_CAST (YYSIZE_T, YYSTACK_BYTES (yystacksize))));
         if (! yyptr)
-          goto yyexhaustedlab;
+          YYNOMEM;
         YYSTACK_RELOCATE (yyss_alloc, yyss);
         YYSTACK_RELOCATE (yyvs_alloc, yyvs);
-# undef YYSTACK_RELOCATE
+#  undef YYSTACK_RELOCATE
         if (yyss1 != yyssa)
           YYSTACK_FREE (yyss1);
       }
@@ -2090,6 +2173,7 @@ yysetstate:
         YYABORT;
     }
 #endif /* !defined yyoverflow && !defined YYSTACK_RELOCATE */
+
 
   if (yystate == YYFINAL)
     YYACCEPT;
@@ -2111,17 +2195,28 @@ yybackup:
 
   /* Not known => get a lookahead token if don't already have one.  */
 
-  /* YYCHAR is either YYEMPTY or YYEOF or a valid lookahead symbol.  */
+  /* YYCHAR is either empty, or end-of-input, or a valid lookahead.  */
   if (yychar == YYEMPTY)
     {
-      YYDPRINTF ((stderr, "Reading a token: "));
+      YYDPRINTF ((stderr, "Reading a token\n"));
       yychar = yylex (&yylval, YYLEX_PARAM);
     }
 
   if (yychar <= YYEOF)
     {
-      yychar = yytoken = YYEOF;
+      yychar = YYEOF;
+      yytoken = YYSYMBOL_YYEOF;
       YYDPRINTF ((stderr, "Now at end of input.\n"));
+    }
+  else if (yychar == YYerror)
+    {
+      /* The scanner already issued an error message, process directly
+         to error recovery.  But do not keep the error token as
+         lookahead, it is too special and may lead us to an endless
+         loop in error recovery. */
+      yychar = YYUNDEF;
+      yytoken = YYSYMBOL_YYerror;
+      goto yyerrlab1;
     }
   else
     {
@@ -2191,31 +2286,31 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-  case 15:
+  case 15: /* preddecl_item: FZ_PREDICATE FZ_ID '(' pred_arg_list ')'  */
 #line 709 "gecode/flatzinc/parser.yxx"
       { free((yyvsp[-3].sValue)); }
-#line 2198 "gecode/flatzinc/parser.tab.cpp"
+#line 2293 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 20:
+  case 20: /* pred_arg: pred_arg_type ':' FZ_ID  */
 #line 721 "gecode/flatzinc/parser.yxx"
       { free((yyvsp[0].sValue)); }
-#line 2204 "gecode/flatzinc/parser.tab.cpp"
+#line 2299 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 25:
+  case 25: /* pred_arg_simple_type: int_ti_expr_tail  */
 #line 731 "gecode/flatzinc/parser.yxx"
       { if ((yyvsp[0].oSet)()) delete (yyvsp[0].oSet).some(); }
-#line 2210 "gecode/flatzinc/parser.tab.cpp"
+#line 2305 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 26:
+  case 26: /* pred_arg_simple_type: FZ_SET FZ_OF int_ti_expr_tail  */
 #line 733 "gecode/flatzinc/parser.yxx"
       { if ((yyvsp[0].oSet)()) delete (yyvsp[0].oSet).some(); }
-#line 2216 "gecode/flatzinc/parser.tab.cpp"
+#line 2311 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 36:
+  case 36: /* vardecl_item: FZ_VAR int_ti_expr_tail ':' var_par_id annotations non_array_expr_opt  */
 #line 754 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -2248,10 +2343,10 @@ yyreduce:
         }
         delete (yyvsp[-1].argVec); free((yyvsp[-2].sValue));
       }
-#line 2252 "gecode/flatzinc/parser.tab.cpp"
+#line 2347 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 37:
+  case 37: /* vardecl_item: FZ_VAR bool_ti_expr_tail ':' var_par_id annotations non_array_expr_opt  */
 #line 786 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -2284,10 +2379,10 @@ yyreduce:
         }
         delete (yyvsp[-1].argVec); free((yyvsp[-2].sValue));
       }
-#line 2288 "gecode/flatzinc/parser.tab.cpp"
+#line 2383 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 38:
+  case 38: /* vardecl_item: FZ_VAR float_ti_expr_tail ':' var_par_id annotations non_array_expr_opt  */
 #line 818 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -2327,10 +2422,10 @@ yyreduce:
         }
         delete (yyvsp[-1].argVec); free((yyvsp[-2].sValue));
       }
-#line 2331 "gecode/flatzinc/parser.tab.cpp"
+#line 2426 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 39:
+  case 39: /* vardecl_item: FZ_VAR FZ_SET FZ_OF int_ti_expr_tail ':' var_par_id annotations non_array_expr_opt  */
 #line 857 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -2364,10 +2459,10 @@ yyreduce:
         }
         delete (yyvsp[-1].argVec); free((yyvsp[-2].sValue));
       }
-#line 2368 "gecode/flatzinc/parser.tab.cpp"
+#line 2463 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 40:
+  case 40: /* vardecl_item: FZ_VAR string_ti_expr_tail ':' var_par_id annotations non_array_expr_opt  */
 #line 890 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -2410,10 +2505,10 @@ yyreduce:
         }
         delete (yyvsp[-1].argVec); free((yyvsp[-2].sValue));
       }
-#line 2414 "gecode/flatzinc/parser.tab.cpp"
+#line 2509 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 41:
+  case 41: /* vardecl_item: FZ_INT ':' var_par_id annotations '=' non_array_expr  */
 #line 932 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -2423,10 +2518,10 @@ yyreduce:
           "Duplicate symbol");
         delete (yyvsp[-2].argVec); free((yyvsp[-3].sValue));
       }
-#line 2427 "gecode/flatzinc/parser.tab.cpp"
+#line 2522 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 42:
+  case 42: /* vardecl_item: FZ_FLOAT ':' var_par_id annotations '=' non_array_expr  */
 #line 941 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -2437,10 +2532,10 @@ yyreduce:
           "Duplicate symbol");
         delete (yyvsp[-2].argVec); free((yyvsp[-3].sValue));
       }
-#line 2441 "gecode/flatzinc/parser.tab.cpp"
+#line 2536 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 43:
+  case 43: /* vardecl_item: FZ_BOOL ':' var_par_id annotations '=' non_array_expr  */
 #line 951 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -2450,10 +2545,10 @@ yyreduce:
           "Duplicate symbol");
         delete (yyvsp[-2].argVec); free((yyvsp[-3].sValue));
       }
-#line 2454 "gecode/flatzinc/parser.tab.cpp"
+#line 2549 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 44:
+  case 44: /* vardecl_item: FZ_SET FZ_OF FZ_INT ':' var_par_id annotations '=' non_array_expr  */
 #line 960 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -2466,10 +2561,10 @@ yyreduce:
         delete set;
         delete (yyvsp[-2].argVec); free((yyvsp[-3].sValue));
       }
-#line 2470 "gecode/flatzinc/parser.tab.cpp"
+#line 2565 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 45:
+  case 45: /* vardecl_item: FZ_STRING ':' var_par_id annotations '=' non_array_expr  */
 #line 972 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -2480,10 +2575,10 @@ yyreduce:
           "Duplicate symbol");
         delete (yyvsp[-2].argVec); free((yyvsp[-3].sValue));
       }
-#line 2484 "gecode/flatzinc/parser.tab.cpp"
+#line 2579 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 46:
+  case 46: /* vardecl_item: FZ_ARRAY '[' FZ_INT_LIT FZ_DOTDOT FZ_INT_LIT ']' FZ_OF FZ_VAR int_ti_expr_tail ':' var_par_id annotations vardecl_int_var_array_init  */
 #line 983 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -2553,10 +2648,10 @@ yyreduce:
         }
         delete (yyvsp[-1].argVec); free((yyvsp[-2].sValue));
       }
-#line 2557 "gecode/flatzinc/parser.tab.cpp"
+#line 2652 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 47:
+  case 47: /* vardecl_item: FZ_ARRAY '[' FZ_INT_LIT FZ_DOTDOT FZ_INT_LIT ']' FZ_OF FZ_VAR bool_ti_expr_tail ':' var_par_id annotations vardecl_bool_var_array_init  */
 #line 1053 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -2622,10 +2717,10 @@ yyreduce:
         }
         delete (yyvsp[-1].argVec); free((yyvsp[-2].sValue));
       }
-#line 2626 "gecode/flatzinc/parser.tab.cpp"
+#line 2721 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 48:
+  case 48: /* vardecl_item: FZ_ARRAY '[' FZ_INT_LIT FZ_DOTDOT FZ_INT_LIT ']' FZ_OF FZ_VAR float_ti_expr_tail ':' var_par_id annotations vardecl_float_var_array_init  */
 #line 1120 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -2695,10 +2790,10 @@ yyreduce:
         if ((yyvsp[-4].oPFloat)()) delete (yyvsp[-4].oPFloat).some();
         delete (yyvsp[-1].argVec); free((yyvsp[-2].sValue));
       }
-#line 2699 "gecode/flatzinc/parser.tab.cpp"
+#line 2794 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 49:
+  case 49: /* vardecl_item: FZ_ARRAY '[' FZ_INT_LIT FZ_DOTDOT FZ_INT_LIT ']' FZ_OF FZ_VAR FZ_SET FZ_OF int_ti_expr_tail ':' var_par_id annotations vardecl_set_var_array_init  */
 #line 1190 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -2766,10 +2861,10 @@ yyreduce:
         }
         delete (yyvsp[-1].argVec); free((yyvsp[-2].sValue));
       }
-#line 2770 "gecode/flatzinc/parser.tab.cpp"
+#line 2865 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 50:
+  case 50: /* vardecl_item: FZ_ARRAY '[' FZ_INT_LIT FZ_DOTDOT FZ_INT_LIT ']' FZ_OF FZ_VAR string_ti_expr_tail ':' var_par_id annotations vardecl_string_var_array_init  */
 #line 1259 "gecode/flatzinc/parser.yxx"
        {
          ParserState* pp = static_cast<ParserState*>(parm);
@@ -2839,10 +2934,10 @@ yyreduce:
          if ((yyvsp[-4].oPString)()) delete (yyvsp[-4].oPString).some();
          delete (yyvsp[-1].argVec); free((yyvsp[-2].sValue));
        }
-#line 2843 "gecode/flatzinc/parser.tab.cpp"
+#line 2938 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 51:
+  case 51: /* vardecl_item: FZ_ARRAY '[' FZ_INT_LIT FZ_DOTDOT FZ_INT_LIT ']' FZ_OF FZ_INT ':' var_par_id annotations '=' '[' int_list ']'  */
 #line 1329 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -2863,10 +2958,10 @@ yyreduce:
         free((yyvsp[-5].sValue));
         delete (yyvsp[-4].argVec);
       }
-#line 2867 "gecode/flatzinc/parser.tab.cpp"
+#line 2962 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 52:
+  case 52: /* vardecl_item: FZ_ARRAY '[' FZ_INT_LIT FZ_DOTDOT FZ_INT_LIT ']' FZ_OF FZ_BOOL ':' var_par_id annotations '=' '[' bool_list ']'  */
 #line 1350 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -2886,10 +2981,10 @@ yyreduce:
         free((yyvsp[-5].sValue));
         delete (yyvsp[-4].argVec);
       }
-#line 2890 "gecode/flatzinc/parser.tab.cpp"
+#line 2985 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 53:
+  case 53: /* vardecl_item: FZ_ARRAY '[' FZ_INT_LIT FZ_DOTDOT FZ_INT_LIT ']' FZ_OF FZ_FLOAT ':' var_par_id annotations '=' '[' float_list ']'  */
 #line 1370 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -2909,10 +3004,10 @@ yyreduce:
         delete (yyvsp[-1].floatSetValue);
         delete (yyvsp[-4].argVec); free((yyvsp[-5].sValue));
       }
-#line 2913 "gecode/flatzinc/parser.tab.cpp"
+#line 3008 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 54:
+  case 54: /* vardecl_item: FZ_ARRAY '[' FZ_INT_LIT FZ_DOTDOT FZ_INT_LIT ']' FZ_OF FZ_SET FZ_OF FZ_INT ':' var_par_id annotations '=' '[' set_literal_list ']'  */
 #line 1390 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -2932,10 +3027,10 @@ yyreduce:
         delete (yyvsp[-1].setValueList);
         delete (yyvsp[-4].argVec); free((yyvsp[-5].sValue));
       }
-#line 2936 "gecode/flatzinc/parser.tab.cpp"
+#line 3031 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 55:
+  case 55: /* vardecl_item: FZ_ARRAY '[' FZ_INT_LIT FZ_DOTDOT FZ_INT_LIT ']' FZ_OF FZ_STRING ':' var_par_id annotations '=' '[' string_list ']'  */
 #line 1410 "gecode/flatzinc/parser.yxx"
        {
          ParserState* pp = static_cast<ParserState*>(parm);
@@ -2955,18 +3050,18 @@ yyreduce:
          delete (yyvsp[-1].stringSetValue);
          delete (yyvsp[-4].argVec); free((yyvsp[-5].sValue));
        }
-#line 2959 "gecode/flatzinc/parser.tab.cpp"
+#line 3054 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 56:
+  case 56: /* int_init: FZ_INT_LIT  */
 #line 1431 "gecode/flatzinc/parser.yxx"
       {
         (yyval.varSpec) = new IntVarSpec((yyvsp[0].iValue),false,false);
       }
-#line 2967 "gecode/flatzinc/parser.tab.cpp"
+#line 3062 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 57:
+  case 57: /* int_init: var_par_id  */
 #line 1435 "gecode/flatzinc/parser.yxx"
       {
         SymbolEntry e;
@@ -2982,10 +3077,10 @@ yyreduce:
         }
         free((yyvsp[0].sValue));
       }
-#line 2986 "gecode/flatzinc/parser.tab.cpp"
+#line 3081 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 58:
+  case 58: /* int_init: var_par_id '[' FZ_INT_LIT ']'  */
 #line 1450 "gecode/flatzinc/parser.yxx"
       {
         vector<int> v;
@@ -3007,46 +3102,46 @@ yyreduce:
         }
         free((yyvsp[-3].sValue));
       }
-#line 3011 "gecode/flatzinc/parser.tab.cpp"
+#line 3106 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 59:
+  case 59: /* int_init_list: %empty  */
 #line 1473 "gecode/flatzinc/parser.yxx"
       { (yyval.varSpecVec) = new vector<VarSpec*>(0); }
-#line 3017 "gecode/flatzinc/parser.tab.cpp"
+#line 3112 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 60:
+  case 60: /* int_init_list: int_init_list_head list_tail  */
 #line 1475 "gecode/flatzinc/parser.yxx"
       { (yyval.varSpecVec) = (yyvsp[-1].varSpecVec); }
-#line 3023 "gecode/flatzinc/parser.tab.cpp"
+#line 3118 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 61:
+  case 61: /* int_init_list_head: int_init  */
 #line 1479 "gecode/flatzinc/parser.yxx"
       { (yyval.varSpecVec) = new vector<VarSpec*>(1); (*(yyval.varSpecVec))[0] = (yyvsp[0].varSpec); }
-#line 3029 "gecode/flatzinc/parser.tab.cpp"
+#line 3124 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 62:
+  case 62: /* int_init_list_head: int_init_list_head ',' int_init  */
 #line 1481 "gecode/flatzinc/parser.yxx"
       { (yyval.varSpecVec) = (yyvsp[-2].varSpecVec); (yyval.varSpecVec)->push_back((yyvsp[0].varSpec)); }
-#line 3035 "gecode/flatzinc/parser.tab.cpp"
+#line 3130 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 65:
+  case 65: /* int_var_array_literal: '[' int_init_list ']'  */
 #line 1486 "gecode/flatzinc/parser.yxx"
       { (yyval.varSpecVec) = (yyvsp[-1].varSpecVec); }
-#line 3041 "gecode/flatzinc/parser.tab.cpp"
+#line 3136 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 66:
+  case 66: /* float_init: FZ_FLOAT_LIT  */
 #line 1490 "gecode/flatzinc/parser.yxx"
       { (yyval.varSpec) = new FloatVarSpec((yyvsp[0].dValue),false,false); }
-#line 3047 "gecode/flatzinc/parser.tab.cpp"
+#line 3142 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 67:
+  case 67: /* float_init: var_par_id  */
 #line 1492 "gecode/flatzinc/parser.yxx"
       {
         SymbolEntry e;
@@ -3062,10 +3157,10 @@ yyreduce:
         }
         free((yyvsp[0].sValue));
       }
-#line 3066 "gecode/flatzinc/parser.tab.cpp"
+#line 3161 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 68:
+  case 68: /* float_init: var_par_id '[' FZ_INT_LIT ']'  */
 #line 1507 "gecode/flatzinc/parser.yxx"
       {
         SymbolEntry e;
@@ -3086,46 +3181,46 @@ yyreduce:
         }
         free((yyvsp[-3].sValue));
       }
-#line 3090 "gecode/flatzinc/parser.tab.cpp"
+#line 3185 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 69:
+  case 69: /* float_init_list: %empty  */
 #line 1529 "gecode/flatzinc/parser.yxx"
       { (yyval.varSpecVec) = new vector<VarSpec*>(0); }
-#line 3096 "gecode/flatzinc/parser.tab.cpp"
+#line 3191 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 70:
+  case 70: /* float_init_list: float_init_list_head list_tail  */
 #line 1531 "gecode/flatzinc/parser.yxx"
       { (yyval.varSpecVec) = (yyvsp[-1].varSpecVec); }
-#line 3102 "gecode/flatzinc/parser.tab.cpp"
+#line 3197 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 71:
+  case 71: /* float_init_list_head: float_init  */
 #line 1535 "gecode/flatzinc/parser.yxx"
       { (yyval.varSpecVec) = new vector<VarSpec*>(1); (*(yyval.varSpecVec))[0] = (yyvsp[0].varSpec); }
-#line 3108 "gecode/flatzinc/parser.tab.cpp"
+#line 3203 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 72:
+  case 72: /* float_init_list_head: float_init_list_head ',' float_init  */
 #line 1537 "gecode/flatzinc/parser.yxx"
       { (yyval.varSpecVec) = (yyvsp[-2].varSpecVec); (yyval.varSpecVec)->push_back((yyvsp[0].varSpec)); }
-#line 3114 "gecode/flatzinc/parser.tab.cpp"
+#line 3209 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 73:
+  case 73: /* float_var_array_literal: '[' float_init_list ']'  */
 #line 1541 "gecode/flatzinc/parser.yxx"
       { (yyval.varSpecVec) = (yyvsp[-1].varSpecVec); }
-#line 3120 "gecode/flatzinc/parser.tab.cpp"
+#line 3215 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 74:
+  case 74: /* bool_init: FZ_BOOL_LIT  */
 #line 1545 "gecode/flatzinc/parser.yxx"
       { (yyval.varSpec) = new BoolVarSpec((yyvsp[0].iValue),false,false); }
-#line 3126 "gecode/flatzinc/parser.tab.cpp"
+#line 3221 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 75:
+  case 75: /* bool_init: var_par_id  */
 #line 1547 "gecode/flatzinc/parser.yxx"
       {
         SymbolEntry e;
@@ -3141,10 +3236,10 @@ yyreduce:
         }
         free((yyvsp[0].sValue));
       }
-#line 3145 "gecode/flatzinc/parser.tab.cpp"
+#line 3240 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 76:
+  case 76: /* bool_init: var_par_id '[' FZ_INT_LIT ']'  */
 #line 1562 "gecode/flatzinc/parser.yxx"
       {
         SymbolEntry e;
@@ -3165,46 +3260,46 @@ yyreduce:
         }
         free((yyvsp[-3].sValue));
       }
-#line 3169 "gecode/flatzinc/parser.tab.cpp"
+#line 3264 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 77:
+  case 77: /* bool_init_list: %empty  */
 #line 1584 "gecode/flatzinc/parser.yxx"
       { (yyval.varSpecVec) = new vector<VarSpec*>(0); }
-#line 3175 "gecode/flatzinc/parser.tab.cpp"
+#line 3270 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 78:
+  case 78: /* bool_init_list: bool_init_list_head list_tail  */
 #line 1586 "gecode/flatzinc/parser.yxx"
       { (yyval.varSpecVec) = (yyvsp[-1].varSpecVec); }
-#line 3181 "gecode/flatzinc/parser.tab.cpp"
+#line 3276 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 79:
+  case 79: /* bool_init_list_head: bool_init  */
 #line 1590 "gecode/flatzinc/parser.yxx"
       { (yyval.varSpecVec) = new vector<VarSpec*>(1); (*(yyval.varSpecVec))[0] = (yyvsp[0].varSpec); }
-#line 3187 "gecode/flatzinc/parser.tab.cpp"
+#line 3282 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 80:
+  case 80: /* bool_init_list_head: bool_init_list_head ',' bool_init  */
 #line 1592 "gecode/flatzinc/parser.yxx"
       { (yyval.varSpecVec) = (yyvsp[-2].varSpecVec); (yyval.varSpecVec)->push_back((yyvsp[0].varSpec)); }
-#line 3193 "gecode/flatzinc/parser.tab.cpp"
+#line 3288 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 81:
+  case 81: /* bool_var_array_literal: '[' bool_init_list ']'  */
 #line 1594 "gecode/flatzinc/parser.yxx"
                                                 { (yyval.varSpecVec) = (yyvsp[-1].varSpecVec); }
-#line 3199 "gecode/flatzinc/parser.tab.cpp"
+#line 3294 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 82:
+  case 82: /* set_init: set_literal  */
 #line 1598 "gecode/flatzinc/parser.yxx"
       { (yyval.varSpec) = new SetVarSpec((yyvsp[0].setLit),false,false); }
-#line 3205 "gecode/flatzinc/parser.tab.cpp"
+#line 3300 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 83:
+  case 83: /* set_init: var_par_id  */
 #line 1600 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -3220,10 +3315,10 @@ yyreduce:
         }
         free((yyvsp[0].sValue));
       }
-#line 3224 "gecode/flatzinc/parser.tab.cpp"
+#line 3319 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 84:
+  case 84: /* set_init: var_par_id '[' FZ_INT_LIT ']'  */
 #line 1615 "gecode/flatzinc/parser.yxx"
       {
         SymbolEntry e;
@@ -3244,46 +3339,46 @@ yyreduce:
         }
         free((yyvsp[-3].sValue));
       }
-#line 3248 "gecode/flatzinc/parser.tab.cpp"
+#line 3343 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 85:
+  case 85: /* set_init_list: %empty  */
 #line 1637 "gecode/flatzinc/parser.yxx"
       { (yyval.varSpecVec) = new vector<VarSpec*>(0); }
-#line 3254 "gecode/flatzinc/parser.tab.cpp"
+#line 3349 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 86:
+  case 86: /* set_init_list: set_init_list_head list_tail  */
 #line 1639 "gecode/flatzinc/parser.yxx"
       { (yyval.varSpecVec) = (yyvsp[-1].varSpecVec); }
-#line 3260 "gecode/flatzinc/parser.tab.cpp"
+#line 3355 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 87:
+  case 87: /* set_init_list_head: set_init  */
 #line 1643 "gecode/flatzinc/parser.yxx"
       { (yyval.varSpecVec) = new vector<VarSpec*>(1); (*(yyval.varSpecVec))[0] = (yyvsp[0].varSpec); }
-#line 3266 "gecode/flatzinc/parser.tab.cpp"
+#line 3361 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 88:
+  case 88: /* set_init_list_head: set_init_list_head ',' set_init  */
 #line 1645 "gecode/flatzinc/parser.yxx"
       { (yyval.varSpecVec) = (yyvsp[-2].varSpecVec); (yyval.varSpecVec)->push_back((yyvsp[0].varSpec)); }
-#line 3272 "gecode/flatzinc/parser.tab.cpp"
+#line 3367 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 89:
+  case 89: /* set_var_array_literal: '[' set_init_list ']'  */
 #line 1648 "gecode/flatzinc/parser.yxx"
       { (yyval.varSpecVec) = (yyvsp[-1].varSpecVec); }
-#line 3278 "gecode/flatzinc/parser.tab.cpp"
+#line 3373 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 90:
+  case 90: /* string_init: FZ_STRING_LIT  */
 #line 1652 "gecode/flatzinc/parser.yxx"
      { (yyval.varSpec) = new StringVarSpec((yyvsp[0].sValue),false,false); }
-#line 3284 "gecode/flatzinc/parser.tab.cpp"
+#line 3379 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 91:
+  case 91: /* string_init: var_par_id  */
 #line 1654 "gecode/flatzinc/parser.yxx"
      {
        SymbolEntry e;
@@ -3302,10 +3397,10 @@ yyreduce:
        }
        free((yyvsp[0].sValue));
      }
-#line 3306 "gecode/flatzinc/parser.tab.cpp"
+#line 3401 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 92:
+  case 92: /* string_init: var_par_id '[' FZ_INT_LIT ']'  */
 #line 1672 "gecode/flatzinc/parser.yxx"
      {
        SymbolEntry e;
@@ -3326,100 +3421,100 @@ yyreduce:
        }
        free((yyvsp[-3].sValue));
      }
-#line 3330 "gecode/flatzinc/parser.tab.cpp"
+#line 3425 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 93:
+  case 93: /* string_init_list: %empty  */
 #line 1694 "gecode/flatzinc/parser.yxx"
      { (yyval.varSpecVec) = new vector<VarSpec*>(0); }
-#line 3336 "gecode/flatzinc/parser.tab.cpp"
+#line 3431 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 94:
+  case 94: /* string_init_list: string_init_list_head list_tail  */
 #line 1696 "gecode/flatzinc/parser.yxx"
      { (yyval.varSpecVec) = (yyvsp[-1].varSpecVec); }
-#line 3342 "gecode/flatzinc/parser.tab.cpp"
+#line 3437 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 95:
+  case 95: /* string_init_list_head: string_init  */
 #line 1700 "gecode/flatzinc/parser.yxx"
      { (yyval.varSpecVec) = new vector<VarSpec*>(1); (*(yyval.varSpecVec))[0] = (yyvsp[0].varSpec); }
-#line 3348 "gecode/flatzinc/parser.tab.cpp"
+#line 3443 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 96:
+  case 96: /* string_init_list_head: string_init_list_head ',' string_init  */
 #line 1702 "gecode/flatzinc/parser.yxx"
      { (yyval.varSpecVec) = (yyvsp[-2].varSpecVec); (yyval.varSpecVec)->push_back((yyvsp[0].varSpec)); }
-#line 3354 "gecode/flatzinc/parser.tab.cpp"
+#line 3449 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 97:
+  case 97: /* string_var_array_literal: '[' string_init_list ']'  */
 #line 1706 "gecode/flatzinc/parser.yxx"
      { (yyval.varSpecVec) = (yyvsp[-1].varSpecVec); }
-#line 3360 "gecode/flatzinc/parser.tab.cpp"
+#line 3455 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 98:
+  case 98: /* vardecl_int_var_array_init: %empty  */
 #line 1710 "gecode/flatzinc/parser.yxx"
       { (yyval.oVarSpecVec) = Option<vector<VarSpec*>* >::none(); }
-#line 3366 "gecode/flatzinc/parser.tab.cpp"
+#line 3461 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 99:
+  case 99: /* vardecl_int_var_array_init: '=' int_var_array_literal  */
 #line 1712 "gecode/flatzinc/parser.yxx"
       { (yyval.oVarSpecVec) = Option<vector<VarSpec*>* >::some((yyvsp[0].varSpecVec)); }
-#line 3372 "gecode/flatzinc/parser.tab.cpp"
+#line 3467 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 100:
+  case 100: /* vardecl_bool_var_array_init: %empty  */
 #line 1716 "gecode/flatzinc/parser.yxx"
       { (yyval.oVarSpecVec) = Option<vector<VarSpec*>* >::none(); }
-#line 3378 "gecode/flatzinc/parser.tab.cpp"
+#line 3473 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 101:
+  case 101: /* vardecl_bool_var_array_init: '=' bool_var_array_literal  */
 #line 1718 "gecode/flatzinc/parser.yxx"
       { (yyval.oVarSpecVec) = Option<vector<VarSpec*>* >::some((yyvsp[0].varSpecVec)); }
-#line 3384 "gecode/flatzinc/parser.tab.cpp"
+#line 3479 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 102:
+  case 102: /* vardecl_float_var_array_init: %empty  */
 #line 1722 "gecode/flatzinc/parser.yxx"
       { (yyval.oVarSpecVec) = Option<vector<VarSpec*>* >::none(); }
-#line 3390 "gecode/flatzinc/parser.tab.cpp"
+#line 3485 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 103:
+  case 103: /* vardecl_float_var_array_init: '=' float_var_array_literal  */
 #line 1724 "gecode/flatzinc/parser.yxx"
       { (yyval.oVarSpecVec) = Option<vector<VarSpec*>* >::some((yyvsp[0].varSpecVec)); }
-#line 3396 "gecode/flatzinc/parser.tab.cpp"
+#line 3491 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 104:
+  case 104: /* vardecl_set_var_array_init: %empty  */
 #line 1728 "gecode/flatzinc/parser.yxx"
       { (yyval.oVarSpecVec) = Option<vector<VarSpec*>* >::none(); }
-#line 3402 "gecode/flatzinc/parser.tab.cpp"
+#line 3497 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 105:
+  case 105: /* vardecl_set_var_array_init: '=' set_var_array_literal  */
 #line 1730 "gecode/flatzinc/parser.yxx"
       { (yyval.oVarSpecVec) = Option<vector<VarSpec*>* >::some((yyvsp[0].varSpecVec)); }
-#line 3408 "gecode/flatzinc/parser.tab.cpp"
+#line 3503 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 106:
+  case 106: /* vardecl_string_var_array_init: %empty  */
 #line 1734 "gecode/flatzinc/parser.yxx"
       { (yyval.oVarSpecVec) = Option<vector<VarSpec*>* >::none(); }
-#line 3414 "gecode/flatzinc/parser.tab.cpp"
+#line 3509 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 107:
+  case 107: /* vardecl_string_var_array_init: '=' string_var_array_literal  */
 #line 1736 "gecode/flatzinc/parser.yxx"
       { (yyval.oVarSpecVec) = Option<vector<VarSpec*>* >::some((yyvsp[0].varSpecVec)); }
-#line 3420 "gecode/flatzinc/parser.tab.cpp"
+#line 3515 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 108:
+  case 108: /* constraint_item: FZ_CONSTRAINT FZ_ID '(' flat_expr_list ')' annotations  */
 #line 1741 "gecode/flatzinc/parser.yxx"
       {
         ParserState *pp = static_cast<ParserState*>(parm);
@@ -3568,10 +3663,10 @@ yyreduce:
         }
         free((yyvsp[-4].sValue));
       }
-#line 3572 "gecode/flatzinc/parser.tab.cpp"
+#line 3667 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 109:
+  case 109: /* solve_item: FZ_SOLVE annotations FZ_SATISFY  */
 #line 1890 "gecode/flatzinc/parser.yxx"
       {
         ParserState *pp = static_cast<ParserState*>(parm);
@@ -3586,10 +3681,10 @@ yyreduce:
           delete (yyvsp[-1].argVec);
         }
       }
-#line 3590 "gecode/flatzinc/parser.tab.cpp"
+#line 3685 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 110:
+  case 110: /* solve_item: FZ_SOLVE annotations minmax solve_expr  */
 #line 1904 "gecode/flatzinc/parser.yxx"
       {
         ParserState *pp = static_cast<ParserState*>(parm);
@@ -3609,36 +3704,36 @@ yyreduce:
           delete (yyvsp[-2].argVec);
         }
       }
-#line 3613 "gecode/flatzinc/parser.tab.cpp"
+#line 3708 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 111:
+  case 111: /* int_ti_expr_tail: FZ_INT  */
 #line 1929 "gecode/flatzinc/parser.yxx"
       { (yyval.oSet) = Option<AST::SetLit* >::none(); }
-#line 3619 "gecode/flatzinc/parser.tab.cpp"
+#line 3714 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 112:
+  case 112: /* int_ti_expr_tail: '{' int_list '}'  */
 #line 1931 "gecode/flatzinc/parser.yxx"
       { (yyval.oSet) = Option<AST::SetLit* >::some(new AST::SetLit(*(yyvsp[-1].setValue))); }
-#line 3625 "gecode/flatzinc/parser.tab.cpp"
+#line 3720 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 113:
+  case 113: /* int_ti_expr_tail: FZ_INT_LIT FZ_DOTDOT FZ_INT_LIT  */
 #line 1933 "gecode/flatzinc/parser.yxx"
       {
         (yyval.oSet) = Option<AST::SetLit* >::some(new AST::SetLit((yyvsp[-2].iValue), (yyvsp[0].iValue)));
       }
-#line 3633 "gecode/flatzinc/parser.tab.cpp"
+#line 3728 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 114:
+  case 114: /* bool_ti_expr_tail: FZ_BOOL  */
 #line 1939 "gecode/flatzinc/parser.yxx"
       { (yyval.oSet) = Option<AST::SetLit* >::none(); }
-#line 3639 "gecode/flatzinc/parser.tab.cpp"
+#line 3734 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 115:
+  case 115: /* bool_ti_expr_tail: '{' bool_list_head list_tail '}'  */
 #line 1941 "gecode/flatzinc/parser.yxx"
       { bool haveTrue = false;
         bool haveFalse = false;
@@ -3650,263 +3745,263 @@ yyreduce:
         (yyval.oSet) = Option<AST::SetLit* >::some(
           new AST::SetLit(!haveFalse,haveTrue));
       }
-#line 3654 "gecode/flatzinc/parser.tab.cpp"
+#line 3749 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 116:
+  case 116: /* float_ti_expr_tail: FZ_FLOAT  */
 #line 1954 "gecode/flatzinc/parser.yxx"
       { (yyval.oPFloat) = Option<std::pair<double,double>* >::none(); }
-#line 3660 "gecode/flatzinc/parser.tab.cpp"
+#line 3755 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 117:
+  case 117: /* float_ti_expr_tail: FZ_FLOAT_LIT FZ_DOTDOT FZ_FLOAT_LIT  */
 #line 1956 "gecode/flatzinc/parser.yxx"
       { std::pair<double,double>* dom = new std::pair<double,double>((yyvsp[-2].dValue),(yyvsp[0].dValue));
         (yyval.oPFloat) = Option<std::pair<double,double>* >::some(dom); }
-#line 3667 "gecode/flatzinc/parser.tab.cpp"
+#line 3762 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 118:
+  case 118: /* string_ti_expr_tail: FZ_STRING  */
 #line 1961 "gecode/flatzinc/parser.yxx"
       { (yyval.oPString) = Option<AST::StringDom*>::none(); }
-#line 3673 "gecode/flatzinc/parser.tab.cpp"
+#line 3768 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 119:
+  case 119: /* string_ti_expr_tail: FZ_STRING '(' FZ_INT_LIT ')'  */
 #line 1963 "gecode/flatzinc/parser.yxx"
       { (yyval.oPString) = Option<AST::StringDom*>::some(new AST::StringDom((yyvsp[-1].iValue))); }
-#line 3679 "gecode/flatzinc/parser.tab.cpp"
+#line 3774 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 120:
+  case 120: /* string_ti_expr_tail: FZ_STRING FZ_OF charset_literal  */
 #line 1965 "gecode/flatzinc/parser.yxx"
       { (yyval.oPString) = Option<AST::StringDom*>::some(new AST::StringDom((yyvsp[0].charsetLit))); }
-#line 3685 "gecode/flatzinc/parser.tab.cpp"
+#line 3780 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 121:
+  case 121: /* string_ti_expr_tail: FZ_STRING '(' FZ_INT_LIT ')' FZ_OF charset_literal  */
 #line 1967 "gecode/flatzinc/parser.yxx"
       { (yyval.oPString) = Option<AST::StringDom*>::some(new AST::StringDom((yyvsp[-3].iValue), (yyvsp[0].charsetLit))); }
-#line 3691 "gecode/flatzinc/parser.tab.cpp"
+#line 3786 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 122:
+  case 122: /* set_literal: '{' int_list '}'  */
 #line 1975 "gecode/flatzinc/parser.yxx"
       { (yyval.setLit) = new AST::SetLit(*(yyvsp[-1].setValue)); }
-#line 3697 "gecode/flatzinc/parser.tab.cpp"
+#line 3792 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 123:
+  case 123: /* set_literal: FZ_INT_LIT FZ_DOTDOT FZ_INT_LIT  */
 #line 1977 "gecode/flatzinc/parser.yxx"
       { (yyval.setLit) = new AST::SetLit((yyvsp[-2].iValue), (yyvsp[0].iValue)); }
-#line 3703 "gecode/flatzinc/parser.tab.cpp"
+#line 3798 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 124:
+  case 124: /* int_list: %empty  */
 #line 1983 "gecode/flatzinc/parser.yxx"
       { (yyval.setValue) = new vector<int>(0); }
-#line 3709 "gecode/flatzinc/parser.tab.cpp"
+#line 3804 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 125:
+  case 125: /* int_list: int_list_head list_tail  */
 #line 1985 "gecode/flatzinc/parser.yxx"
       { (yyval.setValue) = (yyvsp[-1].setValue); }
-#line 3715 "gecode/flatzinc/parser.tab.cpp"
+#line 3810 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 126:
+  case 126: /* int_list_head: FZ_INT_LIT  */
 #line 1989 "gecode/flatzinc/parser.yxx"
       { (yyval.setValue) = new vector<int>(1); (*(yyval.setValue))[0] = (yyvsp[0].iValue); }
-#line 3721 "gecode/flatzinc/parser.tab.cpp"
+#line 3816 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 127:
+  case 127: /* int_list_head: int_list_head ',' FZ_INT_LIT  */
 #line 1991 "gecode/flatzinc/parser.yxx"
       { (yyval.setValue) = (yyvsp[-2].setValue); (yyval.setValue)->push_back((yyvsp[0].iValue)); }
-#line 3727 "gecode/flatzinc/parser.tab.cpp"
+#line 3822 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 128:
+  case 128: /* bool_list: %empty  */
 #line 1995 "gecode/flatzinc/parser.yxx"
       { (yyval.setValue) = new vector<int>(0); }
-#line 3733 "gecode/flatzinc/parser.tab.cpp"
+#line 3828 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 129:
+  case 129: /* bool_list: bool_list_head list_tail  */
 #line 1997 "gecode/flatzinc/parser.yxx"
       { (yyval.setValue) = (yyvsp[-1].setValue); }
-#line 3739 "gecode/flatzinc/parser.tab.cpp"
+#line 3834 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 130:
+  case 130: /* bool_list_head: FZ_BOOL_LIT  */
 #line 2001 "gecode/flatzinc/parser.yxx"
       { (yyval.setValue) = new vector<int>(1); (*(yyval.setValue))[0] = (yyvsp[0].iValue); }
-#line 3745 "gecode/flatzinc/parser.tab.cpp"
+#line 3840 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 131:
+  case 131: /* bool_list_head: bool_list_head ',' FZ_BOOL_LIT  */
 #line 2003 "gecode/flatzinc/parser.yxx"
       { (yyval.setValue) = (yyvsp[-2].setValue); (yyval.setValue)->push_back((yyvsp[0].iValue)); }
-#line 3751 "gecode/flatzinc/parser.tab.cpp"
+#line 3846 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 132:
+  case 132: /* float_list: %empty  */
 #line 2007 "gecode/flatzinc/parser.yxx"
       { (yyval.floatSetValue) = new vector<double>(0); }
-#line 3757 "gecode/flatzinc/parser.tab.cpp"
+#line 3852 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 133:
+  case 133: /* float_list: float_list_head list_tail  */
 #line 2009 "gecode/flatzinc/parser.yxx"
       { (yyval.floatSetValue) = (yyvsp[-1].floatSetValue); }
-#line 3763 "gecode/flatzinc/parser.tab.cpp"
+#line 3858 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 134:
+  case 134: /* float_list_head: FZ_FLOAT_LIT  */
 #line 2013 "gecode/flatzinc/parser.yxx"
       { (yyval.floatSetValue) = new vector<double>(1); (*(yyval.floatSetValue))[0] = (yyvsp[0].dValue); }
-#line 3769 "gecode/flatzinc/parser.tab.cpp"
+#line 3864 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 135:
+  case 135: /* float_list_head: float_list_head ',' FZ_FLOAT_LIT  */
 #line 2015 "gecode/flatzinc/parser.yxx"
       { (yyval.floatSetValue) = (yyvsp[-2].floatSetValue); (yyval.floatSetValue)->push_back((yyvsp[0].dValue)); }
-#line 3775 "gecode/flatzinc/parser.tab.cpp"
+#line 3870 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 136:
+  case 136: /* set_literal_list: %empty  */
 #line 2019 "gecode/flatzinc/parser.yxx"
       { (yyval.setValueList) = new vector<AST::SetLit>(0); }
-#line 3781 "gecode/flatzinc/parser.tab.cpp"
+#line 3876 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 137:
+  case 137: /* set_literal_list: set_literal_list_head list_tail  */
 #line 2021 "gecode/flatzinc/parser.yxx"
       { (yyval.setValueList) = (yyvsp[-1].setValueList); }
-#line 3787 "gecode/flatzinc/parser.tab.cpp"
+#line 3882 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 138:
+  case 138: /* set_literal_list_head: set_literal  */
 #line 2025 "gecode/flatzinc/parser.yxx"
       { (yyval.setValueList) = new vector<AST::SetLit>(1); (*(yyval.setValueList))[0] = *(yyvsp[0].setLit); delete (yyvsp[0].setLit); }
-#line 3793 "gecode/flatzinc/parser.tab.cpp"
+#line 3888 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 139:
+  case 139: /* set_literal_list_head: set_literal_list_head ',' set_literal  */
 #line 2027 "gecode/flatzinc/parser.yxx"
       { (yyval.setValueList) = (yyvsp[-2].setValueList); (yyval.setValueList)->push_back(*(yyvsp[0].setLit)); delete (yyvsp[0].setLit); }
-#line 3799 "gecode/flatzinc/parser.tab.cpp"
+#line 3894 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 140:
+  case 140: /* charset_literal: '{' string_list '}'  */
 #line 2031 "gecode/flatzinc/parser.yxx"
     { (yyval.charsetLit) = new AST::CharSetLit(*(yyvsp[-1].stringSetValue)); }
-#line 3805 "gecode/flatzinc/parser.tab.cpp"
+#line 3900 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 141:
+  case 141: /* charset_literal: FZ_STRING_LIT FZ_DOTDOT FZ_STRING_LIT  */
 #line 2033 "gecode/flatzinc/parser.yxx"
     { (yyval.charsetLit) = new AST::CharSetLit((yyvsp[-2].sValue), (yyvsp[0].sValue)); }
-#line 3811 "gecode/flatzinc/parser.tab.cpp"
+#line 3906 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 142:
+  case 142: /* flat_expr_list: flat_expr  */
 #line 2041 "gecode/flatzinc/parser.yxx"
       { (yyval.argVec) = new AST::Array((yyvsp[0].arg)); }
-#line 3817 "gecode/flatzinc/parser.tab.cpp"
+#line 3912 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 143:
+  case 143: /* flat_expr_list: flat_expr_list ',' flat_expr  */
 #line 2043 "gecode/flatzinc/parser.yxx"
       { (yyval.argVec) = (yyvsp[-2].argVec); (yyval.argVec)->append((yyvsp[0].arg)); }
-#line 3823 "gecode/flatzinc/parser.tab.cpp"
+#line 3918 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 144:
+  case 144: /* flat_expr: non_array_expr  */
 #line 2047 "gecode/flatzinc/parser.yxx"
       { (yyval.arg) = (yyvsp[0].arg); }
-#line 3829 "gecode/flatzinc/parser.tab.cpp"
+#line 3924 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 145:
+  case 145: /* flat_expr: '[' non_array_expr_list ']'  */
 #line 2049 "gecode/flatzinc/parser.yxx"
       { (yyval.arg) = (yyvsp[-1].argVec); }
-#line 3835 "gecode/flatzinc/parser.tab.cpp"
+#line 3930 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 146:
+  case 146: /* string_list: %empty  */
 #line 2053 "gecode/flatzinc/parser.yxx"
       { (yyval.stringSetValue) = new vector<std::string>(0); }
-#line 3841 "gecode/flatzinc/parser.tab.cpp"
+#line 3936 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 147:
+  case 147: /* string_list: string_list_head list_tail  */
 #line 2055 "gecode/flatzinc/parser.yxx"
       { (yyval.stringSetValue) = (yyvsp[-1].stringSetValue); }
-#line 3847 "gecode/flatzinc/parser.tab.cpp"
+#line 3942 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 148:
+  case 148: /* string_list_head: FZ_STRING_LIT  */
 #line 2059 "gecode/flatzinc/parser.yxx"
       { (yyval.stringSetValue) = new vector<std::string>(1); (*(yyval.stringSetValue))[0] = (yyvsp[0].sValue); }
-#line 3853 "gecode/flatzinc/parser.tab.cpp"
+#line 3948 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 149:
+  case 149: /* string_list_head: string_list_head ',' FZ_STRING_LIT  */
 #line 2061 "gecode/flatzinc/parser.yxx"
       { (yyval.stringSetValue) = (yyvsp[-2].stringSetValue); (yyval.stringSetValue)->push_back((yyvsp[0].sValue)); }
-#line 3859 "gecode/flatzinc/parser.tab.cpp"
+#line 3954 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 150:
+  case 150: /* non_array_expr_opt: %empty  */
 #line 2065 "gecode/flatzinc/parser.yxx"
       { (yyval.oArg) = Option<AST::Node*>::none(); }
-#line 3865 "gecode/flatzinc/parser.tab.cpp"
+#line 3960 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 151:
+  case 151: /* non_array_expr_opt: '=' non_array_expr  */
 #line 2067 "gecode/flatzinc/parser.yxx"
       { (yyval.oArg) = Option<AST::Node*>::some((yyvsp[0].arg)); }
-#line 3871 "gecode/flatzinc/parser.tab.cpp"
+#line 3966 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 152:
+  case 152: /* non_array_expr: FZ_BOOL_LIT  */
 #line 2071 "gecode/flatzinc/parser.yxx"
       { (yyval.arg) = new AST::BoolLit((yyvsp[0].iValue)); }
-#line 3877 "gecode/flatzinc/parser.tab.cpp"
+#line 3972 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 153:
+  case 153: /* non_array_expr: FZ_INT_LIT  */
 #line 2073 "gecode/flatzinc/parser.yxx"
       { (yyval.arg) = new AST::IntLit((yyvsp[0].iValue)); }
-#line 3883 "gecode/flatzinc/parser.tab.cpp"
+#line 3978 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 154:
+  case 154: /* non_array_expr: FZ_FLOAT_LIT  */
 #line 2075 "gecode/flatzinc/parser.yxx"
       { (yyval.arg) = new AST::FloatLit((yyvsp[0].dValue)); }
-#line 3889 "gecode/flatzinc/parser.tab.cpp"
+#line 3984 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 155:
+  case 155: /* non_array_expr: FZ_STRING_LIT  */
 #line 2077 "gecode/flatzinc/parser.yxx"
       { (yyval.arg) = new AST::StringDom((yyvsp[0].sValue)); }
-#line 3895 "gecode/flatzinc/parser.tab.cpp"
+#line 3990 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 156:
+  case 156: /* non_array_expr: set_literal  */
 #line 2079 "gecode/flatzinc/parser.yxx"
       { (yyval.arg) = (yyvsp[0].setLit); }
-#line 3901 "gecode/flatzinc/parser.tab.cpp"
+#line 3996 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 157:
+  case 157: /* non_array_expr: charset_literal  */
 #line 2081 "gecode/flatzinc/parser.yxx"
       { (yyval.arg) = (yyvsp[0].charsetLit); }
-#line 3907 "gecode/flatzinc/parser.tab.cpp"
+#line 4002 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 158:
+  case 158: /* non_array_expr: var_par_id  */
 #line 2083 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -4023,10 +4118,10 @@ yyreduce:
         }
         free((yyvsp[0].sValue));
       }
-#line 4027 "gecode/flatzinc/parser.tab.cpp"
+#line 4122 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 159:
+  case 159: /* non_array_expr: var_par_id '[' non_array_expr ']'  */
 #line 2199 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -4039,34 +4134,34 @@ yyreduce:
         delete (yyvsp[-1].arg);
         free((yyvsp[-3].sValue));
       }
-#line 4043 "gecode/flatzinc/parser.tab.cpp"
+#line 4138 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 160:
+  case 160: /* non_array_expr_list: %empty  */
 #line 2213 "gecode/flatzinc/parser.yxx"
       { (yyval.argVec) = new AST::Array(0); }
-#line 4049 "gecode/flatzinc/parser.tab.cpp"
+#line 4144 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 161:
+  case 161: /* non_array_expr_list: non_array_expr_list_head list_tail  */
 #line 2215 "gecode/flatzinc/parser.yxx"
       { (yyval.argVec) = (yyvsp[-1].argVec); }
-#line 4055 "gecode/flatzinc/parser.tab.cpp"
+#line 4150 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 162:
+  case 162: /* non_array_expr_list_head: non_array_expr  */
 #line 2219 "gecode/flatzinc/parser.yxx"
       { (yyval.argVec) = new AST::Array((yyvsp[0].arg)); }
-#line 4061 "gecode/flatzinc/parser.tab.cpp"
+#line 4156 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 163:
+  case 163: /* non_array_expr_list_head: non_array_expr_list_head ',' non_array_expr  */
 #line 2221 "gecode/flatzinc/parser.yxx"
       { (yyval.argVec) = (yyvsp[-2].argVec); (yyval.argVec)->append((yyvsp[0].arg)); }
-#line 4067 "gecode/flatzinc/parser.tab.cpp"
+#line 4162 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 164:
+  case 164: /* solve_expr: var_par_id  */
 #line 2229 "gecode/flatzinc/parser.yxx"
       {
         ParserState *pp = static_cast<ParserState*>(parm);
@@ -4101,10 +4196,10 @@ yyreduce:
         }
         free((yyvsp[0].sValue));
       }
-#line 4105 "gecode/flatzinc/parser.tab.cpp"
+#line 4200 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 165:
+  case 165: /* solve_expr: FZ_INT_LIT  */
 #line 2263 "gecode/flatzinc/parser.yxx"
       {
         ParserState *pp = static_cast<ParserState*>(parm);
@@ -4112,10 +4207,10 @@ yyreduce:
           new IntVarSpec(0,true,false)));
         (yyval.iValue) = pp->intvars.size()-1;
       }
-#line 4116 "gecode/flatzinc/parser.tab.cpp"
+#line 4211 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 166:
+  case 166: /* solve_expr: FZ_FLOAT_LIT  */
 #line 2270 "gecode/flatzinc/parser.yxx"
       {
         ParserState *pp = static_cast<ParserState*>(parm);
@@ -4123,10 +4218,10 @@ yyreduce:
           new IntVarSpec(0,true,false)));
         (yyval.iValue) = pp->intvars.size()-1;
       }
-#line 4127 "gecode/flatzinc/parser.tab.cpp"
+#line 4222 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 167:
+  case 167: /* solve_expr: var_par_id '[' FZ_INT_LIT ']'  */
 #line 2277 "gecode/flatzinc/parser.yxx"
       {
         SymbolEntry e;
@@ -4151,108 +4246,108 @@ yyreduce:
         }
         free((yyvsp[-3].sValue));
       }
-#line 4155 "gecode/flatzinc/parser.tab.cpp"
+#line 4250 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 170:
+  case 170: /* annotations: %empty  */
 #line 2311 "gecode/flatzinc/parser.yxx"
       { (yyval.argVec) = NULL; }
-#line 4161 "gecode/flatzinc/parser.tab.cpp"
+#line 4256 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 171:
+  case 171: /* annotations: annotations_head  */
 #line 2313 "gecode/flatzinc/parser.yxx"
       { (yyval.argVec) = (yyvsp[0].argVec); }
-#line 4167 "gecode/flatzinc/parser.tab.cpp"
+#line 4262 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 172:
+  case 172: /* annotations_head: FZ_COLONCOLON annotation  */
 #line 2317 "gecode/flatzinc/parser.yxx"
       { (yyval.argVec) = new AST::Array((yyvsp[0].arg)); }
-#line 4173 "gecode/flatzinc/parser.tab.cpp"
+#line 4268 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 173:
+  case 173: /* annotations_head: annotations_head FZ_COLONCOLON annotation  */
 #line 2319 "gecode/flatzinc/parser.yxx"
       { (yyval.argVec) = (yyvsp[-2].argVec); (yyval.argVec)->append((yyvsp[0].arg)); }
-#line 4179 "gecode/flatzinc/parser.tab.cpp"
+#line 4274 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 174:
+  case 174: /* annotation: FZ_ID '(' annotation_list ')'  */
 #line 2323 "gecode/flatzinc/parser.yxx"
       {
         (yyval.arg) = new AST::Call((yyvsp[-3].sValue), AST::extractSingleton((yyvsp[-1].arg))); free((yyvsp[-3].sValue));
       }
-#line 4187 "gecode/flatzinc/parser.tab.cpp"
+#line 4282 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 175:
+  case 175: /* annotation: annotation_expr  */
 #line 2327 "gecode/flatzinc/parser.yxx"
       { (yyval.arg) = (yyvsp[0].arg); }
-#line 4193 "gecode/flatzinc/parser.tab.cpp"
+#line 4288 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 176:
+  case 176: /* annotation_list: annotation  */
 #line 2331 "gecode/flatzinc/parser.yxx"
       { (yyval.arg) = new AST::Array((yyvsp[0].arg)); }
-#line 4199 "gecode/flatzinc/parser.tab.cpp"
+#line 4294 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 177:
+  case 177: /* annotation_list: annotation_list ',' annotation  */
 #line 2333 "gecode/flatzinc/parser.yxx"
       { (yyval.arg) = (yyvsp[-2].arg); (yyval.arg)->append((yyvsp[0].arg)); }
-#line 4205 "gecode/flatzinc/parser.tab.cpp"
+#line 4300 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 178:
+  case 178: /* annotation_expr: ann_non_array_expr  */
 #line 2337 "gecode/flatzinc/parser.yxx"
       { (yyval.arg) = (yyvsp[0].arg); }
-#line 4211 "gecode/flatzinc/parser.tab.cpp"
+#line 4306 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 179:
+  case 179: /* annotation_expr: '[' ']'  */
 #line 2339 "gecode/flatzinc/parser.yxx"
       { (yyval.arg) = new AST::Array(); }
-#line 4217 "gecode/flatzinc/parser.tab.cpp"
+#line 4312 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 180:
+  case 180: /* annotation_expr: '[' annotation_list annotation_list_tail ']'  */
 #line 2341 "gecode/flatzinc/parser.yxx"
       { (yyval.arg) = (yyvsp[-2].arg); }
-#line 4223 "gecode/flatzinc/parser.tab.cpp"
+#line 4318 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 183:
+  case 183: /* ann_non_array_expr: FZ_BOOL_LIT  */
 #line 2347 "gecode/flatzinc/parser.yxx"
       { (yyval.arg) = new AST::BoolLit((yyvsp[0].iValue)); }
-#line 4229 "gecode/flatzinc/parser.tab.cpp"
+#line 4324 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 184:
+  case 184: /* ann_non_array_expr: FZ_INT_LIT  */
 #line 2349 "gecode/flatzinc/parser.yxx"
       { (yyval.arg) = new AST::IntLit((yyvsp[0].iValue)); }
-#line 4235 "gecode/flatzinc/parser.tab.cpp"
+#line 4330 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 185:
+  case 185: /* ann_non_array_expr: FZ_FLOAT_LIT  */
 #line 2351 "gecode/flatzinc/parser.yxx"
       { (yyval.arg) = new AST::FloatLit((yyvsp[0].dValue)); }
-#line 4241 "gecode/flatzinc/parser.tab.cpp"
+#line 4336 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 186:
+  case 186: /* ann_non_array_expr: FZ_STRING_LIT  */
 #line 2353 "gecode/flatzinc/parser.yxx"
       { (yyval.arg) = new AST::StringDom((yyvsp[0].sValue)); }
-#line 4247 "gecode/flatzinc/parser.tab.cpp"
+#line 4342 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 187:
+  case 187: /* ann_non_array_expr: set_literal  */
 #line 2355 "gecode/flatzinc/parser.yxx"
       { (yyval.arg) = (yyvsp[0].setLit); }
-#line 4253 "gecode/flatzinc/parser.tab.cpp"
+#line 4348 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 188:
+  case 188: /* ann_non_array_expr: var_par_id  */
 #line 2357 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -4382,10 +4477,10 @@ yyreduce:
           (yyval.arg) = getVarRefArg(pp,(yyvsp[0].sValue),true);
         free((yyvsp[0].sValue));
       }
-#line 4386 "gecode/flatzinc/parser.tab.cpp"
+#line 4481 "gecode/flatzinc/parser.tab.cpp"
     break;
 
-  case 189:
+  case 189: /* ann_non_array_expr: var_par_id '[' ann_non_array_expr ']'  */
 #line 2486 "gecode/flatzinc/parser.yxx"
       {
         ParserState* pp = static_cast<ParserState*>(parm);
@@ -4397,11 +4492,11 @@ yyreduce:
           (yyval.arg) = new AST::IntLit(0); // keep things consistent
         free((yyvsp[-3].sValue));
       }
-#line 4401 "gecode/flatzinc/parser.tab.cpp"
+#line 4496 "gecode/flatzinc/parser.tab.cpp"
     break;
 
 
-#line 4405 "gecode/flatzinc/parser.tab.cpp"
+#line 4500 "gecode/flatzinc/parser.tab.cpp"
 
       default: break;
     }
@@ -4416,11 +4511,10 @@ yyreduce:
      case of YYERROR or YYBACKUP, subsequent parser actions might lead
      to an incorrect destructor call or verbose syntax error message
      before the lookahead is translated.  */
-  YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
+  YY_SYMBOL_PRINT ("-> $$ =", YY_CAST (yysymbol_kind_t, yyr1[yyn]), &yyval, &yyloc);
 
   YYPOPSTACK (yylen);
   yylen = 0;
-  YY_STACK_PRINT (yyss, yyssp);
 
   *++yyvsp = yyval;
 
@@ -4444,49 +4538,43 @@ yyreduce:
 yyerrlab:
   /* Make sure we have latest lookahead translation.  See comments at
      user semantic actions for why this is necessary.  */
-  yytoken = yychar == YYEMPTY ? YYEMPTY : YYTRANSLATE (yychar);
-
+  yytoken = yychar == YYEMPTY ? YYSYMBOL_YYEMPTY : YYTRANSLATE (yychar);
   /* If not already recovering from an error, report this error.  */
   if (!yyerrstatus)
     {
       ++yynerrs;
-#if ! YYERROR_VERBOSE
-      yyerror (parm, YY_("syntax error"));
-#else
-# define YYSYNTAX_ERROR yysyntax_error (&yymsg_alloc, &yymsg, \
-                                        yyssp, yytoken)
       {
+        yypcontext_t yyctx
+          = {yyssp, yytoken};
         char const *yymsgp = YY_("syntax error");
         int yysyntax_error_status;
-        yysyntax_error_status = YYSYNTAX_ERROR;
+        yysyntax_error_status = yysyntax_error (&yymsg_alloc, &yymsg, &yyctx);
         if (yysyntax_error_status == 0)
           yymsgp = yymsg;
-        else if (yysyntax_error_status == 1)
+        else if (yysyntax_error_status == -1)
           {
             if (yymsg != yymsgbuf)
               YYSTACK_FREE (yymsg);
-            yymsg = YY_CAST (char *, YYSTACK_ALLOC (YY_CAST (YYSIZE_T, yymsg_alloc)));
-            if (!yymsg)
+            yymsg = YY_CAST (char *,
+                             YYSTACK_ALLOC (YY_CAST (YYSIZE_T, yymsg_alloc)));
+            if (yymsg)
               {
-                yymsg = yymsgbuf;
-                yymsg_alloc = sizeof yymsgbuf;
-                yysyntax_error_status = 2;
+                yysyntax_error_status
+                  = yysyntax_error (&yymsg_alloc, &yymsg, &yyctx);
+                yymsgp = yymsg;
               }
             else
               {
-                yysyntax_error_status = YYSYNTAX_ERROR;
-                yymsgp = yymsg;
+                yymsg = yymsgbuf;
+                yymsg_alloc = sizeof yymsgbuf;
+                yysyntax_error_status = YYENOMEM;
               }
           }
         yyerror (parm, yymsgp);
-        if (yysyntax_error_status == 2)
-          goto yyexhaustedlab;
+        if (yysyntax_error_status == YYENOMEM)
+          YYNOMEM;
       }
-# undef YYSYNTAX_ERROR
-#endif
     }
-
-
 
   if (yyerrstatus == 3)
     {
@@ -4520,6 +4608,7 @@ yyerrorlab:
      label yyerrorlab therefore never appears in user code.  */
   if (0)
     YYERROR;
+  ++yynerrs;
 
   /* Do not reclaim the symbols of the rule whose action triggered
      this YYERROR.  */
@@ -4536,13 +4625,14 @@ yyerrorlab:
 yyerrlab1:
   yyerrstatus = 3;      /* Each real token shifted decrements this.  */
 
+  /* Pop stack until we find a state that shifts the error token.  */
   for (;;)
     {
       yyn = yypact[yystate];
       if (!yypact_value_is_default (yyn))
         {
-          yyn += YYTERROR;
-          if (0 <= yyn && yyn <= YYLAST && yycheck[yyn] == YYTERROR)
+          yyn += YYSYMBOL_YYerror;
+          if (0 <= yyn && yyn <= YYLAST && yycheck[yyn] == YYSYMBOL_YYerror)
             {
               yyn = yytable[yyn];
               if (0 < yyn)
@@ -4556,7 +4646,7 @@ yyerrlab1:
 
 
       yydestruct ("Error: popping",
-                  yystos[yystate], yyvsp, parm);
+                  YY_ACCESSING_SYMBOL (yystate), yyvsp, parm);
       YYPOPSTACK (1);
       yystate = *yyssp;
       YY_STACK_PRINT (yyss, yyssp);
@@ -4568,7 +4658,7 @@ yyerrlab1:
 
 
   /* Shift the error token.  */
-  YY_SYMBOL_PRINT ("Shifting", yystos[yyn], yyvsp, yylsp);
+  YY_SYMBOL_PRINT ("Shifting", YY_ACCESSING_SYMBOL (yyn), yyvsp, yylsp);
 
   yystate = yyn;
   goto yynewstate;
@@ -4579,7 +4669,7 @@ yyerrlab1:
 `-------------------------------------*/
 yyacceptlab:
   yyresult = 0;
-  goto yyreturn;
+  goto yyreturnlab;
 
 
 /*-----------------------------------.
@@ -4587,24 +4677,22 @@ yyacceptlab:
 `-----------------------------------*/
 yyabortlab:
   yyresult = 1;
-  goto yyreturn;
+  goto yyreturnlab;
 
 
-#if !defined yyoverflow || YYERROR_VERBOSE
-/*-------------------------------------------------.
-| yyexhaustedlab -- memory exhaustion comes here.  |
-`-------------------------------------------------*/
+/*-----------------------------------------------------------.
+| yyexhaustedlab -- YYNOMEM (memory exhaustion) comes here.  |
+`-----------------------------------------------------------*/
 yyexhaustedlab:
   yyerror (parm, YY_("memory exhausted"));
   yyresult = 2;
-  /* Fall through.  */
-#endif
+  goto yyreturnlab;
 
 
-/*-----------------------------------------------------.
-| yyreturn -- parsing is finished, return the result.  |
-`-----------------------------------------------------*/
-yyreturn:
+/*----------------------------------------------------------.
+| yyreturnlab -- parsing is finished, clean up and return.  |
+`----------------------------------------------------------*/
+yyreturnlab:
   if (yychar != YYEMPTY)
     {
       /* Make sure we have latest lookahead translation.  See comments at
@@ -4620,16 +4708,15 @@ yyreturn:
   while (yyssp != yyss)
     {
       yydestruct ("Cleanup: popping",
-                  yystos[+*yyssp], yyvsp, parm);
+                  YY_ACCESSING_SYMBOL (+*yyssp), yyvsp, parm);
       YYPOPSTACK (1);
     }
 #ifndef yyoverflow
   if (yyss != yyssa)
     YYSTACK_FREE (yyss);
 #endif
-#if YYERROR_VERBOSE
   if (yymsg != yymsgbuf)
     YYSTACK_FREE (yymsg);
-#endif
   return yyresult;
 }
+

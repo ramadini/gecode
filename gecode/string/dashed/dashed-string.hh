@@ -210,6 +210,17 @@ namespace Gecode { namespace String {
     DSBlock& operator [](int i) const;
     DSBlocks& operator=(const DSBlocks& d);
 
+    /// Dispose character sets in the half-open block range
+    void dispose(Space& h, int begin, int end);
+    /// Shrink initialized and allocated storage to \a size blocks
+    void shrink(Space& h, int size);
+    /// Dispose current storage and allocate \a size uninitialized blocks
+    void reset(Space& h, int size);
+    /// Replace current storage with one initialized null block
+    void clear(Space& h);
+    /// Dispose current storage and take ownership of \a blocks
+    void replace(Space& h, DSBlock* blocks, int size);
+
   public:
 
     DSBlocks(Space& h);
