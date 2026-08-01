@@ -1,6 +1,6 @@
 #include <gecode/string.hh>
 #include <gecode/string/match.hh>
-#include <gecode/string/ext/parse-reg.hpp>
+#include <gecode/string/extensional/parse-reg.hpp>
 
 namespace Gecode {
 

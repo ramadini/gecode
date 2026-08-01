@@ -4,7 +4,7 @@
 namespace Gecode { namespace String {
 
   // Abstract class for trimDFA and compDFA.  
-  class stringDFA {
+  class stringDFA : public SharedHandle::Object {
   protected:
     int final_fst;
     int final_lst;
@@ -13,6 +13,9 @@ namespace Gecode { namespace String {
     stringDFA(const DFA& d): final_fst(d.final_fst()), 
                              final_lst(d.final_lst()-1),
                              n_states(d.n_states()) {};
+    stringDFA(const stringDFA& d)
+      : final_fst(d.final_fst), final_lst(d.final_lst),
+        n_states(d.n_states) {}
     bool accepting(int q) const {
       return final_fst <= q && q <= final_lst; 
     }
@@ -72,6 +75,35 @@ namespace Gecode { namespace String {
     bool accepting(int) const;
   };
 
+  template<class Automaton>
+  class AutomatonHandle : public SharedHandle {
+  public:
+    AutomatonHandle(void) {}
+    AutomatonHandle(Automaton* automaton) : SharedHandle(automaton) {}
+    AutomatonHandle(const AutomatonHandle& handle) : SharedHandle(handle) {}
+    AutomatonHandle& operator =(const AutomatonHandle& handle) {
+      SharedHandle::operator =(handle);
+      return *this;
+    }
+    AutomatonHandle& operator =(Automaton* automaton) {
+      object(automaton);
+      return *this;
+    }
+    Automaton* operator ->(void) const {
+      return static_cast<Automaton*>(object());
+    }
+    Automaton* get(void) const {
+      return static_cast<Automaton*>(object());
+    }
+    Automaton& operator *(void) const {
+      return *static_cast<Automaton*>(object());
+    }
+  };
+
+  typedef AutomatonHandle<trimDFA> TrimDFAHandle;
+  typedef AutomatonHandle<compDFA> CompDFAHandle;
+  typedef AutomatonHandle<matchNFA> MatchNFAHandle;
+
 
   /**
    * \brief %Propagator for DFA.
@@ -79,7 +111,7 @@ namespace Gecode { namespace String {
    */
   class Reg : public UnaryPropagator<StringView, PC_STRING_DOM> {
   private:
-    trimDFA* dfa;
+    TrimDFAHandle dfa;
   protected:
     using UnaryPropagator<StringView, PC_STRING_DOM>::x0;
     /// Constructor for cloning \a p
@@ -89,6 +121,8 @@ namespace Gecode { namespace String {
   public:
     /// Copy propagator during cloning
     virtual Actor* copy(Space& home);
+    /// Delete propagator and return its size
+    virtual size_t dispose(Space& home);
     /// Perform propagation
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator
@@ -105,7 +139,6 @@ namespace Gecode { namespace String {
                                                      const DSBlock&);
     static NSBlocks reach_bwd(compDFA*, const std::vector<NSIntSet>&, NSIntSet&,
                                                       const DSBlock&, bool&);
-    ~Reg();
   };
 
   /**
@@ -122,7 +155,7 @@ namespace Gecode { namespace String {
     /// Constructor for posting
     ReReg(Home home, StringView x, compDFA* d, CtrlView b);
   private:
-    compDFA* dfa;
+    CompDFAHandle dfa;
   public:
     /// Copy propagator during cloning
     virtual Actor* copy(Space& home);
@@ -137,12 +170,11 @@ namespace Gecode { namespace String {
     /// Post propagator for \f$ (x=y) \Leftrightarrow b\f$
     static ExecStatus post(Home home, StringView x, const DFA& d, CtrlView b);
     static ExecStatus post(Home home, StringView x, compDFA* d, CtrlView b);
-    ~ReReg();
   };
 
 }}
 
-#include <gecode/string/ext/reg.hpp>
-#include <gecode/string/ext/re-reg.hpp>
+#include <gecode/string/extensional/reg.hpp>
+#include <gecode/string/extensional/re-reg.hpp>
 
 #endif

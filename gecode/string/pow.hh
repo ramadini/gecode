@@ -31,6 +31,6 @@ namespace Gecode { namespace String {
 
 }}
 
-#include <gecode/string/int/pow.hpp>
+#include <gecode/string/pow/pow.hpp>
 
 #endif

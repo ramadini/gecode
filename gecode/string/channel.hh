@@ -34,7 +34,7 @@ namespace Gecode { namespace String {
   };
 
 }}
-#include <gecode/string/int/str2nat.hpp>
+#include <gecode/string/channel/str2nat.hpp>
 
 namespace Gecode { namespace String {
 
@@ -68,6 +68,6 @@ namespace Gecode { namespace String {
   };
 
 }}
-#include <gecode/string/int/nat2str.hpp>
+#include <gecode/string/channel/nat2str.hpp>
 
 #endif

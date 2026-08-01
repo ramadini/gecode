@@ -99,7 +99,7 @@ namespace Gecode { namespace String { namespace Branch {
         selected = static_cast<int>(value.size()) == p.split;
       else
         selected = p.offset < static_cast<int>(value.size()) &&
-          char2int(value[p.offset]) == p.split;
+          static_cast<int>(char2int(value[p.offset])) == p.split;
       return selected == (a == 0) ? ES_OK : ES_FAILED;
     }
 

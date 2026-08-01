@@ -555,13 +555,15 @@ STRINGHDR0 = \
 	branch/var.hpp branch/val.hpp branch.hh branch/blockmin_llll.hpp \
 	branch/blockmin_lllm.hpp branch/lenblockmin_lllm.hpp branch/lenmax_llll.hpp \
 	branch/lenmin_llll.hpp branch/none_llll.hpp branch/sizemin_llul.hpp \
-	int/length.hpp int/char2code.hpp rel-op/rev.hpp rel-op/concat.hpp rel-op/replace.hpp int/pow.hpp int/find.hpp \
-	rel-op/lcase.hpp rel-op/ucase.hpp gcc.hh global/gcc.hpp gconcat.hh global/gconcat.hpp \
+	length/length.hpp char2code/char2code.hpp rel-op/rev.hpp rel-op/concat.hpp rel-op/replace.hpp \
+	pow/pow.hpp find/find.hpp rel-op/lcase.hpp rel-op/ucase.hpp gcc.hh gcc/gcc.hpp gconcat.hh gconcat/gconcat.hpp \
 	dashed/sweep-equate.hpp dashed/vec.h dashed/ns-dashed-string.hpp \
 	dashed/aux-equate.hpp dashed/aux-lex.hpp dashed/aux-find.hpp \
 	eq.hh nq.hh re-eq.hh lex.hh re-lex.hh inc.hh dom.hh concat.hh replace.hh rev.hh lcase.hh ucase.hh \
-	length.hh char2code.hh pow.hh find.hh channel.hh int/str2nat.hpp int/nat2str.hpp extensional.hh ext/reg.hpp \
-	ext/re-reg.hpp ext/parse-reg.hpp element.hh global/element.hpp match.hh int/match.hpp int/match-new.hpp
+	length.hh char2code.hh pow.hh find.hh channel.hh channel/str2nat.hpp channel/nat2str.hpp \
+	substr.hh substr/char-at.hpp substr/substring.hpp \
+	extensional.hh extensional/reg.hpp extensional/re-reg.hpp extensional/parse-reg.hpp extensional/flatzinc.hpp \
+	element.hh element/element.hpp match.hh match/match.hpp match/match-new.hpp
 
 STRINGSRC	= $(STRINGSRC0:%=gecode/string/%)
 STRINGHDR	= gecode/string.hh $(STRINGHDR0:%=gecode/string/%)
@@ -594,8 +596,10 @@ export STRINGRES		=
 export STRINGRC		=
 endif
 STRINGBUILDDIRS	= \
-	string string/var string/var-imp string/view string/branch string/int \
-	string/rel string/rel-op string/global string/ext string/dashed
+	string string/var string/var-imp string/view string/branch string/dashed \
+	string/rel string/rel-op string/length string/char2code string/pow string/find \
+	string/channel string/gcc string/gconcat string/element string/substr \
+	string/extensional string/match
 
 
 #

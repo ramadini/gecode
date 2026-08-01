@@ -24,6 +24,6 @@ namespace Gecode { namespace String {
 
 }}
 
-#include <gecode/string/global/gconcat.hpp>
+#include <gecode/string/gconcat/gconcat.hpp>
 
 #endif

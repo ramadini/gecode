@@ -2,7 +2,7 @@
 #define __GECODE_STRING_MATCH_HH__
 
 #include <gecode/string/extensional.hh>
-#include <gecode/string/ext/parse-reg.hpp>
+#include <gecode/string/extensional/parse-reg.hpp>
 
 namespace Gecode { namespace String {
 
@@ -13,9 +13,9 @@ namespace Gecode { namespace String {
   class Match : public MixBinaryPropagator
     <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM> {
   private:
-    trimDFA* Rs;
-    trimDFA* sRs;    
-    compDFA* sRsC;
+    TrimDFAHandle Rs;
+    TrimDFAHandle sRs;
+    CompDFAHandle sRsC;
     int minR;
     int must_idx(void) const;
     NSIntSet reachMust(const DSBlock&, const NSIntSet&) const;
@@ -23,7 +23,7 @@ namespace Gecode { namespace String {
     NSBlocks prefix(int,int) const;
     NSBlocks suffix(int,int) const;
     template <typename DFA_t> static ExecStatus propagateReg(Space&, NSBlocks&, DFA_t*);
-    template <typename DFA_t> int checkReg(Space& home, int i, const NSBlocks& x, DFA_t* d) const;
+    template <typename DFA_t> int checkReg(Space& home, const NSBlocks& x, DFA_t* d) const;
   protected:
     using MixBinaryPropagator<StringView, PC_STRING_DOM, Gecode::Int::IntView, 
       Gecode::Int::PC_INT_DOM>::x0;
@@ -36,21 +36,22 @@ namespace Gecode { namespace String {
   public:
     /// Copy propagator during cloning
     virtual Actor* copy(Space& home);
+    /// Delete propagator and return its size
+    virtual size_t dispose(Space& home);
     /// Perform propagation
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator
     static ExecStatus post(Home home, StringView x, string r,
       Gecode::Int::IntView i);
-    ~Match();
   };
   
   class MatchNew : public MixBinaryPropagator
     <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM> {
   private:
-    trimDFA* Rpref;
-    trimDFA* Rfull;    
-    compDFA* Rcomp;
-    matchNFA* Rnfa;
+    TrimDFAHandle Rpref;
+    TrimDFAHandle Rfull;
+    CompDFAHandle Rcomp;
+    MatchNFAHandle Rnfa;
     int minR;    
     bool must_match(void) const;
     ExecStatus refine_idx(Space& home, int&, int&);
@@ -73,16 +74,17 @@ namespace Gecode { namespace String {
   public:
     /// Copy propagator during cloning
     virtual Actor* copy(Space& home);
+    /// Delete propagator and return its size
+    virtual size_t dispose(Space& home);
     /// Perform propagation
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator
     static ExecStatus post(Home home, StringView x, string r,
                            Gecode::Int::IntView i);
-    ~MatchNew();
   };
 
 }}
 
-#include <gecode/string/int/match.hpp>
-#include <gecode/string/int/match-new.hpp>
+#include <gecode/string/match/match.hpp>
+#include <gecode/string/match/match-new.hpp>
 #endif

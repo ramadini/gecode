@@ -35,6 +35,6 @@ namespace Gecode { namespace String {
 
 }}
 
-#include <gecode/string/int/find.hpp>
+#include <gecode/string/find/find.hpp>
 
 #endif

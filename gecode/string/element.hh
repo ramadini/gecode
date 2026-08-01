@@ -10,12 +10,12 @@ namespace Gecode { namespace String {
    *
    */
   class Element : public MixNaryOnePropagator
-  <StringView, PC_STRING_DOM, IntView, Gecode::Int::PC_INT_BND> {
+  <StringView, PC_STRING_DOM, IntView, Gecode::Int::PC_INT_DOM> {
   protected:
     using MixNaryOnePropagator
-      <StringView, PC_STRING_DOM, IntView, Gecode::Int::PC_INT_BND>::x;
+      <StringView, PC_STRING_DOM, IntView, Gecode::Int::PC_INT_DOM>::x;
     using MixNaryOnePropagator
-      <StringView, PC_STRING_DOM, IntView, Gecode::Int::PC_INT_BND>::y;
+      <StringView, PC_STRING_DOM, IntView, Gecode::Int::PC_INT_DOM>::y;
     /// Constructor for cloning \a p
     Element(Space& home, Element& p);
     /// Constructor for posting
@@ -31,6 +31,6 @@ namespace Gecode { namespace String {
 
 }}
 
-#include <gecode/string/global/element.hpp>
+#include <gecode/string/element/element.hpp>
 
 #endif

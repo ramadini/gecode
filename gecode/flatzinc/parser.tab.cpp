@@ -100,7 +100,7 @@ extern int yydebug;
 using namespace Gecode;
 using namespace Gecode::FlatZinc;
 using namespace Gecode::String;
-#include <gecode/string/ext/parse-reg.hpp>
+#include <gecode/string/extensional/flatzinc.hpp>
 vector<pair<AST::StringVar*, unique_ptr<RegEx>>> REGEX;
 
 void yyerror(void* parm, const char *str) {
@@ -348,7 +348,7 @@ void initfg(ParserState* pp) {
   if (!pp->hadError) {
     // Unfolding regular expressions.
     for (auto& x : REGEX)
-      x.second->add(x.first, pp);
+      add_to_flatzinc(*x.second, x.first, pp);
     pp->fg->init(pp->intvars.size(),
                  pp->boolvars.size(),
                  pp->setvars.size(),

@@ -32,6 +32,6 @@ namespace Gecode { namespace String {
 
 }}
 
-#include <gecode/string/int/char2code.hpp>
+#include <gecode/string/char2code/char2code.hpp>
 
 #endif

@@ -30,6 +30,6 @@ namespace Gecode { namespace String {
 
 }}
 
-#include <gecode/string/int/length.hpp>
+#include <gecode/string/length/length.hpp>
 
 #endif

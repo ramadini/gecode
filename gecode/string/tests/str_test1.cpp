@@ -725,7 +725,7 @@ public:
     std::unique_ptr<RegEx> regex = RegExParser(".*(" + re + ").*").parse();
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
-    assert(match(*this, x, i, R, R1, 1).propagate(*this, 0) == ES_FAILED);
+    assert((new (*this) match(*this, x, i, R, R1, 1))->propagate(*this, 0) == ES_FAILED);
     std::cerr << "===== i = match(x, R) UNSATISFIABLE =====\n" << std::endl;
   }
   
@@ -752,7 +752,7 @@ public:
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     double lx = x.domain().logdim();
     std::cerr << "===== After i = match(x, R) =====" << std::endl;
-    assert(match(*this, x, i, R, R1, 1).propagate(*this, 0) == ES_FIX);
+    assert((new (*this) match(*this, x, i, R, R1, 1))->propagate(*this, 0) == ES_FIX);
     std::cerr << "x = " << x << std::endl;
     assert(x.domain().logdim() == lx);
     std::cerr << "i = " << i << std::endl;
@@ -782,7 +782,7 @@ public:
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     std::cerr << "===== After i = match(x, R) =====" << std::endl;
-    assert(match(*this, x, i, R, R1, 1).propagate(*this, 0) == ES_FIX);
+    assert((new (*this) match(*this, x, i, R, R1, 1))->propagate(*this, 0) == ES_FIX);
     std::cerr << "x = " << x << std::endl;
     assert(i.val() == 3 && x.domain().at(1).val() == "c");
   }
@@ -809,7 +809,7 @@ public:
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(*R1, x.may_chars());
-    assert(match(*this, x, i, 1, R1, R, R2).propagate(*this, 0) == ES_FAILED);
+    assert((new (*this) match(*this, x, i, 1, R1, R, R2))->propagate(*this, 0) == ES_FAILED);
     std::cerr << "===== i = match(x, R) UNSATISFIABLE =====\n" << std::endl;
   }
   
@@ -835,7 +835,7 @@ public:
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(*R1, x.may_chars());
-    assert(match(*this, x, i, 1, R1, R, R2).propagate(*this, 0) == ES_FAILED);
+    assert((new (*this) match(*this, x, i, 1, R1, R, R2))->propagate(*this, 0) == ES_FAILED);
     std::cerr << "===== i = match(x, R) UNSATISFIABLE =====\n" << std::endl;
   }
   
@@ -864,7 +864,7 @@ public:
     matchNFA* R2 = new matchNFA(*R1, x.may_chars());
     double lx = x.domain().logdim();
     std::cerr << "===== After i = match(x, R) =====" << std::endl;
-    assert(match(*this, x, i, 1, R1, R, R2).propagate(*this, 0) == ES_FIX);
+    assert((new (*this) match(*this, x, i, 1, R1, R, R2))->propagate(*this, 0) == ES_FIX);
     std::cerr << "x = " << x << std::endl;
     assert(x.domain().logdim() == lx);
     std::cerr << "i = " << i << std::endl;
@@ -896,7 +896,7 @@ public:
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(*R1, x.may_chars());
     std::cerr << "===== After i = match(x, R) =====" << std::endl;
-    assert(match(*this, x, i, 1, R1, R, R2).propagate(*this, 0) == ES_FIX);
+    assert((new (*this) match(*this, x, i, 1, R1, R, R2))->propagate(*this, 0) == ES_FIX);
     std::cerr << "x = " << x << std::endl;
     assert(i.val() == 3 && x.domain().at(1).val() == "c");
   }
@@ -923,7 +923,7 @@ public:
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(*R1, x.may_chars());
-    assert(match(*this, x, i, 1, R1, R, R2).propagate(*this, 0) == ES_FAILED);
+    assert((new (*this) match(*this, x, i, 1, R1, R, R2))->propagate(*this, 0) == ES_FAILED);
     std::cerr << "===== i = match(x, R) UNSATISFIABLE =====\n" << std::endl;
   }
 

@@ -50,9 +50,26 @@ while ($target = $ARGV[$i++]) {
       open FILE, "$f" or die "File missing: $root/$f\n";
 
     while ($l = <FILE>) {
-      if ($l =~ /^\#include <(gecode\/.*)>/ || $l =~ /^\#include "(.*)"/) {
-	$g = $1;
-	$g =~ s|^\./||og;
+      if ($l =~ /^\#include <(gecode\/.*)>/) {
+  $g = $1;
+  $g =~ s|^\./||og;
+  if (!($g =~ /^gecode\/third-party/) && !$done{$g}) {
+    push @todo, $g;
+    if (-e "$root/$g") {
+      $done{$g} = "$root/";
+    } else {
+      $done{$g} = "";
+    }
+  }
+      } elsif ($l =~ /^\#include "(.*)"/) {
+  $g = $1;
+  $g =~ s|^\./||og;
+  my $relative = $f;
+  $relative =~ s|[^/]+$||;
+  $relative .= $g;
+  if (-e "$root/$relative" || -e $relative) {
+    $g = $relative;
+  }
 	if (!($g =~ /^gecode\/third-party/) && !$done{$g}) {
 	  push @todo, $g;
 	  if (-e "$root/$g") {

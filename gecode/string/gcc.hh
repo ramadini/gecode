@@ -33,6 +33,6 @@ namespace Gecode { namespace String {
 
 }}
 
-#include <gecode/string/global/gcc.hpp>
+#include <gecode/string/gcc/gcc.hpp>
 
 #endif

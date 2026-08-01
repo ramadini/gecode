@@ -1,4 +1,5 @@
 #include <gecode/string.hh>
+#include <gecode/string/substr.hh>
 
 namespace Gecode {
 
@@ -11,6 +12,17 @@ namespace Gecode {
   void
   substr(Home home, StringVar x, IntVar i, IntVar j, StringVar y) {
     GECODE_POST;
+    String::StringView source(x), result(y);
+    Gecode::Int::IntView from(i), to(j);
+    if (from == to) {
+      GECODE_ES_FAIL(String::CharAt::post(home, source, from, result));
+      return;
+    }
+    if (source.assigned() && String::Substring::supports_domains(from, to)) {
+      GECODE_ES_FAIL(String::Substring::post
+        (home, source, from, to, result));
+      return;
+    }
     int x1 = x.min_length(),
         x2 = x.max_length(),
         n1 = std::max(1, i.min()),

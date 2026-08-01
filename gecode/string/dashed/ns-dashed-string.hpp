@@ -1400,8 +1400,8 @@ namespace Gecode { namespace String {
     forceinline NSIntSet
     may_chars() const {
       NSIntSet set;
-      for (int i = 0; i < size(); ++i)
-        set.include(at(i).S);
+      for (const NSBlock& block : *this)
+        set.include(block.S);
       return set;
     }
 
