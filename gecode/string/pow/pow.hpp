@@ -18,8 +18,10 @@ namespace Gecode { namespace String {
   forceinline ExecStatus
   Pow::post(Home home, StringView x, Gecode::Int::IntView n, StringView y) {
     if (x.same(y)) {
-      if (n.min() > 0)
-        rel(home, x, STRT_EQ, StringVar(home, ""));
+      if (n.assigned() && (n.val() == 1))
+        return ES_OK;
+      if (n.min() > 1)
+        GECODE_ME_CHECK(x.eq(home, ""));
       else {
         StringVar x0(home, x.may_chars(), x.min_length(), x.max_length());
         (void) new (home) Pow(home, x, n, x0);

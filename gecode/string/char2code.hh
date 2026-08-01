@@ -9,13 +9,13 @@ namespace Gecode { namespace String {
    */
   class Char2Code :
     public MixBinaryPropagator
-    <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_BND> {
+    <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM> {
   protected:
     using MixBinaryPropagator
-    <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_BND>
+    <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM>
       ::x0;
     using MixBinaryPropagator
-    <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_BND>
+    <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM>
       ::x1;
     /// Constructor for cloning \a p
     Char2Code(Space& home, Char2Code& p);
@@ -26,7 +26,7 @@ namespace Gecode { namespace String {
     virtual Actor* copy(Space& home);
     /// Perform propagation
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
-    /// Post propagator for \f$ |s|=x \f$
+    /// Post propagator linking an optional character to its integer code
     static ExecStatus post(Home home, StringView s, Gecode::Int::IntView x);
   };
 

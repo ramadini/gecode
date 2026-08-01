@@ -126,5 +126,12 @@ main(void) {
   assert(multi_block->status() != SS_FAILED);
   assert(multi_block->string.assigned() && multi_block->string.val() == "b");
   delete multi_block;
+
+  Char2CodeModel* interior = new Char2CodeModel('a', 'c');
+  assert(interior->status() != SS_FAILED);
+  rel(*interior, interior->code, IRT_NQ, 'b');
+  assert(interior->status() != SS_FAILED);
+  assert(!String::StringView(interior->string).may_chars().contains('b'));
+  delete interior;
   return 0;
 }

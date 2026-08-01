@@ -25,7 +25,7 @@ namespace Gecode { namespace String {
     virtual Actor* copy(Space& home);
     /// Perform propagation
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
-    /// Post propagator for \f$ |s|=x \f$
+    /// Post propagator for \f$ y=x^n \f$
     static ExecStatus post(Home, StringView, Gecode::Int::IntView, StringView);
   };
 
