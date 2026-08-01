@@ -246,7 +246,7 @@ namespace Gecode { namespace String {
     NSIntSet::NSIntSet(int l) {
       // std::cerr << "NSIntSet::NSIntSet(int l) " << l << "\n";
       if (l < 0)
-        l = unsigned(l);
+        l = static_cast<unsigned char>(l);
       NSRange* p = new NSRange(l, l);
       _fst = _lst = p;
       _size = 1;
@@ -257,7 +257,9 @@ namespace Gecode { namespace String {
     NSIntSet::NSIntSet(int l, int u) {
       // std::cerr << "NSIntSet::NSIntSet(int l, int u)" << l << " " << u << "\n";
       if (l < 0)
-        l = unsigned(l);
+        l = static_cast<unsigned char>(l);
+      if (u < 0)
+        u = static_cast<unsigned char>(u);
       if (l > u) {
         _fst  = _lst = NULL;
         _size = _len = 0;
@@ -578,39 +580,89 @@ namespace Gecode { namespace String {
     forceinline NSIntSet
     NSIntSet::comp() const {
       NSIntSet c;
-      if (*this == top())
-        return c;
-      if (empty())
-        return top();
-      c._fst = new NSRange();
-      NSRange* p = _fst;
-      if (min() > 0)
-        c._fst->l = 0;
-      else {
-        c._fst->l = _fst->u + 1;
-        p = p->next;
+      const int max = DashedString::_MAX_STR_ALPHA;
+      int next = 0;
+      for (NSRange* range = _fst; range; range = range->next) {
+        if (next < range->l) {
+          NSRange* gap = new NSRange(next, range->l - 1);
+          if (c._lst)
+            c._lst->next = gap;
+          else
+            c._fst = gap;
+          c._lst = gap;
+          c._size += gap->u - gap->l + 1;
+          ++c._len;
+        }
+        if (range->u == max) {
+          next = max + 1;
+          break;
+        }
+        next = range->u + 1;
       }
-      NSRange* q = c._fst;
-      for (; p; p = p->next) {
-        q->u = p->l - 1;
-        c._size += q->u - q->l + 1;
-        c._len++;
-        if (p->u == DashedString::_MAX_STR_ALPHA)
-          return c;
-        q->next = new NSRange(p->u + 1);
-        q = q->next;
-	      c._lst = q;
+      if (next <= max) {
+        NSRange* gap = new NSRange(next, max);
+        if (c._lst)
+          c._lst->next = gap;
+        else
+          c._fst = gap;
+        c._lst = gap;
+        c._size += gap->u - gap->l + 1;
+        ++c._len;
       }
-      q->u = DashedString::_MAX_STR_ALPHA;
-      c._size += q->u - q->l + 1;
-      c._len++;
-      c._lst = q;
       return c;
     }
 
     forceinline void
     NSIntSet::exclude(const NSIntSet& that) {
-      this->intersect(that.comp());
+      if (empty() || that.empty())
+        return;
+      if (this == &that) {
+        clear();
+        return;
+      }
+      NSRange* first = NULL;
+      NSRange* last = NULL;
+      NSRange* excluded = that._fst;
+      int size = 0;
+      int len = 0;
+      for (NSRange* range = _fst; range; range = range->next) {
+        int next = range->l;
+        while (excluded && excluded->u < next)
+          excluded = excluded->next;
+        while (excluded && excluded->l <= range->u) {
+          if (next < excluded->l) {
+            NSRange* kept = new NSRange(next, excluded->l - 1);
+            if (last)
+              last->next = kept;
+            else
+              first = kept;
+            last = kept;
+            size += kept->u - kept->l + 1;
+            ++len;
+          }
+          if (excluded->u >= range->u) {
+            next = range->u + 1;
+            break;
+          }
+          next = std::max(next, excluded->u + 1);
+          excluded = excluded->next;
+        }
+        if (next <= range->u) {
+          NSRange* kept = new NSRange(next, range->u);
+          if (last)
+            last->next = kept;
+          else
+            first = kept;
+          last = kept;
+          size += kept->u - kept->l + 1;
+          ++len;
+        }
+      }
+      clear();
+      _fst = first;
+      _lst = last;
+      _size = size;
+      _len = len;
     }
 
     forceinline void
@@ -978,38 +1030,37 @@ namespace Gecode { namespace String {
 
     forceinline void
     NSIntSet::shift(int n) {
-      if (this->empty())
+      if (this->empty() || n == 0)
         return;
-      for (NSRange* p = this->_fst; p; p = p->next) {
-        if (p->l + n > DashedString::_MAX_STR_ALPHA) {
-          for (NSRange* q = p->next; p; q = p->next) {
-            this->_len--;
-            this->_size -= p->u - p->l + 1;
-            delete p;
-            p = q;
-          }
-          return;
+      NSRange* first = NULL;
+      NSRange* last = NULL;
+      int size = 0;
+      int len = 0;
+      const long max = DashedString::_MAX_STR_ALPHA;
+      for (NSRange* range = _fst; range; ) {
+        NSRange* next = range->next;
+        const long l = long(range->l) + n;
+        const long u = long(range->u) + n;
+        if (u < 0 || l > max) {
+          delete range;
+        } else {
+          range->l = std::max(l, 0L);
+          range->u = std::min(u, max);
+          range->next = NULL;
+          if (last)
+            last->next = range;
+          else
+            first = range;
+          last = range;
+          size += range->u - range->l + 1;
+          ++len;
         }
-        p->l += n;
-        p->u += n;
-        if (p->l < 0) {
-          if (p->u < 0) {
-            this->_len--;
-            this->_size -= p->u - p->l + 1;
-            this->_fst = p->next;
-            delete p;
-          }
-          else {
-            p->l = 0;
-            this->_size += n;
-          }
-        }
-        if (p->u + n >= DashedString::_MAX_STR_ALPHA) {
-          this->_size -= p->u + n - DashedString::_MAX_STR_ALPHA;
-          p->u = DashedString::_MAX_STR_ALPHA;
-          return;
-        }
+        range = next;
       }
+      _fst = first;
+      _lst = last;
+      _size = size;
+      _len = len;
     }
 
     forceinline
@@ -1256,13 +1307,13 @@ namespace Gecode { namespace String {
 
     forceinline explicit
     NSBlocks(const DSBlocks& blocks): std::vector<NSBlock>() {
+      reserve(blocks.length());
       int n = 0;
       for (int i = 0; i < blocks.length(); ++i) {
-        const NSBlock& b = NSBlock(blocks.at(i));
-        n += b.l;
+        emplace_back(blocks.at(i));
+        n += back().l;
         if (n > DashedString::_MAX_STR_LENGTH)
           throw OutOfLimitsDS("NSBlocks::NSBlocks");
-        this->push_back(b);
       }
     }
     
@@ -1296,8 +1347,8 @@ namespace Gecode { namespace String {
         push_back(NSBlock());
         return;
       }
-      unsigned prev_c = s[0] + 1;
-      for (unsigned c : s) {
+      unsigned prev_c = static_cast<unsigned char>(s[0]) + 1;
+      for (unsigned char c : s) {
         if (c == prev_c) {
           this->back().u++;
           this->back().l++;
@@ -1376,38 +1427,38 @@ namespace Gecode { namespace String {
 
     forceinline void
     push_front(const NSBlock& b) {
-      NSBlocks v(this->size() + 1);
-      for (unsigned i = 0; i < this->size(); ++i)
-        v[i + 1] = this->at(i);
-      *this = v;
-      this->front() = b;
+      NSBlock front(b);
+      insert(begin(), front);
     }
 
     forceinline void
     normalize() {
-      // std::cerr << *this << "\n";
-      int n = size(), i = 0;
-      long M = DashedString::_MAX_STR_LENGTH;
-      while (i < n) {
-        //std::cerr << at(i) << std::endl;
-        if (at(i).null()) {
-          erase(begin() + i);
-          n--;
+      int n = size();
+      int write = 0;
+      const long M = DashedString::_MAX_STR_LENGTH;
+      for (int read = 0; read < n; ++read) {
+        const NSBlock& block = at(read);
+        if (block.null()) {
+          if (write > 0 && !block.S.empty()) {
+            NSBlock& previous = at(write - 1);
+            previous.l = std::min(long(previous.l) + block.l, M);
+            previous.u = std::min(long(previous.u) + block.u, M);
+          }
           continue;
         }
-        while (i < n - 1 && (at(i + 1).null() || at(i).S == at(i + 1).S)) {
-          if (!at(i + 1).S.empty()) {
-            at(i).l = std::min(long(at(i).l) + at(i + 1).l, M);
-            at(i).u = std::min(long(at(i).u) + at(i + 1).u, M);
-          }
-          erase(begin() + i + 1);
-          n--;
+        if (write > 0 && at(write - 1).S == block.S) {
+          NSBlock& previous = at(write - 1);
+          previous.l = std::min(long(previous.l) + block.l, M);
+          previous.u = std::min(long(previous.u) + block.u, M);
+        } else {
+          if (write != read)
+            at(write) = block;
+          ++write;
         }
-        ++i;
       }
-      if (empty())
-        *this = NSBlocks(1, NSBlock());
-      // std::cerr << *this << "\n";
+      resize(write);
+      if (write == 0)
+        push_back(NSBlock());
       assert (is_normalized());
     }
     
@@ -1430,13 +1481,30 @@ namespace Gecode { namespace String {
 
     forceinline void
     concat(const NSBlocks& y, NSBlocks& z) const {
+      if (&z == &y) {
+        NSBlocks right(y);
+        z = *this;
+        z.insert(z.end(), right.begin(), right.end());
+        return;
+      }
       z = *this;
       z.insert(z.end(), y.begin(), y.end());
     }
 
     forceinline void
     extend(const NSBlocks& x) {
+      if (this == &x) {
+        NSBlocks copy(x);
+        this->insert(this->end(), copy.begin(), copy.end());
+        return;
+      }
       this->insert(this->end(), x.begin(), x.end());
+    }
+
+    forceinline void
+    extend(const DSBlocks& blocks) {
+      for (int i = 0; i < blocks.length(); ++i)
+        emplace_back(blocks.at(i));
     }
 
     forceinline void

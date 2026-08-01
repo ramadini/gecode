@@ -2123,6 +2123,32 @@ namespace Gecode { namespace String {
   }
 
   forceinline void
+  DashedString::refresh_cardinality(Space& h) {
+    long l = 0;
+    long u = 0;
+    for (int i = 0; i < length(); ++i) {
+      l += at(i).l;
+      u += at(i).u;
+    }
+    if (l > _MAX_STR_LENGTH) {
+      h.fail();
+      return;
+    }
+    u = min(u, long(_MAX_STR_LENGTH));
+    _min_length = max(_min_length, int(l));
+    _max_length = min(_max_length, int(u));
+    if (_min_length > _max_length) {
+      h.fail();
+      return;
+    }
+    if (length() == 1) {
+      at(0).l = _min_length;
+      at(0).u = _max_length;
+    }
+    assert (is_normalized());
+  }
+
+  forceinline void
   DashedString::normalize(Space& h) {
     int l, u;
     _blocks.normalize(h, l, u);

@@ -71,7 +71,7 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   MatchNew::post(Home home, StringView x, string re, Gecode::Int::IntView i) {  
-    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();
+    std::unique_ptr<RegEx> regex = RegExParser(".*(" + re + ").*").parse();
     if (regex->has_empty()) {
       rel(home, i, IRT_EQ, 1);
       return ES_OK;

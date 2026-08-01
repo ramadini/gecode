@@ -676,7 +676,18 @@ namespace Gecode { namespace String {
       else
         x.at(pair.first).update(h, pair.second[0]);
     }
-    x.normalize(h);
+    bool normalize = false;
+    for (auto& pair : up) {
+      int i = pair.first;
+      const DSBlock& block = x.at(i);
+      normalize |= block.null() ||
+        (i > 0 && x.at(i - 1).S == block.S) ||
+        (i + 1 < x.length() && block.S == x.at(i + 1).S);
+    }
+    if (normalize)
+      x.normalize(h);
+    else
+      x.refresh_cardinality(h);
   }  
 
   forceinline void
@@ -777,7 +788,9 @@ namespace Gecode { namespace String {
   }
 
   forceinline void
-  refine_concat(Space& home, NSBlocks& xn, vec<DashedString*> x, uvec up) {
+  refine_concat(
+    Space& home, NSBlocks& xn, const vec<DashedString*>& x, uvec up
+  ) {
     // std::cerr << "refine_concat " << xn << '\n';
     // for (auto& px:x) std::cerr<<"--> "<<*px<<'\n';
     int l = x.size() - 1;
@@ -926,7 +939,9 @@ namespace Gecode { namespace String {
   }
 
   forceinline bool
-  sweep_concat(Space& h, NSBlocks& xn, vec<DashedString*> x, DashedString& y) {
+  sweep_concat(
+    Space& h, NSBlocks& xn, const vec<DashedString*>& x, DashedString& y
+  ) {
     uvec up1;
     if (!sweep_x
     <DSBlock, DSBlocks, NSBlock, NSBlocks>(h, y.blocks(), xn, up1))

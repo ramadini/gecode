@@ -137,6 +137,7 @@ public:
       c = brancher.choice(*this);
       std::cerr << "Here!\n";
       brancher.commit(*this, *c, 0);
+      delete c;
       std::cerr << "x[0]: " << x[0] << std::endl;
     }
     assert (x[0].pdomain()->val() == "da");
@@ -144,6 +145,7 @@ public:
     while (!x[1].assigned()) {
          c = brancher.choice(*this);
          brancher.commit(*this, *c, 0);
+         delete c;
          std::cerr << "x[1]: " << x[1] << std::endl;
       }
     assert (x[1].pdomain()->val() == "");
@@ -720,7 +722,7 @@ public:
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
-    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
+    std::unique_ptr<RegEx> regex = RegExParser(".*(" + re + ").*").parse();
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     assert(match(*this, x, i, R, R1, 1).propagate(*this, 0) == ES_FAILED);
@@ -745,7 +747,7 @@ public:
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
-    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
+    std::unique_ptr<RegEx> regex = RegExParser(".*(" + re + ").*").parse();
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     double lx = x.domain().logdim();
@@ -776,7 +778,7 @@ public:
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
-    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
+    std::unique_ptr<RegEx> regex = RegExParser(".*(" + re + ").*").parse();
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     std::cerr << "===== After i = match(x, R) =====" << std::endl;
@@ -803,7 +805,7 @@ public:
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
-    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
+    std::unique_ptr<RegEx> regex = RegExParser(".*(" + re + ").*").parse();
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(*R1, x.may_chars());
@@ -829,7 +831,7 @@ public:
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
-    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
+    std::unique_ptr<RegEx> regex = RegExParser(".*(" + re + ").*").parse();
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(*R1, x.may_chars());
@@ -856,7 +858,7 @@ public:
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
-    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
+    std::unique_ptr<RegEx> regex = RegExParser(".*(" + re + ").*").parse();
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(*R1, x.may_chars());
@@ -889,7 +891,7 @@ public:
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
-    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
+    std::unique_ptr<RegEx> regex = RegExParser(".*(" + re + ").*").parse();
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(*R1, x.may_chars());
@@ -917,7 +919,7 @@ public:
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
-    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();   
+    std::unique_ptr<RegEx> regex = RegExParser(".*(" + re + ").*").parse();
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(*R1, x.may_chars());
@@ -955,10 +957,10 @@ public:
     DSIntSet set(*this, values);
 
     set.remove(*this, 'c');
-  NSIntSet remaining;
-  remaining.add('a');
-  remaining.add('e');
-  assert(set == remaining);
+    NSIntSet remaining;
+    remaining.add('a');
+    remaining.add('e');
+    assert(set == remaining);
     assert(set.size() == 2);
     assert(set.min() == 'a' && set.max() == 'e');
 
@@ -969,6 +971,242 @@ public:
     set.remove(*this, 'e');
     assert(set.empty());
     assert(set.ranges() == NULL);
+  }
+
+  void test33() {
+    std::cerr << "\n*** Test 33 ***" << std::endl;
+    NSBlock null_with_chars(NSIntSet('x'), 2, 3);
+    null_with_chars.u = 0;
+    NSBlocks blocks({
+      null_with_chars,
+      NSBlock(NSIntSet('a'), 1, 2),
+      null_with_chars,
+      NSBlock(NSIntSet('a'), 3, 4),
+      NSBlock(),
+      NSBlock(NSIntSet('b'), DashedString::_MAX_STR_LENGTH - 2,
+              DashedString::_MAX_STR_LENGTH - 1),
+      NSBlock(NSIntSet('b'), 10, 20)
+    });
+
+    blocks.normalize();
+    assert(blocks.length() == 2);
+    assert(blocks.at(0) == NSBlock(NSIntSet('a'), 6, 6));
+    assert(blocks.at(1) == NSBlock(NSIntSet('b'),
+                                  DashedString::_MAX_STR_LENGTH,
+                                  DashedString::_MAX_STR_LENGTH));
+
+    NSBlocks empty({NSBlock(), null_with_chars});
+    empty.normalize();
+    assert(empty.length() == 1 && empty.at(0).null());
+    assert(empty.at(0).S.empty() && empty.at(0).l == 0 && empty.at(0).u == 0);
+  }
+
+  void test34() {
+    std::cerr << "\n*** Test 34 ***" << std::endl;
+    NSBlocks left("ab");
+    NSBlocks right("cd");
+    left.concat(right, right);
+    assert(right.val() == "abcd");
+
+    NSBlocks same("ab");
+    same.concat(same, same);
+    assert(same.val() == "abab");
+
+    NSBlocks extended("ab");
+    extended.extend(extended);
+    assert(extended.val() == "abab");
+
+    NSBlocks prefixed("ab");
+    prefixed.push_front(prefixed.back());
+    assert(prefixed.val() == "bab");
+  }
+
+  void test35() {
+    std::cerr << "\n*** Test 35 ***" << std::endl;
+    const int max = DashedString::_MAX_STR_ALPHA;
+
+    NSIntSet upper(max - 2, max);
+    upper.shift(1);
+    assert(upper.consistent());
+    assert(upper.length() == 1 && upper.size() == 2);
+    assert(upper.min() == max - 1 && upper.max() == max);
+
+    NSIntSet lower(0, 2);
+    lower.shift(-1);
+    assert(lower.consistent());
+    assert(lower.length() == 1 && lower.size() == 2);
+    assert(lower.min() == 0 && lower.max() == 1);
+
+    NSIntSet sparse(1);
+    sparse.add(max - 1);
+    sparse.shift(2);
+    assert(sparse.consistent());
+    assert(sparse.length() == 1 && sparse.size() == 1);
+    assert(sparse.min() == 3 && sparse.max() == 3);
+
+    NSIntSet removed(0, 1);
+    removed.shift(-2);
+    assert(removed.consistent() && removed.empty());
+
+    NSIntSet letters('A', 'Z');
+    letters.shift(32);
+    assert(letters == NSIntSet('a', 'z'));
+    letters.shift(-32);
+    assert(letters == NSIntSet('A', 'Z'));
+  }
+
+  void test36() {
+    std::cerr << "\n*** Test 36 ***" << std::endl;
+    const int max = DashedString::_MAX_STR_ALPHA;
+
+    NSIntSet edge(0);
+    edge.include(NSIntSet(2, max));
+    NSIntSet edge_comp = edge.comp();
+    assert(edge_comp.consistent());
+    assert(edge_comp == NSIntSet(1));
+
+    NSIntSet middle(2, 3);
+    NSIntSet middle_comp = middle.comp();
+    assert(middle_comp.consistent());
+    assert(middle_comp.length() == 2);
+    assert(middle_comp.size() == max - 3 + 2);
+    assert(middle_comp.first()->l == 0 && middle_comp.first()->u == 1);
+    assert(middle_comp.last()->l == 4 && middle_comp.last()->u == max);
+
+    NSIntSet all = NSIntSet::top();
+    assert(all.comp().empty());
+    NSIntSet empty;
+    assert(empty.comp() == all);
+
+    all.exclude(edge);
+    assert(all.consistent());
+    assert(all == NSIntSet(1));
+  }
+
+  void test37() {
+    std::cerr << "\n*** Test 37 ***" << std::endl;
+    std::string bytes;
+    bytes += static_cast<char>(0x80);
+    bytes += static_cast<char>(0x80);
+    bytes += static_cast<char>(0xff);
+
+    NSBlocks blocks(bytes);
+    assert(blocks.length() == 2);
+    assert(blocks.at(0) == NSBlock(NSIntSet(0x80), 2, 2));
+    assert(blocks.at(1) == NSBlock(NSIntSet(0xff), 1, 1));
+    assert(blocks.val() == bytes);
+
+    const signed char first = static_cast<signed char>(0x80);
+    const signed char last = static_cast<signed char>(0xff);
+    assert(NSIntSet(first) == NSIntSet(0x80));
+    assert(NSIntSet(first, last) == NSIntSet(0x80, 0xff));
+  }
+
+  void test38() {
+    std::cerr << "\n*** Test 38 ***" << std::endl;
+    const int universe = 6;
+    for (int left = 0; left < (1 << universe); ++left) {
+      for (int right = 0; right < (1 << universe); ++right) {
+        NSIntSet values;
+        NSIntSet removed;
+        for (int value = 0; value < universe; ++value) {
+          if (left & (1 << value))
+            values.add(value);
+          if (right & (1 << value))
+            removed.add(value);
+        }
+        values.exclude(removed);
+        assert(values.consistent());
+        int expected_size = 0;
+        for (int value = 0; value < universe; ++value) {
+          expected_size += static_cast<bool>(
+            (left & ~right) & (1 << value));
+          assert(values.in(value) ==
+                 static_cast<bool>((left & ~right) & (1 << value)));
+        }
+        assert(values.size() == expected_size);
+      }
+    }
+
+    NSIntSet self(1, 3);
+    self.exclude(self);
+    assert(self.consistent() && self.empty());
+  }
+
+  void test39() {
+    std::cerr << "\n*** Test 39 ***" << std::endl;
+    StringVar x(*this, NSIntSet('a', 'b'), 1, 2);
+
+    BoolVar eqv(*this, 0, 1);
+    assert((ReEq<BoolView, RM_EQV>::post(*this, x, x, eqv) == ES_OK));
+    assert(eqv.one());
+
+    BoolVar imp(*this, 0, 1);
+    assert((ReEq<BoolView, RM_IMP>::post(*this, x, x, imp) == ES_OK));
+    assert(!imp.assigned());
+
+    BoolVar pmi(*this, 0, 1);
+    assert((ReEq<BoolView, RM_PMI>::post(*this, x, x, pmi) == ES_OK));
+    assert(pmi.one());
+  }
+
+  void test40() {
+    std::cerr << "\n*** Test 40 ***" << std::endl;
+
+    StringVar b(*this, NSIntSet('a', 'z'), 1, 1);
+    StringVar d(*this, NSIntSet('a', 'z'), 1, 1);
+    StringVar f(*this, NSIntSet('a', 'z'), 1, 1);
+    StringVarArgs high_arity;
+    high_arity << StringVar(*this, "a") << b << StringVar(*this, "c")
+               << d << StringVar(*this, "e") << f << StringVar(*this, "g");
+    gconcat(*this, high_arity, StringVar(*this, "abcdefg"));
+
+    StringVar repeated(*this, NSIntSet('x', 'y'), 1, 1);
+    StringVarArgs repeated_args;
+    repeated_args << repeated << StringVar(*this, "-") << repeated;
+    gconcat(*this, repeated_args, StringVar(*this, "x-x"));
+
+    StringVar self(*this, NSIntSet('a', 'b'), 0, 3);
+    StringVarArgs self_args;
+    self_args << StringVar(*this, "") << self << StringVar(*this, "");
+    gconcat(*this, self_args, self);
+
+    assert(status() != SS_FAILED);
+    assert(b.assigned() && b.val() == "b");
+    assert(d.assigned() && d.val() == "d");
+    assert(f.assigned() && f.val() == "f");
+    assert(repeated.assigned() && repeated.val() == "x");
+  }
+
+  void test41() {
+    std::cerr << "\n*** Test 41 ***" << std::endl;
+
+    ViewArray<StringView> selected(*this, 1);
+    selected[0] = StringVar(*this, NSIntSet('a', 'b'), 1, 1);
+    None_LLLL selected_brancher(*this, selected);
+    const Choice* selected_choice = selected_brancher.choice(*this);
+    selected[0].pdomain()->update(*this, "a");
+    assert(selected_brancher.commit(*this, *selected_choice, 0) == ES_OK);
+    assert(selected_brancher.commit(*this, *selected_choice, 1) == ES_FAILED);
+    delete selected_choice;
+
+    ViewArray<StringView> excluded(*this, 1);
+    excluded[0] = StringVar(*this, NSIntSet('a', 'b'), 1, 1);
+    None_LLLL excluded_brancher(*this, excluded);
+    const Choice* excluded_choice = excluded_brancher.choice(*this);
+    excluded[0].pdomain()->update(*this, "b");
+    assert(excluded_brancher.commit(*this, *excluded_choice, 0) == ES_FAILED);
+    assert(excluded_brancher.commit(*this, *excluded_choice, 1) == ES_OK);
+    delete excluded_choice;
+
+    ViewArray<StringView> length(*this, 1);
+    length[0] = StringVar(*this, NSIntSet('a'), 0, 2);
+    None_LLLL length_brancher(*this, length);
+    const Choice* length_choice = length_brancher.choice(*this);
+    length[0].pdomain()->update(*this, "a");
+    assert(length_brancher.commit(*this, *length_choice, 0) == ES_FAILED);
+    assert(length_brancher.commit(*this, *length_choice, 1) == ES_OK);
+    delete length_choice;
   }
 
 };
@@ -1011,5 +1249,14 @@ int main() {
   run(&StrTest::test30);
   run(&StrTest::test31);
   run(&StrTest::test32);
+  run(&StrTest::test33);
+  run(&StrTest::test34);
+  run(&StrTest::test35);
+  run(&StrTest::test36);
+  run(&StrTest::test37);
+  run(&StrTest::test38);
+  run(&StrTest::test39);
+  run(&StrTest::test40);
+  run(&StrTest::test41);
   return 0;
 }

@@ -384,6 +384,8 @@ namespace Gecode { namespace String {
 
   void norm_update(Space& h, NSBlocks& v);
 
+  void refresh_cardinality(Space& h);
+
   void normalize(Space& h);
 
   bool check_equate(const DashedString& that) const;

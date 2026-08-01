@@ -1559,10 +1559,10 @@ gecode/flatzinc/lexer.yy.cpp: \
 	flex -ogecode/flatzinc/lexer.yy.cpp \
 		$(top_srcdir)/gecode/flatzinc/lexer.lxx
 
-gecode/flatzinc/parser.tab.hh gecode/flatzinc/parser.tab.cpp: \
+gecode/flatzinc/parser.tab.hh gecode/flatzinc/parser.tab.cpp &: \
 	$(top_srcdir)/gecode/flatzinc/parser.yxx
-	bison -t -o gecode/flatzinc/parser.tab.cpp -d $<
-	mv gecode/flatzinc/parser.tab.hpp gecode/flatzinc/parser.tab.hh
+	bison -t -o gecode/flatzinc/parser.tab.cpp \
+		--defines=gecode/flatzinc/parser.tab.hh $<
 else
 ifneq "$(top_srcdir)" "."
 gecode/flatzinc/lexer.yy.cpp: $(top_srcdir)/gecode/flatzinc/lexer.yy.cpp

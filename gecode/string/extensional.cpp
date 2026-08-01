@@ -16,7 +16,7 @@ namespace Gecode {
 
   void
   extensional(Home home, StringVar x, std::string regex, VarArgs& v) {
-    String::RegEx* r = String::RegExParser(regex).parse();
+    std::unique_ptr<String::RegEx> r = String::RegExParser(regex).parse();
     if (Gecode::String::DashedString::_DECOMP_REGEX)
       r->post(home, x, v);
     else
@@ -25,7 +25,7 @@ namespace Gecode {
 
   void
   extensional(Home home, StringVar x, std::string regex) {
-    String::RegEx* r = String::RegExParser(regex).parse();
+    std::unique_ptr<String::RegEx> r = String::RegExParser(regex).parse();
     // std::cerr << "x = " << x << '\n';
     // std::cerr << "Expression: " << r->str() << '\n';
     // std::cerr << "DFA: " << r->dfa() << '\n';
@@ -64,7 +64,7 @@ namespace Gecode {
   extensional(
     Home home, StringVar x, std::string regex, BoolVar b, ReifyMode rm = RM_EQV
   ) {
-    String::RegEx* r = String::RegExParser(regex).parse();
+    std::unique_ptr<String::RegEx> r = String::RegExParser(regex).parse();
     // std::cerr << "Expression: " << r->str() << '\n';
     // std::cerr << "DFA: " << r->dfa() << '\n';
     // std::cerr << "Reg.: " << r->reg() << '\n';

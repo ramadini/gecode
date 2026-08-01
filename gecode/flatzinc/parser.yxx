@@ -67,7 +67,7 @@ using namespace Gecode;
 using namespace Gecode::FlatZinc;
 using namespace Gecode::String;
 #include <gecode/string/ext/parse-reg.hpp>
-vector<pair<AST::StringVar*, RegEx*>> REGEX;
+vector<pair<AST::StringVar*, unique_ptr<RegEx>>> REGEX;
 
 void yyerror(void* parm, const char *str) {
   ParserState* pp = static_cast<ParserState*>(parm);
@@ -313,7 +313,7 @@ int getBaseStringVar(ParserState* pp, int i) {
 void initfg(ParserState* pp) {
   if (!pp->hadError) {
     // Unfolding regular expressions.
-    for (auto x : REGEX)
+    for (auto& x : REGEX)
       x.second->add(x.first, pp);
     pp->fg->init(pp->intvars.size(),
                  pp->boolvars.size(),
@@ -321,6 +321,7 @@ void initfg(ParserState* pp) {
                  pp->floatvars.size(),
                  pp->stringvars.size());
   }
+  REGEX.clear();
   for (unsigned int i=0; i<pp->intvars.size(); i++) {
     if (!pp->hadError) {
       try {
@@ -1865,7 +1866,7 @@ constraint_item :
           } 
           else if (cid=="str_reg" && DashedString::_DECOMP_REGEX && $4->a[0]->isStringVar()) {
             // FIXME: RegEx will be computed twice!
-            RegEx* r = RegExParser($4->a[1]->getString()).parse();
+            unique_ptr<RegEx> r = RegExParser($4->a[1]->getString()).parse();
             //std::cerr << "Expression: " << r->str() << '\n';
             //std::cerr << "DFA: " << r->dfa() << '\n';
             //std::cerr << "Reg.: " << r->reg() << '\n';
@@ -1874,7 +1875,7 @@ constraint_item :
             //std::cerr << r->intro_vars() << "\n";
             if (r->intro_vars()) {
               AST::StringVar* x = dynamic_cast<AST::StringVar*>($4->a[0]);
-              REGEX.push_back(pair<AST::StringVar*, RegEx*>(x, r));
+              REGEX.emplace_back(x, std::move(r));
             }
             else
               pp->constraints.push_back(new ConExpr($2, $4, $6));

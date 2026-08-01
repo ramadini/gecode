@@ -35,8 +35,8 @@
    especially those whose name start with YY_ or yy_.  They are
    private implementation details that can be changed or removed.  */
 
-#ifndef YY_YY_GECODE_FLATZINC_PARSER_TAB_HPP_INCLUDED
-# define YY_YY_GECODE_FLATZINC_PARSER_TAB_HPP_INCLUDED
+#ifndef YY_YY_GECODE_FLATZINC_PARSER_TAB_HH_INCLUDED
+# define YY_YY_GECODE_FLATZINC_PARSER_TAB_HH_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 1
@@ -107,7 +107,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 565 "gecode/flatzinc/parser.yxx"
+#line 566 "gecode/flatzinc/parser.yxx"
  int iValue; char* sValue; bool bValue; double dValue;
          std::vector<int>* setValue;
          Gecode::FlatZinc::AST::SetLit* setLit;
@@ -126,7 +126,7 @@ union YYSTYPE
          Gecode::FlatZinc::AST::Array* argVec;
        
 
-#line 130 "gecode/flatzinc/parser.tab.hpp"
+#line 130 "gecode/flatzinc/parser.tab.hh"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -140,4 +140,4 @@ typedef union YYSTYPE YYSTYPE;
 int yyparse (void *parm);
 
 
-#endif /* !YY_YY_GECODE_FLATZINC_PARSER_TAB_HPP_INCLUDED  */
+#endif /* !YY_YY_GECODE_FLATZINC_PARSER_TAB_HH_INCLUDED  */

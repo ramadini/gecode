@@ -23,22 +23,25 @@ namespace Gecode { namespace String {
   }
 
   forceinline ExecStatus
-  Eq::propagate(Space& home, const ModEventDelta& m) {
+  Eq::propagate(Space& home, const ModEventDelta&) {
     // std::cerr<<"\nEq::propagate "<<x0<<" = "<<x1<<std::endl;
     GECODE_ME_CHECK(x0.eq(home, x1));
     if (home.failed())
       return ES_FAILED;
     // std::cerr<<"propagated: "<<x0<<" = "<<x1<<std::endl;
     assert (x0.pdomain()->is_normalized() && x1.pdomain()->is_normalized());
-    switch (x0.assigned() + x1.assigned()) {
-      case 2:
-        assert (x0.val() == x1.val());
-        return home.ES_SUBSUMED(*this);
-      case 1:
-        return propagate(home, m);
-      default:
-        return ES_FIX;
+    if (x0.assigned()) {
+      if (!x1.assigned())
+        GECODE_ME_CHECK(x1.eq(home, x0.val()));
+      assert (x0.val() == x1.val());
+      return home.ES_SUBSUMED(*this);
     }
+    if (x1.assigned()) {
+      GECODE_ME_CHECK(x0.eq(home, x1.val()));
+      assert (x0.val() == x1.val());
+      return home.ES_SUBSUMED(*this);
+    }
+    return ES_FIX;
   }
 
 }}

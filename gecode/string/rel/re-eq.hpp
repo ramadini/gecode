@@ -47,7 +47,10 @@ namespace Gecode { namespace String {
   template<class CtrlView, ReifyMode rm>
   forceinline ExecStatus
   ReEq<CtrlView,rm>::post(Home home, StringView x0, StringView x1, CtrlView b) {
-    (void) new (home) ReEq<CtrlView, rm>(home, x0, x1, b);
+    if (!x0.same(x1))
+      (void) new (home) ReEq<CtrlView, rm>(home, x0, x1, b);
+    else if (rm != RM_IMP)
+      GECODE_ME_CHECK(b.one(home));
     return ES_OK;
   }
 

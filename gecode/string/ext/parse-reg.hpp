@@ -24,6 +24,7 @@
 
 #include <gecode/minimodel.hh>
 #include <gecode/flatzinc/parser.hh>
+#include <memory>
 
 using namespace Gecode::FlatZinc;
 
@@ -87,10 +88,11 @@ namespace Gecode { namespace String {
 
   class ConcatEx: public RegEx {
   private:
-    RegEx* lhs;
-    RegEx* rhs;
+    std::unique_ptr<RegEx> lhs;
+    std::unique_ptr<RegEx> rhs;
   public:
-    ConcatEx(RegEx* x, RegEx* y): lhs(x), rhs(y) {}
+    ConcatEx(std::unique_ptr<RegEx> x, std::unique_ptr<RegEx> y)
+    : lhs(std::move(x)), rhs(std::move(y)) {}
     string str() const { return "(" + lhs->str() + " ++ " + rhs->str() + ")"; }
     bool decomp() const { return lhs->decomp() && rhs->decomp(); }
     bool empty() const { return lhs->empty() && rhs->empty(); }
@@ -197,15 +199,15 @@ namespace Gecode { namespace String {
         return lhs->reg() + rhs->reg();
       }
     }
-    ~ConcatEx() { delete lhs; delete rhs; }
   };
 
   class InterEx: public RegEx {
     private:
-      RegEx* lhs;
-      RegEx* rhs;
+      std::unique_ptr<RegEx> lhs;
+      std::unique_ptr<RegEx> rhs;
     public:
-      InterEx(RegEx* x, RegEx* y): lhs(x), rhs(y) {}
+      InterEx(std::unique_ptr<RegEx> x, std::unique_ptr<RegEx> y)
+      : lhs(std::move(x)), rhs(std::move(y)) {}
       string str() const { return "(" + lhs->str() + " & " + rhs->str() + ")"; }
       bool decomp() const { return lhs->decomp() && rhs->decomp(); }
       bool empty() const { return lhs->empty() && rhs->empty(); }
@@ -273,15 +275,15 @@ namespace Gecode { namespace String {
         GECODE_NEVER;
         return REG();
       }
-      ~InterEx() { delete lhs; delete rhs; }
   };
 
   class UnionEx: public RegEx {
   private:
-    RegEx* lhs;
-    RegEx* rhs;
+    std::unique_ptr<RegEx> lhs;
+    std::unique_ptr<RegEx> rhs;
   public:
-    UnionEx(RegEx* x, RegEx* y): lhs(x), rhs(y) {}
+    UnionEx(std::unique_ptr<RegEx> x, std::unique_ptr<RegEx> y)
+    : lhs(std::move(x)), rhs(std::move(y)) {}
     string str() const { return "(" + lhs->str() + " | " + rhs->str() + ")"; }
     bool decomp()  const { return lhs->decomp() && rhs->decomp(); }
     bool empty() const { return lhs->empty() && rhs->empty(); }
@@ -368,14 +370,13 @@ namespace Gecode { namespace String {
       );
     }
     REG reg() const { return lhs->reg() | rhs->reg(); }
-    ~UnionEx() { delete lhs; delete rhs; }
   };
 
   class StarEx: public RegEx {
   private:
-    RegEx* base;
+    std::unique_ptr<RegEx> base;
   public:
-    StarEx(RegEx* b): base(b) {};
+    StarEx(std::unique_ptr<RegEx> b): base(std::move(b)) {};
     string str() const { return "(" + base->str() + ")^*"; }
     bool decomp() const {
       return !base->has_star() && !(has_union() && has_concat());
@@ -469,7 +470,6 @@ namespace Gecode { namespace String {
       pp->constraints.push_back(new ConExpr("str_dfa", ce, NULL));
     }
     REG reg() const { return *(base->reg()); }
-    ~StarEx() { delete base; }
   };
 
   class CharEx: public RegEx {
@@ -597,56 +597,58 @@ namespace Gecode { namespace String {
         throw std::runtime_error("Ill-formed expression\n");
     }
 
-    RegEx*
+    std::unique_ptr<RegEx>
     term() {
       // std::cerr << "*** term ***\n";
-      RegEx* curr = new EmptyEx();
+      std::unique_ptr<RegEx> curr(new EmptyEx());
       char c = top();
       if (c == '|' || c == '&')
         throw std::runtime_error("Ill-formed expression\n");
       while (more() && c != ')' && c != '|' && c != '&') {
-        RegEx* next = factor();
-        curr = new ConcatEx(curr, next);
+        std::unique_ptr<RegEx> next = factor();
+        curr.reset(new ConcatEx(std::move(curr), std::move(next)));
         c = top();
       }
       return curr;
     }
 
-    RegEx*
+    std::unique_ptr<RegEx>
     regex() {
       // std::cerr << "*** regex ***\n";
-      RegEx* curr = term();
+      std::unique_ptr<RegEx> curr = term();
       char c = top();
       if (more() && (c == '|' || c == '&')) {
         consume(c);
-        RegEx* next = regex();
+        std::unique_ptr<RegEx> next = regex();
         if (c == '|')
-          return new UnionEx(curr, next);
+          return std::unique_ptr<RegEx>(
+            new UnionEx(std::move(curr), std::move(next)));
         else
-          return new InterEx(curr, next);
+          return std::unique_ptr<RegEx>(
+            new InterEx(std::move(curr), std::move(next)));
       }
       else
         return curr;
     }
 
-    RegEx*
+    std::unique_ptr<RegEx>
     factor() {
       // std::cerr << "*** factor ***\n";
-      RegEx* b = base();
+      std::unique_ptr<RegEx> b = base();
       while (more() && top() == '*') {
         consume('*');
-        b = new StarEx(b);
+        b.reset(new StarEx(std::move(b)));
       }
       return b;
     }
 
-    RegEx*
+    std::unique_ptr<RegEx>
     base() {
       // std::cerr << "*** base ***" << top() << "\n";
       switch (top()) {
         case '(': {
           consume('(');
-          RegEx* r = regex();
+          std::unique_ptr<RegEx> r = regex();
           consume(')');
           return r;
         }
@@ -672,7 +674,7 @@ namespace Gecode { namespace String {
           char c = next();
           // std::cerr << c << ' ' << l << ' ' << u << '\n';
           if (c == ']')
-            return new RangeEx(l, u);
+            return std::unique_ptr<RegEx>(new RangeEx(l, u));
           else if (c == ',') {
           	string s = "";
           	int x = -1;
@@ -684,9 +686,10 @@ namespace Gecode { namespace String {
               }
               else if (i == ']') {
                 if (x == -1)
-                  return new RangeEx(l, u, stoi(s));
+                  return std::unique_ptr<RegEx>(new RangeEx(l, u, stoi(s)));
                 else
-                  return new RangeEx(l, u, x, stoi(s));
+                  return std::unique_ptr<RegEx>(
+                    new RangeEx(l, u, x, stoi(s)));
               }
               else
                 s += i;
@@ -698,7 +701,7 @@ namespace Gecode { namespace String {
         case '.': {
           consume('.');
           // FIXME: CharExacters of extended ASCII alphabet.
-          return new RangeEx(0, 255);
+          return std::unique_ptr<RegEx>(new RangeEx(0, 255));
         }
         case '\\': {
           consume(top());
@@ -713,10 +716,10 @@ namespace Gecode { namespace String {
             case '.':
             case '\\':
             case '\'':
-              return new CharEx(next(true));
+              return std::unique_ptr<RegEx>(new CharEx(next(true)));
             case '0':
               consume('0');
-              return new CharEx('\0');
+              return std::unique_ptr<RegEx>(new CharEx('\0'));
             default:
               throw std::runtime_error("Unescaped char " + char2int(top()));
           }
@@ -726,7 +729,7 @@ namespace Gecode { namespace String {
         case ']':
           throw std::runtime_error("Ill-formed expression");
       }
-      return new CharEx(next());
+      return std::unique_ptr<RegEx>(new CharEx(next()));
     }
 
   public:
@@ -734,8 +737,8 @@ namespace Gecode { namespace String {
     RegExParser(const string& in)
     : _open(0), _currI(0), _lastI(in.size()), _input(in) {}
 
-    RegEx* parse() {
-      RegEx* r = regex();
+    std::unique_ptr<RegEx> parse() {
+      std::unique_ptr<RegEx> r = regex();
       if (_open != 0)
         throw std::runtime_error("Unbalanced brackets");
       else if (more())

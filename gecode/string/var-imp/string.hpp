@@ -184,16 +184,20 @@ namespace Gecode { namespace String {
     vec<DashedString*> xs;
     bool b = !ds.known();
     vec<bool> bv;
-    NSBlocks xn;
+    NSBlocks blocks;
+    int n = 0;
+    for (auto& i : x)
+      n += i->ds.blocks().length();
+    blocks.reserve(n);
     for (auto& i : x) {
       DashedString& d = i->ds;
       d._changed = false;
       xs.push(&d);
-      xn.extend(NSBlocks(d.blocks()));
+      blocks.extend(d.blocks());
       bv.push(!d.known());
     }
     ds._changed = false;
-    if (sweep_concat(home, xn, xs, ds)) {
+    if (sweep_concat(home, blocks, xs, ds)) {
       ModEvent me = ME_STRING_NONE;
       if (b && ds._changed) {
         StringDelta d(true);

@@ -64,7 +64,7 @@ public:
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
-    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
+    std::unique_ptr<RegEx> regex = RegExParser(".*(" + re + ").*").parse();
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     std::cerr << "===== After i = match(x, R) =====" << std::endl;
@@ -95,7 +95,7 @@ public:
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
-    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();   
+    std::unique_ptr<RegEx> regex = RegExParser(".*(" + re + ").*").parse();
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(*R1, x.may_chars());
@@ -126,7 +126,7 @@ public:
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
-    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
+    std::unique_ptr<RegEx> regex = RegExParser(".*(" + re + ").*").parse();
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     std::cerr << "===== After i = match(x, R) =====" << std::endl;
@@ -157,7 +157,7 @@ public:
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
-    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();   
+    std::unique_ptr<RegEx> regex = RegExParser(".*(" + re + ").*").parse();
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(*R1, x.may_chars());
@@ -186,7 +186,7 @@ public:
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
-    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
+    std::unique_ptr<RegEx> regex = RegExParser(".*(" + re + ").*").parse();
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     std::cerr << "===== After i = match(x, R) =====" << std::endl;
@@ -215,7 +215,7 @@ public:
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
-    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();   
+    std::unique_ptr<RegEx> regex = RegExParser(".*(" + re + ").*").parse();
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(*R1, x.may_chars());
@@ -244,7 +244,7 @@ public:
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
-    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();    
+    std::unique_ptr<RegEx> regex = RegExParser(".*(" + re + ").*").parse();
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     std::cerr << "===== After i = match(x, R) =====" << std::endl;
@@ -273,7 +273,7 @@ public:
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
-    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();   
+    std::unique_ptr<RegEx> regex = RegExParser(".*(" + re + ").*").parse();
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(*R1, x.may_chars());
@@ -306,7 +306,7 @@ public:
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
-    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();   
+    std::unique_ptr<RegEx> regex = RegExParser(".*(" + re + ").*").parse();
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     matchNFA* R2 = new matchNFA(*R1, x.may_chars());
@@ -338,7 +338,7 @@ public:
     std::cerr << "x = " << x << std::endl;
     std::cerr << "i = " << i << std::endl;
     std::cerr << "R = " << re << std::endl;
-    String::RegEx* regex = RegExParser(".*(" + re + ").*").parse();   
+    std::unique_ptr<RegEx> regex = RegExParser(".*(" + re + ").*").parse();
     trimDFA* R = new trimDFA(regex->dfa());
     trimDFA* R1 = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());
     std::cerr << "===== After i = match(x, R) =====" << std::endl;
