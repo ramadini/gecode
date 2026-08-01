@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <cassert>
+#include <utility>
 #include <gecode/string.hh>
 #include <gecode/string/eq.hh>
 #include <gecode/string/nq.hh>
@@ -1209,6 +1210,65 @@ public:
     delete length_choice;
   }
 
+  void test42() {
+    std::cerr << "\n*** Test 42 ***" << std::endl;
+    const int universe = 6;
+    const auto from_mask = [universe](int mask) {
+      NSIntSet values;
+      for (int value = 0; value < universe; ++value)
+        if (mask & (1 << value))
+          values.add(value);
+      return values;
+    };
+    for (int left = 0; left < (1 << universe); ++left) {
+      for (int right = 0; right < (1 << universe); ++right) {
+        NSIntSet left_set = from_mask(left);
+        NSIntSet right_set = from_mask(right);
+
+        NSIntSet united(left_set);
+        united.include(right_set);
+        assert(united.consistent());
+
+        NSIntSet intersected(left_set);
+        intersected.intersect(right_set);
+        assert(intersected.consistent());
+
+        for (int value = 0; value < universe; ++value) {
+          assert(united.in(value) ==
+                 static_cast<bool>((left | right) & (1 << value)));
+          assert(intersected.in(value) ==
+                 static_cast<bool>((left & right) & (1 << value)));
+        }
+        assert(left_set.disjoint(right_set) == ((left & right) == 0));
+        assert(left_set.contains(right_set) == ((right & ~left) == 0));
+      }
+    }
+  }
+
+  void test43() {
+    std::cerr << "\n*** Test 43 ***" << std::endl;
+
+    NSIntSet source(1);
+    source.add(3);
+    NSRange* ranges = source.first();
+    NSIntSet moved(std::move(source));
+    assert(source.empty());
+    assert(moved.consistent() && moved.first() == ranges);
+
+    NSIntSet assigned(5);
+    assigned = std::move(moved);
+    assert(moved.empty());
+    assert(assigned.consistent() && assigned.first() == ranges);
+
+    NSBlocks blocks;
+    blocks.reserve(1);
+    blocks.push_back(NSBlock(assigned, 1, 1));
+    ranges = blocks.front().S.first();
+    blocks.push_back(NSBlock(NSIntSet(2), 1, 1));
+    assert(blocks.front().S.consistent());
+    assert(blocks.front().S.first() == ranges);
+  }
+
 };
 
 int main() {
@@ -1258,5 +1318,7 @@ int main() {
   run(&StrTest::test39);
   run(&StrTest::test40);
   run(&StrTest::test41);
+  run(&StrTest::test42);
+  run(&StrTest::test43);
   return 0;
 }

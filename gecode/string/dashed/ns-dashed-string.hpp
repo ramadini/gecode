@@ -98,10 +98,14 @@ namespace Gecode { namespace String {
     NSIntSet(int l, int u);
 
     NSIntSet(const NSIntSet& that);
+
+    NSIntSet(NSIntSet&& that) noexcept;
     
     bool consistent() const;
 
     NSIntSet& operator=(const NSIntSet& that);
+
+    NSIntSet& operator=(NSIntSet&& that) noexcept;
 
     bool operator==(const NSIntSet& that) const;
     bool operator==(const DSIntSet& that) const;
@@ -274,14 +278,25 @@ namespace Gecode { namespace String {
 
     forceinline bool
     NSIntSet::consistent() const {
-      int l = 0, s = 0;
+      if ((_fst == NULL) || (_lst == NULL))
+        return (_fst == NULL) && (_lst == NULL) &&
+          (_len == 0) && (_size == 0);
+      if ((_len <= 0) || (_size <= 0))
+        return false;
+      int length = 0, size = 0;
+      NSRange* previous = NULL;
+      NSRange* last = NULL;
       for (NSRange* p = _fst; p; p = p->next) {
-        if (p->l > p->u)
+        if ((p->l > p->u) ||
+            (previous && (previous->u >= p->l - 1)))
           return false;
-        ++l;
-        s += p->u - p->l + 1;    
+        ++length;
+        size += p->u - p->l + 1;
+        previous = p;
+        last = p;
       }
-      return l == _len && s == _size;     
+      return (last == _lst) && (_lst->next == NULL) &&
+        (length == _len) && (size == _size);
     }
 
     forceinline NSIntSet::iterator
@@ -1069,6 +1084,14 @@ namespace Gecode { namespace String {
       *this = that;
     }
 
+    forceinline
+    NSIntSet::NSIntSet(NSIntSet&& that) noexcept
+    : _fst(that._fst), _lst(that._lst),
+      _size(that._size), _len(that._len) {
+      that._fst = that._lst = NULL;
+      that._size = that._len = 0;
+    }
+
     forceinline NSIntSet&
     NSIntSet::operator=(const NSIntSet& that) {
       // std::cerr << *this << " = " << that << '\n';
@@ -1113,6 +1136,20 @@ namespace Gecode { namespace String {
         this->_lst = r;
         this->_size = that._size;
         this->_len  = that._len;
+      }
+      return *this;
+    }
+
+    forceinline NSIntSet&
+    NSIntSet::operator=(NSIntSet&& that) noexcept {
+      if (this != &that) {
+        clear();
+        _fst = that._fst;
+        _lst = that._lst;
+        _size = that._size;
+        _len = that._len;
+        that._fst = that._lst = NULL;
+        that._size = that._len = 0;
       }
       return *this;
     }
