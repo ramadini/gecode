@@ -23,34 +23,19 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   Length::propagate(Space& home, const ModEventDelta&) {
-    //std::cerr<<"\nLength::propagate "<<x0<<" "<<x1<<'\n';
-    int lx0 = x0.min_length(), lx1 = x1.min();
-    if (lx0 < lx1)
-      GECODE_ME_CHECK(x0.lb(home, lx1));
-    else if (lx0 > lx1)
-      GECODE_ME_CHECK(x1.gq(home, lx0));
-    int ux0 = x0.max_length(), ux1 = x1.max();
-    if (ux0 > ux1)
-      GECODE_ME_CHECK(x0.ub(home, ux1));
-    else if (ux0 < ux1)
-      GECODE_ME_CHECK(x1.lq(home, ux0));
-    // std::cerr<<"After Length: "<<x0<<" "<<x1<<'\n';
-    if (x0.min_length() == x0.max_length()) {
-      if (!x1.assigned())
-        GECODE_ME_CHECK(x1.eq(home, x0.min_length()));
+    do {
+      if (x0.min_length() < x1.min())
+        GECODE_ME_CHECK(x0.lb(home, x1.min()));
+      if (x0.max_length() > x1.max())
+        GECODE_ME_CHECK(x0.ub(home, x1.max()));
+      if (x1.min() < x0.min_length())
+        GECODE_ME_CHECK(x1.gq(home, x0.min_length()));
+      if (x1.max() > x0.max_length())
+        GECODE_ME_CHECK(x1.lq(home, x0.max_length()));
+    } while ((x0.min_length() < x1.min()) ||
+             (x0.max_length() > x1.max()));
+    if (x1.assigned())
       return home.ES_SUBSUMED(*this);
-    }
-    if (x1.assigned()) {
-      int x = x1.val();
-      if (x0.min_length() != x0.max_length()) {
-        GECODE_ME_CHECK(x0.lb(home, x));
-        GECODE_ME_CHECK(x0.ub(home, x));
-      }
-      assert (x0.min_length() == x0.max_length() && x0.max_length() == x && 
-              x0.pdomain()->is_normalized());
-      return home.ES_SUBSUMED(*this);
-    }
-    assert (x0.pdomain()->is_normalized());
     return ES_FIX;
   }
 
