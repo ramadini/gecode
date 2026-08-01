@@ -419,6 +419,7 @@ namespace Gecode { namespace String {
 
   bool increasing(Space&h, bool strict);
 
+  /// Return a shortest concrete string represented by this domain.
   string min_str() const;
 
   void commit(Space&, Branch::Level, Branch::Value, Branch::Block, unsigned);

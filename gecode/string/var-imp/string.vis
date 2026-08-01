@@ -26,12 +26,13 @@ Combine:        VAL=VAL, LEN=VAL, DOM=VAL
 
 [ModEvent]
 Name:           LEN
-Combine:        VAL=VAL, LEN=LEN, DOM=LEN
+# Keep queued full-domain propagators in place when both events are pending.
+Combine:        VAL=VAL, LEN=LEN, DOM=DOM
   /// Domain operation has changed the minimum or maximum string length
 
 [ModEvent]
 Name:           DOM=SUBSCRIBE
-Combine:        VAL=VAL, LEN=LEN, DOM=DOM
+Combine:        VAL=VAL, LEN=DOM, DOM=DOM
 
 [ModEventFooter]
 

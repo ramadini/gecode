@@ -1963,6 +1963,28 @@ namespace Gecode { namespace String {
     return s;
   }
 
+  forceinline string
+  DashedString::min_str() const {
+    int lower = 0;
+    for (int i = 0; i < _blocks.length(); ++i)
+      lower += at(i).l;
+
+    int remaining = _min_length - lower;
+    assert(remaining >= 0);
+    string value;
+    value.reserve(_min_length);
+    for (int i = 0; i < _blocks.length(); ++i) {
+      const DSBlock& block = at(i);
+      int length = block.l + min(remaining, block.u - block.l);
+      if (length > 0)
+        value += string(length, int2char(block.S.min()));
+      remaining -= length - block.l;
+    }
+    assert(remaining == 0);
+    assert(static_cast<int>(value.size()) == _min_length);
+    return value;
+  }
+
   forceinline bool
   DashedString::check_equate(const DashedString& that) const {
     if (_min_length > that._max_length

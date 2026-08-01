@@ -21,7 +21,7 @@ namespace Gecode { namespace String { namespace Branch {
     }
 
     forceinline Choice*
-    BlockMin_LLLM::choice(Space&) {
+    BlockMin_LLLM::choice(Space& home) {
       // std::cerr << "\nVar. choice\n";
       DashedString* p = x[start].pdomain();
       const DSBlock& b = p->at(p->first_na_block());
@@ -36,6 +36,10 @@ namespace Gecode { namespace String { namespace Branch {
         if (_FIRST)
           DashedString::_MUST_CHARS.include(x[i].must_chars());
         if (!x[i].assigned()) {
+          if (x[i].degree() == 0) {
+            complete(home, i);
+            continue;
+          }
           p = x[i].pdomain();
           const DSBlock& bi = p->at(p->first_na_block());
           double si = bi.logdim();

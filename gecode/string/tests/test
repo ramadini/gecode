@@ -1,36 +1,32 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+TEST_DIR=$(cd "$(dirname "$0")" && pwd)
+ROOT_DIR=$(cd "$TEST_DIR/../../.." && pwd)
+SOURCE=$1
+shift
+BUILD_DIR=$(mktemp -d "${TMPDIR:-/tmp}/gstrings-test.XXXXXX")
+trap 'rm -rf "$BUILD_DIR"' EXIT
 
 echo 'Compiling'
-time g++ -O0 -ggdb -pipe -Wall -Wno-switch -I/usr/local/include/gecode -std=c++11 -c -o $1.o $1
-if
-  [ $? -ne 0 ]
-then
-  echo 'Failed!'
-  exit 1
-fi
+time "${CXX:-g++}" -O0 -ggdb -pipe -Wall -Wno-switch -I"$ROOT_DIR" \
+  -std=c++11 -c -o "$BUILD_DIR/test.o" "$SOURCE"
 
 echo 'Linking'
-time g++  -o $1.out $1.o -std=c++11 -L/usr/local/lib \
--lgecodestring -lgecodeint -lgecodeset -lgecodedriver -lgecodesearch -lgecodeminimodel -lgecodekernel -lgecodesupport -pthread
-if
-  [ $? -ne 0 ]
-then
-  echo 'Failed!'
-  exit 1
-fi
+time "${CXX:-g++}" -o "$BUILD_DIR/test" "$BUILD_DIR/test.o" -std=c++11 \
+  -L"$ROOT_DIR" -Wl,-rpath,"$ROOT_DIR" \
+  -lgecodestring -lgecodeint -lgecodeset -lgecodedriver -lgecodesearch \
+  -lgecodeminimodel -lgecodekernel -lgecodesupport -pthread
 
 echo 'Executing'
-if
-  [[ "${@: -1}" == "val" ]] 
-then
-  time valgrind --gen-suppressions=yes --leak-check=full ./$1.out $2 $3
+last_argument=
+if [[ $# -gt 0 ]]; then
+  last_argument=${@: -1}
+fi
+if [[ $last_argument == val ]]; then
+  time valgrind --gen-suppressions=yes --leak-check=full \
+    "$BUILD_DIR/test" "$@"
 else
-  time ./$1.out $2 $3
+  time "$BUILD_DIR/test" "$@"
 fi
-if
-  [ $? -ne 0 ]
-then
-  echo 'Failed!'
-  exit 1
-fi
-rm $1.out $1.o

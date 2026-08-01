@@ -1,4 +1,11 @@
 #!/bin/sh
 
-LIB=/usr/local/share/gecode
-mzn2fzn-str --no-output-ozn --stdlib-dir ${LIB} -I ${LIB}/string -I ${LIB}/javascript "$@" 
+set -eu
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)
+
+exec "$SCRIPT_DIR/mzn2fzn-str" --no-output-ozn \
+	--stdlib-dir "$ROOT_DIR/gecode/flatzinc" \
+	-I "$ROOT_DIR/gecode/flatzinc/string" \
+	-I "$ROOT_DIR/gecode/flatzinc/javascript" "$@"

@@ -1,6 +1,10 @@
 #!/bin/sh
 
-FZN=$(mktemp)
-mzn2fzn-gstrings "$@" -o $FZN
-fzn-gstrings $FZN
-rm $FZN 2>/dev/null
+set -eu
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+FZN=$(mktemp "${TMPDIR:-/tmp}/mzn-gstrings.XXXXXX.fzn")
+trap 'rm -f "$FZN"' EXIT HUP INT TERM
+
+"$SCRIPT_DIR/mzn2fzn-gstrings" "$@" -o "$FZN"
+"$SCRIPT_DIR/fzn-gstrings" "$FZN"

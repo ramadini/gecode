@@ -151,6 +151,13 @@ namespace Gecode { namespace String { namespace Branch {
         return decision(pos, p, Level::BASE, Value::MUSTMIN);
     }
 
+    forceinline void
+    complete(Space& home, int pos) {
+      ModEvent me = x[pos].eq(home, x[pos].pdomain()->min_str());
+      assert(!me_failed(me));
+      (void) me;
+    }
+
   public:
 
     StringBrancher(Home home, ViewArray<String::StringView>& x0):

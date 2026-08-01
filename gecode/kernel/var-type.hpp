@@ -658,12 +658,12 @@ namespace Gecode { namespace String {
         (ME_STRING_LEN  << 16) |  // [ME_STRING_LEN ][ME_STRING_NONE]
         (ME_STRING_VAL  << 18) |  // [ME_STRING_LEN ][ME_STRING_VAL ]
         (ME_STRING_LEN  << 20) |  // [ME_STRING_LEN ][ME_STRING_LEN ]
-        (ME_STRING_LEN  << 22)    // [ME_STRING_LEN ][ME_STRING_DOM ]
+        (ME_STRING_DOM  << 22)    // [ME_STRING_LEN ][ME_STRING_DOM ]
       ) |
       (
         (ME_STRING_DOM  << 24) |  // [ME_STRING_DOM ][ME_STRING_NONE]
         (ME_STRING_VAL  << 26) |  // [ME_STRING_DOM ][ME_STRING_VAL ]
-        (ME_STRING_LEN  << 28) |  // [ME_STRING_DOM ][ME_STRING_LEN ]
+        (ME_STRING_DOM  << 28) |  // [ME_STRING_DOM ][ME_STRING_LEN ]
         (ME_STRING_DOM  << 30)    // [ME_STRING_DOM ][ME_STRING_DOM ]
       )
     );
@@ -685,25 +685,25 @@ namespace Gecode { namespace String {
       }
     case ME_STRING_LEN:
       {
+        Gecode::ModEventDelta med_string = med & med_mask;
+        if (med_string != 0)
+          return false;
+        med |= ME_STRING_LEN << med_fst;
+        break;
+      }
+    case ME_STRING_DOM:
+      {
         static const Gecode::ModEvent me_c = (
-          ((ME_STRING_NONE ^ ME_STRING_LEN ) <<  0) |
+          ((ME_STRING_NONE ^ ME_STRING_DOM ) <<  0) |
           ((ME_STRING_VAL  ^ ME_STRING_VAL ) <<  4) |
-          ((ME_STRING_LEN  ^ ME_STRING_LEN ) <<  8) |
-          ((ME_STRING_DOM  ^ ME_STRING_LEN ) << 12)
+          ((ME_STRING_LEN  ^ ME_STRING_DOM ) <<  8) |
+          ((ME_STRING_DOM  ^ ME_STRING_DOM ) << 12)
         );
         Gecode::ModEvent me_o = (med & med_mask) >> med_fst;
         Gecode::ModEvent me_n = (me_c >> (me_o << 2)) & (med_mask >> med_fst);
         if (me_n == 0)
           return false;
         med ^= me_n << med_fst;
-        break;
-      }
-    case ME_STRING_DOM:
-      {
-        Gecode::ModEventDelta med_string = med & med_mask;
-        if (med_string != 0)
-          return false;
-        med |= ME_STRING_DOM << med_fst;
         break;
       }
     default: GECODE_NEVER;

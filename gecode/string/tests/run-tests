@@ -1,23 +1,54 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-TEST_DIR="${0%/*}"
+set -u
+
+TEST_DIR=$(cd "$(dirname "$0")" && pwd)
+ROOT_DIR=$(cd "$TEST_DIR/../../.." && pwd)
 TEST_CMD=$TEST_DIR/test
-X=$TEST_DIR/x
-Y=$TEST_DIR/y
-Z=$TEST_DIR/z
+MZN_CMD=$ROOT_DIR/tools/flatzinc/mzn-gstrings
+MODE=${1:-}
+TOUT=${GSTRINGS_TEST_TIMEOUT:-10}
+X=$(mktemp "${TMPDIR:-/tmp}/gstrings-output.XXXXXX")
+Z=$(mktemp "${TMPDIR:-/tmp}/gstrings-diff.XXXXXX")
+trap 'rm -f "$X" "$Z"' EXIT HUP INT TERM
+
+run_cpp() {
+  if [[ -n $MODE ]]; then
+    "$TEST_CMD" "$@" "$MODE"
+  else
+    "$TEST_CMD" "$@"
+  fi
+}
+
+run_mzn_with_timeout() {
+  local model=$1
+  timeout "$TOUT" "$MZN_CMD" "$model" > "$X"
+  local status=$?
+  if [[ $status -eq 0 ]]; then
+    return 0
+  fi
+  if [[ $status -eq 124 ]]; then
+    echo "Error! Timed out after ${TOUT}s: $model"
+  else
+    echo "Error! MiniZinc solver exited with status $status: $model"
+  fi
+  return "$status"
+}
+
+cd "$ROOT_DIR"
+make -j4 compilelib &&
+make -j1 tools/flatzinc/fzn-gecode || exit $?
+
 if
-  [[ $1 != "mzn" ]]
+  [[ $MODE != "mzn" ]]
 then
-  #make depend &&
-  make -j 4 &&
-  sudo make install &&
-  $TEST_CMD $TEST_DIR/anbn.cpp           10000 $1 &&
-  $TEST_CMD $TEST_DIR/chunk_split.cpp    10000 $1 &&
-  $TEST_CMD $TEST_DIR/hamming_mod.cpp    10000 $1 && 
-  $TEST_CMD $TEST_DIR/levenshtein.cpp    10000 $1 &&
-  $TEST_CMD $TEST_DIR/string_replace.cpp 10000 $1 &&
+  run_cpp $TEST_DIR/anbn.cpp           10000 &&
+  run_cpp $TEST_DIR/chunk_split.cpp    10000 &&
+  run_cpp $TEST_DIR/hamming_mod.cpp    10000 &&
+  run_cpp $TEST_DIR/levenshtein.cpp    10000 &&
+  run_cpp $TEST_DIR/string_replace.cpp 10000 &&
   if
-    [[ $1 == "opt" ]]
+    [[ $MODE == "opt" ]]
   then
     # Optimised mode, timeout depends on the target machine!
     timeout 2 $TEST_CMD $TEST_DIR/sql.cpp 11    &&
@@ -36,7 +67,7 @@ then
     # Debug mode.
     for i in 11 12 100 200 250 300 400 500
     do
-      $TEST_CMD $TEST_DIR/sql.cpp $i $1
+      run_cpp $TEST_DIR/sql.cpp $i
       if
         [ $? -ne 0 ]
       then
@@ -72,7 +103,7 @@ then
   for t in "${TESTS[@]}"
   do
     echo "===== Testing $t ====="
-    $TEST_CMD $TEST_DIR/$t $1
+    run_cpp $TEST_DIR/$t
     if
       [ $? -ne 0 ]
     then
@@ -81,8 +112,8 @@ then
     echo "===== Done! ====="
   done
 fi &&
-mzn-gstrings $TEST_DIR/test.mzn > $X
-Y=$TEST_DIR/output_mzn;
+"$MZN_CMD" $TEST_DIR/test.mzn > $X
+Y=$TEST_DIR/output_mzn
 diff $X $Y > $Z
 if
   [ -s $Z ]
@@ -93,8 +124,8 @@ then
 fi &&
 cat $X && 
 echo "Solving ex_js.mzn"
-mzn-gstrings $TEST_DIR/ex_js.mzn > $X;
-x=`grep SVAL_TMP3 "$X" | awk -F" = " '{print $2}'`
+"$MZN_CMD" $TEST_DIR/ex_js.mzn > $X
+x=`grep -a SVAL_TMP3 "$X" | awk -F" = " '{print $2}'`
 if
   [ "$x" == "Hello0;" ]
 then
@@ -105,8 +136,8 @@ else
   exit 1
 fi &&
 echo "Solving decode.mzn"
-mzn-gstrings $TEST_DIR/decode.mzn > $X
-x=`grep "x = array1d" "$X" | awk -F"[" '{print $2}' | sed "s/]);//g"`
+"$MZN_CMD" $TEST_DIR/decode.mzn > $X
+x=`grep -a "x = array1d" "$X" | awk -F"[" '{print $2}' | sed "s/]);//g"`
 if
   [ "$x" == "01100011, 01100001, 01110011, 01100110, 01101111, 01110010, 01110100, 01100101" ]
 then
@@ -117,9 +148,9 @@ else
   exit 1
 fi &&
 echo "Solving max_pattern.mzn"
-mzn-gstrings $TEST_DIR/max_pattern.mzn > $X
+"$MZN_CMD" $TEST_DIR/max_pattern.mzn > $X
 if
-  [[ `grep "obj = 4" "$X"` ]] && [[ `grep "==========" "$X"` ]]
+  grep -aq "obj = 4" "$X" && grep -aq "==========" "$X"
 then
   cat $X
 else
@@ -128,9 +159,9 @@ else
   exit 1
 fi &&
 echo "Solving mfp.mzn"
-mzn-gstrings $TEST_DIR/mfp.mzn > $X
+"$MZN_CMD" $TEST_DIR/mfp.mzn > $X
 if
-  [[ `grep "CENTROCAMPO" "$X"` ]] && [[ `grep "==========" "$X"` ]]
+  grep -aq "CENTROCAMPO" "$X" && grep -aq "==========" "$X"
 then
   cat $X
 else
@@ -138,12 +169,11 @@ else
   cat $X
   exit 1
 fi &&
-# FIXME: Timeout depends on the target machine.
-TOUT=10 
 for m in `ls $TEST_DIR/appscan/*.mzn`
 do  
+  run_mzn_with_timeout "$m" || exit 1
   if
-    [ `timeout $TOUT mzn-gstrings $m | grep "\----------"` ]
+    grep -aq -- "----------" "$X"
   then
     echo "Solved $m"
   else
@@ -153,9 +183,9 @@ do
 done &&
 for m in `ls $TEST_DIR/pisa/*.mzn | sort`
 do
-  timeout $TOUT mzn-gstrings $m  > $X
+  run_mzn_with_timeout "$m" || exit 1
   if
-    [[ `grep "\----------" $X` ]]
+    grep -aq -- "----------" "$X"
   then
     m=`basename $m`
     res=`grep $m $TEST_DIR/pisa/pisa_check.txt | awk '{print $2}'`
@@ -168,7 +198,7 @@ do
       exit 1
     fi
   elif 
-    [[ `grep "=====UNSATISFIABLE=====" $X` ]]
+    grep -aq "=====UNSATISFIABLE=====" "$X"
   then
     m=`basename $m`
     res=`grep $m $TEST_DIR/pisa/pisa_check.txt | awk '{print $2}'`
@@ -187,13 +217,13 @@ do
 done &&
 for m in `ls $TEST_DIR/stranger/*.mzn | sort`
 do
-  timeout $TOUT mzn-gstrings $m > $X
+  run_mzn_with_timeout "$m" || exit 1
   if 
-    [[ `grep replace_all $m` ]]
+    grep -q replace_all "$m"
   then  
     r=`echo $m | sed 's/.all//g'`
   elif 
-    [[ `grep replace_last $m` ]]
+    grep -q replace_last "$m"
   then  
     r=`echo $m | sed 's/.last//g'`
   else
@@ -201,7 +231,7 @@ do
   fi
   r=`basename $r`
   if
-    [[ `grep "\----------" $X` ]]
+    grep -aq -- "----------" "$X"
   then
     res=`grep ^$r $TEST_DIR/stranger/stranger_check.txt | awk '{print $2}'`
     if
@@ -213,7 +243,7 @@ do
       exit 1
     fi
   elif 
-    [[ `grep "=====UNSATISFIABLE=====" $X` ]]
+    grep -aq "=====UNSATISFIABLE=====" "$X"
   then
     res=`grep ^$r $TEST_DIR/stranger/stranger_check.txt | awk '{print $2}'`
     if
@@ -232,9 +262,9 @@ done &&
 for m in `ls $TEST_DIR/norn/*/*.mzn | sort`
 do
   echo "Solving $m..."
-  timeout $TOUT mzn-gstrings $m | strings > $X
+  run_mzn_with_timeout "$m" || exit 1
   if
-    [[ `grep "\----------" $X` ]]
+    grep -aq -- "----------" "$X"
   then
     m=`basename $m`
     res=`grep $m $TEST_DIR/norn/norn_check.txt | awk '{print $2}'`
@@ -247,7 +277,7 @@ do
       exit 1
     fi
   elif 
-    [[ `grep "=====UNSATISFIABLE=====" $X` ]]
+    grep -aq "=====UNSATISFIABLE=====" "$X"
   then
     m=`basename $m`
     res=`grep $m $TEST_DIR/norn/norn_check.txt | awk '{print $2}'`
@@ -264,5 +294,5 @@ do
     exit 1
   fi
 done &&
-rm $X $Z && echo "===== All good! ====="
+echo "===== All good! ====="
 
