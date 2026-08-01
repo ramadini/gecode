@@ -269,7 +269,8 @@ namespace Gecode { namespace String {
       Q[i + 1] = qi;
     }
     Q[l + 1] = Q[l];
-    int dist[dfa->n_states];
+    Region region;
+    int* dist = region.alloc<int>(dfa->n_states);
     for (int q = 0; q < dfa->n_states; ++q)
       if (Q[l].contains(q))
         dist[q] = l;
@@ -317,7 +318,8 @@ namespace Gecode { namespace String {
             delta_bwd[x.second].push_back(std::pair<int, int>(x.first, q));
     int l = b.l, l1 = DashedString::_MAX_STR_LENGTH;
     NSIntSet Q1(Qe);
-    int dist[dfa->n_states];
+    Region region;
+    int* dist = region.alloc<int>(dfa->n_states);
     for (int q = 0; q < dfa->n_states; ++q)
       if (Qe.contains(q))
         dist[q] = 0;
@@ -415,7 +417,8 @@ namespace Gecode { namespace String {
         }
     int l = b.l, l1 = DashedString::_MAX_STR_LENGTH;
     NSIntSet Q1(Qe);
-    int dist[dfa->n_states];
+    Region region;
+    int* dist = region.alloc<int>(dfa->n_states);
     for (int q = 0; q < dfa->n_states; ++q)
       if (Qe.contains(q))
         dist[q] = 0;
@@ -509,7 +512,8 @@ namespace Gecode { namespace String {
       Q[i + 1] = qi;
     }
     Q[l + 1] = Q[l];
-    int dist[dfa->n_states];
+    Region region;
+    int* dist = region.alloc<int>(dfa->n_states);
     for (int q = 0; q < dfa->n_states; ++q)
       if (Q[l].contains(q))
         dist[q] = l;
@@ -558,7 +562,7 @@ namespace Gecode { namespace String {
       Fi = F[i].back();
     }
     NSIntSet E(F.back().back());
-    NSBlocks y[n];
+    std::vector<NSBlocks> y(n);
     Fi = dfa->accepting_states();
     E.intersect(Fi);
     if (E.empty())

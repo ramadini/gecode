@@ -795,7 +795,9 @@ namespace Gecode { namespace String {
     // for (auto& px:x) std::cerr<<"--> "<<*px<<'\n';
     int l = x.size() - 1;
     x[l]->changed(true);
-    int p[l], q[up.size()];
+    Region region;
+    int* p = region.alloc<int>(l);
+    int* q = region.alloc<int>(up.size());
     p[0] = x[0]->length();
     for (int k = 1; k < x.size(); ++k)
       p[k] = p[k - 1] + x[k]->length();

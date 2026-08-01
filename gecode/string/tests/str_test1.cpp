@@ -1269,6 +1269,25 @@ public:
     assert(blocks.front().S.first() == ranges);
   }
 
+  void test44() {
+    std::cerr << "\n*** Test 44 ***" << std::endl;
+
+    DSIntSet empty;
+    assert(empty.toIntSet().size() == 0);
+
+    NSIntSet source(1, 2);
+    source.add(4);
+    source.add(6);
+    source.add(7);
+    DSIntSet stored(*this, source);
+    IntSet converted = stored.toIntSet();
+    assert(converted.ranges() == 3);
+    assert(converted.size() == 5);
+    assert(converted.min(0) == 1 && converted.max(0) == 2);
+    assert(converted.min(1) == 4 && converted.max(1) == 4);
+    assert(converted.min(2) == 6 && converted.max(2) == 7);
+  }
+
 };
 
 int main() {
@@ -1320,5 +1339,6 @@ int main() {
   run(&StrTest::test41);
   run(&StrTest::test42);
   run(&StrTest::test43);
+  run(&StrTest::test44);
   return 0;
 }

@@ -191,7 +191,8 @@ namespace Gecode { namespace String {
       Q[i + 1] = qi;
     }
     Q[l + 1] = Q[l];
-    int dist[Rnfa->n_states];
+    Region region;
+    int* dist = region.alloc<int>(Rnfa->n_states);
     for (int q = 0; q < Rnfa->n_states; ++q)
       dist[q] = Q[l].contains(q) ? l : DashedString::_MAX_STR_LENGTH;
     std::list<int> Q_bfs;
@@ -239,7 +240,8 @@ namespace Gecode { namespace String {
         }
       }
 //    for (int q = 0; q < Rnfa->n_states; ++q) std::cerr << "\tdelta_bwd[q" << q << "] = " << delta_bwd[q].toString() << "\n";
-    int dist[Rnfa->n_states];
+    Region region;
+    int* dist = region.alloc<int>(Rnfa->n_states);
     for (int q = 0; q < Rnfa->n_states; ++q)
       dist[q] = B.contains(q) ? 0 : DashedString::_MAX_STR_LENGTH;
     NSIntSet Q1(B);
@@ -318,7 +320,7 @@ namespace Gecode { namespace String {
         Fi = F[i].back();
       }
       NSIntSet E(F.back().back());
-      NSBlocks y[n];
+      std::vector<NSBlocks> y(n);
       Fi = d->accepting_states();
       E.intersect(Fi);
       if (E.empty())
@@ -432,7 +434,8 @@ namespace Gecode { namespace String {
       Q_prev = Qi;
     }
     // BFS over optional region.
-    int dist[Rfull->n_states];
+    Region region;
+    int* dist = region.alloc<int>(Rfull->n_states);
     for (int q = 0; q < Rfull->n_states; ++q)
       dist[q] = Q_prev.contains(q) ? l : DashedString::_MAX_STR_LENGTH + 1;
     std::list<int> U;

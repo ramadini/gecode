@@ -24,7 +24,7 @@ namespace Gecode { namespace String {
     for (int q = 0; q < d.n_states; ++q) {
       const std::vector<std::pair<int, int>>& delta_q = d.delta[q];
       add_bot |= static_cast<int>(delta_q.size()) < alphabet.size();
-      NSIntSet S[n_states];
+      std::vector<NSIntSet> S(n_states);
       for (auto& x : delta_q)
         S[x.second].add(x.first);
       for (int i = 0; i < d.n_states; ++i)
@@ -50,8 +50,7 @@ namespace Gecode { namespace String {
   compDFA::compDFA(const DFA& d, const NSIntSet& alphabet)
     : stringDFA(d), q_bot(-1), delta(d.n_states()) {
 //    std::cerr << d << "\n";
-    int chars_count[n_states];
-    for (auto& q : chars_count) q = 0;
+    std::vector<int> chars_count(n_states, 0);
     for (DFA::Transitions t(d); t(); ++t) {
       int q_in = t.i_state(), a = t.symbol(), q_out = t.o_state();
       std::vector<std::pair<NSIntSet, int>>& delta_q = delta[q_in];
@@ -300,7 +299,7 @@ namespace Gecode { namespace String {
     }
     else
       return ES_FIX;
-    NSBlocks y[n];
+    std::vector<NSBlocks> y(n);
 //    std::cerr << "E = " << E.toString() << ", comp(Fi) = " << Fi.comp().toString() << '\n';    
     if (E.empty())
       return ES_FAILED;

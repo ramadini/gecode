@@ -17,19 +17,8 @@ namespace Gecode { namespace String {
 
   forceinline IntSet
   DSIntSet::toIntSet() const {
-    if (empty())
-      return IntSet();
-    int n = 0;
-    for (RangeList* c = fst(); c != NULL; c = c->next())
-      n++;
-    int a[n][2], i = 0;
-    for (RangeList* c = fst(); c != NULL; c = c->next()) {
-      a[i][0] = c->min();
-      a[i][1] = c->max();
-      i++;
-    }
-    IntSet is(a, n);
-    return is;
+    Gecode::Set::BndSetRanges ranges(*this);
+    return IntSet(ranges);
   }
 
   forceinline void
