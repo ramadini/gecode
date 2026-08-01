@@ -26,14 +26,28 @@ namespace Gecode { namespace String {
   }
 
   forceinline ModEvent
+  StringVarImp::notify(Space& home, int old_min_length, int old_max_length,
+                       Delta& d) {
+    ModEvent me = assigned() ? ME_STRING_VAL :
+      ((old_min_length != min_length()) || (old_max_length != max_length()) ?
+       ME_STRING_LEN : ME_STRING_DOM);
+    return StringVarImpBase::notify(home, me, d);
+  }
+
+  forceinline ModEvent
+  StringVarImp::notify(Space& home, int old_min_length, int old_max_length) {
+    StringDelta d(true);
+    return notify(home, old_min_length, old_max_length, d);
+  }
+
+  forceinline ModEvent
   StringVarImp::dom(Space& home, const NSBlocks& d) {
     bool b = !ds.known();
+    int old_min_length = min_length(), old_max_length = max_length();
     if (!ds.equate(home, d))
       return ME_STRING_FAILED;
-    if (b && ds._changed) {
-      StringDelta d(true);
-      return notify(home, ds.known() ? ME_STRING_VAL : ME_STRING_DOM, d);
-    }
+    if (b && ds._changed)
+      return notify(home, old_min_length, old_max_length);
     return ME_STRING_NONE;
   }
 
@@ -43,28 +57,27 @@ namespace Gecode { namespace String {
       return ME_STRING_FAILED;
     if (ds.known())
       return ME_STRING_NONE;
+    int old_min_length = min_length(), old_max_length = max_length();
     ds.update(home, x);
-    StringDelta d(true);
-    return notify(home, ME_STRING_VAL, d);
+    return notify(home, old_min_length, old_max_length);
   }
 
   forceinline ModEvent
   StringVarImp::eq(Space& home, StringVarImp* x) {
     DashedString& xs = x->ds;
     bool b1 = !ds.known(), b2 = !xs.known();
+    int old_min_length = min_length(), old_max_length = max_length();
+    int old_x_min_length = x->min_length(),
+        old_x_max_length = x->max_length();
     if (!ds.equate(home, xs))
       return ME_STRING_FAILED;
     ModEvent me = ME_STRING_NONE;
     if (b1 && ds._changed) {
-      StringDelta d(true);
-      me = notify(home, ds.known() ? ME_STRING_VAL : ME_STRING_DOM, d);
+      me = notify(home, old_min_length, old_max_length);
       GECODE_ME_CHECK(me);
     }
     if (b2 && xs._changed) {
-      StringDelta d(true);
-      ModEvent xme = x->notify(
-        home, xs.known() ? ME_STRING_VAL : ME_STRING_DOM, d
-      );
+      ModEvent xme = x->notify(home, old_x_min_length, old_x_max_length);
       GECODE_ME_CHECK(xme);
       me = me_combine(me, xme);
     }
@@ -75,19 +88,18 @@ namespace Gecode { namespace String {
   StringVarImp::lex(Space& home, StringVarImp* x, bool lt) {
     DashedString& xs = x->ds;
     bool b1 = !ds.known(), b2 = !xs.known();
+    int old_min_length = min_length(), old_max_length = max_length();
+    int old_x_min_length = x->min_length(),
+        old_x_max_length = x->max_length();
     if (!ds.lex(home, xs, lt))
       return ME_STRING_FAILED;
     ModEvent me = ME_STRING_NONE;
     if (b1 && ds._changed) {
-      StringDelta d(ds._changed);
-      me = notify(home, ds.known() ? ME_STRING_VAL : ME_STRING_DOM, d);
+      me = notify(home, old_min_length, old_max_length);
       GECODE_ME_CHECK(me);
     }
     if (b2 && xs._changed) {
-      StringDelta d(xs._changed);
-      ModEvent xme = x->notify(
-        home, xs.known() ? ME_STRING_VAL : ME_STRING_DOM, d
-      );
+      ModEvent xme = x->notify(home, old_x_min_length, old_x_max_length);
       GECODE_ME_CHECK(xme);
       me = me_combine(me, xme);
     }
@@ -97,12 +109,11 @@ namespace Gecode { namespace String {
   forceinline ModEvent
   StringVarImp::inc(Space& home, bool lt) {
     bool b = !ds.known();
+    int old_min_length = min_length(), old_max_length = max_length();
     if (!ds.increasing(home, lt))
       return ME_STRING_FAILED;
-    if (b && ds._changed) {
-      StringDelta d(true);
-      return notify(home, ds.known() ? ME_STRING_VAL : ME_STRING_DOM, d);
-    }
+    if (b && ds._changed)
+      return notify(home, old_min_length, old_max_length);
     return ME_STRING_NONE;
   }
 
@@ -110,19 +121,19 @@ namespace Gecode { namespace String {
   StringVarImp::commit(
     Space& home, Branch::Level l, Branch::Value v, Branch::Block b, unsigned a
   ) {
+    int old_min_length = min_length(), old_max_length = max_length();
     ds.commit(home, l, v, b, a);
     Delta d = StringDelta(ds._changed);
-    return notify(home, assigned() ? ME_STRING_VAL : ME_STRING_DOM, d);
+    return notify(home, old_min_length, old_max_length, d);
   }
 
   forceinline ModEvent
   StringVarImp::lb(Space& home, int l) {
     bool b = !ds.known();
+    int old_min_length = min_length(), old_max_length = max_length();
     if (ds.refine_lb(l)) {
-      if (b && ds._changed) {
-        StringDelta d(true);
-        return notify(home, assigned() ? ME_STRING_VAL : ME_STRING_DOM, d);
-      }
+      if (b && ds._changed)
+        return notify(home, old_min_length, old_max_length);
       else
         return ME_STRING_NONE;
     }
@@ -133,11 +144,10 @@ namespace Gecode { namespace String {
   forceinline ModEvent
   StringVarImp::ub(Space& home, int u) {
     bool b = !ds.known();
+    int old_min_length = min_length(), old_max_length = max_length();
     if (ds.refine_ub(home, u)) {
-      if (b && ds._changed) {
-        StringDelta d(true);
-        return notify(home, assigned() ? ME_STRING_VAL : ME_STRING_DOM, d);
-      }
+      if (b && ds._changed)
+        return notify(home, old_min_length, old_max_length);
       else
         return ME_STRING_NONE;
     }
@@ -150,26 +160,24 @@ namespace Gecode { namespace String {
     DashedString& xs = x->ds;
     DashedString& ys = y->ds;
     bool b1 = !ds.known(), b2 = !xs.known(), b3 = !ys.known();
+    int old_min_length = min_length(), old_max_length = max_length();
+    int old_x_min_length = x->min_length(),
+        old_x_max_length = x->max_length();
+    int old_y_min_length = y->min_length(),
+        old_y_max_length = y->max_length();
     if (ds.concat(home, xs, ys)) {
       ModEvent me = ME_STRING_NONE;
       if (b1 && ds._changed) {
-        StringDelta d(true);
-        me = notify(home, ds.known() ? ME_STRING_VAL : ME_STRING_DOM, d);
+        me = notify(home, old_min_length, old_max_length);
         GECODE_ME_CHECK(me);
       }
       if (b2 && xs._changed) {
-        StringDelta d(true);
-        ModEvent xme = x->notify(
-          home, xs.known() ? ME_STRING_VAL : ME_STRING_DOM, d
-        );
+        ModEvent xme = x->notify(home, old_x_min_length, old_x_max_length);
         GECODE_ME_CHECK(xme);
         me = me_combine(me, xme);
       }
       if (b3 && ys._changed) {
-        StringDelta d(true);
-        ModEvent yme = y->notify(
-          home, ys.known() ? ME_STRING_VAL : ME_STRING_DOM, d
-        );
+        ModEvent yme = y->notify(home, old_y_min_length, old_y_max_length);
         GECODE_ME_CHECK(yme);
         me = me_combine(me, yme);
       }
@@ -184,6 +192,8 @@ namespace Gecode { namespace String {
     vec<DashedString*> xs;
     bool b = !ds.known();
     vec<bool> bv;
+    vec<int> old_min_lengths, old_max_lengths;
+    int old_min_length = min_length(), old_max_length = max_length();
     NSBlocks blocks;
     int n = 0;
     for (auto& i : x)
@@ -195,21 +205,20 @@ namespace Gecode { namespace String {
       xs.push(&d);
       blocks.extend(d.blocks());
       bv.push(!d.known());
+      old_min_lengths.push(i->min_length());
+      old_max_lengths.push(i->max_length());
     }
     ds._changed = false;
     if (sweep_concat(home, blocks, xs, ds)) {
       ModEvent me = ME_STRING_NONE;
       if (b && ds._changed) {
-        StringDelta d(true);
-        me = notify(home, ds.known() ? ME_STRING_VAL : ME_STRING_DOM, d);
+        me = notify(home, old_min_length, old_max_length);
         GECODE_ME_CHECK(me);
       }
       for (int i = 0; i < x.size(); ++i) {
         if (bv[i] && xs[i]->_changed) {
-          StringDelta d(true);
           ModEvent xme = x[i]->notify(
-            home, xs[i]->known() ? ME_STRING_VAL : ME_STRING_DOM, d
-          );
+            home, old_min_lengths[i], old_max_lengths[i]);
           GECODE_ME_CHECK(xme);
           me = me_combine(me, xme);
         }
@@ -224,18 +233,17 @@ namespace Gecode { namespace String {
   StringVarImp::find(Space& home, StringVarImp* x, int& l, int& u, bool b) {
     DashedString& xs = x->ds;
     bool b1 = !ds.known(), b2 = !xs.known();
+    int old_min_length = min_length(), old_max_length = max_length();
+    int old_x_min_length = x->min_length(),
+        old_x_max_length = x->max_length();
     if (ds.find(home, xs, l, u, b)) {
       ModEvent me = ME_STRING_NONE;
       if (b1 && ds._changed) {
-        StringDelta d(ds._changed);
-      me = notify(home, ds.known() ? ME_STRING_VAL : ME_STRING_DOM, d);
-      GECODE_ME_CHECK(me);
+        me = notify(home, old_min_length, old_max_length);
+        GECODE_ME_CHECK(me);
       }
       if (b2 && xs._changed) {
-        StringDelta d(xs._changed);
-        ModEvent xme = x->notify(
-          home, xs.known() ? ME_STRING_VAL : ME_STRING_DOM, d
-        );
+        ModEvent xme = x->notify(home, old_x_min_length, old_x_max_length);
         GECODE_ME_CHECK(xme);
         me = me_combine(me, xme);
       }
@@ -249,18 +257,17 @@ namespace Gecode { namespace String {
   StringVarImp::pow(Space& home, StringVarImp* x, int& l, int& u) {
     DashedString& xs = x->ds;
     bool b1 = !ds.known(), b2 = !xs.known();
+    int old_min_length = min_length(), old_max_length = max_length();
+    int old_x_min_length = x->min_length(),
+        old_x_max_length = x->max_length();
     if (ds.pow(home, xs, l, u)) {
       ModEvent me = ME_STRING_NONE;
       if (b1 && ds._changed) {
-        StringDelta d(ds._changed);
-        me = notify(home, ds.known() ? ME_STRING_VAL : ME_STRING_DOM, d);
+        me = notify(home, old_min_length, old_max_length);
         GECODE_ME_CHECK(me);
       }
       if (b2 && xs._changed) {
-        StringDelta d(xs._changed);
-        ModEvent xme = x->notify(
-          home, xs.known() ? ME_STRING_VAL : ME_STRING_DOM, d
-        );
+        ModEvent xme = x->notify(home, old_x_min_length, old_x_max_length);
         GECODE_ME_CHECK(xme);
         me = me_combine(me, xme);
       }
@@ -274,18 +281,17 @@ namespace Gecode { namespace String {
   StringVarImp::rev(Space& home, StringVarImp* x) {
     DashedString& xs = x->ds;
     bool b1 = !ds.known(), b2 = !xs.known();
+    int old_min_length = min_length(), old_max_length = max_length();
+    int old_x_min_length = x->min_length(),
+        old_x_max_length = x->max_length();
     if (ds.rev(home, xs)) {
       ModEvent me = ME_STRING_NONE;
       if (b1 && ds._changed) {
-        StringDelta d(ds._changed);
-        me = notify(home, ds.known() ? ME_STRING_VAL : ME_STRING_DOM, d);
+        me = notify(home, old_min_length, old_max_length);
         GECODE_ME_CHECK(me);
       }
       if (b2 && xs._changed) {
-        StringDelta d(xs._changed);
-        ModEvent xme = x->notify(
-          home, xs.known() ? ME_STRING_VAL : ME_STRING_DOM, d
-        );
+        ModEvent xme = x->notify(home, old_x_min_length, old_x_max_length);
         GECODE_ME_CHECK(xme);
         me = me_combine(me, xme);
       }
@@ -307,8 +313,13 @@ namespace Gecode { namespace String {
   }
 
   forceinline void
-  StringVarImp::cancel(Space& home, Advisor& a) {
-    StringVarImpBase::cancel(home, a, assigned());
+  StringVarImp::subscribe(Space& home, Advisor& a, bool fail) {
+    StringVarImpBase::subscribe(home, a, assigned(), fail);
+  }
+
+  forceinline void
+  StringVarImp::cancel(Space& home, Advisor& a, bool fail) {
+    StringVarImpBase::cancel(home, a, fail);
   }
 
   forceinline void

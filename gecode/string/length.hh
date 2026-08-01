@@ -9,11 +9,11 @@ namespace Gecode { namespace String {
    */
   class Length :
     public MixBinaryPropagator
-    <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_BND> {
+    <StringView, PC_STRING_LEN, Gecode::Int::IntView, Gecode::Int::PC_INT_BND> {
   protected:
-    using MixBinaryPropagator<StringView, PC_STRING_DOM,
+    using MixBinaryPropagator<StringView, PC_STRING_LEN,
       Gecode::Int::IntView, Gecode::Int::PC_INT_BND>::x0;
-    using MixBinaryPropagator<StringView, PC_STRING_DOM,
+    using MixBinaryPropagator<StringView, PC_STRING_LEN,
       Gecode::Int::IntView, Gecode::Int::PC_INT_BND>::x1;
     /// Constructor for cloning \a p
     Length(Space& home, Length& p);

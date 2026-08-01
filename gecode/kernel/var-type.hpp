@@ -142,16 +142,22 @@ namespace Gecode { namespace String {
   const Gecode::ModEvent ME_STRING_NONE = Gecode::ME_GEN_NONE;
 
   const Gecode::ModEvent ME_STRING_VAL = Gecode::ME_GEN_ASSIGNED;
+  /// Domain operation has changed the minimum or maximum string length
 
-  const Gecode::ModEvent ME_STRING_DOM = Gecode::ME_GEN_ASSIGNED + 1;
+  const Gecode::ModEvent ME_STRING_LEN = Gecode::ME_GEN_ASSIGNED + 1;
+
+  const Gecode::ModEvent ME_STRING_DOM = Gecode::ME_GEN_ASSIGNED + 2;
 
 
 
   const Gecode::PropCond PC_STRING_NONE = Gecode::PC_GEN_NONE;
 
   const Gecode::PropCond PC_STRING_VAL = Gecode::PC_GEN_ASSIGNED;
+  /// Propagate when the minimum or maximum string length changes
 
-  const Gecode::PropCond PC_STRING_DOM = Gecode::PC_GEN_ASSIGNED + 1;
+  const Gecode::PropCond PC_STRING_LEN = Gecode::PC_GEN_ASSIGNED + 1;
+
+  const Gecode::PropCond PC_STRING_DOM = Gecode::PC_GEN_ASSIGNED + 2;
   //@}
 }}
 #endif
@@ -639,17 +645,26 @@ namespace Gecode { namespace String {
       (
         (ME_STRING_NONE <<  0) |  // [ME_STRING_NONE][ME_STRING_NONE]
         (ME_STRING_VAL  <<  2) |  // [ME_STRING_NONE][ME_STRING_VAL ]
-        (ME_STRING_DOM  <<  4)    // [ME_STRING_NONE][ME_STRING_DOM ]
+        (ME_STRING_LEN  <<  4) |  // [ME_STRING_NONE][ME_STRING_LEN ]
+        (ME_STRING_DOM  <<  6)    // [ME_STRING_NONE][ME_STRING_DOM ]
       ) |
       (
         (ME_STRING_VAL  <<  8) |  // [ME_STRING_VAL ][ME_STRING_NONE]
         (ME_STRING_VAL  << 10) |  // [ME_STRING_VAL ][ME_STRING_VAL ]
-        (ME_STRING_VAL  << 12)    // [ME_STRING_VAL ][ME_STRING_DOM ]
+        (ME_STRING_VAL  << 12) |  // [ME_STRING_VAL ][ME_STRING_LEN ]
+        (ME_STRING_VAL  << 14)    // [ME_STRING_VAL ][ME_STRING_DOM ]
       ) |
       (
-        (ME_STRING_DOM  << 16) |  // [ME_STRING_DOM ][ME_STRING_NONE]
-        (ME_STRING_VAL  << 18) |  // [ME_STRING_DOM ][ME_STRING_VAL ]
-        (ME_STRING_DOM  << 20)    // [ME_STRING_DOM ][ME_STRING_DOM ]
+        (ME_STRING_LEN  << 16) |  // [ME_STRING_LEN ][ME_STRING_NONE]
+        (ME_STRING_VAL  << 18) |  // [ME_STRING_LEN ][ME_STRING_VAL ]
+        (ME_STRING_LEN  << 20) |  // [ME_STRING_LEN ][ME_STRING_LEN ]
+        (ME_STRING_LEN  << 22)    // [ME_STRING_LEN ][ME_STRING_DOM ]
+      ) |
+      (
+        (ME_STRING_DOM  << 24) |  // [ME_STRING_DOM ][ME_STRING_NONE]
+        (ME_STRING_VAL  << 26) |  // [ME_STRING_DOM ][ME_STRING_VAL ]
+        (ME_STRING_LEN  << 28) |  // [ME_STRING_DOM ][ME_STRING_LEN ]
+        (ME_STRING_DOM  << 30)    // [ME_STRING_DOM ][ME_STRING_DOM ]
       )
     );
     return ((me_c >> (me2 << 3)) >> (me1 << 1)) & 3;
@@ -666,6 +681,21 @@ namespace Gecode { namespace String {
           return false;
         med ^= med_string;
         med ^= ME_STRING_VAL << med_fst;
+        break;
+      }
+    case ME_STRING_LEN:
+      {
+        static const Gecode::ModEvent me_c = (
+          ((ME_STRING_NONE ^ ME_STRING_LEN ) <<  0) |
+          ((ME_STRING_VAL  ^ ME_STRING_VAL ) <<  4) |
+          ((ME_STRING_LEN  ^ ME_STRING_LEN ) <<  8) |
+          ((ME_STRING_DOM  ^ ME_STRING_LEN ) << 12)
+        );
+        Gecode::ModEvent me_o = (med & med_mask) >> med_fst;
+        Gecode::ModEvent me_n = (me_c >> (me_o << 2)) & (med_mask >> med_fst);
+        if (me_n == 0)
+          return false;
+        med ^= me_n << med_fst;
         break;
       }
     case ME_STRING_DOM:

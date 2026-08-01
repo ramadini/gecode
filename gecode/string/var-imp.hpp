@@ -65,6 +65,15 @@ namespace Gecode { namespace String {
 
     int max_length(void) const;
 
+    /**
+     * \brief Notify after a mutation, classifying its aggregate length bounds
+     */
+    ModEvent notify(Space& home, int old_min_length, int old_max_length,
+            Delta& d);
+
+    /// Notify after a mutation with changed delta information
+    ModEvent notify(Space& home, int old_min_length, int old_max_length);
+
     int must_chars(void) const;
 
     int may_chars(void) const;
@@ -116,8 +125,10 @@ namespace Gecode { namespace String {
     void cancel(Space& home, Propagator& p, PropCond pc);
     /// Re-schedule propagator \a p
     void reschedule(Space& home, Propagator& p, PropCond pc);
+    /// Subscribe advisor \a a
+    void subscribe(Space& home, Advisor& a, bool fail);
     /// Cancel subscription of advisor \a a
-    void cancel(Space& home, Advisor& a);
+    void cancel(Space& home, Advisor& a, bool fail);
     //@}
 
     /// \name Cloning

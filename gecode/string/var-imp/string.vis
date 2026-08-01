@@ -22,11 +22,16 @@ Name:           NONE=NONE
 
 [ModEvent]
 Name:           VAL=ASSIGNED
-Combine:        VAL=VAL, DOM=VAL
+Combine:        VAL=VAL, LEN=VAL, DOM=VAL
+
+[ModEvent]
+Name:           LEN
+Combine:        VAL=VAL, LEN=LEN, DOM=LEN
+  /// Domain operation has changed the minimum or maximum string length
 
 [ModEvent]
 Name:           DOM=SUBSCRIBE
-Combine:        VAL=VAL, DOM=DOM
+Combine:        VAL=VAL, LEN=LEN, DOM=DOM
 
 [ModEventFooter]
 
@@ -40,8 +45,13 @@ Name:           VAL=ASSIGNED
 ScheduledBy:    VAL
 
 [PropCond]
+Name:           LEN
+ScheduledBy:    VAL, LEN
+  /// Propagate when the minimum or maximum string length changes
+
+[PropCond]
 Name:           DOM
-ScheduledBy:    VAL, DOM
+ScheduledBy:    VAL, LEN, DOM
 
 [PropCondFooter]
   //@}

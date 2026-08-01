@@ -412,11 +412,17 @@ namespace Gecode { namespace String {
   StringVarImpBase::notify(Gecode::Space& home, Gecode::ModEvent me, Gecode::Delta& d) {
     switch (me) {
     case ME_STRING_VAL:
-      // Conditions: VAL, DOM
+      // Conditions: VAL, LEN, DOM
       Gecode::VarImp<Gecode::String::StringVarImpConf>::schedule(home,PC_STRING_VAL,PC_STRING_DOM,ME_STRING_VAL);
       if (!Gecode::VarImp<Gecode::String::StringVarImpConf>::advise(home,ME_STRING_VAL,d))
         return ME_STRING_FAILED;
       cancel(home);
+      break;
+    case ME_STRING_LEN:
+      // Conditions: LEN, DOM
+      Gecode::VarImp<Gecode::String::StringVarImpConf>::schedule(home,PC_STRING_LEN,PC_STRING_DOM,ME_STRING_LEN);
+      if (!Gecode::VarImp<Gecode::String::StringVarImpConf>::advise(home,ME_STRING_LEN,d))
+        return ME_STRING_FAILED;
       break;
     case ME_STRING_DOM:
       // Conditions: DOM

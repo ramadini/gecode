@@ -9,16 +9,16 @@ namespace Gecode { namespace String {
    */
   class Find :
     public MixTernaryPropagator<StringView, PC_STRING_DOM, 
-    StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_BND> {
+    StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM> {
   protected:
     using MixTernaryPropagator<StringView, PC_STRING_DOM, 
-      StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_BND>
+      StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM>
         ::x0;
     using MixTernaryPropagator<StringView, PC_STRING_DOM, 
-      StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_BND>
+      StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM>
         ::x1;
     using MixTernaryPropagator<StringView, PC_STRING_DOM, 
-      StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_BND>
+      StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM>
         ::x2;
     /// Constructor for cloning \a p
     Find(Space& home, Find& p);

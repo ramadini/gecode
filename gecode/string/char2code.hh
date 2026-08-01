@@ -4,7 +4,7 @@
 namespace Gecode { namespace String {
 
   /**
-   * \brief %Propagator for string length.
+    * \brief %Propagator linking an optional character to its integer code.
    *
    */
   class Char2Code :
