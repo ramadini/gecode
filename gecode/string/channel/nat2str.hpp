@@ -78,11 +78,16 @@ namespace Gecode { namespace String {
   forceinline string
   NatToStr::min_str() const {
     DashedString* p = x1.pdomain();
-    string n = string(p->at(0).l, int2char(p->at(0).S.min()));
+    string::size_type length = 0;
+    for (int i = 0; i < p->length(); ++i)
+      length += p->at(i).l;
+    string n;
+    n.reserve(length);
+    n.append(p->at(0).l, int2char(p->at(0).S.min()));
     for (int i = 1; i < p->length(); ++i) {
       const DSBlock& b = p->at(i);
       if (b.l > 0)
-        n += string(b.l, int2char(b.S.min()));
+        n.append(b.l, int2char(b.S.min()));
     }
     return n == "" ? std::to_string(Gecode::Int::Limits::min) : n;
   }
@@ -90,10 +95,15 @@ namespace Gecode { namespace String {
   forceinline string
   NatToStr::max_str() const {
     DashedString* p = x1.pdomain();
-    string n = string(p->at(0).u, int2char(p->at(0).S.max()));
+    string::size_type length = 0;
+    for (int i = 0; i < p->length(); ++i)
+      length += p->at(i).u;
+    string n;
+    n.reserve(length);
+    n.append(p->at(0).u, int2char(p->at(0).S.max()));
     for (int i = 1; i < p->length(); ++i) {
       const DSBlock& b = p->at(i);
-      n += string(b.u, int2char(b.S.max()));
+      n.append(b.u, int2char(b.S.max()));
     }
     return n == "" ? "-1" : n;
   }

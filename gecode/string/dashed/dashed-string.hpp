@@ -1846,28 +1846,45 @@ namespace Gecode { namespace String {
 
   forceinline string
   DashedString::known_pref() const {
-    string pref = "";
-    for (int i = 0; i < _blocks.length(); ++i) {
-      const DSBlock& b = at(i);
+    int end = 0;
+    string::size_type length = 0;
+    for (; end < _blocks.length(); ++end) {
+      const DSBlock& b = at(end);
       if (b.S.size() > 1)
-        return pref;
-      pref += string(b.l, int2char(b.S.min()));
-      if (b.l < b.u)
-        return pref;
+        break;
+      length += b.l;
+      if (b.l < b.u) {
+        ++end;
+        break;
+      }
+    }
+    string pref;
+    pref.reserve(length);
+    for (int i = 0; i < end; ++i) {
+      const DSBlock& b = at(i);
+      pref.append(b.l, int2char(b.S.min()));
     }
     return pref;
   }
 
   forceinline string
   DashedString::known_suff() const {
-    string suff = "";
-    for (int i = _blocks.length() - 1; i >= 0; --i) {
+    int begin = _blocks.length();
+    string::size_type length = 0;
+    for (int i = begin - 1; i >= 0; --i) {
       const DSBlock& b = at(i);
       if (b.S.size() > 1)
-        return suff;
-      suff = string(b.l, int2char(b.S.min())) + suff;
+        break;
+      begin = i;
+      length += b.l;
       if (b.l < b.u)
-        return suff;
+        break;
+    }
+    string suff;
+    suff.reserve(length);
+    for (int i = begin; i < _blocks.length(); ++i) {
+      const DSBlock& b = at(i);
+      suff.append(b.l, int2char(b.S.min()));
     }
     return suff;
   }
@@ -1981,9 +1998,15 @@ namespace Gecode { namespace String {
 
   forceinline string
   DashedString::val() const {
-    string s = "";
-    for (int i = 0; i < _blocks.length(); ++i)
-      s += at(i).val();
+    string s;
+    s.reserve(_min_length);
+    for (int i = 0; i < _blocks.length(); ++i) {
+      const DSBlock& block = at(i);
+      if (!block.known())
+        throw UnknownValDS("DashedString::val");
+      if (!block.null())
+        s.append(block.l, int2char(block.S.min()));
+    }
     return s;
   }
 
@@ -2001,7 +2024,7 @@ namespace Gecode { namespace String {
       const DSBlock& block = at(i);
       int length = block.l + min(remaining, block.u - block.l);
       if (length > 0)
-        value += string(length, int2char(block.S.min()));
+        value.append(length, int2char(block.S.min()));
       remaining -= length - block.l;
     }
     assert(remaining == 0);

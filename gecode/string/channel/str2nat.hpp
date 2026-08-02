@@ -63,13 +63,18 @@ namespace Gecode { namespace String {
   forceinline string
   StrToNat::min_str() const {
     DashedString* p = x0.pdomain();
-    string n = "";
-    if (int2char(p->at(0).min()) != '0')
-      n = string(p->at(0).l, int2char(p->at(0).S.min()));
+    bool include_first = int2char(p->at(0).min()) != '0';
+    string::size_type length = include_first ? p->at(0).l : 0;
+    for (int i = 1; i < p->length(); ++i)
+      length += p->at(i).l;
+    string n;
+    n.reserve(length);
+    if (include_first)
+      n.append(p->at(0).l, int2char(p->at(0).S.min()));
     for (int i = 1; i < p->length(); ++i) {
       const DSBlock& b = p->at(i);
       if (b.l > 0)
-        n += string(b.l, int2char(b.S.min()));
+        n.append(b.l, int2char(b.S.min()));
     }
     return n == "" ? "0" : n;
   }
@@ -77,12 +82,17 @@ namespace Gecode { namespace String {
   forceinline string
   StrToNat::max_str() const {
     DashedString* p = x0.pdomain();
-    string n = "";
-    if (int2char(p->at(0).max()) != '0')
-      n = string(p->at(0).u, int2char(p->at(0).S.max()));
+    bool include_first = int2char(p->at(0).max()) != '0';
+    string::size_type length = include_first ? p->at(0).u : 0;
+    for (int i = 1; i < p->length(); ++i)
+      length += p->at(i).u;
+    string n;
+    n.reserve(length);
+    if (include_first)
+      n.append(p->at(0).u, int2char(p->at(0).S.max()));
     for (int i = 1; i < p->length(); ++i) {
       const DSBlock& b = p->at(i);
-      n += string(b.u, int2char(b.S.max()));
+      n.append(b.u, int2char(b.S.max()));
     }
     return n == "" ? "0" : n;
   }
@@ -104,9 +114,9 @@ namespace Gecode { namespace String {
       else {
         NSIntSet N(b.S);
         N.intersect(num);
-        ub += string(b.u, N.max());
+        ub.append(b.u, N.max());
     	  if (num_only && b.l > 0 && b.S.min() >= '0' && b.S.max() <= '9')
-          lb += string(b.l, N.min());
+          lb.append(b.l, N.min());
        	else
           num_only = false;
       }

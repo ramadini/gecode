@@ -1422,10 +1422,12 @@ namespace Gecode { namespace String {
       if (null())
         return "";
       string s;
-      for (unsigned i = 0; i < size(); ++i) {
-        const NSBlock& b = at(i);
-        s += string(b.l, unsigned(b.S.min()));
-      }
+      string::size_type length = 0;
+      for (const NSBlock& block : *this)
+        length += block.l;
+      s.reserve(length);
+      for (const NSBlock& block : *this)
+        s.append(block.l, unsigned(block.S.min()));
       return s;
     }
 
@@ -1569,32 +1571,51 @@ namespace Gecode { namespace String {
 
     forceinline string
     known_pref() const {
-      string pref = "";
-      for (unsigned i = 0; i < this->size(); ++i) {
-        const NSBlock& b = at(i);
+      unsigned end = 0;
+      string::size_type length = 0;
+      for (; end < this->size(); ++end) {
+        const NSBlock& b = at(end);
         if (b.null())
           continue;
         if (b.S.size() > 1)
-          return pref;
-        pref += string(b.l, unsigned(b.S.min()));
-        if (b.l < b.u)
-          return pref;
+          break;
+        length += b.l;
+        if (b.l < b.u) {
+          ++end;
+          break;
+        }
+      }
+      string pref;
+      pref.reserve(length);
+      for (unsigned i = 0; i < end; ++i) {
+        const NSBlock& b = at(i);
+        if (!b.null())
+          pref.append(b.l, unsigned(b.S.min()));
       }
       return pref;
     }
 
     forceinline string
     known_suff() const {
-      string suff = "";
-      for (int i = this->size() - 1; i >= 0; --i) {
+      int begin = this->size();
+      string::size_type length = 0;
+      for (int i = begin - 1; i >= 0; --i) {
         const NSBlock& b = at(i);
         if (b.null())
           continue;
         if (b.S.size() > 1)
-          return suff;
-        suff = string(b.l, unsigned(b.S.min())) + suff;
+          break;
+        begin = i;
+        length += b.l;
         if (b.l < b.u)
-          return suff;
+          break;
+      }
+      string suff;
+      suff.reserve(length);
+      for (int i = begin; i < static_cast<int>(this->size()); ++i) {
+        const NSBlock& b = at(i);
+        if (!b.null())
+          suff.append(b.l, unsigned(b.S.min()));
       }
       return suff;
     }

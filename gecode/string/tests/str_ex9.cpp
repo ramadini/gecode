@@ -14,6 +14,28 @@ class StringOptions : public Options {
 
 string S;
 
+class NatToStrTest : public Space {
+public:
+  NatToStrTest() {
+    IntVar number(*this, 12, 98);
+    StringVar text(*this, NSIntSet('0', '9'), 2, 2);
+    nat2str(*this, number, text);
+    assert(status() != SS_FAILED);
+    assert(number.min() == 12 && number.max() == 98);
+    assert(text.min_length() == 2 && text.max_length() == 2);
+
+    rel(*this, number, IRT_EQ, 42);
+    assert(status() != SS_FAILED);
+    assert(text.assigned() && text.val() == "42");
+  }
+
+  NatToStrTest(NatToStrTest& that) : Space(that) {}
+
+  virtual Space* copy() {
+    return new NatToStrTest(*this);
+  }
+};
+
 class Ex9 : public IntMaximizeScript {
 
   StringVarArray string_vars;
@@ -58,6 +80,7 @@ public:
 };
 
 int main() {
+  delete new NatToStrTest();
   StringOptions opt("*** Ex9 ***");
   opt.solutions(0);
   IntMaximizeScript::run<Ex9, BAB, StringOptions>(opt);

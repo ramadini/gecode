@@ -1295,6 +1295,35 @@ public:
     assert(converted.min(2) == 6 && converted.max(2) == 7);
   }
 
+  void test45() {
+    std::cerr << "\n*** Test 45 ***" << std::endl;
+
+    NSIntSet unknown('d');
+    unknown.add('e');
+    NSBlocks blocks({
+      NSBlock(),
+      NSBlock(NSIntSet(0x80), 2, 2),
+      NSBlock(NSIntSet('b'), 1, 3),
+      NSBlock(NSIntSet('c'), 1, 1),
+      NSBlock(unknown, 1, 1),
+      NSBlock(NSIntSet('f'), 2, 4),
+      NSBlock(NSIntSet(0xff), 1, 1),
+      NSBlock()
+    });
+    string expected_pref(2, static_cast<char>(0x80));
+    expected_pref += 'b';
+    string expected_suff("ff");
+    expected_suff += static_cast<char>(0xff);
+
+    assert(blocks.known_pref() == expected_pref);
+    assert(blocks.known_suff() == expected_suff);
+
+    blocks.normalize();
+    DashedString dashed(*this, blocks, 0, DashedString::_MAX_STR_LENGTH);
+    assert(dashed.known_pref() == expected_pref);
+    assert(dashed.known_suff() == expected_suff);
+  }
+
 };
 
 int main() {
@@ -1347,5 +1376,6 @@ int main() {
   run(&StrTest::test42);
   run(&StrTest::test43);
   run(&StrTest::test44);
+  run(&StrTest::test45);
   return 0;
 }
