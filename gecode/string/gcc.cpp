@@ -3,7 +3,6 @@
 
 namespace Gecode {
 
-  // FIXME: Should cover be a shared copy?
   void
   gcc(Home home, StringVar x, const IntArgs& cover, IntVarArgs count) {
     int n = cover.size();

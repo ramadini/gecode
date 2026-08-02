@@ -99,6 +99,11 @@ Immutable automata are held by typed shared handles. Propagator clones share
 those handles and register disposal when required; temporary frontier storage
 is rebuilt or moved between generations rather than shared between spaces.
 
+GCC similarly shares its immutable character/index mapping and complete cover
+set between clones. The cover contains every constrained character even when
+its occurrence variable is assigned; occurrence counts are never character
+identifiers and must not be used to remove entries from that set.
+
 `StringVarImp` clones its `DashedString` into the destination `Space` exactly
 once. `StringBrancher` similarly owns cloning its complete `ViewArray`; concrete
 branchers copy only their additional scalar state. Branch choices archive only

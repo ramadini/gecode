@@ -1,20 +1,25 @@
 namespace Gecode { namespace String {
 
   forceinline
+  GCCData::GCCData(const vec2& characters0) : characters(characters0) {
+    for (unsigned int i = 0; i < characters.size(); ++i)
+      cover.add(characters[i].first);
+  }
+
+  forceinline
   GCC::GCC(
     Home home, StringView x, const vec2& cov, ViewArray<Gecode::Int::IntView>& c
   ) : MixNaryOnePropagator
   <Gecode::Int::IntView, Gecode::Int::PC_INT_BND, StringView, PC_STRING_DOM>
-  (home, c, x), A(cov) {
-    for (unsigned i = 0; i < A.size(); ++i)
-      C.add(A[i].first);
+  (home, c, x), data(new GCCData(cov)) {
+    home.notice(*this, AP_DISPOSE);
   }
 
   forceinline
   GCC::GCC(Space& home, GCC& p)
   : MixNaryOnePropagator
   <Gecode::Int::IntView, Gecode::Int::PC_INT_BND, StringView, PC_STRING_DOM> 
-    (home, p), A(p.A), C(p.C) {}
+    (home, p), data(p.data) {}
 
   forceinline ExecStatus
   GCC::post(
@@ -33,8 +38,19 @@ namespace Gecode { namespace String {
     return new (home) GCC(home, *this);
   }
 
+  forceinline size_t
+  GCC::dispose(Space& home) {
+    home.ignore(*this, AP_DISPOSE);
+    data.~GCCDataHandle();
+    (void) MixNaryOnePropagator
+      <Gecode::Int::IntView, Gecode::Int::PC_INT_BND,
+       StringView, PC_STRING_DOM>::dispose(home);
+    return sizeof(*this);
+  }
+
   forceinline ExecStatus
   GCC::assigned(Space& home) {
+    const vec2& A = data->characters;
     int n = x.size();
     string s = y.val();
     for (int i = 0; i < n; ++i)
@@ -46,6 +62,8 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   GCC::propagate(Space& home, const ModEventDelta&) {
+    const vec2& A = data->characters;
+    const NSIntSet& C = data->cover;
     //std::cerr<<"\nGCC::propagate GCC("<<y<<", "<<x<<") -- chars = "<<C<<"\n";
     if (y.assigned())
       return assigned(home);
@@ -54,7 +72,7 @@ namespace Gecode { namespace String {
     StringVarImp::DomainState y_state =
       y.varimp()->begin_refinement();
     const NSIntSet& dom = y.may_chars();
-    // Refining upper bounds of count variables and possibly narrow C.
+    // Refining upper bounds of count variables.
     for (int i = 0; i < x.size(); ++i) {
       Gecode::Int::IntView& xi = x[i];
       int mxi = x[i].min();
@@ -65,8 +83,6 @@ namespace Gecode { namespace String {
         return ES_FAILED;
       if (su > DashedString::_MAX_STR_LENGTH)
         su = DashedString::_MAX_STR_LENGTH;
-      if (xi.assigned())
-        C.remove(xi.val());
     }
     // Refining upper bound of count variables.
     for (int i = 0; i < n; ++i)

@@ -10,7 +10,6 @@
 #include <gecode/string/concat.hh>
 #include <gecode/int/bool.hh>
 #include <gecode/string/branch.hh>
-#include <gecode/string/gcc.hh>
 #include <gecode/string/find.hh>
 #include <gecode/string/match.hh>
 
@@ -570,27 +569,18 @@ public:
     StringVar y(*this, "ababacbbcabaa");
     IntArgs A;
     A << 'b' << 'a' << 'c';
-    ViewArray<Gecode::Int::IntView> N(*this, 3);
-    N[0] = IntVar(*this, 3, 5);
-    N[1] = IntVar(*this, 5, 6);
-    N[2] = IntVar(*this, 1, 3);
-    class gcc : public GCC {
-      public:
-        gcc(Home h,
-            StringView x, const vec2& a, ViewArray<Gecode::Int::IntView>& c):
-              GCC(h, x, a, c) {};
-    };
+    IntVarArgs N;
+    N << IntVar(*this, 3, 5)
+      << IntVar(*this, 5, 6)
+      << IntVar(*this, 1, 3);
     std::cerr << "D(x) :: " << x << '\n';
     std::cerr << "D(y) :: " << y << '\n';
     std::cerr << "A = " << A << '\n';
     std::cerr << "N = [" << N[0] << ", " << N[1] << ", " << N[2] << "]\n";
-    int n = A.size();
-    vec2 S(n);
-    for (int i = 0; i < n; ++i)
-      S[i] = std::make_pair(A[i], i);
-    std::sort(S.begin(), S.end());
-    assert(gcc(*this, x, S, N).propagate(*this, 0) == ES_FIX);
-    assert(gcc(*this, y, S, N).propagate(*this, 0) == __ES_SUBSUMED);
+    gcc(*this, x, A, N);
+    assert(status() != SS_FAILED);
+    gcc(*this, y, A, N);
+    assert(status() != SS_FAILED);
     assert(N[0].val() == 5 && N[1].val() == 6 && N[2].val() == 2);
     v[1].S.remove('b');
     v[1].l = 1;

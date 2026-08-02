@@ -96,7 +96,7 @@ then
       'flatzinc_interface.cpp'\
       'char_at.cpp' 'substring.cpp' 'element.cpp' 'find.cpp' 'replace.cpp'\
       'length.cpp'\
-      'char2code.cpp' 'pow.cpp' 'branch.cpp'\
+      'char2code.cpp' 'pow.cpp' 'gcc.cpp' 'branch.cpp'\
       'str_ex1.cpp' 'str_ex2.cpp' 'str_ex3.cpp'\
       'str_ex4.cpp' 'str_ex5.cpp' 'str_ex6.cpp' 'str_ex7.cpp' 'str_ex8.cpp'\
       'str_ex9.cpp' 'str_ex10.cpp' 'str_ex11.cpp' 'str_ex12.cpp'\
@@ -297,4 +297,3 @@ do
   fi
 done &&
 echo "===== All good! ====="
-
