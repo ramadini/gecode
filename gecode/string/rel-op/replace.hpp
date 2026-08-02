@@ -296,8 +296,9 @@ namespace Gecode { namespace String {
   }
   
   forceinline ExecStatus
-  Replace::propagate(Space& home, const ModEventDelta& m) {
+  Replace::propagate_pass(Space& home, bool& repeat) {
 //     std::cerr<<"\nReplace" << (all ? "All" : last ? "Last" : "") << "::propagate: "<< x <<"\n";
+    repeat = false;
     assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
            x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());
     if (!all && !check_card()) {
@@ -390,12 +391,29 @@ namespace Gecode { namespace String {
     ) {
       case 4:
       case 3:
-        // Force the re-execution of the propagation.
-        return x[0].assigned() ? propagate(home, m) : ES_FIX;
+        if (x[0].assigned()) {
+          repeat = true;
+          return ES_OK;
+        }
+        return ES_FIX;
       case 2:
-        return x[1].assigned() && x[0].assigned() ? propagate(home, m) : ES_FIX;
+        if (x[1].assigned() && x[0].assigned()) {
+          repeat = true;
+          return ES_OK;
+        }
+        return ES_FIX;
       default:
         return ES_FIX;
+    }
+  }
+
+  forceinline ExecStatus
+  Replace::propagate(Space& home, const ModEventDelta&) {
+    while (true) {
+      bool repeat;
+      ExecStatus status = propagate_pass(home, repeat);
+      if (!repeat)
+        return status;
     }
   }
 

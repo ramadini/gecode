@@ -34,18 +34,22 @@ namespace Gecode { namespace String {
   }
 
   forceinline ExecStatus
-  GCC::propagate(Space& home, const ModEventDelta& m) {
-    //std::cerr<<"\nGCC::propagate GCC("<<y<<", "<<x<<") -- chars = "<<C<<"\n";
+  GCC::assigned(Space& home) {
     int n = x.size();
-    // y is a knwon string.
-    if (y.assigned()) {
-      string s = y.val();
-      for (int i = 0; i < n; ++i)
-        GECODE_ME_CHECK(x[A[i].second].eq(home,
-          (int) std::count(s.begin(), s.end(), int2char(A[i].first)))
-        );
-      return home.ES_SUBSUMED(*this);
-    }
+    string s = y.val();
+    for (int i = 0; i < n; ++i)
+      GECODE_ME_CHECK(x[A[i].second].eq(home,
+        (int) std::count(s.begin(), s.end(), int2char(A[i].first)))
+      );
+    return home.ES_SUBSUMED(*this);
+  }
+
+  forceinline ExecStatus
+  GCC::propagate(Space& home, const ModEventDelta&) {
+    //std::cerr<<"\nGCC::propagate GCC("<<y<<", "<<x<<") -- chars = "<<C<<"\n";
+    if (y.assigned())
+      return assigned(home);
+    int n = x.size();
     int sl = 0, su = 0, mal = y.max_length();
     int old_min_length = y.min_length();
     int old_max_length = y.max_length();
@@ -165,7 +169,7 @@ namespace Gecode { namespace String {
     }
     //std::cerr<<"\nGCC::propagated GCC("<<y<<", "<<x<<") -- chars = "<<C<<"\n";
     assert (pd->is_normalized());
-    return y.assigned() ? propagate(home, m) : ES_FIX;
+    return y.assigned() ? assigned(home) : ES_FIX;
   }
 
 }}

@@ -85,23 +85,24 @@ namespace Gecode { namespace String {
   }
 
   forceinline ExecStatus
-  GConcat::propagate(Space& home, const ModEventDelta& m) {
+  GConcat::assigned(Space& home) {
+    string val;
+    string::size_type length = 0;
+    for (auto& s : x)
+      length += s.min_length();
+    val.reserve(length);
+    for (auto& s : x)
+      val += s.val();
+    if (y.assigned())
+      return val == y.val() ? home.ES_SUBSUMED(*this) : ES_FAILED;
+    rel(home, y, STRT_EQ, StringVar(home, val));
+    return home.ES_SUBSUMED(*this);
+  }
 
-    if (x.assigned()) {
-      string val;
-      string::size_type length = 0;
-      for (auto& s : x)
-        length += s.min_length();
-      val.reserve(length);
-      for (auto& s : x)
-        val += s.val();
-      if (y.assigned())
-        return val == y.val() ? home.ES_SUBSUMED(*this) : ES_FAILED;
-      else
-        rel(home, y, STRT_EQ, StringVar(home, val));
-
-      return home.ES_SUBSUMED(*this);
-    }
+  forceinline ExecStatus
+  GConcat::propagate(Space& home, const ModEventDelta&) {
+    if (x.assigned())
+      return assigned(home);
     if (!refine_card(home))
       return ES_FAILED;
     ModEvent me = y.gconcat(home, x);
@@ -112,7 +113,7 @@ namespace Gecode { namespace String {
     for (auto& xi : x)
       assert (xi.pdomain()->is_normalized());
 
-    return x.assigned() ? propagate(home, m) : ES_FIX;
+    return x.assigned() ? assigned(home) : ES_FIX;
   }
 
 }}

@@ -11,6 +11,7 @@ namespace Gecode { namespace String {
     ExecStatus decomp_all(Space&);
     ExecStatus replace_q_x(Space&, int);
     ExecStatus replace_q1_y(Space&, int);
+    ExecStatus propagate_pass(Space&, bool&);
     ModEvent refine_card(Space&);
     int occur(const string& q) const;
     bool check_card() const;

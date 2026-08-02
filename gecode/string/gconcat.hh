@@ -6,6 +6,7 @@ namespace Gecode { namespace String {
   class GConcat : public NaryOnePropagator<StringView, PC_STRING_DOM> {
   private:
     bool refine_card(Space&);
+    ExecStatus assigned(Space&);
   protected:
     using NaryOnePropagator<StringView, PC_STRING_DOM>::x;
     using NaryOnePropagator<StringView, PC_STRING_DOM>::y;

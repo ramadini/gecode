@@ -9,6 +9,7 @@ namespace Gecode { namespace String {
   private:
     const vec2 A;
     NSIntSet C;
+    ExecStatus assigned(Space&);
   protected:
     using MixNaryOnePropagator
       <Gecode::Int::IntView, Gecode::Int::PC_INT_BND, StringView, PC_STRING_DOM> 

@@ -109,69 +109,72 @@ namespace Gecode { namespace String {
   }
 
   forceinline ExecStatus
-  NatToStr::propagate(Space& home, const ModEventDelta& m) {
+  NatToStr::propagate(Space& home, const ModEventDelta&) {
     // std::cerr<<"\nNatToStr::propagate "<<x0<<" => "<<x1<<std::endl;
-    if (x0.assigned()) {
-      int n = x0.val();
-      if (n < 0)
-        GECODE_ME_CHECK(x1.eq(home, ""));
-      else
-    	  GECODE_ME_CHECK(x1.eq(home, std::to_string(n)));
-      return home.ES_SUBSUMED(*this);
-    }
-    if (x1.assigned()) {
-      string s = x1.val();
-      if (s.empty())
-        GECODE_ME_CHECK(x0.lq(home, -1));
-      else
-        GECODE_ME_CHECK(x0.eq(home, std::stoi(s)));
-      return home.ES_SUBSUMED(*this);
-    }
-    if (x0.max() <= -1) {
-      x1.eq(home, "");
-      return home.ES_SUBSUMED(*this);
-    }
-    NSBlocks dom = strdom();
-    GECODE_ME_CHECK(x1.dom(home, dom));
-    if (x0.min() > -1 || x1.min_length() > 0) {
-      GECODE_ME_CHECK(x0.gq(home, 0));
-      if (x0.min() == 0)
-        GECODE_ME_CHECK(x1.lb(home, 1));
-      else {
-        GECODE_ME_CHECK(x1.lb(home, (int) std::log10(x0.min()) + 1));
-        rel(home, x1, STRT_NQ, StringVar(home, "0"));
+    while (true) {
+      if (x0.assigned()) {
+        int n = x0.val();
+        if (n < 0)
+          GECODE_ME_CHECK(x1.eq(home, ""));
+        else
+          GECODE_ME_CHECK(x1.eq(home, std::to_string(n)));
+        return home.ES_SUBSUMED(*this);
       }
-      GECODE_ME_CHECK(x1.ub(home, ((int) std::log10(x0.max())) + 1));
-      try {
-        GECODE_ME_CHECK(x0.gq(home, std::stoi(min_str())));
-        GECODE_ME_CHECK(x0.lq(home, std::stoi(max_str())));
-      } catch (const std::out_of_range&) {}
-      if (x1.pdomain()->length() == 1 && x1.pdomain()->at(0).S.size() == 1) {
-        const DSBlock& b = x1.pdomain()->at(0);
-        char a = b.S.min();
-        IntArgs ia(b.u - b.l - 1);
-        for (int i = b.l; i <= b.u; ++i)
-          ia[i] = std::stoi(string(i, a));
-        IntSet is(ia);
-        IntSetRanges isr(is);
-        x0.inter_r(home, isr);
+      if (x1.assigned()) {
+        string s = x1.val();
+        if (s.empty())
+          GECODE_ME_CHECK(x0.lq(home, -1));
+        else
+          GECODE_ME_CHECK(x0.eq(home, std::stoi(s)));
+        return home.ES_SUBSUMED(*this);
       }
-    }
-    else {
-      if (x0.max() > 0)
+      if (x0.max() <= -1) {
+        x1.eq(home, "");
+        return home.ES_SUBSUMED(*this);
+      }
+      NSBlocks dom = strdom();
+      GECODE_ME_CHECK(x1.dom(home, dom));
+      if (x0.min() > -1 || x1.min_length() > 0) {
+        GECODE_ME_CHECK(x0.gq(home, 0));
+        if (x0.min() == 0)
+          GECODE_ME_CHECK(x1.lb(home, 1));
+        else {
+          GECODE_ME_CHECK(x1.lb(home, (int) std::log10(x0.min()) + 1));
+          rel(home, x1, STRT_NQ, StringVar(home, "0"));
+        }
         GECODE_ME_CHECK(x1.ub(home, ((int) std::log10(x0.max())) + 1));
-      else {
-        NSBlocks d({NSBlock(NSIntSet('0'), 0, 1)});
-        rel(home, x1, STRT_DOM, d, 0, 1);
+        try {
+          GECODE_ME_CHECK(x0.gq(home, std::stoi(min_str())));
+          GECODE_ME_CHECK(x0.lq(home, std::stoi(max_str())));
+        } catch (const std::out_of_range&) {}
+        if (x1.pdomain()->length() == 1 && x1.pdomain()->at(0).S.size() == 1) {
+          const DSBlock& b = x1.pdomain()->at(0);
+          char a = b.S.min();
+          IntArgs ia(b.u - b.l - 1);
+          for (int i = b.l; i <= b.u; ++i)
+            ia[i] = std::stoi(string(i, a));
+          IntSet is(ia);
+          IntSetRanges isr(is);
+          x0.inter_r(home, isr);
+        }
       }
-      try {
-        GECODE_ME_CHECK(x0.lq(home, std::stoi(max_str())));
-      } 
-      catch (const std::out_of_range&) {}
+      else {
+        if (x0.max() > 0)
+          GECODE_ME_CHECK(x1.ub(home, ((int) std::log10(x0.max())) + 1));
+        else {
+          NSBlocks d({NSBlock(NSIntSet('0'), 0, 1)});
+          rel(home, x1, STRT_DOM, d, 0, 1);
+        }
+        try {
+          GECODE_ME_CHECK(x0.lq(home, std::stoi(max_str())));
+        }
+        catch (const std::out_of_range&) {}
+      }
+      // std::cerr<<"\nNatToStr::propagated "<<x0<<" => "<<x1<<std::endl;
+      assert (x1.pdomain()->is_normalized());
+      if (!x0.assigned() && !x1.assigned())
+        return ES_FIX;
     }
-    // std::cerr<<"\nNatToStr::propagated "<<x0<<" => "<<x1<<std::endl;
-    assert (x1.pdomain()->is_normalized());
-    return x0.assigned() || x1.assigned() ? propagate(home, m) : ES_FIX;
   }
 
 }}

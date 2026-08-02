@@ -138,55 +138,58 @@ namespace Gecode { namespace String {
   }
 
   forceinline ExecStatus
-  StrToNat::propagate(Space& home, const ModEventDelta& m) {
+  StrToNat::propagate(Space& home, const ModEventDelta&) {
     // std::cerr<<"\nStrToNat::propagate "<<x0<<" => "<<x1<<std::endl;
-    if (x0.assigned()) {
-      try {
-        GECODE_ME_CHECK(x1.eq(home, (int) max(-1, std::stoi(x0.val()))));
+    while (true) {
+      if (x0.assigned()) {
+        try {
+          GECODE_ME_CHECK(x1.eq(home, (int) max(-1, std::stoi(x0.val()))));
+        }
+        catch (...) {
+          GECODE_ME_CHECK(x1.eq(home, -1));
+        }
+        // std::cerr << "x1 = " << x1 << "\n";
+        return home.ES_SUBSUMED(*this);
       }
-      catch (...) {
-        GECODE_ME_CHECK(x1.eq(home, -1));
+      if (x1.assigned()) {
+        if (x1.val() > -1) {
+          NSBlocks val({
+            NSBlock(NSIntSet('0'), 0, x0.max_length())
+          });
+          string s = std::to_string(x1.val());
+          val.extend(NSBlocks(s));
+          int n = s.size();
+          rel(home, x0, STRT_DOM, val, n, n + x0.max_length());
+        }
+        else
+          extensional(home, x0, "[0-9][0-9]*", BoolVar(home, 0, 0), RM_EQV);
+        // std::cerr << "x0 = " << x0 << "\n";
+        return home.ES_SUBSUMED(*this);
       }
-      // std::cerr << "x1 = " << x1 << "\n";
-      return home.ES_SUBSUMED(*this);
-    }
-    if (x1.assigned()) {
-      if (x1.val() > -1) {
-        NSBlocks val({
-          NSBlock(NSIntSet('0'), 0, x0.max_length())
-        });
-        string s = std::to_string(x1.val());
-        val.extend(NSBlocks(s));
-        int n = s.size();
-        rel(home, x0, STRT_DOM, val, n, n + x0.max_length());
+      NSBlocks dom = strdom();
+      // std::cerr << dom << '\n';
+      if (x1.min() > -1
+      || dom.contains<DSBlock, DSBlocks>(x0.pdomain()->blocks())) {
+        if (x1.min() > 0)
+          GECODE_ME_CHECK(x0.lb(home, (int) ceil(std::log10(x1.min()))));
+        GECODE_ME_CHECK(x0.dom(home, dom));
+        try {
+          GECODE_ME_CHECK(x1.gq(home, std::stoi(min_str())));
+          GECODE_ME_CHECK(x1.lq(home, std::stoi(max_str())));
+        }
+        catch (const std::out_of_range&) {}
       }
-      else
+      else if (x1.max() == -1 || !x0.pdomain()->check_equate(dom)) {
         extensional(home, x0, "[0-9][0-9]*", BoolVar(home, 0, 0), RM_EQV);
-      // std::cerr << "x0 = " << x0 << "\n";
-      return home.ES_SUBSUMED(*this);
+        // std::cerr << x0 << " => -1 (subsumed)\n";
+        return home.ES_SUBSUMED(*this);
+      }
+      GECODE_ES_CHECK(refine_int(home));
+      // std::cerr<<"\nStrToNat::propagated "<<x0<<" => "<<x1<<std::endl;
+      assert (x0.pdomain()->is_normalized());
+      if (!x0.assigned() && !x1.assigned())
+        return ES_FIX;
     }
-    NSBlocks dom = strdom();
-    // std::cerr << dom << '\n';
-    if (x1.min() > -1
-    || dom.contains<DSBlock, DSBlocks>(x0.pdomain()->blocks())) {
-      if (x1.min() > 0)
-        GECODE_ME_CHECK(x0.lb(home, (int) ceil(std::log10(x1.min()))));
-      GECODE_ME_CHECK(x0.dom(home, dom));
-      try {
-        GECODE_ME_CHECK(x1.gq(home, std::stoi(min_str())));
-        GECODE_ME_CHECK(x1.lq(home, std::stoi(max_str())));
-      } 
-      catch (const std::out_of_range&) {}
-    }
-    else if (x1.max() == -1 || !x0.pdomain()->check_equate(dom)) {
-      extensional(home, x0, "[0-9][0-9]*", BoolVar(home, 0, 0), RM_EQV);
-      // std::cerr << x0 << " => -1 (subsumed)\n";
-      return home.ES_SUBSUMED(*this);
-    }
-    GECODE_ES_CHECK(refine_int(home));
-    // std::cerr<<"\nStrToNat::propagated "<<x0<<" => "<<x1<<std::endl;
-    assert (x0.pdomain()->is_normalized());
-    return x0.assigned() || x1.assigned() ? propagate(home, m) : ES_FIX;
   }
 
 }}
