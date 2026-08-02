@@ -93,6 +93,7 @@ then
   fi
   declare -a TESTS=( \
       'str_test1.cpp' 'str_test2.cpp' 'str_test3.cpp'\
+      'flatzinc_interface.cpp'\
       'char_at.cpp' 'substring.cpp' 'element.cpp' 'find.cpp' 'replace.cpp'\
       'length.cpp'\
       'char2code.cpp' 'pow.cpp' 'branch.cpp'\

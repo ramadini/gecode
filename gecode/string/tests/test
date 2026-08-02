@@ -16,7 +16,7 @@ time "${CXX:-g++}" -O0 -ggdb -pipe -Wall -Wno-switch -I"$ROOT_DIR" \
 echo 'Linking'
 time "${CXX:-g++}" -o "$BUILD_DIR/test" "$BUILD_DIR/test.o" -std=c++11 \
   -L"$ROOT_DIR" -Wl,-rpath,"$ROOT_DIR" \
-  -lgecodestring -lgecodeint -lgecodeset -lgecodedriver -lgecodesearch \
+  -lgecodeflatzinc -lgecodestring -lgecodeint -lgecodeset -lgecodedriver -lgecodesearch \
   -lgecodeminimodel -lgecodekernel -lgecodesupport -pthread
 
 echo 'Executing'

@@ -1788,16 +1788,15 @@ namespace Gecode { namespace FlatZinc {
           branchInfo.add(bg,def_float_rel_left,def_float_rel_right,fv_tmp_names);
         }
   #endif
-      }
-    }
   #ifdef GECODE_HAS_STRING_VARS
         {
           BrancherGroup bg;
           branch(bg(*this),tv_aux,def_string_varsel,def_string_valsel);
           branchInfo.add(bg,def_string_rel_left,def_string_rel_right,tv_tmp_names);
         }
-  
   #endif
+      }
+    }
     if (_method == MIN) {
       if (_optVarIsInt) {
         std::vector<std::string> names(1);
@@ -2144,8 +2143,8 @@ namespace Gecode { namespace FlatZinc {
       } else if (!sol) {
           out << "=====UNKNOWN=====" << std::endl;
       }
-      delete sol;
       stopped:
+      delete sol;
       if (opt.interrupt())
         Driver::CombinedStop::installCtrlHandler(false);
       if (opt.mode() == SM_STAT) {
@@ -2171,6 +2170,7 @@ namespace Gecode { namespace FlatZinc {
             << "%%%mzn-stat-end" << std::endl
             << std::endl;
       }
+    delete o.cutoff;
     }
     delete o.stop;
     delete o.tracer;
@@ -2798,6 +2798,7 @@ namespace Gecode { namespace FlatZinc {
 
   void
   Printer::init(AST::Array* output) {
+    delete _output;
     _output = output;
   }
 

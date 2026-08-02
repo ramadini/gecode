@@ -608,11 +608,7 @@ namespace Gecode { namespace String {
     Space& home, StringView x, const std::vector<NSBlocks>& refined
   ) {
     NSBlocks domain = merge_refined_blocks(refined);
-    int old_min_length = x.min_length();
-    int old_max_length = x.max_length();
-    DashedString* current = x.pdomain();
-    domain.empty() ? current->set_null(home) : current->update(home, domain);
-    return x.varimp()->notify(home, old_min_length, old_max_length);
+    return x.varimp()->refine(home, domain);
   }
 
   template <typename DFA_t>

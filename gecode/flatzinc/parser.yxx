@@ -67,7 +67,38 @@ using namespace Gecode;
 using namespace Gecode::FlatZinc;
 using namespace Gecode::String;
 #include <gecode/string/extensional/flatzinc.hpp>
-vector<pair<AST::StringVar*, unique_ptr<RegEx>>> REGEX;
+
+typedef vector<pair<int, unique_ptr<RegEx>>> RegexQueue;
+
+forceinline RegexQueue&
+regexQueue(ParserState* pp) {
+  assert(pp->stringParserState != NULL);
+  return *static_cast<RegexQueue*>(pp->stringParserState);
+}
+
+class ScannerGuard {
+private:
+  void*& scanner;
+public:
+  ScannerGuard(void*& scanner0) : scanner(scanner0) {}
+  ~ScannerGuard(void) {
+    if (scanner != NULL)
+      yylex_destroy(scanner);
+  }
+};
+
+#ifdef HAVE_MMAP
+class MappedFileGuard {
+private:
+  char* data;
+  size_t size;
+public:
+  MappedFileGuard(char* data0, size_t size0) : data(data0), size(size0) {}
+  ~MappedFileGuard(void) {
+    munmap(data, size);
+  }
+};
+#endif
 
 void yyerror(void* parm, const char *str) {
   ParserState* pp = static_cast<ParserState*>(parm);
@@ -313,15 +344,17 @@ int getBaseStringVar(ParserState* pp, int i) {
 void initfg(ParserState* pp) {
   if (!pp->hadError) {
     // Unfolding regular expressions.
-    for (auto& x : REGEX)
-      add_to_flatzinc(*x.second, x.first, pp);
+    for (auto& x : regexQueue(pp)) {
+      AST::StringVar target(x.first);
+      add_to_flatzinc(*x.second, &target, pp);
+    }
     pp->fg->init(pp->intvars.size(),
                  pp->boolvars.size(),
                  pp->setvars.size(),
                  pp->floatvars.size(),
                  pp->stringvars.size());
   }
-  REGEX.clear();
+  regexQueue(pp).clear();
   for (unsigned int i=0; i<pp->intvars.size(); i++) {
     if (!pp->hadError) {
       try {
@@ -467,6 +500,7 @@ namespace Gecode { namespace FlatZinc {
   FlatZincSpace* parse(const std::string& filename, Printer& p, 
                        const FlatZincOptions& opt, std::ostream& err,
                        FlatZincSpace* fzs, Rnd& rnd) {
+    unique_ptr<FlatZincSpace> ownedSpace;
 #ifdef HAVE_MMAP
     int fd;
     char* data;
@@ -477,17 +511,22 @@ namespace Gecode { namespace FlatZinc {
       return NULL;
     }
     if (stat(filename.c_str(), &sbuf) == -1) {
+      close(fd);
       err << "Cannot stat file " << filename << endl;
       return NULL;
     }
     data = (char*)mmap((caddr_t)0, sbuf.st_size, PROT_READ, MAP_SHARED, fd,0);
     if (data == (caddr_t)(-1)) {
+      close(fd);
       err << "Cannot mmap file " << filename << endl;
       return NULL;
     }
+    close(fd);
+    MappedFileGuard mappedFile(data, sbuf.st_size);
 
     if (fzs == NULL) {
-      fzs = new FlatZincSpace(rnd);
+      ownedSpace.reset(new FlatZincSpace(rnd));
+      fzs = ownedSpace.get();
     }
     ParserState pp(data, sbuf.st_size, err, fzs);
 #else
@@ -500,10 +539,14 @@ namespace Gecode { namespace FlatZinc {
     std::string s = string(istreambuf_iterator<char>(file),
                            istreambuf_iterator<char>());
     if (fzs == NULL) {
-      fzs = new FlatZincSpace(rnd);
+      ownedSpace.reset(new FlatZincSpace(rnd));
+      fzs = ownedSpace.get();
     }
     ParserState pp(s, err, fzs);
 #endif
+    RegexQueue regex;
+    pp.stringParserState = &regex;
+    ScannerGuard scanner(pp.yyscanner);
     yylex_init(&pp.yyscanner);
     yyset_extra(&pp, pp.yyscanner);
     
@@ -521,10 +564,10 @@ namespace Gecode { namespace FlatZinc {
     // yydebug = 1;
     yyparse(&pp);
     fillPrinter(pp, p);
-
-    if (pp.yyscanner)
-      yylex_destroy(pp.yyscanner);
-    return pp.hadError ? NULL : pp.fg;
+    if (pp.hadError)
+      return NULL;
+    ownedSpace.release();
+    return pp.fg;
   }
 
   FlatZincSpace* parse(std::istream& is, Printer& p, const FlatZincOptions& opt, 
@@ -532,10 +575,15 @@ namespace Gecode { namespace FlatZinc {
     std::string s = string(istreambuf_iterator<char>(is),
                            istreambuf_iterator<char>());
 
+    unique_ptr<FlatZincSpace> ownedSpace;
     if (fzs == NULL) {
-      fzs = new FlatZincSpace(rnd);
+      ownedSpace.reset(new FlatZincSpace(rnd));
+      fzs = ownedSpace.get();
     }
     ParserState pp(s, err, fzs);
+    RegexQueue regex;
+    pp.stringParserState = &regex;
+    ScannerGuard scanner(pp.yyscanner);
     yylex_init(&pp.yyscanner);
     yyset_extra(&pp, pp.yyscanner);
     
@@ -553,10 +601,10 @@ namespace Gecode { namespace FlatZinc {
     // yydebug = 1;
     yyparse(&pp);
     fillPrinter(pp, p);
-
-    if (pp.yyscanner)
-      yylex_destroy(pp.yyscanner);
-    return pp.hadError ? NULL : pp.fg;
+    if (pp.hadError)
+      return NULL;
+    ownedSpace.release();
+    return pp.fg;
   }
 
 }}
@@ -586,6 +634,8 @@ namespace Gecode { namespace FlatZinc {
 %token <iValue> FZ_INT_LIT FZ_BOOL_LIT
 %token <dValue> FZ_FLOAT_LIT
 %token <sValue> FZ_ID FZ_U_ID FZ_STRING_LIT
+
+%destructor { free($$); } <sValue>
 
 %token <bValue> FZ_VAR FZ_PAR
 
@@ -1650,7 +1700,7 @@ set_var_array_literal : '[' set_init_list ']'
 
 string_init :
      FZ_STRING_LIT
-     { $$ = new StringVarSpec($1,false,false); }
+  { $$ = new StringVarSpec($1,false,false); free($1); }
    | var_par_id
      {
        SymbolEntry e;
@@ -1875,7 +1925,9 @@ constraint_item :
             //std::cerr << r->intro_vars() << "\n";
             if (r->intro_vars()) {
               AST::StringVar* x = dynamic_cast<AST::StringVar*>($4->a[0]);
-              REGEX.emplace_back(x, std::move(r));
+              regexQueue(pp).emplace_back(x->i, std::move(r));
+              delete $4;
+              delete $6;
             }
             else
               pp->constraints.push_back(new ConExpr($2, $4, $6));
@@ -1973,7 +2025,7 @@ string_ti_expr_tail :
 
 set_literal :
       '{' int_list '}'
-      { $$ = new AST::SetLit(*$2); }
+  { $$ = new AST::SetLit(*$2); delete $2; }
     | FZ_INT_LIT FZ_DOTDOT FZ_INT_LIT
       { $$ = new AST::SetLit($1, $3); }
 
@@ -2029,9 +2081,9 @@ set_literal_list_head :
    
 charset_literal :
     '{' string_list '}'
-    { $$ = new AST::CharSetLit(*$2); }
+  { $$ = new AST::CharSetLit(*$2); delete $2; }
     | FZ_STRING_LIT FZ_DOTDOT FZ_STRING_LIT
-    { $$ = new AST::CharSetLit($1, $3); }
+  { $$ = new AST::CharSetLit($1, $3); free($1); free($3); }
 
 /********************************/
 /* constraint expressions       */
@@ -2057,9 +2109,9 @@ string_list :
 
 string_list_head:
       FZ_STRING_LIT
-      { $$ = new vector<std::string>(1); (*$$)[0] = $1; }
+  { $$ = new vector<std::string>(1); (*$$)[0] = $1; free($1); }
     | string_list_head ',' FZ_STRING_LIT
-      { $$ = $1; $$->push_back($3); }
+  { $$ = $1; $$->push_back($3); free($3); }
 
 non_array_expr_opt :
       /* empty */
@@ -2075,7 +2127,7 @@ non_array_expr :
     | FZ_FLOAT_LIT
       { $$ = new AST::FloatLit($1); }
     | FZ_STRING_LIT
-      { $$ = new AST::StringDom($1); }
+      { $$ = new AST::StringDom($1); free($1); }
     | set_literal
       { $$ = $1; }
     | charset_literal
@@ -2351,7 +2403,7 @@ ann_non_array_expr :
     | FZ_FLOAT_LIT
       { $$ = new AST::FloatLit($1); }
     | FZ_STRING_LIT
-      { $$ = new AST::StringDom($1); }
+      { $$ = new AST::StringDom($1); free($1); }
     | set_literal
       { $$ = $1; }
     | var_par_id /* variable, possibly array */

@@ -36,8 +36,10 @@ operation succeeds, the state emits at most one aggregate event:
 
 Operations touching several variables combine these events with `me_combine`.
 `StringVarImp::refine` applies an already-computed normalized `NSBlocks` domain
-through this transaction boundary; propagators must not update `DashedString`
-and issue notifications separately.
+and explicitly records the replacement as a change. In-place refinements use
+`begin_refinement` and `commit_refinement`; the commit similarly records the
+change before classifying it. Propagators must not update `DashedString` and
+issue notifications separately.
 This analyze-mutate-notify order is part of the variable implementation
 contract: adding a new dashed-domain operation must not notify from inside the
 domain layer or leave a stale changed marker for the next transaction.

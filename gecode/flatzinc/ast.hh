@@ -235,7 +235,9 @@ namespace Gecode { namespace FlatZinc { namespace AST {
     StringDom(const Gecode::String::NSIntSet& s0) : u(-1), s(),
       c(new CharSetLit(s0)) {}
     StringDom(int u0, CharSetLit* c0) : u(u0), s(), c(c0) {}
-    explicit StringDom(StringDom* s0) : u(s0->u), s(s0->s), c(s0->c) {}
+    explicit StringDom(StringDom* s0) : u(s0->u), s(s0->s),
+      c(s0->c == NULL ? NULL : new CharSetLit(s0->c->s)) {}
+    virtual ~StringDom(void) { delete c; }
     virtual void print(std::ostream& os) {
       if (c) {
         if (u < 0)

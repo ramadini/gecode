@@ -306,6 +306,12 @@ predicate str_alphabet(var string: x, set of string: D);
 */
 predicate str_dfa(var string: x, int: Q, set of string: S,
                   array[int, int] of int: d, int: q0, set of int: F);
+/** @group flatzinc
+  Constrains \a r to whether \a x is accepted by the DFA.
+*/
+predicate str_dfa_reif(var string: x, int: Q, set of string: S,
+                       array[int, int] of int: d, int: q0, set of int: F,
+                       var bool: r);
 /** @group flatzinc 
   The string \a x (which must be in the set S of length s)
   is accepted by the NFA of \a Q states with input 1..\a s and transition

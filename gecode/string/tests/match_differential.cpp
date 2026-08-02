@@ -15,10 +15,44 @@ namespace {
 
   typedef std::pair<std::string, int> Solution;
 
+  class CountingDomain : public UnaryPropagator
+    <StringView, PC_STRING_DOM> {
+  public:
+    static int propagations;
+    static int assigned_propagations;
+
+    CountingDomain(Home home, StringView text)
+      : UnaryPropagator<StringView, PC_STRING_DOM>(home, text) {}
+
+    CountingDomain(Space& home, CountingDomain& other)
+      : UnaryPropagator<StringView, PC_STRING_DOM>(home, other) {}
+
+    virtual Actor* copy(Space& home) {
+      return new (home) CountingDomain(home, *this);
+    }
+
+    virtual ExecStatus propagate(Space& home, const ModEventDelta&) {
+      ++propagations;
+      if (!x0.assigned())
+        return ES_FIX;
+      ++assigned_propagations;
+      return home.ES_SUBSUMED(*this);
+    }
+  };
+
+  int CountingDomain::propagations = 0;
+  int CountingDomain::assigned_propagations = 0;
+
   StringVar
   make_text(Space& home) {
     NSBlocks domain(1, NSBlock(NSIntSet('a', 'b'), 1, 4));
     return StringVar(home, domain, 1, 4);
+  }
+
+  StringVar
+  make_single_text(Space& home) {
+    NSBlocks domain(1, NSBlock(NSIntSet('a', 'b'), 1, 1));
+    return StringVar(home, domain, 1, 1);
   }
 
   class MatchModel : public Space {
@@ -72,6 +106,31 @@ namespace {
     }
   };
 
+  class NotificationModel : public Space {
+  public:
+    StringVar text;
+    IntVar index;
+
+    NotificationModel(void)
+      : text(make_single_text(*this)), index(*this, 0, 0) {
+      (void) new (*this) CountingDomain(*this, text);
+    }
+
+    NotificationModel(NotificationModel& model) : Space(model) {
+      text.update(*this, model.text);
+      index.update(*this, model.index);
+    }
+
+    virtual Space* copy(void) {
+      return new NotificationModel(*this);
+    }
+
+    void refine(void) {
+      NSBlocks domain(1, NSBlock(NSIntSet('a'), 1, 1));
+      assert(!me_failed(StringView(text).varimp()->refine(*this, domain)));
+    }
+  };
+
   std::set<Solution>
   actual_solutions(const std::string& pattern, bool use_new) {
     MatchModel* model = new MatchModel(pattern, use_new);
@@ -95,6 +154,19 @@ main(void) {
   PostingFailureModel new_failure(true);
   assert(legacy_failure.status() == SS_FAILED);
   assert(new_failure.status() == SS_FAILED);
+
+  CountingDomain::propagations = 0;
+  CountingDomain::assigned_propagations = 0;
+  NotificationModel initial;
+  assert(initial.status() != SS_FAILED);
+  NotificationModel* notification =
+    static_cast<NotificationModel*>(initial.clone());
+  const int before = CountingDomain::propagations;
+  notification->refine();
+  assert(notification->status() != SS_FAILED);
+  assert(CountingDomain::propagations > before);
+  assert(CountingDomain::assigned_propagations > 0);
+  delete notification;
 
   const std::vector<std::string> patterns = {
     "a", "b", "ab", "aa", "a|b", "(ab|b)", "a*b"

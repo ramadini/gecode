@@ -51,8 +51,8 @@ namespace Gecode { namespace String {
       return assigned(home);
     int n = x.size();
     int sl = 0, su = 0, mal = y.max_length();
-    int old_min_length = y.min_length();
-    int old_max_length = y.max_length();
+    StringVarImp::DomainState y_state =
+      y.varimp()->begin_refinement();
     const NSIntSet& dom = y.may_chars();
     // Refining upper bounds of count variables and possibly narrow C.
     for (int i = 0; i < x.size(); ++i) {
@@ -164,8 +164,7 @@ namespace Gecode { namespace String {
       }
       pd->refine_card(home, sl, su);
       pd->normalize(home);
-      GECODE_ME_CHECK(y.varimp()->notify(
-        home, old_min_length, old_max_length));
+      GECODE_ME_CHECK(y.varimp()->commit_refinement(home, y_state));
     }
     //std::cerr<<"\nGCC::propagated GCC("<<y<<", "<<x<<") -- chars = "<<C<<"\n";
     assert (pd->is_normalized());

@@ -2089,10 +2089,25 @@ namespace Gecode { namespace FlatZinc {
 	    else
 	      b.u = sl->u;
     }
+    else if (ce[1]->isSet()) {
+      if (!ce[1]->getSet()->empty())
+        throw AST::TypeError("character set expected");
+      b.S = Gecode::String::NSIntSet();
+    }
     else
       b.S = ce[1]->getCharSet()->s;
 	  Gecode::String::NSBlocks dom = Gecode::String::NSBlocks(1, b);
 	  rel(s, s.arg2StringVar(ce[0]), STRT_DOM, dom, b.l, b.u);
+  }
+
+  void p_str_alphabet(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+    p_str_chars(s, ce, NULL);
+    Gecode::String::NSIntSet alphabet;
+    if (!ce[1]->isSet())
+      alphabet = ce[1]->getCharSet()->s;
+    for (Gecode::String::NSIntSet::iterator c = alphabet.begin(); c(); ++c)
+      contains(s, s.arg2StringVar(ce[0]),
+               StringVar(s, std::string(1, Gecode::String::int2char(*c))));
   }
 
   void p_str_range(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
@@ -2213,7 +2228,7 @@ namespace Gecode { namespace FlatZinc {
   }
 
   void p_str_nfa(FlatZincSpace&, const ConExpr&, AST::Node *) {
-	  std::cerr << "NFA propagator not yet implemented!\n";
+    throw FlatZinc::Error("str_nfa", "constraint is not implemented");
   }
 
   void p_str_reg(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
@@ -2252,7 +2267,7 @@ namespace Gecode { namespace FlatZinc {
   void
   p_str_dfa_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
     extensional(s, s.arg2StringVar(ce[0]), toDFA(s, ce),
-    		       s.arg2BoolVar(ce[2]), RM_EQV);
+		       s.arg2BoolVar(ce[6]), RM_EQV);
   }
 
   void
@@ -2283,6 +2298,7 @@ namespace Gecode { namespace FlatZinc {
     	  registry().add("str_ucase", &p_str_ucase);
     	  registry().add("str_gcc", &p_str_gcc);
     	  registry().add("str_chars", &p_str_chars);
+        registry().add("str_alphabet", &p_str_alphabet);
     	  registry().add("str_char_at", &p_str_char_at);
     	  registry().add("str_range", &p_str_range);
     	  registry().add("str_char2code", &p_str_char2code);

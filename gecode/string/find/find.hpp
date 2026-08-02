@@ -125,8 +125,8 @@ namespace Gecode { namespace String {
         // Removing a single character from all the bases.
         int c = char2int(x0.val()[0]);
         DashedString* pdom = x1.pdomain();
-        int old_min_length = x1.min_length();
-        int old_max_length = x1.max_length();
+        StringVarImp::DomainState x1_state =
+          x1.varimp()->begin_refinement();
         bool changed = false;
         bool norm = false;
         for (int i = 0; i < pdom->length(); ++i) {
@@ -143,8 +143,7 @@ namespace Gecode { namespace String {
         if (norm)
           pdom->normalize(home);
         if (changed)
-          GECODE_ME_CHECK(x1.varimp()->notify(
-            home, old_min_length, old_max_length));
+          GECODE_ME_CHECK(x1.varimp()->commit_refinement(home, x1_state));
         assert (pdom->is_normalized());
         if (x1.assigned() &&
             x1.val().find(x0.val()) != string::npos)

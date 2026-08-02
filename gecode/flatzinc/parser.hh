@@ -206,13 +206,46 @@ namespace Gecode { namespace FlatZinc {
   public:
     ParserState(const std::string& b, std::ostream& err0,
                 Gecode::FlatZinc::FlatZincSpace* fg0)
-    : buf(b.c_str()), pos(0), length(b.size()), fg(fg0),
+    : yyscanner(NULL), buf(b.c_str()), pos(0), length(b.size()), fg(fg0),
+    #ifdef GECODE_HAS_STRING_VARS
+      stringParserState(NULL),
+    #endif
       hadError(false), err(err0) {}
 
     ParserState(char* buf0, int length0, std::ostream& err0,
                 Gecode::FlatZinc::FlatZincSpace* fg0)
-    : buf(buf0), pos(0), length(length0), fg(fg0),
+    : yyscanner(NULL), buf(buf0), pos(0), length(length0), fg(fg0),
+    #ifdef GECODE_HAS_STRING_VARS
+      stringParserState(NULL),
+    #endif
       hadError(false), err(err0) {}
+
+    ~ParserState(void) {
+      for (std::vector<varspec>::iterator i = intvars.begin();
+           i != intvars.end(); ++i)
+        delete i->second;
+      for (std::vector<varspec>::iterator i = boolvars.begin();
+           i != boolvars.end(); ++i)
+        delete i->second;
+      for (std::vector<varspec>::iterator i = setvars.begin();
+           i != setvars.end(); ++i)
+        delete i->second;
+      for (std::vector<varspec>::iterator i = floatvars.begin();
+           i != floatvars.end(); ++i)
+        delete i->second;
+      for (std::vector<varspec>::iterator i = stringvars.begin();
+           i != stringvars.end(); ++i)
+        delete i->second;
+      for (std::vector<ConExpr*>::iterator i = constraints.begin();
+           i != constraints.end(); ++i)
+        delete *i;
+      for (std::vector<ConExpr*>::iterator i = domainConstraints.begin();
+           i != domainConstraints.end(); ++i)
+        delete *i;
+      for (std::vector<std::pair<std::string,AST::Node*> >::iterator
+             i = _output.begin(); i != _output.end(); ++i)
+        delete i->second;
+    }
 
     void* yyscanner;
     const char* buf;
@@ -234,6 +267,11 @@ namespace Gecode { namespace FlatZinc {
     std::vector<ConExpr*> constraints;
 
     std::vector<ConExpr*> domainConstraints;
+
+  #ifdef GECODE_HAS_STRING_VARS
+    /// String-specific parser state owned by the active parse call
+    void* stringParserState;
+  #endif
 
     bool hadError;
     std::ostream& err;
@@ -264,8 +302,10 @@ namespace Gecode { namespace FlatZinc {
             oa->a[j] = NULL;
           }
           delete _output[i].second;
+          _output[i].second = NULL;
         } else {
           a->a.push_back(_output[i].second);
+          _output[i].second = NULL;
         }
         a->a.push_back(new AST::String(";\n"));
       }

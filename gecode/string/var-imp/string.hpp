@@ -79,7 +79,21 @@ namespace Gecode { namespace String {
   forceinline ModEvent
   StringVarImp::refine(Space& home, const NSBlocks& d) {
     DomainState state(*this);
-    ds.update(home, d);
+    d.empty() ? ds.set_null(home) : ds.update(home, d);
+    ds.changed(true);
+    return notify(home, ME_STRING_NONE, state);
+  }
+
+  forceinline StringVarImp::DomainState
+  StringVarImp::begin_refinement(void) {
+    return DomainState(*this);
+  }
+
+  forceinline ModEvent
+  StringVarImp::commit_refinement(
+    Space& home, const DomainState& state
+  ) {
+    ds.changed(true);
     return notify(home, ME_STRING_NONE, state);
   }
 

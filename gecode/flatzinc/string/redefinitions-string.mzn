@@ -112,8 +112,6 @@ predicate str_gconcat(array[int] of var string: x, var string: y);
 
 predicate str_reg(var string: x, string: regexp);
 predicate str_reg_reif(var string: x, string: regexp, var bool: b);
-predicate str_dfa_reif(string: x, int: Q, set of string: S, array[int, int] of 
-                       int: d, int: q0, set of int: F, var bool: b);
 
 function var string:
 element(var int: i, string: x) = str_sub(x, i, i);
