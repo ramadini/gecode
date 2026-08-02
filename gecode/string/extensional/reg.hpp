@@ -81,26 +81,38 @@ namespace Gecode { namespace String {
     return s;
   }
 
-  forceinline NSIntSet
-  trimDFA::neighbours(int q, const DSIntSet& S) const {
-    NSIntSet s;
+  forceinline void
+  trimDFA::include_neighbours(NSIntSet& states, int q,
+                              const DSIntSet& characters) const {
     for (auto& x : delta[q])
-      if (S.in(x.first))
-        s.add(x.second);
-    return s;
+      if (characters.in(x.first))
+        states.add(x.second);
   }
-  
+
   forceinline NSIntSet
-  trimDFA::neighbot(int q, const DSIntSet& S) const {
-    NSIntSet s;
+  trimDFA::neighbours(int q, const DSIntSet& characters) const {
+    NSIntSet states;
+    include_neighbours(states, q, characters);
+    return states;
+  }
+
+  forceinline bool
+  trimDFA::include_all_neighbours(NSIntSet& states, int q,
+                                  const DSIntSet& characters) const {
     unsigned int covered = 0;
-    for (auto& x : delta[q]) {
-      if (S.in(x.first)) {
-        s.add(x.second);
+    for (auto& transition : delta[q]) {
+      if (characters.in(transition.first)) {
+        states.add(transition.second);
         ++covered;
       }
     }
-    return covered == S.size() ? s : NSIntSet();
+    return !characters.empty() && covered == characters.size();
+  }
+
+  forceinline NSIntSet
+  trimDFA::neighbot(int q, const DSIntSet& S) const {
+    NSIntSet s;
+    return include_all_neighbours(s, q, S) ? s : NSIntSet();
   }
 
   forceinline NSIntSet
@@ -108,12 +120,9 @@ namespace Gecode { namespace String {
     NSIntSet current = initial;
     for (int i = 0; i < b.l; ++i) {
       NSIntSet next;
-      for (NSIntSet::iterator state(current); state(); ++state) {
-        NSIntSet neighbours = neighbot(*state, b.S);
-        if (neighbours.empty())
-          return neighbours;
-        next.include(neighbours);
-      }
+      for (NSIntSet::iterator state(current); state(); ++state)
+        if (!include_all_neighbours(next, *state, b.S))
+          return NSIntSet();
       if (next == current)
         return next;
       current = std::move(next);
@@ -132,9 +141,9 @@ namespace Gecode { namespace String {
     for (unsigned int head = 0; head < queue.size(); ++head) {
       int state = queue[head], next_distance = distance[state] + 1;
       if (next_distance <= b.u) {
-        NSIntSet next = neighbot(state, b.S);
-        if (next.empty())
-          return next;
+        NSIntSet next;
+        if (!include_all_neighbours(next, state, b.S))
+          return NSIntSet();
         for (NSIntSet::iterator neighbour(next); neighbour(); ++neighbour) {
           int next_state = *neighbour;
           if (distance[next_state] > next_distance) {
@@ -304,7 +313,7 @@ namespace Gecode { namespace String {
       }
       else {
         for (NSIntSet::iterator it(Q[i]); it(); ++it)
-          qi.include(dfa->neighbours(*it, b.S));
+          dfa->include_neighbours(qi, *it, b.S);
       }
       if (qi.empty())
         return std::vector<NSIntSet>();
@@ -538,7 +547,7 @@ namespace Gecode { namespace String {
     for (int i = 0; i < l; ++i) {
       NSIntSet qi;
       for (NSIntSet::iterator it(Q[i]); it(); ++it)
-        qi.include(dfa->neighbours(*it, b.S));
+        dfa->include_neighbours(qi, *it, b.S);
       if (qi.empty())
         return std::vector<NSIntSet>();
       if (qi == Q[i]) {

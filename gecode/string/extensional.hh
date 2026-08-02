@@ -48,7 +48,9 @@ namespace Gecode { namespace String {
     int min_word_length() const;
     int search(int, int) const;
     NSIntSet neighbours(int) const;
+    void include_neighbours(NSIntSet&, int, const DSIntSet&) const;
     NSIntSet neighbours(int, const DSIntSet&) const;
+    bool include_all_neighbours(NSIntSet&, int, const DSIntSet&) const;
     NSIntSet neighbot(int, const DSIntSet&) const;
     /// Return reachable states, or no states if any represented word is rejected
     NSIntSet reach_all(const DSBlock&, const NSIntSet&) const;
@@ -67,6 +69,7 @@ namespace Gecode { namespace String {
     NSIntSet alphabet() const;
     int search(int, int) const;
     NSIntSet neighbours(int) const;
+    void include_neighbours(NSIntSet&, int, const DSIntSet&) const;
     NSIntSet neighbours(int, const DSIntSet&) const;
   };
   

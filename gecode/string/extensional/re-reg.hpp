@@ -119,13 +119,19 @@ namespace Gecode { namespace String {
     return s;
   };
   
-  forceinline NSIntSet 
-  compDFA::neighbours(int q, const DSIntSet& S) const {
-    NSIntSet s;
+  forceinline void
+  compDFA::include_neighbours(NSIntSet& states, int q,
+                              const DSIntSet& characters) const {
     for (auto& x : delta[q])
-      if (!S.disjoint(x.first))
-        s.add(x.second);
-    return s;
+      if (!characters.disjoint(x.first))
+        states.add(x.second);
+  }
+
+  forceinline NSIntSet
+  compDFA::neighbours(int q, const DSIntSet& characters) const {
+    NSIntSet states;
+    include_neighbours(states, q, characters);
+    return states;
   };
 
   forceinline void

@@ -64,7 +64,7 @@ namespace Gecode { namespace String {
     for (int i = 0; i < l; ++i) {
       NSIntSet Qi;
       for (NSIntSet::iterator it(Q_prev); it(); ++it)
-        Qi.include(sRs->neighbours(*it, b.S));
+        sRs->include_neighbours(Qi, *it, b.S);
       if (Qi.in(1) || Qi == Q_prev)
         // Final state q1 belongs to Qi, or fixpoint reached.
         return Qi;
