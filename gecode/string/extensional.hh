@@ -71,10 +71,31 @@ namespace Gecode { namespace String {
   };
   
   struct matchNFA : public compDFA {
+    typedef std::pair<int, int> ReverseTransition;
+    typedef std::vector<ReverseTransition> ReverseTransitions;
+    typedef std::vector<ReverseTransitions> ReverseDelta;
+
+    class Predecessors {
+    private:
+      const matchNFA& nfa;
+      const DSIntSet& characters;
+      ReverseTransitions::const_iterator current;
+      ReverseTransitions::const_iterator finish;
+      void skip_disjoint(void);
+    public:
+      Predecessors(const matchNFA&, int, const DSIntSet&);
+      bool operator ()(void) const;
+      void operator ++(void);
+      int operator *(void) const;
+    };
+
     // 0 = initial state q_0, 1 = accepting state q_F, bot = q_⊥ state.
     // delta[i][j] =  k means δ(i,j) = {k}
     // delta[i][j] = -k means δ(i,j) = {k,q_bot}
+    // Reverse entries store (source state, edge index in delta[source]).
+    ReverseDelta reverse;
     matchNFA(const trimDFA&, const NSIntSet&);
+    void include_neighbours(NSIntSet&, int, const DSIntSet&) const;
     NSIntSet neighbours(int, const DSIntSet&) const;
   };
 
