@@ -124,7 +124,6 @@ namespace Gecode { namespace String {
   forceinline void
   StringView::update(Space& home, StringView& y) {
     VarImpView::update(home, y);
-    x->ds.update(home, y.x->ds);
   }
 
   forceinline bool

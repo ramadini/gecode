@@ -21,13 +21,24 @@ public:
     return new (home) CountingDomain(home, *this);
   }
 
-  virtual ExecStatus propagate(Space&, const ModEventDelta&) {
+  virtual ExecStatus propagate(Space&, const ModEventDelta& med) {
+    (void) med;
     ++propagations;
     return ES_FIX;
   }
 };
 
 int CountingDomain::propagations = 0;
+
+static StringVar
+star_source(Space& home) {
+  String::NSBlocks domain;
+  domain.push_back(
+    String::NSBlock(String::NSIntSet('a', 'b'), 0, 1));
+  domain.push_back(
+    String::NSBlock(String::NSIntSet('a', 'c'), 0, 1));
+  return StringVar(home, domain, 0, 2);
+}
 
 class EventSpace : public Space {
 public:
@@ -43,7 +54,7 @@ public:
   StringVar string;
 
   RegexPostingModel(void)
-    : string(*this, String::NSIntSet('a', 'b'), 0, 2) {
+    : string(star_source(*this)) {
     (void) new (*this) CountingDomain(*this, string);
   }
 
@@ -56,7 +67,8 @@ public:
   }
 
   void restrict_to_a_star(void) {
-    extensional(*this, string, "a*");
+    VarArgs auxiliaries;
+    extensional(*this, string, "a*", auxiliaries);
   }
 };
 
@@ -108,5 +120,6 @@ main(void) {
   assert(model.status() != SS_FAILED);
   assert(CountingDomain::propagations > before);
   assert(String::StringView(model.string).may_chars() == String::NSIntSet('a'));
+  assert(model.string.min_length() == 0 && model.string.max_length() == 2);
   return 0;
 }

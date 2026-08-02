@@ -28,7 +28,7 @@ namespace Gecode { namespace String {
     //         : std::cerr<<"\nInc le ::propagate "<<x0<<std::endl;
     if (x0.assigned()) {
       string s = x0.val();
-      for (unsigned i = 0; i < s.size() - 1; ++i)
+      for (unsigned i = 0; i + 1 < s.size(); ++i)
         if (s[i] > s[i + 1] || (strict && s[i] == s[i + 1]))
           return ES_FAILED;
       return home.ES_SUBSUMED(*this);
@@ -51,7 +51,7 @@ namespace Gecode { namespace String {
     GECODE_ME_CHECK(x0.inc(home, strict));
     if (x0.assigned()) {
       string s = x0.val();
-      for (unsigned i = 0; i < s.size() - 1; ++i)
+      for (unsigned i = 0; i + 1 < s.size(); ++i)
         assert (s[i] < s[i + 1] || (!strict && s[i] == s[i + 1]));
       return home.ES_SUBSUMED(*this);
     }

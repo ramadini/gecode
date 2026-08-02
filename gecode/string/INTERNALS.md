@@ -44,6 +44,14 @@ This analyze-mutate-notify order is part of the variable implementation
 contract: adding a new dashed-domain operation must not notify from inside the
 domain layer or leave a stale changed marker for the next transaction.
 
+Production `pdomain()` mutations are limited to GCC, Find, and the decomposed
+regular-star poster, and all are enclosed by
+`begin_refinement`/`commit_refinement`. Other production callers use the pointer
+read-only or commit an analyzed ordinary-lifetime domain via
+`StringVarImp::refine`. The regular-star path analyzes an `NSBlocks` copy before
+mutating, so early failure cannot leave a partial update and actors subscribed
+before posting see the resulting aggregate event.
+
 ## Sweep propagation
 
 `sweep_x` analyzes whether blocks from one sequence can match another sequence.
@@ -105,7 +113,8 @@ its occurrence variable is assigned; occurrence counts are never character
 identifiers and must not be used to remove entries from that set.
 
 `StringVarImp` clones its `DashedString` into the destination `Space` exactly
-once. `StringBrancher` similarly owns cloning its complete `ViewArray`; concrete
-branchers copy only their additional scalar state. Branch choices archive only
-the selected variable position and scalar split data, never pointers into a
-space or dashed domain.
+once; `StringView::update` only installs that copied variable implementation
+and does not copy the domain again. `StringBrancher` similarly owns cloning its
+complete `ViewArray`; concrete branchers copy only their additional scalar
+state. Branch choices archive only the selected variable position and scalar
+split data, never pointers into a space or dashed domain.

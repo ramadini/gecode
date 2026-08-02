@@ -359,11 +359,14 @@ namespace Gecode { namespace String {
           va.iva << n;
         }
         else {
-          DashedString* p = ((StringView) x).pdomain();
+          StringView view(x);
+          const DashedString& domain = view.varimp()->domain();
+          NSBlocks refined(domain.blocks());
           const NSIntSet s(base->get_chars());
-          bool norm = false;
-          for (int i = 0; i < p->length(); ++i) {
-            NSIntSet si(p->at(i).S);
+          bool changed = false;
+          for (unsigned int i = 0; i < refined.size(); ++i) {
+            NSBlock& block = refined[i];
+            NSIntSet si(block.S);
             if (s.disjoint(si)) {
               if (x.min_length() > 0)
                 home.fail();
@@ -374,13 +377,28 @@ namespace Gecode { namespace String {
             int n = si.size();
             si.intersect(s);
             if (si.size() < n) {
-              p->at(i).S.update(home, si);
-              norm = true;
+              block.S = std::move(si);
+              changed = true;
             }
-            p->at(i).u = x.max_length();
+            if (block.u != x.max_length()) {
+              block.u = x.max_length();
+              changed = true;
+            }
           }
-          if (norm)
-            p->normalize(home);
+          if (changed) {
+            StringVarImp::DomainState state =
+              view.varimp()->begin_refinement();
+            DashedString* target = view.pdomain();
+            for (unsigned int i = 0; i < refined.size(); ++i) {
+              if (!(target->at(i).S == refined[i].S))
+                target->at(i).S.update(home, refined[i].S);
+              target->at(i).u = refined[i].u;
+            }
+            target->normalize(home);
+            if (home.failed())
+              return;
+            GECODE_ME_FAIL(view.varimp()->commit_refinement(home, state));
+          }
         }
         return;
       }

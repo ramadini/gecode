@@ -16,6 +16,7 @@ namespace Gecode { namespace String {
 
     string val() const;
 
+    /// Raw domain access; mutations require a StringVarImp refinement transaction
     String::DashedString* pdomain(void) const;
 
     bool same(const StringView& that) const;
@@ -75,4 +76,3 @@ namespace Gecode { namespace String {
 }}
 
 #include <gecode/string/view/string.hpp>
-

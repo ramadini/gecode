@@ -1183,7 +1183,7 @@ public:
     selected[0] = StringVar(*this, NSIntSet('a', 'b'), 1, 1);
     None_LLLL selected_brancher(*this, selected);
     const Choice* selected_choice = selected_brancher.choice(*this);
-    selected[0].pdomain()->update(*this, "a");
+    assert(!me_failed(selected[0].eq(*this, "a")));
     assert(selected_brancher.commit(*this, *selected_choice, 0) == ES_OK);
     assert(selected_brancher.commit(*this, *selected_choice, 1) == ES_FAILED);
     delete selected_choice;
@@ -1192,7 +1192,7 @@ public:
     excluded[0] = StringVar(*this, NSIntSet('a', 'b'), 1, 1);
     None_LLLL excluded_brancher(*this, excluded);
     const Choice* excluded_choice = excluded_brancher.choice(*this);
-    excluded[0].pdomain()->update(*this, "b");
+    assert(!me_failed(excluded[0].eq(*this, "b")));
     assert(excluded_brancher.commit(*this, *excluded_choice, 0) == ES_FAILED);
     assert(excluded_brancher.commit(*this, *excluded_choice, 1) == ES_OK);
     delete excluded_choice;
@@ -1201,7 +1201,7 @@ public:
     length[0] = StringVar(*this, NSIntSet('a'), 0, 2);
     None_LLLL length_brancher(*this, length);
     const Choice* length_choice = length_brancher.choice(*this);
-    length[0].pdomain()->update(*this, "a");
+    assert(!me_failed(length[0].eq(*this, "a")));
     assert(length_brancher.commit(*this, *length_choice, 0) == ES_FAILED);
     assert(length_brancher.commit(*this, *length_choice, 1) == ES_OK);
     delete length_choice;
