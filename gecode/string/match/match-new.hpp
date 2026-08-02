@@ -97,24 +97,25 @@ namespace Gecode { namespace String {
   forceinline void
   matchNFA::include_neighbours(NSIntSet& states, int q,
                                const DSIntSet& characters) const {
-    for (auto& x : delta[q]) {
-      if (!characters.disjoint(x.first)) {
-        if (x.second < 0) {
-          states.add(-x.second);
-          states.add(q_bot);
+    visit_neighbours(q, characters,
+      [&states](int state) { states.add(state); });
+  }
+
+  template<class Visitor>
+  forceinline void
+  matchNFA::visit_neighbours(int q, const DSIntSet& characters,
+                             Visitor visitor) const {
+    for (auto& transition : delta[q]) {
+      if (!characters.disjoint(transition.first)) {
+        if (transition.second < 0) {
+          visitor(-transition.second);
+          visitor(q_bot);
         }
         else
-          states.add(x.second);
+          visitor(transition.second);
       }
     }
   }
-
-  forceinline NSIntSet
-  matchNFA::neighbours(int q, const DSIntSet& characters) const {
-    NSIntSet states;
-    include_neighbours(states, q, characters);
-    return states;
-  };
 
   forceinline
   MatchNew::MatchNew(Home home, StringView x, Gecode::Int::IntView i, int r, 
@@ -215,18 +216,14 @@ namespace Gecode { namespace String {
       int q = Q_bfs[head], d = dist[q];
       if (d < DashedString::_MAX_STR_LENGTH)
         ++d;
-      if (d <= b.u) {
-        NSIntSet nq;
-        nq = Rnfa->neighbours(q, b.S);
-        for (NSIntSet::iterator j(nq); j(); ++j) {
-          int q1 = *j;
+      if (d <= b.u)
+        Rnfa->visit_neighbours(q, b.S, [&](int q1) {
           if (dist[q1] > d) {
             Q_bfs.push_back(q1);
             Q[l + 1].include(q1);
             dist[q1] = d;
           }
-        }
-      }
+        });
     }
     return Q;
   }

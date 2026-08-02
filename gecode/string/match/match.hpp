@@ -83,16 +83,17 @@ namespace Gecode { namespace String {
     for (unsigned int head = 0; head < U.size(); ++head) {
       int q = U[head], d = dist[q] + 1;
       if (d <= b.u) {
-        NSIntSet Nq = sRs->neighbours(q, b.S);
-        for (NSIntSet::iterator j(Nq); j(); ++j) {
-          int q1 = *j;
+        bool accepting_neighbour = false;
+        sRs->visit_neighbours(q, b.S, [&](int q1) {
           if (dist[q1] > d) {
             U.push_back(q1);
             Qf.add(q1);
             dist[q1] = d;
           }
-        }
-        if (Nq.in(1))
+          if (q1 == 1)
+            accepting_neighbour = true;
+        });
+        if (accepting_neighbour)
           // Final state in the neighbourhood of q.
           break;
       }

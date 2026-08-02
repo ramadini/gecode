@@ -35,7 +35,6 @@ namespace Gecode { namespace String {
     virtual NSIntSet alphabet() const = 0;
     virtual int search(int, int) const = 0;
     virtual NSIntSet neighbours(int) const = 0;
-    virtual NSIntSet neighbours(int, const DSIntSet&) const = 0;    
   };
 
   // trimmed-DFA data structure for non-reified regular.
@@ -47,9 +46,11 @@ namespace Gecode { namespace String {
     NSIntSet alphabet() const;
     int min_word_length() const;
     int search(int, int) const;
+    delta_t reverse_transitions(const DSIntSet&) const;
     NSIntSet neighbours(int) const;
+    template<class Visitor>
+    void visit_neighbours(int, const DSIntSet&, Visitor) const;
     void include_neighbours(NSIntSet&, int, const DSIntSet&) const;
-    NSIntSet neighbours(int, const DSIntSet&) const;
     bool include_all_neighbours(NSIntSet&, int, const DSIntSet&) const;
     NSIntSet neighbot(int, const DSIntSet&) const;
     /// Return reachable states, or no states if any represented word is rejected
@@ -69,8 +70,9 @@ namespace Gecode { namespace String {
     NSIntSet alphabet() const;
     int search(int, int) const;
     NSIntSet neighbours(int) const;
+    template<class Visitor>
+    void visit_neighbours(int, const DSIntSet&, Visitor) const;
     void include_neighbours(NSIntSet&, int, const DSIntSet&) const;
-    NSIntSet neighbours(int, const DSIntSet&) const;
   };
   
   struct matchNFA : public compDFA {
@@ -98,8 +100,9 @@ namespace Gecode { namespace String {
     // Reverse entries store (source state, edge index in delta[source]).
     ReverseDelta reverse;
     matchNFA(const trimDFA&, const NSIntSet&);
+    template<class Visitor>
+    void visit_neighbours(int, const DSIntSet&, Visitor) const;
     void include_neighbours(NSIntSet&, int, const DSIntSet&) const;
-    NSIntSet neighbours(int, const DSIntSet&) const;
   };
 
   template<class Automaton>

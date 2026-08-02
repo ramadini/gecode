@@ -41,6 +41,17 @@ namespace Gecode { namespace String {
     return -1;
   }
 
+  forceinline trimDFA::delta_t
+  trimDFA::reverse_transitions(const DSIntSet& characters) const {
+    delta_t reverse(n_states);
+    for (int source = 0; source < n_states; ++source)
+      for (auto& transition : delta[source])
+        if (characters.in(transition.first))
+          reverse[transition.second].push_back(
+            std::pair<int, int>(transition.first, source));
+    return reverse;
+  }
+
   forceinline NSIntSet
   trimDFA::alphabet() const {
     NSIntSet s;
@@ -81,19 +92,20 @@ namespace Gecode { namespace String {
     return s;
   }
 
+  template<class Visitor>
+  forceinline void
+  trimDFA::visit_neighbours(int q, const DSIntSet& characters,
+                            Visitor visitor) const {
+    for (auto& transition : delta[q])
+      if (characters.in(transition.first))
+        visitor(transition.second);
+  }
+
   forceinline void
   trimDFA::include_neighbours(NSIntSet& states, int q,
                               const DSIntSet& characters) const {
-    for (auto& x : delta[q])
-      if (characters.in(x.first))
-        states.add(x.second);
-  }
-
-  forceinline NSIntSet
-  trimDFA::neighbours(int q, const DSIntSet& characters) const {
-    NSIntSet states;
-    include_neighbours(states, q, characters);
-    return states;
+    visit_neighbours(q, characters,
+      [&states](int state) { states.add(state); });
   }
 
   forceinline bool
@@ -296,20 +308,15 @@ namespace Gecode { namespace String {
     std::vector<NSIntSet> Q(l + 2);
     Q[0] = Qf;
     trimDFA::delta_t delta_rev;
-    if (rev) {
-      delta_rev = trimDFA::delta_t(dfa->n_states);
-      for (int q = 0; q < dfa->n_states; ++q)
-        for (auto& x : dfa->delta[q])
-          if (b.S.in(x.first))
-            delta_rev[x.second].push_back(std::pair<int, int>(x.first, q));
-    }
+    if (rev)
+      delta_rev = dfa->reverse_transitions(b.S);
     // Mandatory region.
     for (int i = 0; i < l; ++i) {
       NSIntSet qi;
       if (rev) {
         for (NSIntSet::iterator it(Q[i]); it(); ++it)
-          for (auto& x : delta_rev[*it])
-            qi.include(x.second);
+          for (auto& transition : delta_rev[*it])
+            qi.include(transition.second);
       }
       else {
         for (NSIntSet::iterator it(Q[i]); it(); ++it)
@@ -343,22 +350,24 @@ namespace Gecode { namespace String {
       if (d < DashedString::_MAX_STR_LENGTH)
         ++d;
       if (d <= b.u) {
-        NSIntSet nq;
         if (rev) {
-          for (auto& x : delta_rev[q])
-            nq.include(x.second);
-        }
-        else {
-          nq = dfa->neighbours(q, b.S);
-        }
-        for (NSIntSet::iterator j(nq); j(); ++j) {
-          int q1 = *j;
-          if (dist[q1] > d) {
-            Q_bfs.push_back(q1);
-            Q[l + 1].include(q1);
-            dist[q1] = d;
+          for (auto& transition : delta_rev[q]) {
+            int q1 = transition.second;
+            if (dist[q1] > d) {
+              Q_bfs.push_back(q1);
+              Q[l + 1].include(q1);
+              dist[q1] = d;
+            }
           }
         }
+        else
+          dfa->visit_neighbours(q, b.S, [&](int q1) {
+            if (dist[q1] > d) {
+              Q_bfs.push_back(q1);
+              Q[l + 1].include(q1);
+              dist[q1] = d;
+            }
+          });
       }
     }
     return Q;
@@ -369,12 +378,9 @@ namespace Gecode { namespace String {
     trimDFA* dfa, const std::vector<NSIntSet>& Q, NSIntSet& Qe, 
     const DSBlock& b, bool& changed, bool rev
   ) {
-    trimDFA::delta_t delta_bwd(dfa->n_states);
+    trimDFA::delta_t delta_bwd;
     if (!rev)
-      for (int q = 0; q < dfa->n_states; ++q)
-        for (auto& x : dfa->delta[q])
-          if (b.S.in(x.first))
-            delta_bwd[x.second].push_back(std::pair<int, int>(x.first, q));
+      delta_bwd = dfa->reverse_transitions(b.S);
     int l = b.l, l1 = DashedString::_MAX_STR_LENGTH;
     NSIntSet E(std::move(Qe));
     Region region;
@@ -575,18 +581,14 @@ namespace Gecode { namespace String {
       int q = Q_bfs[head], d = dist[q];
       if (d < DashedString::_MAX_STR_LENGTH)
         ++d;
-      if (d <= b.u) {
-        NSIntSet nq;
-        nq = dfa->neighbours(q, b.S);
-        for (NSIntSet::iterator j(nq); j(); ++j) {
-          int q1 = *j;
+      if (d <= b.u)
+        dfa->visit_neighbours(q, b.S, [&](int q1) {
           if (dist[q1] > d) {
             Q_bfs.push_back(q1);
             Q[l + 1].include(q1);
             dist[q1] = d;
           }
-        }
-      }
+        });
     }
     return Q;
   }

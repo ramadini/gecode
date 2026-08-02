@@ -119,20 +119,21 @@ namespace Gecode { namespace String {
     return s;
   };
   
+  template<class Visitor>
+  forceinline void
+  compDFA::visit_neighbours(int q, const DSIntSet& characters,
+                            Visitor visitor) const {
+    for (auto& transition : delta[q])
+      if (!characters.disjoint(transition.first))
+        visitor(transition.second);
+  }
+
   forceinline void
   compDFA::include_neighbours(NSIntSet& states, int q,
                               const DSIntSet& characters) const {
-    for (auto& x : delta[q])
-      if (!characters.disjoint(x.first))
-        states.add(x.second);
+    visit_neighbours(q, characters,
+      [&states](int state) { states.add(state); });
   }
-
-  forceinline NSIntSet
-  compDFA::neighbours(int q, const DSIntSet& characters) const {
-    NSIntSet states;
-    include_neighbours(states, q, characters);
-    return states;
-  };
 
   forceinline void
   compDFA::negate() {
