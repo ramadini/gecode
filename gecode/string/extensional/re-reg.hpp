@@ -110,6 +110,20 @@ namespace Gecode { namespace String {
         return x.second;
     return -1;
   };
+
+  forceinline compDFA::Delta_t
+  compDFA::reverse_transitions(const DSIntSet& characters) const {
+    Delta_t reverse(n_states);
+    for (int source = 0; source < n_states; ++source)
+      for (auto& transition : delta[source])
+        if (!characters.disjoint(transition.first)) {
+          NSIntSet label(characters);
+          label.intersect(transition.first);
+          reverse[transition.second].emplace_back(
+            std::move(label), source);
+        }
+    return reverse;
+  }
   
   forceinline NSIntSet
   compDFA::neighbours(int q) const {

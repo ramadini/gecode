@@ -442,11 +442,7 @@ namespace Gecode { namespace String {
         NSBlocks x_new;
         pref.concat(suff, x_new);
         x_new.normalize();
-        int old_min_length = x0.min_length();
-        int old_max_length = x0.max_length();
-        X.update(home, x_new);
-        GECODE_ME_CHECK(x0.varimp()->notify(
-          home, old_min_length, old_max_length));
+        GECODE_ME_CHECK(x0.varimp()->refine(home, x_new));
       }
       GECODE_ME_CHECK(x1.lq(home, std::max(0, x0.max_length() - minR + 1)));
       assert (X.is_normalized());

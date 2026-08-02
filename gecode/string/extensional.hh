@@ -69,6 +69,7 @@ namespace Gecode { namespace String {
     void negate();
     NSIntSet alphabet() const;
     int search(int, int) const;
+    Delta_t reverse_transitions(const DSIntSet&) const;
     NSIntSet neighbours(int) const;
     template<class Visitor>
     void visit_neighbours(int, const DSIntSet&, Visitor) const;

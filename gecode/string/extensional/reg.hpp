@@ -463,14 +463,7 @@ namespace Gecode { namespace String {
     compDFA* dfa, const std::vector<NSIntSet>& Q, NSIntSet& Qe, 
     const DSBlock& b, bool& changed
   ) {
-    compDFA::Delta_t delta_bwd(dfa->n_states);
-    for (int q = 0; q < dfa->n_states; ++q)
-      for (auto& x : dfa->delta[q])
-        if (!b.S.disjoint(x.first)) {
-          NSIntSet s(b.S);
-          s.intersect(x.first);
-          delta_bwd[x.second].emplace_back(std::move(s), q);
-        }
+    compDFA::Delta_t delta_bwd = dfa->reverse_transitions(b.S);
     int l = b.l, l1 = DashedString::_MAX_STR_LENGTH;
     NSIntSet E(std::move(Qe));
     Region region;

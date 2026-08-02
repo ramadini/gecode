@@ -103,6 +103,9 @@ namespace Gecode { namespace String {
 
     ModEvent dom(Space& home, const NSBlocks& d);
 
+    /// Replace the domain with an already-refined normalized block sequence
+    ModEvent refine(Space& home, const NSBlocks& d);
+
     ModEvent eq(Space& home, StringVarImp* x);
 
     ModEvent eq(Space& home, string x);

@@ -77,6 +77,13 @@ namespace Gecode { namespace String {
   }
 
   forceinline ModEvent
+  StringVarImp::refine(Space& home, const NSBlocks& d) {
+    DomainState state(*this);
+    ds.update(home, d);
+    return notify(home, ME_STRING_NONE, state);
+  }
+
+  forceinline ModEvent
   StringVarImp::eq(Space& home, string x) {
     if (!check_sweep<DSBlock, DashedString, char, string>(ds, x))
       return ME_STRING_FAILED;
