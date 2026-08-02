@@ -238,102 +238,90 @@ namespace Gecode { namespace String {
   
   template<class CtrlView, ReifyMode rm>
   forceinline ExecStatus
-  ReReg<CtrlView, rm>::propagate(Space& home, const ModEventDelta& m) {
+  ReReg<CtrlView, rm>::propagate(Space& home, const ModEventDelta&) {
 //    std::cerr<<"ReDFA::propagate "<<b<<" <> "<<x0<<" in dfa "<<*dfa<<std::endl;
-    if (x0.assigned()) {
-      if (dfa->accepted(x0.val())) {
-        if (rm != RM_IMP)
-          GECODE_ME_CHECK(b.eq(home, 1));
-        return home.ES_SUBSUMED(*this);
+    while (true) {
+      if (x0.assigned()) {
+        if (dfa->accepted(x0.val())) {
+          if (rm != RM_IMP)
+            GECODE_ME_CHECK(b.eq(home, 1));
+          return home.ES_SUBSUMED(*this);
+        }
+        else {
+          if (rm != RM_PMI)
+            GECODE_ME_CHECK(b.eq(home, 0));
+          return home.ES_SUBSUMED(*this);
+        }
       }
-      else {
-        if (rm != RM_PMI)
-          GECODE_ME_CHECK(b.eq(home, 0));
-        return home.ES_SUBSUMED(*this);
-      }
-    }
-    if (b.assigned()) {
-      if (b.zero()) {
-        if (rm == RM_IMP)
+      if (b.assigned()) {
+        if (b.zero()) {
+          if (rm == RM_IMP)
+            return home.ES_SUBSUMED(*this);
+          //FIXME: Transform into trimDFA if corresponding delta is smaller?
+        }
+        else if (rm == RM_PMI)
           return home.ES_SUBSUMED(*this);
         //FIXME: Transform into trimDFA if corresponding delta is smaller?
       }
-      else if (rm == RM_PMI)
-        return home.ES_SUBSUMED(*this);
-      //FIXME: Transform into trimDFA if corresponding delta is smaller?
-    }
-    DashedString* x = x0.pdomain();
-    std::vector<std::vector<NSIntSet>> F(x->length());
-    NSIntSet initial(0);
-    const NSIntSet* states = &initial;
-    int n = x->length();
-    for (int i = 0; i < n; ++i) {
-      F[i] = Reg::reach_fwd(dfa.get(), *states, x->at(i));
-      if (F[i].empty()) {
-        GECODE_ME_CHECK(b.eq(home, 0));
-        return home.ES_SUBSUMED(*this);
-      }
-      states = &F[i].back();
-      if (states->size() == 1 && states->min() == dfa->q_bot) {
-        n = i + 1;
-        break;
-      }
-    }
-    NSIntSet E(*states);
-    NSIntSet accepting = dfa->accepting_states();
-    NSIntSet rejecting;
-    bool have_rejecting = false;
-    if (accepting.contains(E))
-      GECODE_ME_CHECK(b.eq(home, 1));
-    else {
-      rejecting = accepting.comp();
-      have_rejecting = true;
-      if (rejecting.contains(E))
-        GECODE_ME_CHECK(b.eq(home, 0));
-    }
-    if (b.one()) {
-      if (rm == RM_PMI)
-        return home.ES_SUBSUMED(*this);
-      E.intersect(accepting);
-    }
-    else if (b.zero()) {
-      if (rm == RM_IMP)
-        return home.ES_SUBSUMED(*this);
-      if (!have_rejecting)
-        rejecting = accepting.comp();
-      E.intersect(rejecting);
-    }
-    else
-      return ES_FIX;
-    std::vector<NSBlocks> y(n);
-    if (E.empty())
-      return ES_FAILED;
-    bool changed = false;
-    for (int i = n - 1; i >= 0; --i)
-      y[i] = Reg::reach_bwd(dfa.get(), F[i], E, x->at(i), changed);
-    if (changed) {
-      NSBlocks z;
-      for (auto& yi : y)
-        for (auto& yij: yi) {
-          if (yij.null())
-            continue;
-          if (!z.empty() && z.back().S == yij.S) {
-            z.back().l += yij.l;
-            z.back().u += yij.u;
-          }
-          else
-            z.push_back(yij);
+      DashedString* x = x0.pdomain();
+      std::vector<std::vector<NSIntSet>> F(x->length());
+      NSIntSet initial(0);
+      const NSIntSet* states = &initial;
+      int n = x->length();
+      for (int i = 0; i < n; ++i) {
+        F[i] = Reg::reach_fwd(dfa.get(), *states, x->at(i));
+        if (F[i].empty()) {
+          GECODE_ME_CHECK(b.eq(home, 0));
+          return home.ES_SUBSUMED(*this);
         }
-      int old_min_length = x0.min_length();
-      int old_max_length = x0.max_length();
-      z.empty() ? x->set_null(home) : x->update(home, z);
-      GECODE_ME_CHECK(x0.varimp()->notify(
-        home, old_min_length, old_max_length));
+        states = &F[i].back();
+        if (states->size() == 1 && states->min() == dfa->q_bot) {
+          n = i + 1;
+          break;
+        }
+      }
+      NSIntSet E(*states);
+      NSIntSet accepting = dfa->accepting_states();
+      NSIntSet rejecting;
+      bool have_rejecting = false;
+      if (accepting.contains(E))
+        GECODE_ME_CHECK(b.eq(home, 1));
+      else {
+        rejecting = accepting.comp();
+        have_rejecting = true;
+        if (rejecting.contains(E))
+          GECODE_ME_CHECK(b.eq(home, 0));
+      }
+      if (b.one()) {
+        if (rm == RM_PMI)
+          return home.ES_SUBSUMED(*this);
+        E.intersect(accepting);
+      }
+      else if (b.zero()) {
+        if (rm == RM_IMP)
+          return home.ES_SUBSUMED(*this);
+        if (!have_rejecting)
+          rejecting = accepting.comp();
+        E.intersect(rejecting);
+      }
+      else
+        return ES_FIX;
+      std::vector<NSBlocks> y(n);
+      if (E.empty())
+        return ES_FAILED;
+      bool changed = false;
+      for (int i = n - 1; i >= 0; --i)
+        y[i] = Reg::reach_bwd(dfa.get(), F[i], E, x->at(i), changed);
+      if (changed) {
+        GECODE_ME_CHECK(commit_refined_blocks(home, x0, y));
+        assert (x0.pdomain()->is_normalized());
+        if (x0.assigned())
+          return home.ES_SUBSUMED(*this);
+        continue;
+      }
       assert (x0.pdomain()->is_normalized());
-      return x0.assigned() ? home.ES_SUBSUMED(*this) : propagate(home, m);
+      return ES_FIX;
     }
-    assert (x0.pdomain()->is_normalized());
-    return ES_FIX;
   }
 
 }}

@@ -582,6 +582,35 @@ namespace Gecode { namespace String {
     return Q;
   }
 
+  forceinline NSBlocks
+  merge_refined_blocks(const std::vector<NSBlocks>& refined) {
+    NSBlocks domain;
+    for (const auto& blocks : refined)
+      for (const auto& block : blocks) {
+        if (block.null())
+          continue;
+        if (!domain.empty() && domain.back().S == block.S) {
+          domain.back().l += block.l;
+          domain.back().u += block.u;
+        }
+        else
+          domain.push_back(block);
+      }
+    return domain;
+  }
+
+  forceinline ModEvent
+  commit_refined_blocks(
+    Space& home, StringView x, const std::vector<NSBlocks>& refined
+  ) {
+    NSBlocks domain = merge_refined_blocks(refined);
+    int old_min_length = x.min_length();
+    int old_max_length = x.max_length();
+    DashedString* current = x.pdomain();
+    domain.empty() ? current->set_null(home) : current->update(home, domain);
+    return x.varimp()->notify(home, old_min_length, old_max_length);
+  }
+
   template <typename DFA_t>
   forceinline ExecStatus
   Reg::propagate_blocks(Space& home, NSBlocks& x, DFA_t* dfa) {
@@ -610,19 +639,7 @@ namespace Gecode { namespace String {
           dfa, forward[i], endings, DSBlock(home, x[i]), changed);
       if (changed) {
         nofix = true;
-        NSBlocks normalized;
-        for (auto& blocks : refined)
-          for (auto& block : blocks) {
-            if (block.null())
-              continue;
-            if (!normalized.empty() && normalized.back().S == block.S) {
-              normalized.back().l += block.l;
-              normalized.back().u += block.u;
-            }
-            else
-              normalized.push_back(block);
-          }
-        x = normalized.empty() ? NSBlocks() : normalized;
+        x = merge_refined_blocks(refined);
         assert(x.is_normalized());
       }
     } while (changed);
@@ -630,100 +647,75 @@ namespace Gecode { namespace String {
   }
 
   forceinline ExecStatus
-  Reg::propagate(Space& home, const ModEventDelta& m) {
+  Reg::propagate(Space& home, const ModEventDelta&) {
     // std::cerr<<"\nExtDFA<StringView>::propagate "<<x0<<" in dfa "<<*dfa<<std::endl;
-    if (x0.assigned()) {
-      // std::cerr << dfa->accepted(x0.val()) << std::endl;
-      return dfa->accepted(x0.val()) ? home.ES_SUBSUMED(*this) : ES_FAILED;
-    }
-    DashedString* x = x0.pdomain();
-    std::vector<std::vector<NSIntSet>> F(x->length());
-    NSIntSet initial(0);
-    const NSIntSet* states = &initial;
-    int n = x->length();
-    for (int i = 0; i < n; ++i) {
-      F[i] = reach_fwd(dfa.get(), *states, x->at(i));
-      if (F[i].empty())
-        return ES_FAILED;
-      states = &F[i].back();
-    }
-    NSIntSet E(*states);
-    std::vector<NSBlocks> y(n);
-    NSIntSet accepting = dfa->accepting_states();
-    E.intersect(accepting);
-    if (E.empty())
-      return ES_FAILED;
-    bool changed = false;
-    for (int i = n - 1; i >= 0; --i)
-      y[i] = reach_bwd(dfa.get(), F[i], E, x->at(i), changed);
-    if (changed) {
-      NSBlocks z;
-      for (auto& yi : y)
-        for (auto& yij: yi) {
-          if (yij.null())
-            continue;
-          if (!z.empty() && z.back().S == yij.S) {
-            z.back().l += yij.l;
-            z.back().u += yij.u;
-          }
-          else
-            z.push_back(yij);
-        }
-      int old_min_length = x0.min_length();
-      int old_max_length = x0.max_length();
-      z.empty() ? x->set_null(home) : x->update(home, z);
-      GECODE_ME_CHECK(x0.varimp()->notify(
-        home, old_min_length, old_max_length));
-      // std::cerr<<"ExtDFA<StringView>::propagated (changed) "<<x0<<"\n\n";
-      assert (x0.pdomain()->is_normalized());
-      return x0.assigned() ? home.ES_SUBSUMED(*this) : propagate(home, m);
-    }
-    // Reverse run.
-    if (DashedString::_REVERSE_REGEX) {
-      // std::cerr << "Reverse propagation\n";
-      states = &accepting;
+    while (true) {
+      if (x0.assigned()) {
+        // std::cerr << dfa->accepted(x0.val()) << std::endl;
+        return dfa->accepted(x0.val()) ? home.ES_SUBSUMED(*this) : ES_FAILED;
+      }
+      DashedString* x = x0.pdomain();
+      std::vector<std::vector<NSIntSet>> F(x->length());
+      NSIntSet initial(0);
+      const NSIntSet* states = &initial;
+      int n = x->length();
       for (int i = 0; i < n; ++i) {
-        F[i] = reach_fwd(dfa.get(), *states, x->at(n - i - 1), true);
+        F[i] = reach_fwd(dfa.get(), *states, x->at(i));
         if (F[i].empty())
           return ES_FAILED;
         states = &F[i].back();
       }
-      E = F.back().back();
-      if (E.contains(0))
-        E = NSIntSet(0);
-      else
+      NSIntSet E(*states);
+      std::vector<NSBlocks> y(n);
+      NSIntSet accepting = dfa->accepting_states();
+      E.intersect(accepting);
+      if (E.empty())
         return ES_FAILED;
-      changed = false;
-      for (int i = 0; i < n; ++i) {
-        y[i] = reach_bwd(dfa.get(), F[n - i - 1], E, x->at(i), changed, true);
-        std::reverse(y[i].begin(), y[i].end());
-      }
+      bool changed = false;
+      for (int i = n - 1; i >= 0; --i)
+        y[i] = reach_bwd(dfa.get(), F[i], E, x->at(i), changed);
       if (changed) {
-        NSBlocks z;
-        for (auto& yi : y)
-          for (auto& yij: yi) {
-            if (yij.null())
-              continue;
-            if (!z.empty() && z.back().S == yij.S) {
-              z.back().l += yij.l;
-              z.back().u += yij.u;
-            }
-            else
-              z.push_back(yij);
-          }
-        int old_min_length = x0.min_length();
-        int old_max_length = x0.max_length();
-        z.empty() ? x->set_null(home) : x->update(home, z);
-        GECODE_ME_CHECK(x0.varimp()->notify(
-          home, old_min_length, old_max_length));
+        GECODE_ME_CHECK(commit_refined_blocks(home, x0, y));
         // std::cerr<<"ExtDFA<StringView>::propagated (changed) "<<x0<<"\n\n";
         assert (x0.pdomain()->is_normalized());
-        return x0.assigned() ? home.ES_SUBSUMED(*this) : propagate(home, m);
+        if (x0.assigned())
+          return home.ES_SUBSUMED(*this);
+        continue;
       }
+      // Reverse run.
+      if (DashedString::_REVERSE_REGEX) {
+        // std::cerr << "Reverse propagation\n";
+        states = &accepting;
+        for (int i = 0; i < n; ++i) {
+          F[i] = reach_fwd(dfa.get(), *states, x->at(n - i - 1), true);
+          if (F[i].empty())
+            return ES_FAILED;
+          states = &F[i].back();
+        }
+        E = F.back().back();
+        if (E.contains(0))
+          E = NSIntSet(0);
+        else
+          return ES_FAILED;
+        changed = false;
+        for (int i = 0; i < n; ++i) {
+          y[i] = reach_bwd(
+            dfa.get(), F[n - i - 1], E, x->at(i), changed, true);
+          std::reverse(y[i].begin(), y[i].end());
+        }
+        if (changed) {
+          GECODE_ME_CHECK(commit_refined_blocks(home, x0, y));
+          // std::cerr<<"ExtDFA<StringView>::propagated (changed) "<<x0<<"\n\n";
+          assert (x0.pdomain()->is_normalized());
+          if (x0.assigned())
+            return home.ES_SUBSUMED(*this);
+          continue;
+          }
+      }
+      // std::cerr<<"ExtDFA<StringView>::propagated (no change) "<<x0<<"\n\n";
+      assert (x0.pdomain()->is_normalized());
+      return ES_FIX;
     }
-    // std::cerr<<"ExtDFA<StringView>::propagated (no change) "<<x0<<"\n\n";
-    assert (x0.pdomain()->is_normalized());
-    return ES_FIX;
   }
 
 }}
