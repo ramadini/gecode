@@ -37,6 +37,22 @@ namespace Gecode { namespace String {
 
   friend class StringView;
 
+  private:
+
+    class DomainState {
+    private:
+      StringVarImp* x;
+      int min_length;
+      int max_length;
+      bool unassigned;
+    public:
+      DomainState(StringVarImp& x);
+      bool modified(void) const;
+      ModEvent notify(Space& home) const;
+    };
+
+    ModEvent notify(Space& home, ModEvent me, const DomainState& state);
+
   protected:
 
     DashedString ds;

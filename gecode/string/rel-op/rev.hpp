@@ -28,21 +28,20 @@ namespace Gecode { namespace String {
     (home, p) {}
 
   forceinline ExecStatus
-  Rev::propagate(Space& home, const ModEventDelta& m) {
+  Rev::propagate(Space& home, const ModEventDelta&) {
     // std::cerr<<"Rev::propagate "<<x1<<" = "<<x0<<"^-1"<<std::endl;
-    GECODE_ME_CHECK(x1.rev(home, x0));
-    // std::cerr<<"Rev::propagated "<<x1<<" = "<<x0<<"^-1"<<std::endl;
-    assert (x0.pdomain()->is_normalized() && x1.pdomain()->is_normalized());
-    switch (x0.assigned() + x1.assigned()) {
-      case 2: {
+    while (true) {
+      GECODE_ME_CHECK(x1.rev(home, x0));
+      // std::cerr<<"Rev::propagated "<<x1<<" = "<<x0<<"^-1"<<std::endl;
+      assert (x0.pdomain()->is_normalized() && x1.pdomain()->is_normalized());
+      int assigned = x0.assigned() + x1.assigned();
+      if (assigned == 2) {
         string x0r = x0.val();
         std::reverse(x0r.begin(), x0r.end());
         assert (x0r == x1.val());
         return home.ES_SUBSUMED(*this);
       }
-      case 1:
-        return propagate(home, m);
-      default:
+      if (assigned != 1)
         return ES_FIX;
     }
   }

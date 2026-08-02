@@ -1324,6 +1324,17 @@ public:
     assert(dashed.known_suff() == expected_suff);
   }
 
+  void test46() {
+    std::cerr << "\n*** Test 46 ***" << std::endl;
+
+    StringVar x(*this, NSIntSet('a', 'b'), 0, 3);
+    StringVarImp* variable = x.varimp();
+    assert(variable->lb(*this, 1) == ME_STRING_LEN);
+    assert(variable->lb(*this, 1) == ME_STRING_NONE);
+    assert(variable->ub(*this, 2) == ME_STRING_LEN);
+    assert(variable->ub(*this, 2) == ME_STRING_NONE);
+  }
+
 };
 
 int main() {
@@ -1377,5 +1388,6 @@ int main() {
   run(&StrTest::test43);
   run(&StrTest::test44);
   run(&StrTest::test45);
+  run(&StrTest::test46);
   return 0;
 }

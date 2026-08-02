@@ -34,21 +34,22 @@ namespace Gecode { namespace String {
   }
 
   ExecStatus
-  Pow::propagate(Space& home, const ModEventDelta& m) {
+  Pow::propagate(Space& home, const ModEventDelta&) {
     // std::cerr << "\nPow::propagate: " << x2 << " = " << x0 << " ** " << x1 << '\n';
-    if (x2.min_length() > 0)
-      GECODE_ME_CHECK(x1.gq(home, 1));
-    else
-      GECODE_ME_CHECK(x1.gq(home, 0));
-    GECODE_ME_CHECK(x1.lq(home, DashedString::_MAX_STR_LENGTH));
-    int l = x1.min(), u = x1.max();
-    GECODE_ME_CHECK(x2.pow(home, x0, l, u));
-    GECODE_ME_CHECK(x1.gq(home, l));
-    GECODE_ME_CHECK(x1.lq(home, u));
-    // std::cerr << "After pow: " << x2 << " = " << x0 << " ** " << x1 << '\n';    
-    assert (x0.pdomain()->is_normalized() && x2.pdomain()->is_normalized());
-    switch (x0.assigned() + x1.assigned() + x2.assigned()) {
-      case 3: {
+    while (true) {
+      if (x2.min_length() > 0)
+        GECODE_ME_CHECK(x1.gq(home, 1));
+      else
+        GECODE_ME_CHECK(x1.gq(home, 0));
+      GECODE_ME_CHECK(x1.lq(home, DashedString::_MAX_STR_LENGTH));
+      int l = x1.min(), u = x1.max();
+      GECODE_ME_CHECK(x2.pow(home, x0, l, u));
+      GECODE_ME_CHECK(x1.gq(home, l));
+      GECODE_ME_CHECK(x1.lq(home, u));
+      // std::cerr << "After pow: " << x2 << " = " << x0 << " ** " << x1 << '\n';
+      assert (x0.pdomain()->is_normalized() && x2.pdomain()->is_normalized());
+      int assigned = x0.assigned() + x1.assigned() + x2.assigned();
+      if (assigned == 3) {
         string x = x0.val(), xn;
         int n = x1.val();
         xn.reserve(x2.min_length());
@@ -57,12 +58,12 @@ namespace Gecode { namespace String {
         assert (x2.val() == xn);
         return home.ES_SUBSUMED(*this);
       }
-      case 2:
+      if (assigned == 2) {
         if ((x1.assigned() && x1.val() == 0) || 
             (x0.max_length() == 0 && x2.max_length() == 0))
           return ES_FIX;
-        return propagate(home, m);
-      default:
+      }
+      else
         return ES_FIX;
     }
   }

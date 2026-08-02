@@ -34,7 +34,7 @@ namespace Gecode { namespace String {
   }
 
   forceinline ExecStatus
-  Element::propagate(Space& home, const ModEventDelta& m) {
+  Element::propagate(Space& home, const ModEventDelta&) {
     // std::cerr << "Element::propagate "<<x<<"[" << y << "] = "<<x[0]<< "\n";
     if (y.assigned()) {
       rel(home, x[0], STRT_EQ, x[y.val()]);
@@ -65,8 +65,10 @@ namespace Gecode { namespace String {
       IntSetRanges removed_ranges(removed_set);
       GECODE_ME_CHECK(y.minus_r(home, removed_ranges));
     }
-    if (y.assigned())
-      return propagate(home, m);
+    if (y.assigned()) {
+      rel(home, x[0], STRT_EQ, x[y.val()]);
+      return home.ES_SUBSUMED(*this);
+    }
     NSBlocks dom(1, NSBlock(s, l, u));
     ModEvent me = v.dom(home, dom);
     GECODE_ME_CHECK(me);

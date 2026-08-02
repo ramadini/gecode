@@ -4,9 +4,7 @@ namespace Gecode { namespace String { namespace Branch {
     StringBrancher(home, x0) {};
 
     SizeMin_LLUL::SizeMin_LLUL(Home home, SizeMin_LLUL& b):
-    StringBrancher(home, b, b.start) {
-      x.update(home, b.x);
-    }
+    StringBrancher(home, b) {}
 
     Actor*
     SizeMin_LLUL::copy(Space& home) {

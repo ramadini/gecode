@@ -6,9 +6,7 @@ namespace Gecode { namespace String { namespace Branch {
 
     forceinline 
     LenBlockMin_LLLM::LenBlockMin_LLLM(Home home, LenBlockMin_LLLM& b)
-    : StringBrancher(home, b, b.start) {
-      x.update(home, b.x);
-    }
+    : StringBrancher(home, b) {}
 
     forceinline Actor*
     LenBlockMin_LLLM::copy(Space& home) {

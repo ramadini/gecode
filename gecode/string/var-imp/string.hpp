@@ -25,6 +25,34 @@ namespace Gecode { namespace String {
     return ds.max_length();
   }
 
+  forceinline
+  StringVarImp::DomainState::DomainState(StringVarImp& x0)
+    : x(&x0), min_length(x0.min_length()), max_length(x0.max_length()),
+      unassigned(!x0.assigned()) {
+    x->ds.changed(false);
+  }
+
+  forceinline bool
+  StringVarImp::DomainState::modified(void) const {
+    return unassigned && x->ds.changed();
+  }
+
+  forceinline ModEvent
+  StringVarImp::DomainState::notify(Space& home) const {
+    return x->notify(home, min_length, max_length);
+  }
+
+  forceinline ModEvent
+  StringVarImp::notify(
+    Space& home, ModEvent me, const DomainState& state
+  ) {
+    if (!state.modified())
+      return me;
+    ModEvent next = state.notify(home);
+    GECODE_ME_CHECK(next);
+    return me_combine(me, next);
+  }
+
   forceinline ModEvent
   StringVarImp::notify(Space& home, int old_min_length, int old_max_length,
                        Delta& d) {
@@ -42,13 +70,10 @@ namespace Gecode { namespace String {
 
   forceinline ModEvent
   StringVarImp::dom(Space& home, const NSBlocks& d) {
-    bool b = !ds.known();
-    int old_min_length = min_length(), old_max_length = max_length();
+    DomainState state(*this);
     if (!ds.equate(home, d))
       return ME_STRING_FAILED;
-    if (b && ds._changed)
-      return notify(home, old_min_length, old_max_length);
-    return ME_STRING_NONE;
+    return notify(home, ME_STRING_NONE, state);
   }
 
   forceinline ModEvent
@@ -65,56 +90,33 @@ namespace Gecode { namespace String {
   forceinline ModEvent
   StringVarImp::eq(Space& home, StringVarImp* x) {
     DashedString& xs = x->ds;
-    bool b1 = !ds.known(), b2 = !xs.known();
-    int old_min_length = min_length(), old_max_length = max_length();
-    int old_x_min_length = x->min_length(),
-        old_x_max_length = x->max_length();
+    DomainState state(*this);
+    DomainState xstate(*x);
     if (!ds.equate(home, xs))
       return ME_STRING_FAILED;
-    ModEvent me = ME_STRING_NONE;
-    if (b1 && ds._changed) {
-      me = notify(home, old_min_length, old_max_length);
-      GECODE_ME_CHECK(me);
-    }
-    if (b2 && xs._changed) {
-      ModEvent xme = x->notify(home, old_x_min_length, old_x_max_length);
-      GECODE_ME_CHECK(xme);
-      me = me_combine(me, xme);
-    }
-    return me;
+    ModEvent me = notify(home, ME_STRING_NONE, state);
+    GECODE_ME_CHECK(me);
+    return notify(home, me, xstate);
   }
 
   forceinline ModEvent
   StringVarImp::lex(Space& home, StringVarImp* x, bool lt) {
     DashedString& xs = x->ds;
-    bool b1 = !ds.known(), b2 = !xs.known();
-    int old_min_length = min_length(), old_max_length = max_length();
-    int old_x_min_length = x->min_length(),
-        old_x_max_length = x->max_length();
+    DomainState state(*this);
+    DomainState xstate(*x);
     if (!ds.lex(home, xs, lt))
       return ME_STRING_FAILED;
-    ModEvent me = ME_STRING_NONE;
-    if (b1 && ds._changed) {
-      me = notify(home, old_min_length, old_max_length);
-      GECODE_ME_CHECK(me);
-    }
-    if (b2 && xs._changed) {
-      ModEvent xme = x->notify(home, old_x_min_length, old_x_max_length);
-      GECODE_ME_CHECK(xme);
-      me = me_combine(me, xme);
-    }
-    return me;
+    ModEvent me = notify(home, ME_STRING_NONE, state);
+    GECODE_ME_CHECK(me);
+    return notify(home, me, xstate);
   }
 
   forceinline ModEvent
   StringVarImp::inc(Space& home, bool lt) {
-    bool b = !ds.known();
-    int old_min_length = min_length(), old_max_length = max_length();
+    DomainState state(*this);
     if (!ds.increasing(home, lt))
       return ME_STRING_FAILED;
-    if (b && ds._changed)
-      return notify(home, old_min_length, old_max_length);
-    return ME_STRING_NONE;
+    return notify(home, ME_STRING_NONE, state);
   }
 
   forceinline ModEvent
@@ -129,172 +131,93 @@ namespace Gecode { namespace String {
 
   forceinline ModEvent
   StringVarImp::lb(Space& home, int l) {
-    bool b = !ds.known();
-    int old_min_length = min_length(), old_max_length = max_length();
-    if (ds.refine_lb(l)) {
-      if (b && ds._changed)
-        return notify(home, old_min_length, old_max_length);
-      else
-        return ME_STRING_NONE;
-    }
-    else
+    DomainState state(*this);
+    if (!ds.refine_lb(l))
       return ME_STRING_FAILED;
+    return notify(home, ME_STRING_NONE, state);
   }
 
   forceinline ModEvent
   StringVarImp::ub(Space& home, int u) {
-    bool b = !ds.known();
-    int old_min_length = min_length(), old_max_length = max_length();
-    if (ds.refine_ub(home, u)) {
-      if (b && ds._changed)
-        return notify(home, old_min_length, old_max_length);
-      else
-        return ME_STRING_NONE;
-    }
-    else
+    DomainState state(*this);
+    if (!ds.refine_ub(home, u))
       return ME_STRING_FAILED;
+    return notify(home, ME_STRING_NONE, state);
   }
 
   forceinline ModEvent
   StringVarImp::concat(Space& home, StringVarImp* x, StringVarImp* y) {
     DashedString& xs = x->ds;
     DashedString& ys = y->ds;
-    bool b1 = !ds.known(), b2 = !xs.known(), b3 = !ys.known();
-    int old_min_length = min_length(), old_max_length = max_length();
-    int old_x_min_length = x->min_length(),
-        old_x_max_length = x->max_length();
-    int old_y_min_length = y->min_length(),
-        old_y_max_length = y->max_length();
-    if (ds.concat(home, xs, ys)) {
-      ModEvent me = ME_STRING_NONE;
-      if (b1 && ds._changed) {
-        me = notify(home, old_min_length, old_max_length);
-        GECODE_ME_CHECK(me);
-      }
-      if (b2 && xs._changed) {
-        ModEvent xme = x->notify(home, old_x_min_length, old_x_max_length);
-        GECODE_ME_CHECK(xme);
-        me = me_combine(me, xme);
-      }
-      if (b3 && ys._changed) {
-        ModEvent yme = y->notify(home, old_y_min_length, old_y_max_length);
-        GECODE_ME_CHECK(yme);
-        me = me_combine(me, yme);
-      }
-      return me;
-    }
-    else
+    DomainState state(*this);
+    DomainState xstate(*x);
+    DomainState ystate(*y);
+    if (!ds.concat(home, xs, ys))
       return ME_STRING_FAILED;
+    ModEvent me = notify(home, ME_STRING_NONE, state);
+    GECODE_ME_CHECK(me);
+    me = notify(home, me, xstate);
+    GECODE_ME_CHECK(me);
+    return notify(home, me, ystate);
   }
 
   forceinline ModEvent
   StringVarImp::gconcat(Space& home, vec<StringVarImp*> x) {
     vec<DashedString*> xs;
-    bool b = !ds.known();
-    vec<bool> bv;
-    vec<int> old_min_lengths, old_max_lengths;
-    int old_min_length = min_length(), old_max_length = max_length();
+    DomainState state(*this);
+    std::vector<DomainState> states;
+    states.reserve(x.size());
     for (auto& i : x) {
-      DashedString& d = i->ds;
-      d._changed = false;
-      xs.push(&d);
-      bv.push(!d.known());
-      old_min_lengths.push(i->min_length());
-      old_max_lengths.push(i->max_length());
+      states.emplace_back(*i);
+      xs.push(&i->ds);
     }
-    ds._changed = false;
     Region region;
     GConcatView view(region, xs);
-    if (sweep_concat(home, view, xs, ds)) {
-      ModEvent me = ME_STRING_NONE;
-      if (b && ds._changed) {
-        me = notify(home, old_min_length, old_max_length);
-        GECODE_ME_CHECK(me);
-      }
-      for (int i = 0; i < x.size(); ++i) {
-        if (bv[i] && xs[i]->_changed) {
-          ModEvent xme = x[i]->notify(
-            home, old_min_lengths[i], old_max_lengths[i]);
-          GECODE_ME_CHECK(xme);
-          me = me_combine(me, xme);
-        }
-      }
-      return me;
-    }
-    else
+    if (!sweep_concat(home, view, xs, ds))
       return ME_STRING_FAILED;
+    ModEvent me = notify(home, ME_STRING_NONE, state);
+    GECODE_ME_CHECK(me);
+    for (const DomainState& xstate : states) {
+      me = notify(home, me, xstate);
+      GECODE_ME_CHECK(me);
+    }
+    return me;
   }
 
   forceinline ModEvent
   StringVarImp::find(Space& home, StringVarImp* x, int& l, int& u, bool b) {
     DashedString& xs = x->ds;
-    bool b1 = !ds.known(), b2 = !xs.known();
-    int old_min_length = min_length(), old_max_length = max_length();
-    int old_x_min_length = x->min_length(),
-        old_x_max_length = x->max_length();
-    if (ds.find(home, xs, l, u, b)) {
-      ModEvent me = ME_STRING_NONE;
-      if (b1 && ds._changed) {
-        me = notify(home, old_min_length, old_max_length);
-        GECODE_ME_CHECK(me);
-      }
-      if (b2 && xs._changed) {
-        ModEvent xme = x->notify(home, old_x_min_length, old_x_max_length);
-        GECODE_ME_CHECK(xme);
-        me = me_combine(me, xme);
-      }
-      return me;
-    }
-    else
+    DomainState state(*this);
+    DomainState xstate(*x);
+    if (!ds.find(home, xs, l, u, b))
       return ME_STRING_FAILED;
+    ModEvent me = notify(home, ME_STRING_NONE, state);
+    GECODE_ME_CHECK(me);
+    return notify(home, me, xstate);
   }
 
   forceinline ModEvent
   StringVarImp::pow(Space& home, StringVarImp* x, int& l, int& u) {
     DashedString& xs = x->ds;
-    bool b1 = !ds.known(), b2 = !xs.known();
-    int old_min_length = min_length(), old_max_length = max_length();
-    int old_x_min_length = x->min_length(),
-        old_x_max_length = x->max_length();
-    if (ds.pow(home, xs, l, u)) {
-      ModEvent me = ME_STRING_NONE;
-      if (b1 && ds._changed) {
-        me = notify(home, old_min_length, old_max_length);
-        GECODE_ME_CHECK(me);
-      }
-      if (b2 && xs._changed) {
-        ModEvent xme = x->notify(home, old_x_min_length, old_x_max_length);
-        GECODE_ME_CHECK(xme);
-        me = me_combine(me, xme);
-      }
-      return me;
-    }
-    else
+    DomainState state(*this);
+    DomainState xstate(*x);
+    if (!ds.pow(home, xs, l, u))
       return ME_STRING_FAILED;
+    ModEvent me = notify(home, ME_STRING_NONE, state);
+    GECODE_ME_CHECK(me);
+    return notify(home, me, xstate);
   }
 
   forceinline ModEvent
   StringVarImp::rev(Space& home, StringVarImp* x) {
     DashedString& xs = x->ds;
-    bool b1 = !ds.known(), b2 = !xs.known();
-    int old_min_length = min_length(), old_max_length = max_length();
-    int old_x_min_length = x->min_length(),
-        old_x_max_length = x->max_length();
-    if (ds.rev(home, xs)) {
-      ModEvent me = ME_STRING_NONE;
-      if (b1 && ds._changed) {
-        me = notify(home, old_min_length, old_max_length);
-        GECODE_ME_CHECK(me);
-      }
-      if (b2 && xs._changed) {
-        ModEvent xme = x->notify(home, old_x_min_length, old_x_max_length);
-        GECODE_ME_CHECK(xme);
-        me = me_combine(me, xme);
-      }
-      return me;
-    }
-    else
+    DomainState state(*this);
+    DomainState xstate(*x);
+    if (!ds.rev(home, xs))
       return ME_STRING_FAILED;
+    ModEvent me = notify(home, ME_STRING_NONE, state);
+    GECODE_ME_CHECK(me);
+    return notify(home, me, xstate);
   }
 
   forceinline void

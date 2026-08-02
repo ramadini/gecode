@@ -4,9 +4,7 @@ namespace Gecode { namespace String { namespace Branch {
     StringBrancher(home, x0) {};
 
     LenMin_LLLL::LenMin_LLLL(Home home, LenMin_LLLL& b):
-    StringBrancher(home, b, b.start) {
-      x.update(home, b.x);
-    }
+    StringBrancher(home, b) {}
 
     Actor*
     LenMin_LLLL::copy(Space& home) {

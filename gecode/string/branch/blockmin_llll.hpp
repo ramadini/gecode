@@ -6,9 +6,7 @@ namespace Gecode { namespace String { namespace Branch {
 
     forceinline 
     BlockMin_LLLL::BlockMin_LLLL(Home home, BlockMin_LLLL& b)
-    : StringBrancher(home, b, b.start) {
-      x.update(home, b.x);
-    }
+    : StringBrancher(home, b) {}
 
     forceinline Actor*
     BlockMin_LLLL::copy(Space& home) {

@@ -639,7 +639,7 @@ namespace Gecode { namespace String {
 *******************/
    
   forceinline void
-  refine_eq(Space& h, DashedString& x, uvec up) {
+  refine_eq(Space& h, DashedString& x, const uvec& up) {
     // std::cerr << "refine_eq " << x << "\n";
     x.changed(true);
     int m = 0;
@@ -691,7 +691,9 @@ namespace Gecode { namespace String {
   }  
 
   forceinline void
-  refine_concat(Space& h, DashedString& x, DashedString& y, uvec up) {
+  refine_concat(
+    Space& h, DashedString& x, DashedString& y, const uvec& up
+  ) {
     x.changed(true);
     int lx = x.length(), k = 0, m = 0;
     for (k = 0; k < up.size(); ++k) {
@@ -813,7 +815,7 @@ namespace Gecode { namespace String {
   }
 
   forceinline void
-  refine_rev(Space& h, DashedString& x, uvec up) {
+  refine_rev(Space& h, DashedString& x, const uvec& up) {
     // std::cerr << "refine_rev: " << x << "\n";
     x.changed(true);
     int m = 0;
@@ -859,31 +861,44 @@ namespace Gecode { namespace String {
 * Sweep functions *
 ******************/
 
+  template <class Block1, class Blocks1, class Block2, class Blocks2,
+            class Refine1, class Refine2>
+  forceinline bool
+  sweep_both(
+    Space& h, Blocks1& x, Blocks2& y, Refine1 refine_x, Refine2 refine_y
+  ) {
+    uvec updates;
+    if (!sweep_x<Block1, Blocks1, Block2, Blocks2>(h, x, y, updates))
+      return false;
+    if (updates.size() > 0)
+      refine_x(updates);
+    updates.clear();
+    if (!sweep_x<Block2, Blocks2, Block1, Blocks1>(h, y, x, updates))
+      return false;
+    if (updates.size() > 0)
+      refine_y(updates);
+    return true;
+  }
+
   forceinline bool
   sweep_equate(Space& h, DashedString& x, DashedString& y) {
-    uvec upx;
-    DSBlocks& by = y.blocks();
-    if (!sweep_x<DSBlock, DSBlocks, DSBlock, DSBlocks>(h, x.blocks(), by, upx))
-      return false;
-    if (upx.size() > 0)
-      refine_eq(h, x, upx);
-    uvec upy;
-    if (!sweep_x<DSBlock, DSBlocks, DSBlock, DSBlocks>(h, by, x.blocks(), upy))
-      return false;
-    if (upy.size() > 0)
-      refine_eq(h, y, upy);
-    return true;
+    return sweep_both<DSBlock, DSBlocks, DSBlock, DSBlocks>(
+      h, x.blocks(), y.blocks(),
+      [&h, &x](const uvec& updates) { refine_eq(h, x, updates); },
+      [&h, &y](const uvec& updates) { refine_eq(h, y, updates); }
+    );
   }
 
   forceinline bool
   sweep_equate(Space& h, DashedString& x, const NSBlocks& y) {
     if (!check_sweep<NSBlock, NSBlocks, DSBlock, DSBlocks>(y, x.blocks()))
       return false;
-    uvec upx;
-    if (!sweep_x<DSBlock, DSBlocks, NSBlock, NSBlocks>(h, x.blocks(), y, upx))
+    uvec updates;
+    if (!sweep_x<DSBlock, DSBlocks, NSBlock, NSBlocks>(
+          h, x.blocks(), y, updates))
       return false;
-    if (upx.size() > 0)
-      refine_eq(h, x, upx);
+    if (updates.size() > 0)
+      refine_eq(h, x, updates);
     return true;
   }
 
@@ -891,24 +906,24 @@ namespace Gecode { namespace String {
   sweep_concat(Space& h, ConcatView& xy,
     DashedString& x, DashedString& y, DashedString& z
   ) {
-    uvec up1;
     if (z.known()) {
       if (!check_sweep<char, string, DSBlock, ConcatView>(z.val(), xy))
         return false;
     }
-    else {
-      if (!sweep_x
-      <DSBlock, DSBlocks, DSBlock, ConcatView>(h, z.blocks(), xy, up1))
-        return false;
-      if (up1.size() > 0)
-        refine_eq(h, z, up1);
-    }
-    uvec up2;
-    if (!sweep_x
-    <DSBlock, ConcatView, DSBlock, DSBlocks>(h, xy, z.blocks(), up2))
+    else
+      return sweep_both<DSBlock, DSBlocks, DSBlock, ConcatView>(
+        h, z.blocks(), xy,
+        [&h, &z](const uvec& updates) { refine_eq(h, z, updates); },
+        [&h, &x, &y](const uvec& updates) {
+          refine_concat(h, x, y, updates);
+        }
+      );
+    uvec updates;
+    if (!sweep_x<DSBlock, ConcatView, DSBlock, DSBlocks>(
+          h, xy, z.blocks(), updates))
       return false;
-    if (up2.size() > 0)
-      refine_concat(h, x, y, up2);
+    if (updates.size() > 0)
+      refine_concat(h, x, y, updates);
     return true;
   }
 
@@ -916,36 +931,23 @@ namespace Gecode { namespace String {
   sweep_concat(
     Space& h, GConcatView& xn, const vec<DashedString*>& x, DashedString& y
   ) {
-    uvec up1;
-    if (!sweep_x
-    <DSBlock, DSBlocks, DSBlock, GConcatView>(h, y.blocks(), xn, up1))
-      return false;
-    if (!y.known() && up1.size() > 0)
-      refine_eq(h, y, up1);
-    uvec up2;
-    if (!sweep_x
-    <DSBlock, GConcatView, DSBlock, DSBlocks>(h, xn, y.blocks(), up2))
-      return false;
-    if (up2.size() > 0)
-      refine_concat(h, x, up2);
-    return true;
+    return sweep_both<DSBlock, DSBlocks, DSBlock, GConcatView>(
+      h, y.blocks(), xn,
+      [&h, &y](const uvec& updates) {
+        if (!y.known())
+          refine_eq(h, y, updates);
+      },
+      [&h, &x](const uvec& updates) { refine_concat(h, x, updates); }
+    );
   }
 
   forceinline bool
   sweep_reverse(Space& h, ReverseView& xr, DashedString& x, DashedString& y) {
-    uvec up1;
-    if (!sweep_x
-    <DSBlock, DSBlocks, DSBlock, ReverseView>(h, y.blocks(), xr, up1))
-      return false;
-    if (up1.size() > 0)
-      refine_eq(h, y, up1);
-    uvec up2;
-    if (!sweep_x
-    <DSBlock, ReverseView, DSBlock, DSBlocks>(h, xr, y.blocks(), up2))
-      return false;
-    if (up2.size() > 0)
-      refine_rev(h, x, up2);
-    return true;
+    return sweep_both<DSBlock, DSBlocks, DSBlock, ReverseView>(
+      h, y.blocks(), xr,
+      [&h, &y](const uvec& updates) { refine_eq(h, y, updates); },
+      [&h, &x](const uvec& updates) { refine_rev(h, x, updates); }
+    );
   }
 
 }}

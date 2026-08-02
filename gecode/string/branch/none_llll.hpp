@@ -4,9 +4,7 @@ namespace Gecode { namespace String { namespace Branch {
     StringBrancher(home, x0) {};
 
     None_LLLL::None_LLLL(Home home, None_LLLL& b):
-    StringBrancher(home, b, b.start) {
-      x.update(home, b.x);
-    }
+    StringBrancher(home, b) {}
 
     Actor*
     None_LLLL::copy(Space& home) {

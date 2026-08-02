@@ -163,8 +163,10 @@ namespace Gecode { namespace String { namespace Branch {
     StringBrancher(Home home, ViewArray<String::StringView>& x0):
       Brancher(home), x(x0), start(0) {};
 
-    StringBrancher(Space& home, Brancher& b, int s):
-      Brancher(home, b), start(s) {};
+    StringBrancher(Space& home, StringBrancher& b):
+      Brancher(home, b), start(b.start) {
+      x.update(home, b.x);
+    };
 
     bool
     status(const Space&) const {
