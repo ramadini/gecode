@@ -17,9 +17,7 @@ namespace Gecode { namespace String {
   
   forceinline
   trimDFA::trimDFA(const DFA& d) : stringDFA(d), delta(d.n_states()) {
-    NSIntSet S;
     for (DFA::Transitions t(d); t(); ++t) {
-      S.add(t.symbol());
       delta[t.i_state()].push_back(std::pair<int,int>(t.symbol(), t.o_state()));
     }
     for (int i = 0; i < n_states; ++i)
@@ -52,6 +50,29 @@ namespace Gecode { namespace String {
     return s;
   }
 
+  forceinline int
+  trimDFA::min_word_length() const {
+    std::vector<int> dist(n_states, DashedString::_MAX_STR_LENGTH);
+    std::vector<int> queue;
+    queue.reserve(n_states);
+    queue.push_back(0);
+    dist[0] = 0;
+    for (unsigned int head = 0; head < queue.size(); ++head) {
+      int q = queue[head];
+      if (accepting(q))
+        return dist[q];
+      int next_distance = dist[q] + 1;
+      for (const auto& transition : delta[q]) {
+        int next = transition.second;
+        if (next_distance < dist[next]) {
+          dist[next] = next_distance;
+          queue.push_back(next);
+        }
+      }
+    }
+    return 0;
+  }
+
   forceinline NSIntSet
   trimDFA::neighbours(int q) const {
     NSIntSet s;
@@ -71,13 +92,60 @@ namespace Gecode { namespace String {
   
   forceinline NSIntSet
   trimDFA::neighbot(int q, const DSIntSet& S) const {
-    NSIntSet s, s_delta;
+    NSIntSet s;
+    unsigned int covered = 0;
     for (auto& x : delta[q]) {
-      if (S.in(x.first))
+      if (S.in(x.first)) {
         s.add(x.second);
-      s_delta.add(x.first);
+        ++covered;
+      }
     }
-    return s_delta.contains(s) ? s : NSIntSet();
+    return covered == S.size() ? s : NSIntSet();
+  }
+
+  forceinline NSIntSet
+  trimDFA::reach_all(const DSBlock& b, const NSIntSet& initial) const {
+    NSIntSet current = initial;
+    for (int i = 0; i < b.l; ++i) {
+      NSIntSet next;
+      for (NSIntSet::iterator state(current); state(); ++state) {
+        NSIntSet neighbours = neighbot(*state, b.S);
+        if (neighbours.empty())
+          return neighbours;
+        next.include(neighbours);
+      }
+      if (next == current)
+        return next;
+      current = next;
+    }
+
+    Region region;
+    int* distance = region.alloc<int>(n_states);
+    for (int state = 0; state < n_states; ++state)
+      distance[state] = current.contains(state)
+        ? b.l : DashedString::_MAX_STR_LENGTH + 1;
+    std::vector<int> queue;
+    queue.reserve(n_states);
+    for (NSIntSet::iterator state(current); state(); ++state)
+      queue.push_back(*state);
+    NSIntSet reachable = current;
+    for (unsigned int head = 0; head < queue.size(); ++head) {
+      int state = queue[head], next_distance = distance[state] + 1;
+      if (next_distance <= b.u) {
+        NSIntSet next = neighbot(state, b.S);
+        if (next.empty())
+          return next;
+        for (NSIntSet::iterator neighbour(next); neighbour(); ++neighbour) {
+          int next_state = *neighbour;
+          if (distance[next_state] > next_distance) {
+            queue.push_back(next_state);
+            reachable.add(next_state);
+            distance[next_state] = next_distance;
+          }
+        }
+      }
+    }
+    return reachable;
   }
 
   forceinline
@@ -91,78 +159,56 @@ namespace Gecode { namespace String {
     // std::cerr << "dom: " << dfa << '\n';    
     NSIntSet S = dfa->alphabet();
     int l = 0, u = 0, n_states = dfa->n_states;
-    std::vector<int> dist(n_states);    
-    for (int i = 0; i < n_states; ++i)
-      dist[i] = DashedString::_MAX_STR_LENGTH;
+    std::vector<int> dist(n_states);
     if (DashedString::_DECOMP_REGEX)
       u = DashedString::_MAX_STR_LENGTH;
     else {
-      std::list<int> s;
-      s.push_back(0);
-      dist[0] = 0;
-      // BFS for l.
-      while (!s.empty()) {
-        int q = s.front();
-        s.pop_front();
-        if (dfa->accepting(q)) {
-          l = dist[q];
-          break;
-        }
-        NSIntSet nq = dfa->neighbours(q);
-        for (NSIntSet::iterator it(nq); it(); ++it) {
-          int a = dist[q] + 1, x = *it;
-          if (a < dist[x]) {
-            dist[x] = a;
-            s.push_back(x);
-          }
-        }
-      }
+      l = dfa->min_word_length();
       if (l > 0 && S.empty())
         return NSBlocks();
-      std::list<std::pair<int,bool>> stack;
-      s.clear();
-      stack.push_front(std::pair<int,bool>(0, 0));
+      std::vector<int> sorted;
+      sorted.reserve(n_states);
+      std::vector<std::pair<int,bool>> stack;
+      stack.reserve(n_states);
+      stack.push_back(std::pair<int,bool>(0, 0));
       // DFS for u.
       for (int i = 0; i < n_states; ++i)
         dist[i] = 0;
       while (u != DashedString::_MAX_STR_LENGTH && !stack.empty()) {
-        int q = stack.front().first, open = stack.front().second;
-        stack.pop_front();
+        int q = stack.back().first, open = stack.back().second;
+        stack.pop_back();
         if (open) {
 //          std::cerr << "Closing " << q << '\n';
           dist[q] = 2;
-          s.push_front(q);
+          sorted.push_back(q);
         }
         else {
 //          std::cerr << "Opening " << q << "\n";
           dist[q] = 1;
           // push again q in "exit" mode.
-          stack.push_front(std::pair<int,bool>(q,1));
-          NSIntSet nq = dfa->neighbours(q);
-          for (NSIntSet::iterator it(nq); it(); ++it) {
-            int qi = *it;
+          stack.push_back(std::pair<int,bool>(q,1));
+          for (const auto& transition : dfa->delta[q]) {
+            int qi = transition.second;
             if (dist[qi] == 1) {
 //              std::cerr << "Loop! " << qi << "\n";
               u = DashedString::_MAX_STR_LENGTH;
               break;
             }
             else if (dist[qi] == 0)
-              stack.push_front(std::pair<int,bool>(qi, 0));
+              stack.push_back(std::pair<int,bool>(qi, 0));
           }
         }        
       }
       if (u != DashedString::_MAX_STR_LENGTH) {
-//        std::cerr << "Topo. sort: "; for (auto& x : s) std::cerr << x << " "; std::cerr <<"\n";
+//        std::cerr << "Topo. sort: "; for (auto i = sorted.rbegin(); i != sorted.rend(); ++i) std::cerr << *i << " "; std::cerr <<"\n";
         dist[0] = 0;
         for (int i = 1; i < n_states; ++i)
           dist[i] = -1;
-        while (!s.empty()) {
-          int q = s.front();
-          s.pop_front();
+        for (auto i = sorted.rbegin(); i != sorted.rend(); ++i) {
+          int q = *i;
           if (dist[q] != -1) {
-            NSIntSet nq = dfa->neighbours(q);
-            for (NSIntSet::iterator it(nq); it(); ++it) {
-              int qi = *it;
+            for (const auto& transition : dfa->delta[q]) {
+              int qi = transition.second;
               if (dist[qi] < dist[q] + 1) {
                 int d = dist[q] + 1;
                 if (d > u)
@@ -251,13 +297,15 @@ namespace Gecode { namespace String {
     // Mandatory region.
     for (int i = 0; i < l; ++i) {
       NSIntSet qi;
-      if (rev)
+      if (rev) {
         for (NSIntSet::iterator it(Q[i]); it(); ++it)
           for (auto& x : delta_rev[*it])
             qi.include(x.second);
-      else
+      }
+      else {
         for (NSIntSet::iterator it(Q[i]); it(); ++it)
           qi.include(dfa->neighbours(*it, b.S));
+      }
       if (qi.empty())
         return std::vector<NSIntSet>();
       if (qi == Q[i]) {
@@ -276,22 +324,24 @@ namespace Gecode { namespace String {
         dist[q] = l;
       else
         dist[q] = DashedString::_MAX_STR_LENGTH;
-    std::list<int> Q_bfs;
+    std::vector<int> Q_bfs;
+    Q_bfs.reserve(dfa->n_states);
     for (NSIntSet::iterator i(Q[l]); i(); ++i)
       Q_bfs.push_back(*i);
     // BFS over optional region.
-    while (!Q_bfs.empty()) {
-      int q = Q_bfs.front(), d = dist[q];
-      Q_bfs.pop_front();
+    for (unsigned int head = 0; head < Q_bfs.size(); ++head) {
+      int q = Q_bfs[head], d = dist[q];
       if (d < DashedString::_MAX_STR_LENGTH)
         ++d;
       if (d <= b.u) {
         NSIntSet nq;
-        if (rev)
+        if (rev) {
           for (auto& x : delta_rev[q])
             nq.include(x.second);
-        else
+        }
+        else {
           nq = dfa->neighbours(q, b.S);
+        }
         for (NSIntSet::iterator j(nq); j(); ++j) {
           int q1 = *j;
           if (dist[q1] > d) {
@@ -325,28 +375,24 @@ namespace Gecode { namespace String {
         dist[q] = 0;
       else
         dist[q] = DashedString::_MAX_STR_LENGTH;
-    std::list<int> Q_bfs;
+    std::vector<int> Q_bfs;
+    Q_bfs.reserve(dfa->n_states);
     for (NSIntSet::iterator i(Q1); i(); ++i)
       Q_bfs.push_back(*i);
     NSIntSet S_opt;
-    while (!Q_bfs.empty()) {
-      int q = Q_bfs.front(), d = dist[q];
-      Q_bfs.pop_front();
+    for (unsigned int head = 0; head < Q_bfs.size(); ++head) {
+      int q = Q_bfs[head], d = dist[q];
       if (Q[l].contains(q))
         l1 = min(l1, dist[q]);
       if (d < DashedString::_MAX_STR_LENGTH)
         ++d;
       if (d <= b.u - b.l) {
-        std::vector<std::pair<int, int>> dx;
-        if (rev) {
-          for (auto& x : dfa->delta[q])
-            if (b.S.in(x.first))
-              dx.push_back(x);
-        }
-        else
-          dx = delta_bwd[q];
-        for (auto& x : dx) {
+        const std::vector<std::pair<int, int>>& dx =
+          rev ? dfa->delta[q] : delta_bwd[q];
+        for (const auto& x : dx) {
           int c = x.first, q1 = x.second;
+          if (rev && !b.S.in(c))
+            continue;
           if (Q[l + 1].contains(q1)) {
             S_opt.add(c);
             if (dist[q1] > d) {
@@ -375,16 +421,12 @@ namespace Gecode { namespace String {
       NSIntSet S_man, B1;
       for (NSIntSet::iterator it(E); it(); ++it) {
         int q = *it;
-        std::vector<std::pair<int, int>> dx;
-        if (rev) {
-          for (auto& x : dfa->delta[q])
-            if (b.S.in(x.first))
-              dx.push_back(x);
-        }
-        else
-         dx = delta_bwd[q];
-        for (auto& x : dx) {
+        const std::vector<std::pair<int, int>>& dx =
+          rev ? dfa->delta[q] : delta_bwd[q];
+        for (const auto& x : dx) {
           int c = x.first, q1 = x.second;
+          if (rev && !b.S.in(c))
+            continue;
           S_opt.add(c);
           if (Q[i - 1].contains(q1)) {
             S_man.add(c);
@@ -413,7 +455,7 @@ namespace Gecode { namespace String {
         if (!b.S.disjoint(x.first)) {
           NSIntSet s(b.S);
           s.intersect(x.first);
-          delta_bwd[x.second].push_back(std::pair<NSIntSet, int>(s, q));
+          delta_bwd[x.second].emplace_back(std::move(s), q);
         }
     int l = b.l, l1 = DashedString::_MAX_STR_LENGTH;
     NSIntSet Q1(Qe);
@@ -424,22 +466,21 @@ namespace Gecode { namespace String {
         dist[q] = 0;
       else
         dist[q] = DashedString::_MAX_STR_LENGTH;
-    std::list<int> Q_bfs;
+    std::vector<int> Q_bfs;
+    Q_bfs.reserve(dfa->n_states);
     for (NSIntSet::iterator i(Q1); i(); ++i)
       Q_bfs.push_back(*i);
     NSIntSet S_opt;
-    while (!Q_bfs.empty()) {
-      int q = Q_bfs.front(), d = dist[q];
-      Q_bfs.pop_front();
+    for (unsigned int head = 0; head < Q_bfs.size(); ++head) {
+      int q = Q_bfs[head], d = dist[q];
       if (Q[l].contains(q))
         l1 = min(l1, dist[q]);
       if (d < DashedString::_MAX_STR_LENGTH)
         ++d;
       if (d <= b.u - b.l) {
-        std::vector<std::pair<NSIntSet, int>> dx;
-        dx = delta_bwd[q];
-        for (auto& x : dx) {
-          NSIntSet s = x.first;
+        const std::vector<std::pair<NSIntSet, int>>& dx = delta_bwd[q];
+        for (const auto& x : dx) {
+          const NSIntSet& s = x.first;
           int q1 = x.second;
           if (Q[l + 1].contains(q1)) {
             S_opt.include(s);
@@ -469,10 +510,9 @@ namespace Gecode { namespace String {
       NSIntSet S_man, B1;
       for (NSIntSet::iterator it(E); it(); ++it) {
         int q = *it;
-        std::vector<std::pair<NSIntSet, int>> dx;
-        dx = delta_bwd[q];
-        for (auto& x : dx) {
-          NSIntSet s = x.first; 
+        const std::vector<std::pair<NSIntSet, int>>& dx = delta_bwd[q];
+        for (const auto& x : dx) {
+          const NSIntSet& s = x.first;
           int q1 = x.second;
           S_opt.include(s);
           if (Q[i - 1].contains(q1)) {
@@ -519,13 +559,13 @@ namespace Gecode { namespace String {
         dist[q] = l;
       else
         dist[q] = DashedString::_MAX_STR_LENGTH;
-    std::list<int> Q_bfs;
+    std::vector<int> Q_bfs;
+    Q_bfs.reserve(dfa->n_states);
     for (NSIntSet::iterator i(Q[l]); i(); ++i)
       Q_bfs.push_back(*i);
     // BFS over optional region.
-    while (!Q_bfs.empty()) {
-      int q = Q_bfs.front(), d = dist[q];
-      Q_bfs.pop_front();
+    for (unsigned int head = 0; head < Q_bfs.size(); ++head) {
+      int q = Q_bfs[head], d = dist[q];
       if (d < DashedString::_MAX_STR_LENGTH)
         ++d;
       if (d <= b.u) {
@@ -542,6 +582,52 @@ namespace Gecode { namespace String {
       }
     }
     return Q;
+  }
+
+  template <typename DFA_t>
+  forceinline ExecStatus
+  Reg::propagate_blocks(Space& home, NSBlocks& x, DFA_t* dfa) {
+    if (x.known())
+      return dfa->accepted(x.val()) ? ES_FIX : ES_FAILED;
+    bool changed, nofix = false;
+    do {
+      int n = x.length();
+      std::vector<std::vector<NSIntSet>> forward(n);
+      NSIntSet states(0);
+      for (int i = 0; i < n; ++i) {
+        forward[i] = reach_fwd(dfa, states, DSBlock(home, x[i]));
+        if (forward[i].empty())
+          return ES_FAILED;
+        states = forward[i].back();
+      }
+      NSIntSet endings(forward.back().back());
+      endings.intersect(dfa->accepting_states());
+      if (endings.empty())
+        return ES_FAILED;
+      std::vector<NSBlocks> refined(n);
+      changed = false;
+      for (int i = n - 1; i >= 0; --i)
+        refined[i] = reach_bwd(
+          dfa, forward[i], endings, DSBlock(home, x[i]), changed);
+      if (changed) {
+        nofix = true;
+        NSBlocks normalized;
+        for (auto& blocks : refined)
+          for (auto& block : blocks) {
+            if (block.null())
+              continue;
+            if (!normalized.empty() && normalized.back().S == block.S) {
+              normalized.back().l += block.l;
+              normalized.back().u += block.u;
+            }
+            else
+              normalized.push_back(block);
+          }
+        x = normalized.empty() ? NSBlocks() : normalized;
+        assert(x.is_normalized());
+      }
+    } while (changed);
+    return nofix ? ES_NOFIX : ES_FIX;
   }
 
   forceinline ExecStatus

@@ -1750,6 +1750,36 @@ namespace Gecode { namespace String {
     return _blocks.at(i);
   }
 
+  forceinline NSBlocks
+  DashedString::prefix(int idx, int off) const {
+    assert(idx >= 0 && idx <= length());
+    assert(off >= 0 && (idx < length() || off == 0));
+    NSBlocks result;
+    result.reserve(idx + (off > 0));
+    for (int i = 0; i < idx; ++i)
+      result.emplace_back(at(i));
+    if (off > 0) {
+      const DSBlock& block = at(idx);
+      assert(off <= block.u);
+      result.emplace_back(block.S, min(off, block.l), off);
+    }
+    return result;
+  }
+
+  forceinline NSBlocks
+  DashedString::suffix(int idx, int off) const {
+    assert(idx >= 0 && idx < length());
+    assert(off >= 0 && off <= at(idx).u);
+    NSBlocks result;
+    result.reserve(length() - idx);
+    const DSBlock& block = at(idx);
+    if (off < block.u)
+      result.emplace_back(block.S, max(0, block.l - off), block.u - off);
+    for (int i = idx + 1; i < length(); ++i)
+      result.emplace_back(at(i));
+    return result;
+  }
+
   forceinline int
   DashedString::length() const {
     return _blocks.length();

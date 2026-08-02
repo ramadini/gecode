@@ -22,10 +22,11 @@ namespace Gecode { namespace String {
     NSIntSet accepting_states(void) const {
       return NSIntSet(final_fst, final_lst);
     }
-    bool accepted(const string& s) const {
+    bool accepted(const string& s, string::size_type begin = 0) const {
+      assert(begin <= s.size());
       int q = 0;
-      for (auto& c : s) {
-        q = search(q, c);
+      for (string::size_type i = begin; i < s.size(); ++i) {
+        q = search(q, s[i]);
         if (q == -1)
           return false;
       }
@@ -44,10 +45,13 @@ namespace Gecode { namespace String {
     delta_t delta;
     trimDFA(const DFA&);
     NSIntSet alphabet() const;
+    int min_word_length() const;
     int search(int, int) const;
     NSIntSet neighbours(int) const;
     NSIntSet neighbours(int, const DSIntSet&) const;
     NSIntSet neighbot(int, const DSIntSet&) const;
+    /// Return reachable states, or no states if any represented word is rejected
+    NSIntSet reach_all(const DSBlock&, const NSIntSet&) const;
   };
 
   // complete-DFA data structure for reified regular.
@@ -72,7 +76,6 @@ namespace Gecode { namespace String {
     // delta[i][j] = -k means δ(i,j) = {k,q_bot}
     matchNFA(const trimDFA&, const NSIntSet&);
     NSIntSet neighbours(int, const DSIntSet&) const;
-    bool accepting(int) const;
   };
 
   template<class Automaton>
@@ -130,7 +133,7 @@ namespace Gecode { namespace String {
     static ExecStatus post(Home home, StringView x, trimDFA* pdfa);
     static NSBlocks dom(trimDFA*);
     static std::vector<NSIntSet> reach_fwd(trimDFA*, const NSIntSet&,
-      const DSBlock&, bool bwd = false
+      const DSBlock&, bool rev = false
     );
     static NSBlocks reach_bwd(trimDFA*, const std::vector<NSIntSet>&,
       NSIntSet&, const DSBlock&, bool&, bool rev = false
@@ -139,6 +142,8 @@ namespace Gecode { namespace String {
                                                      const DSBlock&);
     static NSBlocks reach_bwd(compDFA*, const std::vector<NSIntSet>&, NSIntSet&,
                                                       const DSBlock&, bool&);
+    template <typename DFA_t>
+    static ExecStatus propagate_blocks(Space&, NSBlocks&, DFA_t*);
   };
 
   /**

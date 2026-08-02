@@ -69,39 +69,6 @@ namespace Gecode { namespace String {
   : NaryPropagator<StringView, PC_STRING_DOM>(home, p), all(p.all), last(p.last) 
   {}
 
-  // Returns the prefix of x[k] until position p.
-  forceinline NSBlocks
-  Replace::prefix(int k, const Position& p) const {
-    NSBlocks pref;
-    DashedString* px = x[k].pdomain();
-    for (int i = 0; i < p.idx; ++i)
-      pref.push_back(NSBlock(px->at(i)));
-    int off = p.off;
-    if (off > 0) {
-      const DSBlock& b = px->at(p.idx);
-      if (off < b.l)
-        pref.push_back(NSBlock(b.S, off, off));
-      else
-        pref.push_back(NSBlock(b.S, b.l, off));
-    }
-    return pref;
-  }
-  
-  // Returns the suffix of x[k] from position p.
-  forceinline NSBlocks
-  Replace::suffix(int k, const Position& p) const {
-    NSBlocks suff;
-    DashedString* px = x[k].pdomain();
-    int off = p.off;
-    if (off < px->at(p.idx).u) {
-      const DSBlock& b = px->at(p.idx);
-      suff.push_back(NSBlock(b.S, max(0, b.l - off), b.u - off));
-    }
-    for (int i = p.idx + 1; i < px->length(); ++i)
-      suff.push_back(NSBlock(px->at(i)));
-    return suff;
-  }
-  
   // Decomposes decomp_all into basic constraints.
   forceinline ExecStatus
   Replace::decomp_all(Space& home) {
@@ -237,7 +204,7 @@ namespace Gecode { namespace String {
       Position es = pos[0], le = pos[1];
 //       std::cerr << "ES: " << es << ", LE: " << le << "\n";
       if (es != Position({0, 0}))
-        v = prefix(0, es);
+        v = x[0].pdomain()->prefix(es.idx, es.off);
       // Crush x[0][es : le], possibly adding x[2].
       int u = x[3].max_length();
       if (u > 0) {
@@ -258,7 +225,7 @@ namespace Gecode { namespace String {
             v.push_back(NSBlock(pq1->at(j)));
       // Suffix: x[0][le :]
       if (le != last_fwd(px->blocks()))
-        v.extend(suffix(0, le));
+        v.extend(x[0].pdomain()->suffix(le.idx, le.off));
       v.normalize();
 //       std::cerr << "1c) Equating " << x[3] << " with " << v << " => \n";
       GECODE_ME_CHECK(x[3].dom(home, v));
@@ -288,7 +255,7 @@ namespace Gecode { namespace String {
       Position es = pos[0], le = pos[1];
       // std::cerr << "ES: " << es << ", LE: " << le << "\n";
       if (es != Position({0, 0}))
-        v = prefix(3, es);
+        v = x[3].pdomain()->prefix(es.idx, es.off);
       // Crush x[3][es : ls], possibly adding x[1].
       int u = x[0].max_length();
       if (u > 0) {
@@ -310,7 +277,7 @@ namespace Gecode { namespace String {
       }
       // Suffix: x[3][le :]
       if (le != last_fwd(py->blocks()))
-        v.extend(suffix(3, le));
+        v.extend(x[3].pdomain()->suffix(le.idx, le.off));
       v.normalize();
       // std::cerr << "2) Equating " << x[0] << " with " << v << " => \n";
       GECODE_ME_CHECK(x[0].dom(home, v));

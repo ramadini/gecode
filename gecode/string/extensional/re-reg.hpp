@@ -21,26 +21,26 @@ namespace Gecode { namespace String {
     : stringDFA(d), q_bot(-1), delta(d.n_states) {
 //    std::cerr << d << "\n";
     bool add_bot = false;
+    std::vector<NSIntSet> labels(n_states);
     for (int q = 0; q < d.n_states; ++q) {
       const std::vector<std::pair<int, int>>& delta_q = d.delta[q];
-      add_bot |= static_cast<int>(delta_q.size()) < alphabet.size();
-      std::vector<NSIntSet> S(n_states);
       for (auto& x : delta_q)
-        S[x.second].add(x.first);
+        if (alphabet.in(x.first))
+          labels[x.second].add(x.first);
+      NSIntSet missing(alphabet);
+      for (int i = 0; i < n_states; ++i)
+        missing.exclude(labels[i]);
       for (int i = 0; i < d.n_states; ++i)
-        if (!S[i].empty())
-          delta[q].push_back(std::pair<NSIntSet, int>(S[i], i));
-      if (static_cast<int>(delta_q.size()) < alphabet.size()) {
+        if (!labels[i].empty())
+          delta[q].emplace_back(std::move(labels[i]), i);
+      if (!missing.empty()) {
         add_bot = true;
-        NSIntSet a(alphabet);
-        for (int i = 0; i < n_states; ++i)
-          a.exclude(S[i]);
-        delta[q].push_back(std::pair<NSIntSet, int>(a, n_states));
+        delta[q].emplace_back(std::move(missing), n_states);
       }
     }
     if (add_bot) {
-      delta.push_back(std::vector<std::pair<NSIntSet, int>>(1));
-      delta[n_states][0] = std::make_pair(alphabet, n_states);
+      delta.emplace_back();
+      delta.back().emplace_back(alphabet, n_states);
       q_bot = n_states++;
     }
 //    std::cerr << *this << '\n';
@@ -50,11 +50,11 @@ namespace Gecode { namespace String {
   compDFA::compDFA(const DFA& d, const NSIntSet& alphabet)
     : stringDFA(d), q_bot(-1), delta(d.n_states()) {
 //    std::cerr << d << "\n";
-    std::vector<int> chars_count(n_states, 0);
     for (DFA::Transitions t(d); t(); ++t) {
       int q_in = t.i_state(), a = t.symbol(), q_out = t.o_state();
+      if (!alphabet.in(a))
+        continue;
       std::vector<std::pair<NSIntSet, int>>& delta_q = delta[q_in];
-      chars_count[q_in]++;
       bool new_state = true;
       for (auto& x : delta_q)
         if (x.second == q_out) {
@@ -63,24 +63,21 @@ namespace Gecode { namespace String {
           break;
         }
       if (new_state)
-        delta_q.push_back(std::pair<NSIntSet,int>(NSIntSet(a), q_out));
+        delta_q.emplace_back(NSIntSet(a), q_out);
     }
-    bool complete = true;
-    for (int i = 0; complete && i < n_states; ++i)
-      complete &= chars_count[i] == alphabet.size();
-    // Adding a "bottom" state if DFA is not complete.
-    if (!complete) {
-      delta.push_back(std::vector<std::pair<NSIntSet, int>>());
-      NSIntSet s;
-      delta[n_states].push_back(std::make_pair(alphabet, n_states));
-      for (int i = 0; i < n_states; ++i)
-        if (chars_count[i] < alphabet.size()) {
-          NSIntSet s(alphabet);
-          for (auto& x : delta[i])
-            s.exclude(x.first);
-          assert (!s.empty());
-          delta[i].push_back(std::pair<NSIntSet,int>(s, n_states));
-        }
+    bool add_bot = false;
+    for (int q = 0; q < n_states; ++q) {
+      NSIntSet missing(alphabet);
+      for (auto& x : delta[q])
+        missing.exclude(x.first);
+      if (!missing.empty()) {
+        add_bot = true;
+        delta[q].emplace_back(std::move(missing), n_states);
+      }
+    }
+    if (add_bot) {
+      delta.emplace_back();
+      delta.back().emplace_back(alphabet, n_states);
       q_bot = n_states++;
     }
 //    std::cerr << *this << '\n';
@@ -141,8 +138,11 @@ namespace Gecode { namespace String {
     Delta_t rdelta(n_states);
     for (int i = 0; i < n_states; i++)
       for (auto& x : delta[i])
-        rdelta[nstate(i)].push_back(std::make_pair(x.first, nstate(x.second)));
-    delta = rdelta;
+        rdelta[nstate(i)].emplace_back(
+          std::move(x.first), nstate(x.second));
+    if (q_bot >= 0)
+      q_bot = nstate(q_bot);
+    delta = std::move(rdelta);
     final_lst = n_states - final_lst + final_fst - 2;
     final_fst = 0;
   }
@@ -199,7 +199,6 @@ namespace Gecode { namespace String {
   template <class CtrlView, ReifyMode rm>
   forceinline ExecStatus
   ReReg<CtrlView, rm>::post(Home home, StringView x, const DFA& d, CtrlView b) {
-    NSIntSet S;
     if (d.final_fst() >= d.final_lst()) {
       if (rm != RM_PMI)
         GECODE_ME_CHECK(b.eq(home, 0));
@@ -304,11 +303,8 @@ namespace Gecode { namespace String {
     if (E.empty())
       return ES_FAILED;
     bool changed = false;
-    int k = 0;
-    for (int i = n - 1; i >= 0; --i) {
+    for (int i = n - 1; i >= 0; --i)
       y[i] = Reg::reach_bwd(dfa.get(), F[i], E, x->at(i), changed);
-      k += y[i].size();
-    }
     if (changed) {
       NSBlocks z;
       for (auto& yi : y)

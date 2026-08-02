@@ -24,12 +24,19 @@ namespace Gecode { namespace String {
     // Proper pattern: not empty, not containing empty string.
     assert (dfa.n_states > 0 && !dfa.accepted(""));
 //    std::cerr << static_cast<compDFA&>(*this) << "\n";
+    if (q_bot < 0) {
+      q_bot = n_states++;
+      delta.emplace_back();
+    }
     delta[q_bot].clear();
+    delta[q_bot].reserve(delta[0].size());
+    // q_0 preserves the earliest start and q_F records a completed match;
+    // only ordinary destinations also need the alternative q_bot branch.
     for (const auto& transition : delta[0]) {
-      std::pair<NSIntSet, int> d0i = transition;
-      delta[q_bot].push_back(d0i);
-      if (d0i.second != q_bot && d0i.second > 1)
-        delta[q_bot].back().second = -d0i.second;
+      int next = transition.second;
+      if (next != q_bot && next > 1)
+        next = -next;
+      delta[q_bot].emplace_back(transition.first, next);
     }
     for (std::size_t i = 0; i < delta.size(); ++i) {
       if (i != static_cast<std::size_t>(q_bot)) {
@@ -66,8 +73,6 @@ namespace Gecode { namespace String {
   <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM>
     (home, x, i), Rpref(Rp), Rfull(Rf), Rcomp(nullptr), Rnfa(Rn), minR(r) {
     home.notice(*this, AP_DISPOSE);
-    Rcomp = new compDFA(*Rfull,  x.may_chars());
-    Rcomp->negate();         
   }
 
   forceinline ExecStatus
@@ -78,45 +83,23 @@ namespace Gecode { namespace String {
       return ES_OK;
     }
     GECODE_ME_CHECK(x.lb(home, 1));
-    trimDFA* R = new trimDFA(regex->dfa());
+    TrimDFAHandle R(new trimDFA(regex->dfa()));
     assert (R->accepting(1) && R->accepting_states().size() == 1);
     assert (R->neighbours(1) == NSIntSet(1));
-    // BFS to find minimal-length word accepted by R.
-    int r = 0, n = R->n_states;
-    std::vector<int> dist(n);    
-    for (int i = 0; i < n; ++i)
-      dist[i] = DashedString::_MAX_STR_LENGTH;        
-    std::list<int> s;
-    s.push_back(0);
-    dist[0] = 0;
-    while (!s.empty()) {
-      int q = s.front();
-      s.pop_front();
-      if (R->accepting(q)) {
-        assert (q == 1);
-        r = dist[q];
-        break;
-      }
-      NSIntSet nq = R->neighbours(q);
-      for (NSIntSet::iterator it(nq); it(); ++it) {
-        int a = dist[q] + 1, x = *it;
-        if (a < dist[x]) {
-          dist[x] = a;
-          s.push_back(x);
-        }
-      }
-    }
+    int r = R->min_word_length();
     GECODE_ME_CHECK(i.gq(home, 0));
     GECODE_ME_CHECK(i.lq(home, x.max_length() - r + 1));
     if (!i.in(0))
       GECODE_ME_CHECK(x.lb(home, r));
 //    std::cerr << "RE: " << re << ", minlen: " << r << ", i: " << i << '\n';
-    trimDFA* Rp = new trimDFA(RegExParser("(" + re + ").*").parse()->dfa());    
-    matchNFA* Rn = new matchNFA(*Rp, x.may_chars());
+    TrimDFAHandle Rp(
+      new trimDFA(RegExParser("(" + re + ").*").parse()->dfa()));
+    MatchNFAHandle Rn(new matchNFA(*Rp, x.may_chars()));
 //    std::cerr << "Rn: " << *Rn << "\n";
 //    std::cerr << "Rp: " << *Rp << "\n";
 //    std::cerr << "compDFA(Rp): " << compDFA(*Rp, x.may_chars()) << "\n";
-    (void) new (home) MatchNew(home, x, i, r, Rp, R, Rn);    
+    (void) new (home) MatchNew(
+      home, x, i, r, Rp.get(), R.get(), Rn.get());
     return ES_OK;
   }
 
@@ -145,32 +128,15 @@ namespace Gecode { namespace String {
     return sizeof(*this);
   }
 
-  forceinline NSBlocks
-  MatchNew::prefix(int idx, int off) const {
-    NSBlocks pref;
-    DashedString& px = *x0.pdomain();
-    for (int i = 0; i < idx; ++i)
-      pref.push_back(NSBlock(px.at(i)));
-    if (off > 0) {
-      const DSBlock& b = px.at(idx);
-      pref.push_back(NSBlock(b.S, off < b.l ? off : b.l, off));
+  forceinline compDFA*
+  MatchNew::full_complement(void) {
+    if (!Rcomp) {
+      Rcomp = new compDFA(*Rfull, x0.may_chars());
+      Rcomp->negate();
     }
-    return pref;
+    return Rcomp.get();
   }
-  
-  forceinline NSBlocks
-  MatchNew::suffix(int idx, int off) const {
-    NSBlocks suff;
-    DashedString& px = *x0.pdomain();
-    if (off < px.at(idx).u) {
-      const DSBlock& b = px.at(idx);
-      suff.push_back(NSBlock(b.S, max(0, b.l - off), b.u - off));
-    }
-    for (int i = idx + 1; i < px.length(); ++i)
-      suff.push_back(NSBlock(px.at(i)));
-    return suff;
-  }
-  
+
   forceinline std::vector<NSIntSet>
   MatchNew::reachFwd(const DSBlock& b, const NSIntSet& F) const {
     int l = b.l;
@@ -195,13 +161,13 @@ namespace Gecode { namespace String {
     int* dist = region.alloc<int>(Rnfa->n_states);
     for (int q = 0; q < Rnfa->n_states; ++q)
       dist[q] = Q[l].contains(q) ? l : DashedString::_MAX_STR_LENGTH;
-    std::list<int> Q_bfs;
+    std::vector<int> Q_bfs;
+    Q_bfs.reserve(Rnfa->n_states);
     for (NSIntSet::iterator i(Q[l]); i(); ++i)
       Q_bfs.push_back(*i);
     // BFS over optional region.
-    while (!Q_bfs.empty()) {
-      int q = Q_bfs.front(), d = dist[q];
-      Q_bfs.pop_front();
+    for (unsigned int head = 0; head < Q_bfs.size(); ++head) {
+      int q = Q_bfs[head], d = dist[q];
       if (d < DashedString::_MAX_STR_LENGTH)
         ++d;
       if (d <= b.u) {
@@ -245,13 +211,13 @@ namespace Gecode { namespace String {
     for (int q = 0; q < Rnfa->n_states; ++q)
       dist[q] = B.contains(q) ? 0 : DashedString::_MAX_STR_LENGTH;
     NSIntSet Q1(B);
-    std::list<int> Q_bfs;
+    std::vector<int> Q_bfs;
+    Q_bfs.reserve(Rnfa->n_states);
     for (NSIntSet::iterator i(Q1); i(); ++i)
       Q_bfs.push_back(*i);
     // Optional region
-    while (!Q_bfs.empty()) {
-      int q = Q_bfs.front(), d = dist[q];
-      Q_bfs.pop_front();
+    for (unsigned int head = 0; head < Q_bfs.size(); ++head) {
+      int q = Q_bfs[head], d = dist[q];
       if (d < DashedString::_MAX_STR_LENGTH)
         ++d;
       if (d <= b.u - b.l) {
@@ -301,59 +267,6 @@ namespace Gecode { namespace String {
 //    std::cerr<<"After mand. B = "<< B.toString() << ", j = " << j << ", k = " << k << "\n";
   }
   
-  template <typename DFA_t>
-  forceinline ExecStatus
-  MatchNew::propagateReg(Space& home, NSBlocks& x, DFA_t* d) {
-//    std::cerr << "\npropagateReg: "<<x<<" in "<<*d<<std::endl;
-    // Returns ES_FAILED, ES_FIX (no changes) or ES_NOFIX (x changed).
-    if (x.known())
-      return d->accepted(x.val()) ? ES_FIX : ES_FAILED;    
-    bool changed, nofix = false;
-    do {
-      int n = x.length();
-      std::vector<std::vector<NSIntSet>> F(n);
-      NSIntSet Fi(0);
-      for (int i = 0; i < n; ++i) {
-        F[i] = Reg::reach_fwd(d, Fi, DSBlock(home,x[i]));
-        if (F[i].empty())
-          return ES_FAILED;
-        Fi = F[i].back();
-      }
-      NSIntSet E(F.back().back());
-      std::vector<NSBlocks> y(n);
-      Fi = d->accepting_states();
-      E.intersect(Fi);
-      if (E.empty())
-        return ES_FAILED;
-      changed = false;
-      int k = 0;
-      for (int i = n - 1; i >= 0; --i) {
-        y[i] = Reg::reach_bwd(d, F[i], E, DSBlock(home,x[i]), changed);
-        k += y[i].size();
-      }
-      if (changed) {
-        nofix = true;
-        NSBlocks z;
-        for (auto& yi : y) {
-          for (auto& yij: yi) {
-            if (yij.null())
-              continue;
-            if (!z.empty() && z.back().S == yij.S) {
-              z.back().l += yij.l;
-              z.back().u += yij.u;
-            }
-            else
-              z.push_back(yij);
-          }
-        }
-        x = z.empty() ? NSBlocks() : z;
-//        std::cerr << "changed: " << x << '\n';
-        assert (x.is_normalized());
-      }
-    } while (changed);
-    return nofix ? ES_NOFIX : ES_FIX;
-  }
-
   forceinline ExecStatus
   MatchNew::refine_idx(Space& home, int& i_lb, int& j_lb) {
     DashedString& x = *x0.pdomain();
@@ -413,64 +326,12 @@ namespace Gecode { namespace String {
     return ES_OK;
   };
   
-  forceinline NSIntSet
-  MatchNew::reachMust(const DSBlock& b, const NSIntSet& Q_in) const {
-//    std::cerr << "reachMust " << b << ' '<< Q_in.toString() << ", Rfull: " << *Rfull << '\n';
-    int l = b.l;
-    NSIntSet Q_prev = Q_in;
-    // Mandatory region.
-    for (int i = 0; i < l; ++i) {
-      NSIntSet Qi;
-      for (NSIntSet::iterator it(Q_prev); it(); ++it) {
-        NSIntSet Q = Rfull->neighbot(*it, b.S);
-        if (Q.empty())
-          return Q;
-        Qi.include(Q);
-      }
-//      std::cerr << "Qi after block " << b << ": " << Qi.toString() << '\n';
-      if ((Qi.size() == 1 && Qi.in(1)) || Qi == Q_prev)
-        // Fixpoint.
-        return Qi;
-      Q_prev = Qi;
-    }
-    // BFS over optional region.
-    Region region;
-    int* dist = region.alloc<int>(Rfull->n_states);
-    for (int q = 0; q < Rfull->n_states; ++q)
-      dist[q] = Q_prev.contains(q) ? l : DashedString::_MAX_STR_LENGTH + 1;
-    std::list<int> U;
-    for (NSIntSet::iterator i(Q_prev); i(); ++i)
-      U.push_back(*i);    
-    while (!U.empty()) {
-      int q = U.front(), d = dist[q] + 1;
-      U.pop_front();
-      if (d <= b.u) {
-        NSIntSet Nq = Rfull->neighbot(q, b.S);
-        if (Nq.empty())
-          return Nq;
-        for (NSIntSet::iterator j(Nq); j(); ++j) {
-          int q1 = *j;
-          if (dist[q1] > d) {
-            U.push_back(q1);
-            dist[q1] = d;
-          }
-        }
-      }
-    }
-    NSIntSet Qf;
-    for (int q = 0; q < Rfull->n_states; ++q)
-      if (dist[q] <= DashedString::_MAX_STR_LENGTH)
-        Qf.add(q);
-//    std::cerr << "Qf: " << Qf.toString() << '\n';
-    return Qf;
-  }
-  
   forceinline bool
   MatchNew::must_match(void) const {
     DashedString& px = *x0.pdomain();
     NSIntSet Q(0);
     for (int i = 0; i < px.length(); ++i) {
-      Q = reachMust(px.at(i), Q);
+      Q = Rfull->reach_all(px.at(i), Q);
       if (Q.empty())
         return false;
       if (Q.size() == 1 && Q.in(1))
@@ -488,7 +349,7 @@ namespace Gecode { namespace String {
       if (x1.assigned() && x1.val() <= 1) {
         if (x1.val() == 0) {
           BoolVar b(home, 1, 1);
-          CompDFAHandle dfa(Rcomp);
+          CompDFAHandle dfa(full_complement());
           GECODE_REWRITE(*this, (ReReg<Gecode::Int::BoolView,RM_EQV>::post(home, x0, dfa.get(), b)));
         }
         else {
@@ -503,7 +364,7 @@ namespace Gecode { namespace String {
       if (k > 0) {
         if (Rfull->accepted(w)) {
           for (int i = 0; i < k; ++i)
-            if (Rpref->accepted(w.substr(i))) {
+            if (Rpref->accepted(w, i)) {
 //              std::cerr << "\nMatch::propagated: i = " << i+1 << '\n';
               GECODE_ME_CHECK(x1.eq(home, i+1));
               return home.ES_SUBSUMED(*this);            
@@ -550,11 +411,9 @@ namespace Gecode { namespace String {
           h++;
         }
 //        std::cerr << "(h,k)=" << "("<<h<<","<<k<<")\n";
-        pref = prefix(h, k);
+        pref = X.prefix(h, k);
 //        std::cerr << "Pref: " << pref << "\n"; 
-        if (!Rcomp)
-          Rcomp = new compDFA(*Rfull, x0.may_chars());
-        es_pref = propagateReg(home, pref, Rcomp.get());
+        es_pref = Reg::propagate_blocks(home, pref, full_complement());
 //        std::cerr << "Rpref: " << *Rpref << '\n';
 //        std::cerr << "Rfull: " << *Rfull << '\n';
 //        std::cerr << "Rcomp: " << *Rcomp << '\n';
@@ -576,13 +435,14 @@ namespace Gecode { namespace String {
           k -= X.at(h).u;
           h++;
         }
-        pref = prefix(h, k);
+        pref = X.prefix(h, k);
       }
 //      std::cerr << "Pref: " << pref << "\n";
-      suff = suffix(h, k);
+      suff = X.suffix(h, k);
 //      std::cerr << "Suff: " << suff << ' ' << x1 << "\n";
-      int es_suff = x1.assigned() ? propagateReg(home, suff, Rpref.get())
-                  : propagateReg(home, suff, Rfull.get());
+      int es_suff = x1.assigned()
+        ? Reg::propagate_blocks(home, suff, Rpref.get())
+        : Reg::propagate_blocks(home, suff, Rfull.get());
       if (es_suff == ES_FAILED)
         return ES_FAILED;
 //      std::cerr << "New suff: " << suff << "\n";

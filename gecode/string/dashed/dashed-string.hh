@@ -352,6 +352,9 @@ namespace Gecode { namespace String {
   DSBlock& at(int i);
   const DSBlock& at(int i) const;
 
+  NSBlocks prefix(int idx, int off) const;
+  NSBlocks suffix(int idx, int off) const;
+
   int min_length() const;
   void min_length(int i);
 
