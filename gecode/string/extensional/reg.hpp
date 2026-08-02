@@ -116,7 +116,7 @@ namespace Gecode { namespace String {
       }
       if (next == current)
         return next;
-      current = next;
+      current = std::move(next);
     }
 
     Region region;
@@ -314,7 +314,7 @@ namespace Gecode { namespace String {
           Q[j] = qi;
         return Q;
       }
-      Q[i + 1] = qi;
+      Q[i + 1] = std::move(qi);
     }
     Q[l + 1] = Q[l];
     Region region;
@@ -367,17 +367,17 @@ namespace Gecode { namespace String {
           if (b.S.in(x.first))
             delta_bwd[x.second].push_back(std::pair<int, int>(x.first, q));
     int l = b.l, l1 = DashedString::_MAX_STR_LENGTH;
-    NSIntSet Q1(Qe);
+    NSIntSet E(std::move(Qe));
     Region region;
     int* dist = region.alloc<int>(dfa->n_states);
     for (int q = 0; q < dfa->n_states; ++q)
-      if (Qe.contains(q))
+      if (E.contains(q))
         dist[q] = 0;
       else
         dist[q] = DashedString::_MAX_STR_LENGTH;
     std::vector<int> Q_bfs;
     Q_bfs.reserve(dfa->n_states);
-    for (NSIntSet::iterator i(Q1); i(); ++i)
+    for (NSIntSet::iterator i(E); i(); ++i)
       Q_bfs.push_back(*i);
     NSIntSet S_opt;
     for (unsigned int head = 0; head < Q_bfs.size(); ++head) {
@@ -398,7 +398,7 @@ namespace Gecode { namespace String {
             if (dist[q1] > d) {
               Q_bfs.push_back(q1);
               if (Q[l].in(q1))
-                Q1.include(q1);
+                E.include(q1);
               dist[q1] = d;
             }
           }
@@ -406,7 +406,6 @@ namespace Gecode { namespace String {
       }
     }
     NSBlocks y(l + 1);
-    NSIntSet E(Q1);
     E.intersect(Q[l]);
     if (l1 > l) {
       changed = true;
@@ -434,13 +433,13 @@ namespace Gecode { namespace String {
           }
         }
       }
-      E = B1;
+      E = std::move(B1);
       if (S_man.size() < (int) b.S.size())
         changed = true;
       y[i - 1] = NSBlock(S_man, 1, 1);
     }
     y.normalize();
-    Qe = E;
+    Qe = std::move(E);
     return y;
   }
 
@@ -458,17 +457,17 @@ namespace Gecode { namespace String {
           delta_bwd[x.second].emplace_back(std::move(s), q);
         }
     int l = b.l, l1 = DashedString::_MAX_STR_LENGTH;
-    NSIntSet Q1(Qe);
+    NSIntSet E(std::move(Qe));
     Region region;
     int* dist = region.alloc<int>(dfa->n_states);
     for (int q = 0; q < dfa->n_states; ++q)
-      if (Qe.contains(q))
+      if (E.contains(q))
         dist[q] = 0;
       else
         dist[q] = DashedString::_MAX_STR_LENGTH;
     std::vector<int> Q_bfs;
     Q_bfs.reserve(dfa->n_states);
-    for (NSIntSet::iterator i(Q1); i(); ++i)
+    for (NSIntSet::iterator i(E); i(); ++i)
       Q_bfs.push_back(*i);
     NSIntSet S_opt;
     for (unsigned int head = 0; head < Q_bfs.size(); ++head) {
@@ -487,7 +486,7 @@ namespace Gecode { namespace String {
             if (dist[q1] > d) {
               Q_bfs.push_back(q1);
               if (Q[l].in(q1))
-                Q1.include(q1);
+                E.include(q1);
               dist[q1] = d;
             }
           }
@@ -495,7 +494,6 @@ namespace Gecode { namespace String {
       }
     }
     NSBlocks y(l + 1);
-    NSIntSet E(Q1);
     E.intersect(Q[l]);
     if (l1 > l) {
       changed = true;
@@ -521,13 +519,13 @@ namespace Gecode { namespace String {
           }
         }
       }
-      E = B1;
+      E = std::move(B1);
       if (S_man.size() < (int) b.S.size())
         changed = true;
       y[i - 1] = NSBlock(S_man, 1, 1);
     }
     y.normalize();
-    Qe = E;
+    Qe = std::move(E);
     return y;
   }
   
@@ -549,7 +547,7 @@ namespace Gecode { namespace String {
           Q[j] = qi;
         return Q;
       }
-      Q[i + 1] = qi;
+      Q[i + 1] = std::move(qi);
     }
     Q[l + 1] = Q[l];
     Region region;
@@ -593,12 +591,13 @@ namespace Gecode { namespace String {
     do {
       int n = x.length();
       std::vector<std::vector<NSIntSet>> forward(n);
-      NSIntSet states(0);
+      NSIntSet initial(0);
+      const NSIntSet* states = &initial;
       for (int i = 0; i < n; ++i) {
-        forward[i] = reach_fwd(dfa, states, DSBlock(home, x[i]));
+        forward[i] = reach_fwd(dfa, *states, DSBlock(home, x[i]));
         if (forward[i].empty())
           return ES_FAILED;
-        states = forward[i].back();
+        states = &forward[i].back();
       }
       NSIntSet endings(forward.back().back());
       endings.intersect(dfa->accepting_states());
@@ -639,18 +638,19 @@ namespace Gecode { namespace String {
     }
     DashedString* x = x0.pdomain();
     std::vector<std::vector<NSIntSet>> F(x->length());
-    NSIntSet Fi(0);
+    NSIntSet initial(0);
+    const NSIntSet* states = &initial;
     int n = x->length();
     for (int i = 0; i < n; ++i) {
-      F[i] = reach_fwd(dfa.get(), Fi, x->at(i));
+      F[i] = reach_fwd(dfa.get(), *states, x->at(i));
       if (F[i].empty())
         return ES_FAILED;
-      Fi = F[i].back();
+      states = &F[i].back();
     }
-    NSIntSet E(F.back().back());
+    NSIntSet E(*states);
     std::vector<NSBlocks> y(n);
-    Fi = dfa->accepting_states();
-    E.intersect(Fi);
+    NSIntSet accepting = dfa->accepting_states();
+    E.intersect(accepting);
     if (E.empty())
       return ES_FAILED;
     bool changed = false;
@@ -681,11 +681,12 @@ namespace Gecode { namespace String {
     // Reverse run.
     if (DashedString::_REVERSE_REGEX) {
       // std::cerr << "Reverse propagation\n";
+      states = &accepting;
       for (int i = 0; i < n; ++i) {
-        F[i] = reach_fwd(dfa.get(), Fi, x->at(n - i - 1), true);
+        F[i] = reach_fwd(dfa.get(), *states, x->at(n - i - 1), true);
         if (F[i].empty())
           return ES_FAILED;
-        Fi = F[i].back();
+        states = &F[i].back();
       }
       E = F.back().back();
       if (E.contains(0))

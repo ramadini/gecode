@@ -264,42 +264,48 @@ namespace Gecode { namespace String {
     }
     DashedString* x = x0.pdomain();
     std::vector<std::vector<NSIntSet>> F(x->length());
-    NSIntSet Fi(0);
+    NSIntSet initial(0);
+    const NSIntSet* states = &initial;
     int n = x->length();
     for (int i = 0; i < n; ++i) {
-      F[i] = Reg::reach_fwd(dfa.get(), Fi, x->at(i));
+      F[i] = Reg::reach_fwd(dfa.get(), *states, x->at(i));
       if (F[i].empty()) {
         GECODE_ME_CHECK(b.eq(home, 0));
         return home.ES_SUBSUMED(*this);
       }
-      Fi = F[i].back();
-//      std::cerr << Fi.toString() << ' ' << dfa->q_bot << "\n";
-      if (Fi.size() == 1 && Fi.min() == dfa->q_bot) {
+      states = &F[i].back();
+      if (states->size() == 1 && states->min() == dfa->q_bot) {
         n = i + 1;
         break;
       }
     }
-    NSIntSet E(Fi);
-    Fi = dfa->accepting_states();
-//    std::cerr << "E = " << E.toString() << ", Fi = " << Fi.toString() << '\n';
-    if (Fi.contains(E))
+    NSIntSet E(*states);
+    NSIntSet accepting = dfa->accepting_states();
+    NSIntSet rejecting;
+    bool have_rejecting = false;
+    if (accepting.contains(E))
       GECODE_ME_CHECK(b.eq(home, 1));
-    else if (Fi.comp().contains(E))
-      GECODE_ME_CHECK(b.eq(home, 0));
+    else {
+      rejecting = accepting.comp();
+      have_rejecting = true;
+      if (rejecting.contains(E))
+        GECODE_ME_CHECK(b.eq(home, 0));
+    }
     if (b.one()) {
       if (rm == RM_PMI)
         return home.ES_SUBSUMED(*this);
-      E.intersect(Fi);
+      E.intersect(accepting);
     }
     else if (b.zero()) {
       if (rm == RM_IMP)
         return home.ES_SUBSUMED(*this);
-      E.intersect(Fi.comp());
+      if (!have_rejecting)
+        rejecting = accepting.comp();
+      E.intersect(rejecting);
     }
     else
       return ES_FIX;
     std::vector<NSBlocks> y(n);
-//    std::cerr << "E = " << E.toString() << ", comp(Fi) = " << Fi.comp().toString() << '\n';    
     if (E.empty())
       return ES_FAILED;
     bool changed = false;
@@ -323,11 +329,9 @@ namespace Gecode { namespace String {
       z.empty() ? x->set_null(home) : x->update(home, z);
       GECODE_ME_CHECK(x0.varimp()->notify(
         home, old_min_length, old_max_length));
-      // std::cerr<<"ExtDFA<View>::propagated (changed) "<<x0<<"\n\n";
       assert (x0.pdomain()->is_normalized());
       return x0.assigned() ? home.ES_SUBSUMED(*this) : propagate(home, m);
     }
-    // std::cerr<<"ExtDFA<View>::propagated (no change) "<<x0<<"\n\n";
     assert (x0.pdomain()->is_normalized());
     return ES_FIX;
   }
