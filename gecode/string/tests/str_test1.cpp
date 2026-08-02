@@ -1172,6 +1172,13 @@ public:
     self_args << StringVar(*this, "") << self << StringVar(*this, "");
     gconcat(*this, self_args, self);
 
+    StringVar split(*this, NSIntSet('a', 'b'), 2, 2);
+    StringVarArgs split_args;
+    split_args << StringVar(*this, "<") << split << StringVar(*this, ">");
+    gconcat(*this, split_args, StringVar(*this, "<ab>"));
+    assert(status() != SS_FAILED);
+    assert(split.assigned() && split.val() == "ab");
+
     assert(status() != SS_FAILED);
     assert(b.assigned() && b.val() == "b");
     assert(d.assigned() && d.val() == "d");

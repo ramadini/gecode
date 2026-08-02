@@ -89,6 +89,10 @@ namespace Gecode { namespace String {
 
     if (x.assigned()) {
       string val;
+      string::size_type length = 0;
+      for (auto& s : x)
+        length += s.min_length();
+      val.reserve(length);
       for (auto& s : x)
         val += s.val();
       if (y.assigned())

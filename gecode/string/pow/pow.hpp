@@ -50,7 +50,9 @@ namespace Gecode { namespace String {
     switch (x0.assigned() + x1.assigned() + x2.assigned()) {
       case 3: {
         string x = x0.val(), xn;
-        for (int i = 0; i < x1.val(); ++i)
+        int n = x1.val();
+        xn.reserve(x2.min_length());
+        for (int i = 0; i < n; ++i)
           xn += x;
         assert (x2.val() == xn);
         return home.ES_SUBSUMED(*this);

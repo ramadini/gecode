@@ -194,22 +194,18 @@ namespace Gecode { namespace String {
     vec<bool> bv;
     vec<int> old_min_lengths, old_max_lengths;
     int old_min_length = min_length(), old_max_length = max_length();
-    NSBlocks blocks;
-    int n = 0;
-    for (auto& i : x)
-      n += i->ds.blocks().length();
-    blocks.reserve(n);
     for (auto& i : x) {
       DashedString& d = i->ds;
       d._changed = false;
       xs.push(&d);
-      blocks.extend(d.blocks());
       bv.push(!d.known());
       old_min_lengths.push(i->min_length());
       old_max_lengths.push(i->max_length());
     }
     ds._changed = false;
-    if (sweep_concat(home, blocks, xs, ds)) {
+    Region region;
+    GConcatView view(region, xs);
+    if (sweep_concat(home, view, xs, ds)) {
       ModEvent me = ME_STRING_NONE;
       if (b && ds._changed) {
         me = notify(home, old_min_length, old_max_length);

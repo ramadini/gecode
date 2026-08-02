@@ -93,7 +93,8 @@ then
   fi
   declare -a TESTS=( \
       'str_test1.cpp' 'str_test2.cpp' 'str_test3.cpp'\
-      'char_at.cpp' 'substring.cpp' 'element.cpp' 'find.cpp' 'length.cpp'\
+      'char_at.cpp' 'substring.cpp' 'element.cpp' 'find.cpp' 'replace.cpp'\
+      'length.cpp'\
       'char2code.cpp' 'pow.cpp' 'branch.cpp'\
       'str_ex1.cpp' 'str_ex2.cpp' 'str_ex3.cpp'\
       'str_ex4.cpp' 'str_ex5.cpp' 'str_ex6.cpp' 'str_ex7.cpp' 'str_ex8.cpp'\

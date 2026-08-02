@@ -1232,10 +1232,11 @@ namespace Gecode { namespace String {
     if (n <= 0 || null())
       return NSBlocks();
     int nx = _blocks.length();
-    NSBlocks y(n * nx);
+    NSBlocks y;
+    y.reserve(n * nx);
     for (int i = 0; i < n; ++i)
       for (int j = 0; j < nx; ++j)
-        y[i*nx + j] = NSBlock(at(j));
+        y.emplace_back(at(j));
     return y;
   }
  
@@ -1326,10 +1327,14 @@ namespace Gecode { namespace String {
       int nz = sz.size();
       if (x.known()) {
         string sx = x.val();
-        if (y.known())
-          return sz == sx + y.val();
+        if (y.known()) {
+          string sy = y.val();
+          return sz.size() == sx.size() + sy.size() &&
+                 sz.compare(0, sx.size(), sx) == 0 &&
+                 sz.compare(sx.size(), sy.size(), sy) == 0;
+        }
         int nx = sx.size();
-        if (nz < nx || sz.substr(0, nx) != sx)
+        if (nz < nx || sz.compare(0, nx, sx) != 0)
           return false;
         string suff = sz.substr(nx, nz - nx);
         if (!check_sweep<DSBlock, DSBlocks, char, string>(y._blocks, suff))
@@ -1341,7 +1346,7 @@ namespace Gecode { namespace String {
       else if (y.known()) {
         string sy = y.val();
         int ny = sy.size();
-        if (nz < ny || sz.substr(nz - ny, ny) != sy)
+        if (nz < ny || sz.compare(nz - ny, ny, sy) != 0)
           return false;
         string pref = sz.substr(0, nz - ny);
         if (!check_sweep<DSBlock, DSBlocks, char, string>(x._blocks, pref))
@@ -1731,7 +1736,7 @@ namespace Gecode { namespace String {
     }
     NSBlocks xn = x.pow(n1);
     int u = min(_MAX_STR_LENGTH, long(x._max_length) * (n2 - n1));
-    xn.concat(NSBlocks(1, NSBlock(x.may_chars(), 0, u)), xn);
+    xn.push_back(NSBlock(x.may_chars(), 0, u));
     xn.normalize();
 //    std::cerr << "xn: " << xn << "\n";
     if (!sweep_equate(h, *this, xn))

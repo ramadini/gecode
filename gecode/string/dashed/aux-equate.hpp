@@ -229,6 +229,51 @@ namespace Gecode { namespace String {
     return os;
   }
 
+  class GConcatView {
+  private:
+    DSBlock** blocks;
+    int n;
+
+  public:
+    GConcatView(Region& region, const vec<DashedString*>& strings)
+      : blocks(NULL), n(0) {
+      for (int i = 0; i < strings.size(); ++i)
+        n += strings[i]->length();
+      blocks = region.alloc<DSBlock*>(n);
+      int k = 0;
+      for (int i = 0; i < strings.size(); ++i)
+        for (int j = 0; j < strings[i]->length(); ++j)
+          blocks[k++] = &strings[i]->at(j);
+    }
+
+    forceinline const DSBlock&
+    at(int i) const {
+      assert(i >= 0 && i < n);
+      return *blocks[i];
+    }
+
+    forceinline DSBlock&
+    at(int i) {
+      assert(i >= 0 && i < n);
+      return *blocks[i];
+    }
+
+    forceinline int
+    length() const {
+      return n;
+    }
+
+    forceinline const DSBlock&
+    front() const {
+      return at(0);
+    }
+
+    forceinline const DSBlock&
+    back() const {
+      return at(n - 1);
+    }
+  };
+
   class ReverseView : public DashedView {
     const int n;
     DashedString& x;

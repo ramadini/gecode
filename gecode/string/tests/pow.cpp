@@ -25,8 +25,30 @@ public:
   }
 };
 
+class AssignedPowModel : public Space {
+public:
+  StringVar result;
+
+  AssignedPowModel(void) : result(*this, "ababab") {
+    pow(*this, StringVar(*this, "ab"), IntVar(*this, 3, 3), result);
+  }
+
+  AssignedPowModel(AssignedPowModel& other) : Space(other) {
+    result.update(*this, other.result);
+  }
+
+  virtual Space* copy(void) {
+    return new AssignedPowModel(*this);
+  }
+};
+
 int
 main(void) {
+  AssignedPowModel* assigned = new AssignedPowModel;
+  assert(assigned->status() != SS_FAILED);
+  assert(assigned->result.assigned() && assigned->result.val() == "ababab");
+  delete assigned;
+
   AliasIdentityModel* model = new AliasIdentityModel;
   assert(model->status() != SS_FAILED);
   assert(model->value.min_length() == 1);

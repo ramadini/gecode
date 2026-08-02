@@ -82,8 +82,10 @@ namespace Gecode { namespace String {
           return home.ES_SUBSUMED(*this);
         }
         string sz = sq1;
-        for (auto& c : sx)
-          sz += c + sq1;
+        for (auto& c : sx) {
+          sz += c;
+          sz += sq1;
+        }
         GECODE_ME_CHECK(x[3].eq(home, sz));
       }
       else {
@@ -165,26 +167,26 @@ namespace Gecode { namespace String {
   forceinline int
   Replace::occur(const string& q) const {
     int min_occur = 0;
-    string curr = "";
+    string curr;
     DashedString* p = x[0].pdomain();
     for (int i = 0; i < p->length(); ++i) {
       const DSBlock& b = p->at(i);
       if (b.S.size() == 1) {
-        string w(b.l, b.S.min());
-        curr += w;
-        size_t i = curr.find(q);
-        while (i != string::npos) {
+        char c = b.S.min();
+        curr.append(b.l, c);
+        size_t pos = curr.find(q);
+        while (pos != string::npos) {
           min_occur++;
           if (!all)
             return min_occur;
-          curr = curr.substr(i + q.size());
-          i = curr.find(q);
+          curr.erase(0, pos + q.size());
+          pos = curr.find(q);
         }
         if (b.l < b.u)
-          curr = w;
+          curr.assign(b.l, c);
       }
       else
-        curr = "";
+        curr.clear();
     }
     return min_occur;
   }
@@ -323,11 +325,13 @@ namespace Gecode { namespace String {
         if (n == string::npos)
           rel(home, x[0], STRT_EQ, x[3]);
         else {
-          string pref = sx.substr(0, n);
-          string suff = sx.substr(n + sq.size());
-          if (x[2].assigned())
-            GECODE_ME_CHECK(x[3].eq(home, pref + x[2].val() + suff));
+          if (x[2].assigned()) {
+            sx.replace(n, sq.size(), x[2].val());
+            GECODE_ME_CHECK(x[3].eq(home, sx));
+          }
           else {
+            string pref = sx.substr(0, n);
+            string suff = sx.substr(n + sq.size());
             StringVar z(home);
             rel(home, StringVar(home, pref), x[2], STRT_CAT, z);
             rel(home, z, StringVar(home, suff), STRT_CAT, x[3]);

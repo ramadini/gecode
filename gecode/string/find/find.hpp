@@ -68,15 +68,15 @@ namespace Gecode { namespace String {
       int n = p1->max_length();
       if (n < l)
         return ES_FAILED;
-      string curr = "";
+      string curr;
       Position start({0, 0});
       // Checking fixed components.
       for (int i = 0; n > 0 && i < p1->length(); ++i) {
         const DSBlock& b = p1->at(i);
         if (b.S.size() == 1) {
           char c = b.S.min();
-          string t(min(b.l, n), c);
-          curr += t;
+          int fixed = min(b.l, n);
+          curr.append(fixed, c);
           int k = curr.find(s);
           if (k != (int) string::npos) {
             GECODE_ME_CHECK(x2.gq(home, 1));
@@ -91,12 +91,12 @@ namespace Gecode { namespace String {
             break;
           }
           if (b.u > b.l) {
-            curr = t;
+            curr.assign(fixed, c);
             start = Position({i, b.u - b.l});
           }
         }
         else {
-          curr = "";
+          curr.clear();
           start = Position({i, b.u});
         }
         n -= b.u;

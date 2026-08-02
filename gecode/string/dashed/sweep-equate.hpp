@@ -789,55 +789,27 @@ namespace Gecode { namespace String {
 
   forceinline void
   refine_concat(
-    Space& home, NSBlocks& xn, const vec<DashedString*>& x, uvec up
+    Space& home, const vec<DashedString*>& x, const uvec& up
   ) {
-    // std::cerr << "refine_concat " << xn << '\n';
-    // for (auto& px:x) std::cerr<<"--> "<<*px<<'\n';
-    int l = x.size() - 1;
-    x[l]->changed(true);
-    Region region;
-    int* p = region.alloc<int>(l);
-    int* q = region.alloc<int>(up.size());
-    p[0] = x[0]->length();
-    for (int k = 1; k < x.size(); ++k)
-      p[k] = p[k - 1] + x[k]->length();
-    // p[k] = \sum_{i = 0}^k |x[k]|
-    int i = 0, j = 0;
-    for (; i < up.size(); ++i) {
-      while (p[j] <= up[i].first)
-        ++j;
-      q[i] = j;
-    }
-    i = j = 0;
-    for (auto& pair : up) {
-      int n = pair.first + j, m = pair.second.size() - 1;
-      for (int k = 0; k < l; ++k)
-        if (n < p[k]) {
-          x[k]->changed(true);
-          break;
-        }
-      update(xn, n, pair.second);
-      if (m != 0) {
-        j += m;
-        for (int k = q[i]; k < l; ++k)
-          p[k] += m;
+    int next = 0, offset = 0;
+    for (int i = 0; i < x.size() && next < up.size(); ++i) {
+      int end = offset + x[i]->length();
+      if (up[next].first < end) {
+        NSBlocks blocks(x[i]->blocks());
+        int shift = 0;
+        do {
+          const std::pair<int, NSBlocks>& refinement = up[next];
+          update(blocks, refinement.first - offset + shift,
+                 refinement.second);
+          shift += refinement.second.size() - 1;
+          ++next;
+        } while (next < up.size() && up[next].first < end);
+        x[i]->changed(true);
+        x[i]->norm_update(home, blocks);
       }
-      ++i;
+      offset = end;
     }
-    if (!x[0]->known()) {
-      NSBlocks xx(xn.slice(0, p[0]));
-      x[0]->norm_update(home, xx);
-    }
-    for (int k = 1; k < l; ++k) {
-      if (!x[k]->known()) {
-        NSBlocks xx(xn.slice(p[k - 1], p[k]));
-        x[k]->norm_update(home, xx);
-      }
-    }
-    if (!x[l]->known()) {
-      NSBlocks xx(xn.slice(p[l - 1], xn.size()));
-      x[l]->norm_update(home, xx);
-    }
+    assert(next == up.size());
   }
 
   forceinline void
@@ -942,20 +914,20 @@ namespace Gecode { namespace String {
 
   forceinline bool
   sweep_concat(
-    Space& h, NSBlocks& xn, const vec<DashedString*>& x, DashedString& y
+    Space& h, GConcatView& xn, const vec<DashedString*>& x, DashedString& y
   ) {
     uvec up1;
     if (!sweep_x
-    <DSBlock, DSBlocks, NSBlock, NSBlocks>(h, y.blocks(), xn, up1))
+    <DSBlock, DSBlocks, DSBlock, GConcatView>(h, y.blocks(), xn, up1))
       return false;
     if (!y.known() && up1.size() > 0)
       refine_eq(h, y, up1);
     uvec up2;
     if (!sweep_x
-    <NSBlock, NSBlocks, DSBlock, DSBlocks>(h, xn, y.blocks(), up2))
+    <DSBlock, GConcatView, DSBlock, DSBlocks>(h, xn, y.blocks(), up2))
       return false;
     if (up2.size() > 0)
-      refine_concat(h, xn, x, up2);
+      refine_concat(h, x, up2);
     return true;
   }
 
