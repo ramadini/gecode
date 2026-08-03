@@ -172,6 +172,17 @@ else
   cat $X
   exit 1
 fi &&
+echo "Solving inglenook.mzn"
+run_mzn_with_timeout "$TEST_DIR/inglenook.mzn" || exit 1
+if
+  grep -aq "tot_moves = 11;" "$X" && grep -aq "==========" "$X"
+then
+  cat $X
+else
+  echo "Error! Inglenook output not expected!"
+  cat $X
+  exit 1
+fi &&
 for m in `ls $TEST_DIR/appscan/*.mzn`
 do  
   run_mzn_with_timeout "$m" || exit 1

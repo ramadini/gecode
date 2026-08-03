@@ -347,22 +347,15 @@ namespace Gecode { namespace String {
 
     forceinline bool
     NSIntSet::disjoint(const NSIntSet& that) const {
-      if (this->empty() || that.empty()
-      ||  this->max() < that.min() || this->min() > that.max())
-        return true;
-      NSRange* i1 = this->_fst;
-      NSRange* i2 = that ._fst;
+      NSRange* i1 = _fst;
+      NSRange* i2 = that._fst;
       while (i1 && i2) {
-        if ((i1->l <= i2->l && i2->l <= i1->u)
-        ||  (i1->l <= i2->u && i2->u <= i1->u)
-        ||  (i2->l <= i1->l && i1->l <= i2->u)
-        ||  (i2->l <= i1->u && i1->u <= i2->u))
-          return false;
-      else
-        if (i1->u > i2->u)
+        if (i2->u < i1->l)
           i2 = i2->next;
-        else
+        else if (i1->u < i2->l)
           i1 = i1->next;
+        else
+          return false;
       }
       return true;
     }

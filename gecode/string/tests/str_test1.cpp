@@ -1341,6 +1341,80 @@ public:
     assert(destination[0].first == 1);
     assert(destination[0].second.val() == "ab");
     assert(destination[0].second.front().S.first() == ranges);
+
+    struct Tracked {
+      int* live;
+      explicit Tracked(int& live0) : live(&live0) {
+        ++*live;
+      }
+      Tracked(Tracked&& that) : live(that.live) {
+        that.live = NULL;
+      }
+      ~Tracked() {
+        if (live)
+          --*live;
+      }
+    };
+    int live = 0;
+    {
+      Tracked source_value(live);
+      Tracked destination_value(live);
+      vec<Tracked> tracked_source;
+      vec<Tracked> tracked_destination;
+      tracked_source.push(std::move(source_value));
+      tracked_destination.push(std::move(destination_value));
+      assert(live == 2);
+      tracked_destination = std::move(tracked_source);
+      assert(live == 1);
+    }
+    assert(live == 0);
+  }
+
+  void test48() {
+    std::cerr << "\n*** Test 48 ***" << std::endl;
+
+    const auto values = [](unsigned int mask) {
+      NSIntSet set;
+      for (int value = 0; value < 6; ++value)
+        if (mask & (1U << value))
+          set.add(value);
+      return set;
+    };
+    const auto disjoint = [](const NSIntSet& left, const NSIntSet& right) {
+      for (int value = 0; value <= DashedString::_MAX_STR_ALPHA; ++value)
+        if (left.contains(value) && right.contains(value))
+          return false;
+      return true;
+    };
+
+    for (unsigned int left_mask = 0; left_mask < (1U << 6); ++left_mask) {
+      NSIntSet left = values(left_mask);
+      DSIntSet dashed_left(*this, left);
+      for (unsigned int right_mask = 0; right_mask < (1U << 6);
+           ++right_mask) {
+        NSIntSet right = values(right_mask);
+        DSIntSet dashed_right(*this, right);
+        bool expected = disjoint(left, right);
+        assert(left.disjoint(right) == expected);
+        assert(left.disjoint(dashed_right) == expected);
+        assert(dashed_left.disjoint(right) == expected);
+        assert(dashed_left.disjoint(dashed_right) == expected);
+      }
+    }
+
+    NSIntSet bounds(0);
+    bounds.add(DashedString::_MAX_STR_ALPHA);
+    NSIntSet middle(1, DashedString::_MAX_STR_ALPHA - 1);
+    DSIntSet dashed_bounds(*this, bounds);
+    DSIntSet dashed_middle(*this, middle);
+    assert(bounds.disjoint(middle));
+    assert(dashed_bounds.disjoint(dashed_middle));
+    middle.add(DashedString::_MAX_STR_ALPHA);
+    DSIntSet dashed_overlapping(*this, middle);
+    assert(!bounds.disjoint(middle));
+    assert(!bounds.disjoint(dashed_overlapping));
+    assert(!dashed_bounds.disjoint(middle));
+    assert(!dashed_bounds.disjoint(dashed_overlapping));
   }
 
 };
@@ -1398,5 +1472,6 @@ int main() {
   run(&StrTest::test45);
   run(&StrTest::test46);
   run(&StrTest::test47);
+  run(&StrTest::test48);
   return 0;
 }

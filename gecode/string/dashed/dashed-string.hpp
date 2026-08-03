@@ -192,44 +192,23 @@ namespace Gecode { namespace String {
 
   forceinline bool
   DSIntSet::disjoint(const DSIntSet& that) const {
-//  std::cerr << "DSIntSet::disjoint " << *this << ' ' << that << std::endl;
-    if (empty() || that.empty()
-    ||  max() < that.min() || min() > that.max())
-      return true;
     Gecode::Set::BndSetRanges i1(*this);
     Gecode::Set::BndSetRanges i2(that);
-    while (i1() && i2())
-      if ((i1.min() <= i2.min() && i2.min() <= i1.max())
-      ||  (i1.min() <= i2.max() && i2.max() <= i1.max())
-      ||  (i2.min() <= i1.min() && i1.min() <= i2.max())
-      ||  (i2.min() <= i1.max() && i1.max() <= i2.max()))
-        return false;
-      else
-        if (i1.max() > i2.max())
-          ++i2;
-        else
-          ++i1;
-    return true;
+    return Gecode::Iter::Ranges::disjoint(i1, i2);
   }
 
   forceinline bool
   DSIntSet::disjoint(const NSIntSet& that) const {
-    if (empty() || that.empty()
-    ||  max() < that.min() || min() > that.max())
-      return true;
     Gecode::Set::BndSetRanges i1(*this);
     NSRange* i2 = that.first();
-    while (i1() && i2)
-      if ((i1.min() <= i2->l && i2->l <= i1.max())
-      ||  (i1.min() <= i2->u && i2->u <= i1.max())
-      ||  (i2->l <= i1.min() && i1.min() <= i2->u)
-      ||  (i2->l <= i1.max() && i1.max() <= i2->u))
-        return false;
+    while (i1() && i2) {
+      if (i2->u < i1.min())
+        i2 = i2->next;
+      else if (i1.max() < i2->l)
+        ++i1;
       else
-        if (i1.max() > i2->u)
-          i2 = i2->next;
-        else
-          ++i1;
+        return false;
+    }
     return true;
   }
 

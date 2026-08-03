@@ -42,8 +42,11 @@ public:
   }
 
   vec& operator=(vec<T>&& o) {
-    if(data)
-      free(data); 
+    if (this == &o)
+      return *this;
+    clear();
+    if (data)
+      free(data);
     sz = o.sz; o.sz = 0;
     maxsz = o.maxsz; o.maxsz = 0;
     data = o.data; o.data = nullptr;
