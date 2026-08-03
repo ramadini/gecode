@@ -56,7 +56,7 @@ namespace Gecode { namespace String {
          value(); ++value)
       if (value.val() >= 0)
         allowed_chars.add(value.val());
-    NSBlocks refined(x0.pdomain()->blocks());
+    NSBlocks refined(x0.domain().blocks());
     for (NSBlock& block : refined) {
       block.S.intersect(allowed_chars);
       if (block.l > 0 && block.S.empty())
@@ -64,7 +64,7 @@ namespace Gecode { namespace String {
     }
     refined.normalize();
     GECODE_ME_CHECK(x0.dom(home, refined));
-    assert (x0.pdomain()->is_normalized());
+    assert (x0.domain().is_normalized());
     return x0.assigned() && x1.assigned() ? home.ES_SUBSUMED(*this) : ES_FIX;
   }
 

@@ -360,7 +360,7 @@ namespace Gecode { namespace String {
         }
         else {
           StringView view(x);
-          const DashedString& domain = view.varimp()->domain();
+          const DashedString& domain = view.domain();
           NSBlocks refined(domain.blocks());
           const NSIntSet s(base->get_chars());
           bool changed = false;
@@ -387,17 +387,17 @@ namespace Gecode { namespace String {
           }
           if (changed) {
             StringVarImp::DomainState state =
-              view.varimp()->begin_refinement();
-            DashedString* target = view.pdomain();
+              view.begin_refinement();
+            DashedString& target = view.mutable_domain(state);
             for (unsigned int i = 0; i < refined.size(); ++i) {
-              if (!(target->at(i).S == refined[i].S))
-                target->at(i).S.update(home, refined[i].S);
-              target->at(i).u = refined[i].u;
+              if (!(target.at(i).S == refined[i].S))
+                target.at(i).S.update(home, refined[i].S);
+              target.at(i).u = refined[i].u;
             }
-            target->normalize(home);
+            target.normalize(home);
             if (home.failed())
               return;
-            GECODE_ME_FAIL(view.varimp()->commit_refinement(home, state));
+            GECODE_ME_FAIL(view.commit_refinement(home, state));
           }
         }
         return;

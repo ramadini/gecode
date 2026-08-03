@@ -18,14 +18,14 @@ namespace Gecode { namespace String { namespace Branch {
 
     Choice*
     SizeMin_LLUL::choice(Space&) {
-      DashedString* p = x[start].pdomain();
+      const DashedString* p = &x[start].domain();
       double l = p->logdim();
       int pos = start;
       for (int i = start + 1; i < x.size(); ++i) {
-        double m = x[i].pdomain()->logdim();
-        // std::cerr << "Var. " << i << ": " << *(x[i].pdomain()) << " -- logdim: " << m << "\n";
+        double m = x[i].domain().logdim();
+        // std::cerr << "Var. " << i << ": " << x[i].domain() << " -- logdim: " << m << "\n";
         if (!x[i].assigned() && m < l) {
-          p = x[i].pdomain();
+          p = &x[i].domain();
           l = m;
           pos = i;
         }

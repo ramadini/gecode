@@ -104,7 +104,7 @@ namespace Gecode { namespace String { namespace Branch {
     }
 
     Choice*
-    val_llll(int pos, Gecode::String::DashedString* p) {
+    val_llll(int pos, const Gecode::String::DashedString* p) {
       if (p->min_length() < p->max_length())
         return decision(pos, p, Level::LENGTH, Value::MIN);
       int i = p->first_na_block();
@@ -128,7 +128,7 @@ namespace Gecode { namespace String { namespace Branch {
     }
 
     Choice*
-    val_ulul(int pos, Gecode::String::DashedString* p) {
+    val_ulul(int pos, const Gecode::String::DashedString* p) {
       if (p->min_length() < p->max_length())
         return decision(pos, p, Level::LENGTH, Value::MAX);
       int i = p->first_na_block();
@@ -140,7 +140,7 @@ namespace Gecode { namespace String { namespace Branch {
     }
         
     Choice*
-    val_lllm(int pos, Gecode::String::DashedString* p) {
+    val_lllm(int pos, const Gecode::String::DashedString* p) {
       if (p->min_length() < p->max_length())
         return decision(pos, p, Level::LENGTH, Value::MIN);
       int i = p->first_na_block();
@@ -153,7 +153,7 @@ namespace Gecode { namespace String { namespace Branch {
 
     forceinline void
     complete(Space& home, int pos) {
-      ModEvent me = x[pos].eq(home, x[pos].pdomain()->min_str());
+      ModEvent me = x[pos].eq(home, x[pos].domain().min_str());
       assert(!me_failed(me));
       (void) me;
     }
@@ -190,7 +190,7 @@ namespace Gecode { namespace String { namespace Branch {
     print(const Space&, const Choice& c, unsigned a, std::ostream& o) const {
       const PosLevVal& p = static_cast<const PosLevVal&>(c);
       o << "Alt. " << a << " -- Var. " << p.pos << " -- Lev. " << p.lev
-        << " -- Val. " << p.val << " of " << *x[p.pos].pdomain();
+        << " -- Val. " << p.val << " of " << x[p.pos].domain();
     }
 
   };

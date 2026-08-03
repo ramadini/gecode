@@ -18,7 +18,7 @@ namespace Gecode { namespace String {
     NSBlocks domain({
       NSBlock(NSIntSet('0', '9'), 1, DashedString::_MAX_STR_LENGTH)
     });
-    if (x.pdomain()->check_equate(domain))
+    if (x.domain().check_equate(domain))
       (void) new (home) StrToNat(home, x, y);
     else
       GECODE_ME_CHECK(y.eq(home, -1));
@@ -62,17 +62,17 @@ namespace Gecode { namespace String {
 
   forceinline string
   StrToNat::min_str() const {
-    DashedString* p = x0.pdomain();
-    bool include_first = int2char(p->at(0).min()) != '0';
-    string::size_type length = include_first ? p->at(0).l : 0;
-    for (int i = 1; i < p->length(); ++i)
-      length += p->at(i).l;
+    const DashedString& p = x0.domain();
+    bool include_first = int2char(p.at(0).min()) != '0';
+    string::size_type length = include_first ? p.at(0).l : 0;
+    for (int i = 1; i < p.length(); ++i)
+      length += p.at(i).l;
     string n;
     n.reserve(length);
     if (include_first)
-      n.append(p->at(0).l, int2char(p->at(0).S.min()));
-    for (int i = 1; i < p->length(); ++i) {
-      const DSBlock& b = p->at(i);
+      n.append(p.at(0).l, int2char(p.at(0).S.min()));
+    for (int i = 1; i < p.length(); ++i) {
+      const DSBlock& b = p.at(i);
       if (b.l > 0)
         n.append(b.l, int2char(b.S.min()));
     }
@@ -81,17 +81,17 @@ namespace Gecode { namespace String {
 
   forceinline string
   StrToNat::max_str() const {
-    DashedString* p = x0.pdomain();
-    bool include_first = int2char(p->at(0).max()) != '0';
-    string::size_type length = include_first ? p->at(0).u : 0;
-    for (int i = 1; i < p->length(); ++i)
-      length += p->at(i).u;
+    const DashedString& p = x0.domain();
+    bool include_first = int2char(p.at(0).max()) != '0';
+    string::size_type length = include_first ? p.at(0).u : 0;
+    for (int i = 1; i < p.length(); ++i)
+      length += p.at(i).u;
     string n;
     n.reserve(length);
     if (include_first)
-      n.append(p->at(0).u, int2char(p->at(0).S.max()));
-    for (int i = 1; i < p->length(); ++i) {
-      const DSBlock& b = p->at(i);
+      n.append(p.at(0).u, int2char(p.at(0).S.max()));
+    for (int i = 1; i < p.length(); ++i) {
+      const DSBlock& b = p.at(i);
       n.append(b.u, int2char(b.S.max()));
     }
     return n == "" ? "0" : n;
@@ -99,12 +99,12 @@ namespace Gecode { namespace String {
 
   forceinline ExecStatus
   StrToNat::refine_int(Space& home) {
-    int lx = x1.min(), ux = x1.max(), n = x0.pdomain()->length();
+    int lx = x1.min(), ux = x1.max(), n = x0.domain().length();
     string lb = "", ub = "";
     bool num_only = true;
     const NSIntSet num('0', '9');
 	  for (int i = 0; i < n; ++i) {
-	    const DSBlock& b = x0.pdomain()->at(i);	    
+	    const DSBlock& b = x0.domain().at(i);
       if (num.disjoint(b.S)) {
         if (b.l > 0)
           GECODE_ME_CHECK(x1.eq(home, -1));
@@ -169,7 +169,7 @@ namespace Gecode { namespace String {
       NSBlocks dom = strdom();
       // std::cerr << dom << '\n';
       if (x1.min() > -1
-      || dom.contains<DSBlock, DSBlocks>(x0.pdomain()->blocks())) {
+      || dom.contains<DSBlock, DSBlocks>(x0.domain().blocks())) {
         if (x1.min() > 0)
           GECODE_ME_CHECK(x0.lb(home, (int) ceil(std::log10(x1.min()))));
         GECODE_ME_CHECK(x0.dom(home, dom));
@@ -179,14 +179,14 @@ namespace Gecode { namespace String {
         }
         catch (const std::out_of_range&) {}
       }
-      else if (x1.max() == -1 || !x0.pdomain()->check_equate(dom)) {
+      else if (x1.max() == -1 || !x0.domain().check_equate(dom)) {
         extensional(home, x0, "[0-9][0-9]*", BoolVar(home, 0, 0), RM_EQV);
         // std::cerr << x0 << " => -1 (subsumed)\n";
         return home.ES_SUBSUMED(*this);
       }
       GECODE_ES_CHECK(refine_int(home));
       // std::cerr<<"\nStrToNat::propagated "<<x0<<" => "<<x1<<std::endl;
-      assert (x0.pdomain()->is_normalized());
+      assert (x0.domain().is_normalized());
       if (!x0.assigned() && !x1.assigned())
         return ES_FIX;
     }

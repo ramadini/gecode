@@ -6,6 +6,23 @@ namespace Gecode { namespace String {
 
     using VarImpView<StringVar>::x;
 
+  private:
+
+    /// Begin an audited in-place domain refinement
+    StringVarImp::DomainState begin_refinement(void) const;
+
+    /// Return mutable storage associated with refinement transaction \a state
+    String::DashedString& mutable_domain(
+      const StringVarImp::DomainState& state) const;
+
+    /// Commit an audited in-place domain refinement
+    ModEvent commit_refinement(
+      Space& home, const StringVarImp::DomainState& state) const;
+
+    friend class Find;
+    friend class GCC;
+    friend class StarEx;
+
   public:
 
     StringView(void);
@@ -16,8 +33,8 @@ namespace Gecode { namespace String {
 
     string val() const;
 
-    /// Raw domain access; mutations require a StringVarImp refinement transaction
-    String::DashedString* pdomain(void) const;
+    /// Return the immutable dashed domain
+    const String::DashedString& domain(void) const;
 
     bool same(const StringView& that) const;
 

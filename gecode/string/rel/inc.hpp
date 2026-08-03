@@ -55,7 +55,7 @@ namespace Gecode { namespace String {
         assert (s[i] < s[i + 1] || (!strict && s[i] == s[i + 1]));
       return home.ES_SUBSUMED(*this);
     }
-    assert (x0.pdomain()->is_normalized());
+    assert (x0.domain().is_normalized());
     // std::cerr<<"propagated: "<<x0<<std::endl;
     return ES_FIX;
   }

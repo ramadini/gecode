@@ -18,11 +18,11 @@ namespace Gecode { namespace String { namespace Branch {
 
     Choice*
     LenMin_LLLL::choice(Space&) {
-      DashedString* p = x[start].pdomain();
+      const DashedString* p = &x[start].domain();
       int l = p->max_length() - p->min_length();
       int pos = start;
       for (int i = start + 1; i < x.size(); ++i) {
-        DashedString* q = x[i].pdomain();
+        const DashedString* q = &x[i].domain();
         int m = q->max_length() - q->min_length();
         if (!x[i].assigned() && m < l) {
           p = q;

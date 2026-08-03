@@ -29,9 +29,9 @@ namespace Gecode { namespace String {
     GECODE_ME_CHECK(x0.dom(home, *dom));
     // std::cerr << "After equate: " << x0 << '\n';
     if (x0.assigned() ||
-        (*dom).contains<DSBlock, DashedString>(*x0.pdomain()))
+        (*dom).contains<DSBlock, DashedString>(x0.domain()))
       return home.ES_SUBSUMED(*this);
-    assert (x0.pdomain()->is_normalized());
+    assert (x0.domain().is_normalized());
     // std::cerr<<"propagated: "<<x0<<" :: "<<*dom<<std::endl;
     return ES_FIX;
   }

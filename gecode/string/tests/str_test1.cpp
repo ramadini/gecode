@@ -71,7 +71,7 @@ public:
     assert(z.must_chars() == t);
     //assert(z.size() == 2 * 9 * 8);
     StringView w(z);
-    assert(*w.pdomain() == z.domain());
+    assert(w.domain() == z.domain());
     class eq : public Eq {
     public:
       eq(Home h, StringView x, StringView y) :
@@ -140,7 +140,7 @@ public:
       delete c;
       std::cerr << "x[0]: " << x[0] << std::endl;
     }
-    assert (x[0].pdomain()->val() == "da");
+    assert (x[0].domain().val() == "da");
     assert (brancher.status(*this));
     while (!x[1].assigned()) {
          c = brancher.choice(*this);
@@ -148,7 +148,7 @@ public:
          delete c;
          std::cerr << "x[1]: " << x[1] << std::endl;
       }
-    assert (x[1].pdomain()->val() == "");
+    assert (x[1].domain().val() == "");
   }
 
   void test03() {

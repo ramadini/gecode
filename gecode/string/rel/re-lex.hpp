@@ -77,7 +77,7 @@ namespace Gecode { namespace String {
         return home.ES_SUBSUMED(*this);
       GECODE_REWRITE(*this, (Lex::post(home(*this), x0, x1, lt)));
     }
-    if (!x0.pdomain()->check_lex(*x1.pdomain(), lt)) {
+    if (!x0.domain().check_lex(x1.domain(), lt)) {
       if (rm != RM_PMI)
         GECODE_ME_CHECK(b.zero_none(home));
       return home.ES_SUBSUMED(*this);

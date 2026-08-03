@@ -63,7 +63,7 @@ namespace Gecode { namespace String {
       return x2.min_length() == 0;
     ConcreteSlice candidate(concrete_source, start - 1, length);
     return check_sweep<DSBlock, DSBlocks, char, ConcreteSlice>
-      (x2.pdomain()->blocks(), candidate);
+      (x2.domain().blocks(), candidate);
   }
 
   forceinline bool
@@ -155,7 +155,7 @@ namespace Gecode { namespace String {
   forceinline bool
   Substring::result_is_envelope(const NSIntSet& chars,
                                 int lower, int upper) const {
-    const DashedString& result = *x2.pdomain();
+    const DashedString& result = x2.domain();
     return result.length() == 1 && result.at(0).l == lower &&
       result.at(0).u == upper && result.at(0).S == chars;
   }

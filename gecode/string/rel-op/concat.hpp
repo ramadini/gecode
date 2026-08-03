@@ -30,14 +30,14 @@ namespace Gecode { namespace String {
   Concat::propagate(Space& home, const ModEventDelta&) {
 //    std::cerr<<"\nConcat::propagate: "<<x2<<" = "<<x0<<" ++ "<<x1<<std::endl;
     while (true) {
-      assert (x0.pdomain()->is_normalized() && x1.pdomain()->is_normalized() &&
-              x2.pdomain()->is_normalized());
+      assert (x0.domain().is_normalized() && x1.domain().is_normalized() &&
+              x2.domain().is_normalized());
       GECODE_ME_CHECK(x2.concat(home, x0, x1));
       if(home.failed())
         return ES_FAILED;
       //std::cerr<<"After concat: "<<x2<<" = "<<x0<<" ++ "<<x1<<std::endl;
-      assert (x0.pdomain()->is_normalized() && x1.pdomain()->is_normalized() &&
-              x2.pdomain()->is_normalized());
+      assert (x0.domain().is_normalized() && x1.domain().is_normalized() &&
+              x2.domain().is_normalized());
       int assigned = x0.assigned() + x1.assigned() + x2.assigned();
       if (assigned == 3) {
         if (x2.val() != x0.val() + x1.val())

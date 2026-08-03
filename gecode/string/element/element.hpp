@@ -74,7 +74,7 @@ namespace Gecode { namespace String {
     GECODE_ME_CHECK(me);
     // std::cerr << "Element::propagated " << x << "[" << y << "] = " << x[0] << "\n";
     for (auto& v : x)
-      assert (v.pdomain()->is_normalized());
+      assert (v.domain().is_normalized());
     return me_modified(me) ? ES_NOFIX : ES_FIX;
   }
 

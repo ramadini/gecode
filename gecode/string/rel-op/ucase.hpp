@@ -30,11 +30,11 @@ namespace Gecode { namespace String {
   forceinline ExecStatus
   UpperCase::propagate(Space& home, const ModEventDelta&) {
     // std::cerr<<"UpperCase::propagate "<<x1<<" = ucase("<<x0<<")\n";
-    int n = x0.pdomain()->length();
+    int n = x0.domain().length();
     NSBlocks ux(n);
     bool changed = false;
     for (int i = 0; i < n; ++i) {
-      const DSBlock& bi = x0.pdomain()->at(i);
+      const DSBlock& bi = x0.domain().at(i);
       NSIntSet si(bi.S);
       if (!(bi.S.disjoint(_LCASE_SET))) {
         NSIntSet ti(si);
@@ -50,10 +50,10 @@ namespace Gecode { namespace String {
       ux.normalize();
     GECODE_ME_CHECK(x1.dom(home, ux));
     changed = false;
-    n = x1.pdomain()->length();
+    n = x1.domain().length();
     NSBlocks ly(n);
     for (int i = 0; i < n; ++i) {
-      const DSBlock& bi = x1.pdomain()->at(i);
+      const DSBlock& bi = x1.domain().at(i);
       NSIntSet si(bi.S);
       if (!(bi.S.disjoint(_UCASE_SET))) {
         NSIntSet ti(si);
@@ -68,7 +68,7 @@ namespace Gecode { namespace String {
       ly.normalize();
     GECODE_ME_CHECK(x0.dom(home, ly));
     // std::cerr<<"UpperCase::propagated "<<x1<<" = ucase("<<x0<<")\n";
-    assert (x0.pdomain()->is_normalized() && x1.pdomain()->is_normalized());
+    assert (x0.domain().is_normalized() && x1.domain().is_normalized());
     return ES_FIX;
   }
 

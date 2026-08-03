@@ -109,9 +109,9 @@ namespace Gecode { namespace String {
     GECODE_ME_CHECK(me);
     if (!refine_card(home))
       return ES_FAILED;
-    assert (y.pdomain()->is_normalized());
+    assert (y.domain().is_normalized());
     for (auto& xi : x)
-      assert (xi.pdomain()->is_normalized());
+      assert (xi.domain().is_normalized());
 
     return x.assigned() ? assigned(home) : ES_FIX;
   }

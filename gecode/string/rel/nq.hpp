@@ -42,7 +42,7 @@ namespace Gecode { namespace String {
     }
     if (!x0.check_equate(x1))
       return home.ES_SUBSUMED(*this);
-    assert (x0.pdomain()->is_normalized() && x1.pdomain()->is_normalized());
+    assert (x0.domain().is_normalized() && x1.domain().is_normalized());
     // std::cerr << "Nq::propagated.\n";
     return ES_FIX;
   }

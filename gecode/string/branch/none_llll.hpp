@@ -18,7 +18,7 @@ namespace Gecode { namespace String { namespace Branch {
 
     Choice*
     None_LLLL::choice(Space&) {
-      DashedString* p = x[start].pdomain();
+      const DashedString* p = &x[start].domain();
       // std::cerr << "Var. " << start << " chosen: " << *p;
       return val_llll(start, p);
     }

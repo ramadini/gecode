@@ -47,7 +47,7 @@ namespace Gecode { namespace String {
       GECODE_ME_CHECK(x1.gq(home, l));
       GECODE_ME_CHECK(x1.lq(home, u));
       // std::cerr << "After pow: " << x2 << " = " << x0 << " ** " << x1 << '\n';
-      assert (x0.pdomain()->is_normalized() && x2.pdomain()->is_normalized());
+      assert (x0.domain().is_normalized() && x2.domain().is_normalized());
       int assigned = x0.assigned() + x1.assigned() + x2.assigned();
       if (assigned == 3) {
         string x = x0.val(), xn;

@@ -168,9 +168,9 @@ namespace Gecode { namespace String {
   Replace::occur(const string& q) const {
     int min_occur = 0;
     string curr;
-    DashedString* p = x[0].pdomain();
-    for (int i = 0; i < p->length(); ++i) {
-      const DSBlock& b = p->at(i);
+    const DashedString& p = x[0].domain();
+    for (int i = 0; i < p.length(); ++i) {
+      const DSBlock& b = p.at(i);
       if (b.S.size() == 1) {
         char c = b.S.min();
         curr.append(b.l, c);
@@ -196,17 +196,17 @@ namespace Gecode { namespace String {
   // x[3] via equation.
   forceinline ExecStatus
   Replace::replace_q_x(Space& home, int min_occur) {
-    DashedString* px  = x[0].pdomain();
-    DashedString* pq  = x[1].pdomain();
-    DashedString* pq1 = x[2].pdomain();
+    const DashedString& px  = x[0].domain();
+    const DashedString& pq  = x[1].domain();
+    const DashedString& pq1 = x[2].domain();
     Position pos[2];
-    if (check_find(*pq, *px, pos)) {
+    if (check_find(pq, px, pos)) {
       // Prefix: x[0][: es]
       NSBlocks v;
       Position es = pos[0], le = pos[1];
 //       std::cerr << "ES: " << es << ", LE: " << le << "\n";
       if (es != Position({0, 0}))
-        v = x[0].pdomain()->prefix(es.idx, es.off);
+        v = x[0].domain().prefix(es.idx, es.off);
       // Crush x[0][es : le], possibly adding x[2].
       int u = x[3].max_length();
       if (u > 0) {
@@ -216,18 +216,18 @@ namespace Gecode { namespace String {
         b.u = u;
         v.push_back(b);
         for (int i = 0; i < min_occur; ++i) {
-          for (int j = 0; j < pq1->length(); ++j)
-            v.push_back(NSBlock(pq1->at(j)));
+          for (int j = 0; j < pq1.length(); ++j)
+            v.push_back(NSBlock(pq1.at(j)));
           v.push_back(b);
         }
       }
       else
         for (int i = 0; i < min_occur; ++i)
-          for (int j = 0; j < pq1->length(); ++j)
-            v.push_back(NSBlock(pq1->at(j)));
+          for (int j = 0; j < pq1.length(); ++j)
+            v.push_back(NSBlock(pq1.at(j)));
       // Suffix: x[0][le :]
-      if (le != last_fwd(px->blocks()))
-        v.extend(x[0].pdomain()->suffix(le.idx, le.off));
+      if (le != last_fwd(px.blocks()))
+        v.extend(x[0].domain().suffix(le.idx, le.off));
       v.normalize();
 //       std::cerr << "1c) Equating " << x[3] << " with " << v << " => \n";
       GECODE_ME_CHECK(x[3].dom(home, v));
@@ -247,17 +247,17 @@ namespace Gecode { namespace String {
   // to possibly refine x[0] via equation.
   forceinline ExecStatus
   Replace::replace_q1_y(Space& home, int min_occur) {
-    DashedString* pq  = x[1].pdomain();
-    DashedString* pq1 = x[2].pdomain();
-    DashedString* py  = x[3].pdomain();
+    const DashedString& pq  = x[1].domain();
+    const DashedString& pq1 = x[2].domain();
+    const DashedString& py  = x[3].domain();
     Position pos[2];
-    if (check_find(*pq1, *py, pos)) {
+    if (check_find(pq1, py, pos)) {
       // Prefix: x[3][: es].
       NSBlocks v;
       Position es = pos[0], le = pos[1];
       // std::cerr << "ES: " << es << ", LE: " << le << "\n";
       if (es != Position({0, 0}))
-        v = x[3].pdomain()->prefix(es.idx, es.off);
+        v = x[3].domain().prefix(es.idx, es.off);
       // Crush x[3][es : ls], possibly adding x[1].
       int u = x[0].max_length();
       if (u > 0) {
@@ -267,19 +267,19 @@ namespace Gecode { namespace String {
         b.u = u;
         v.push_back(b);
         for (int i = 0; i < min_occur; ++i) {
-          for (int j = 0; j < pq->length(); ++j)
-            v.push_back(NSBlock(pq->at(j)));
+          for (int j = 0; j < pq.length(); ++j)
+            v.push_back(NSBlock(pq.at(j)));
           v.push_back(b);
         }
       }
       else {
         for (int i = 0; i < min_occur; ++i)
-          for (int j = 0; j < pq->length(); ++j)
-            v.push_back(NSBlock(pq->at(j)));
+          for (int j = 0; j < pq.length(); ++j)
+            v.push_back(NSBlock(pq.at(j)));
       }
       // Suffix: x[3][le :]
-      if (le != last_fwd(py->blocks()))
-        v.extend(x[3].pdomain()->suffix(le.idx, le.off));
+      if (le != last_fwd(py.blocks()))
+        v.extend(x[3].domain().suffix(le.idx, le.off));
       v.normalize();
       // std::cerr << "2) Equating " << x[0] << " with " << v << " => \n";
       GECODE_ME_CHECK(x[0].dom(home, v));
@@ -299,8 +299,8 @@ namespace Gecode { namespace String {
   Replace::propagate_pass(Space& home, bool& repeat) {
 //     std::cerr<<"\nReplace" << (all ? "All" : last ? "Last" : "") << "::propagate: "<< x <<"\n";
     repeat = false;
-    assert(x[0].pdomain()->is_normalized() && x[1].pdomain()->is_normalized() &&
-           x[2].pdomain()->is_normalized() && x[3].pdomain()->is_normalized());
+    assert(x[0].domain().is_normalized() && x[1].domain().is_normalized() &&
+           x[2].domain().is_normalized() && x[3].domain().is_normalized());
     if (!all && !check_card()) {
       find(home, x[1], x[0], IntVar(home, 0, 0));
       rel(home, x[0], STRT_EQ, x[3]);
@@ -351,11 +351,11 @@ namespace Gecode { namespace String {
         min_occur += 1;
     } 
     // x[0] != x[3] => x[1] occur in x[0] /\ x[2] occur in x[3].
-    DashedString* px  = x[0].pdomain();
-    DashedString* pq  = x[1].pdomain();
-    DashedString* pq1 = x[2].pdomain();
-    DashedString* py  = x[3].pdomain();
-    if (min_occur == 0 && !px->check_equate(*py))
+    const DashedString& px  = x[0].domain();
+    const DashedString& pq  = x[1].domain();
+    const DashedString& pq1 = x[2].domain();
+    const DashedString& py  = x[3].domain();
+    if (min_occur == 0 && !px.check_equate(py))
       min_occur = 1;
     if (min_occur > 0 && !all) {
       // std::<<cerr << "min_occur = "<<min_occur<<": rewriting into concat!\n";
@@ -384,8 +384,8 @@ namespace Gecode { namespace String {
     if (home.failed())
       return ES_FAILED;
 //     std::cerr<<"After replace: "<< x <<"\n";
-    assert (px->is_normalized() && pq->is_normalized() 
-        && pq1->is_normalized() && py->is_normalized());
+    assert (px.is_normalized() && pq.is_normalized()
+        && pq1.is_normalized() && py.is_normalized());
     switch (
       x[0].assigned() + x[1].assigned() + x[2].assigned() + x[3].assigned()
     ) {

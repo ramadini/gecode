@@ -121,7 +121,7 @@ namespace Gecode { namespace String {
           return 0;
         int u = 0;
         for (int k = 0; k <= idx; ++k)
-          u += x0.pdomain()->at(k).u;
+          u += x0.domain().at(k).u;
 //        std::cerr << "x0: "<< x0 << ", x:" << x << ", i: " << i << ", u: " << u << ", minR: " << minR << "\n";
         return u;
       }
@@ -131,7 +131,7 @@ namespace Gecode { namespace String {
 
   forceinline int
   Match::must_idx(void) const {
-    DashedString& px = *x0.pdomain();
+    const DashedString& px = x0.domain();
     NSIntSet Q(0);
     for (int i = 0; i < px.length(); ++i) {
 //      std::cerr << i << ", Q before:" << Q.toString() << "\n";
@@ -162,7 +162,7 @@ namespace Gecode { namespace String {
           GECODE_REWRITE(*this, Reg::post(home, x0, dfa.get()));
         }
       }
-      DashedString& px = *x0.pdomain();
+      const DashedString& px = x0.domain();
       
       std::string w = px.known_pref();
 //      std::cerr << "w: " << w << '\n';

@@ -44,10 +44,11 @@ This analyze-mutate-notify order is part of the variable implementation
 contract: adding a new dashed-domain operation must not notify from inside the
 domain layer or leave a stale changed marker for the next transaction.
 
-Production `pdomain()` mutations are limited to GCC, Find, and the decomposed
-regular-star poster, and all are enclosed by
-`begin_refinement`/`commit_refinement`. Other production callers use the pointer
-read-only or commit an analyzed ordinary-lifetime domain via
+`StringView::domain()` exposes only a constant reference. Mutable domain access
+is private to GCC, Find, and the decomposed regular-star poster and requires the
+matching `DomainState` token from `begin_refinement`; all three writers commit
+that token through `commit_refinement`. Other production callers either inspect
+the constant domain or commit an analyzed ordinary-lifetime domain through
 `StringVarImp::refine`. The regular-star path analyzes an `NSBlocks` copy before
 mutating, so early failure cannot leave a partial update and actors subscribed
 before posting see the resulting aggregate event.

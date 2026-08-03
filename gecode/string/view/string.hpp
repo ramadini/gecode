@@ -26,9 +26,28 @@ namespace Gecode { namespace String {
     return x->ds.val();
   }
 
-  forceinline String::DashedString*
-  StringView::pdomain() const {
-    return &x->ds;
+  forceinline const String::DashedString&
+  StringView::domain() const {
+    return x->domain();
+  }
+
+  forceinline StringVarImp::DomainState
+  StringView::begin_refinement() const {
+    return x->begin_refinement();
+  }
+
+  forceinline String::DashedString&
+  StringView::mutable_domain(const StringVarImp::DomainState& state) const {
+    assert(state.x == x);
+    return x->ds;
+  }
+
+  forceinline ModEvent
+  StringView::commit_refinement(
+    Space& home, const StringVarImp::DomainState& state
+  ) const {
+    assert(state.x == x);
+    return x->commit_refinement(home, state);
   }
 
   forceinline ModEvent
@@ -128,7 +147,7 @@ namespace Gecode { namespace String {
 
   forceinline bool
   StringView::contains(const StringView& s) const {
-    return x->ds.contains(*s.pdomain());
+    return x->ds.contains(s.domain());
   }
 
   template<class Char, class Traits>

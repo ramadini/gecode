@@ -231,7 +231,7 @@ namespace Gecode { namespace String {
   forceinline void
   MatchNew::reachBwd(int i, NSIntSet& B, const std::vector<NSIntSet>& Q,
                      int& j, int& k) const {
-    const DSBlock& b = x0.pdomain()->at(i);
+    const DSBlock& b = x0.domain().at(i);
     int l = b.l;
     Region region;
     int* dist = region.alloc<int>(Rnfa->n_states);
@@ -289,7 +289,7 @@ namespace Gecode { namespace String {
   
   forceinline ExecStatus
   MatchNew::refine_idx(Space& home, int& i_lb, int& j_lb) {
-    DashedString& x = *x0.pdomain();
+    const DashedString& x = x0.domain();
     std::vector<std::vector<NSIntSet>> F(x.length());
     NSIntSet initial(0);
     const NSIntSet* Fi = &initial;
@@ -337,7 +337,7 @@ namespace Gecode { namespace String {
   
   forceinline bool
   MatchNew::must_match(void) const {
-    DashedString& px = *x0.pdomain();
+    const DashedString& px = x0.domain();
     NSIntSet Q(0);
     for (int i = 0; i < px.length(); ++i) {
       Q = Rfull->reach_all(px.at(i), Q);
@@ -365,7 +365,7 @@ namespace Gecode { namespace String {
           GECODE_REWRITE(*this, Reg::post(home, x0, dfa.get()));
         }
       }
-      DashedString& X = *x0.pdomain();
+      const DashedString& X = x0.domain();
       std::string w = X.known_pref();
       int k = w.size();
       if (k > 0) {

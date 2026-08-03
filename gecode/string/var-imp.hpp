@@ -40,6 +40,7 @@ namespace Gecode { namespace String {
   public:
     /// Snapshot for an in-place domain refinement
     class DomainState {
+      friend class StringView;
     private:
       StringVarImp* x;
       int min_length;
@@ -108,11 +109,15 @@ namespace Gecode { namespace String {
     /// Replace the domain with an already-refined normalized block sequence
     ModEvent refine(Space& home, const NSBlocks& d);
 
+  private:
+
     /// Begin an in-place domain refinement
     DomainState begin_refinement(void);
 
     /// Commit an in-place domain refinement as one aggregate event
     ModEvent commit_refinement(Space& home, const DomainState& state);
+
+  public:
 
     ModEvent eq(Space& home, StringVarImp* x);
 

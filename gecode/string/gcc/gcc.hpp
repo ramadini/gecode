@@ -70,7 +70,7 @@ namespace Gecode { namespace String {
     int n = x.size();
     int sl = 0, su = 0, mal = y.max_length();
     StringVarImp::DomainState y_state =
-      y.varimp()->begin_refinement();
+      y.begin_refinement();
     const NSIntSet& dom = y.may_chars();
     // Refining upper bounds of count variables.
     for (int i = 0; i < x.size(); ++i) {
@@ -89,11 +89,11 @@ namespace Gecode { namespace String {
       if (sl - x[i].min() + x[i].max() > mal)
         GECODE_ME_CHECK(x[i].lq(home, mal - sl + x[i].min()));
     bool changed = false;
-    DashedString* pd = y.pdomain();
+    DashedString& pd = y.mutable_domain(y_state);
     if (mal <= sl) {
       changed = true;
-      for (int i = 0; i < pd->length(); ++i) {
-        DSBlock& b = pd->at(i);
+      for (int i = 0; i < pd.length(); ++i) {
+        DSBlock& b = pd.at(i);
         b.S.intersect(home, C);
         if (b.S.empty()) {
           if (b.l > 0)
@@ -105,8 +105,8 @@ namespace Gecode { namespace String {
     }
     vec2 S(n, tpl2(0, 0));
     // S[k] = (a, b) iff a <= #{occurrences of A[k].first in string y} <= b
-    for (int i = 0; i < pd->length(); ++i) {
-      const DSBlock& b = pd->at(i);
+    for (int i = 0; i < pd.length(); ++i) {
+      const DSBlock& b = pd.at(i);
       int j = 0;
       for (RangeList* c = b.S.ranges(); j < n && c != NULL; ) {
         int k = A[j].first;
@@ -123,8 +123,8 @@ namespace Gecode { namespace String {
           c = c->next();
       }
     }
-    for (int i = 0; i < pd->length(); ++i) {
-      DSBlock& b = pd->at(i);
+    for (int i = 0; i < pd.length(); ++i) {
+      DSBlock& b = pd.at(i);
       if (!b.S.disjoint(C)) {
         // Refining lower bound of the cardinalities of y.
         int l = 0;
@@ -171,19 +171,19 @@ namespace Gecode { namespace String {
     }
     if (changed) {
       sl = su = 0;
-      for (int i = 0; i < pd->length(); ++i) {
-        const DSBlock& b = pd->at(i);
+      for (int i = 0; i < pd.length(); ++i) {
+        const DSBlock& b = pd.at(i);
         sl += b.l;
         su += b.u;
         if (su > DashedString::_MAX_STR_LENGTH)
           su = DashedString::_MAX_STR_LENGTH;
       }
-      pd->refine_card(home, sl, su);
-      pd->normalize(home);
-      GECODE_ME_CHECK(y.varimp()->commit_refinement(home, y_state));
+      pd.refine_card(home, sl, su);
+      pd.normalize(home);
+      GECODE_ME_CHECK(y.commit_refinement(home, y_state));
     }
     //std::cerr<<"\nGCC::propagated GCC("<<y<<", "<<x<<") -- chars = "<<C<<"\n";
-    assert (pd->is_normalized());
+    assert (pd.is_normalized());
     return y.assigned() ? assigned(home) : ES_FIX;
   }
 

@@ -33,7 +33,7 @@ namespace Gecode { namespace String {
     while (true) {
       GECODE_ME_CHECK(x1.rev(home, x0));
       // std::cerr<<"Rev::propagated "<<x1<<" = "<<x0<<"^-1"<<std::endl;
-      assert (x0.pdomain()->is_normalized() && x1.pdomain()->is_normalized());
+      assert (x0.domain().is_normalized() && x1.domain().is_normalized());
       int assigned = x0.assigned() + x1.assigned();
       if (assigned == 2) {
         string x0r = x0.val();

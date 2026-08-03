@@ -49,7 +49,7 @@ namespace Gecode { namespace String {
       return home.ES_SUBSUMED(*this);
     }
     //std::cerr<<"propagated: "<<x0<<" < (<=) "<<x1<<std::endl;
-    assert (x0.pdomain()->is_normalized() && x1.pdomain()->is_normalized());
+    assert (x0.domain().is_normalized() && x1.domain().is_normalized());
     return ES_FIX;
   }
 

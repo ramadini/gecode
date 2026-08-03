@@ -29,7 +29,7 @@ namespace Gecode { namespace String {
     if (home.failed())
       return ES_FAILED;
     // std::cerr<<"propagated: "<<x0<<" = "<<x1<<std::endl;
-    assert (x0.pdomain()->is_normalized() && x1.pdomain()->is_normalized());
+    assert (x0.domain().is_normalized() && x1.domain().is_normalized());
     if (x0.assigned()) {
       if (!x1.assigned())
         GECODE_ME_CHECK(x1.eq(home, x0.val()));

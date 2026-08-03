@@ -54,8 +54,8 @@ namespace Gecode { namespace String {
         GECODE_ME_CHECK(x2.eq(home, i));
         return home.ES_SUBSUMED(*this);
       }
-      DashedString* p1 = x1.pdomain();
-      string pref = p1->known_pref();
+      const DashedString& p1 = x1.domain();
+      string pref = p1.known_pref();
       if (pref.size() > 0) {
         int i = pref.find(s) + 1;
         if (i > 0) {
@@ -65,14 +65,14 @@ namespace Gecode { namespace String {
           return home.ES_SUBSUMED(*this);
         }
       }
-      int n = p1->max_length();
+      int n = p1.max_length();
       if (n < l)
         return ES_FAILED;
       string curr;
       Position start({0, 0});
       // Checking fixed components.
-      for (int i = 0; n > 0 && i < p1->length(); ++i) {
-        const DSBlock& b = p1->at(i);
+      for (int i = 0; n > 0 && i < p1.length(); ++i) {
+        const DSBlock& b = p1.at(i);
         if (b.S.size() == 1) {
           char c = b.S.min();
           int fixed = min(b.l, n);
@@ -84,7 +84,7 @@ namespace Gecode { namespace String {
               l = 1;
             int ub = start.off + k + 1;
             for (int j = 0; j < start.idx && ub < u; ++j)
-              ub += p1->at(j).u;
+              ub += p1.at(j).u;
             GECODE_ME_CHECK(x2.lq(home, ub));
             if (u > ub)
               u = ub;
@@ -124,27 +124,27 @@ namespace Gecode { namespace String {
       if (x0.assigned() && x0.val().size() == 1) {
         // Removing a single character from all the bases.
         int c = char2int(x0.val()[0]);
-        DashedString* pdom = x1.pdomain();
         StringVarImp::DomainState x1_state =
-          x1.varimp()->begin_refinement();
+          x1.begin_refinement();
+        DashedString& pdom = x1.mutable_domain(x1_state);
         bool changed = false;
         bool norm = false;
-        for (int i = 0; i < pdom->length(); ++i) {
-          DSBlock& b = pdom->at(i);
+        for (int i = 0; i < pdom.length(); ++i) {
+          DSBlock& b = pdom.at(i);
           if (b.S.contains(c)) {
             b.S.remove(home, c);
             changed = true;
             if (b.l > 0 && b.S.empty())
               return ES_FAILED;
-            norm |= b.S.empty() || (i > 0 && pdom->at(i-1).S == b.S) || 
-                    (i < pdom->length()-1 && pdom->at(i+1).S == b.S);
+            norm |= b.S.empty() || (i > 0 && pdom.at(i-1).S == b.S) ||
+                    (i < pdom.length()-1 && pdom.at(i+1).S == b.S);
           }
         }
         if (norm)
-          pdom->normalize(home);
+          pdom.normalize(home);
         if (changed)
-          GECODE_ME_CHECK(x1.varimp()->commit_refinement(home, x1_state));
-        assert (pdom->is_normalized());
+          GECODE_ME_CHECK(x1.commit_refinement(home, x1_state));
+        assert (pdom.is_normalized());
         if (x1.assigned() &&
             x1.val().find(x0.val()) != string::npos)
           return ES_FAILED;
@@ -154,12 +154,12 @@ namespace Gecode { namespace String {
     }
     if (mod) {
       NSIntSet ychars = x1.may_chars();
-      int n = x0.pdomain()->length();
+      int n = x0.domain().length();
       NSBlocks v;
       if (u > 1)
         v.push_back(NSBlock(ychars, l - 1, u - 1));
       for (int i = 0; i < n; ++i)
-        v.push_back(NSBlock(x0.pdomain()->at(i)));
+        v.push_back(NSBlock(x0.domain().at(i)));
       int j = x1.max_length() - x0.min_length() - l + 1;
       if (j > 0) {
         int i = max(0, x1.min_length() - x0.max_length() - u + 1);
@@ -206,7 +206,7 @@ namespace Gecode { namespace String {
       }
     }
     // std::cerr << "index: " << x2 << "\n";
-    assert (x0.pdomain()->is_normalized() && x1.pdomain()->is_normalized());
+    assert (x0.domain().is_normalized() && x1.domain().is_normalized());
     return ES_FIX;
   }
 

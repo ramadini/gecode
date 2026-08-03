@@ -654,13 +654,13 @@ namespace Gecode { namespace String {
         // std::cerr << dfa->accepted(x0.val()) << std::endl;
         return dfa->accepted(x0.val()) ? home.ES_SUBSUMED(*this) : ES_FAILED;
       }
-      DashedString* x = x0.pdomain();
-      std::vector<std::vector<NSIntSet>> F(x->length());
+      const DashedString& x = x0.domain();
+      std::vector<std::vector<NSIntSet>> F(x.length());
       NSIntSet initial(0);
       const NSIntSet* states = &initial;
-      int n = x->length();
+      int n = x.length();
       for (int i = 0; i < n; ++i) {
-        F[i] = reach_fwd(dfa.get(), *states, x->at(i));
+        F[i] = reach_fwd(dfa.get(), *states, x.at(i));
         if (F[i].empty())
           return ES_FAILED;
         states = &F[i].back();
@@ -673,11 +673,11 @@ namespace Gecode { namespace String {
         return ES_FAILED;
       bool changed = false;
       for (int i = n - 1; i >= 0; --i)
-        y[i] = reach_bwd(dfa.get(), F[i], E, x->at(i), changed);
+        y[i] = reach_bwd(dfa.get(), F[i], E, x.at(i), changed);
       if (changed) {
         GECODE_ME_CHECK(commit_refined_blocks(home, x0, y));
         // std::cerr<<"ExtDFA<StringView>::propagated (changed) "<<x0<<"\n\n";
-        assert (x0.pdomain()->is_normalized());
+        assert (x0.domain().is_normalized());
         if (x0.assigned())
           return home.ES_SUBSUMED(*this);
         continue;
@@ -687,7 +687,7 @@ namespace Gecode { namespace String {
         // std::cerr << "Reverse propagation\n";
         states = &accepting;
         for (int i = 0; i < n; ++i) {
-          F[i] = reach_fwd(dfa.get(), *states, x->at(n - i - 1), true);
+          F[i] = reach_fwd(dfa.get(), *states, x.at(n - i - 1), true);
           if (F[i].empty())
             return ES_FAILED;
           states = &F[i].back();
@@ -700,20 +700,20 @@ namespace Gecode { namespace String {
         changed = false;
         for (int i = 0; i < n; ++i) {
           y[i] = reach_bwd(
-            dfa.get(), F[n - i - 1], E, x->at(i), changed, true);
+            dfa.get(), F[n - i - 1], E, x.at(i), changed, true);
           std::reverse(y[i].begin(), y[i].end());
         }
         if (changed) {
           GECODE_ME_CHECK(commit_refined_blocks(home, x0, y));
           // std::cerr<<"ExtDFA<StringView>::propagated (changed) "<<x0<<"\n\n";
-          assert (x0.pdomain()->is_normalized());
+          assert (x0.domain().is_normalized());
           if (x0.assigned())
             return home.ES_SUBSUMED(*this);
           continue;
           }
       }
       // std::cerr<<"ExtDFA<StringView>::propagated (no change) "<<x0<<"\n\n";
-      assert (x0.pdomain()->is_normalized());
+      assert (x0.domain().is_normalized());
       return ES_FIX;
     }
   }

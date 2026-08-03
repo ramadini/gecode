@@ -1,8 +1,17 @@
 #include <gecode/string.hh>
 
 #include <cassert>
+#include <type_traits>
+#include <utility>
 
 using namespace Gecode;
+
+static_assert(
+  std::is_same<
+    decltype(std::declval<String::StringView>().domain()),
+    const String::DashedString&
+  >::value,
+  "StringView domain access must remain read-only");
 
 class CountingDomain : public UnaryPropagator
   <String::StringView, String::PC_STRING_DOM> {

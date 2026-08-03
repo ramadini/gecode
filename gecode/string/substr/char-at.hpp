@@ -111,7 +111,7 @@ namespace Gecode { namespace String {
 
   forceinline NSIntSet
   CharAt::possible_chars(void) const {
-    const DashedString& source = *x0.pdomain();
+    const DashedString& source = x0.domain();
     NSIntSet chars;
     int min_prefix = 0;
     int max_prefix = 0;
@@ -180,10 +180,10 @@ namespace Gecode { namespace String {
     }
 
     if (x0.assigned()) {
-      const DashedString& source = *x0.pdomain();
+      const DashedString& source = x0.domain();
       bool allow_empty = x2.min_length() == 0;
       bool allow_char = x2.max_length() == 1;
-      AllowedIndices allowed(x1, source, *x2.pdomain(),
+      AllowedIndices allowed(x1, source, x2.domain(),
                              allow_empty, allow_char);
       if (!allowed())
         return ES_FAILED;
@@ -215,7 +215,7 @@ namespace Gecode { namespace String {
       }
     }
 
-    assert(x0.pdomain()->is_normalized() && x2.pdomain()->is_normalized());
+    assert(x0.domain().is_normalized() && x2.domain().is_normalized());
     return ES_FIX;
   }
 

@@ -284,13 +284,13 @@ namespace Gecode { namespace String {
           return home.ES_SUBSUMED(*this);
         //FIXME: Transform into trimDFA if corresponding delta is smaller?
       }
-      DashedString* x = x0.pdomain();
-      std::vector<std::vector<NSIntSet>> F(x->length());
+      const DashedString& x = x0.domain();
+      std::vector<std::vector<NSIntSet>> F(x.length());
       NSIntSet initial(0);
       const NSIntSet* states = &initial;
-      int n = x->length();
+      int n = x.length();
       for (int i = 0; i < n; ++i) {
-        F[i] = Reg::reach_fwd(dfa.get(), *states, x->at(i));
+        F[i] = Reg::reach_fwd(dfa.get(), *states, x.at(i));
         if (F[i].empty()) {
           GECODE_ME_CHECK(b.eq(home, 0));
           return home.ES_SUBSUMED(*this);
@@ -332,15 +332,15 @@ namespace Gecode { namespace String {
         return ES_FAILED;
       bool changed = false;
       for (int i = n - 1; i >= 0; --i)
-        y[i] = Reg::reach_bwd(dfa.get(), F[i], E, x->at(i), changed);
+        y[i] = Reg::reach_bwd(dfa.get(), F[i], E, x.at(i), changed);
       if (changed) {
         GECODE_ME_CHECK(commit_refined_blocks(home, x0, y));
-        assert (x0.pdomain()->is_normalized());
+        assert (x0.domain().is_normalized());
         if (x0.assigned())
           return home.ES_SUBSUMED(*this);
         continue;
       }
-      assert (x0.pdomain()->is_normalized());
+      assert (x0.domain().is_normalized());
       return ES_FIX;
     }
   }
