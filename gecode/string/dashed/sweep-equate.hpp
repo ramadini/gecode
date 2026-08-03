@@ -521,7 +521,7 @@ namespace Gecode { namespace String {
           }
           p_reg.normalize();
           if (kpref != "" || ksuff != "" || p_reg.logdim() < x.at(0).logdim()) {
-            up.push(std::make_pair(0, p_reg));
+            up.push(std::make_pair(0, std::move(p_reg)));
             // std::cerr << "1) x'_i: " << p_reg << "\n";
             return true;
           }
@@ -545,7 +545,7 @@ namespace Gecode { namespace String {
             v.back().u -= nn;
             v.extend(NSBlocks(ksuff));
           }
-          up.push(std::make_pair(i, v));
+          up.push(std::make_pair(i, std::move(v)));
           // std::cerr << "2) x'_i: " << v << "\n";
         }
         continue;
@@ -565,9 +565,9 @@ namespace Gecode { namespace String {
       }
       w.normalize();
       // std::cerr << "3) x'_i: " << w << "\n";
-      if (w.size() != 1 || !(w[0] == xi))
-        up.push(std::make_pair(i, w));
       assert (w.logdim() <= xi.logdim());
+      if (w.size() != 1 || !(w[0] == xi))
+        up.push(std::make_pair(i, std::move(w)));
     }
     assert ((m.esp[0] == Position({0, 0}) || null(y.at(0))) &&
             (m.lep[xlen - 1] == first_bwd(y) || null(y.at(y.length() - 1))));

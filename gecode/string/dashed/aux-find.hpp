@@ -242,7 +242,7 @@ namespace Gecode { namespace String {
       else {
         p_set.intersect(xi.S);
         NSBlocks v(1, NSBlock(p_set, xi.l, min(xi.u, u)));
-        upx.push(std::make_pair(i, v));
+        upx.push(std::make_pair(i, std::move(v)));
       }
     }
     // Possibly refining y-blocks.        
@@ -280,7 +280,7 @@ namespace Gecode { namespace String {
         }
         if (v.logdim() < y_j.logdim()) {
           mody = true;
-          upy.push(std::make_pair(j, v));
+          upy.push(std::make_pair(j, std::move(v)));
         }
       }
     }
