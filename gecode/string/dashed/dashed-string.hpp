@@ -1484,13 +1484,13 @@ namespace Gecode { namespace String {
   DashedString::lex_least(const std::vector<float>& succ) const {
     NSBlocks v;
     for (int i = 0; i < _blocks.length(); ++i) {
-      const NSBlock& b = lex_min(at(i), succ[i]);
+      NSBlock b = lex_min(at(i), succ[i]);
       if (i && at(i - 1).S == b.S) {
         v.back().l += b.l;
         v.back().u += b.u;
       }
       else
-        v.push_back(b);
+        v.push_back(std::move(b));
     }
     assert (v.known());
     return v;
@@ -1500,13 +1500,13 @@ namespace Gecode { namespace String {
   DashedString::lex_greatest(const std::vector<float>& succ) const {
     NSBlocks v;
     for (int i = 0; i < _blocks.length(); ++i) {
-      const NSBlock& b = lex_max(at(i), succ[i]);
+      NSBlock b = lex_max(at(i), succ[i]);
       if (i && v.back().S == b.S) {
         v.back().l += b.l;
         v.back().u += b.u;
       }
       else
-        v.push_back(b);
+        v.push_back(std::move(b));
     }
     assert (v.known());
     return v;
@@ -1736,7 +1736,7 @@ namespace Gecode { namespace String {
     }
     NSBlocks xn = x.pow(n1);
     int u = min(_MAX_STR_LENGTH, long(x._max_length) * (n2 - n1));
-    xn.push_back(NSBlock(x.may_chars(), 0, u));
+    xn.emplace_back(x.may_chars(), 0, u);
     xn.normalize();
 //    std::cerr << "xn: " << xn << "\n";
     if (!sweep_equate(h, *this, xn))

@@ -222,13 +222,11 @@ namespace Gecode { namespace String {
         for (unsigned i = 0; i < p_reg.size(); ++i)
           p_set.include(p_reg[i].S);
       }
-      long u = 0;  
-      for (int i = 0; i < p_reg.length(); ++i) {
-        if (xi.S.disjoint(p_set))
-          continue;
-        // p_reg[i].u - p.reg[i].l + p_l <= xi.u.
-        u += p_reg[i].u;
-      }
+      long u = 0;
+      if (!xi.S.disjoint(p_set))
+        for (int i = 0; i < p_reg.length(); ++i)
+          // p_reg[i].u - p.reg[i].l + p_l <= xi.u.
+          u += p_reg[i].u;
       // std::cerr << p_reg << ' ' << p_l << '\n';
       if (xi.l > u)
         return false;
@@ -273,7 +271,7 @@ namespace Gecode { namespace String {
               if (n > b.S.size())
                 x_i.S.update(h, b.S);
             }
-            v.push_back(b);
+            v.push_back(std::move(b));
           }
           else
             x_i.set_null(h);

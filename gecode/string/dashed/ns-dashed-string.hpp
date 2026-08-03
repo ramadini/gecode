@@ -1252,6 +1252,16 @@ namespace Gecode { namespace String {
     }
 
     forceinline
+    NSBlock(NSIntSet&& s, int a): S(std::move(s)) {
+      if (a < 0)
+        a = 0;
+      if (a > DashedString::_MAX_STR_LENGTH)
+        a = DashedString::_MAX_STR_LENGTH;
+      l = a;
+      u = a;
+    }
+
+    forceinline
     NSBlock(const NSIntSet& s, int a, int b): S(), l(0), u(0) {
        if (b == 0 || a > b || s.size() == 0)
         return;
@@ -1262,6 +1272,19 @@ namespace Gecode { namespace String {
        l = a;
        u = b;
        S = s;
+    }
+
+    forceinline
+    NSBlock(NSIntSet&& s, int a, int b): S(), l(0), u(0) {
+       if (b == 0 || a > b || s.size() == 0)
+        return;
+       if (a < 0)
+         a = 0;
+       if (b > DashedString::_MAX_STR_LENGTH)
+         b = DashedString::_MAX_STR_LENGTH;
+       l = a;
+       u = b;
+       S = std::move(s);
     }
 
     forceinline explicit
@@ -1356,8 +1379,9 @@ namespace Gecode { namespace String {
     
     forceinline explicit
     NSBlocks(const DashedView& dv): std::vector<NSBlock>() {
+      reserve(dv.length());
       for (int i = 0; i < dv.length(); ++i)
-        push_back(NSBlock(dv.at(i)));
+        emplace_back(dv.at(i));
     }
     
     forceinline explicit
@@ -1366,6 +1390,10 @@ namespace Gecode { namespace String {
     forceinline
     NSBlocks(const std::vector<NSBlock>& blocks) 
     : std::vector<NSBlock>(blocks) {}
+
+    forceinline
+    NSBlocks(std::vector<NSBlock>&& blocks)
+    : std::vector<NSBlock>(std::move(blocks)) {}
 
     forceinline
     NSBlocks(int n) 
@@ -1381,7 +1409,7 @@ namespace Gecode { namespace String {
       if (n > DashedString::_MAX_STR_LENGTH)
         throw OutOfLimitsDS("NSBlocks::NSBlocks");
       if (n == 0) {
-        push_back(NSBlock());
+        emplace_back();
         return;
       }
       unsigned prev_c = static_cast<unsigned char>(s[0]) + 1;
@@ -1391,7 +1419,7 @@ namespace Gecode { namespace String {
           this->back().l++;
         }
         else
-          push_back(NSBlock(NSIntSet(c), 1, 1));
+          emplace_back(NSIntSet(c), 1, 1);
         prev_c = c;
       }
     }
@@ -1467,7 +1495,7 @@ namespace Gecode { namespace String {
     forceinline void
     push_front(const NSBlock& b) {
       NSBlock front(b);
-      insert(begin(), front);
+      insert(begin(), std::move(front));
     }
 
     forceinline void
@@ -1476,7 +1504,7 @@ namespace Gecode { namespace String {
       int write = 0;
       const long M = DashedString::_MAX_STR_LENGTH;
       for (int read = 0; read < n; ++read) {
-        const NSBlock& block = at(read);
+        NSBlock& block = at(read);
         if (block.null()) {
           if (write > 0 && !block.S.empty()) {
             NSBlock& previous = at(write - 1);
@@ -1491,13 +1519,13 @@ namespace Gecode { namespace String {
           previous.u = std::min(long(previous.u) + block.u, M);
         } else {
           if (write != read)
-            at(write) = block;
+            at(write) = std::move(block);
           ++write;
         }
       }
       resize(write);
       if (write == 0)
-        push_back(NSBlock());
+        emplace_back();
       assert (is_normalized());
     }
     
@@ -1523,7 +1551,8 @@ namespace Gecode { namespace String {
       if (&z == &y) {
         NSBlocks right(y);
         z = *this;
-        z.insert(z.end(), right.begin(), right.end());
+        z.insert(z.end(), std::make_move_iterator(right.begin()),
+          std::make_move_iterator(right.end()));
         return;
       }
       z = *this;
@@ -1534,10 +1563,21 @@ namespace Gecode { namespace String {
     extend(const NSBlocks& x) {
       if (this == &x) {
         NSBlocks copy(x);
-        this->insert(this->end(), copy.begin(), copy.end());
+        this->insert(this->end(), std::make_move_iterator(copy.begin()),
+          std::make_move_iterator(copy.end()));
         return;
       }
       this->insert(this->end(), x.begin(), x.end());
+    }
+
+    forceinline void
+    extend(NSBlocks&& x) {
+      if (this == &x) {
+        extend(static_cast<const NSBlocks&>(x));
+        return;
+      }
+      this->insert(this->end(),
+        std::make_move_iterator(x.begin()), std::make_move_iterator(x.end()));
     }
 
     forceinline void
@@ -1549,12 +1589,8 @@ namespace Gecode { namespace String {
     forceinline void
     reverse() {
       int n = size(), m = n / 2;
-      for (int i = 0; i < m; ++i) {
-        int j = n - i - 1;
-        NSBlock b = this->at(i);
-        this->at(i) = this->at(j);
-        this->at(j) = b;
-      }
+      for (int i = 0; i < m; ++i)
+        std::swap(this->at(i), this->at(n - i - 1));
     }
 
     forceinline double

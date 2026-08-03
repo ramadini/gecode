@@ -56,12 +56,8 @@ namespace Gecode { namespace String {
   forceinline Position
   stretch(const Blocks2& x, const Block1& b, Position& p, const Position& end) {
     // std::cerr << "stretch " <<b<< " in " <<x<< " from " <<p<< " to " <<end<< "\n";  
-    Position start(p);
     int k = upper(b);
     while (Succ::lt(p, end)) {
-      // End reached: we can stretch b until the end of x.
-      if (!Succ::lt(p, end))
-        return end;
       const Block2& x_i = x.at(p.idx);
       int lb;
       if (Succ::fwd())
@@ -291,7 +287,7 @@ namespace Gecode { namespace String {
       const Block& xi = x.at(p.idx);
       int u = xi.u - q.off - p.off;
       if (u > 0)
-        v.push_back(NSBlock(xi.S, 0, u));
+        v.emplace_back(xi.S, 0, u);
       return;
     }
     NSBlock b;
@@ -310,7 +306,7 @@ namespace Gecode { namespace String {
       u += b2.u - q.off;
     }
     b.u = u < DashedString::_MAX_STR_LENGTH ? u : DashedString::_MAX_STR_LENGTH;
-    v.push_back(b);
+    v.push_back(std::move(b));
   }
 
   // Extends v with the mandatory region of x between p and q.
@@ -329,23 +325,23 @@ namespace Gecode { namespace String {
       if (p.off >= xi.u - q.off)
         return l;
       l = max(0, xi.l - q.off - p.off);
-      v.push_back(NSBlock(xi.S, l, xi.u - p.off - q.off));
+      v.emplace_back(xi.S, l, xi.u - p.off - q.off);
       return l;
     }
     const Block& b1 = x.at(p.idx);
     if (p.off < b1.u) {
       l = max(0, b1.l - p.off);
-      v.push_back(NSBlock(b1.S, l, b1.u - p.off));
+      v.emplace_back(b1.S, l, b1.u - p.off);
     }
     for (int j = p.idx + 1; j < q.idx; ++j) {
       const Block& bj = x.at(j);
-      v.push_back(NSBlock(bj));
+      v.emplace_back(bj);
       l += bj.l;
     }
     const Block& b2 = x.at(q.idx);
     if (q.off < b2.u) {
       int ll = max(0, b2.l - q.off);
-      v.push_back(NSBlock(b2.S, ll, b2.u - q.off));
+      v.emplace_back(b2.S, ll, b2.u - q.off);
       l += ll;
     }
     return l;
@@ -497,13 +493,11 @@ namespace Gecode { namespace String {
       int k = xi.u - p_l;
       if (k < 0)
         return false;
-      long u = 0;  
-      for (int i = 0; i < p_reg.length(); ++i) {
-        if (xi.S.disjoint(p_set))
-          continue;
-        // p_reg[i].u - p.reg[i].l + p_l <= xi.u.
-        u += min(k + p_reg[i].l, p_reg[i].u);
-      }
+      long u = 0;
+      if (!xi.S.disjoint(p_set))
+        for (int i = 0; i < p_reg.length(); ++i)
+          // p_reg[i].u - p.reg[i].l + p_l <= xi.u.
+          u += min(k + p_reg[i].l, p_reg[i].u);
       // std::cerr << xi << ' ' << p_l << ' ' << u << '\n';
       assert (xi.l <= u);
       if (u == 0) {
@@ -538,7 +532,7 @@ namespace Gecode { namespace String {
             ll -= nn;
             uu -= nn;
           }
-          v.push_back(NSBlock(xi.S, ll, uu));
+          v.emplace_back(xi.S, ll, uu);
           nn = ksuff.size();
           if (nn > 0) {
             v.back().l -= nn;
@@ -558,7 +552,7 @@ namespace Gecode { namespace String {
         if (!s.empty()) {
           // p_reg[i].u - p.reg[i].l + p_l <= xi.u.
           int lb = p_reg[i].l, ub = min(k + lb, p_reg[i].u);
-          w.push_back(NSBlock(s, lb, ub));
+          w.emplace_back(s, lb, ub);
         }
         else
           assert (xi.l == 0 || p_reg[i].l == 0);

@@ -1325,6 +1325,24 @@ public:
     assert(variable->ub(*this, 2) == ME_STRING_NONE);
   }
 
+  void test47() {
+    std::cerr << "\n*** Test 47 ***" << std::endl;
+
+    NSBlocks incoming("ab");
+    NSRange* ranges = incoming.front().S.first();
+    uvec source;
+    source.push(std::make_pair(1, std::move(incoming)));
+    uvec destination;
+    destination.push(std::make_pair(2, NSBlocks("cd")));
+
+    destination = std::move(source);
+    assert(source.size() == 0);
+    assert(destination.size() == 1);
+    assert(destination[0].first == 1);
+    assert(destination[0].second.val() == "ab");
+    assert(destination[0].second.front().S.first() == ranges);
+  }
+
 };
 
 int main() {
@@ -1379,5 +1397,6 @@ int main() {
   run(&StrTest::test44);
   run(&StrTest::test45);
   run(&StrTest::test46);
+  run(&StrTest::test47);
   return 0;
 }
