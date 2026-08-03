@@ -1500,7 +1500,7 @@ namespace Gecode { namespace String {
     if (that.max_length() == 0)
       return false;
     _changed = that._changed = false;
-    std::vector<float> y_succ = min_succ(that);
+    std::vector<float> y_succ = max_succ(that);
     // std::cerr<<"y_succ = ["; for (auto& v:y_succ) std::cerr<<v<< ", "; std::cerr<<"]\n";
     NSBlocks y_max = that.lex_greatest(y_succ);
     if (known()) {
@@ -1542,8 +1542,6 @@ namespace Gecode { namespace String {
           xj.update(h, lex_min(xj, x_succ[j]));
         }
       }
-      if (lt && !sub && length() >= that.length())
-        return false;
       if (_changed)
         normalize(h);
       // std::cerr << "After lex: x = " << *this << " (" << sub << ")\n";
@@ -1590,65 +1588,28 @@ namespace Gecode { namespace String {
           that._changed = true;
         }
       }
-      if (lt && !sub && length() >= that.length())
-        return false;
       if (that._changed)
         that.normalize(h);
       // std::cerr << "After lex: y = " << that << '\n';
     }
-    return !h.failed();
+    if (h.failed())
+      return false;
+    y_succ = max_succ(that);
+    y_max = that.lex_greatest(y_succ);
+    const string sx = x_min.val();
+    const string sy = y_max.val();
+    return lt ? sx < sy : sx <= sy;
   }
 
   forceinline bool
   DashedString::check_lex(const DashedString& that, bool lt) const {
-    // std::cout << "check_lex " << *this << " " << that << "\n";
-    if (_min_length == 0)
-      return (!lt || that.max_length() > 0);
-    if (that.max_length() == 0)
-      return false;
-    std::vector<float> y_succ = min_succ(that);
-    NSBlocks y_max = that.lex_greatest(y_succ);
-    if (known()) {
-      string sx = val(), sy = y_max.val();
-      if ((lt && sx >= sy) || (!lt && sx > sy))
-        return false;
-    }
-    else {
-      // Checking this <= max(that).
-      Position pos{0, 0};
-      std::vector<float> x_succ = min_succ(*this);
-      bool sub = false;
-      for (int j = 0; j < length(); ++j) {
-        if (!lex_step_xy(at(j), x_succ[j], y_max, pos, sub))
-          return false;
-        if (sub)
-          break;
-      }
-      if (lt && !sub && length() >= that.length())
-        return false;
-    }
     std::vector<float> x_succ = min_succ(*this);
     NSBlocks x_min = lex_least(x_succ);
-    if (that.known()) {
-      string sx = x_min.val(), sy = that.val();
-      if ((lt && sx >= sy) || (!lt && sx > sy))
-        return false;
-    }
-    else {
-      // Checking that >= min(this).
-      Position pos{0, 0};
-      y_succ = max_succ(that);
-      bool sub = false;
-      for (int j = 0; j < that.length(); ++j) {
-        if (!lex_step_yx(that.at(j), y_succ[j], x_min, pos, sub))
-          return false;
-        if (sub)
-          break;
-      }
-      if (lt && !sub && length() >= that.length())
-        return false;
-    }
-    return true;
+    std::vector<float> y_succ = max_succ(that);
+    NSBlocks y_max = that.lex_greatest(y_succ);
+    const string sx = x_min.val();
+    const string sy = y_max.val();
+    return lt ? sx < sy : sx <= sy;
   }
 
   forceinline bool

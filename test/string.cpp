@@ -177,6 +177,20 @@ namespace Test { namespace String {
       }
   }
 
+  void
+  TestSpace::restrict_lengths(const Assignment& a) {
+    Gecode::String::NSIntSet chars = alphabet_set();
+    for (int i = a.size(); i--; ) {
+      const int length = static_cast<int>(a[i].size());
+      Gecode::String::NSBlocks domain(
+        std::vector<Gecode::String::NSBlock>(
+          1, Gecode::String::NSBlock(chars, length, length)));
+      Gecode::rel(*this, x[i], Gecode::STRT_DOM, domain, length, length);
+      if (Base::fixpoint() && failed())
+        return;
+    }
+  }
+
   bool
   TestSpace::prune(const Assignment& a, bool test_fixpoint) {
     if (failed() || assigned())
@@ -336,6 +350,18 @@ namespace Test { namespace String {
         if (s->failed() == sol)
           return failure("Assignment before posting",
                          sol ? "Failed on solution" : "Accepted non-solution",
+                         assignment);
+      }
+
+      {
+        std::unique_ptr<TestSpace> s(
+          new TestSpace(arity, alphabet, max_length, this));
+        s->post();
+        s->restrict_lengths(assignment);
+        s->assign(assignment);
+        if (s->failed() == sol)
+          return failure("Length pruning",
+                         sol ? "Pruned solution" : "Accepted non-solution",
                          assignment);
       }
 

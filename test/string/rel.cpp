@@ -28,6 +28,50 @@
 
 namespace Test { namespace String { namespace Rel {
 
+  /// Space exposing a lexicographic upper-bound regression
+  class LexExtremaSpace : public Gecode::Space {
+  public:
+    Gecode::StringVar x;
+    Gecode::StringVar y;
+
+    LexExtremaSpace(void) : x(*this, "bd"), y(*this) {
+      Gecode::String::NSIntSet b('b');
+      Gecode::String::NSIntSet ac('a');
+      ac.add('c');
+      std::vector<Gecode::String::NSBlock> blocks;
+      blocks.push_back(Gecode::String::NSBlock(b, 0, 1));
+      blocks.push_back(Gecode::String::NSBlock(ac, 1, 1));
+      Gecode::String::NSBlocks domain(std::move(blocks));
+      Gecode::rel(*this, y, Gecode::STRT_DOM, domain, 1, 2);
+      Gecode::rel(*this, x, Gecode::STRT_LEXLT, y);
+    }
+
+    LexExtremaSpace(LexExtremaSpace& s) : Gecode::Space(s) {
+      x.update(*this, s.x);
+      y.update(*this, s.y);
+    }
+
+    virtual Gecode::Space* copy(void) {
+      return new LexExtremaSpace(*this);
+    }
+  };
+
+  /// Check lexicographic extrema across optional heterogeneous blocks
+  class LexExtrema : public Base {
+  public:
+    LexExtrema(void) : Base("String::Rel::LexExtrema") {}
+
+    virtual bool run(void) {
+      LexExtremaSpace s;
+      if (s.status() == Gecode::SS_FAILED)
+        return false;
+      Gecode::StringVar value(s, "c");
+      Gecode::rel(s, s.y, Gecode::STRT_EQ, value);
+      return (s.status() != Gecode::SS_FAILED) &&
+        s.y.assigned() && (s.y.val() == "c");
+    }
+  };
+
   /// Test a binary string relation, with optional aliasing
   class Binary : public Test {
   private:
@@ -69,6 +113,7 @@ namespace Test { namespace String { namespace Rel {
   Binary nq_xx(Gecode::STRT_NQ, true);
   Binary lt_xx(Gecode::STRT_LEXLT, true);
   Binary lq_xx(Gecode::STRT_LEXLQ, true);
+  LexExtrema lex_extrema;
 
 }}}
 

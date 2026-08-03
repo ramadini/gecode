@@ -105,6 +105,8 @@ namespace Test {
       void rel(bool value);
       /// Assign all variables, optionally skipping one
       void assign(const Assignment& a, bool skip=false);
+      /// Restrict every variable to the length of its assigned value
+      void restrict_lengths(const Assignment& a);
       /// Apply one random target-preserving domain refinement
       bool prune(const Assignment& a, bool test_fixpoint=true);
     };
