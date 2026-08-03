@@ -334,7 +334,7 @@ namespace Gecode { namespace String {
       for (int i = n - 1; i >= 0; --i)
         y[i] = Reg::reach_bwd(dfa.get(), F[i], E, x.at(i), changed);
       if (changed) {
-        GECODE_ME_CHECK(commit_refined_blocks(home, x0, y));
+        GECODE_ME_CHECK(commit_refined_blocks(home, x0, std::move(y)));
         assert (x0.domain().is_normalized());
         if (x0.assigned())
           return home.ES_SUBSUMED(*this);

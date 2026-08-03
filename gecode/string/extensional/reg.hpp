@@ -587,10 +587,10 @@ namespace Gecode { namespace String {
   }
 
   forceinline NSBlocks
-  merge_refined_blocks(const std::vector<NSBlocks>& refined) {
+  merge_refined_blocks(std::vector<NSBlocks>&& refined) {
     NSBlocks domain;
-    for (const auto& blocks : refined)
-      for (const auto& block : blocks) {
+    for (auto& blocks : refined)
+      for (auto& block : blocks) {
         if (block.null())
           continue;
         if (!domain.empty() && domain.back().S == block.S) {
@@ -598,16 +598,16 @@ namespace Gecode { namespace String {
           domain.back().u += block.u;
         }
         else
-          domain.push_back(block);
+          domain.push_back(std::move(block));
       }
     return domain;
   }
 
   forceinline ModEvent
   commit_refined_blocks(
-    Space& home, StringView x, const std::vector<NSBlocks>& refined
+    Space& home, StringView x, std::vector<NSBlocks>&& refined
   ) {
-    NSBlocks domain = merge_refined_blocks(refined);
+    NSBlocks domain = merge_refined_blocks(std::move(refined));
     return x.varimp()->refine(home, domain);
   }
 
@@ -639,7 +639,7 @@ namespace Gecode { namespace String {
           dfa, forward[i], endings, DSBlock(home, x[i]), changed);
       if (changed) {
         nofix = true;
-        x = merge_refined_blocks(refined);
+        x = merge_refined_blocks(std::move(refined));
         assert(x.is_normalized());
       }
     } while (changed);
@@ -675,7 +675,7 @@ namespace Gecode { namespace String {
       for (int i = n - 1; i >= 0; --i)
         y[i] = reach_bwd(dfa.get(), F[i], E, x.at(i), changed);
       if (changed) {
-        GECODE_ME_CHECK(commit_refined_blocks(home, x0, y));
+        GECODE_ME_CHECK(commit_refined_blocks(home, x0, std::move(y)));
         // std::cerr<<"ExtDFA<StringView>::propagated (changed) "<<x0<<"\n\n";
         assert (x0.domain().is_normalized());
         if (x0.assigned())
@@ -704,7 +704,7 @@ namespace Gecode { namespace String {
           std::reverse(y[i].begin(), y[i].end());
         }
         if (changed) {
-          GECODE_ME_CHECK(commit_refined_blocks(home, x0, y));
+          GECODE_ME_CHECK(commit_refined_blocks(home, x0, std::move(y)));
           // std::cerr<<"ExtDFA<StringView>::propagated (changed) "<<x0<<"\n\n";
           assert (x0.domain().is_normalized());
           if (x0.assigned())
