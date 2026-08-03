@@ -81,7 +81,7 @@ namespace Gecode { namespace String {
     }
     else
       if (x0.assigned() && x1.assigned()) {
-        if (rm != RM_PMI)
+        if (rm != RM_IMP)
           GECODE_ME_CHECK(b.one_none(home));
         return home.ES_SUBSUMED(*this);
       }

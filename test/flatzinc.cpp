@@ -33,6 +33,8 @@
 
 #include "test/flatzinc.hh"
 
+#include <memory>
+
 namespace Test { namespace FlatZinc {
 
   FlatZincTest::FlatZincTest(const std::string& name, const std::string& source,
@@ -48,10 +50,10 @@ namespace Test { namespace FlatZinc {
     Gecode::FlatZinc::FlatZincOptions fznopt("Gecode/FlatZinc");
     fznopt.allSolutions(_allSolutions);
     Gecode::FlatZinc::Printer p;
-    Gecode::FlatZinc::FlatZincSpace* fg = NULL;
+    std::unique_ptr<Gecode::FlatZinc::FlatZincSpace> fg;
     try {
       std::stringstream ss(_source);
-      fg = Gecode::FlatZinc::parse(ss, p, olog);
+      fg.reset(Gecode::FlatZinc::parse(ss, p, fznopt, olog));
 
       if (fg) {
         fg->createBranchers(p, fg->solveAnnotations(), fznopt,
@@ -72,7 +74,6 @@ namespace Test { namespace FlatZinc {
           olog << "Could not parse input\n";
         return false;
       }
-      delete fg;
     } catch (Gecode::FlatZinc::Error& e) {
       if (opt.log)
         olog << ind(2) << "FlatZinc error : " << e.toString() << std::endl;
