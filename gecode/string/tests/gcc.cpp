@@ -7,6 +7,13 @@
 
 using namespace Gecode;
 
+static String::NSIntSet
+unsorted_domain(void) {
+  String::NSIntSet domain(1, 3);
+  domain.remove(2);
+  return domain;
+}
+
 class CountCharacterCollisionModel : public Space {
 public:
   StringVar value;
@@ -31,6 +38,33 @@ public:
 
   virtual Space* copy(void) {
     return new CountCharacterCollisionModel(*this);
+  }
+};
+
+class UnsortedCharactersModel : public Space {
+public:
+  StringVar value;
+
+  UnsortedCharactersModel(void)
+    : value(*this, unsorted_domain(), 1, 1) {
+    IntArgs characters;
+    characters << 2 << 1;
+    IntVarArgs counts;
+    counts << IntVar(*this, 0, 0) << IntVar(*this, 1, 1);
+    gcc(*this, value, characters, counts);
+
+    StringVarArgs variables;
+    variables << value;
+    sizemin_llul(*this, variables);
+  }
+
+  UnsortedCharactersModel(UnsortedCharactersModel& other)
+    : Space(other) {
+    value.update(*this, other.value);
+  }
+
+  virtual Space* copy(void) {
+    return new UnsortedCharactersModel(*this);
   }
 };
 
@@ -61,5 +95,17 @@ main(void) {
     delete solution;
   }
   assert(actual == expected);
+
+  UnsortedCharactersModel* unsorted_model = new UnsortedCharactersModel;
+  DFS<UnsortedCharactersModel> unsorted_search(unsorted_model);
+  delete unsorted_model;
+
+  UnsortedCharactersModel* unsorted_solution = unsorted_search.next();
+  assert(unsorted_solution != NULL);
+  assert(unsorted_solution->value.assigned());
+  assert(unsorted_solution->value.val() ==
+    std::string(1, static_cast<char>(1)));
+  delete unsorted_solution;
+  assert(unsorted_search.next() == NULL);
   return 0;
 }

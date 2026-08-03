@@ -73,13 +73,14 @@ namespace Gecode { namespace String {
       y.begin_refinement();
     const NSIntSet& dom = y.may_chars();
     // Refining upper bounds of count variables.
-    for (int i = 0; i < x.size(); ++i) {
-      Gecode::Int::IntView& xi = x[i];
-      int mxi = x[i].min();
+    for (int i = 0; i < n; ++i) {
+      const int c = A[i].first;
+      Gecode::Int::IntView& xi = x[A[i].second];
+      int mxi = xi.min();
       GECODE_ME_CHECK(xi.lq(home, mal));
       sl += mxi;
       su += xi.max();
-      if (sl > mal || (mxi > 0 && !dom.contains(A[i].first)))
+      if (sl > mal || (mxi > 0 && !dom.contains(c)))
         return ES_FAILED;
       if (su > DashedString::_MAX_STR_LENGTH)
         su = DashedString::_MAX_STR_LENGTH;
