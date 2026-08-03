@@ -13,18 +13,46 @@ static_assert(
   >::value,
   "StringView domain access must remain read-only");
 
+static_assert(
+  !std::is_constructible<
+    String::StringVarImp::DomainState, String::StringVarImp&
+  >::value,
+  "Domain refinement transactions must only be created by StringVarImp");
+
+template<class T>
+class HasRawStringNotify {
+private:
+  template<class U>
+  static auto test(int) -> decltype(
+    std::declval<U&>().notify(std::declval<Space&>(), 0, 0),
+    std::true_type());
+
+  template<class>
+  static std::false_type test(...);
+
+public:
+  static const bool value = decltype(test<T>(0))::value;
+};
+
+static_assert(
+  !HasRawStringNotify<String::StringVarImp>::value,
+  "Raw string-domain notification must remain internal");
+
 class CountingDomain : public UnaryPropagator
   <String::StringView, String::PC_STRING_DOM> {
-public:
-  static int propagations;
+private:
+  int index;
 
-  CountingDomain(Home home, String::StringView string)
+public:
+  static int propagations[2];
+
+  CountingDomain(Home home, String::StringView string, int index0 = 0)
     : UnaryPropagator<String::StringView, String::PC_STRING_DOM>
-      (home, string) {}
+      (home, string), index(index0) {}
 
   CountingDomain(Space& home, CountingDomain& other)
     : UnaryPropagator<String::StringView, String::PC_STRING_DOM>
-      (home, other) {}
+      (home, other), index(other.index) {}
 
   virtual Actor* copy(Space& home) {
     return new (home) CountingDomain(home, *this);
@@ -32,12 +60,12 @@ public:
 
   virtual ExecStatus propagate(Space&, const ModEventDelta& med) {
     (void) med;
-    ++propagations;
+    ++propagations[index];
     return ES_FIX;
   }
 };
 
-int CountingDomain::propagations = 0;
+int CountingDomain::propagations[2] = {0, 0};
 
 static StringVar
 star_source(Space& home) {
@@ -116,18 +144,39 @@ check_mod_events(void) {
   }
 }
 
+static void
+check_combined_notifications(void) {
+  EventSpace home;
+  StringVar left(home, String::NSIntSet('a', 'b'), 1, 1);
+  StringVar right(home, String::NSIntSet('b', 'c'), 1, 1);
+  (void) new (home) CountingDomain(home, left, 0);
+  (void) new (home) CountingDomain(home, right, 1);
+
+  assert(home.status() != SS_FAILED);
+  int left_before = CountingDomain::propagations[0];
+  int right_before = CountingDomain::propagations[1];
+
+  String::StringView left_view(left);
+  String::StringView right_view(right);
+  assert(!me_failed(left_view.eq(home, right_view)));
+  assert(home.status() != SS_FAILED);
+  assert(CountingDomain::propagations[0] > left_before);
+  assert(CountingDomain::propagations[1] > right_before);
+}
+
 int
 main(void) {
   check_mod_events();
+  check_combined_notifications();
 
-  CountingDomain::propagations = 0;
+  CountingDomain::propagations[0] = 0;
   RegexPostingModel model;
   assert(model.status() != SS_FAILED);
-  int before = CountingDomain::propagations;
+  int before = CountingDomain::propagations[0];
 
   model.restrict_to_a_star();
   assert(model.status() != SS_FAILED);
-  assert(CountingDomain::propagations > before);
+  assert(CountingDomain::propagations[0] > before);
   assert(String::StringView(model.string).may_chars() == String::NSIntSet('a'));
   assert(model.string.min_length() == 0 && model.string.max_length() == 2);
   return 0;

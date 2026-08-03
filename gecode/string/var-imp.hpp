@@ -40,21 +40,27 @@ namespace Gecode { namespace String {
   public:
     /// Snapshot for an in-place domain refinement
     class DomainState {
+      friend class StringVarImp;
       friend class StringView;
     private:
       StringVarImp* x;
       int min_length;
       int max_length;
       bool unassigned;
-    public:
       DomainState(StringVarImp& x);
       bool modified(void) const;
-      ModEvent notify(Space& home) const;
     };
 
   private:
 
     ModEvent notify(Space& home, ModEvent me, const DomainState& state);
+
+    /// Notify after a mutation, classifying its aggregate length bounds
+    ModEvent notify(Space& home, int old_min_length, int old_max_length,
+                    Delta& d);
+
+    /// Notify after a mutation with changed delta information
+    ModEvent notify(Space& home, int old_min_length, int old_max_length);
 
   protected:
 
@@ -83,15 +89,6 @@ namespace Gecode { namespace String {
     int min_length(void) const;
 
     int max_length(void) const;
-
-    /**
-     * \brief Notify after a mutation, classifying its aggregate length bounds
-     */
-    ModEvent notify(Space& home, int old_min_length, int old_max_length,
-            Delta& d);
-
-    /// Notify after a mutation with changed delta information
-    ModEvent notify(Space& home, int old_min_length, int old_max_length);
 
     int must_chars(void) const;
 

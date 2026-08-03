@@ -38,17 +38,13 @@ namespace Gecode { namespace String {
   }
 
   forceinline ModEvent
-  StringVarImp::DomainState::notify(Space& home) const {
-    return x->notify(home, min_length, max_length);
-  }
-
-  forceinline ModEvent
   StringVarImp::notify(
     Space& home, ModEvent me, const DomainState& state
   ) {
     if (!state.modified())
       return me;
-    ModEvent next = state.notify(home);
+    ModEvent next = state.x->notify(
+      home, state.min_length, state.max_length);
     GECODE_ME_CHECK(next);
     return me_combine(me, next);
   }
@@ -189,7 +185,7 @@ namespace Gecode { namespace String {
     std::vector<DomainState> states;
     states.reserve(x.size());
     for (auto& i : x) {
-      states.emplace_back(*i);
+      states.push_back(DomainState(*i));
       xs.push(&i->ds);
     }
     Region region;
