@@ -20,6 +20,17 @@ namespace Gecode { namespace String {
           x[j] = z;
           rel(home, x[i], STRT_EQ, z);
         }
+    // Separate an operand aliased with the result. NaryOnePropagator
+    // requires distinct subscriptions between its array and extra view.
+    for (int i = 0; i < x.size(); ++i)
+      if (x[i].same(y)) {
+        StringVar z(
+          home, y.may_chars(), y.min_length(), y.max_length()
+        );
+        rel(home, y, STRT_EQ, z);
+        y = z;
+        break;
+      }
     (void) new (home) GConcat(home, x, y);
     return ES_OK;
   }
@@ -105,6 +116,8 @@ namespace Gecode { namespace String {
       return assigned(home);
     if (!refine_card(home))
       return ES_FAILED;
+    if (x.assigned())
+      return assigned(home);
     ModEvent me = y.gconcat(home, x);
     GECODE_ME_CHECK(me);
     if (!refine_card(home))

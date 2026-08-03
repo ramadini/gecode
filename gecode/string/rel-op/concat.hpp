@@ -6,6 +6,13 @@ namespace Gecode { namespace String {
       rel(home, x1, STRT_EQ, StringVar(home, ""));
     else if (x1.same(x2))
       rel(home, x0, STRT_EQ, StringVar(home, ""));
+    else if (x0.same(x1)) {
+      StringVar y(
+        home, x1.may_chars(), x1.min_length(), x1.max_length()
+      );
+      (void) new (home) Concat(home, x0, y, x2);
+      rel(home, x1, STRT_EQ, y);
+    }
     else
       (void) new (home) Concat(home, x0, x1, x2);
     return ES_OK;

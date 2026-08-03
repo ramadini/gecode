@@ -168,6 +168,8 @@ namespace Test { namespace String {
   TestSpace::assign(const Assignment& a, bool skip) {
     int skipped = skip ? static_cast<int>(Base::rand(
       static_cast<unsigned int>(a.size()))) : -1;
+    if (opt.log && (skipped >= 0))
+      olog << ind(4) << "skip x[" << skipped << "]" << std::endl;
     for (int i = a.size(); i--; )
       if (i != skipped) {
         Gecode::StringVar value(*this, a[i]);

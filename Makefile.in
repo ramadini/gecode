@@ -1182,7 +1182,7 @@ else
 FLOATTESTOBJ=
 endif
 
-STRINGTESTSRC00 = rel
+STRINGTESTSRC00 = rel rel-op
 STRINGTESTSRC0 = test/string.cpp $(STRINGTESTSRC00:%=test/string/%.cpp)
 
 ifeq "@enable_string_vars@" "yes"
