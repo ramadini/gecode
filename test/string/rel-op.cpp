@@ -98,6 +98,30 @@ namespace Test { namespace String { namespace RelOp {
     }
   };
 
+  /// Test string power with a fixed exponent, including aliases
+  class Power : public Test {
+  private:
+    int exponent;
+    bool shared;
+  public:
+    Power(int exponent0, bool shared0)
+      : Test("RelOp::Power::" + std::to_string(exponent0) +
+             (shared0 ? "::XX" : "::XY"), shared0 ? 1 : 2, "a", 2),
+        exponent(exponent0), shared(shared0) {}
+
+    virtual bool solution(const Assignment& a) const {
+      std::string value;
+      for (int i = 0; i < exponent; ++i)
+        value += a[0];
+      return value == a[shared ? 0 : 1];
+    }
+
+    virtual void post(Gecode::Space& home, Gecode::StringVarArray& x) {
+      Gecode::IntVar n(home, exponent, exponent);
+      Gecode::pow(home, x[0], n, x[shared ? 0 : 1]);
+    }
+  };
+
   Concat concat_xyz("XYZ", 3, 0, 1, 2);
   Concat concat_xxy("XXY", 2, 0, 0, 1);
   Concat concat_xyx("XYX", 2, 0, 1, 0);
@@ -111,6 +135,12 @@ namespace Test { namespace String { namespace RelOp {
 
   Reverse reverse_xy(false);
   Reverse reverse_xx(true);
+
+  Power power_zero_xy(0, false);
+  Power power_two_xy(2, false);
+  Power power_zero_xx(0, true);
+  Power power_one_xx(1, true);
+  Power power_two_xx(2, true);
 
 }}}
 
