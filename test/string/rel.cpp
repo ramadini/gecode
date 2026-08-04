@@ -28,6 +28,37 @@
 
 namespace Test { namespace String { namespace Rel {
 
+  /// Test an increasing or decreasing string relation
+  class Unary : public Test {
+  private:
+    Gecode::StringRelType relation;
+  public:
+    Unary(Gecode::StringRelType relation0)
+      : Test("Rel::" + str(relation0), 1, "ac", 3),
+        relation(relation0) {}
+
+    virtual bool solution(const Assignment& a) const {
+      const std::string& x = a[0];
+      const bool increasing =
+        (relation == Gecode::STRT_INCLT) ||
+        (relation == Gecode::STRT_INCLQ);
+      const bool strict =
+        (relation == Gecode::STRT_INCLT) ||
+        (relation == Gecode::STRT_DECLT);
+      for (std::string::size_type i = 1; i < x.size(); ++i) {
+        if (strict && (x[i - 1] == x[i]))
+          return false;
+        if (increasing ? (x[i - 1] > x[i]) : (x[i - 1] < x[i]))
+          return false;
+      }
+      return true;
+    }
+
+    virtual void post(Gecode::Space& home, Gecode::StringVarArray& x) {
+      Gecode::rel(home, x[0], relation);
+    }
+  };
+
   /// Space exposing a lexicographic upper-bound regression
   class LexExtremaSpace : public Gecode::Space {
   public:
@@ -113,6 +144,10 @@ namespace Test { namespace String { namespace Rel {
   Binary nq_xx(Gecode::STRT_NQ, true);
   Binary lt_xx(Gecode::STRT_LEXLT, true);
   Binary lq_xx(Gecode::STRT_LEXLQ, true);
+  Unary inc_lt(Gecode::STRT_INCLT);
+  Unary inc_lq(Gecode::STRT_INCLQ);
+  Unary dec_lt(Gecode::STRT_DECLT);
+  Unary dec_lq(Gecode::STRT_DECLQ);
   LexExtrema lex_extrema;
 
 }}}

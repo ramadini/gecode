@@ -1401,12 +1401,15 @@ namespace Gecode { namespace String {
       else {
         int m = b.S.min();
         if (m <= c) {
-          _changed = true;
           Gecode::Set::SetDelta d;
-          if (strict)
+          if (strict) {
+            _changed = true;
             b.S.exclude(h, m, c, d);
-          else if (m != c)
+          }
+          else if (m != c) {
+            _changed = true;
             b.S.exclude(h, m, c - 1, d);
+          }
         }
       }
       if (b.l > 0 && !b.null()) {
@@ -1443,19 +1446,24 @@ namespace Gecode { namespace String {
       else {
         int m = b.S.max();
         if (m >= c) {
-          changed = true;
           Gecode::Set::SetDelta d;
-          if (strict)
+          if (strict) {
+            changed = true;
             b.S.exclude(h, c, m, d);
-          else if (m != c)
+          }
+          else if (m != c) {
+            changed = true;
             b.S.exclude(h, c + 1, m, d);
+          }
         }
       }
       if (b.l > 0 && !b.null())
         c = b.S.max();
     }
-    if (changed)
+    if (changed) {
+      _changed = true;
       normalize(h);
+    }
     return true;
   }
 

@@ -286,6 +286,10 @@ namespace Test { namespace String {
     case Gecode::STRT_NQ:    return "Nq";
     case Gecode::STRT_LEXLT: return "LexLt";
     case Gecode::STRT_LEXLQ: return "LexLq";
+    case Gecode::STRT_INCLT: return "IncLt";
+    case Gecode::STRT_INCLQ: return "IncLq";
+    case Gecode::STRT_DECLT: return "DecLt";
+    case Gecode::STRT_DECLQ: return "DecLq";
     default:                 return "Unknown";
     }
   }
