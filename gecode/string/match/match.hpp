@@ -168,15 +168,21 @@ namespace Gecode { namespace String {
 //      std::cerr << "w: " << w << '\n';
       int z = w.size();
       if (z > 0) {
-        if (sRs->accepted(w)) {
-          for (int i = 0; i < z; ++i)
+        // A match starting at the first position is already final: extending
+        // the string cannot introduce an earlier match. Matches at later
+        // positions are final only when the complete string is known, since
+        // an extension can still complete an earlier match.
+        if (Rs->accepted(w, 0)) {
+          GECODE_ME_CHECK(x1.eq(home, 1));
+          return home.ES_SUBSUMED(*this);
+        }
+        if (px.known())  {
+          for (int i = 1; i < z; ++i)
             if (Rs->accepted(w, i)) {
 //              std::cerr << "\nMatch::propagated: i = " << i+1 << '\n';
               GECODE_ME_CHECK(x1.eq(home, i+1));
-              return home.ES_SUBSUMED(*this);            
+              return home.ES_SUBSUMED(*this);
             }
-        }
-        if (px.known())  {
           GECODE_ME_CHECK(x1.eq(home, 0));
           return home.ES_SUBSUMED(*this);            
         }  

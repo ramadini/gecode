@@ -125,7 +125,20 @@ then
   cat $Z
   exit 1
 fi &&
-cat $X && 
+cat $X &&
+echo "Solving match_known_prefix.mzn"
+run_mzn_with_timeout "$TEST_DIR/match_known_prefix.mzn" || exit 1
+if
+  grep -aq "m1 = 1;" "$X" &&
+  grep -aq "m2 = 1;" "$X" &&
+  grep -aq -- "----------" "$X"
+then
+  cat "$X"
+else
+  echo "Error! Match known-prefix output not expected!"
+  cat "$X"
+  exit 1
+fi &&
 echo "Solving ex_js.mzn"
 "$MZN_CMD" $TEST_DIR/ex_js.mzn > $X
 x=`grep -a SVAL_TMP3 "$X" | awk -F" = " '{print $2}'`
