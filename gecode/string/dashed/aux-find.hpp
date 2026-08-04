@@ -176,7 +176,7 @@ namespace Gecode { namespace String {
   
   // Possibly refines x and y for find propagator, knowing that x occurs in y.
   forceinline bool
-  refine_find(Space& h, DSBlocks& x, DSBlocks& y,
+  refine_find(DSBlocks& x, DSBlocks& y,
     matching& m, uvec& upx, uvec& upy, bool& modx, bool& mody
   ) {
     // std::cerr << "refine_find " << x << ' ' << y << '\n';
@@ -185,6 +185,7 @@ namespace Gecode { namespace String {
     Position p_es{-1, -1}, p_ls{-1, -1}, p_ee{-1, -1}, p_le{-1, -1};
     int p_l = 0;
     int xlen = x.length();
+    std::vector<int> xupdate(xlen, -1);
     // ymatch[i] = (j, k) if blocks x[j]x[j+1]...x[k] all fit in y[i].
     std::map<int, tpl2> ymatch;
     for (int i = 0; i < xlen; ++i) {
@@ -230,16 +231,24 @@ namespace Gecode { namespace String {
       // std::cerr << p_reg << ' ' << p_l << '\n';
       if (xi.l > u)
         return false;
-      modx = true;
       if (u == 0) {
+        xupdate[i] = upx.size();
         upx.push(std::make_pair(i, NSBlocks(1)));
         continue;
       }
-      if (xi.l == p_l && u <= xi.u)
-        upx.push(std::make_pair(i, p_reg));
+      if (xi.l == p_l && u <= xi.u) {
+        NSBlocks v(p_reg);
+        for (auto& b : v)
+          b.S.intersect(xi.S);
+        v.normalize();
+        xupdate[i] = upx.size();
+        upx.push(std::make_pair(i, std::move(v)));
+      }
       else {
-        p_set.intersect(xi.S);
-        NSBlocks v(1, NSBlock(p_set, xi.l, min(xi.u, u)));
+        NSIntSet chars(p_set);
+        chars.intersect(xi.S);
+        NSBlocks v(1, NSBlock(std::move(chars), xi.l, min(xi.u, u)));
+        xupdate[i] = upx.size();
         upx.push(std::make_pair(i, std::move(v)));
       }
     }
@@ -255,8 +264,7 @@ namespace Gecode { namespace String {
       if (sl == y_j.u) {
         NSBlocks v;
         for (int i = xreg.first; i <= xreg.second; ++i) {
-          DSBlock& x_i = x.at(i);
-          assert (x_i.known() || modx);
+          const DSBlock& x_i = x.at(i);
           if (x_i.l > 0) {
             NSBlock b = NSBlock(x_i);            
             b.u = b.l;
@@ -265,21 +273,29 @@ namespace Gecode { namespace String {
               b.S.intersect(y_j.S);
             }
             else {
-              x_i.u = b.l;
-              int n = b.S.size();
-              b.S.intersect(h, y_j.S);
-              if (n > b.S.size())
-                x_i.S.update(h, b.S);
+              b.S.intersect(y_j.S);
+              assert(xupdate[i] >= 0);
+              upx[xupdate[i]].second.assign(1, b);
             }
             v.push_back(std::move(b));
           }
-          else
-            x_i.set_null(h);
+          else if (!x_i.known()) {
+            assert(xupdate[i] >= 0);
+            upx[xupdate[i]].second.assign(1, NSBlock());
+          }
         }
         if (v.logdim() < y_j.logdim()) {
           mody = true;
           upy.push(std::make_pair(j, std::move(v)));
         }
+      }
+    }
+    modx = false;
+    for (const auto& update : upx) {
+      const NSBlocks& blocks = update.second;
+      if (blocks.size() != 1 || !(blocks[0] == x.at(update.first))) {
+        modx = true;
+        break;
       }
     }
     return true;
@@ -318,7 +334,7 @@ namespace Gecode { namespace String {
         return false;
       uvec upx, upy;
       bool modx = false, mody = false;
-      if (!refine_find(h, xblocks, yblocks, m, upx, upy, modx, mody))
+      if (!refine_find(xblocks, yblocks, m, upx, upy, modx, mody))
         return false;
       int k = 0;
       for (auto& u : upx) {
@@ -328,16 +344,22 @@ namespace Gecode { namespace String {
           ++k;
         }
       }
-      int n = m.esp[k].off + 1;
-      for (int i = 0; i < m.esp[k].idx; ++i)
-        n += y.at(i).l;
-      if (n > lb)
-        lb = n;
-      n = y.at(m.lep[k].idx).u - m.lep[k].off - x.at(k).l + 1;
-      for (int i = 0; i < m.lep[k].idx; ++i)
-        n += y.at(i).u;
-      if (n < ub)
-        ub = n;
+      if (k == x.length()) {
+        // All pattern blocks are forced to be empty.
+        lb = ub = 1;
+      }
+      else {
+        int n = m.esp[k].off + 1;
+        for (int i = 0; i < m.esp[k].idx; ++i)
+          n += y.at(i).l;
+        if (n > lb)
+          lb = n;
+        n = y.at(m.lep[k].idx).u - m.lep[k].off - x.at(k).l + 1;
+        for (int i = 0; i < m.lep[k].idx; ++i)
+          n += y.at(i).u;
+        if (n < ub)
+          ub = n;
+      }
       NSIntSet ychars = y.may_chars();
       // Nullify incompatible x-blocks.
       for (int i = 0; i < x.length(); ++i)

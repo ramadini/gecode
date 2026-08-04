@@ -81,7 +81,12 @@ namespace Gecode {
   void
   contains(Home home, StringVar x, StringVar y) {
     GECODE_POST;
-    IntVar n(home, 1, x.max_length() - y.min_length() + 1);
+    int max_index = x.max_length() - y.min_length() + 1;
+    if (max_index < 1) {
+      home.fail();
+      return;
+    }
+    IntVar n(home, 1, max_index);
     find(home, y, x, n);
   }
 
@@ -111,28 +116,18 @@ namespace Gecode {
   // b = (x startswith y) <==> b = [find(y, x) = 1].
   void
   startswith(Home home, StringVar x, StringVar y, BoolVar b) {
-    IntVar i(home, 0, x.max_length());
+    IntVar i(home, 0, std::max(1, x.max_length()));
     find(home, y, x, i);
-    IntVar lx(home, x.min_length(), x.max_length());
-    IntVar ly(home, y.min_length(), y.max_length());
-    length(home, x, lx);
-    length(home, y, ly);
-    rel(home, ly, IRT_LQ, lx);
     rel(home, i, IRT_EQ, 1, Reify(b));
   }
 
   // b = (x endswith y) <==> b = [find(rev(y), rev(x)) = 1].
   void
   endswith(Home home, StringVar x, StringVar y, BoolVar b) {
-    IntVar i(home, 0, x.max_length());
+    IntVar i(home, 0, std::max(1, x.max_length()));
     StringVar x1(home), y1(home);
     rel(home, x, STRT_REV, x1);
     rel(home, y, STRT_REV, y1);
-    IntVar lx(home, x.min_length(), x.max_length());
-    IntVar ly(home, y.min_length(), y.max_length());
-    length(home, x, lx);
-    length(home, y, ly);
-    rel(home, ly, IRT_LQ, lx);
     find(home, y1, x1, i);
     rel(home, i, IRT_EQ, 1, Reify(b));
   }

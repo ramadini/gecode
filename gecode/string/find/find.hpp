@@ -31,8 +31,9 @@ namespace Gecode { namespace String {
     // std::cerr << "\nFind::propagate: " << x2 << " = find " << x0 << " in " << x1 << "\n";
     int l = x2.min(), u = x2.max();
     // Adjusting x2 upper bound.
-    if (u > x1.max_length()) {
-      u = x1.max_length();
+    int max_index = std::max(1, x1.max_length());
+    if (u > max_index) {
+      u = max_index;
       GECODE_ME_CHECK(x2.lq(home, u));
     }
     if (x0.min_length() > x1.max_length()) {
