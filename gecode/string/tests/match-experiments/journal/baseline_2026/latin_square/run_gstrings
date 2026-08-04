@@ -1,0 +1,74 @@
+#! /bin/bash
+
+EXP_PATH=$HOME/G-Strings/gecode/gecode/string/tests/match-experiments/journal/latin_square
+
+# Time-out in seconds for constraint solving.
+TIMEOUT=300
+
+# Errors log file.
+ERRORS=$EXP_PATH'/errors_gstrings_ls.log'
+
+# Output log file.
+OUTPUT=$EXP_PATH'/output_gstrings_ls.log'
+
+# Output log file.
+RESULTS=$EXP_PATH'/results_gstrings_ls.log'
+
+# Auxiliary files
+ERR=$EXP_PATH'/tmp.err'
+OUT=$EXP_PATH'/tmp.out'
+TMP=$EXP_PATH'/tmp.tmp'
+FZN=$EXP_PATH'/tmp.fzn'
+echo '' > $ERR
+echo '' > $OUT
+echo '' > $TMP
+echo '' > $FZN
+echo '' > $RESULTS
+
+for solver in 'G-Strings_new' 'G-Strings_ori'
+do
+  for i in {2..40}
+  do
+    dzn="-D\"N=$i\""
+    header="$solver|$i"
+    echo $header >> $ERRORS
+    echo $header >> $OUTPUT
+    if
+      [[ "$solver" == 'G-Strings_dec' ]]
+    then
+      mzn=$EXP_PATH'/latin_square_dec.mzn'
+    elif
+      [[ "$solver" == 'G-Strings_new' ]]
+    then
+      mzn=$EXP_PATH'/latin_square_new.mzn'
+    else
+      mzn=$EXP_PATH'/latin_square.mzn'
+    fi
+    echo "Converting MiniZinc model to FlatZinc..."
+    echo "mzn2fzn-gstrings -D\"N=$i\" $mzn -o $FZN"
+    mzn2fzn-gstrings -D"N=$i" $mzn -o $FZN
+    echo "Solving FlatZinc instance..."
+    
+    start=`awk 'BEGIN {print systime()}'`
+    time -p (timeout $TIMEOUT fzn-gstrings -s $FZN 2>$ERR | gawk -v s=$start \
+    '{print $0, (systime() - s)}') 1>$OUT 2>$TMP
+    ret=$?
+    ini_time=0 # Here one can put fzn time...
+    tot_time=`cat $TMP | awk -v it=$ini_time 'NR == 1 {print $2 - it}'`
+    
+    if
+      [[ -n "`grep "\----------" $OUT`" ]]
+    then
+      s='sat'
+    else
+      s='unk'
+    fi
+    
+    cat $ERR >> $ERRORS
+    cat $OUT >> $OUTPUT
+    echo $header'|'$s'|'$tot_time >> $RESULTS
+    cp $RESULTS ~/Dropbox
+  done
+done
+
+rm $OUT $ERR $TMP $FZN

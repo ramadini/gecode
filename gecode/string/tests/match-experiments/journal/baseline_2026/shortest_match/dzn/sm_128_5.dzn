@@ -1,0 +1,9 @@
+L = 128;
+N = 5;
+PATTERNS = [
+	"(dd|bq)*Dd",
+	"(K6QLIrw|wPYNweQ|f6RuddG|bwHqZ2B|JE9bHSM|jzGAaYJ)H6Td19l2q(X|U|k|I)i(ba|If|9w|6o)5R(qlddD|F1Lce|0IWU2|CZFUf|pmJLc|XqY5N)d",
+	"B(zdD|Xop|cx8|eJm|cSC)*du6pI",
+	"1ncqdDGQ46muoWl5ec0AmHawDPVq9eCWPGK6QLIrwH6Td19l2q(Xiba5RqlddDd|EAqnHNGWafJZ)u6p",
+	"d(DdexBcZ|q5HsqMn|TIVVCPf|EFtqTyI)ro(W|7)zm(J9F|F98|myP|jev)*IPKlBz",
+]
