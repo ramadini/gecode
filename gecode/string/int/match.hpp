@@ -301,18 +301,22 @@ namespace Gecode { namespace String {
 //      std::cerr << "w: " << w << '\n';
       int z = w.size();
       if (z > 0) {
-        if (sRs->accepted(w)) {
-          for (int i = 0; i < z; ++i)
+        // A match at position 1 is preserved by every extension of w.
+        if (Rs->accepted(w)) {
+          GECODE_ME_CHECK(x1.eq(home, 1));
+          return home.ES_SUBSUMED(*this);
+        }
+        // A later position is exact only when w is the whole string.
+        if (px.known()) {
+          for (int i = 1; i < z; ++i)
             if (Rs->accepted(w.substr(i))) {
 //              std::cerr << "\nMatch::propagated: i = " << i+1 << '\n';
               GECODE_ME_CHECK(x1.eq(home, i+1));
-              return home.ES_SUBSUMED(*this);            
+              return home.ES_SUBSUMED(*this);
             }
-        }
-        if (px.known())  {
           GECODE_ME_CHECK(x1.eq(home, 0));
-          return home.ES_SUBSUMED(*this);            
-        }  
+          return home.ES_SUBSUMED(*this);
+        }
       }
       
       NSIntSet Q(0);

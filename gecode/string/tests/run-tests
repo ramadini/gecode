@@ -8,7 +8,7 @@ Z=$TEST_DIR/z
 if
   [[ $1 != "mzn" ]]
 then
-  make depend &&
+  #make depend &&
   make -j 4 &&
   sudo make install &&
   $TEST_CMD $TEST_DIR/anbn.cpp           10000 $1 &&
