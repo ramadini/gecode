@@ -481,19 +481,28 @@ namespace Gecode { namespace String {
 //      std::cerr << "w: " << w << '\n';
       int k = w.size();
       if (k > 0) {
-        // A match at position 1 is preserved by every extension of w.
         if (Rpref->accepted(w)) {
           GECODE_ME_CHECK(x1.eq(home, 1));
           return home.ES_SUBSUMED(*this);
         }
-        // A later position is exact only when w is the whole string.
-        if (X.known()) {
-          for (int i = 1; i < k; ++i)
+
+        if (Rfull->accepted(w)) {
+          for (int i = 1; i < k; ++i) {
             if (Rpref->accepted(w.substr(i))) {
-//              std::cerr << "\nMatch::propagated: i = " << i+1 << '\n';
-              GECODE_ME_CHECK(x1.eq(home, i+1));
-              return home.ES_SUBSUMED(*this);
+              if (X.known()) {
+                GECODE_ME_CHECK(x1.eq(home, i + 1));
+                return home.ES_SUBSUMED(*this);
+              }
+
+              // A complete match already exists in w, but an extension
+              // might create an earlier match crossing the boundary.
+              GECODE_ME_CHECK(x1.gq(home, 1));
+              GECODE_ME_CHECK(x1.lq(home, i + 1));
+              break;
             }
+          }
+        }
+        else if (X.known()) {
           GECODE_ME_CHECK(x1.eq(home, 0));
           return home.ES_SUBSUMED(*this);
         }
@@ -504,11 +513,13 @@ namespace Gecode { namespace String {
       int l = max(1, k);
       for (int i = 0; i < h; ++i)
         l += X.at(i).l;
+      bool updatedI = false;
       if (l > 1 && l > x1.min()) {
         IntSet s(1, l-1);
         IntSetRanges is(s);  
         GECODE_ME_CHECK(x1.minus_r(home, is));
 //        std::cerr << "Refined i = " << x1 << '\n';
+        updatedI = true;
       }
       if (x1.in(0)) {
 //        std::cerr << "0 in " << x1 << "\n";
@@ -535,9 +546,8 @@ namespace Gecode { namespace String {
         pref_lb += b.l;
         pref_ub += b.u;
       }
-      bool aligned = pref_lb == x1.min() - 1 &&
-                     pref_ub == x1.min() - 1;
-      if (l < x1.min()) {
+      bool aligned = pref_lb == x1.min() - 1 && pref_ub == x1.min() - 1;
+      if (updatedI || l < x1.min()) {
         if (Rcomp == nullptr)
           Rcomp = new compDFA(*Rfull, x0.may_chars());
         es_pref = propagateReg(home, pref, Rcomp);
@@ -548,8 +558,6 @@ namespace Gecode { namespace String {
         return ES_FIX;
       else if (x1.val() <= 1)
         continue;
-      else if (!aligned)
-        return ES_FIX;
       suff = suffix(h, k);
       int es_suff = x1.assigned() && aligned
                       ? propagateReg(home, suff, Rpref)
