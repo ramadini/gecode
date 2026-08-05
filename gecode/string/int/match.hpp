@@ -141,10 +141,12 @@ namespace Gecode { namespace String {
   Match::propagateReg(Space& home, NSBlocks& x, DFA_t* d) {
 //    std::cerr << "\npropagateReg: "<<x<<" in "<<*d<<std::endl;
     // Returns ES_FAILED, ES_FIX (no changes) or ES_NOFIX (x changed).
-    if (x.known())
-      return d->accepted(x.val()) ? ES_FIX : ES_FAILED;    
     bool changed, nofix = false;
     do {
+      if (x.empty())
+        return d->accepted("") ? (nofix ? ES_NOFIX : ES_FIX) : ES_FAILED;
+      if (x.known())
+        return d->accepted(x.val()) ? (nofix ? ES_NOFIX : ES_FIX) : ES_FAILED;
       int n = x.length();
       std::vector<std::vector<NSIntSet>> F(n);
       NSIntSet Fi(0);
@@ -366,13 +368,11 @@ namespace Gecode { namespace String {
       assert (h < n && k == 0);
       
 //      std::cerr << "l: " << l << ", h: " << h << "\n";
-      bool updatedI = false;
       if (l > 1 && l > x1.min()) {
         IntSet s(1, l-1);
         IntSetRanges is(s);  
         GECODE_ME_CHECK(x1.minus_r(home, is));
 //        std::cerr << "Refined i = " << x1 << '\n';
-        updatedI = true;
       }
 //      std::cerr << "i: " << x1 << "\n";
       // Can't refine x1.
@@ -383,51 +383,44 @@ namespace Gecode { namespace String {
       // General case.
       NSBlocks pref, suff;
       int es_pref = ES_FIX;
-      if (updatedI || l < x1.min()) {
-        // Updating (h,k) from the lower bound of x1.
-        if (!updatedI) {
-          h = 0, k = x1.min() - 1;
-          while (h < n && k >= px.at(h).u) {      
-            k -= px.at(h).u;
-            h++;
-          }
-        }
-//        std::cerr << "Updated (h,k) = ("<<h<<", "<<k<<") from position " << x1.min() << "\n";
-        pref = prefix(h, k);
-//        std::cerr << "Pref: " << pref << "\n"; 
+      h = 0, k = x1.min() - 1;
+      while (h < n && k >= px.at(h).u) {
+        k -= px.at(h).u;
+        h++;
+      }
+      pref = prefix(h, k);
+      int pref_lb = 0, pref_ub = 0;
+      for (const auto& b : pref) {
+        pref_lb += b.l;
+        pref_ub += b.u;
+      }
+      bool aligned = pref_lb == x1.min() - 1 &&
+                     pref_ub == x1.min() - 1;
+      if (l < x1.min()) {
         if (sRsC == nullptr) {
           sRsC = new compDFA(*sRs, x0.may_chars());
           sRsC->negate();
         }
         es_pref = propagateReg(home, pref, sRsC);
-//        std::cerr << "Rfull: " << *sRs << '\n';
-//        std::cerr << "Rcomp: " << *sRsC << '\n';
         if (es_pref == ES_FAILED)
-          return ES_FAILED; 
+          return ES_FAILED;
       }
-      // We don't propagate the suffix if l >= x1.min() and x1 is not fixed.
-      else if (!x1.assigned()) {
-//        std::cerr << "\nMatch::propagated: " << x1 << " = Match " << x0 << "\n";
+      else if (!x1.assigned())
         return ES_FIX;
-      }
       else if (x1.val() <= 1)
         continue;
-        
-      if (pref.size() == 0)
-        pref = prefix(h, k);
-//        std::cerr << "Pref: " << pref << "\n";
+      else if (!aligned)
+        return ES_FIX;
       suff = suffix(h, k);
-//      std::cerr << "Suff: " << suff << "\n";
-      int es_suff = x1.assigned() ? propagateReg(home, suff, Rs) 
-                                  : propagateReg(home, suff, sRs);
+      int es_suff = x1.assigned() && aligned
+                      ? propagateReg(home, suff, Rs)
+                      : propagateReg(home, suff, sRs);
       if (es_suff == ES_FAILED)
         return ES_FAILED;
       if (es_pref == ES_NOFIX || es_suff == ES_NOFIX) {
-        // Udpating x0.
         NSBlocks x_new;
         pref.concat(suff, x_new);
         x_new.normalize();
-//        std::cerr << "x_new: " << x_new << "\n";
         StringDelta d(true);
         px.update(home, x_new);
         GECODE_ME_CHECK(x0.varimp()->notify(

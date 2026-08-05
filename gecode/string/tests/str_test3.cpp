@@ -349,6 +349,68 @@ public:
     assert (i.min() == 0 && i.max() == 22 && !i.in(1) && !i.in(2));
   }
 
+  void test11() {
+    std::cerr << "\n*** Test 11 ***" << std::endl;
+    NSIntSet ab('a');
+    ab.add('b');
+    NSBlocks v;
+    v.push_back(NSBlock(ab, 0, 1));
+    v.push_back(NSBlock(NSIntSet('c'), 1, 1));
+    v.push_back(NSBlock(NSIntSet('a'), 1, 1));
+    const string re = "a";
+    bool dfa_failed = false;
+    StringVar x(*this, v, 0, 100);
+    IntVar i(*this, 2, 2);
+    class match : public Match {
+    public:
+      match(Home h, StringView x, IntView i,
+            trimDFA* Rfull, trimDFA* Rpref, int r)
+        : Match(h, x, i, Rfull, Rpref, r) {}
+    };
+    auto full_regex = RegExParser(".*(" + re + ").*").parse();
+    auto pref_regex = RegExParser("(" + re + ").*").parse();
+    trimDFA* Rfull = new trimDFA(full_regex->dfa());
+    trimDFA* Rpref = new trimDFA(pref_regex->dfa());
+    std::cerr << "DFA before: x = " << x << ", i = " << i << std::endl;
+    ExecStatus es = match(*this, x, i, Rfull, Rpref, 1).propagate(*this, 0);
+    dfa_failed = (es == ES_FAILED);
+    std::cerr << "DFA after:  x = " << x << ", i = " << i << std::endl;
+    assert(!dfa_failed);
+  }
+
+  void test12() {
+    std::cerr << "\n*** Test 12 ***" << std::endl;
+    NSIntSet ab('a');
+    ab.add('b');
+    NSBlocks v;
+    v.push_back(NSBlock(ab, 0, 1));
+    v.push_back(NSBlock(NSIntSet('c'), 1, 1));
+    v.push_back(NSBlock(NSIntSet('a'), 1, 1));
+    const string re = "a";
+    bool nfa_failed = false;
+    StringVar x(*this, v, 0, 100);
+    IntVar i(*this, 2, 2);
+    class match_new : public MatchNew {
+    public:
+      match_new(Home h, StringView x, IntView i, int r,
+                trimDFA* Rpref, trimDFA* Rfull, matchNFA* Rnfa)
+        : MatchNew(h, x, i, r, Rpref, Rfull, Rnfa) {}
+    };
+    auto full_regex = RegExParser(".*(" + re + ").*").parse();
+    auto pref_regex = RegExParser("(" + re + ").*").parse();
+    trimDFA* Rfull = new trimDFA(full_regex->dfa());
+    trimDFA* Rpref = new trimDFA(pref_regex->dfa());
+    matchNFA* Rnfa = new matchNFA(*Rpref, x.may_chars());
+    std::cerr << "NFA before: x = " << x << ", i = " << i << std::endl;
+    ExecStatus es = match_new(*this, x, i, 1, Rpref, Rfull, Rnfa)
+        .propagate(*this, 0);
+    nfa_failed = (es == ES_FAILED);
+    std::cerr << "NFA status: " << es << std::endl;
+    std::cerr << "NFA after:  x = " << x
+              << ", i = " << i << std::endl;
+    assert(!nfa_failed);
+  }
+
 };
 
 int main() {
@@ -362,5 +424,7 @@ int main() {
   (new StrTest())->test08();
   (new StrTest())->test09();
   (new StrTest())->test10();
+  (new StrTest())->test11();
+  (new StrTest())->test12();
   return 0;
 }
