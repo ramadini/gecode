@@ -64,10 +64,7 @@ namespace Gecode { namespace String {
              trimDFA* Rp, trimDFA* Rf, matchNFA* Rn)
   : MixBinaryPropagator
   <StringView, PC_STRING_DOM, Gecode::Int::IntView, Gecode::Int::PC_INT_DOM>
-    (home, x, i), minR(r), Rpref(Rp), Rfull(Rf), Rcomp(nullptr), Rnfa(Rn) {
-    Rcomp = new compDFA(*Rfull,  x.may_chars());
-    Rcomp->negate();         
-  }
+    (home, x, i), minR(r), Rpref(Rp), Rfull(Rf), Rcomp(nullptr), Rnfa(Rn) {}
 
   forceinline ExecStatus
   MatchNew::post(Home home, StringView x, string re, Gecode::Int::IntView i) {  
@@ -106,7 +103,7 @@ namespace Gecode { namespace String {
       }
     }
     GECODE_ME_CHECK(i.gq(home, 0));
-    GECODE_ME_CHECK(i.lq(home, x.max_length() - r + 1));
+    GECODE_ME_CHECK(i.lq(home, std::max(0, x.max_length() - r + 1)));
     if (!i.in(0))
       GECODE_ME_CHECK(x.lb(home, r));
 //    std::cerr << "RE: " << re << ", minlen: " << r << ", i: " << i << '\n';
@@ -310,11 +307,8 @@ namespace Gecode { namespace String {
       if (E.empty())
         return ES_FAILED;
       changed = false;
-      int k = 0;
-      for (int i = n - 1; i >= 0; --i) {
+      for (int i = n - 1; i >= 0; --i)
         y[i] = Reg::reach_bwd(d, F[i], E, DSBlock(home,x[i]), changed);
-        k += y[i].size();
-      }
       if (changed) {
         nofix = true;
         NSBlocks z;
