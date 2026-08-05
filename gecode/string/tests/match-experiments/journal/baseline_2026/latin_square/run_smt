@@ -3,9 +3,10 @@
 set -o pipefail
 
 EXP_PATH=$(cd "$(dirname "$0")" && pwd)
-TIMEOUT=${TIMEOUT:-300}
-MAX_INSTANCES=${MAX_INSTANCES:-0}
-SOLVERS=${SOLVERS:-"cvc5 z3seq"}
+TIMEOUT=${TIMEOUT:-3}
+N_MIN=${N_MIN:-1}
+N_MAX=${N_MAX:-10}
+SOLVERS=${SOLVERS:-"cvc5 z3seq z3noodler z3noodler_mocha ostrich"}
 
 ERRORS="$EXP_PATH/errors_smt_ls.log"
 OUTPUT="$EXP_PATH/output_smt_ls.log"
@@ -21,9 +22,20 @@ TIMING="$WORK/tmp.time"
 : > "$OUTPUT"
 : > "$RESULTS"
 
-mapfile -t instances < <(find "$EXP_PATH/smt" -maxdepth 1 -type f -name 'ls_*.smt2' | sort -V)
-if [ "$MAX_INSTANCES" -gt 0 ]; then
-  instances=("${instances[@]:0:$MAX_INSTANCES}")
+instances=()
+for ((n=N_MIN; n<=N_MAX; n++))
+do
+  smt="$EXP_PATH/smt/ls_${n}.smt2"
+  if [ -f "$smt" ]; then
+    instances+=("$smt")
+  else
+    echo "Skipping missing instance: $smt" >&2
+  fi
+done
+
+if [ "${#instances[@]}" -eq 0 ]; then
+  echo "No Latin-square SMT instances found in range $N_MIN..$N_MAX" >&2
+  exit 1
 fi
 
 for solver in $SOLVERS
@@ -31,6 +43,9 @@ do
   case "$solver" in
     z3seq) cmd=(z3 -smt2 smt.string_solver=seq) ;;
     cvc5) cmd=(cvc5 --lang=smt2) ;;
+    z3noodler) cmd=(z3-noodler -smt2) ;;
+    z3noodler_mocha) cmd=(z3-noodler-mocha -smt2) ;;
+    ostrich) cmd=(ostrich +quiet -inputFormat=smtlib) ;;
     *) echo "Unknown SMT solver: $solver" >&2; exit 1 ;;
   esac
 

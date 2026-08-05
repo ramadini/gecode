@@ -3,9 +3,9 @@
 set -o pipefail
 
 EXP_PATH=$(cd "$(dirname "$0")" && pwd)
-TIMEOUT=${TIMEOUT:-300}
-N_MIN=${N_MIN:-2}
-N_MAX=${N_MAX:-26}
+TIMEOUT=${TIMEOUT:-3}
+N_MIN=${N_MIN:-1}
+N_MAX=${N_MAX:-10}
 SOLVERS=${SOLVERS:-"G-Strings_ori G-Strings_new G-Strings_dec"}
 
 ERRORS="$EXP_PATH/errors_gstrings_ls.log"
