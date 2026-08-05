@@ -1,79 +1,64 @@
-#! /bin/bash
+#!/usr/bin/env bash
 
-EXP_PATH=$HOME'/G-Strings/gecode/gecode/string/tests/match-experiments/journal/latin_square'
+set -o pipefail
 
-# Time-out in seconds for constraint solving.
-TIMEOUT=300
+EXP_PATH=$(cd "$(dirname "$0")" && pwd)
+TIMEOUT=${TIMEOUT:-300}
+MAX_INSTANCES=${MAX_INSTANCES:-0}
+SOLVERS=${SOLVERS:-"cvc5 z3seq"}
 
-# Errors log file.
-ERRORS=$EXP_PATH'/errors_smt_ls.log'
+ERRORS="$EXP_PATH/errors_smt_ls.log"
+OUTPUT="$EXP_PATH/output_smt_ls.log"
+RESULTS="$EXP_PATH/results_smt_ls.log"
 
-# Output log file.
-OUTPUT=$EXP_PATH'/output_smt_ls.log'
+WORK=$(mktemp -d)
+trap 'rm -rf "$WORK"' EXIT
+ERR="$WORK/tmp.err"
+OUT="$WORK/tmp.out"
+TIMING="$WORK/tmp.time"
 
-# Output log file.
-RESULTS=$EXP_PATH'/results_smt_ls.log'
+: > "$ERRORS"
+: > "$OUTPUT"
+: > "$RESULTS"
 
-# Auxiliary files
-ERR=$EXP_PATH'/tmp.err'
-OUT=$EXP_PATH'/tmp.out'
-TMP=$EXP_PATH'/tmp.tmp'
-SMT=$EXP_PATH'/tmp.smt2'
-echo '' > $ERR
-echo '' > $OUT
-echo '' > $TMP
-echo '' > $SMT
+mapfile -t instances < <(find "$EXP_PATH/smt" -maxdepth 1 -type f -name 'ls_*.smt2' | sort -V)
+if [ "$MAX_INSTANCES" -gt 0 ]; then
+  instances=("${instances[@]:0:$MAX_INSTANCES}")
+fi
 
-for solver in z3str #cvc5 #z3seq
+for solver in $SOLVERS
 do
-  for smt in `ls $EXP_PATH/smt/*.smt2 | sort -n | grep ls_[3-5].smt2` #FIXME
+  case "$solver" in
+    z3seq) cmd=(z3 -smt2 smt.string_solver=seq) ;;
+    cvc5) cmd=(cvc5 --lang=smt2) ;;
+    *) echo "Unknown SMT solver: $solver" >&2; exit 1 ;;
+  esac
+
+  for smt in "${instances[@]}"
   do
     header="$solver|$smt"
-    echo $header >> $ERRORS
-    echo $header >> $OUTPUT
-
-    if
-      [ "$solver" == "z3str" ]
-    then
-      CMD="z3 -smt2 smt.string_solver=z3str3 "
-    elif
-      [ "$solver" == "z3seq"  ]
-    then
-      CMD="z3 -smt2 smt.string_solver=seq"
-    elif 
-      [ "$solver" == "cvc5" ]
-    then
-      CMD="cvc5 --lang smt --strings-exp "
-    else
-      exit 1
-    fi
-    
+    echo "$header" | tee -a "$ERRORS" "$OUTPUT"
     echo "Solving $smt with $solver..."
-    start=`awk 'BEGIN {print systime()}'`
-    time -p (timeout $TIMEOUT $CMD $smt 2>$ERR | \
-      gawk -v s=$start '{print $0, (systime() - s)}' 1>$OUT) 2>$TMP
+
+    start=$(awk 'BEGIN {print systime()}')
+    { time -p timeout "$TIMEOUT" "${cmd[@]}" "$smt" 2>"$ERR" |
+        gawk -v s="$start" '{print $0, (systime() - s)}' >"$OUT"; } 2>"$TIMING"
     ret=$?
+    tot_time=$(awk '/^real / {print $2; exit}' "$TIMING")
+    tot_time=${tot_time:-0}
 
-    ini_time=0
-    tot_time=`cat $TMP | awk -v it=$ini_time 'NR == 1 {print $2 - it}'`
- 
-    if
-      [[ -n "`grep "sat" $OUT`" ]]
-    then
-      s='sat'
+    if grep -Eq '^sat([[:space:]]|$)' "$OUT"; then
+      status=sat
+    elif grep -Eq '^unsat([[:space:]]|$)' "$OUT"; then
+      status=uns
+    elif [ "$ret" -eq 124 ] || grep -Eq '^unknown([[:space:]]|$)' "$OUT"; then
+      status=unk
     else
-      s='unk'
+      status=err
     fi
-    
-    cat $ERR >> $ERRORS
-    cat $OUT >> $OUTPUT
-    echo $header'|'$s'|'$tot_time >> $RESULTS
-    cp $RESULTS ~/Dropbox
-    echo "Sleeping 3 seconds..."
-    sleep 3
-  done
-  echo "Sleeping 10 seconds..."
-  sleep 10
-done
 
-rm $OUT $ERR $TMP
+    cat "$ERR" >> "$ERRORS"
+    cat "$OUT" >> "$OUTPUT"
+    echo "$header|$status|$tot_time" | tee -a "$RESULTS"
+  done
+done

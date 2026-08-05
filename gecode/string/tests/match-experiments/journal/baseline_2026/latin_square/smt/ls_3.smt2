@@ -8,6 +8,20 @@
 (declare-fun col_1 () String)
 (declare-fun col_2 () String)
 
+(assert (str.in_re row_0 (re.* (re.range "A" "C"))))
+(assert (= (str.len row_0) 3))
+(assert (str.in_re col_0 (re.* (re.range "A" "C"))))
+(assert (= (str.len col_0) 3))
+(assert (str.in_re row_1 (re.* (re.range "A" "C"))))
+(assert (= (str.len row_1) 3))
+(assert (str.in_re col_1 (re.* (re.range "A" "C"))))
+(assert (= (str.len col_1) 3))
+(assert (str.in_re row_2 (re.* (re.range "A" "C"))))
+(assert (= (str.len row_2) 3))
+(assert (str.in_re col_2 (re.* (re.range "A" "C"))))
+(assert (= (str.len col_2) 3))
+
+
 (declare-fun r_0_0 () Int)
 (declare-fun c_0_0 () Int)
 (declare-fun r_0_1 () Int)
@@ -27,18 +41,7 @@
 (declare-fun r_2_2 () Int)
 (declare-fun c_2_2 () Int)
 
-(assert (str.in_re row_0 (re.* (re.range "A" "C"))))
-(assert (= (str.len row_0) 3))
-(assert (str.in_re col_0 (re.* (re.range "A" "C"))))
-(assert (= (str.len col_0) 3))
-(assert (str.in_re row_1 (re.* (re.range "A" "C"))))
-(assert (= (str.len row_1) 3))
-(assert (str.in_re col_1 (re.* (re.range "A" "C"))))
-(assert (= (str.len col_1) 3))
-(assert (str.in_re row_2 (re.* (re.range "A" "C"))))
-(assert (= (str.len row_2) 3))
-(assert (str.in_re col_2 (re.* (re.range "A" "C"))))
-(assert (= (str.len col_2) 3))
+
 
 (assert (>= r_0_0 0))
 (assert (>= r_0_1 0))

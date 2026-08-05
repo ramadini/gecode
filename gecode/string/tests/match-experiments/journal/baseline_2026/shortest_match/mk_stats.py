@@ -1,157 +1,247 @@
+#!/usr/bin/env python3
+
+import argparse
+import ast
 import csv
-'''
-import matplotlib
-matplotlib.rcParams['text.usetex'] = True
-matplotlib.rcParams['text.latex.unicode'] = True
-import matplotlib.pyplot as plt
-'''
-PATH = '/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match/results_tot.log'
-SOLVERS = ['cvc5', 'z3str', 'z3seq', 'G-Strings_ori', 'G-Strings_new', 'G-Strings_dec']
-MIN = True
+import math
+import os
+import re
+from pathlib import Path
 
-TIMEOUT = 300.0
-NUM_PROBLEMS = 25
+SOLVERS = [
+    "cvc5",
+    "z3seq",
+    "G-Strings_ori",
+    "G-Strings_new",
+    "G-Strings_dec",
+]
+LABELS = {
+    "cvc5": r"\textsc{CVC5}",
+    "z3seq": r"\textsc{Z3seq}",
+    "G-Strings_ori": r"\textsc{PropDFA}",
+    "G-Strings_new": r"\textsc{PropNFA}",
+    "G-Strings_dec": r"\textsc{Decomp}",
+}
 
-reader = csv.reader(open(PATH), delimiter = '|')
-results = dict((s, {'opt': 0.0, 'sat': 0.0, 'unk': 0.0, 'time': 0.0, 
-  'ttf': 0.0, 'mznc': 0.0, 'mznc-obj': 0.0, 'score': 0.0}) for s in SOLVERS)
-infos = {}
 
-for row in reader:
-  solv = row[0]
-  inst = row[1][row[1].rfind('/')+1:row[1].find('.')]
-  info = row[2] 
-  oval = float(row[3])
-  vals = eval(row[4])
-  if vals:
-    results[solv]['ttf'] += min(vals.values())
-  else:
-    results[solv]['ttf'] += TIMEOUT
-    time = TIMEOUT
-  if info == 'opt':
-    time = float(row[5])
-    results[solv]['sat'] += 1
-    results[solv]['opt'] += 1
-  elif info == 'sat':
-    time = TIMEOUT
-    results[solv]['sat'] += 1
-  else:
-    time = TIMEOUT
-    results[solv]['unk'] += 1
-  results[solv]['time'] += time
-  if inst not in infos.keys():
-    infos[inst] = {'min': 1000, 'max': 0}
-    for s in SOLVERS:
-      infos[inst][s] = None
-  infos[inst][solv] = (time, oval)  
-  if oval < infos[inst]['min']:
-    infos[inst]['min'] = oval
-  if oval > infos[inst]['max']:
-    infos[inst]['max'] = oval
-#  print(inst,solv,info,oval,vals,infos[inst])
+def parse_args():
+    here = Path(__file__).resolve().parent
+    parser = argparse.ArgumentParser(description="Summarise baseline_2026 shortest-match results.")
+    parser.add_argument("--timeout", type=float, default=float(os.environ.get("TIMEOUT", 300)))
+    parser.add_argument("--csv", type=Path, default=None, help="Write the summary as CSV.")
+    parser.add_argument(
+        "--gstrings-log", type=Path, default=here / "results_gstrings_sm.log"
+    )
+    parser.add_argument("--smt-log", type=Path, default=here / "results_smt_sm.log")
+    parser.add_argument("--instances", type=Path, default=here / "dzn")
+    return parser.parse_args()
 
-for val in results.values():
-  val['opt']  = val['opt'] * 100 / NUM_PROBLEMS
-  val['sat']  = val['sat'] * 100 / NUM_PROBLEMS
-  val['unk']  = val['unk'] * 100 / NUM_PROBLEMS
-  val['ttf']  /= NUM_PROBLEMS
-  val['time'] /= NUM_PROBLEMS
 
-def better(x, y):
-  return (x < y and MIN) or (x > y and not MIN)
+def instance_id(raw):
+    name = Path(raw.strip()).name
+    match = re.fullmatch(r"(sm_\d+_\d+)\.(?:dzn|smt2)", name)
+    if not match:
+        raise ValueError(f"cannot extract shortest-match instance from {raw!r}")
+    return match.group(1)
 
-def get_score(info, l, u):
-  if info[0] < TIMEOUT:
-    return 1
-  elif info[1] != info[1]: # isNaN
-    return 0
-  elif l == u:
-    return 0.75
-  x = (info[1] - l) / (2 * (u - l))
-  assert 0 <= x <= 0.5
-  if MIN:
-    return 0.75 - x
-  else:
-    return 0.25 + x
 
-n = len(SOLVERS)
-scores = {}
-for inst, info in infos.items():
-  for i in range(0, n - 1):
-    s_i = SOLVERS[i]
-#    print(inst,info)
-    sc =  get_score(info[s_i], info['min'], info['max'])
-    results[s_i]['score'] += sc
-    i1 = inst.find('_')
-    i2 = inst.rfind('_')
-    l = int(inst[i1 + 1 : i2])
-    m = int(inst[i2 + 1:])
-    if (l, m) not in scores.keys():
-      scores[(l, m)] = {}
-    scores[(l, m)][s_i] = sc
-    for j in range(i + 1, n):
-      s_j = SOLVERS[j]
-      time_i = info[s_i][0]
-      time_j = info[s_j][0]
-      oval_i = info[s_i][1]
-      oval_j = info[s_j][1]
-      if better(oval_i, oval_j):
-        results[s_i]['mznc'] += 1
-        results[s_i]['mznc-obj'] += 1
-      elif better(oval_j, oval_i):
-        results[s_j]['mznc'] += 1
-        results[s_j]['mznc-obj'] += 1
-      elif oval_i == oval_j: # For nan vs nan.
-        results[s_i]['mznc-obj'] += 0.5
-        results[s_j]['mznc-obj'] += 0.5
-        t = time_i + time_j
-        if t > 0:
-          results[s_i]['mznc'] += time_j / t
-          results[s_j]['mznc'] += time_i / t
-        else:
-          results[s_i]['mznc'] += 0.5
-          results[s_j]['mznc'] += 0.5
-  s_i = SOLVERS[n - 1]
-  sc = get_score(info[s_i], info['min'], info['max'])
-  results[s_i]['score'] += sc
-  scores[(l, m)][s_i] = sc
+def number(raw):
+    try:
+        return float(raw)
+    except ValueError:
+        return math.nan
 
-for val in results.values():
-  assert 0 <= val['ttf'] <= TIMEOUT
-  assert 0 <= val['time'] <= TIMEOUT
-  assert 0 <= val['score'] <= NUM_PROBLEMS
-  assert 0 <= val['mznc'] <= (n - 1) * NUM_PROBLEMS
-  assert 0 <= val['mznc-obj'] <= (n - 1) * NUM_PROBLEMS
-  assert val['sat'] >= val['opt']
 
-print ('solver & opt & sat & unk & ttf & time & score & borda & iborda \\\\')
-for s, it in results.items():
-  for key, val in it.items():
-    it[key] = round(val, 2)
-  print(s,'&',it['opt'],'&',it['sat'],'&',it['unk'],'&',it['ttf'],'&',
-        it['time'],'&',it['score'],'&',it['mznc'],'&',it['mznc-obj'],'\\\\')
+def values_dict(raw):
+    try:
+        value = ast.literal_eval(raw)
+    except (SyntaxError, ValueError):
+        return {}
+    if not isinstance(value, dict):
+        return {}
+    result = {}
+    for key, val in value.items():
+        try:
+            result[float(key)] = float(val)
+        except (TypeError, ValueError):
+            continue
+    return result
 
-#cumsums = dict((s, [0]) for s in SOLVERS)
-#for key, val in sorted(scores.items()):
-#  for solver, score in val.items():
-#    cumsums[solver] += [cumsums[solver][-1] + score]
-#    
 
-#labels = plt.plot(range(0, NUM_PROBLEMS + 1), '--', color='gray', label='Max. Score')
-#solv2lab = {
-#  'cvc5': (r'\textsc{CVC5}', '-^'), 
-#  'z3': (r'\textsc{Z3str3}', '-s'),
-#  'G-Strings': (r'\textsc{G-Strings}', '-o'),
-#}
-#for solver, cumsum in sorted(cumsums.items()):
-#  lab = solv2lab[solver]
-#  labels += plt.plot(cumsum, lab[1], label = lab[0])
-#print(sorted(scores.keys()))
-#plt.xticks(
-#  range(NUM_PROBLEMS + 1), sorted(scores.keys()), rotation=45, fontsize=8
-#)
-#plt.legend(numpoints=1, handles=labels, loc='upper left')
-#plt.xlabel('Instances')
-#plt.ylabel('Cumulative scores')
-#plt.subplots_adjust(left=0.10, bottom=0.14, right=0.95, top=0.95)
-#plt.show()
+def read_log(path, data):
+    if not path.exists():
+        return
+    with path.open(newline="") as handle:
+        for line_no, row in enumerate(csv.reader(handle, delimiter="|"), 1):
+            if not row:
+                continue
+            if len(row) != 6:
+                raise ValueError(f"{path}:{line_no}: expected 6 fields, found {len(row)}")
+            solver, raw_instance, status, raw_obj, raw_values, raw_time = row
+            if solver not in SOLVERS:
+                continue
+            try:
+                inst = instance_id(raw_instance)
+                wall = float(raw_time)
+            except ValueError as exc:
+                raise ValueError(f"{path}:{line_no}: {exc}") from exc
+            data[(solver, inst)] = {
+                "status": status,
+                "objective": number(raw_obj),
+                "values": values_dict(raw_values),
+                "wall": wall,
+            }
+
+
+def expected_instances(directory, data):
+    files = sorted(directory.glob("sm_*.dzn"), key=lambda p: tuple(map(int, re.findall(r"\d+", p.stem))))
+    if files:
+        return [p.stem for p in files]
+    return sorted({inst for _, inst in data}, key=lambda s: tuple(map(int, re.findall(r"\d+", s))))
+
+
+def better(left, right):
+    return left < right
+
+
+def score(record, lower, upper, timeout):
+    if record["status"] == "opt":
+        return 1.0
+    objective = record["objective"]
+    if math.isnan(objective):
+        return 0.0
+    if lower == upper:
+        return 0.75
+    value = (objective - lower) / (2.0 * (upper - lower))
+    value = min(0.5, max(0.0, value))
+    return 0.75 - value
+
+
+def main():
+    args = parse_args()
+    raw = {}
+    read_log(args.gstrings_log, raw)
+    read_log(args.smt_log, raw)
+    instances = expected_instances(args.instances, raw)
+    if not instances:
+        raise SystemExit("no shortest-match instances found")
+
+    default = {
+        "status": "missing",
+        "objective": math.nan,
+        "values": {},
+        "wall": args.timeout,
+    }
+    records = {
+        solver: {inst: raw.get((solver, inst), default.copy()) for inst in instances}
+        for solver in SOLVERS
+    }
+
+    results = {
+        solver: {
+            "opt": 0.0,
+            "sat": 0.0,
+            "unk": 0.0,
+            "ttf": 0.0,
+            "time": 0.0,
+            "score": 0.0,
+            "borda": 0.0,
+            "iborda": 0.0,
+        }
+        for solver in SOLVERS
+    }
+
+    bounds = {}
+    for inst in instances:
+        objectives = [
+            records[solver][inst]["objective"]
+            for solver in SOLVERS
+            if not math.isnan(records[solver][inst]["objective"])
+        ]
+        bounds[inst] = (min(objectives), max(objectives)) if objectives else (math.nan, math.nan)
+
+    for solver in SOLVERS:
+        for inst in instances:
+            rec = records[solver][inst]
+            status = rec["status"]
+            if status == "opt":
+                results[solver]["opt"] += 1
+                results[solver]["sat"] += 1
+                proof_time = min(rec["wall"], args.timeout)
+            elif status == "sat":
+                results[solver]["sat"] += 1
+                proof_time = args.timeout
+            else:
+                results[solver]["unk"] += 1
+                proof_time = args.timeout
+            results[solver]["time"] += proof_time
+            results[solver]["ttf"] += (
+                min(rec["values"].values()) if rec["values"] else args.timeout
+            )
+            lower, upper = bounds[inst]
+            if not math.isnan(lower):
+                results[solver]["score"] += score(rec, lower, upper, args.timeout)
+
+    for inst in instances:
+        for i, left in enumerate(SOLVERS[:-1]):
+            for right in SOLVERS[i + 1 :]:
+                a = records[left][inst]
+                b = records[right][inst]
+                ao = a["objective"]
+                bo = b["objective"]
+                if not math.isnan(ao) and not math.isnan(bo) and better(ao, bo):
+                    results[left]["borda"] += 1.0
+                    results[left]["iborda"] += 1.0
+                elif not math.isnan(ao) and not math.isnan(bo) and better(bo, ao):
+                    results[right]["borda"] += 1.0
+                    results[right]["iborda"] += 1.0
+                elif not math.isnan(ao) and not math.isnan(bo) and ao == bo:
+                    results[left]["iborda"] += 0.5
+                    results[right]["iborda"] += 0.5
+                    at = min(a["wall"], args.timeout) if a["status"] == "opt" else args.timeout
+                    bt = min(b["wall"], args.timeout) if b["status"] == "opt" else args.timeout
+                    total = at + bt
+                    if total > 0:
+                        results[left]["borda"] += bt / total
+                        results[right]["borda"] += at / total
+                    else:
+                        results[left]["borda"] += 0.5
+                        results[right]["borda"] += 0.5
+
+    count = len(instances)
+    rows = []
+    for solver in SOLVERS:
+        item = results[solver]
+        rows.append(
+            {
+                "solver": solver,
+                "opt_percent": round(100.0 * item["opt"] / count, 2),
+                "sat_percent": round(100.0 * item["sat"] / count, 2),
+                "unk_percent": round(100.0 * item["unk"] / count, 2),
+                "average_ttf": round(item["ttf"] / count, 2),
+                "average_time": round(item["time"] / count, 2),
+                "score": round(item["score"], 2),
+                "borda": round(item["borda"], 2),
+                "iborda": round(item["iborda"], 2),
+            }
+        )
+
+    print("solver & opt & sat & unk & ttf & time & score & borda & iborda \\\\")
+    for row in rows:
+        print(
+            f"{LABELS[row['solver']]} & {row['opt_percent']:.2f} & "
+            f"{row['sat_percent']:.2f} & {row['unk_percent']:.2f} & "
+            f"{row['average_ttf']:.2f} & {row['average_time']:.2f} & "
+            f"{row['score']:.2f} & {row['borda']:.2f} & {row['iborda']:.2f} \\\\"
+        )
+
+    if args.csv:
+        args.csv.parent.mkdir(parents=True, exist_ok=True)
+        with args.csv.open("w", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=list(rows[0].keys()))
+            writer.writeheader()
+            writer.writerows(rows)
+
+
+if __name__ == "__main__":
+    main()

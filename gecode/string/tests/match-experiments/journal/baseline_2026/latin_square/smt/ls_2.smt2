@@ -6,6 +6,16 @@
 (declare-fun col_0 () String)
 (declare-fun col_1 () String)
 
+(assert (str.in_re row_0 (re.* (re.range "A" "B"))))
+(assert (= (str.len row_0) 2))
+(assert (str.in_re col_0 (re.* (re.range "A" "B"))))
+(assert (= (str.len col_0) 2))
+(assert (str.in_re row_1 (re.* (re.range "A" "B"))))
+(assert (= (str.len row_1) 2))
+(assert (str.in_re col_1 (re.* (re.range "A" "B"))))
+(assert (= (str.len col_1) 2))
+
+
 (declare-fun r_0_0 () Int)
 (declare-fun c_0_0 () Int)
 (declare-fun r_0_1 () Int)
@@ -15,14 +25,7 @@
 (declare-fun r_1_1 () Int)
 (declare-fun c_1_1 () Int)
 
-(assert (str.in_re row_0 (re.* (re.range "A" "B"))))
-(assert (= (str.len row_0) 2))
-(assert (str.in_re col_0 (re.* (re.range "A" "B"))))
-(assert (= (str.len col_0) 2))
-(assert (str.in_re row_1 (re.* (re.range "A" "B"))))
-(assert (= (str.len row_1) 2))
-(assert (str.in_re col_1 (re.* (re.range "A" "B"))))
-(assert (= (str.len col_1) 2))
+
 
 (assert (>= r_0_0 0))
 (assert (>= r_0_1 0))

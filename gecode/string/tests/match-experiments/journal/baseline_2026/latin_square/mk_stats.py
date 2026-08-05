@@ -1,99 +1,173 @@
+#!/usr/bin/env python3
+
+import argparse
 import csv
+import math
+import os
+import re
+from pathlib import Path
 
-import matplotlib
-matplotlib.rcParams['text.usetex'] = True
-import matplotlib.pyplot as plt
-
-PATH = '/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/latin_square/results_tot.log'
-SOLVERS = ['cvc5', 'G-Strings_ori', 'G-Strings_dec', 'G-Strings_new', 'z3seq']
-MIN = False
-TIMEOUT = 300
-NUM_PROBLEMS = 40 - 2 + 1
-
-reader = csv.reader(open(PATH), delimiter = '|')
-results = dict((s, {'sat': 0.0, 'unk': 0.0, 'time': 0.0, 'mznc': 0.0}) for s in SOLVERS)
-infos = {}
-times = dict(
-  (s, dict((str(i), TIMEOUT) for i in range(2, NUM_PROBLEMS + 1))) for s in SOLVERS
-)
-
-for row in reader:
-#  print(row)
-  solv = row[0]
-  if solv == 'z3str':
-    continue
-  inst = row[1]
-  if inst not in infos.keys():
-    infos[inst] = {}
-    for s in SOLVERS:
-      infos[inst][s] = TIMEOUT
-  if row[2] == 'sat':
-    time = int(row[3])
-    results[solv]['sat'] += 1
-  else:
-    time = TIMEOUT
-    results[solv]['unk'] += 1
-  results[solv]['time'] += time
-  infos[inst][solv] = time
-#  print (solv, inst, time)
-  times[solv][inst] = time
-
-print (results)
-print (times)
-
-def better(x, y):
-  return (x < y and MIN) or (x > y and not MIN)
-
-
-n = len(SOLVERS)
-scores = {}
-for inst, info in infos.items():
-  for i in range(0, n - 1):
-    s_i = SOLVERS[i]
-#    print(inst,info)
-    for j in range(i + 1, n):
-      s_j = SOLVERS[j]
-      time_i = info[s_i]
-      time_j = info[s_j]
-      if time_i < time_j and time_j == TIMEOUT:
-        results[s_i]['mznc'] += 1
-        print(f'{s_i} better than {s_j} (inst {inst})')
-      elif time_j < time_i and time_i == TIMEOUT:
-        results[s_j]['mznc'] += 1
-        print(f'{s_j} better than {s_i} (inst {inst})')
-      else:
-        t = time_i + time_j
-        if t > 0:
-          results[s_i]['mznc'] += time_j / t
-          results[s_j]['mznc'] += time_i / t
-        else:
-          results[s_i]['mznc'] += 0.5
-          results[s_j]['mznc'] += 0.5
-  s_i = SOLVERS[n - 1]
-
-for solv,val in sorted(results.items(), key = lambda x : -x[1]['sat']):
-  print (solv,val)
-  assert 0 <= val['time'] <= TIMEOUT * NUM_PROBLEMS
-  assert 0 <= val['mznc'] <= (n - 1) * NUM_PROBLEMS
-
-labels = []
-solv2lab = {
-  'cvc5': (r'\textsc{CVC5}', '-^'), 
-  'G-Strings_dec': (r'\textsc{Decomp}', '-.'),
-  'G-Strings_ori': (r'\textsc{PropDFA}', '-s'),
-  'G-Strings_new': (r'\textsc{PropNFA}', '-*'),
-  'z3seq': (r'\textsc{Z3seq}', '-o'),
+SOLVERS = [
+    "cvc5",
+    "z3seq",
+    "G-Strings_ori",
+    "G-Strings_new",
+    "G-Strings_dec",
+]
+LABELS = {
+    "cvc5": r"\textsc{CVC5}",
+    "z3seq": r"\textsc{Z3seq}",
+    "G-Strings_ori": r"\textsc{PropDFA}",
+    "G-Strings_new": r"\textsc{PropNFA}",
+    "G-Strings_dec": r"\textsc{Decomp}",
 }
-for solver, vals in sorted(times.items()):
-  lab = solv2lab[solver]
-  labels += plt.plot(list(sorted(vals.values())), lab[1], label = lab[0], linewidth=3, markersize=10)
-plt.xticks(
-#  range(NUM_PROBLEMS-1), range(2,NUM_PROBLEMS+1), rotation=45, 
-  fontsize=25
-)
-plt.yticks(fontsize=25)
-plt.legend(numpoints=3, handles=labels, loc='best', fontsize=25)
-plt.xlabel('Sorted instances', fontsize=25)
-plt.ylabel('Runtime [s]', fontsize=25)
-plt.subplots_adjust(left=0.10, bottom=0.14, right=0.95, top=0.95)
-plt.show()
+
+
+def parse_args():
+    here = Path(__file__).resolve().parent
+    parser = argparse.ArgumentParser(description="Summarise baseline_2026 Latin-square results.")
+    parser.add_argument("--timeout", type=float, default=float(os.environ.get("TIMEOUT", 300)))
+    parser.add_argument("--n-min", type=int, default=2)
+    parser.add_argument("--n-max", type=int, default=26)
+    parser.add_argument("--csv", type=Path, default=None, help="Write the summary as CSV.")
+    parser.add_argument("--plot", type=Path, default=None, help="Write a cactus plot (PDF/PNG).")
+    parser.add_argument(
+        "--gstrings-log", type=Path, default=here / "results_gstrings_ls.log"
+    )
+    parser.add_argument("--smt-log", type=Path, default=here / "results_smt_ls.log")
+    return parser.parse_args()
+
+
+def instance_id(raw):
+    raw = raw.strip()
+    if raw.isdigit():
+        return int(raw)
+    match = re.search(r"ls_(\d+)\.smt2$", raw)
+    if not match:
+        raise ValueError(f"cannot extract Latin-square size from {raw!r}")
+    return int(match.group(1))
+
+
+def read_log(path, data):
+    if not path.exists():
+        return
+    with path.open(newline="") as handle:
+        for line_no, row in enumerate(csv.reader(handle, delimiter="|"), 1):
+            if not row:
+                continue
+            if len(row) != 4:
+                raise ValueError(f"{path}:{line_no}: expected 4 fields, found {len(row)}")
+            solver, raw_instance, status, raw_time = row
+            if solver not in SOLVERS:
+                continue
+            try:
+                n = instance_id(raw_instance)
+                wall = float(raw_time)
+            except ValueError as exc:
+                raise ValueError(f"{path}:{line_no}: {exc}") from exc
+            data[(solver, n)] = (status, wall)
+
+
+def pairwise_score(times, instances, timeout):
+    scores = {solver: 0.0 for solver in SOLVERS}
+    for n in instances:
+        for i, left in enumerate(SOLVERS[:-1]):
+            for right in SOLVERS[i + 1 :]:
+                left_time = times[left][n]
+                right_time = times[right][n]
+                if left_time < timeout and right_time >= timeout:
+                    scores[left] += 1.0
+                elif right_time < timeout and left_time >= timeout:
+                    scores[right] += 1.0
+                else:
+                    total = left_time + right_time
+                    if total > 0:
+                        scores[left] += right_time / total
+                        scores[right] += left_time / total
+                    else:
+                        scores[left] += 0.5
+                        scores[right] += 0.5
+    return scores
+
+
+def write_csv(path, rows):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0].keys()))
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def plot_cactus(path, times, instances, timeout):
+    import matplotlib.pyplot as plt
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    for solver in SOLVERS:
+        values = sorted(times[solver][n] for n in instances)
+        plt.plot(range(1, len(values) + 1), values, label=LABELS[solver])
+    plt.axhline(timeout, linestyle="--", linewidth=1)
+    plt.xlabel("Sorted instances")
+    plt.ylabel("Runtime [s]")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(path)
+    plt.close()
+
+
+def main():
+    args = parse_args()
+    if args.n_min > args.n_max:
+        raise SystemExit("--n-min must not exceed --n-max")
+
+    instances = list(range(args.n_min, args.n_max + 1))
+    raw = {}
+    read_log(args.gstrings_log, raw)
+    read_log(args.smt_log, raw)
+
+    times = {solver: {} for solver in SOLVERS}
+    rows = []
+    for solver in SOLVERS:
+        sat = 0
+        unknown = 0
+        total_time = 0.0
+        for n in instances:
+            status, wall = raw.get((solver, n), ("missing", args.timeout))
+            solved = status == "sat"
+            if solved:
+                sat += 1
+                effective = min(wall, args.timeout)
+            else:
+                unknown += 1
+                effective = args.timeout
+            times[solver][n] = effective
+            total_time += effective
+        rows.append(
+            {
+                "solver": solver,
+                "sat": sat,
+                "unknown": unknown,
+                "sat_percent": round(100.0 * sat / len(instances), 2),
+                "average_time": round(total_time / len(instances), 2),
+            }
+        )
+
+    scores = pairwise_score(times, instances, args.timeout)
+    for row in rows:
+        row["borda"] = round(scores[row["solver"]], 2)
+
+    print("solver & sat & unk & sat\\% & avg. time & borda \\\\")
+    for row in rows:
+        print(
+            f"{LABELS[row['solver']]} & {row['sat']} & {row['unknown']} & "
+            f"{row['sat_percent']:.2f} & {row['average_time']:.2f} & "
+            f"{row['borda']:.2f} \\\\" 
+        )
+
+    if args.csv:
+        write_csv(args.csv, rows)
+    if args.plot:
+        plot_cactus(args.plot, times, instances, args.timeout)
+
+
+if __name__ == "__main__":
+    main()

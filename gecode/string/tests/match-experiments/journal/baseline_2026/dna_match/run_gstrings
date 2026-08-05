@@ -1,103 +1,90 @@
-#! /bin/bash
+#!/usr/bin/env bash
 
-EXP_PATH=$HOME/G-Strings/gecode/gecode/string/tests/match-experiments/journal/dna_match
+set -o pipefail
 
-# Time-out in seconds for constraint solving.
-TIMEOUT=300
+EXP_PATH=$(cd "$(dirname "$0")" && pwd)
+TIMEOUT=${TIMEOUT:-300}
+MAX_INSTANCES=${MAX_INSTANCES:-0}
+SOLVERS=${SOLVERS:-"G-Strings_ori G-Strings_new G-Strings_dec"}
 
-# Errors log file.
-ERRORS=$EXP_PATH'/errors_gstrings_dna.log'
+ERRORS="$EXP_PATH/errors_gstrings_dna.log"
+OUTPUT="$EXP_PATH/output_gstrings_dna.log"
+RESULTS="$EXP_PATH/results_gstrings_dna.log"
 
-# Output log file.
-OUTPUT=$EXP_PATH'/output_gstrings_dna.log'
+WORK=$(mktemp -d)
+trap 'rm -rf "$WORK"' EXIT
+ERR="$WORK/tmp.err"
+OUT="$WORK/tmp.out"
+TIMING="$WORK/tmp.time"
+VALUES="$WORK/tmp.values"
+FZN="$WORK/tmp.fzn"
 
-# Output log file.
-RESULTS=$EXP_PATH'/results_gstrings_dna.log'
+: > "$ERRORS"
+: > "$OUTPUT"
+: > "$RESULTS"
 
-# Auxiliary files
-ERR=$EXP_PATH'/tmp.err'
-OUT=$EXP_PATH'/tmp.out'
-TMP=$EXP_PATH'/tmp.tmp'
-FZN=$EXP_PATH'/tmp.fzn'
-echo '' > $ERR
-echo '' > $OUT
-echo '' > $TMP
-echo '' > $FZN
+mapfile -t instances < <(find "$EXP_PATH/dzn" -maxdepth 1 -type f -name '*.dzn' | sort -V)
+if [ "$MAX_INSTANCES" -gt 0 ]; then
+  instances=("${instances[@]:0:$MAX_INSTANCES}")
+fi
 
-for solver in 'G-Strings_new' 'G-Strings_ori'
+for solver in $SOLVERS
 do
-  mzn=$EXP_PATH/dna.mzn
-  for dzn in `ls $EXP_PATH/dzn/*.dzn | sort -n`
+  case "$solver" in
+    G-Strings_ori) mzn="$EXP_PATH/dna.mzn"; define='newM=false' ;;
+    G-Strings_new) mzn="$EXP_PATH/dna.mzn"; define='newM=true' ;;
+    G-Strings_dec) mzn="$EXP_PATH/dna_dec.mzn"; define='newM=false' ;;
+    *) echo "Unknown solver variant: $solver" >&2; exit 1 ;;
+  esac
+
+  for dzn in "${instances[@]}"
   do
     header="$solver|$dzn"
-    echo $header >> $ERRORS
-    echo $header >> $OUTPUT
-#    if
-#      [[ "$solver" == 'G-Strings_dec' ]]
-#    then
-#      mzn=$EXP_PATH'/shortest_match_dec.mzn'
-    if
-      [[ "$solver" == 'G-Strings_new' ]]
-    then  
-      D=true
-    else
-      D=false
-    fi
+    echo "$header" | tee -a "$ERRORS" "$OUTPUT"
+
     echo "Converting MiniZinc model to FlatZinc..."
-    echo "mzn2fzn-gstrings -D"newM=$D" $mzn $dzn -o $FZN"
-    mzn2fzn-gstrings -D"newM=$D" $mzn $dzn -o $FZN
+    echo "mzn2fzn-gstrings -D\"$define\" $mzn $dzn -o $FZN"
+    if ! mzn2fzn-gstrings -D"$define" "$mzn" "$dzn" -o "$FZN" 2>"$ERR"; then
+      cat "$ERR" | tee -a "$ERRORS" >&2
+      echo "$header|err|nan|{}|0" >> "$RESULTS"
+      continue
+    fi
+
     echo "Solving FlatZinc instance..."
-    
-    start=`awk 'BEGIN {print systime()}'`
-    time -p (unbuffer timeout $TIMEOUT fzn-gstrings -decomp-regex 0 -a $FZN 2>$ERR | gawk -v s=$start \
-    '{print $0, (systime() - s)}' 1>$OUT) 2>$TMP
+    start=$(awk 'BEGIN {print systime()}')
+    { time -p unbuffer timeout "$TIMEOUT" fzn-gstrings -decomp-regex 0 -a "$FZN" 2>"$ERR" |
+        gawk -v s="$start" '{print $0, (systime() - s)}' >"$OUT"; } 2>"$TIMING"
     ret=$?
-    ini_time=0 # Here one can put fzn time...
-    tot_time=`cat $TMP | awk -v it=$ini_time 'NR == 1 {print $2 - it}'`
-    cat $OUT | grep 'obj = ' | awk '{print $3, $4}' | sed 's/;//g' | sed 's/ /_,_/g' > $TMP
+    tot_time=$(awk '/^real / {print $2; exit}' "$TIMING")
+    tot_time=${tot_time:-0}
+
+    grep 'obj = ' "$OUT" | awk '{print $3, $4}' | sed 's/;//g' | sed 's/ /_,_/g' > "$VALUES"
     vals='{'
-    for i in `cat $TMP`
+    key=''
+    while read -r item
     do
-      key=`echo $i | awk -F"_,_" '{print $1}'`
-      value=`echo $i | awk -v it=$ini_time -F"_,_" '{print $2 - it}'`
-      vals=$vals''$key': '$value', '
-    done
-    if 
-      [ "$vals" == '{' ]
-    then
-      val='nan'
+      [ -z "$item" ] && continue
+      key=$(echo "$item" | awk -F'_,_' '{print $1}')
+      value=$(echo "$item" | awk -F'_,_' '{print $2}')
+      vals="$vals$key: $value, "
+    done < "$VALUES"
+    if [ -z "$key" ]; then val=nan; else val=$key; fi
+    vals="$vals}"
+
+    if grep -q '=====UNKNOWN=====' "$OUT"; then
+      status=unk
+    elif grep -q -- '----------' "$OUT"; then
+      if grep -q '==========' "$OUT"; then status=opt; else status=sat; fi
+    elif grep -q '=====UNSATISFIABLE=====' "$OUT"; then
+      status=uns
+    elif [ "$ret" -eq 124 ]; then
+      status=unk
     else
-      val=$key
+      status=err
     fi
-    vals=$vals'}'
-    
-    if
-      [[ -n "`grep =====UNKNOWN===== $OUT`" ]]
-    then
-      s='unk'
-    elif
-      [[ -n "`grep "\----------" $OUT`" ]]
-    then
-      if
-        [[ -n "`grep ========== $OUT`"  ]]
-      then
-        s='opt'
-      else
-        s='sat'
-      fi
-    elif
-      [[ -n "`grep =====UNSATISFIABLE===== $OUT`" ]]
-    then
-      s='uns'
-    else
-      s='unk'
-    fi
-    
-    cat $ERR >> $ERRORS
-    cat $OUT >> $OUTPUT
-    echo $header'|'$s'|'$val'|'$vals'|'$tot_time >> $RESULTS
-    cp $RESULTS ~/Dropbox
+
+    cat "$ERR" >> "$ERRORS"
+    cat "$OUT" >> "$OUTPUT"
+    echo "$header|$status|$val|$vals|$tot_time" | tee -a "$RESULTS"
   done
 done
-
-rm $OUT $ERR $TMP $FZN

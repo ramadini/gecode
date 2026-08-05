@@ -1,107 +1,75 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-TIMEOUT=1000
+TIMEOUT=${SMT_MIN_TIMEOUT:-1000}
 infile=$1
 obj=$2
 init=$3
-solv=$4
+solver_name=$4
+direction=$5
 
-if
-  [ "$solv" = 'z3' ];
-then
-  solv="z3 -in -smt2 "
-elif
-  [ "$solv" = 'z3seq' ];
-then
-  solv="z3 -in -smt2 smt.string_solver=seq -in -smt2 "
-elif
-  [ "$solv" = 'z3str' ];
-then
-  solv="z3 -in smt.string_solver=z3str3 -smt2 "
-elif
-  [ "$solv" = 'cvc4' ];
-then
-  solv="cvc4 --strings-exp --incremental -"
-elif
-  [ "$solv" = 'cvc5' ];
-then
-  solv="cvc5 --strings-exp --incremental -"
-else
-  echo "No solver given!"
-  exit 1
-fi
+case "$solver_name" in
+  z3seq) solver=(z3 -in -smt2 smt.string_solver=seq) ;;
+  cvc5) solver=(cvc5 --lang=smt2 --strings-exp --incremental -) ;;
+  *) echo "No supported solver given: $solver_name" >&2; exit 1 ;;
+esac
 
-inpipe=$HOME'/papers/regular_match/experiments/shortest_match/pipe.in'
-outpipe=$HOME'/papers/regular_match/experiments/shortest_match/pipe.out'
-rm $inpipe $outpipe pkill sleep 2>/dev/null
-mkfifo $inpipe
-mkfifo $outpipe
+WORK=$(mktemp -d)
+inpipe="$WORK/pipe.in"
+outpipe="$WORK/pipe.out"
+mkfifo "$inpipe" "$outpipe"
+solver_pid=''
+watchdog_pid=''
+cleanup() {
+  [ -n "$solver_pid" ] && kill "$solver_pid" 2>/dev/null || true
+  [ -n "$watchdog_pid" ] && kill "$watchdog_pid" 2>/dev/null || true
+  rm -rf "$WORK"
+}
+trap cleanup EXIT
 
-sleep $TIMEOUT > $inpipe &
-$solv < $inpipe > ${outpipe} &
-cat ${infile} >${inpipe}
+sleep "$TIMEOUT" > "$inpipe" &
+watchdog_pid=$!
+"${solver[@]}" < "$inpipe" > "$outpipe" &
+solver_pid=$!
+cat "$infile" > "$inpipe"
 SOL=0
+line=''
 
-if read line <$outpipe; then
-  if [ "$line" = 'sat' ]; then
-    obj_val=${init}
-    if [ "$5" = 'max' ]; then
-      echo "(assert (>= ${obj} ${obj_val}))" >${inpipe}
-    else
-      echo "(assert (<= ${obj} ${obj_val}))" >${inpipe}
-    fi
-    echo "(check-sat)" >${inpipe}
-  if read line <$outpipe; then
-    if [ "$line" = 'sat' ]; then
-      obj_val=${init}
-      if [ "$5" = 'max' ]; then
-        echo "(assert (>= ${obj} ${obj_val}))" >${inpipe}
-      else
-        echo "(assert (<= ${obj} ${obj_val}))" >${inpipe}
-      fi
-      echo "(check-sat)" >${inpipe}
-      while read line <${outpipe}
-      do
-        if [ ! "$line" = 'sat' ]; then
-          break;
-        fi
-        SOL=1
-        echo -e "$obj = $obj_val\n----------"
-        if [ "$5" = 'max' ]; then
-          obj_val=`expr ${obj_val} "+" 1`
-          echo "(assert (>= ${obj} ${obj_val}))" >${inpipe}
-        else
-          obj_val=`expr ${obj_val} "-" 1`
-          echo "(assert (<= ${obj} ${obj_val}))" >${inpipe}
-        fi
-        echo "(check-sat)" >${inpipe}
-      done
-      if
-        [[ $SOL -eq 0 ]]
-      then
-        SOL=1
-        echo -e "$obj = $obj_val\n----------"
-      fi
-    fi
+if read -r line < "$outpipe" && [ "$line" = sat ]; then
+  obj_val=$init
+  if [ "$direction" = max ]; then
+    echo "(assert (>= $obj $obj_val))" > "$inpipe"
+  else
+    echo "(assert (<= $obj $obj_val))" > "$inpipe"
   fi
-    if
-      [[ $SOL -eq 0 ]]
-    then
-      SOL=1
-      echo -e "$obj = $obj_val\n----------"
+  echo '(check-sat)' > "$inpipe"
+
+  while read -r line < "$outpipe"
+  do
+    [ "$line" = sat ] || break
+    SOL=1
+    printf '%s = %s\n----------\n' "$obj" "$obj_val"
+    if [ "$direction" = max ]; then
+      obj_val=$((obj_val + 1))
+      echo "(assert (>= $obj $obj_val))" > "$inpipe"
+    else
+      obj_val=$((obj_val - 1))
+      echo "(assert (<= $obj $obj_val))" > "$inpipe"
     fi
+    echo '(check-sat)' > "$inpipe"
+  done
+
+  if [ "$SOL" -eq 0 ]; then
+    SOL=1
+    printf '%s = %s\n----------\n' "$obj" "$obj_val"
   fi
 fi
-if
-  [[ $SOL -eq 0 ]]
-then
-  if [ "$line" = 'unsat' ]; then
+
+if [ "$SOL" -eq 0 ]; then
+  if [ "$line" = unsat ]; then
     echo '=====UNSATISFIABLE====='
   else
     echo '=====UNKNOWN====='
   fi
-elif [ "$line" = 'unsat' ]; then
+elif [ "$line" = unsat ]; then
   echo '=========='
 fi
-
-rm ${inpipe} ${outpipe} pkill sleep 2>/dev/null

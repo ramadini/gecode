@@ -1,165 +1,308 @@
+#!/usr/bin/env python3
+
+import argparse
+import ast
 import csv
+import math
+import os
+import re
+from pathlib import Path
 
-import matplotlib
-matplotlib.rcParams['text.usetex'] = True
-import matplotlib.pyplot as plt
-
-PATH = '/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/dna_match/results_tot.log'
-SOLVERS = ['G-Strings_ori', 'G-Strings_new']
-MIN = True
-
-TIMEOUT = 300.0
-NUM_PROBLEMS = 30
-
-reader = csv.reader(open(PATH), delimiter = '|')
-results = dict((s, {'opt': 0.0, 'sat': 0.0, 'unk': 0.0, 'time': 0.0, 
-  'ttf': 0.0, 'mznc': 0.0, 'mznc-obj': 0.0, 'score': 0.0}) for s in SOLVERS)
-infos = {}
-times = dict(
-  (s, dict(((l,k), TIMEOUT)
-  for l in [128,256, 512, 1024, 2048, 4096] for k in [5, 10, 15, 20, 25]))
-  for s in SOLVERS
-)
-
-for row in reader:
-#  print(row)
-  solv = row[0]
-  inst = row[1][row[1].rfind('/')+1:row[1].find('.')]
-  info = row[2] 
-  oval = float(row[3])
-  vals = eval(row[4])
-  if vals:
-    ttf = min(vals.values())
-    results[solv]['ttf'] += ttf
-  else:
-    results[solv]['ttf'] += TIMEOUT
-    time = TIMEOUT
-  if info == 'opt':
-    time = float(row[5])
-    results[solv]['sat'] += 1
-    results[solv]['opt'] += 1
-  elif info == 'sat':
-    time = TIMEOUT
-    results[solv]['sat'] += 1
-  else:
-    time = TIMEOUT
-    results[solv]['unk'] += 1
-  results[solv]['time'] += time
-  if time < TIMEOUT and ttf > time:
-    assert (ttf == time + 1)
-    results[solv]['time'] += 1
-  if inst not in infos.keys():
-    infos[inst] = {'min': 1000, 'max': 0}
-    for s in SOLVERS:
-      infos[inst][s] = None
-  infos[inst][solv] = (time, oval)
-  i1 = inst.rfind('/L')
-  i2 = inst. find('_K')
-  lk = (int(inst[i1 + 2 : i2]), int(inst[i2 + 2:]))
-  times[solv][lk] = time
-  if oval < infos[inst]['min']:
-    infos[inst]['min'] = oval
-  if oval > infos[inst]['max']:
-    infos[inst]['max'] = oval
-#  print(inst,solv,info,oval,vals,infos[inst])
-
-for val in results.values():
-  val['opt']  = val['opt'] * 100 / NUM_PROBLEMS
-  val['sat']  = val['sat'] * 100 / NUM_PROBLEMS
-  val['unk']  = val['unk'] * 100 / NUM_PROBLEMS
-  val['ttf']  /= NUM_PROBLEMS
-  val['time'] /= NUM_PROBLEMS
-
-def better(x, y):
-  return (x < y and MIN) or (x > y and not MIN)
-
-def get_score(info, l, u):
-  if info[0] < TIMEOUT:
-    return 1
-  elif info[1] != info[1]: # isNaN
-    return 0
-  elif l == u:
-    return 0.75
-  x = (info[1] - l) / (2 * (u - l))
-  assert 0 <= x <= 0.5
-  if MIN:
-    return 0.75 - x
-  else:
-    return 0.25 + x
-
-n = len(SOLVERS)
-scores = {}
-for inst, info in infos.items():
-  for i in range(0, n - 1):
-    s_i = SOLVERS[i]
-#    print(inst,info)
-    sc =  get_score(info[s_i], info['min'], info['max'])
-    results[s_i]['score'] += sc
-    i1 = inst.rfind('/L')
-    i2 = inst. find('_K')
-    l = int(inst[i1 + 2 : i2])
-    m = int(inst[i2 + 2:])
-    if (l, m) not in scores.keys():
-      scores[(l, m)] = {}
-    scores[(l, m)][s_i] = sc
-    for j in range(i + 1, n):
-      s_j = SOLVERS[j]
-      time_i = info[s_i][0]
-      time_j = info[s_j][0]
-      oval_i = info[s_i][1]
-      oval_j = info[s_j][1]
-      if better(oval_i, oval_j):
-        results[s_i]['mznc'] += 1
-        results[s_i]['mznc-obj'] += 1
-      elif better(oval_j, oval_i):
-        results[s_j]['mznc'] += 1
-        results[s_j]['mznc-obj'] += 1
-      elif oval_i == oval_j: # For nan vs nan.
-        results[s_i]['mznc-obj'] += 0.5
-        results[s_j]['mznc-obj'] += 0.5
-        t = time_i + time_j
-        if t > 0:
-          results[s_i]['mznc'] += time_j / t
-          results[s_j]['mznc'] += time_i / t
-        else:
-          results[s_i]['mznc'] += 0.5
-          results[s_j]['mznc'] += 0.5
-  s_i = SOLVERS[n - 1]
-  sc = get_score(info[s_i], info['min'], info['max'])
-  results[s_i]['score'] += sc
-  scores[(l, m)][s_i] = sc
-
-for val in results.values():
-  assert 0 <= val['ttf'] <= TIMEOUT
-  assert 0 <= val['time'] <= TIMEOUT
-  assert val['ttf'] <= val['time']
-  assert 0 <= val['score'] <= NUM_PROBLEMS
-  assert 0 <= val['mznc'] <= (n - 1) * NUM_PROBLEMS
-  assert 0 <= val['mznc-obj'] <= (n - 1) * NUM_PROBLEMS
-  assert val['sat'] >= val['opt']
-
-print ('solver & opt & sat & unk & ttf & time & score & borda & iborda \\\\')
-for s, it in results.items():
-  for key, val in it.items():
-    it[key] = round(val, 2)
-  print(s,'&',it['opt'],'&',it['sat'],'&',it['unk'],'&',it['ttf'],'&',
-        it['time'],'&',it['score'],'&',it['mznc'],'&',it['mznc-obj'],'\\\\')
-
-labels = []
-solv2lab = {
-  'G-Strings_ori': (r'\textsc{PropDFA}', '-s'),
-  'G-Strings_new': (r'\textsc{PropNFA}', '-*')
+GSTRING_SOLVERS = ["G-Strings_ori", "G-Strings_new", "G-Strings_dec"]
+SMT_SOLVERS = ["cvc5", "z3seq"]
+LABELS = {
+    "cvc5": r"\textsc{CVC5}",
+    "z3seq": r"\textsc{Z3seq}",
+    "G-Strings_ori": r"\textsc{PropDFA}",
+    "G-Strings_new": r"\textsc{PropNFA}",
+    "G-Strings_dec": r"\textsc{Decomp}",
 }
-xvals = None
-for solver, vals in times.items():
-  lab = solv2lab[solver]
-  if not xvals:
-    xvals = list(vals.keys())
-  labels += plt.plot(list(vals.values()), lab[1], label = lab[0], linewidth=3, markersize=10)
-plt.xticks(range(NUM_PROBLEMS), xvals, rotation=45, fontsize=25)
-plt.yticks(fontsize=25)
-plt.legend(numpoints=3, handles=labels, loc='best', fontsize=25)
-plt.xlabel('(L,K)', fontsize=25)
-plt.ylabel('Runtime [s]', fontsize=25)
-plt.subplots_adjust(bottom=0.14, right=0.95, top=0.95)
-plt.show()
+
+
+def parse_args():
+    here = Path(__file__).resolve().parent
+    parser = argparse.ArgumentParser(description="Summarise baseline_2026 DNA results.")
+    parser.add_argument("--timeout", type=float, default=float(os.environ.get("TIMEOUT", 300)))
+    parser.add_argument("--csv", type=Path, default=None, help="Write G-Strings summary as CSV.")
+    parser.add_argument("--smt-csv", type=Path, default=None, help="Write aggregate SMT summary as CSV.")
+    parser.add_argument("--plot", type=Path, default=None, help="Write the G-Strings runtime plot.")
+    parser.add_argument(
+        "--gstrings-log", type=Path, default=here / "results_gstrings_dna.log"
+    )
+    parser.add_argument("--smt-log", type=Path, default=here / "results_smt_dna.log")
+    parser.add_argument("--instances", type=Path, default=here / "dzn")
+    return parser.parse_args()
+
+
+def instance_id(raw):
+    name = Path(raw.strip()).name
+    match = re.fullmatch(r"(L\d+_K\d+)\.dzn", name)
+    if not match:
+        raise ValueError(f"cannot extract DNA instance from {raw!r}")
+    return match.group(1)
+
+
+def instance_key(inst):
+    match = re.fullmatch(r"L(\d+)_K(\d+)", inst)
+    return tuple(map(int, match.groups()))
+
+
+def number(raw):
+    try:
+        return float(raw)
+    except ValueError:
+        return math.nan
+
+
+def values_dict(raw):
+    try:
+        value = ast.literal_eval(raw)
+    except (SyntaxError, ValueError):
+        return {}
+    if not isinstance(value, dict):
+        return {}
+    result = {}
+    for key, val in value.items():
+        try:
+            result[float(key)] = float(val)
+        except (TypeError, ValueError):
+            continue
+    return result
+
+
+def read_gstrings(path):
+    data = {}
+    if not path.exists():
+        return data
+    with path.open(newline="") as handle:
+        for line_no, row in enumerate(csv.reader(handle, delimiter="|"), 1):
+            if not row:
+                continue
+            if len(row) != 6:
+                raise ValueError(f"{path}:{line_no}: expected 6 fields, found {len(row)}")
+            solver, raw_instance, status, raw_obj, raw_values, raw_time = row
+            if solver not in GSTRING_SOLVERS:
+                continue
+            try:
+                inst = instance_id(raw_instance)
+                wall = float(raw_time)
+            except ValueError as exc:
+                raise ValueError(f"{path}:{line_no}: {exc}") from exc
+            data[(solver, inst)] = {
+                "status": status,
+                "objective": number(raw_obj),
+                "values": values_dict(raw_values),
+                "wall": wall,
+            }
+    return data
+
+
+def read_smt(path, timeout):
+    rows = []
+    if not path.exists():
+        return rows
+    with path.open(newline="") as handle:
+        for line_no, row in enumerate(csv.reader(handle, delimiter="|"), 1):
+            if not row:
+                continue
+            if len(row) != 6:
+                raise ValueError(f"{path}:{line_no}: expected 6 fields, found {len(row)}")
+            solver, instance, status, raw_obj, _values, raw_time = row
+            if solver not in SMT_SOLVERS:
+                continue
+            try:
+                wall = float(raw_time)
+            except ValueError as exc:
+                raise ValueError(f"{path}:{line_no}: invalid runtime {raw_time!r}") from exc
+            rows.append(
+                {
+                    "solver": solver,
+                    "instance": instance,
+                    "status": status,
+                    "objective": raw_obj,
+                    "time": round(min(wall, timeout), 2),
+                }
+            )
+    return rows
+
+
+def score(record, lower, upper):
+    if record["status"] == "opt":
+        return 1.0
+    objective = record["objective"]
+    if math.isnan(objective):
+        return 0.0
+    if lower == upper:
+        return 0.75
+    value = (objective - lower) / (2.0 * (upper - lower))
+    value = min(0.5, max(0.0, value))
+    return 0.75 - value
+
+
+def write_csv(path, rows):
+    if not rows:
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0].keys()))
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def plot_runtime(path, times, instances, timeout):
+    import matplotlib.pyplot as plt
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    x = range(len(instances))
+    for solver in GSTRING_SOLVERS:
+        plt.plot(x, [times[solver][inst] for inst in instances], marker="o", label=LABELS[solver])
+    plt.xticks(list(x), [inst.replace("L", "(").replace("_K", ",") + ")" for inst in instances], rotation=45)
+    plt.axhline(timeout, linestyle="--", linewidth=1)
+    plt.xlabel("(L,K)")
+    plt.ylabel("Runtime [s]")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(path)
+    plt.close()
+
+
+def main():
+    args = parse_args()
+    raw = read_gstrings(args.gstrings_log)
+    files = sorted(args.instances.glob("L*_K*.dzn"), key=lambda p: instance_key(p.stem))
+    instances = [p.stem for p in files]
+    if not instances:
+        instances = sorted({inst for _, inst in raw}, key=instance_key)
+    if not instances:
+        raise SystemExit("no DNA instances found")
+
+    default = {
+        "status": "missing",
+        "objective": math.nan,
+        "values": {},
+        "wall": args.timeout,
+    }
+    records = {
+        solver: {inst: raw.get((solver, inst), default.copy()) for inst in instances}
+        for solver in GSTRING_SOLVERS
+    }
+    results = {
+        solver: {
+            "opt": 0.0,
+            "sat": 0.0,
+            "unk": 0.0,
+            "ttf": 0.0,
+            "time": 0.0,
+            "score": 0.0,
+            "borda": 0.0,
+            "iborda": 0.0,
+        }
+        for solver in GSTRING_SOLVERS
+    }
+    times = {solver: {} for solver in GSTRING_SOLVERS}
+
+    bounds = {}
+    for inst in instances:
+        objectives = [
+            records[solver][inst]["objective"]
+            for solver in GSTRING_SOLVERS
+            if not math.isnan(records[solver][inst]["objective"])
+        ]
+        bounds[inst] = (min(objectives), max(objectives)) if objectives else (math.nan, math.nan)
+
+    for solver in GSTRING_SOLVERS:
+        for inst in instances:
+            rec = records[solver][inst]
+            if rec["status"] == "opt":
+                results[solver]["opt"] += 1
+                results[solver]["sat"] += 1
+                proof_time = min(rec["wall"], args.timeout)
+            elif rec["status"] == "sat":
+                results[solver]["sat"] += 1
+                proof_time = args.timeout
+            else:
+                results[solver]["unk"] += 1
+                proof_time = args.timeout
+            times[solver][inst] = proof_time
+            results[solver]["time"] += proof_time
+            results[solver]["ttf"] += (
+                min(rec["values"].values()) if rec["values"] else args.timeout
+            )
+            lower, upper = bounds[inst]
+            if not math.isnan(lower):
+                results[solver]["score"] += score(rec, lower, upper)
+
+    for inst in instances:
+        for i, left in enumerate(GSTRING_SOLVERS[:-1]):
+            for right in GSTRING_SOLVERS[i + 1 :]:
+                a = records[left][inst]
+                b = records[right][inst]
+                ao = a["objective"]
+                bo = b["objective"]
+                if not math.isnan(ao) and not math.isnan(bo) and ao < bo:
+                    results[left]["borda"] += 1.0
+                    results[left]["iborda"] += 1.0
+                elif not math.isnan(ao) and not math.isnan(bo) and bo < ao:
+                    results[right]["borda"] += 1.0
+                    results[right]["iborda"] += 1.0
+                elif not math.isnan(ao) and not math.isnan(bo) and ao == bo:
+                    results[left]["iborda"] += 0.5
+                    results[right]["iborda"] += 0.5
+                    at = times[left][inst]
+                    bt = times[right][inst]
+                    total = at + bt
+                    if total > 0:
+                        results[left]["borda"] += bt / total
+                        results[right]["borda"] += at / total
+                    else:
+                        results[left]["borda"] += 0.5
+                        results[right]["borda"] += 0.5
+
+    count = len(instances)
+    rows = []
+    for solver in GSTRING_SOLVERS:
+        item = results[solver]
+        rows.append(
+            {
+                "solver": solver,
+                "opt_percent": round(100.0 * item["opt"] / count, 2),
+                "sat_percent": round(100.0 * item["sat"] / count, 2),
+                "unk_percent": round(100.0 * item["unk"] / count, 2),
+                "average_ttf": round(item["ttf"] / count, 2),
+                "average_time": round(item["time"] / count, 2),
+                "score": round(item["score"], 2),
+                "borda": round(item["borda"], 2),
+                "iborda": round(item["iborda"], 2),
+            }
+        )
+
+    print("G-Strings per-instance results")
+    print("solver & opt & sat & unk & ttf & time & score & borda & iborda \\\\")
+    for row in rows:
+        print(
+            f"{LABELS[row['solver']]} & {row['opt_percent']:.2f} & "
+            f"{row['sat_percent']:.2f} & {row['unk_percent']:.2f} & "
+            f"{row['average_ttf']:.2f} & {row['average_time']:.2f} & "
+            f"{row['score']:.2f} & {row['borda']:.2f} & {row['iborda']:.2f} \\\\"
+        )
+
+    smt_rows = read_smt(args.smt_log, args.timeout)
+    if smt_rows:
+        print("\nAggregate quantifier-free SMT encoding (not paired with the 30 DZN instances)")
+        print("solver & status & objective & time \\\\")
+        for row in smt_rows:
+            print(
+                f"{LABELS[row['solver']]} & {row['status']} & {row['objective']} & "
+                f"{row['time']:.2f} \\\\"
+            )
+
+    if args.csv:
+        write_csv(args.csv, rows)
+    if args.smt_csv:
+        write_csv(args.smt_csv, smt_rows)
+    if args.plot:
+        plot_runtime(args.plot, times, instances, args.timeout)
+
+
+if __name__ == "__main__":
+    main()

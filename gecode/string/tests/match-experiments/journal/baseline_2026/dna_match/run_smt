@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+set -o pipefail
+
+EXP_PATH=$(cd "$(dirname "$0")" && pwd)
+TIMEOUT=${TIMEOUT:-300}
+SOLVERS=${SOLVERS:-"cvc5 z3seq"}
+SMT="$EXP_PATH/dna.smt2"
+
+ERRORS="$EXP_PATH/errors_smt_dna.log"
+OUTPUT="$EXP_PATH/output_smt_dna.log"
+RESULTS="$EXP_PATH/results_smt_dna.log"
+
+WORK=$(mktemp -d)
+trap 'rm -rf "$WORK"' EXIT
+ERR="$WORK/tmp.err"
+OUT="$WORK/tmp.out"
+TIMING="$WORK/tmp.time"
+
+: > "$ERRORS"
+: > "$OUTPUT"
+: > "$RESULTS"
+
+for solver in $SOLVERS
+do
+  case "$solver" in
+    z3seq) cmd=(z3 -smt2 smt.string_solver=seq) ;;
+    cvc5) cmd=(cvc5 --lang=smt2) ;;
+    *) echo "Unknown SMT solver: $solver" >&2; exit 1 ;;
+  esac
+
+  header="$solver|dna_qf"
+  echo "$header" | tee -a "$ERRORS" "$OUTPUT"
+  echo "Solving $SMT with $solver..."
+
+  start=$(awk 'BEGIN {print systime()}')
+  { time -p timeout "$TIMEOUT" "${cmd[@]}" "$SMT" 2>"$ERR" |
+      gawk -v s="$start" '{print $0, (systime() - s)}' >"$OUT"; } 2>"$TIMING"
+  ret=$?
+  tot_time=$(awk '/^real / {print $2; exit}' "$TIMING")
+  tot_time=${tot_time:-0}
+  val=$(grep -oE '\(obj[[:space:]]+-?[0-9]+\)' "$OUT" | tail -1 | grep -oE -- '-?[0-9]+' || true)
+  val=${val:-nan}
+
+  if grep -Eq '^sat([[:space:]]|$)' "$OUT"; then
+    status=sat
+  elif grep -Eq '^unsat([[:space:]]|$)' "$OUT"; then
+    status=uns
+  elif [ "$ret" -eq 124 ] || grep -Eq '^unknown([[:space:]]|$)' "$OUT"; then
+    status=unk
+  else
+    status=err
+  fi
+
+  cat "$ERR" >> "$ERRORS"
+  cat "$OUT" >> "$OUTPUT"
+  echo "$header|$status|$val|{}|$tot_time" | tee -a "$RESULTS"
+done

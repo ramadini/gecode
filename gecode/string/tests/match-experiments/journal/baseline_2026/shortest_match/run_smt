@@ -1,125 +1,103 @@
-#! /bin/bash
+#!/usr/bin/env bash
 
-EXP_PATH=$HOME'/G-Strings/gecode/gecode/string/tests/match-experiments/journal/shortest_match'
+set -o pipefail
 
-# Time-out in seconds for constraint solving.
-TIMEOUT=300
+EXP_PATH=$(cd "$(dirname "$0")" && pwd)
+TIMEOUT=${TIMEOUT:-300}
+MAX_INSTANCES=${MAX_INSTANCES:-0}
+SOLVERS=${SOLVERS:-"cvc5 z3seq"}
 
-# Errors log file.
-ERRORS=$EXP_PATH'/errors_smt_sm.log'
+ERRORS="$EXP_PATH/errors_smt_sm.log"
+OUTPUT="$EXP_PATH/output_smt_sm.log"
+RESULTS="$EXP_PATH/results_smt_sm.log"
 
-# Output log file.
-OUTPUT=$EXP_PATH'/output_smt_sm.log'
+WORK=$(mktemp -d)
+trap 'rm -rf "$WORK"' EXIT
+ERR="$WORK/tmp.err"
+OUT="$WORK/tmp.out"
+TIMING="$WORK/tmp.time"
+VALUES="$WORK/tmp.values"
+SMT="$WORK/tmp.smt2"
 
-# Output log file.
-RESULTS=$EXP_PATH'/results_smt_sm.log'
-
-# Auxiliary files
-ERR=$EXP_PATH'/tmp.err'
-OUT=$EXP_PATH'/tmp.out'
-TMP=$EXP_PATH'/tmp.tmp'
-SMT=$EXP_PATH'/tmp.smt2'
-echo '' > $ERR
-echo '' > $OUT
-echo '' > $TMP
-echo '' > $SMT
-
-Z3SEQ="z3 -smt2 smt.string_solver=seq "
-Z3STR="z3 -smt2 smt.string_solver=z3str3 "
-CVC5="cvc5 --produce-models --lang smt --strings-exp "
-CMD="$EXP_PATH/smt_min"
 OBJ=min
 OBJVAR=L
+CMD="$EXP_PATH/smt_min"
 
-for solver in z3seq cvc5 z3str
+: > "$ERRORS"
+: > "$OUTPUT"
+: > "$RESULTS"
+
+mapfile -t instances < <(find "$EXP_PATH/smt" -maxdepth 1 -type f -name 'sm_*.smt2' | sort -V)
+if [ "$MAX_INSTANCES" -gt 0 ]; then
+  instances=("${instances[@]:0:$MAX_INSTANCES}")
+fi
+
+for solver in $SOLVERS
 do
-  for smt in `ls $EXP_PATH/smt/sm* | grep "_512_\|_25.smt" | sort -n` #FIXME
+  case "$solver" in
+    z3seq) initial=(z3 -smt2 smt.string_solver=seq) ;;
+    cvc5) initial=(cvc5 --produce-models --lang=smt2 --strings-exp) ;;
+    *) echo "Unknown SMT solver: $solver" >&2; exit 1 ;;
+  esac
+
+  for smt in "${instances[@]}"
   do
     header="$solver|$smt"
-    echo $header >> $ERRORS
-    echo $header >> $OUTPUT
-   
+    echo "$header" | tee -a "$ERRORS" "$OUTPUT"
+
     echo "Extracting initial bound for $smt..."
-    cp $smt $SMT
-    echo '(get-model)' >> $SMT
-    if
-      [ "$solver" == "z3str" ]
-    then
-      v=`timeout 1 $Z3STR $SMT | tr '\n' ' ' | sed 's/define-fun/\n/g' | grep "$OBJVAR ()" | awk '{print $4}' | sed 's/)//g'`
-    elif
-      [ "$solver" == "z3seq" ]
-    then
-      v=`timeout 1 $Z3SEQ $SMT | tr '\n' ' ' | sed 's/define-fun/\n/g' | grep "$OBJVAR ()" | awk '{print $4}' | sed 's/)//g'`
-    elif 
-      [ "$solver" == "cvc5" ]
-    then
-      v=`timeout 1 $CVC5 $SMT | grep "$OBJVAR ()" | awk '{print $5}' | sed 's/)//g'`
+    cp "$smt" "$SMT"
+    echo '(get-model)' >> "$SMT"
+
+    if [ "$solver" = z3seq ]; then
+      v=$(timeout 1 "${initial[@]}" "$SMT" 2>/dev/null | tr '\n' ' ' |
+          sed 's/define-fun/\n/g' | grep "$OBJVAR ()" | awk '{print $4}' | sed 's/)//g' | head -1)
     else
-      exit 1
+      v=$(timeout 1 "${initial[@]}" "$SMT" 2>/dev/null | grep "$OBJVAR ()" |
+          awk '{print $5}' | sed 's/)//g' | head -1)
     fi
-    if
-      [ -n "$v" ]
-    then
+
+    if [ -n "$v" ]; then
       val=$v
     else
-      val=`basename $smt | awk -F"_" '{print $2}' | sed 's/.smt2//g'`
+      val=$(basename "$smt" | awk -F_ '{print $2}')
     fi
+
     echo "Initial bound = $val. Solving $smt with $solver..."
-    start=`awk 'BEGIN {print systime()}'`
-    time -p (unbuffer timeout $TIMEOUT $CMD $smt $OBJVAR $val $solver $OBJ 2>$ERR | \
-    gawk -v s=$start '{print $0, (systime() - s)}' 1>$OUT) 2>$TMP
+    start=$(awk 'BEGIN {print systime()}')
+    { time -p unbuffer timeout "$TIMEOUT" "$CMD" "$smt" "$OBJVAR" "$val" "$solver" "$OBJ" 2>"$ERR" |
+        gawk -v s="$start" '{print $0, (systime() - s)}' >"$OUT"; } 2>"$TIMING"
     ret=$?
-#    pkill sleep
+    tot_time=$(awk '/^real / {print $2; exit}' "$TIMING")
+    tot_time=${tot_time:-0}
 
-    ini_time=0
-    tot_time=`cat $TMP | awk -v it=$ini_time 'NR == 1 {print $2 - it}'`
-    cat $OUT | grep "$OBJVAR = " | awk '{print $3, $4}' | sed 's/;//g' | sed 's/ /_,_/g' > $TMP
+    grep "$OBJVAR = " "$OUT" | awk '{print $3, $4}' | sed 's/;//g' | sed 's/ /_,_/g' > "$VALUES"
     vals='{'
-    for i in `cat $TMP`
+    key=''
+    while read -r item
     do
-      key=`echo $i | awk -F"_,_" '{print $1}'`
-      value=`echo $i | awk -v it=$ini_time -F"_,_" '{print $2 - it}'`
-      vals=$vals''$key': '$value', '
-    done
-    if 
-      [ "$vals" == '{' ]
-    then
-      val='nan'
-    else
-      val=$key
-    fi
-    vals=$vals'}'
-    
-    if
-      [[ -n "`grep =====UNKNOWN===== $OUT`" ]]
-    then
-      s='unk'
-    elif
-      [[ -n "`grep "\----------" $OUT`" ]]
-    then
-      if
-        [[ -n "`grep ========== $OUT`"  ]]
-      then
-        s='opt'
-      else
-        s='sat'
-      fi
-    elif
-      [[ -n "`grep =====UNSATISFIABLE===== $OUT`" ]]
-    then
-      s='uns'
-    else
-      s='unk'
-    fi
-    cat $ERR >> $ERRORS
-    cat $OUT >> $OUTPUT
-    echo $header'|'$s'|'$val'|'$vals'|'$tot_time >> $RESULTS
-    cp $RESULTS ~/Dropbox
-    echo "Sleeping 3 seconds..."
-    sleep 3
-  done
-  echo "Sleeping 10 seconds..."
-  sleep 10
-done
+      [ -z "$item" ] && continue
+      key=$(echo "$item" | awk -F'_,_' '{print $1}')
+      value=$(echo "$item" | awk -F'_,_' '{print $2}')
+      vals="$vals$key: $value, "
+    done < "$VALUES"
+    if [ -z "$key" ]; then val=nan; else val=$key; fi
+    vals="$vals}"
 
-rm $OUT $ERR $TMP
+    if grep -q '=====UNKNOWN=====' "$OUT"; then
+      status=unk
+    elif grep -q -- '----------' "$OUT"; then
+      if grep -q '==========' "$OUT"; then status=opt; else status=sat; fi
+    elif grep -q '=====UNSATISFIABLE=====' "$OUT"; then
+      status=uns
+    elif [ "$ret" -eq 124 ]; then
+      status=unk
+    else
+      status=err
+    fi
+
+    cat "$ERR" >> "$ERRORS"
+    cat "$OUT" >> "$OUTPUT"
+    echo "$header|$status|$val|$vals|$tot_time" | tee -a "$RESULTS"
+  done
+done
