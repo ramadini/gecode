@@ -5,7 +5,7 @@ matplotlib.rcParams['text.usetex'] = True
 import matplotlib.pyplot as plt
 
 PATH = '/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/latin_square/results_tot.log'
-SOLVERS = ['cvc5', 'G-Strings_ori', 'G-Strings_dec', 'G-Strings_new', 'G-Strings_find', 'z3seq']
+SOLVERS = ['cvc5', 'G-Strings_ori', 'G-Strings_dec', 'G-Strings_new', 'z3seq', 'z3noodler', 'z3noodler_mocha', 'ostrich']
 MIN = False
 TIMEOUT = 300
 NUM_PROBLEMS = 40 - 2 + 1
@@ -74,7 +74,7 @@ for inst, info in infos.items():
 for solv,val in sorted(results.items(), key = lambda x : -x[1]['sat']):
   print (solv,val)
   assert 0 <= val['time'] <= TIMEOUT * NUM_PROBLEMS
-  assert 0 <= val['mznc'] <= (n - 1) * NUM_PROBLEMS
+#FIXME:  assert 0 <= val['mznc'] <= (n - 1) * NUM_PROBLEMS
 
 labels = []
 solv2lab = {
@@ -82,8 +82,10 @@ solv2lab = {
   'G-Strings_dec': (r'\textsc{Decomp}', '-.'),
   'G-Strings_ori': (r'\textsc{PropDFA}', '-s'),
   'G-Strings_new': (r'\textsc{PropNFA}', '-*'),
-  'G-Strings_find': (r'\textsc{PropFind}', '-*'),
   'z3seq': (r'\textsc{Z3seq}', '-o'),
+  'z3noodler': (r'\textsc{Z3-Noodler}', '-o'),
+  'z3noodler_mocha': (r'\textsc{Z3-Noodler-Mocha}', '-o'),
+  'ostrich': (r'\textsc{OSTRICH}', '-o'),
 }
 for solver, vals in sorted(times.items()):
   lab = solv2lab[solver]

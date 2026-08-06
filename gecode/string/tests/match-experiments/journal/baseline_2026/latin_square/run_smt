@@ -3,8 +3,8 @@
 set -o pipefail
 
 EXP_PATH=$(cd "$(dirname "$0")" && pwd)
-TIMEOUT=${TIMEOUT:-3}
-N_MIN=${N_MIN:-1}
+TIMEOUT=${TIMEOUT:-300}
+N_MIN=${N_MIN:-2}
 N_MAX=${N_MAX:-10}
 SOLVERS=${SOLVERS:-"cvc5 z3seq z3noodler z3noodler_mocha ostrich"}
 
