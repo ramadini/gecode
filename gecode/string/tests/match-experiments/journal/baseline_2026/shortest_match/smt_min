@@ -8,9 +8,22 @@ solver_name=$4
 direction=$5
 
 case "$solver_name" in
-  z3seq) solver=(z3 -in -smt2 smt.string_solver=seq) ;;
-  cvc5) solver=(cvc5 --lang=smt2 --strings-exp --incremental -) ;;
-  *) echo "No supported solver given: $solver_name" >&2; exit 1 ;;
+  z3seq)
+    solver=(z3 -in -smt2 smt.string_solver=seq)
+    ;;
+  cvc5)
+    solver=(cvc5 --lang=smt2 --strings-exp --incremental -)
+    ;;
+  z3noodler)
+    solver=(z3-noodler -in -smt2)
+    ;;
+  z3noodler_mocha)
+    solver=(z3-noodler-mocha -in -smt2)
+    ;;
+  *)
+    echo "Unknown SMT solver: $solver_name" >&2
+    exit 1
+    ;;
 esac
 
 WORK=$(mktemp -d)

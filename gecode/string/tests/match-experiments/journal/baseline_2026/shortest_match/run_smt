@@ -5,7 +5,7 @@ set -o pipefail
 EXP_PATH=$(cd "$(dirname "$0")" && pwd)
 TIMEOUT=${TIMEOUT:-300}
 MAX_INSTANCES=${MAX_INSTANCES:-0}
-SOLVERS=${SOLVERS:-"cvc5 z3seq"}
+SOLVERS=${SOLVERS:-"cvc5 z3seq z3noodler z3noodler_mocha"}
 
 ERRORS="$EXP_PATH/errors_smt_sm.log"
 OUTPUT="$EXP_PATH/output_smt_sm.log"
@@ -35,9 +35,22 @@ fi
 for solver in $SOLVERS
 do
   case "$solver" in
-    z3seq) initial=(z3 -smt2 smt.string_solver=seq) ;;
-    cvc5) initial=(cvc5 --produce-models --lang=smt2 --strings-exp) ;;
-    *) echo "Unknown SMT solver: $solver" >&2; exit 1 ;;
+  z3seq)
+    initial=(z3 -smt2 smt.string_solver=seq)
+    ;;
+  cvc5)
+    initial=(cvc5 --produce-models --lang=smt2 --strings-exp)
+    ;;
+  z3noodler)
+    initial=(z3-noodler -smt2 model=true)
+    ;;
+  z3noodler_mocha)
+    initial=(z3-noodler-mocha -smt2 model=true)
+    ;;
+  *)
+    echo "Unknown SMT solver: $solver" >&2
+    exit 1
+    ;;
   esac
 
   for smt in "${instances[@]}"
@@ -49,13 +62,24 @@ do
     cp "$smt" "$SMT"
     echo '(get-model)' >> "$SMT"
 
-    if [ "$solver" = z3seq ]; then
-      v=$(timeout 1 "${initial[@]}" "$SMT" 2>/dev/null | tr '\n' ' ' |
-          sed 's/define-fun/\n/g' | grep "$OBJVAR ()" | awk '{print $4}' | sed 's/)//g' | head -1)
-    else
-      v=$(timeout 1 "${initial[@]}" "$SMT" 2>/dev/null | grep "$OBJVAR ()" |
-          awk '{print $5}' | sed 's/)//g' | head -1)
-    fi
+    case "$solver" in
+      z3seq|z3noodler|z3noodler_mocha)
+        v=$(timeout 1 "${initial[@]}" "$SMT" 2>/dev/null |
+            tr '\n' ' ' |
+            sed 's/define-fun/\n/g' |
+            grep "$OBJVAR ()" |
+            awk '{print $4}' |
+            sed 's/)//g' |
+            head -1)
+        ;;
+      cvc5)
+        v=$(timeout 1 "${initial[@]}" "$SMT" 2>/dev/null |
+            grep "$OBJVAR ()" |
+            awk '{print $5}' |
+            sed 's/)//g' |
+            head -1)
+        ;;
+    esac
 
     if [ -n "$v" ]; then
       val=$v
