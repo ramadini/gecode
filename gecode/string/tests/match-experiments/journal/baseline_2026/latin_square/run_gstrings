@@ -3,10 +3,10 @@
 set -o pipefail
 
 EXP_PATH=$(cd "$(dirname "$0")" && pwd)
-TIMEOUT=${TIMEOUT:-3}
+TIMEOUT=${TIMEOUT:-300}
 N_MIN=${N_MIN:-1}
-N_MAX=${N_MAX:-10}
-SOLVERS=${SOLVERS:-"G-Strings_ori G-Strings_new G-Strings_dec"}
+N_MAX=${N_MAX:-40}
+SOLVERS=${SOLVERS:- "G-Strings_find"} #"G-Strings_new G-Strings_ori"} #G-Strings_dec"}
 
 ERRORS="$EXP_PATH/errors_gstrings_ls.log"
 OUTPUT="$EXP_PATH/output_gstrings_ls.log"
@@ -29,6 +29,7 @@ do
     G-Strings_ori) mzn="$EXP_PATH/latin_square.mzn" ;;
     G-Strings_new) mzn="$EXP_PATH/latin_square_new.mzn" ;;
     G-Strings_dec) mzn="$EXP_PATH/latin_square_dec.mzn" ;;
+    G-Strings_find) mzn="$EXP_PATH/latin_square_find.mzn" ;;
     *) echo "Unknown solver variant: $solver" >&2; exit 1 ;;
   esac
 

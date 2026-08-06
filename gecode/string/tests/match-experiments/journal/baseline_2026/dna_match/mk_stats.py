@@ -85,7 +85,7 @@ def read_gstrings(path):
                 continue
             try:
                 inst = instance_id(raw_instance)
-                wall = float(raw_time)
+                wall = float(raw_time.replace(",", "."))
             except ValueError as exc:
                 raise ValueError(f"{path}:{line_no}: {exc}") from exc
             data[(solver, inst)] = {

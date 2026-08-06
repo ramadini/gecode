@@ -1,0 +1,62 @@
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L128_K5.dzn|opt|0|{0: 0, }|0,07
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L128_K10.dzn|opt|0|{0: 0, }|0,15
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L128_K15.dzn|opt|0|{0: 0, }|0,21
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L128_K20.dzn|opt|0|{0: 0, }|0,25
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L128_K25.dzn|opt|0|{0: 0, }|0,30
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L256_K5.dzn|opt|0|{0: 0, }|0,14
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L256_K10.dzn|opt|0|{0: 0, }|0,18
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L256_K15.dzn|opt|0|{0: 0, }|0,32
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L256_K20.dzn|opt|0|{0: 1, }|0,36
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L256_K25.dzn|opt|0|{0: 0, }|0,48
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L512_K5.dzn|opt|0|{0: 0, }|0,51
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L512_K10.dzn|opt|145|{145: 1, }|0,85
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L512_K15.dzn|opt|0|{0: 1, }|1,11
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L512_K20.dzn|opt|0|{0: 1, }|1,17
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L512_K25.dzn|opt|0|{0: 1, }|1,18
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L1024_K5.dzn|opt|0|{0: 3, }|2,71
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L1024_K10.dzn|opt|377|{377: 6, }|6,32
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L1024_K15.dzn|opt|182|{182: 7, }|7,34
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L1024_K20.dzn|opt|389|{389: 7, }|14,61
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L1024_K25.dzn|opt|755|{948: 10, 901: 21, 755: 42, }|41,83
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L2048_K5.dzn|opt|47|{47: 32, }|44,37
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L2048_K10.dzn|opt|1042|{1136: 48, 1042: 97, }|97,76
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L2048_K15.dzn|opt|566|{566: 39, }|39,04
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L2048_K20.dzn|opt|1252|{1252: 56, }|56,18
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L2048_K25.dzn|opt|1894|{1894: 61, }|61,25
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L4096_K5.dzn|opt|1597|{1597: 245, }|245,36
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L4096_K10.dzn|unk|nan|{}|300,01
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L4096_K15.dzn|unk|nan|{}|300,01
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L4096_K20.dzn|unk|nan|{}|300,01
+G-Strings_ori|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L4096_K25.dzn|unk|nan|{}|300,02
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L128_K5.dzn|opt|0|{0: 0, }|0,06
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L128_K10.dzn|opt|0|{0: 0, }|0,16
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L128_K15.dzn|opt|0|{0: 1, }|0,21
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L128_K20.dzn|opt|0|{0: 0, }|0,26
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L128_K25.dzn|opt|0|{0: 0, }|0,30
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L256_K5.dzn|opt|0|{0: 1, }|0,14
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L256_K10.dzn|opt|0|{0: 0, }|0,17
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L256_K15.dzn|opt|0|{0: 0, }|0,33
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L256_K20.dzn|opt|0|{0: 1, }|0,39
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L256_K25.dzn|opt|0|{0: 0, }|0,48
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L512_K5.dzn|opt|0|{0: 1, }|0,52
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L512_K10.dzn|opt|145|{145: 1, }|0,70
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L512_K15.dzn|opt|0|{0: 1, }|0,90
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L512_K20.dzn|opt|0|{0: 1, }|1,14
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L512_K25.dzn|opt|0|{0: 1, }|1,24
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L1024_K5.dzn|opt|0|{0: 3, }|2,79
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L1024_K10.dzn|opt|377|{377: 4, }|3,58
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L1024_K15.dzn|opt|182|{182: 4, }|4,41
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L1024_K20.dzn|opt|389|{389: 5, }|21,41
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L1024_K25.dzn|opt|755|{948: 5, 901: 10, 755: 18, }|18,21
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L2048_K5.dzn|opt|47|{47: 22, }|22,22
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L2048_K10.dzn|opt|1042|{1136: 23, 1042: 45, }|45,53
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L2048_K15.dzn|opt|566|{566: 26, }|28,13
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L2048_K20.dzn|opt|1252|{1252: 28, }|30,22
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L2048_K25.dzn|opt|1894|{1894: 31, }|30,90
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L4096_K5.dzn|opt|1597|{1597: 162, }|163,06
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L4096_K10.dzn|opt|684|{684: 172, }|175,92
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L4096_K15.dzn|sat|2868|{2868: 181, }|300,03
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L4096_K20.dzn|opt|3828|{3828: 192, }|193,29
+G-Strings_new|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L4096_K25.dzn|sat|2070|{2070: 202, }|300,02
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L128_K5.dzn|err|nan|{}|8,97
+G-Strings_dec|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/dzn/L128_K10.dzn|err|nan|{}|14,56
