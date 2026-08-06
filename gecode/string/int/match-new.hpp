@@ -464,6 +464,10 @@ namespace Gecode { namespace String {
       // x1 fixed and val(x1) in {0,1}.
       if (x1.assigned() && x1.val() <= 1) {
         if (x1.val() == 0) {
+          if (Rcomp == nullptr) {
+            Rcomp = new compDFA(*Rfull, x0.may_chars());
+            Rcomp->negate();
+          }
           BoolVar b(home, 1, 1);
           GECODE_REWRITE(*this, (ReReg<Gecode::Int::BoolView,RM_EQV>::post(home, x0, Rcomp, b)));
         }
@@ -542,8 +546,10 @@ namespace Gecode { namespace String {
       }
       bool aligned = pref_lb == x1.min() - 1 && pref_ub == x1.min() - 1;
       if (updatedI || l < x1.min()) {
-        if (Rcomp == nullptr)
+        if (Rcomp == nullptr) {
           Rcomp = new compDFA(*Rfull, x0.may_chars());
+          Rcomp->negate();
+        }
         es_pref = propagateReg(home, pref, Rcomp);
         if (es_pref == ES_FAILED)
           return ES_FAILED;
