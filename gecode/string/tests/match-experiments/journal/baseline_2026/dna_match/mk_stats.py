@@ -8,24 +8,32 @@ import os
 import re
 from pathlib import Path
 
-GSTRING_SOLVERS = ["G-Strings_ori", "G-Strings_new", "G-Strings_dec"]
-SMT_SOLVERS = ["cvc5", "z3seq"]
+SOLVERS = [
+    "cvc5",
+    "G-Strings_ori",
+    "G-Strings_new",
+    "G-Strings_dec",
+    "z3seq",
+    "z3noodler",
+    "z3noodler_mocha",
+]
+
 LABELS = {
     "cvc5": r"\textsc{CVC5}",
     "z3seq": r"\textsc{Z3seq}",
     "G-Strings_ori": r"\textsc{PropDFA}",
     "G-Strings_new": r"\textsc{PropNFA}",
     "G-Strings_dec": r"\textsc{Decomp}",
+    "z3noodler": r"\textsc{Z3-Noodler}",
+    "z3noodler_mocha": r"\textsc{Z3-Noodler-Mocha}",
 }
 
 
 def parse_args():
     here = Path(__file__).resolve().parent
-    parser = argparse.ArgumentParser(description="Summarise baseline_2026 DNA results.")
+    parser = argparse.ArgumentParser(description="Summarise baseline_2026 DNA-match results.")
     parser.add_argument("--timeout", type=float, default=float(os.environ.get("TIMEOUT", 300)))
-    parser.add_argument("--csv", type=Path, default=None, help="Write G-Strings summary as CSV.")
-    parser.add_argument("--smt-csv", type=Path, default=None, help="Write aggregate SMT summary as CSV.")
-    parser.add_argument("--plot", type=Path, default=None, help="Write the G-Strings runtime plot.")
+    parser.add_argument("--csv", type=Path, default=None, help="Write the summary as CSV.")
     parser.add_argument(
         "--gstrings-log", type=Path, default=here / "results_gstrings_dna.log"
     )
@@ -36,15 +44,10 @@ def parse_args():
 
 def instance_id(raw):
     name = Path(raw.strip()).name
-    match = re.fullmatch(r"(L\d+_K\d+)\.dzn", name)
+    match = re.fullmatch(r"(L\d+_K\d+)\.(?:dzn|smt2)", name)
     if not match:
         raise ValueError(f"cannot extract DNA instance from {raw!r}")
     return match.group(1)
-
-
-def instance_key(inst):
-    match = re.fullmatch(r"L(\d+)_K(\d+)", inst)
-    return tuple(map(int, match.groups()))
 
 
 def number(raw):
@@ -70,10 +73,9 @@ def values_dict(raw):
     return result
 
 
-def read_gstrings(path):
-    data = {}
+def read_log(path, data):
     if not path.exists():
-        return data
+        return
     with path.open(newline="") as handle:
         for line_no, row in enumerate(csv.reader(handle, delimiter="|"), 1):
             if not row:
@@ -81,7 +83,7 @@ def read_gstrings(path):
             if len(row) != 6:
                 raise ValueError(f"{path}:{line_no}: expected 6 fields, found {len(row)}")
             solver, raw_instance, status, raw_obj, raw_values, raw_time = row
-            if solver not in GSTRING_SOLVERS:
+            if solver not in SOLVERS:
                 continue
             try:
                 inst = instance_id(raw_instance)
@@ -94,39 +96,27 @@ def read_gstrings(path):
                 "values": values_dict(raw_values),
                 "wall": wall,
             }
-    return data
 
 
-def read_smt(path, timeout):
-    rows = []
-    if not path.exists():
-        return rows
-    with path.open(newline="") as handle:
-        for line_no, row in enumerate(csv.reader(handle, delimiter="|"), 1):
-            if not row:
-                continue
-            if len(row) != 6:
-                raise ValueError(f"{path}:{line_no}: expected 6 fields, found {len(row)}")
-            solver, instance, status, raw_obj, _values, raw_time = row
-            if solver not in SMT_SOLVERS:
-                continue
-            try:
-                wall = float(raw_time)
-            except ValueError as exc:
-                raise ValueError(f"{path}:{line_no}: invalid runtime {raw_time!r}") from exc
-            rows.append(
-                {
-                    "solver": solver,
-                    "instance": instance,
-                    "status": status,
-                    "objective": raw_obj,
-                    "time": round(min(wall, timeout), 2),
-                }
-            )
-    return rows
+def sort_key(name):
+    match = re.fullmatch(r"L(\d+)_K(\d+)", name)
+    if not match:
+        return (math.inf, math.inf)
+    return int(match.group(1)), int(match.group(2))
 
 
-def score(record, lower, upper):
+def expected_instances(directory, data):
+    files = sorted(directory.glob("L*_K*.dzn"), key=lambda p: sort_key(p.stem))
+    if files:
+        return [p.stem for p in files]
+    return sorted({inst for _, inst in data}, key=sort_key)
+
+
+def better(left, right):
+    return left < right
+
+
+def score(record, lower, upper, timeout):
     if record["status"] == "opt":
         return 1.0
     objective = record["objective"]
@@ -139,42 +129,14 @@ def score(record, lower, upper):
     return 0.75 - value
 
 
-def write_csv(path, rows):
-    if not rows:
-        return
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(rows[0].keys()))
-        writer.writeheader()
-        writer.writerows(rows)
-
-
-def plot_runtime(path, times, instances, timeout):
-    import matplotlib.pyplot as plt
-
-    path.parent.mkdir(parents=True, exist_ok=True)
-    x = range(len(instances))
-    for solver in GSTRING_SOLVERS:
-        plt.plot(x, [times[solver][inst] for inst in instances], marker="o", label=LABELS[solver])
-    plt.xticks(list(x), [inst.replace("L", "(").replace("_K", ",") + ")" for inst in instances], rotation=45)
-    plt.axhline(timeout, linestyle="--", linewidth=1)
-    plt.xlabel("(L,K)")
-    plt.ylabel("Runtime [s]")
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(path)
-    plt.close()
-
-
 def main():
     args = parse_args()
-    raw = read_gstrings(args.gstrings_log)
-    files = sorted(args.instances.glob("L*_K*.dzn"), key=lambda p: instance_key(p.stem))
-    instances = [p.stem for p in files]
+    raw = {}
+    read_log(args.gstrings_log, raw)
+    read_log(args.smt_log, raw)
+    instances = expected_instances(args.instances, raw)
     if not instances:
-        instances = sorted({inst for _, inst in raw}, key=instance_key)
-    if not instances:
-        raise SystemExit("no DNA instances found")
+        raise SystemExit("no DNA-match instances found")
 
     default = {
         "status": "missing",
@@ -184,8 +146,9 @@ def main():
     }
     records = {
         solver: {inst: raw.get((solver, inst), default.copy()) for inst in instances}
-        for solver in GSTRING_SOLVERS
+        for solver in SOLVERS
     }
+
     results = {
         solver: {
             "opt": 0.0,
@@ -197,59 +160,74 @@ def main():
             "borda": 0.0,
             "iborda": 0.0,
         }
-        for solver in GSTRING_SOLVERS
+        for solver in SOLVERS
     }
-    times = {solver: {} for solver in GSTRING_SOLVERS}
 
     bounds = {}
     for inst in instances:
         objectives = [
             records[solver][inst]["objective"]
-            for solver in GSTRING_SOLVERS
+            for solver in SOLVERS
             if not math.isnan(records[solver][inst]["objective"])
         ]
-        bounds[inst] = (min(objectives), max(objectives)) if objectives else (math.nan, math.nan)
+        bounds[inst] = (
+            (min(objectives), max(objectives))
+            if objectives
+            else (math.nan, math.nan)
+        )
 
-    for solver in GSTRING_SOLVERS:
+    for solver in SOLVERS:
         for inst in instances:
             rec = records[solver][inst]
-            if rec["status"] == "opt":
+            status = rec["status"]
+            if status == "opt":
                 results[solver]["opt"] += 1
                 results[solver]["sat"] += 1
                 proof_time = min(rec["wall"], args.timeout)
-            elif rec["status"] == "sat":
+            elif status == "sat":
                 results[solver]["sat"] += 1
                 proof_time = args.timeout
             else:
                 results[solver]["unk"] += 1
                 proof_time = args.timeout
-            times[solver][inst] = proof_time
+
             results[solver]["time"] += proof_time
             results[solver]["ttf"] += (
                 min(rec["values"].values()) if rec["values"] else args.timeout
             )
+
             lower, upper = bounds[inst]
             if not math.isnan(lower):
-                results[solver]["score"] += score(rec, lower, upper)
+                results[solver]["score"] += score(rec, lower, upper, args.timeout)
 
     for inst in instances:
-        for i, left in enumerate(GSTRING_SOLVERS[:-1]):
-            for right in GSTRING_SOLVERS[i + 1 :]:
+        for i, left in enumerate(SOLVERS[:-1]):
+            for right in SOLVERS[i + 1 :]:
                 a = records[left][inst]
                 b = records[right][inst]
                 ao = a["objective"]
                 bo = b["objective"]
-                if not math.isnan(ao) and not math.isnan(bo) and ao < bo:
+
+                if not math.isnan(ao) and not math.isnan(bo) and better(ao, bo):
                     results[left]["borda"] += 1.0
                     results[left]["iborda"] += 1.0
-                elif not math.isnan(ao) and not math.isnan(bo) and bo < ao:
+                elif not math.isnan(ao) and not math.isnan(bo) and better(bo, ao):
                     results[right]["borda"] += 1.0
                     results[right]["iborda"] += 1.0
                 elif not math.isnan(ao) and not math.isnan(bo) and ao == bo:
                     results[left]["iborda"] += 0.5
                     results[right]["iborda"] += 0.5
-                    at = times[left][inst]
-                    bt = times[right][inst]
+
+                    at = (
+                        min(a["wall"], args.timeout)
+                        if a["status"] == "opt"
+                        else args.timeout
+                    )
+                    bt = (
+                        min(b["wall"], args.timeout)
+                        if b["status"] == "opt"
+                        else args.timeout
+                    )
                     total = at + bt
                     if total > 0:
                         results[left]["borda"] += bt / total
@@ -260,7 +238,7 @@ def main():
 
     count = len(instances)
     rows = []
-    for solver in GSTRING_SOLVERS:
+    for solver in SOLVERS:
         item = results[solver]
         rows.append(
             {
@@ -276,7 +254,6 @@ def main():
             }
         )
 
-    print("G-Strings per-instance results")
     print("solver & opt & sat & unk & ttf & time & score & borda & iborda \\\\")
     for row in rows:
         print(
@@ -286,22 +263,12 @@ def main():
             f"{row['score']:.2f} & {row['borda']:.2f} & {row['iborda']:.2f} \\\\"
         )
 
-    smt_rows = read_smt(args.smt_log, args.timeout)
-    if smt_rows:
-        print("\nAggregate quantifier-free SMT encoding (not paired with the 30 DZN instances)")
-        print("solver & status & objective & time \\\\")
-        for row in smt_rows:
-            print(
-                f"{LABELS[row['solver']]} & {row['status']} & {row['objective']} & "
-                f"{row['time']:.2f} \\\\"
-            )
-
     if args.csv:
-        write_csv(args.csv, rows)
-    if args.smt_csv:
-        write_csv(args.smt_csv, smt_rows)
-    if args.plot:
-        plot_runtime(args.plot, times, instances, args.timeout)
+        args.csv.parent.mkdir(parents=True, exist_ok=True)
+        with args.csv.open("w", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=list(rows[0].keys()))
+            writer.writeheader()
+            writer.writerows(rows)
 
 
 if __name__ == "__main__":
