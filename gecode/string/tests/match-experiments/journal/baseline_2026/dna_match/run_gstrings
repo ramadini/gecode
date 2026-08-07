@@ -5,7 +5,7 @@ set -o pipefail
 EXP_PATH=$(cd "$(dirname "$0")" && pwd)
 TIMEOUT=${TIMEOUT:-300}
 MAX_INSTANCES=${MAX_INSTANCES:-0}
-SOLVERS=${SOLVERS:-"G-Strings_ori G-Strings_new G-Strings_dec"}
+SOLVERS=${SOLVERS:-"G-Strings_ori G-Strings_new"} #G-Strings_dec"}
 
 ERRORS="$EXP_PATH/errors_gstrings_dna.log"
 OUTPUT="$EXP_PATH/output_gstrings_dna.log"
