@@ -4,8 +4,8 @@ set -o pipefail
 
 EXP_PATH=$(cd "$(dirname "$0")" && pwd)
 TIMEOUT=${TIMEOUT:-300}
-N_MIN=${N_MIN:-2}
-N_MAX=${N_MAX:-10}
+N_MIN=${N_MIN:-11}
+N_MAX=${N_MAX:-20}
 SOLVERS=${SOLVERS:-"cvc5 z3seq z3noodler z3noodler_mocha ostrich"}
 
 ERRORS="$EXP_PATH/errors_smt_ls.log"

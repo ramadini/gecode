@@ -12,7 +12,6 @@ int: L;
 int: K;
 string: S;
 array[int] of string: M;
-bool: newM;
 %int: L = 17;
 %int: K = 3;
 %string: S = "CAC(T|G)TGCGTGGATAAAC";
