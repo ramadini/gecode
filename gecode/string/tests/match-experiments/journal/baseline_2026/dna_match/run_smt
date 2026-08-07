@@ -4,8 +4,8 @@ set -o pipefail
 
 EXP_PATH=$(cd "$(dirname "$0")" && pwd)
 TIMEOUT=${TIMEOUT:-300}
-SOLVERS=${SOLVERS:-"cvc5 z3seq"}
-SMT="$EXP_PATH/dna.smt2"
+MAX_INSTANCES=${MAX_INSTANCES:-0}
+SOLVERS=${SOLVERS:-"z3noodler z3noodler_mocha"} #cvc5 #z3seq
 
 ERRORS="$EXP_PATH/errors_smt_dna.log"
 OUTPUT="$EXP_PATH/output_smt_dna.log"
@@ -16,43 +16,117 @@ trap 'rm -rf "$WORK"' EXIT
 ERR="$WORK/tmp.err"
 OUT="$WORK/tmp.out"
 TIMING="$WORK/tmp.time"
+VALUES="$WORK/tmp.values"
+SMT_TMP="$WORK/tmp.smt2"
+
+OBJ=min
+OBJVAR=obj
+CMD="$EXP_PATH/smt_min"
 
 : > "$ERRORS"
 : > "$OUTPUT"
 : > "$RESULTS"
 
+if [ -d "$EXP_PATH/smt" ]; then
+  mapfile -t instances < <(find "$EXP_PATH/smt" -maxdepth 1 -type f -name '*.smt2' | sort -V)
+else
+  instances=("$EXP_PATH/dna.smt2")
+fi
+
+if [ "$MAX_INSTANCES" -gt 0 ]; then
+  instances=("${instances[@]:0:$MAX_INSTANCES}")
+fi
+
 for solver in $SOLVERS
 do
   case "$solver" in
-    z3seq) cmd=(z3 -smt2 smt.string_solver=seq) ;;
-    cvc5) cmd=(cvc5 --lang=smt2) ;;
-    *) echo "Unknown SMT solver: $solver" >&2; exit 1 ;;
+  z3seq)
+    initial=(z3 -smt2 smt.string_solver=seq)
+    ;;
+  cvc5)
+    initial=(cvc5 --produce-models --lang=smt2 --strings-exp)
+    ;;
+  z3noodler)
+    initial=(z3-noodler -smt2 model=true)
+    ;;
+  z3noodler_mocha)
+    initial=(z3-noodler-mocha -smt2 model=true)
+    ;;
+  *)
+    echo "Unknown SMT solver: $solver" >&2
+    exit 1
+    ;;
   esac
 
-  header="$solver|dna_qf"
-  echo "$header" | tee -a "$ERRORS" "$OUTPUT"
-  echo "Solving $SMT with $solver..."
+  for smt in "${instances[@]}"
+  do
+    header="$solver|$smt"
+    echo "$header" | tee -a "$ERRORS" "$OUTPUT"
 
-  start=$(awk 'BEGIN {print systime()}')
-  { time -p timeout "$TIMEOUT" "${cmd[@]}" "$SMT" 2>"$ERR" |
-      gawk -v s="$start" '{print $0, (systime() - s)}' >"$OUT"; } 2>"$TIMING"
-  ret=$?
-  tot_time=$(awk '/^real / {print $2; exit}' "$TIMING")
-  tot_time=${tot_time:-0}
-  val=$(grep -oE '\(obj[[:space:]]+-?[0-9]+\)' "$OUT" | tail -1 | grep -oE -- '-?[0-9]+' || true)
-  val=${val:-nan}
+    # Get one feasible value of obj.  obj is a defined constant, so use
+    # get-value rather than parsing get-model.
+    cp "$smt" "$SMT_TMP"
+    echo '(get-value (obj))' >> "$SMT_TMP"
 
-  if grep -Eq '^sat([[:space:]]|$)' "$OUT"; then
-    status=sat
-  elif grep -Eq '^unsat([[:space:]]|$)' "$OUT"; then
-    status=uns
-  elif [ "$ret" -eq 124 ] || grep -Eq '^unknown([[:space:]]|$)' "$OUT"; then
-    status=unk
-  else
-    status=err
-  fi
+    v=$(timeout 1 "${initial[@]}" "$SMT_TMP" 2>/dev/null |
+        grep -oE '\(\(obj[[:space:]]+-?[0-9]+\)\)' |
+        tail -1 | grep -oE -- '-?[0-9]+' || true)
 
-  cat "$ERR" >> "$ERRORS"
-  cat "$OUT" >> "$OUTPUT"
-  echo "$header|$status|$val|{}|$tot_time" | tee -a "$RESULTS"
+    if [ -n "$v" ]; then
+      val=$v
+    else
+      # Safe fallback for obj = count_matches * (L + 1) + span,
+      # with count_matches <= K and 0 <= span < L.
+      lval=$(awk '/^[[:space:]]*\(define-const[[:space:]]+L[[:space:]]+Int[[:space:]]+/ {
+                    v=$4; gsub(/[()]/,"",v); print v; exit
+                  }' "$smt")
+      kval=$(awk '/^[[:space:]]*\(define-const[[:space:]]+K[[:space:]]+Int[[:space:]]+/ {
+                    v=$4; gsub(/[()]/,"",v); print v; exit
+                  }' "$smt")
+      if [[ "$lval" =~ ^[0-9]+$ && "$kval" =~ ^[0-9]+$ ]]; then
+        val=$((kval * (lval + 1) + lval - 1))
+      else
+        echo "Cannot obtain initial obj and cannot parse L/K from $smt" >&2
+        exit 1
+      fi
+    fi
+
+    echo "Initial bound = $val. Solving $smt with $solver..."
+    
+    start=$(awk 'BEGIN {print systime()}')
+    { time -p unbuffer timeout "$TIMEOUT" "$CMD" "$smt" "$OBJVAR" "$val" "$solver" "$OBJ" 2>"$ERR" |
+        gawk -v s="$start" '{print $0, (systime() - s)}' >"$OUT"; } 2>"$TIMING"
+    ret=$?
+    tot_time=$(awk '/^real / {print $2; exit}' "$TIMING")
+    tot_time=${tot_time:-0}
+
+    grep "$OBJVAR = " "$OUT" | awk '{print $3, $4}' | sed 's/;//g' | sed 's/ /_,_/g' > "$VALUES"
+    vals='{'
+    key=''
+    while read -r item
+    do
+      [ -z "$item" ] && continue
+      key=$(echo "$item" | awk -F'_,_' '{print $1}')
+      value=$(echo "$item" | awk -F'_,_' '{print $2}')
+      vals="$vals$key: $value, "
+    done < "$VALUES"
+    if [ -z "$key" ]; then val=nan; else val=$key; fi
+    vals="$vals}"
+
+    if grep -q '=====UNKNOWN=====' "$OUT"; then
+      status=unk
+    elif grep -q -- '----------' "$OUT"; then
+      if grep -q '==========' "$OUT"; then status=opt; else status=sat; fi
+    elif grep -q '=====UNSATISFIABLE=====' "$OUT"; then
+      status=uns
+    elif [ "$ret" -eq 124 ]; then
+      status=unk
+    else
+      status=err
+    fi
+
+    cat "$ERR" >> "$ERRORS"
+    cat "$OUT" >> "$OUTPUT"
+    echo "$header|$status|$val|$vals|$tot_time" | tee -a "$RESULTS"
+  done
 done
