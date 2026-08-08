@@ -15,7 +15,8 @@ SOLVERS = [
     "G-Strings_dec",
     'z3seq',
     'z3noodler',
-    'z3noodler_mocha'
+    'z3noodler_mocha',
+    'ostrich'
 ]
 LABELS = {
     "cvc5": r"\textsc{CVC5}",
@@ -24,7 +25,8 @@ LABELS = {
     "G-Strings_new": r"\textsc{PropNFA}",
     "G-Strings_dec": r"\textsc{Decomp}",
     'z3noodler': r'\textsc{Z3-Noodler}',
-    'z3noodler_mocha': r'\textsc{Z3-Noodler-Mocha}'
+    'z3noodler_mocha': r'\textsc{Z3-Noodler-Mocha}',
+    'ostrich': r'\textsc{OSTRICH}'
 }
 
 

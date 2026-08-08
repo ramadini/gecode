@@ -20,6 +20,9 @@ case "$solver_name" in
   z3noodler_mocha)
     solver=(z3-noodler-mocha -in -smt2)
     ;;
+  ostrich)
+    solver=(ostrich +stdin +incremental +quiet -inputFormat=smtlib)
+    ;;
   *)
     echo "Unknown SMT solver: $solver_name" >&2
     exit 1

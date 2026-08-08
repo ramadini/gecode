@@ -5,7 +5,7 @@ set -o pipefail
 EXP_PATH=$(cd "$(dirname "$0")" && pwd)
 TIMEOUT=${TIMEOUT:-300}
 MAX_INSTANCES=${MAX_INSTANCES:-0}
-SOLVERS=${SOLVERS:-"z3seq"} #"cvc5" "z3noodler z3noodler_mocha"
+SOLVERS=${SOLVERS:-"ostrich"} # "z3seq" "cvc5" "z3noodler z3noodler_mocha"
 
 ERRORS="$EXP_PATH/errors_smt_dna.log"
 OUTPUT="$EXP_PATH/output_smt_dna.log"
@@ -51,6 +51,9 @@ do
     ;;
   z3noodler_mocha)
     initial=(z3-noodler-mocha -smt2 model=true)
+    ;;
+  ostrich)
+    initial=(ostrich +quiet -inputFormat=smtlib)
     ;;
   *)
     echo "Unknown SMT solver: $solver" >&2
