@@ -13,19 +13,18 @@ SOLVERS = [
     "G-Strings_ori",
     "G-Strings_new",
     "G-Strings_dec",
-    "z3seq",
-    "z3noodler",
-    "z3noodler_mocha",
+    'z3seq',
+    'z3noodler',
+    'z3noodler_mocha'
 ]
-
 LABELS = {
     "cvc5": r"\textsc{CVC5}",
     "z3seq": r"\textsc{Z3seq}",
     "G-Strings_ori": r"\textsc{PropDFA}",
     "G-Strings_new": r"\textsc{PropNFA}",
     "G-Strings_dec": r"\textsc{Decomp}",
-    "z3noodler": r"\textsc{Z3-Noodler}",
-    "z3noodler_mocha": r"\textsc{Z3-Noodler-Mocha}",
+    'z3noodler': r'\textsc{Z3-Noodler}',
+    'z3noodler_mocha': r'\textsc{Z3-Noodler-Mocha}'
 }
 
 
@@ -34,10 +33,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Summarise baseline_2026 DNA-match results.")
     parser.add_argument("--timeout", type=float, default=float(os.environ.get("TIMEOUT", 300)))
     parser.add_argument("--csv", type=Path, default=None, help="Write the summary as CSV.")
-    parser.add_argument(
-        "--gstrings-log", type=Path, default=here / "results_gstrings_dna.log"
-    )
-    parser.add_argument("--smt-log", type=Path, default=here / "results_smt_dna.log")
+    parser.add_argument("--log", type=Path, default=here / "results_tot.log")
     parser.add_argument("--instances", type=Path, default=here / "dzn")
     return parser.parse_args()
 
@@ -46,7 +42,7 @@ def instance_id(raw):
     name = Path(raw.strip()).name
     match = re.fullmatch(r"(L\d+_K\d+)\.(?:dzn|smt2)", name)
     if not match:
-        raise ValueError(f"cannot extract DNA instance from {raw!r}")
+        raise ValueError(f"cannot extract DNA-match instance from {raw!r}")
     return match.group(1)
 
 
@@ -87,7 +83,7 @@ def read_log(path, data):
                 continue
             try:
                 inst = instance_id(raw_instance)
-                wall = float(raw_time.replace(",", "."))
+                wall = float(raw_time.replace(',','.'))
             except ValueError as exc:
                 raise ValueError(f"{path}:{line_no}: {exc}") from exc
             data[(solver, inst)] = {
@@ -98,18 +94,17 @@ def read_log(path, data):
             }
 
 
-def sort_key(name):
-    match = re.fullmatch(r"L(\d+)_K(\d+)", name)
-    if not match:
-        return (math.inf, math.inf)
-    return int(match.group(1)), int(match.group(2))
-
-
 def expected_instances(directory, data):
-    files = sorted(directory.glob("L*_K*.dzn"), key=lambda p: sort_key(p.stem))
+    files = sorted(
+        directory.glob("L*_K*.dzn"),
+        key=lambda p: tuple(map(int, re.findall(r"\d+", p.stem))),
+    )
     if files:
         return [p.stem for p in files]
-    return sorted({inst for _, inst in data}, key=sort_key)
+    return sorted(
+        {inst for _, inst in data},
+        key=lambda s: tuple(map(int, re.findall(r"\d+", s))),
+    )
 
 
 def better(left, right):
@@ -132,8 +127,7 @@ def score(record, lower, upper, timeout):
 def main():
     args = parse_args()
     raw = {}
-    read_log(args.gstrings_log, raw)
-    read_log(args.smt_log, raw)
+    read_log(args.log, raw)
     instances = expected_instances(args.instances, raw)
     if not instances:
         raise SystemExit("no DNA-match instances found")
@@ -170,11 +164,7 @@ def main():
             for solver in SOLVERS
             if not math.isnan(records[solver][inst]["objective"])
         ]
-        bounds[inst] = (
-            (min(objectives), max(objectives))
-            if objectives
-            else (math.nan, math.nan)
-        )
+        bounds[inst] = (min(objectives), max(objectives)) if objectives else (math.nan, math.nan)
 
     for solver in SOLVERS:
         for inst in instances:
@@ -190,12 +180,10 @@ def main():
             else:
                 results[solver]["unk"] += 1
                 proof_time = args.timeout
-
             results[solver]["time"] += proof_time
             results[solver]["ttf"] += (
                 min(rec["values"].values()) if rec["values"] else args.timeout
             )
-
             lower, upper = bounds[inst]
             if not math.isnan(lower):
                 results[solver]["score"] += score(rec, lower, upper, args.timeout)
@@ -207,7 +195,6 @@ def main():
                 b = records[right][inst]
                 ao = a["objective"]
                 bo = b["objective"]
-
                 if not math.isnan(ao) and not math.isnan(bo) and better(ao, bo):
                     results[left]["borda"] += 1.0
                     results[left]["iborda"] += 1.0
@@ -217,17 +204,8 @@ def main():
                 elif not math.isnan(ao) and not math.isnan(bo) and ao == bo:
                     results[left]["iborda"] += 0.5
                     results[right]["iborda"] += 0.5
-
-                    at = (
-                        min(a["wall"], args.timeout)
-                        if a["status"] == "opt"
-                        else args.timeout
-                    )
-                    bt = (
-                        min(b["wall"], args.timeout)
-                        if b["status"] == "opt"
-                        else args.timeout
-                    )
+                    at = min(a["wall"], args.timeout) if a["status"] == "opt" else args.timeout
+                    bt = min(b["wall"], args.timeout) if b["status"] == "opt" else args.timeout
                     total = at + bt
                     if total > 0:
                         results[left]["borda"] += bt / total
