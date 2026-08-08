@@ -144,3 +144,11 @@ z3seq|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journ
 z3seq|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/smt/L128_K20.smt2|unk|nan|{}|300,02
 z3seq|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/smt/L128_K25.smt2|unk|nan|{}|300,02
 z3seq|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/smt/L256_K5.smt2|unk|nan|{}|300,02
+ostrich|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/smt/L128_K5.smt2|unk|nan|{}|300,04
+ostrich|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/smt/L128_K10.smt2|unk|nan|{}|300,07
+ostrich|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/smt/L128_K15.smt2|unk|nan|{}|309,62
+ostrich|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/smt/L128_K20.smt2|unk|nan|{}|303,54
+ostrich|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/smt/L128_K25.smt2|unk|nan|{}|301,13
+ostrich|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/smt/L256_K5.smt2|unk|nan|{}|300,04
+ostrich|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/smt/L256_K10.smt2|unk|nan|{}|300,07
+ostrich|/home/roberto/G-Strings/gecode/gecode/string/tests/match-experiments/journal/baseline_2026/dna_match/smt/L256_K15.smt2|unk|nan|{}|306,53
