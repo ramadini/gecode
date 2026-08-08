@@ -35,10 +35,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Summarise baseline_2026 shortest-match results.")
     parser.add_argument("--timeout", type=float, default=float(os.environ.get("TIMEOUT", 300)))
     parser.add_argument("--csv", type=Path, default=None, help="Write the summary as CSV.")
-    parser.add_argument(
-        "--gstrings-log", type=Path, default=here / "results_gstrings_sm.log"
-    )
-    parser.add_argument("--smt-log", type=Path, default=here / "results_smt_sm.log")
+    parser.add_argument("--log", type=Path, default=here / "results_tot.log")
     parser.add_argument("--instances", type=Path, default=here / "dzn")
     return parser.parse_args()
 
@@ -126,8 +123,7 @@ def score(record, lower, upper, timeout):
 def main():
     args = parse_args()
     raw = {}
-    read_log(args.gstrings_log, raw)
-    read_log(args.smt_log, raw)
+    read_log(args.log, raw)
     instances = expected_instances(args.instances, raw)
     if not instances:
         raise SystemExit("no shortest-match instances found")
