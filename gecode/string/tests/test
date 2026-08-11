@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export LD_LIBRARY_PATH="/usr/local/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+
 echo 'Compiling'
 time g++ -O0 -ggdb -pipe -Wall -Wno-switch -I/usr/local/include/gecode -std=c++11 -c -o $1.o $1
 if
@@ -10,7 +12,7 @@ then
 fi
 
 echo 'Linking'
-time g++  -o $1.out $1.o -std=c++11 -L/usr/local/lib \
+time g++ -o $1.out $1.o -std=c++11 -L/usr/local/lib \
 -lgecodestring -lgecodeint -lgecodeset -lgecodedriver -lgecodesearch -lgecodeminimodel -lgecodekernel -lgecodesupport -pthread
 if
   [ $? -ne 0 ]

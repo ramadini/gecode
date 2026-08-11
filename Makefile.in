@@ -1561,8 +1561,8 @@ gecode/flatzinc/lexer.yy.cpp: \
 
 gecode/flatzinc/parser.tab.hh gecode/flatzinc/parser.tab.cpp: \
 	$(top_srcdir)/gecode/flatzinc/parser.yxx
-	bison -t -o gecode/flatzinc/parser.tab.cpp -d $<
-	mv gecode/flatzinc/parser.tab.hpp gecode/flatzinc/parser.tab.hh
+	bison -t -o gecode/flatzinc/parser.tab.cpp \
+	  --defines=gecode/flatzinc/parser.tab.hh $<
 else
 ifneq "$(top_srcdir)" "."
 gecode/flatzinc/lexer.yy.cpp: $(top_srcdir)/gecode/flatzinc/lexer.yy.cpp
@@ -2139,6 +2139,9 @@ installlib: compilelib
 	$(MAKE) doinstallheaders
 	$(MAKE) ranliblib
 	$(MAKE) installsubdirs
+	@if test -z "$(DESTDIR)" && command -v ldconfig >/dev/null 2>&1; then \
+		ldconfig; \
+	fi
 	
 installlibstr: compilelib
 	$(MAKE) domznfznstr
