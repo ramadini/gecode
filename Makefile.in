@@ -550,6 +550,69 @@ FLOATBUILDDIRS	= \
 	float/trace float/channel
 
 #
+# STRING COMPONENTS
+#
+
+STRINGSRC0 = \
+	var/string.cpp var-imp/string.cpp dashed/dashed-string.cpp exception.cpp \
+	array.cpp branch.cpp length.cpp char2code.cpp pow.cpp find.cpp rel.cpp rel-op.cpp substr.cpp \
+	gcc.cpp gconcat.cpp extensional.cpp element.cpp channel.cpp match.cpp
+
+STRINGHDR0 = \
+	var-imp.hpp view.hpp var-imp/string.hpp var-imp/delta.hpp var/string.hpp \
+	dashed/dashed-string.hh dashed/dashed-string.hpp exception.hpp view/string.hpp \
+	rel/dom.hpp rel/eq.hpp rel/nq.hpp rel/lex.hpp rel/re-lex.hpp rel/inc.hpp rel/re-eq.hpp array-traits.hpp array.hpp \
+	branch/var.hpp branch/val.hpp branch.hh branch/blockmin_llll.hpp \
+	branch/blockmin_lllm.hpp branch/lenblockmin_lllm.hpp branch/lenmax_llll.hpp \
+	branch/lenmin_llll.hpp branch/none_llll.hpp branch/sizemin_llul.hpp \
+	length/length.hpp char2code/char2code.hpp rel-op/rev.hpp rel-op/concat.hpp rel-op/replace.hpp \
+	pow/pow.hpp find/find.hpp rel-op/lcase.hpp rel-op/ucase.hpp gcc.hh gcc/gcc.hpp gconcat.hh gconcat/gconcat.hpp \
+	dashed/sweep-equate.hpp dashed/vec.h dashed/ns-dashed-string.hpp \
+	dashed/aux-equate.hpp dashed/aux-lex.hpp dashed/aux-find.hpp \
+	eq.hh nq.hh re-eq.hh lex.hh re-lex.hh inc.hh dom.hh concat.hh replace.hh rev.hh lcase.hh ucase.hh \
+	length.hh char2code.hh pow.hh find.hh channel.hh channel/str2nat.hpp channel/nat2str.hpp \
+	substr.hh substr/char-at.hpp substr/substring.hpp \
+	extensional.hh extensional/reg.hpp extensional/re-reg.hpp extensional/parse-reg.hpp extensional/flatzinc.hpp \
+	element.hh element/element.hpp match.hh match/match-dfa.hpp \
+	match/match-nfa.hpp match/post.hpp
+
+STRINGSRC	= $(STRINGSRC0:%=gecode/string/%)
+STRINGHDR	= gecode/string.hh $(STRINGHDR0:%=gecode/string/%)
+STRINGOBJ	= $(STRINGSRC:%.cpp=%$(OBJSUFFIX))
+
+ifeq "@enable_string_vars@" "yes"
+export STRINGDLL		= $(LIBPREFIX)@STRING@$(DLLSUFFIX)
+export STRINGSTATICLIB	= $(LIBPREFIX)@STRING@$(STATICLIBSUFFIX)
+export STRINGLIB		= $(LIBPREFIX)@STRING@$(LIBSUFFIX)
+export LINKSTRING	= $(LINKPREFIX)@STRING@$(LINKSUFFIX)
+ifeq "@need_soname@" "yes"
+export STRINGSONAME     = \
+	@WLSONAME@$(LIBPREFIX)@STRING@$(SOSUFFIX)
+else
+export STRINGSONAME     =
+endif
+ifeq "@enable_resource@" "yes"
+export STRINGRC		= $(LIBPREFIX)@STRING@$(RCSUFFIX)
+export STRINGRES		= $(LIBPREFIX)@STRING@$(RESSUFFIX)
+else
+export STRINGRES		=
+export STRINGRC		=
+endif
+else
+export STRINGDLL		=
+export STRINGSTATICLIB	=
+export STRINGLIB		=
+export LINKSTRING	=
+export STRINGRES		=
+export STRINGRC		=
+endif
+STRINGBUILDDIRS	= \
+	string string/var string/var-imp string/view string/branch string/dashed \
+	string/rel string/rel-op string/length string/char2code string/pow string/find \
+	string/channel string/gcc string/gconcat string/element string/substr \
+	string/extensional string/match
+
+#
 # SET COMPONENTS
 #
 
@@ -861,6 +924,14 @@ export FLATZINCCONFIG		= tools/flatzinc/gecode.msc
 endif
 FLATZINCEXE	= tools/flatzinc/fzn-gecode$(EXESUFFIX)
 FLATZINCLAUNCHER = tools/flatzinc/mzn-gecode@BATCHFILE@
+ifeq "@enable_string_vars@" "yes"
+FLATZINCDASHEDLAUNCHERS = \
+	tools/flatzinc/fzn-dashed \
+	tools/flatzinc/mzn-dashed \
+	tools/flatzinc/mzn2fzn-dashed
+else
+FLATZINCDASHEDLAUNCHERS =
+endif
 ifeq "@need_soname@" "yes"
 export FLATZINCSONAME = @WLSONAME@$(LIBPREFIX)@FLATZINC@$(SOSUFFIX)
 else
@@ -884,6 +955,7 @@ export FLATZINCRES		=
 export FLATZINCRC		=
 FLATZINCEXE	=
 FLATZINCLAUNCHER =
+FLATZINCDASHEDLAUNCHERS =
 endif
 
 #
@@ -948,10 +1020,19 @@ else
 SETEXAMPLEEXE  =
 endif
 
+STRINGEXAMPLESRC0 = \
+	string-palindrome
+STRINGEXAMPLESRC  = $(STRINGEXAMPLESRC0:%=examples/%.cpp)
+ifeq "@enable_string_vars@" "yes"
+STRINGEXAMPLEEXE  = $(STRINGEXAMPLESRC:%.cpp=%$(EXESUFFIX))
+else
+STRINGEXAMPLEEXE  =
+endif
+
 EXAMPLEBUILDDIRS = examples
 
 EXAMPLEEXE = \
-	$(INTEXAMPLEEXE) $(SETEXAMPLEEXE) $(FLOATEXAMPLEEXE) $(MPFRFLOATEXAMPLEEXE)
+	$(INTEXAMPLEEXE) $(SETEXAMPLEEXE) $(STRINGEXAMPLEEXE) $(FLOATEXAMPLEEXE) $(MPFRFLOATEXAMPLEEXE)
 
 
 #
@@ -1034,12 +1115,12 @@ THIRDHDR = \
 
 ALLSRC = \
 	$(SUPPORTSRC) $(KERNELSRC) $(SEARCHSRC) \
-        $(INTSRC) $(FLOATSRC) $(SETSRC) $(MMSRC) $(DRIVERSRC) \
-	$(INTEXAMPLESRC) $(SETEXAMPLESRC) $(FLOATEXAMPLESRC)  $(MPFRFLOATEXAMPLESRC) \
+        $(INTSRC) $(FLOATSRC) $(STRINGSRC) $(SETSRC) $(MMSRC) $(DRIVERSRC) \
+	$(INTEXAMPLESRC) $(SETEXAMPLESRC) $(STRINGEXAMPLESRC) $(FLOATEXAMPLESRC)  $(MPFRFLOATEXAMPLESRC) \
 	$(GISTSRC) $(FLATZINCALLSRC)
 ALLGECODEHDR = \
 	$(SUPPORTHDR) $(KERNELHDR) $(SEARCHHDR) \
-        $(INTHDR) $(FLOATHDR) $(SETHDR) $(MMHDR) \
+        $(INTHDR) $(FLOATHDR) $(STRINGHDR) $(SETHDR) $(MMHDR) \
 	$(DRIVERHDR) $(ITERHDR) $(GISTHDR) $(FLATZINCHDR) \
 	$(INTEXAMPLEHDR)
 ALLHDR = \
@@ -1061,10 +1142,10 @@ ALLSBJ  = $(ALLSBJ0:%.c=%$(SBJSUFFIX))
 
 ifeq "@BUILDDLL@" "yes"
 DLLTARGETS= \
-	$(SUPPORTDLL) $(KERNELDLL) $(SEARCHDLL) $(INTDLL) $(FLOATDLL) $(SETDLL) \
+	$(SUPPORTDLL) $(KERNELDLL) $(SEARCHDLL) $(INTDLL) $(FLOATDLL) $(STRINGDLL) $(SETDLL) \
 	$(MMDLL) $(DRIVERDLL) $(GISTDLL) $(FLATZINCDLL)
 export ALLLIB = \
-	$(SUPPORTLIB) $(KERNELLIB) $(SEARCHLIB) $(INTLIB) $(FLOATLIB) $(SETLIB) \
+	$(SUPPORTLIB) $(KERNELLIB) $(SEARCHLIB) $(INTLIB) $(FLOATLIB) $(STRINGLIB) $(SETLIB) \
 	$(MMLIB) $(DRIVERLIB) $(GISTLIB) $(FLATZINCLIB)
 else
 DLLTARGETS=
@@ -1073,7 +1154,7 @@ export ALLLIB = gecode.framework/Versions/@GECODE_SOVERSION@/gecode
 else
 export ALLLIB = \
 	$(SUPPORTSTATICLIB) $(KERNELSTATICLIB) $(SEARCHSTATICLIB) \
-	$(INTSTATICLIB) $(FLOATSTATICLIB) $(SETSTATICLIB) $(MMSTATICLIB) \
+	$(INTSTATICLIB) $(FLOATSTATICLIB) $(STRINGSTATICLIB) $(SETSTATICLIB) $(MMSTATICLIB) \
 	$(DRIVERSTATICLIB) $(GISTSTATICLIB) $(FLATZINCSTATICLIB)
 endif
 endif
@@ -1081,7 +1162,7 @@ endif
 ifeq "@BUILDSTATIC@" "yes"
 STATICTARGETS = \
 	$(SUPPORTSTATICLIB) $(KERNELSTATICLIB) $(SEARCHSTATICLIB) \
-	$(INTSTATICLIB) $(FLOATSTATICLIB) $(SETSTATICLIB) $(MMSTATICLIB) \
+	$(INTSTATICLIB) $(FLOATSTATICLIB) $(STRINGSTATICLIB) $(SETSTATICLIB) $(MMSTATICLIB) \
 	$(DRIVERSTATICLIB) $(GISTSTATICLIB) $(FLATZINCSTATICLIB)
 else
 STATICTARGETS=
@@ -1107,7 +1188,7 @@ LIBLIBTARGETS =
 PDBTARGETS =
 endif
 
-EXETARGETS = $(FLATZINCEXE) $(FLATZINCLAUNCHER)
+EXETARGETS = $(FLATZINCEXE) $(FLATZINCLAUNCHER) $(FLATZINCDASHEDLAUNCHERS)
 
 #
 # Testing
@@ -1131,6 +1212,16 @@ ifeq "@enable_float_vars@" "yes"
 FLOATTESTOBJ = $(FLOATTESTSRC0:%.cpp=%$(OBJSUFFIX))
 else
 FLOATTESTOBJ=
+endif
+
+STRINGTESTSRC00 = \
+	rel rel-op extensional predicates length channel gcc char2code element find \
+	char-at substring match replace
+STRINGTESTSRC0 = test/string.cpp $(STRINGTESTSRC00:%=test/string/%.cpp)
+ifeq "@enable_string_vars@" "yes"
+STRINGTESTOBJ = $(STRINGTESTSRC0:%.cpp=%$(OBJSUFFIX))
+else
+STRINGTESTOBJ=
 endif
 
 SETTESTSRC00 = \
@@ -1281,15 +1372,15 @@ TESTSRC0 = test/test.cpp test/afc.cpp test/ldsb.cpp test/region.cpp \
 # FailPoint is CMake-only; keep the Autoconf test executable fault-free.
 
 TESTSRC = \
-	$(TESTSRC0) $(INTTESTSRC0) $(SETTESTSRC0) $(FLOATTESTSRC0) \
+	$(TESTSRC0) $(INTTESTSRC0) $(SETTESTSRC0) $(FLOATTESTSRC0) $(STRINGTESTSRC0) \
 	$(BRANCHTESTSRC0) $(SEARCHTESTSRC0) \
 	$(ARRAYTESTSRC0) $(FLATZINCTESTSRC0) $(BLACKBOXSRC)
 
 TESTHDR0 = \
-	test.hh test.hpp int.hh int.hpp set.hh set.hpp float.hh float.hpp \
+	test.hh test.hpp int.hh int.hpp set.hh set.hpp float.hh float.hpp string.hh string.hpp \
 	branch.hh assign.hh flatzinc.hh
 TESTHDR = $(TESTHDR0:%=test/%)
-TESTOBJ	= $(INTTESTOBJ) $(SETTESTOBJ) $(FLOATTESTOBJ) \
+TESTOBJ	= $(INTTESTOBJ) $(SETTESTOBJ) $(FLOATTESTOBJ) $(STRINGTESTOBJ) \
 	$(FLATZINCTESTOBJ:%.cpp=%$(OBJSUFFIX)) \
 	$(BRANCHTESTSRC0:%.cpp=%$(OBJSUFFIX)) \
 	$(SEARCHTESTSRC0:%.cpp=%$(OBJSUFFIX)) \
@@ -1310,7 +1401,7 @@ BLACKBOXFIXTURES =
 endif
 
 TESTBUILDDIRS = \
-	test test/int test/set test/float \
+	test test/int test/set test/float test/string \
 	test/branch test/assign \
 	test/flatzinc
 
@@ -1318,7 +1409,7 @@ BUILDDIRS = \
 	tools \
 	$(SUPPORTBUILDDIRS:%=gecode/%) \
 	$(KERNELBUILDDIRS:%=gecode/%) $(SEARCHBUILDDIRS:%=gecode/%) \
-	$(INTBUILDDIRS:%=gecode/%) $(FLOATBUILDDIRS:%=gecode/%) $(SETBUILDDIRS:%=gecode/%) \
+	$(INTBUILDDIRS:%=gecode/%) $(FLOATBUILDDIRS:%=gecode/%) $(STRINGBUILDDIRS:%=gecode/%) $(SETBUILDDIRS:%=gecode/%) \
 	$(MMBUILDDIRS:%=gecode/%)  \
 	$(DRIVERBUILDDIRS:%=gecode/%)  \
 	$(GISTBUILDDIRS:%=gecode/%) \
@@ -1490,6 +1581,13 @@ gecode/float/%$(SBJSUFFIX): $(top_srcdir)/gecode/float/%.cpp
 	$(CXX) $(CXXFLAGS) $(MPFR_CPPFLAGS) @GECODE_BUILD_FLOAT_FLAG@ \
 	@COMPILESBJ@$@ @CXXIN@$<
 
+gecode/string/%$(OBJSUFFIX): $(top_srcdir)/gecode/string/%.cpp
+	$(CXX) $(CXXFLAGS) @GECODE_BUILD_STRING_FLAG@ \
+	@COMPILEOBJ@$@ @CXXIN@$<
+gecode/string/%$(SBJSUFFIX): $(top_srcdir)/gecode/string/%.cpp
+	$(CXX) $(CXXFLAGS) @GECODE_BUILD_STRING_FLAG@ \
+	@COMPILESBJ@$@ @CXXIN@$<
+
 gecode/set/%$(OBJSUFFIX): $(top_srcdir)/gecode/set/%.cpp
 	$(CXX) $(CXXFLAGS) @GECODE_BUILD_SET_FLAG@ \
 	@COMPILEOBJ@$@ @CXXIN@$<
@@ -1615,8 +1713,8 @@ export LINKALL = -F. -framework gecode
 else
 export LINKALL = \
 	$(LINKFLATZINC) $(LINKDRIVER) $(LINKGIST) \
-	$(LINKSEARCH) $(LINKMM) $(LINKSET) $(LINKFLOAT) $(LINKMPFR) $(LINKINT) \
-	$(LINKKERNEL) $(LINKSUPPORT) $(LINKATOMIC) $(LINKDL)
+	$(LINKSEARCH) $(LINKMM) $(LINKSET) $(LINKSTRING) $(LINKFLOAT) $(LINKMPFR) $(LINKINT) \
+	$(LINKKERNEL) $(LINKSUPPORT) $(LINKMM) $(LINKSET) $(LINKATOMIC) $(LINKDL)
 endif
 
 $(SUPPORTDLL): $(SUPPORTOBJ)
@@ -1648,15 +1746,21 @@ $(FLOATDLL): $(FLOATOBJ) $(SUPPORTDLL) $(KERNELDLL) $(INTDLL)
 		@LINKOUTPUT@$(FLOATDLL)
 	$(CREATELINK) $@ $(@:%$(DLLSUFFIX)=%$(SOLINKSUFFIX))
 	$(CREATELINK) $@ $(@:%$(DLLSUFFIX)=%$(SOSUFFIX))
+$(STRINGDLL): $(STRINGOBJ) $(SUPPORTDLL) $(KERNELDLL) $(INTDLL)
+	$(CXX) $(DLLFLAGS) $(STRINGOBJ) $(STRINGSONAME) \
+		@DLLPATH@ $(LINKSUPPORT) $(LINKKERNEL) $(LINKINT) \
+		@LINKOUTPUT@$(STRINGDLL)
+	$(CREATELINK) $@ $(@:%$(DLLSUFFIX)=%$(SOLINKSUFFIX))
+	$(CREATELINK) $@ $(@:%$(DLLSUFFIX)=%$(SOSUFFIX))
 $(SETDLL): $(SETOBJ) $(SUPPORTDLL) $(KERNELDLL) $(INTDLL)
 	$(CXX) $(DLLFLAGS) $(SETOBJ) $(SETSONAME) \
 		@DLLPATH@ $(LINKSUPPORT) $(LINKKERNEL) $(LINKINT) \
 		@LINKOUTPUT@$(SETDLL)
 	$(CREATELINK) $@ $(@:%$(DLLSUFFIX)=%$(SOLINKSUFFIX))
 	$(CREATELINK) $@ $(@:%$(DLLSUFFIX)=%$(SOSUFFIX))
-$(MMDLL): $(MMOBJ) $(SUPPORTDLL) $(KERNELDLL) $(INTDLL) $(SETDLL) $(FLOATDLL)
+$(MMDLL): $(MMOBJ) $(SUPPORTDLL) $(KERNELDLL) $(INTDLL) $(SETDLL) $(STRINGDLL) $(FLOATDLL)
 	$(CXX) $(DLLFLAGS) $(MMOBJ) $(MMSONAME) \
-		@DLLPATH@ $(LINKSUPPORT) $(LINKKERNEL) $(LINKINT) $(LINKFLOAT) $(LINKSET) \
+		@DLLPATH@ $(LINKSUPPORT) $(LINKKERNEL) $(LINKINT) $(LINKFLOAT) $(LINKSTRING) $(LINKSET) \
 		@LINKOUTPUT@$(MMDLL)
 	$(CREATELINK) $@ $(@:%$(DLLSUFFIX)=%$(SOLINKSUFFIX))
 	$(CREATELINK) $@ $(@:%$(DLLSUFFIX)=%$(SOSUFFIX))
@@ -1673,10 +1777,10 @@ $(GISTDLL): $(GISTOBJ) $(SUPPORTDLL) $(KERNELDLL) $(SEARCHDLL) $(INTDLL)
 	$(CREATELINK) $@ $(@:%$(DLLSUFFIX)=%$(SOLINKSUFFIX))
 	$(CREATELINK) $@ $(@:%$(DLLSUFFIX)=%$(SOSUFFIX))
 $(FLATZINCDLL): $(FLATZINCOBJ) $(SUPPORTDLL) $(KERNELDLL) $(SEARCHDLL) \
-	$(INTDLL) $(SETDLL) $(FLOATDLL) $(GISTDLL) $(MMDLL) $(DRIVERDLL)
+	$(INTDLL) $(SETDLL) $(STRINGDLL) $(FLOATDLL) $(GISTDLL) $(MMDLL) $(DRIVERDLL)
 	$(CXX) $(DLLFLAGS) $(FLATZINCOBJ) $(FLATZINCSONAME) \
 		@DLLPATH@ $(LINKSUPPORT) $(LINKKERNEL) $(LINKSEARCH) $(LINKINT) \
-		$(LINKSET) $(LINKFLOAT) $(LINKMM) $(LINKGIST) $(LINKDRIVER) $(LINKQT) \
+		$(LINKSET) $(LINKSTRING) $(LINKFLOAT) $(LINKMM) $(LINKGIST) $(LINKDRIVER) $(LINKQT) \
 		$(LINKDL) @LINKOUTPUT@$(FLATZINCDLL)
 	$(CREATELINK) $@ $(@:%$(DLLSUFFIX)=%$(SOLINKSUFFIX))
 	$(CREATELINK) $@ $(@:%$(DLLSUFFIX)=%$(SOSUFFIX))
@@ -1734,6 +1838,16 @@ $(FLOATDLL) $(FLOATLIB): $(FLOATOBJ) $(FLOATRES) $(SUPPORTDLL) $(KERNELDLL) $(IN
 	$(MANIFEST) -manifest $(FLOATDLL).manifest \
 		    -outputresource:$(FLOATDLL)\;2
 ifeq "@enable_resource@" "yes"
+$(STRINGRC):
+	$(RCGEN) $(STRINGDLL) $(STRINGHDR) $(STRINGSRC) > $@
+endif
+$(STRINGDLL) $(STRINGLIB): $(STRINGOBJ) $(STRINGRES) $(SUPPORTDLL) $(KERNELDLL) $(INTDLL)
+	$(CXX) $(DLLFLAGS) $(STRINGOBJ) $(STRINGRES) \
+		@DLLPATH@ @LINKOUTPUT@$(STRINGDLL) $(GLDFLAGS)
+	$(FIXMANIFEST) $(STRINGDLL).manifest
+	$(MANIFEST) -manifest $(STRINGDLL).manifest \
+		    -outputresource:$(STRINGDLL)\;2
+ifeq "@enable_resource@" "yes"
 $(SETRC):
 	$(RCGEN) $(SETDLL) $(SETHDR) $(SETSRC) > $@
 endif
@@ -1748,7 +1862,7 @@ $(MMRC):
 	$(RCGEN) $(MMDLL) $(MMHDR) $(MMSRC) > $@
 endif
 $(MMDLL) $(MMLIB): $(MMOBJ) $(MMRES) \
-	$(SUPPORTDLL) $(KERNELDLL) $(INTDLL) $(FLOATDLL) $(SETDLL)
+	$(SUPPORTDLL) $(KERNELDLL) $(INTDLL) $(FLOATDLL) $(STRINGDLL) $(SETDLL)
 	$(CXX) $(DLLFLAGS) $(MMOBJ) $(MMRES) \
 		@DLLPATH@ @LINKOUTPUT@$(MMDLL) $(GLDFLAGS)
 	$(FIXMANIFEST) $(MMDLL).manifest
@@ -1783,7 +1897,7 @@ $(FLATZINCRC):
 endif
 $(FLATZINCDLL) $(FLATZINCLIB): $(FLATZINCOBJ) $(FLATZINCRES) \
 	$(SUPPORTDLL) $(KERNELDLL) $(SEARCHDLL) $(INTDLL) \
-	$(SETDLL) $(FLOATDLL) $(GISTDLL) $(MMDLL) $(DRIVERDLL)
+	$(SETDLL) $(STRINGDLL) $(FLOATDLL) $(GISTDLL) $(MMDLL) $(DRIVERDLL)
 	$(CXX) $(DLLFLAGS) $(FLATZINCOBJ) $(FLATZINCRES) \
 		@DLLPATH@ @LINKOUTPUT@$(FLATZINCDLL) $(GLDFLAGS) $(LINKQT) $(LINKDL)
 	$(FIXMANIFEST) $(FLATZINCDLL).manifest
@@ -1809,6 +1923,9 @@ $(INTSTATICLIB): $(INTOBJ)
 	$(RANLIB) $@
 $(FLOATSTATICLIB): $(FLOATOBJ)
 	$(AR) $(ARFLAGS) $@ $(FLOATOBJ)
+	$(RANLIB) $@
+$(STRINGSTATICLIB): $(STRINGOBJ)
+	$(AR) $(ARFLAGS) $@ $(STRINGOBJ)
 	$(RANLIB) $@
 $(SETSTATICLIB): $(SETOBJ)
 	$(AR) $(ARFLAGS) $@ $(SETOBJ)

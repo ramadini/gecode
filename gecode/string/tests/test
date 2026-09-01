@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+TEST_DIR=$(cd "$(dirname "$0")" && pwd)
+ROOT_DIR=$(cd "$TEST_DIR/../../.." && pwd)
+SOURCE=$1
+shift
+BUILD_DIR=$(mktemp -d "${TMPDIR:-/tmp}/dashed-test.XXXXXX")
+trap 'rm -rf "$BUILD_DIR"' EXIT
+
+echo 'Compiling'
+time "${CXX:-g++}" -O0 -ggdb -pipe -Wall -Wno-switch -I"$ROOT_DIR" \
+  -std=c++11 -c -o "$BUILD_DIR/test.o" "$SOURCE"
+
+echo 'Linking'
+time "${CXX:-g++}" -o "$BUILD_DIR/test" "$BUILD_DIR/test.o" -std=c++11 \
+  -L"$ROOT_DIR" -Wl,-rpath,"$ROOT_DIR" \
+  -lgecodeflatzinc -lgecodestring -lgecodeint -lgecodeset -lgecodedriver -lgecodesearch \
+  -lgecodeminimodel -lgecodekernel -lgecodesupport -pthread
+
+echo 'Executing'
+export LD_LIBRARY_PATH="$ROOT_DIR${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+last_argument=
+if [[ $# -gt 0 ]]; then
+  last_argument=${@: -1}
+fi
+if [[ $last_argument == val ]]; then
+  time valgrind --gen-suppressions=yes --leak-check=full \
+    "$BUILD_DIR/test" "$@"
+else
+  time "$BUILD_DIR/test" "$@"
+fi

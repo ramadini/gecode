@@ -42,7 +42,7 @@ namespace Gecode { namespace Support {
    */
   template<class T, class A>
   class DynamicArray {
-  private:
+  protected:
     /// Memory allocator
     A& a;
     /// Size of array

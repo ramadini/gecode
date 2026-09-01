@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -eu
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)
+
+LD_LIBRARY_PATH="$ROOT_DIR${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
+  exec "$SCRIPT_DIR/fzn-gecode" -c-d 1 "$@"

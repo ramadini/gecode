@@ -117,6 +117,7 @@ option(GECODE_ENABLE_SEARCH "Build search module" ON)
 option(GECODE_ENABLE_INT_VARS "Build int variables module" ON)
 option(GECODE_ENABLE_SET_VARS "Build set variables module" ON)
 option(GECODE_ENABLE_FLOAT_VARS "Build float variables module" ON)
+option(GECODE_ENABLE_STRING_VARS "Build string variables module" ON)
 option(GECODE_ENABLE_MINIMODEL "Build minimodel module" ON)
 option(GECODE_ENABLE_DRIVER "Build driver module" ON)
 option(GECODE_ENABLE_FLATZINC "Build FlatZinc module" ON)
@@ -246,6 +247,9 @@ if(GECODE_ENABLE_SET_VARS)
 endif()
 if(GECODE_ENABLE_FLOAT_VARS)
   gecode_force_option_on(GECODE_ENABLE_INT_VARS "Float variables require int variables")
+endif()
+if(GECODE_ENABLE_STRING_VARS)
+  gecode_force_option_on(GECODE_ENABLE_INT_VARS "String variables require int variables")
 endif()
 if(GECODE_ENABLE_MINIMODEL)
   gecode_force_option_on(GECODE_ENABLE_SEARCH "Minimodel requires search")
@@ -676,6 +680,9 @@ endif()
 if(GECODE_ENABLE_FLOAT_VARS)
   set(GECODE_HAS_FLOAT_VARS "/**/")
 endif()
+if(GECODE_ENABLE_STRING_VARS)
+  set(GECODE_HAS_STRING_VARS "/**/")
+endif()
 if(GECODE_BUILD_STATIC)
   set(GECODE_STATIC_LIBS 1)
 endif()
@@ -833,6 +840,10 @@ endif()
 if(GECODE_ENABLE_FLOAT_VARS)
   list(APPEND GECODE_VIS_FILES
     gecode/float/var-imp/float.vis)
+endif()
+if(GECODE_ENABLE_STRING_VARS)
+  list(APPEND GECODE_VIS_FILES
+    gecode/string/var-imp/string.vis)
 endif()
 if(GECODE_WITH_VIS)
   string(REPLACE "," ";" _extra_vis "${GECODE_WITH_VIS}")
@@ -1106,6 +1117,9 @@ endif()
 if(GECODE_ENABLE_FLOAT_VARS)
   list(APPEND GECODE_LIBRARY_COMPONENTS float)
 endif()
+if(GECODE_ENABLE_STRING_VARS)
+  list(APPEND GECODE_LIBRARY_COMPONENTS string)
+endif()
 if(GECODE_ENABLE_MINIMODEL)
   list(APPEND GECODE_LIBRARY_COMPONENTS minimodel)
 endif()
@@ -1267,6 +1281,9 @@ if(GECODE_ENABLE_FLOAT_VARS)
     endforeach()
   endif()
 endif()
+if(GECODE_ENABLE_STRING_VARS)
+  gecode_link_component(string int kernel)
+endif()
 if(GECODE_ENABLE_MINIMODEL)
   set(mm_deps int search)
   if(GECODE_ENABLE_SET_VARS)
@@ -1328,7 +1345,7 @@ endif()
 
 # Compatibility aggregate target for downstream projects expecting Gecode::gecode.
 add_library(gecode INTERFACE)
-foreach(component IN ITEMS support kernel search int set float minimodel driver flatzinc gist)
+foreach(component IN ITEMS support kernel search int set float string minimodel driver flatzinc gist)
   if(TARGET gecode${component})
     target_link_libraries(gecode INTERFACE gecode${component})
   endif()
@@ -1351,6 +1368,33 @@ if(GECODE_ENABLE_FLATZINC)
       INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
   endif()
   list(APPEND GECODE_INSTALL_TARGETS fzn-gecode)
+  if(GECODE_ENABLE_STRING_VARS)
+    configure_file(${PROJECT_SOURCE_DIR}/tools/flatzinc/fzn-dashed.in
+                   ${PROJECT_BINARY_DIR}/tools/flatzinc/fzn-dashed
+                   @ONLY
+                   FILE_PERMISSIONS
+                     OWNER_READ OWNER_WRITE OWNER_EXECUTE
+                     GROUP_READ GROUP_EXECUTE
+                     WORLD_READ WORLD_EXECUTE)
+    configure_file(${PROJECT_SOURCE_DIR}/tools/flatzinc/mzn-dashed.in
+                   ${PROJECT_BINARY_DIR}/tools/flatzinc/mzn-dashed
+                   @ONLY
+                   FILE_PERMISSIONS
+                     OWNER_READ OWNER_WRITE OWNER_EXECUTE
+                     GROUP_READ GROUP_EXECUTE
+                     WORLD_READ WORLD_EXECUTE)
+    configure_file(${PROJECT_SOURCE_DIR}/tools/flatzinc/mzn2fzn-dashed.in
+                   ${PROJECT_BINARY_DIR}/tools/flatzinc/mzn2fzn-dashed
+                   @ONLY
+                   FILE_PERMISSIONS
+                     OWNER_READ OWNER_WRITE OWNER_EXECUTE
+                     GROUP_READ GROUP_EXECUTE
+                     WORLD_READ WORLD_EXECUTE)
+    set(DASHED_SCRIPTS
+      ${PROJECT_BINARY_DIR}/tools/flatzinc/fzn-dashed
+      ${PROJECT_BINARY_DIR}/tools/flatzinc/mzn-dashed
+      ${PROJECT_BINARY_DIR}/tools/flatzinc/mzn2fzn-dashed)
+  endif()
 endif()
 
 if(BUILD_TESTING)
@@ -1388,6 +1432,9 @@ if(BUILD_TESTING)
   if(NOT GECODE_ENABLE_FLOAT_VARS)
     list(FILTER GECODE_TEST_SOURCES_SELECTED EXCLUDE REGEX "^test/float(/|\\.cpp)")
   endif()
+  if(NOT GECODE_ENABLE_STRING_VARS)
+    list(FILTER GECODE_TEST_SOURCES_SELECTED EXCLUDE REGEX "^test/string(/|\\.cpp)")
+  endif()
   if(NOT GECODE_ENABLE_FLATZINC)
     list(FILTER GECODE_TEST_SOURCES_SELECTED EXCLUDE REGEX "^test/flatzinc(/|\\.cpp)")
   endif()
@@ -1397,6 +1444,9 @@ if(BUILD_TESTING)
     set(GECODE_TEST_LINK_LIBS gecodeminimodel)
     if(GECODE_ENABLE_FLATZINC)
       list(APPEND GECODE_TEST_LINK_LIBS gecodeflatzinc)
+    endif()
+    if(GECODE_ENABLE_STRING_VARS)
+      list(APPEND GECODE_TEST_LINK_LIBS gecodestring)
     endif()
     target_link_libraries(gecode-test PRIVATE ${GECODE_TEST_LINK_LIBS})
     if(GECODE_ENABLE_FAULT_INJECTION)
@@ -1620,6 +1670,9 @@ if(GECODE_INSTALL)
       install(FILES ${MZN_SCRIPT} DESTINATION ${CMAKE_INSTALL_BINDIR})
     else()
       install(PROGRAMS ${MZN_SCRIPT} DESTINATION ${CMAKE_INSTALL_BINDIR})
+      if(GECODE_ENABLE_STRING_VARS)
+        install(PROGRAMS ${DASHED_SCRIPTS} DESTINATION ${CMAKE_INSTALL_BINDIR})
+      endif()
     endif()
   endif()
 

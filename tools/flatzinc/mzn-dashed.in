@@ -1,0 +1,21 @@
+#!/bin/sh
+
+set -eu
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)
+datadir_spec="@GECODE_MZN_DATADIR_FROM_BINDIR@"
+case "$datadir_spec" in
+    /*) datadir="$datadir_spec" ;;
+    *)  datadir="$SCRIPT_DIR/$datadir_spec" ;;
+esac
+MZN_LIB="$datadir/minizinc/gecode"
+if [ ! -d "$MZN_LIB" ]; then
+    MZN_LIB="$ROOT_DIR/gecode/flatzinc/mznlib"
+fi
+if command -v minizinc >/dev/null 2>&1; then
+    MZN_CMD=minizinc
+else
+    MZN_CMD=mzn-fzn
+fi
+FLATZINC_CMD="$SCRIPT_DIR/fzn-dashed" "$MZN_CMD" -I "$MZN_LIB" "$@"

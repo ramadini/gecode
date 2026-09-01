@@ -1,0 +1,47 @@
+namespace Gecode { namespace String {
+
+  forceinline
+  Dom::Dom(Home home, StringView x, NSBlocks& d)
+    : UnaryPropagator<StringView, PC_STRING_DOM> (home, x),
+      dom(new DomDomain(d)) {
+    home.notice(*this, AP_DISPOSE);
+  }
+
+  forceinline
+  Dom::Dom(Space& home, Dom& p)
+    : UnaryPropagator<StringView, PC_STRING_DOM>(home, p), dom(p.dom) {}
+
+  ExecStatus
+  Dom::post(Home home, StringView x, NSBlocks& d) {
+    d.normalize();
+    (void) new (home) Dom(home, x, d);
+    return ES_OK;
+  }
+
+  Actor*
+  Dom::copy(Space& home) {
+    return new (home) Dom(home, *this);
+  }
+
+  ExecStatus
+  Dom::propagate(Space& home, const ModEventDelta&) {
+    // std::cerr<<"\nDom::propagate "<<x0<<" :: "<<*dom<<std::endl;
+    GECODE_ME_CHECK(x0.dom(home, *dom));
+    // std::cerr << "After equate: " << x0 << '\n';
+    if (x0.assigned() ||
+        (*dom).contains<DSBlock, DashedString>(x0.domain()))
+      return home.ES_SUBSUMED(*this);
+    assert (x0.domain().is_normalized());
+    // std::cerr<<"propagated: "<<x0<<" :: "<<*dom<<std::endl;
+    return ES_FIX;
+  }
+
+  forceinline size_t
+  Dom::dispose(Space& home) {
+    home.ignore(*this, AP_DISPOSE);
+    dom.~DomDomainHandle();
+    (void) UnaryPropagator<StringView, PC_STRING_DOM>::dispose(home);
+    return sizeof(*this);
+  }
+
+}}

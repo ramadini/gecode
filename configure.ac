@@ -260,6 +260,18 @@ AC_GECODE_VTI(set,
 	]
 	)
 
+AC_GECODE_VTI(string,
+	[finite string library (implies --enable-int-vars)],
+	yes,
+	[\$(top_srcdir)/gecode/string/var-imp/string.vis],
+	[enable_int_vars="yes";
+	 AC_SUBST(LINKSTRING,[${LINKLIBDIR}${LINKPREFIX}${STRING}${DLL_ARCH}${LINKSUFFIX}])
+	],
+	[
+	 AC_SUBST(LINKSTRING,[])
+	]
+	)
+
 AC_GECODE_VTI(int, finite domain library, yes,
 	[\$(top_srcdir)/gecode/int/var-imp/int.vis \$(top_srcdir)/gecode/int/var-imp/bool.vis],
 	[
@@ -409,6 +421,9 @@ if test "${gecode_host_os}" = "windows"; then
 else
   AC_SUBST(BATCHFILE, "")
   AC_CONFIG_FILES([tools/flatzinc/mzn-gecode:tools/flatzinc/mzn-gecode.in],[chmod +x tools/flatzinc/mzn-gecode])
+  AC_CONFIG_FILES([tools/flatzinc/fzn-dashed:tools/flatzinc/fzn-dashed.in],[chmod +x tools/flatzinc/fzn-dashed])
+  AC_CONFIG_FILES([tools/flatzinc/mzn-dashed:tools/flatzinc/mzn-dashed.in],[chmod +x tools/flatzinc/mzn-dashed])
+  AC_CONFIG_FILES([tools/flatzinc/mzn2fzn-dashed:tools/flatzinc/mzn2fzn-dashed.in],[chmod +x tools/flatzinc/mzn2fzn-dashed])
 fi
 gecode_config_prefix=${prefix}
 test "x${gecode_config_prefix}" = xNONE && gecode_config_prefix=${ac_default_prefix}

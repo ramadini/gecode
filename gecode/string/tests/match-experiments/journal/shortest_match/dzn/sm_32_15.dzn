@@ -1,0 +1,19 @@
+L = 32;
+N = 15;
+PATTERNS = [
+	"(b|X|G|w)",
+	"(b|u|J|k|Q)*",
+	"(L|B|B|f)*",
+	"l(L|0|D|2|L|p)",
+	"L(S|G|N|K|x|o)*",
+	"(l|a|A|D|8|c)L",
+	"(b|M|n|r|W|d)",
+	"bl(L|F)*",
+	"S(Z9|Q8|C7|cw)*0S",
+	"(S|V|C)*",
+	"(0|c|u|h|r|A)*",
+	"90SQC(jo|pP|Zt|rC|83|bO)O",
+	"(O|C)*",
+	"(S|p|n|s|x|l)",
+	"(0|t|p|T|W)*S",
+]

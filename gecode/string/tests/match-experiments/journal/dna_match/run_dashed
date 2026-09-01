@@ -1,0 +1,103 @@
+#! /bin/bash
+
+EXP_PATH=$HOME/Dashed/gecode/gecode/string/tests/match-experiments/journal/dna_match
+
+# Time-out in seconds for constraint solving.
+TIMEOUT=300
+
+# Errors log file.
+ERRORS=$EXP_PATH'/errors_dashed_dna.log'
+
+# Output log file.
+OUTPUT=$EXP_PATH'/output_dashed_dna.log'
+
+# Output log file.
+RESULTS=$EXP_PATH'/results_dashed_dna.log'
+
+# Auxiliary files
+ERR=$EXP_PATH'/tmp.err'
+OUT=$EXP_PATH'/tmp.out'
+TMP=$EXP_PATH'/tmp.tmp'
+FZN=$EXP_PATH'/tmp.fzn'
+echo '' > $ERR
+echo '' > $OUT
+echo '' > $TMP
+echo '' > $FZN
+
+for solver in 'Dashed_new' 'Dashed_ori'
+do
+  mzn=$EXP_PATH/dna.mzn
+  for dzn in `ls $EXP_PATH/dzn/*.dzn | sort -n`
+  do
+    header="$solver|$dzn"
+    echo $header >> $ERRORS
+    echo $header >> $OUTPUT
+#    if
+#      [[ "$solver" == 'Dashed_dec' ]]
+#    then
+#      mzn=$EXP_PATH'/shortest_match_dec.mzn'
+    if
+      [[ "$solver" == 'Dashed_new' ]]
+    then
+      D=true
+    else
+      D=false
+    fi
+    echo "Converting MiniZinc model to FlatZinc..."
+    echo "mzn2fzn-dashed -D"newM=$D" $mzn $dzn -o $FZN"
+    mzn2fzn-dashed -D"newM=$D" $mzn $dzn -o $FZN
+    echo "Solving FlatZinc instance..."
+
+    start=`awk 'BEGIN {print systime()}'`
+    time -p (unbuffer timeout $TIMEOUT fzn-dashed -decomp-regex 0 -a $FZN 2>$ERR | gawk -v s=$start \
+    '{print $0, (systime() - s)}' 1>$OUT) 2>$TMP
+    ret=$?
+    ini_time=0 # Here one can put fzn time...
+    tot_time=`cat $TMP | awk -v it=$ini_time 'NR == 1 {print $2 - it}'`
+    cat $OUT | grep 'obj = ' | awk '{print $3, $4}' | sed 's/;//g' | sed 's/ /_,_/g' > $TMP
+    vals='{'
+    for i in `cat $TMP`
+    do
+      key=`echo $i | awk -F"_,_" '{print $1}'`
+      value=`echo $i | awk -v it=$ini_time -F"_,_" '{print $2 - it}'`
+      vals=$vals''$key': '$value', '
+    done
+    if
+      [ "$vals" == '{' ]
+    then
+      val='nan'
+    else
+      val=$key
+    fi
+    vals=$vals'}'
+
+    if
+      [[ -n "`grep =====UNKNOWN===== $OUT`" ]]
+    then
+      s='unk'
+    elif
+      [[ -n "`grep "\----------" $OUT`" ]]
+    then
+      if
+        [[ -n "`grep ========== $OUT`"  ]]
+      then
+        s='opt'
+      else
+        s='sat'
+      fi
+    elif
+      [[ -n "`grep =====UNSATISFIABLE===== $OUT`" ]]
+    then
+      s='uns'
+    else
+      s='unk'
+    fi
+
+    cat $ERR >> $ERRORS
+    cat $OUT >> $OUTPUT
+    echo $header'|'$s'|'$val'|'$vals'|'$tot_time >> $RESULTS
+    cp $RESULTS ~/Dropbox
+  done
+done
+
+rm $OUT $ERR $TMP $FZN

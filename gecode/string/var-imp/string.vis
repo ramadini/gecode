@@ -1,0 +1,59 @@
+[General]
+Name:           String
+Namespace:      Gecode::String
+Ifdef:          GECODE_HAS_STRING_VARS
+Bits:           0
+Dispose:        false
+
+[ModEventHeader]
+  /**
+   * \defgroup TaskActorStringMEPC String modification events and propagation conditions
+   * \ingroup TaskActorString
+   */
+  //@{
+
+[ModEvent]
+Name:           FAILED=FAILED
+#        <text to precede definition, optional>
+
+[ModEvent]
+Name:           NONE=NONE
+#        <text to precede definition, optional>
+
+[ModEvent]
+Name:           VAL=ASSIGNED
+Combine:        VAL=VAL, LEN=VAL, DOM=VAL
+
+[ModEvent]
+Name:           LEN
+# Keep queued full-domain propagators in place when both events are pending.
+Combine:        VAL=VAL, LEN=LEN, DOM=DOM
+  /// Domain operation has changed the minimum or maximum string length
+
+[ModEvent]
+Name:           DOM=SUBSCRIBE
+Combine:        VAL=VAL, LEN=DOM, DOM=DOM
+
+[ModEventFooter]
+
+
+[PropCondHeader]
+[PropCond]
+Name:           NONE=NONE
+
+[PropCond]
+Name:           VAL=ASSIGNED
+ScheduledBy:    VAL
+
+[PropCond]
+Name:           LEN
+ScheduledBy:    VAL, LEN
+  /// Propagate when the minimum or maximum string length changes
+
+[PropCond]
+Name:           DOM
+ScheduledBy:    VAL, LEN, DOM
+
+[PropCondFooter]
+  //@}
+[End]

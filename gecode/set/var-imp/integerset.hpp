@@ -137,7 +137,7 @@ namespace Gecode { namespace Set {
   }
 
   forceinline void
-  BndSet::update(Space& home, BndSet& d) {
+  BndSet::update(Space& home, const BndSet& d) {
     if (d.fst() == fst())
       return;
     if (fst() != nullptr)
@@ -419,4 +419,3 @@ namespace Gecode { namespace Set {
 }}
 
 // STATISTICS: set-var
-

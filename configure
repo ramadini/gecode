@@ -696,6 +696,8 @@ GMP_LIB_PATH
 GMP_CPPFLAGS
 enable_int_vars
 LINKINT
+enable_string_vars
+LINKSTRING
 enable_set_vars
 LINKSET
 enable_float_vars
@@ -710,6 +712,7 @@ FLATZINC
 GIST
 MM
 SET
+STRING
 FLOAT
 INT
 SEARCH
@@ -738,6 +741,7 @@ GECODE_BUILD_FLATZINC_FLAG
 GECODE_BUILD_GIST_FLAG
 GECODE_BUILD_MINIMODEL_FLAG
 GECODE_BUILD_SET_FLAG
+GECODE_BUILD_STRING_FLAG
 GECODE_BUILD_FLOAT_FLAG
 GECODE_BUILD_INT_FLAG
 GECODE_BUILD_SEARCH_FLAG
@@ -851,6 +855,7 @@ enable_doc_tagfile
 with_vis
 enable_float_vars
 enable_set_vars
+enable_string_vars
 enable_int_vars
 enable_mpfr
 with_gmp_include
@@ -1526,6 +1531,8 @@ Optional Features:
                           --enable-int-vars) [default=yes]
   --enable-set-vars       build finite set library (implies --enable-int-vars)
                           [default=yes]
+  --enable-string-vars    build finite string library (implies
+                          --enable-int-vars) [default=yes]
   --enable-int-vars       build finite domain library [default=yes]
   --enable-mpfr           build with MPFR support [default=yes]
   --enable-qt             build with Qt support, requires Qt 5.15 or newer
@@ -7591,6 +7598,8 @@ gnu)
 
    GECODE_BUILD_FLOAT_FLAG=""
 
+   GECODE_BUILD_STRING_FLAG=""
+
    GECODE_BUILD_SET_FLAG=""
 
    GECODE_BUILD_MINIMODEL_FLAG=""
@@ -7635,6 +7644,8 @@ gnu)
 
    GECODE_BUILD_FLOAT_FLAG="-DGECODE_BUILD_FLOAT"
 
+   GECODE_BUILD_STRING_FLAG="-DGECODE_BUILD_STRING"
+
    GECODE_BUILD_SET_FLAG="-DGECODE_BUILD_SET"
 
    GECODE_BUILD_MINIMODEL_FLAG="-DGECODE_BUILD_MINIMODEL"
@@ -7669,6 +7680,8 @@ gnu)
    GECODE_BUILD_INT_FLAG=""
 
    GECODE_BUILD_FLOAT_FLAG=""
+
+   GECODE_BUILD_STRING_FLAG=""
 
    GECODE_BUILD_SET_FLAG=""
 
@@ -8884,6 +8897,8 @@ fi
   INT="int"
 
   FLOAT="float"
+
+  STRING="string"
 
   SET="set"
 
@@ -10605,6 +10620,8 @@ fi
 
    GECODE_BUILD_FLOAT_FLAG="-DGECODE_BUILD_FLOAT"
 
+   GECODE_BUILD_STRING_FLAG="-DGECODE_BUILD_STRING"
+
    GECODE_BUILD_SET_FLAG="-DGECODE_BUILD_SET"
 
    GECODE_BUILD_MINIMODEL_FLAG="-DGECODE_BUILD_MINIMODEL"
@@ -10642,6 +10659,8 @@ fi
   INT="Int"
 
   FLOAT="Float"
+
+  STRING="String"
 
   SET="Set"
 
@@ -10772,6 +10791,8 @@ printf "%s\n" "no" >&6; }
 
    GECODE_BUILD_FLOAT_FLAG=""
 
+   GECODE_BUILD_STRING_FLAG=""
+
    GECODE_BUILD_SET_FLAG=""
 
    GECODE_BUILD_MINIMODEL_FLAG=""
@@ -10816,6 +10837,8 @@ printf "%s\n" "no" >&6; }
 
    GECODE_BUILD_FLOAT_FLAG="-DGECODE_BUILD_FLOAT"
 
+   GECODE_BUILD_STRING_FLAG="-DGECODE_BUILD_STRING"
+
    GECODE_BUILD_SET_FLAG="-DGECODE_BUILD_SET"
 
    GECODE_BUILD_MINIMODEL_FLAG="-DGECODE_BUILD_MINIMODEL"
@@ -10850,6 +10873,8 @@ printf "%s\n" "no" >&6; }
    GECODE_BUILD_INT_FLAG=""
 
    GECODE_BUILD_FLOAT_FLAG=""
+
+   GECODE_BUILD_STRING_FLAG=""
 
    GECODE_BUILD_SET_FLAG=""
 
@@ -12066,6 +12091,8 @@ fi
 
   FLOAT="float"
 
+  STRING="string"
+
   SET="set"
 
   MM="minimodel"
@@ -12868,6 +12895,8 @@ fi
 
    GECODE_BUILD_FLOAT_FLAG="-DGECODE_BUILD_FLOAT"
 
+   GECODE_BUILD_STRING_FLAG="-DGECODE_BUILD_STRING"
+
    GECODE_BUILD_SET_FLAG="-DGECODE_BUILD_SET"
 
    GECODE_BUILD_MINIMODEL_FLAG="-DGECODE_BUILD_MINIMODEL"
@@ -12905,6 +12934,8 @@ fi
   INT="Int"
 
   FLOAT="Float"
+
+  STRING="String"
 
   SET="Set"
 
@@ -13199,6 +13230,40 @@ printf "%s\n" "#define GECODE_HAS_SET_VARS /**/" >>confdefs.h
 printf "%s\n" "no" >&6; }
    fi
    enable_set_vars=${enable_set_vars}
+
+
+
+
+   # Check whether --enable-string-vars was given.
+if test ${enable_string_vars+y}
+then :
+  enableval=$enable_string_vars;
+fi
+
+   ac_gecode_vis="\$(top_srcdir)/gecode/string/var-imp/string.vis${ac_gecode_vis:+ }${ac_gecode_vis}"
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether to build the string variables library" >&5
+printf %s "checking whether to build the string variables library... " >&6; }
+   if test "${enable_string_vars:-yes}" = "yes"; then
+     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+     enable_string_vars="yes";
+     enable_int_vars="yes";
+	 LINKSTRING=${LINKLIBDIR}${LINKPREFIX}${STRING}${DLL_ARCH}${LINKSUFFIX}
+
+
+
+printf "%s\n" "#define GECODE_HAS_STRING_VARS /**/" >>confdefs.h
+
+   else
+     enable_string_vars="no";
+
+
+
+
+     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+   fi
+   enable_string_vars=${enable_string_vars}
 
 
 
@@ -14832,6 +14897,12 @@ else
 
   ac_config_files="$ac_config_files tools/flatzinc/mzn-gecode:tools/flatzinc/mzn-gecode.in"
 
+  ac_config_files="$ac_config_files tools/flatzinc/fzn-dashed:tools/flatzinc/fzn-dashed.in"
+
+  ac_config_files="$ac_config_files tools/flatzinc/mzn-dashed:tools/flatzinc/mzn-dashed.in"
+
+  ac_config_files="$ac_config_files tools/flatzinc/mzn2fzn-dashed:tools/flatzinc/mzn2fzn-dashed.in"
+
 fi
 gecode_config_prefix=${prefix}
 test "x${gecode_config_prefix}" = xNONE && gecode_config_prefix=${ac_default_prefix}
@@ -15625,6 +15696,9 @@ do
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "tools/flatzinc/mzn-gecode.bat") CONFIG_FILES="$CONFIG_FILES tools/flatzinc/mzn-gecode.bat:tools/flatzinc/mzn-gecode.bat.in" ;;
     "tools/flatzinc/mzn-gecode") CONFIG_FILES="$CONFIG_FILES tools/flatzinc/mzn-gecode:tools/flatzinc/mzn-gecode.in" ;;
+    "tools/flatzinc/fzn-dashed") CONFIG_FILES="$CONFIG_FILES tools/flatzinc/fzn-dashed:tools/flatzinc/fzn-dashed.in" ;;
+    "tools/flatzinc/mzn-dashed") CONFIG_FILES="$CONFIG_FILES tools/flatzinc/mzn-dashed:tools/flatzinc/mzn-dashed.in" ;;
+    "tools/flatzinc/mzn2fzn-dashed") CONFIG_FILES="$CONFIG_FILES tools/flatzinc/mzn2fzn-dashed:tools/flatzinc/mzn2fzn-dashed.in" ;;
     "tools/flatzinc/gecode.msc") CONFIG_FILES="$CONFIG_FILES tools/flatzinc/gecode.msc:tools/flatzinc/gecode.msc.in" ;;
     "tools/flatzinc/gecode-gist.msc") CONFIG_FILES="$CONFIG_FILES tools/flatzinc/gecode-gist.msc:tools/flatzinc/gecode-gist.msc.in" ;;
     "doxygen.conf") CONFIG_FILES="$CONFIG_FILES doxygen.conf:doxygen/doxygen.conf.in" ;;
@@ -16178,6 +16252,9 @@ printf "%s\n" "$as_me: $ac_file is unchanged" >&6;}
   case $ac_file$ac_mode in
     "tools/flatzinc/mzn-gecode.bat":F) chmod +x tools/flatzinc/mzn-gecode.bat ;;
     "tools/flatzinc/mzn-gecode":F) chmod +x tools/flatzinc/mzn-gecode ;;
+    "tools/flatzinc/fzn-dashed":F) chmod +x tools/flatzinc/fzn-dashed ;;
+    "tools/flatzinc/mzn-dashed":F) chmod +x tools/flatzinc/mzn-dashed ;;
+    "tools/flatzinc/mzn2fzn-dashed":F) chmod +x tools/flatzinc/mzn2fzn-dashed ;;
 
   esac
 done # for ac_tag

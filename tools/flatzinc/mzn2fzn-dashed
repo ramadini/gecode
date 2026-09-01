@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -eu
+
+if command -v minizinc >/dev/null 2>&1; then
+  exec minizinc --compile "$@"
+fi
+
+exec mzn-fzn "$@"

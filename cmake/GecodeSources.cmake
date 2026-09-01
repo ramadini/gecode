@@ -192,6 +192,28 @@ set(GECODE_FLOAT_SOURCES
   gecode/float/var/float.cpp
 )
 
+set(GECODE_STRING_SOURCES
+  gecode/string/array.cpp
+  gecode/string/branch.cpp
+  gecode/string/channel.cpp
+  gecode/string/char2code.cpp
+  gecode/string/dashed/dashed-string.cpp
+  gecode/string/element.cpp
+  gecode/string/exception.cpp
+  gecode/string/extensional.cpp
+  gecode/string/find.cpp
+  gecode/string/gcc.cpp
+  gecode/string/gconcat.cpp
+  gecode/string/length.cpp
+  gecode/string/match.cpp
+  gecode/string/pow.cpp
+  gecode/string/rel.cpp
+  gecode/string/rel-op.cpp
+  gecode/string/substr.cpp
+  gecode/string/var-imp/string.cpp
+  gecode/string/var/string.cpp
+)
+
 set(GECODE_MINIMODEL_SOURCES
   gecode/minimodel/bool-expr.cpp
   gecode/minimodel/dom.cpp
@@ -427,6 +449,21 @@ set(GECODE_TEST_SOURCES
   test/set/rel-op.cpp
   test/set/rel.cpp
   test/set/sequence.cpp
+  test/string.cpp
+  test/string/channel.cpp
+  test/string/char2code.cpp
+  test/string/char-at.cpp
+  test/string/element.cpp
+  test/string/extensional.cpp
+  test/string/find.cpp
+  test/string/gcc.cpp
+  test/string/length.cpp
+  test/string/match.cpp
+  test/string/predicates.cpp
+  test/string/rel.cpp
+  test/string/rel-op.cpp
+  test/string/replace.cpp
+  test/string/substring.cpp
   test/test.cpp
 )
 
