@@ -4,6 +4,58 @@
 
 namespace Gecode {
 
+  namespace {
+
+    void
+    post_native_regex(Home home, StringVar x, const String::RegEx& expression) {
+      if (expression.empty()) {
+        rel(home, x, STRT_EQ, StringVar(home, ""));
+        return;
+      }
+      const String::InterEx* intersection =
+        dynamic_cast<const String::InterEx*>(&expression);
+      if (intersection != nullptr) {
+        post_native_regex(home, x, intersection->left());
+        post_native_regex(home, x, intersection->right());
+        return;
+      }
+      extensional(home, x, expression.dfa());
+    }
+
+    void
+    post_native_regex(Home home, StringVar x, const String::RegEx& expression,
+                      BoolVar b, ReifyMode rm) {
+      if (expression.empty()) {
+        rel(home, x, STRT_EQ, StringVar(home, ""), Reify(b, rm));
+        return;
+      }
+      const String::InterEx* intersection =
+        dynamic_cast<const String::InterEx*>(&expression);
+      if (intersection == nullptr) {
+        extensional(home, x, expression.dfa(), b, rm);
+        return;
+      }
+
+      BoolVar left(home, 0, 1);
+      BoolVar right(home, 0, 1);
+      BoolVar conjunction(home, 0, 1);
+      post_native_regex(home, x, intersection->left(), left, RM_EQV);
+      post_native_regex(home, x, intersection->right(), right, RM_EQV);
+      rel(home, left, BOT_AND, right, conjunction);
+      switch (rm) {
+        case RM_IMP:
+          rel(home, b, IRT_LQ, conjunction);
+          break;
+        case RM_PMI:
+          rel(home, conjunction, IRT_LQ, b);
+          break;
+        default:
+          rel(home, conjunction, IRT_EQ, b);
+      }
+    }
+
+  }
+
   void
   extensional(Home home, StringVar x, String::RegEx* r) {
     if (Gecode::String::DashedString::_DECOMP_REGEX) {
@@ -11,7 +63,7 @@ namespace Gecode {
       r->post(home, x, v);
     }
     else
-      extensional(home, x, r->dfa());
+      post_native_regex(home, x, *r);
   }
 
   void
@@ -20,7 +72,7 @@ namespace Gecode {
     if (Gecode::String::DashedString::_DECOMP_REGEX)
       r->post(home, x, v);
     else
-      extensional(home, x, r->dfa());
+      post_native_regex(home, x, *r);
   }
 
   void
@@ -38,7 +90,7 @@ namespace Gecode {
       r->post(home, x, v);
     }
     else
-      extensional(home, x, r->dfa());
+      post_native_regex(home, x, *r);
   }
 
   void
@@ -71,12 +123,7 @@ namespace Gecode {
     // std::cerr << "Dec: " << r->decomp() << '\n';
     // std::cerr << "DECOMP:" << Gecode::String::DashedString::_DECOMP_REGEX << '\n';
     // std::cerr << "Intro: " << r->intro_vars() << '\n';
-    try {
-      extensional(home, x, r->dfa(), b, rm);
-    }
-    catch (int) {
-      std::cerr << "Ignoring regex!\n";
-    }
+    post_native_regex(home, x, *r, b, rm);
   }
 
   void

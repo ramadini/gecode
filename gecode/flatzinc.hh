@@ -274,6 +274,10 @@ namespace Gecode { namespace FlatZinc {
       Gecode::Driver::BoolOption        _stat;       ///< Emit statistics
       Gecode::Driver::StringValueOption _output;     ///< Output file
 
+#ifdef GECODE_HAS_STRING_VARS
+      Gecode::Driver::BoolOption _decomp_regex; ///< Decompose regular expressions
+#endif
+
 #ifdef GECODE_HAS_CPPROFILER
       Gecode::Driver::ProfilerOption    _profiler; ///< Use this execution id for the CP-profiler
 #endif
@@ -289,7 +293,7 @@ namespace Gecode { namespace FlatZinc {
                Gecode::Search::Config::threads),
       _free("f", "free search, no need to follow search-specification"),
       _decay("decay","decay factor",0.99),
-      _c_d("c-d","recomputation commit distance",Gecode::Search::Config::c_d),
+      _c_d("c-d","recomputation commit distance",1),
       _a_d("a-d","recomputation adaption distance",Gecode::Search::Config::a_d),
       _node("node","node cutoff (0 = none, solution mode)"),
       _fail("fail","failure cutoff (0 = none, solution mode)"),
@@ -309,6 +313,11 @@ namespace Gecode { namespace FlatZinc {
       _mode("mode","how to execute script",Gecode::SM_SOLUTION),
       _stat("s","emit statistics"),
       _output("o","file to send output to")
+
+#ifdef GECODE_HAS_STRING_VARS
+      ,
+      _decomp_regex("decomp-regex", "decompose regular expressions", true)
+#endif
 
 #ifdef GECODE_HAS_CPPROFILER
       ,
@@ -335,6 +344,9 @@ namespace Gecode { namespace FlatZinc {
       add(_nogoods); add(_nogoods_limit);
       add(_mode); add(_stat);
       add(_output);
+#ifdef GECODE_HAS_STRING_VARS
+      add(_decomp_regex);
+#endif
 #ifdef GECODE_HAS_CPPROFILER
       add(_profiler);
 #endif
@@ -350,6 +362,9 @@ namespace Gecode { namespace FlatZinc {
       }
       if (_stat.value() && (_mode.value() == Gecode::SM_SOLUTION))
         _mode.value(Gecode::SM_STAT);
+#ifdef GECODE_HAS_STRING_VARS
+      Gecode::String::DashedString::_DECOMP_REGEX = _decomp_regex.value();
+#endif
     }
 
     virtual void help(void) {

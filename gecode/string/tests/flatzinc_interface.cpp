@@ -54,6 +54,7 @@ satisfiable(const std::string& model) {
 
 int
 main(void) {
+  assert(String::DashedString::_DECOMP_REGEX);
   assert(solve(
     "var string: text :: output_var;\n"
     "constraint str_eq(text, \"b\");\n"
@@ -142,6 +143,18 @@ main(void) {
     "var string: text = \"\";\n"
     "constraint str_alphabet(text, {});\n"
     "solve satisfy;\n"));
+
+  String::DashedString::_DECOMP_REGEX = false;
+  assert(satisfiable(
+    "constraint str_reg(\"b\", \"[a-c]&[b-d]\");\n"
+    "constraint str_reg_reif(\"b\", \"[a-c]&[b-d]\", true);\n"
+    "constraint str_reg_reif(\"a\", \"[a-c]&[b-d]\", false);\n"
+    "solve satisfy;\n"));
+
+  assert(!satisfiable(
+    "constraint str_reg(\"a\", \"[a-c]&[b-d]\");\n"
+    "solve satisfy;\n"));
+  String::DashedString::_DECOMP_REGEX = true;
 
   assert(satisfiable(
     "array [1..2] of int: transitions = [2, 0];\n"
