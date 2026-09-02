@@ -653,6 +653,7 @@ GECODE_MSC_MZNLIB_FROM_SOLVERDIR
 GECODE_MZN_DATADIR_FROM_BINDIR_WIN
 GECODE_MZN_DATADIR_FROM_BINDIR
 BATCHFILE
+DASHED_SOURCE_ASSET_DIR
 DLL_ARCH
 ALLVIS
 GLDFLAGS
@@ -14750,6 +14751,13 @@ printf "%s\n" "no" >&6; }
      fi
         enable_flatzinc=${enable_flatzinc}
 
+if test "${enable_flatzinc}" = "yes" &&
+       test "${enable_string_vars}" != "yes"
+then :
+
+  as_fn_error $? "FlatZinc requires the string variables library" "$LINENO" 5
+
+fi
 
 
      # Check whether --enable-driver was given.
@@ -14884,6 +14892,9 @@ else
   DLL_ARCH=""
 
 fi
+
+DASHED_SOURCE_ASSET_DIR="$(cd "$srcdir" && pwd)/tools/flatzinc"
+
 
 ac_config_files="$ac_config_files Makefile"
 

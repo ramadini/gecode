@@ -1,21 +1,116 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 set -eu
 
+# Two-stage driver: mzn2fzn-dashed (historical precompiled MiniZinc-to-
+# FlatZinc converter, with native `var string`/`var string(N)`/`var string
+# of {...}` support) compiles the model to FlatZinc, then fzn-dashed
+# (fzn-gecode) solves it.
+#
+# Unlike the old `mzn-gstrings` script (which just forwarded "$@" to the
+# compile stage and never passed solve-time options such as -a/-f/-s/-n to
+# the solve stage), every option given to this script is classified and
+# routed to whichever stage(s) understand it:
+#  - options recognized by mzn2fzn-dashed (the compile stage) are sent there;
+#  - every other option (including all fzn-gecode/fzn-dashed solve-time
+#    flags like -a, -f, -s, -n, -p, -restart, ...) is forwarded to the solve
+#    stage, fzn-dashed.
+# Statistics are sent to both stages (`--statistics` is translated to `-s`
+# for fzn-gecode). Compiler verbosity options remain compiler-only.
+# Compiler actions such as --version and --model-check-only stop after the
+# compile stage because they intentionally produce no FlatZinc to solve.
+
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)
-datadir_spec="../share"
-case "$datadir_spec" in
-    /*) datadir="$datadir_spec" ;;
-    *)  datadir="$SCRIPT_DIR/$datadir_spec" ;;
-esac
-MZN_LIB="$datadir/minizinc/gecode"
-if [ ! -d "$MZN_LIB" ]; then
-    MZN_LIB="$ROOT_DIR/gecode/flatzinc/mznlib"
+MZN2FZN="$SCRIPT_DIR/mzn2fzn-dashed"
+FZN_DASHED="$SCRIPT_DIR/fzn-dashed"
+
+FZN_FILE=$(mktemp "${TMPDIR:-/tmp}/mzn-dashed.XXXXXX.fzn")
+trap 'rm -f "$FZN_FILE"' EXIT INT TERM
+
+# Compile-stage-only options of mzn2fzn-str (see `mzn2fzn-str --help`),
+# together with the count of arguments they consume (0 = flag, 1 = flag
+# plus one value).
+compile_only_flag() {
+    case "$1" in
+        --ignore-stdlib|--no-optimize|--only-range-domains|\
+        --no-output-ozn|-O-|--output-to-stdout|--output-fzn-to-stdout|\
+        --output-ozn-to-stdout|-Werror)
+            return 0 ;;
+        *) return 1 ;;
+    esac
+}
+compile_action_flag() {
+    case "$1" in
+        --instance-check-only|-e|--model-check-only|--model-interface-only|\
+        --version|--help|-h)
+            return 0 ;;
+        *) return 1 ;;
+    esac
+}
+compile_only_opt_with_arg() {
+    case "$1" in
+        -d|--data|-D|--cmdline-data|--stdlib-dir|-G|--globals-dir|\
+        --mzn-globals-dir|-I|--search-dir|--output-base|-o|--fzn|\
+        --output-to-file|--output-fzn-to-file|-O|--ozn|\
+        --output-ozn-to-file|--output-mode)
+            return 0 ;;
+        *) return 1 ;;
+    esac
+}
+compile_args=()
+solve_args=()
+model_args=()
+compile_action=false
+
+while [ $# -gt 0 ]; do
+    arg="$1"
+    case "$arg" in
+        *.mzn|*.dzn|*.fzn)
+            model_args+=("$arg")
+            shift
+            ;;
+        *)
+            if compile_action_flag "$arg"; then
+                compile_args+=("$arg")
+                compile_action=true
+                shift
+            elif compile_only_flag "$arg"; then
+                compile_args+=("$arg")
+                shift
+            elif compile_only_opt_with_arg "$arg"; then
+                compile_args+=("$arg")
+                shift
+                if [ $# -eq 0 ]; then
+                    echo "mzn-dashed: option $arg requires an argument" >&2
+                    exit 2
+                fi
+                compile_args+=("$1")
+                shift
+            elif [ "$arg" = "-s" ]; then
+                compile_args+=("$arg")
+                solve_args+=("$arg")
+                shift
+            elif [ "$arg" = "--statistics" ]; then
+                compile_args+=("$arg")
+                solve_args+=("-s")
+                shift
+            elif [[ "$arg" = "-v" || "$arg" = "-l" ||
+                    "$arg" = "--verbose" ]]; then
+                compile_args+=("$arg")
+                shift
+            else
+                # Everything else (all fzn-gecode/fzn-dashed solve-time
+                # options: -a, -f, -n, -p, -c-d, -restart, ...) is a
+                # solve-stage-only option, forwarded as-is.
+                solve_args+=("$arg")
+                shift
+            fi
+            ;;
+    esac
+done
+
+"$MZN2FZN" "${compile_args[@]}" -o "$FZN_FILE" "${model_args[@]}"
+if [ "$compile_action" = true ]; then
+    exit 0
 fi
-if command -v minizinc >/dev/null 2>&1; then
-    MZN_CMD=minizinc
-else
-    MZN_CMD=mzn-fzn
-fi
-FLATZINC_CMD="$SCRIPT_DIR/fzn-dashed" "$MZN_CMD" -I "$MZN_LIB" "$@"
+exec "$FZN_DASHED" "${solve_args[@]}" "$FZN_FILE"

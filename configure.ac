@@ -361,6 +361,10 @@ AC_GECODE_ENABLE_MODULE(flatzinc, yes,
    enable_driver="yes";
    enable_minimodel="yes";
   ])
+AS_IF([test "${enable_flatzinc}" = "yes" &&
+       test "${enable_string_vars}" != "yes"], [
+  AC_MSG_ERROR([FlatZinc requires the string variables library])
+])
 
 AC_GECODE_ENABLE_MODULE(driver, yes,
 	[build script commandline driver library],
@@ -413,6 +417,9 @@ if test   "$ac_gecode_compiler_vendor" = "microsoft" \
 else
   AC_SUBST(DLL_ARCH,[""])
 fi
+
+DASHED_SOURCE_ASSET_DIR="$(cd "$srcdir" && pwd)/tools/flatzinc"
+AC_SUBST([DASHED_SOURCE_ASSET_DIR])
 
 AC_CONFIG_FILES([Makefile])
 if test "${gecode_host_os}" = "windows"; then

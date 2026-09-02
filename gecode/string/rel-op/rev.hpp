@@ -6,9 +6,22 @@ namespace Gecode { namespace String {
       StringVar y(home, x0.may_chars(), x0.min_length(), x0.max_length());
       (void) new (home) Rev(home, x0, y);
       rel(home, x1, STRT_EQ, y);
+      // Redundant length-channeling constraint |x0| = |y|.
+      IntVar lx0(home, x0.min_length(), x0.max_length());
+      IntVar ly(home, y.min_length(), y.max_length());
+      length(home, StringVar(x0), lx0);
+      length(home, y, ly);
+      rel(home, lx0, IRT_EQ, ly);
     }
-    else
+    else {
       (void) new (home) Rev(home, x0, x1);
+      // Redundant length-channeling constraint |x0| = |x1|.
+      IntVar lx0(home, x0.min_length(), x0.max_length());
+      IntVar lx1(home, x1.min_length(), x1.max_length());
+      length(home, StringVar(x0), lx0);
+      length(home, StringVar(x1), lx1);
+      rel(home, lx0, IRT_EQ, lx1);
+    }
     return ES_OK;
   }
 

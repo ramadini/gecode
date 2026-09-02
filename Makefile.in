@@ -929,8 +929,12 @@ FLATZINCDASHEDLAUNCHERS = \
 	tools/flatzinc/fzn-dashed \
 	tools/flatzinc/mzn-dashed \
 	tools/flatzinc/mzn2fzn-dashed
+FLATZINCDASHEDCOMPILER = $(top_srcdir)/tools/flatzinc/mzn2fzn-str
+FLATZINCDASHEDSTDLIB = $(top_srcdir)/tools/flatzinc/mzn2fzn-stdlib
 else
 FLATZINCDASHEDLAUNCHERS =
+FLATZINCDASHEDCOMPILER =
+FLATZINCDASHEDSTDLIB =
 endif
 ifeq "@need_soname@" "yes"
 export FLATZINCSONAME = @WLSONAME@$(LIBPREFIX)@FLATZINC@$(SOSUFFIX)
@@ -956,6 +960,8 @@ export FLATZINCRC		=
 FLATZINCEXE	=
 FLATZINCLAUNCHER =
 FLATZINCDASHEDLAUNCHERS =
+FLATZINCDASHEDCOMPILER =
+FLATZINCDASHEDSTDLIB =
 endif
 
 #
@@ -2202,7 +2208,13 @@ doinstalllib:
 	    cp $$f $(DESTDIR)$(libdir); done &&\
 	for_exetargets="$(EXETARGETS)" && \
 	  for f in $$for_exetargets; do \
-	    cp $$f $(DESTDIR)$(bindir); done
+	    cp $$f $(DESTDIR)$(bindir); done && \
+	dashed_compiler="$(FLATZINCDASHEDCOMPILER)" && \
+	dashed_stdlib="$(FLATZINCDASHEDSTDLIB)" && \
+	  if test -n "$$dashed_compiler"; then \
+	    cp "$$dashed_compiler" $(DESTDIR)$(bindir) && \
+	    cp -pR "$$dashed_stdlib" $(DESTDIR)$(bindir); \
+	  fi
 
 ifeq "@BUILDSTATIC@" "yes"
 ranliblib:

@@ -1,0 +1,32 @@
+#!/bin/sh
+
+set -eu
+
+ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../../.." && pwd)
+ARCHIVE_DIR="$ROOT_DIR/tools/minizinc-string/archaeology"
+LOCK_FILE="$ARCHIVE_DIR/upstream-2.0.97.lock"
+WORK_DIR="${MZN_STRING_WORK_DIR:-$ROOT_DIR/tools/minizinc-string/.work}"
+ARCHIVED="$ROOT_DIR/tools/flatzinc/mzn2fzn-str"
+
+expected=$(sed -n 's/^binary_sha256=//p' "$LOCK_FILE")
+actual=$(sha256sum "$ARCHIVED" | awk '{print $1}')
+test "$actual" = "$expected" ||
+  { echo "archived compiler hash mismatch" >&2; exit 1; }
+
+nm -C --defined-only "$ARCHIVED" |
+  sed -E 's/^[0-9a-f]+ [A-Za-z] //' | sort -u > "$ARCHIVE_DIR/symbols.txt"
+{
+  file "$ARCHIVED"
+  readelf -p .comment "$ARCHIVED"
+  readelf -d "$ARCHIVED"
+  ldd "$ARCHIVED"
+  "$ARCHIVED" --version
+} > "$ARCHIVE_DIR/binary-metadata.txt" 2>&1
+
+test -f "$WORK_DIR/official-mzn2fzn.path" ||
+  { echo "missing official compiler path; run build-upstream first" >&2; exit 1; }
+official=$(cat "$WORK_DIR/official-mzn2fzn.path")
+test -x "$official" ||
+  { echo "official compiler is not executable: $official" >&2; exit 1; }
+nm -C --defined-only "$official" |
+  sed -E 's/^[0-9a-f]+ [A-Za-z] //' | sort -u > "$ARCHIVE_DIR/official-symbols.txt"

@@ -91,7 +91,7 @@ namespace Gecode { namespace String {
           // end of x[i].
           m.esp[i] = end;
           gap = true;
-           std::cerr << "ESP[" << i << "] = " << m.esp[i] << " (***GAP***)\n";
+          // std::cerr << "ESP[" << i << "] = " << m.esp[i] << " (***GAP***)\n";
         }
         end = dual(y, end);
       }

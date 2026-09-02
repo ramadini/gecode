@@ -27,7 +27,8 @@ namespace Gecode { namespace String {
     /// Perform propagation
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator \f$ z=x \cdot y \f$
-    static  ExecStatus post(Home home, StringView x, StringView y, StringView z);
+    static ExecStatus post(Home home, StringView x, StringView y, StringView z,
+                           bool channel=true);
   };
 
 }}

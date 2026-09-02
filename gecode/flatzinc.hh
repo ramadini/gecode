@@ -48,6 +48,9 @@
 #ifdef GECODE_HAS_FLOAT_VARS
 #include <gecode/float.hh>
 #endif
+#ifdef GECODE_HAS_STRING_VARS
+#include <gecode/string.hh>
+#endif
 #include <map>
 
 /*
@@ -118,6 +121,10 @@ namespace Gecode { namespace FlatZinc {
     /// Names of set variables
     std::vector<std::string> sv_names;
 #endif
+#ifdef GECODE_HAS_STRING_VARS
+    /// Names of string variables
+    std::vector<std::string> tv_names;
+#endif
     AST::Array* _output;
     void printElem(std::ostream& out,
                    AST::Node* ai,
@@ -130,6 +137,10 @@ namespace Gecode { namespace FlatZinc {
 #ifdef GECODE_HAS_FLOAT_VARS
                   ,
                   const Gecode::FloatVarArray& fv
+#endif
+#ifdef GECODE_HAS_STRING_VARS
+                  ,
+                  const Gecode::StringVarArray& tv
 #endif
                    ) const;
     void printElemDiff(std::ostream& out,
@@ -164,6 +175,10 @@ namespace Gecode { namespace FlatZinc {
                ,
                const Gecode::FloatVarArray& fv
 #endif
+#ifdef GECODE_HAS_STRING_VARS
+               ,
+               const Gecode::StringVarArray& tv
+#endif
                ) const;
 
     void printDiff(std::ostream& out,
@@ -194,6 +209,10 @@ namespace Gecode { namespace FlatZinc {
 #ifdef GECODE_HAS_SET_VARS
     void addSetVarName(const std::string& n);
     const std::string& setVarName(int i) const { return sv_names[i]; }
+#endif
+#ifdef GECODE_HAS_STRING_VARS
+    void addStringVarName(const std::string& n);
+    const std::string& stringVarName(int i) const { return tv_names[i]; }
 #endif
 
     void shrinkElement(AST::Node* node,
@@ -439,6 +458,10 @@ namespace Gecode { namespace FlatZinc {
     int floatVarCount;
     /// Number of set variables
     int setVarCount;
+#ifdef GECODE_HAS_STRING_VARS
+    /// Number of string variables
+    int stringVarCount;
+#endif
 
     /// Index of the variable to optimize
     int _optVar;
@@ -579,6 +602,14 @@ namespace Gecode { namespace FlatZinc {
     /// Step by which a next solution has to have lower cost
     Gecode::FloatNum step;
 #endif
+#ifdef GECODE_HAS_STRING_VARS
+    /// The string variables
+    Gecode::StringVarArray tv;
+    /// The introduced string variables
+    Gecode::StringVarArray tv_aux;
+    /// Indicates whether a string variable is introduced by mzn2fzn
+    std::vector<bool> tv_introduced;
+#endif
     /// Whether the introduced variables still need to be copied
     bool needAuxVars;
     /// Construct empty space
@@ -588,7 +619,8 @@ namespace Gecode { namespace FlatZinc {
     ~FlatZincSpace(void);
 
     /// Initialize space with given number of variables
-    void init(int intVars, int boolVars, int setVars, int floatVars);
+    void init(int intVars, int boolVars, int setVars, int floatVars,
+              int stringVars);
 
     /// Create new integer variable from specification
     void newIntVar(IntVarSpec* vs);
@@ -602,6 +634,8 @@ namespace Gecode { namespace FlatZinc {
     void newSetVar(SetVarSpec* vs);
     /// Create new float variable from specification
     void newFloatVar(FloatVarSpec* vs);
+    /// Create new string variable from specification
+    void newStringVar(StringVarSpec* vs);
 
     /// Post a constraint specified by \a ce
     void postConstraints(std::vector<ConExpr*>& ces);
@@ -715,6 +749,14 @@ namespace Gecode { namespace FlatZinc {
     FloatVar arg2FloatVar(AST::Node* n);
     /// Convert \a n to FloatVarArgs
     FloatVarArgs arg2floatvarargs(AST::Node* arg, int offset = 0);
+#endif
+#ifdef GECODE_HAS_STRING_VARS
+    /// Convert \a n to StringVar
+    StringVar arg2StringVar(AST::Node* n);
+    /// Convert \a arg to StringVarArgs
+    StringVarArgs arg2stringvarargs(AST::Node* arg, int offset = 0);
+    /// Convert \a arg (array of strings) to a vector of strings
+    std::vector<std::string> arg2stringvec(AST::Node* arg);
 #endif
     /// Convert \a ann to integer propagation level
     IntPropLevel ann2ipl(AST::Node* ann);

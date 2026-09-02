@@ -99,7 +99,11 @@ namespace Gecode { namespace FlatZinc {
     ST_INT,           //< Integer
     ST_BOOL,          //< Boolean
     ST_SET,           //< Set
-    ST_FLOAT          //< Float
+    ST_FLOAT,         //< Float
+    ST_STRINGVAR,     //< String variable
+    ST_STRING,        //< String
+    ST_STRINGVARARRAY,//< String variable array
+    ST_STRINGVALARRAY //< String array
   };
 
   /// Entries in the symbol table
@@ -128,6 +132,14 @@ namespace Gecode { namespace FlatZinc {
   /// Construct set variable entry
   forceinline SymbolEntry se_sv(int i) {
     return SymbolEntry(ST_SETVAR, i);
+  }
+  /// Construct string variable entry
+  forceinline SymbolEntry se_tv(int i) {
+    return SymbolEntry(ST_STRINGVAR, i);
+  }
+  /// Construct string variable array entry
+  forceinline SymbolEntry se_tva(int i) {
+    return SymbolEntry(ST_STRINGVARARRAY, i);
   }
 
   /// Construct integer variable array entry
@@ -163,6 +175,10 @@ namespace Gecode { namespace FlatZinc {
   forceinline SymbolEntry se_f(int i) {
     return SymbolEntry(ST_FLOAT, i);
   }
+  /// Construct string entry
+  forceinline SymbolEntry se_t(int i) {
+    return SymbolEntry(ST_STRING, i);
+  }
 
   /// Construct integer array entry
   forceinline SymbolEntry se_ia(int i) {
@@ -180,6 +196,10 @@ namespace Gecode { namespace FlatZinc {
   forceinline SymbolEntry se_fa(int i) {
     return SymbolEntry(ST_FLOATVALARRAY, i);
   }
+  /// Construct string array entry
+  forceinline SymbolEntry se_ta(int i) {
+    return SymbolEntry(ST_STRINGVALARRAY, i);
+  }
 
   /// %State of the %FlatZinc parser
   class ParserState {
@@ -187,12 +207,12 @@ namespace Gecode { namespace FlatZinc {
     ParserState(const std::string& b, std::ostream& err0,
                 Gecode::FlatZinc::FlatZincSpace* fg0)
     : buf(b.c_str()), pos(0), length(b.size()), fg(fg0),
-      hadError(false), err(err0) {}
+      hadError(false), err(err0), stringParserState(NULL) {}
 
     ParserState(char* buf0, int length0, std::ostream& err0,
                 Gecode::FlatZinc::FlatZincSpace* fg0)
     : buf(buf0), pos(0), length(length0), fg(fg0),
-      hadError(false), err(err0) {}
+      hadError(false), err(err0), stringParserState(NULL) {}
 
     void* yyscanner;
     const char* buf;
@@ -206,9 +226,11 @@ namespace Gecode { namespace FlatZinc {
     std::vector<varspec> boolvars;
     std::vector<varspec> setvars;
     std::vector<varspec> floatvars;
+    std::vector<varspec> stringvars;
     std::vector<int> arrays;
     std::vector<AST::SetLit> setvals;
     std::vector<double> floatvals;
+    std::vector<AST::String> stringvals;
     std::vector<ConExpr*> constraints;
 
     std::vector<ConExpr*> domainConstraints;
@@ -232,6 +254,9 @@ namespace Gecode { namespace FlatZinc {
 
     bool hadError;
     std::ostream& err;
+    /// Opaque pointer to a RegexQueue (defined in parser.yxx), used to
+    /// unfold decomposable str_reg regular expressions after parsing.
+    void* stringParserState;
 
     int fillBuffer(char* lexBuf, unsigned int lexBufSize) {
       if (pos >= length)

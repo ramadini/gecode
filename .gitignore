@@ -111,5 +111,8 @@ test/test
 # Ignore build tree outputs (version metadata lives in top-level
 # gecode-version.m4).
 build/
+/build-*/
+.vscode/
+tools/minizinc-string/.work/
 CMakeUserPresets.json
 CMakePresets.json.user

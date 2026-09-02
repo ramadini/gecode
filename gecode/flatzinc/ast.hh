@@ -50,6 +50,9 @@ namespace Gecode { namespace FlatZinc { namespace AST {
   class Array;
   class Atom;
   class SetLit;
+  class CharSetLit;
+  class StringDom;
+  class DFA;
 
   /// %Exception signaling type error
   class GECODE_VTABLE_EXPORT TypeError {
@@ -100,6 +103,8 @@ namespace Gecode { namespace FlatZinc { namespace AST {
     int getFloatVar(void);
     /// Cast this node to a set variable node
     int getSetVar(void);
+    /// Cast this node to a string variable node
+    int getStringVar(void);
 
     /// Cast this node to an integer node
     int getInt(void);
@@ -112,6 +117,14 @@ namespace Gecode { namespace FlatZinc { namespace AST {
 
     /// Cast this node to a string node
     std::string getString(void);
+    /// Return the string after FlatZinc decoding but before regex decoding
+    std::string getRegex(void);
+    /// Cast this node to a string domain node
+    StringDom* getStringDom(void);
+    /// Cast this node to a charset literal node
+    CharSetLit* getCharSet(void);
+    /// Cast this node to a DFA node
+    AST::DFA* getDFA(void);
 
     /// Test if node is an integer variable node
     bool isIntVar(void);
@@ -121,6 +134,8 @@ namespace Gecode { namespace FlatZinc { namespace AST {
     bool isSetVar(void);
     /// Test if node is a float variable node
     bool isFloatVar(void);
+    /// Test if node is a string variable node
+    bool isStringVar(void);
     /// Test if node is an integer node
     bool isInt(void);
     /// Test if node is a float node
@@ -129,6 +144,10 @@ namespace Gecode { namespace FlatZinc { namespace AST {
     bool isBool(void);
     /// Test if node is a string node
     bool isString(void);
+    /// Test if node is a string domain node
+    bool isStringDom(void);
+    /// Test if node is a DFA node
+    bool isDFA(void);
     /// Test if node is an array node
     bool isArray(void);
     /// Test if node is a set literal node
@@ -226,6 +245,14 @@ namespace Gecode { namespace FlatZinc { namespace AST {
       os << "xs("<<i<<")";
     }
   };
+  /// String variable node
+  class GECODE_VTABLE_EXPORT StringVar : public Var {
+  public:
+    StringVar(int i0, const std::string& n0="") : Var(i0,n0) {}
+    virtual void print(std::ostream& os) {
+      os << "xt("<<i<<")";
+    }
+  };
 
   /// %Array node
   class GECODE_VTABLE_EXPORT Array : public Node {
@@ -300,9 +327,69 @@ namespace Gecode { namespace FlatZinc { namespace AST {
   class GECODE_VTABLE_EXPORT String : public Node {
   public:
     std::string s;
-    String(const std::string& s0) : s(s0) {}
+    std::string r;
+    String(void) : s(), r() {}
+    String(const std::string& s0) : s(s0), r(s0) {}
+    String(const std::string& s0, const std::string& r0) : s(s0), r(r0) {}
     virtual void print(std::ostream& os) {
       os << "s(\"" << s << "\")";
+    }
+  };
+
+  /// Charset node
+  class GECODE_VTABLE_EXPORT CharSetLit : public Node {
+  public:
+    Gecode::String::NSIntSet s;
+    CharSetLit(const std::string& a, const std::string& b)
+      : s(Gecode::String::char2int(a[0]),
+          Gecode::String::char2int(b[0])) {}
+    CharSetLit(const Gecode::String::NSIntSet& s0) : s(s0) {}
+    CharSetLit(const std::vector<String>& v) {
+      for (auto c: v)
+        s.add(Gecode::String::char2int(c.s[0]));
+    }
+    virtual void print(std::ostream& os) {
+      os << "t(charset)";
+    }
+  };
+
+  /// String domain node
+  class GECODE_VTABLE_EXPORT StringDom : public Node {
+  public:
+    int u;
+    std::string s;
+    CharSetLit* c;
+    StringDom() : u(Gecode::String::DashedString::_MAX_STR_LENGTH), s(), c(NULL) {}
+    StringDom(int u0) : u(u0), s(), c(NULL) {}
+    StringDom(const std::string& s0) : u(-1), s(s0), c(NULL) {}
+    StringDom(CharSetLit* c0) : u(-1), s(), c(c0) {}
+    StringDom(const Gecode::String::NSIntSet& s0) : u(-1), s(),
+      c(new CharSetLit(s0)) {}
+    StringDom(int u0, CharSetLit* c0) : u(u0), s(), c(c0) {}
+    explicit StringDom(StringDom* s0) : u(s0->u), s(s0->s), c(s0->c) {}
+    virtual void print(std::ostream& os) {
+      if (c) {
+        if (u < 0)
+          os << "^(0," << Gecode::String::DashedString::_MAX_STR_LENGTH
+             << ")";
+        else
+          os << "^(0," << u << ")";
+      }
+      else if (u >= 0)
+        os << "^(0," << u << ")";
+      else
+        os << s;
+    }
+  };
+
+  /// DFA node
+  class GECODE_VTABLE_EXPORT DFA : public Node {
+  public:
+    Gecode::DFA d;
+    DFA(void) {}
+    DFA(const Gecode::DFA d0) : d(d0) {}
+    virtual void print(std::ostream& os) {
+      os << "dfa()";
     }
   };
 
@@ -437,6 +524,12 @@ namespace Gecode { namespace FlatZinc { namespace AST {
     throw TypeError("set variable expected");
   }
   inline int
+  Node::getStringVar(void) {
+    if (StringVar* a = dynamic_cast<StringVar*>(this))
+      return a->i;
+    throw TypeError("string variable expected");
+  }
+  inline int
   Node::getInt(void) {
     if (IntLit* a = dynamic_cast<IntLit*>(this))
       return a->i;
@@ -464,7 +557,35 @@ namespace Gecode { namespace FlatZinc { namespace AST {
   Node::getString(void) {
     if (String* a = dynamic_cast<String*>(this))
       return a->s;
+    else if (StringDom* a = dynamic_cast<StringDom*>(this))
+      return a->s;
     throw TypeError("string literal expected");
+  }
+  inline std::string
+  Node::getRegex(void) {
+    if (String* a = dynamic_cast<String*>(this))
+      return a->r;
+    throw TypeError("string literal expected");
+  }
+  inline StringDom*
+  Node::getStringDom(void) {
+    if (StringDom* a = dynamic_cast<StringDom*>(this))
+      return a;
+    else if (String* a = dynamic_cast<String*>(this))
+      return new StringDom(a->s);
+    throw TypeError("string literal expected");
+  }
+  inline CharSetLit*
+  Node::getCharSet(void) {
+    if (CharSetLit* a = dynamic_cast<CharSetLit*>(this))
+      return a;
+    throw TypeError("charset literal expected");
+  }
+  inline DFA*
+  Node::getDFA(void) {
+    if (DFA* a = dynamic_cast<DFA*>(this))
+      return a;
+    throw TypeError("DFA expected");
   }
   inline bool
   Node::isIntVar(void) {
@@ -481,6 +602,10 @@ namespace Gecode { namespace FlatZinc { namespace AST {
   inline bool
   Node::isFloatVar(void) {
     return (dynamic_cast<FloatVar*>(this) != nullptr);
+  }
+  inline bool
+  Node::isStringVar(void) {
+    return (dynamic_cast<StringVar*>(this) != nullptr);
   }
   inline bool
   Node::isInt(void) {
@@ -501,6 +626,14 @@ namespace Gecode { namespace FlatZinc { namespace AST {
   inline bool
   Node::isString(void) {
     return (dynamic_cast<String*>(this) != nullptr);
+  }
+  inline bool
+  Node::isStringDom(void) {
+    return (dynamic_cast<StringDom*>(this) != nullptr);
+  }
+  inline bool
+  Node::isDFA(void) {
+    return (dynamic_cast<DFA*>(this) != nullptr);
   }
   inline bool
   Node::isArray(void) {

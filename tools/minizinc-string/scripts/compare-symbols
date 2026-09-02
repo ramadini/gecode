@@ -1,0 +1,16 @@
+#!/bin/sh
+
+set -eu
+
+ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../../.." && pwd)
+ARCHIVE_DIR="$ROOT_DIR/tools/minizinc-string/archaeology"
+
+test -f "$ARCHIVE_DIR/symbols.txt" &&
+  test -f "$ARCHIVE_DIR/official-symbols.txt" ||
+  { echo "missing symbol lists; run extract-symbols first" >&2; exit 1; }
+
+comm -23 "$ARCHIVE_DIR/symbols.txt" "$ARCHIVE_DIR/official-symbols.txt" \
+  > "$ARCHIVE_DIR/custom-symbol-candidates.txt"
+grep '^MiniZinc::' "$ARCHIVE_DIR/custom-symbol-candidates.txt" |
+  grep -Ei 'string|type|flatten|eval|typer|output' \
+  > "$ARCHIVE_DIR/custom-symbol-candidates-filtered.txt" || true

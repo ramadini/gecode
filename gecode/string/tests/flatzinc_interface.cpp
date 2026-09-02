@@ -1,125 +1,216 @@
 #include <gecode/flatzinc.hh>
-#include <gecode/string.hh>
+#include <gecode/search.hh>
 
 #include <cassert>
 #include <sstream>
+#include <string>
 
 using namespace Gecode;
 
+std::string
+solve(const std::string& model) {
+  FlatZinc::Printer printer;
+  std::ostringstream errors;
+  std::istringstream input(model);
+  FlatZinc::FlatZincSpace* root = FlatZinc::parse(input, printer, errors);
+  assert(root != NULL);
+  assert(errors.str().empty());
+
+  FlatZinc::FlatZincOptions options("FlatZinc string test");
+  root->createBranchers(printer, root->solveAnnotations(), options, true,
+                        errors);
+  DFS<FlatZinc::FlatZincSpace> engine(root);
+  FlatZinc::FlatZincSpace* solution = engine.next();
+  assert(solution != NULL);
+
+  std::ostringstream output;
+  solution->print(output, printer);
+  delete solution;
+  return output.str();
+}
+
+bool
+satisfiable(const std::string& model) {
+  FlatZinc::Printer printer;
+  std::ostringstream errors;
+  std::istringstream input(model);
+  FlatZinc::FlatZincSpace* root = FlatZinc::parse(input, printer, errors);
+  assert(root != NULL);
+  assert(errors.str().empty());
+  if (root->status() == SS_FAILED) {
+    delete root;
+    return false;
+  }
+
+  FlatZinc::FlatZincOptions options("FlatZinc string test");
+  root->createBranchers(printer, root->solveAnnotations(), options, true,
+                        errors);
+  DFS<FlatZinc::FlatZincSpace> engine(root);
+  FlatZinc::FlatZincSpace* solution = engine.next();
+  bool result = solution != NULL;
+  delete solution;
+  return result;
+}
+
 int
 main(void) {
-  String::DashedString::_DECOMP_REGEX = true;
-  FlatZinc::FlatZincOptions options("Dashed FlatZinc test");
-  std::ostringstream errors;
-
-  Rnd invalid_random(0);
-  FlatZinc::FlatZincSpace* invalid_space =
-    new FlatZinc::FlatZincSpace(invalid_random);
-  FlatZinc::Printer invalid_printer;
-  std::istringstream invalid_model(
-    "var string: text;\n"
-    "constraint str_reg(text, \"a\");\n"
-    "invalid\n");
-  assert(FlatZinc::parse(invalid_model, invalid_printer, options, errors,
-                        invalid_space, invalid_random) == NULL);
-  delete invalid_space;
-
-  Rnd valid_random(0);
-  FlatZinc::Printer valid_printer;
-  std::istringstream valid_model(
+  assert(solve(
     "var string: text :: output_var;\n"
     "constraint str_eq(text, \"b\");\n"
-    "solve satisfy;\n");
-  FlatZinc::FlatZincSpace* valid_space =
-    FlatZinc::parse(valid_model, valid_printer, options, errors,
-                    NULL, valid_random);
-  assert(valid_space != NULL);
-  assert(valid_space->status() != SS_FAILED);
-  delete valid_space;
+    "solve satisfy;\n") == "text = b;\n");
 
-  Rnd dfa_random(0);
-  FlatZinc::Printer dfa_printer;
-  std::istringstream dfa_model(
+  assert(solve(
+    "string: expected = \"cat\";\n"
+    "var string: source = expected;\n"
+    "var string: text :: output_var = source;\n"
+    "constraint str_eq(text, \"cat\");\n"
+    "solve satisfy;\n") == "text = cat;\n");
+
+  std::string disequality = solve(
+    "var string: text :: output_var;\n"
+    "constraint str_ne(text, \"b\");\n"
+    "solve satisfy;\n");
+  assert(disequality.find("text = ") == 0);
+  assert(disequality != "text = b;\n");
+
+  assert(solve(
+    "var int: n :: output_var;\n"
+    "var string: text = \"cat\";\n"
+    "constraint str_len(text, n);\n"
+    "solve satisfy;\n") == "n = 3;\n");
+
+  assert(solve(
+    "var int: n :: output_var;\n"
+    "var string: text = \"\\\\\";\n"
+    "constraint str_len(text, n);\n"
+    "solve satisfy;\n") == "n = 1;\n");
+
+  assert(solve(
+    "var int: n :: output_var;\n"
+    "var string: text = \"\\x5cA\";\n"
+    "constraint str_len(text, n);\n"
+    "solve satisfy;\n") == "n = 2;\n");
+
+  assert(solve(
+    "var int: n :: output_var;\n"
+    "var string: text = \"a\\x00\";\n"
+    "constraint str_len(text, n);\n"
+    "solve satisfy;\n") == "n = 2;\n");
+
+  assert(solve(
+    "var int: code :: output_var;\n"
+    "var string(1) of {\"\\x00\"}: text;\n"
+    "constraint str_len(text, 1);\n"
+    "constraint str_char2code(text, code);\n"
+    "solve satisfy;\n") == "code = 0;\n");
+
+  assert(satisfiable(
+    "array [1..1] of var string: text;\n"
+    "constraint str_eq(text[1], \"ok\");\n"
+    "solve satisfy;\n"));
+
+  assert(!satisfiable(
+    "var string(1): text = \"ab\";\n"
+    "solve satisfy;\n"));
+
+  assert(!satisfiable(
+    "var string of {\"a\"}: text = \"b\";\n"
+    "solve satisfy;\n"));
+
+  assert(!satisfiable(
+    "var string: source = \"ab\";\n"
+    "var string(1): text = source;\n"
+    "solve satisfy;\n"));
+
+  assert(satisfiable(
+    "string: pattern = \"\\(\";\n"
+    "var string: text = \"(\";\n"
+    "constraint str_reg(text, pattern);\n"
+    "solve satisfy;\n"));
+
+  assert(satisfiable(
+    "var string: text = \"ab\";\n"
+    "constraint str_alphabet(text, {\"a\", \"b\"});\n"
+    "solve satisfy;\n"));
+
+  assert(!satisfiable(
+    "var string: text = \"a\";\n"
+    "constraint str_alphabet(text, {\"a\", \"b\"});\n"
+    "solve satisfy;\n"));
+
+  assert(satisfiable(
+    "var string: text = \"\";\n"
+    "constraint str_alphabet(text, {});\n"
+    "solve satisfy;\n"));
+
+  assert(satisfiable(
     "array [1..2] of int: transitions = [2, 0];\n"
     "var bool: accepted;\n"
     "constraint str_dfa_reif(\"a\", 2, {\"a\"}, transitions, 1, 2..2, "
       "accepted);\n"
     "constraint bool_eq(accepted, true);\n"
-    "solve satisfy;\n");
-  FlatZinc::FlatZincSpace* dfa_space =
-    FlatZinc::parse(dfa_model, dfa_printer, options, errors,
-                    NULL, dfa_random);
-  assert(dfa_space != NULL);
-  assert(dfa_space->status() != SS_FAILED);
-  delete dfa_space;
+    "solve satisfy;\n"));
 
-  Rnd alphabet_random(0);
-  FlatZinc::Printer alphabet_printer;
-  std::istringstream valid_alphabet_model(
-    "var string: x = \"ab\";\n"
-    "constraint str_alphabet(x, {\"a\", \"b\"});\n"
-    "solve satisfy;\n");
-  FlatZinc::FlatZincSpace* alphabet_space =
-    FlatZinc::parse(valid_alphabet_model, alphabet_printer, options, errors,
-                    NULL, alphabet_random);
-  assert(alphabet_space != NULL);
-  assert(alphabet_space->status() != SS_FAILED);
-  delete alphabet_space;
+  assert(satisfiable(
+    "array [1..0] of int: transitions = [];\n"
+    "constraint str_dfa(\"\", 1, {}, transitions, 1, 1..1);\n"
+    "solve satisfy;\n"));
 
-  std::istringstream invalid_alphabet_model(
-    "var string: x = \"a\";\n"
-    "constraint str_alphabet(x, {\"a\", \"b\"});\n"
-    "solve satisfy;\n");
-  alphabet_space =
-    FlatZinc::parse(invalid_alphabet_model, alphabet_printer, options, errors,
-                    NULL, alphabet_random);
-  assert(alphabet_space != NULL);
-  assert(alphabet_space->status() == SS_FAILED);
-  delete alphabet_space;
+  assert(!satisfiable(
+    "var string(1) of {\"a\", \"b\"}: x;\n"
+    "var string(1) of {\"a\", \"b\"}: y;\n"
+    "var string(1) of {\"a\", \"b\"}: z;\n"
+    "constraint str_len(x, 1);\n"
+    "constraint str_len(y, 1);\n"
+    "constraint str_len(z, 1);\n"
+    "constraint str_ne(x, y);\n"
+    "constraint str_ne(x, z);\n"
+    "constraint str_ne(y, z);\n"
+    "solve satisfy;\n"));
 
-  std::istringstream empty_alphabet_model(
-    "var string: x = \"\";\n"
-    "constraint str_alphabet(x, {});\n"
-    "solve satisfy;\n");
-  alphabet_space =
-    FlatZinc::parse(empty_alphabet_model, alphabet_printer, options, errors,
-                    NULL, alphabet_random);
-  assert(alphabet_space != NULL);
-  assert(alphabet_space->status() != SS_FAILED);
-  delete alphabet_space;
+  assert(solve(
+    "var int: code :: output_var;\n"
+    "var string(1) of {\"\\xff\"}: text;\n"
+    "constraint str_len(text, 1);\n"
+    "constraint str_char2code(text, code);\n"
+    "solve satisfy;\n") == "code = 255;\n");
 
-  std::istringstream active_domain_model(
-    "var string: x;\n"
-    "constraint str_chars(x, {\"a\", \"b\"});\n"
-    "constraint str_len(x, 1..2);\n"
-    "solve satisfy;\n");
-  alphabet_space =
-    FlatZinc::parse(active_domain_model, alphabet_printer, options, errors,
-                    NULL, alphabet_random);
-  assert(alphabet_space != NULL);
-  assert(alphabet_space->status() != SS_FAILED);
-  FlatZinc::FlatZincSpace* cloned_space =
-    static_cast<FlatZinc::FlatZincSpace*>(alphabet_space->clone());
-  assert(cloned_space->status() != SS_FAILED);
-  delete cloned_space;
-  delete alphabet_space;
+  assert(solve(
+    "var string: text :: output_var;\n"
+    "constraint str_concat(\"ca\", \"t\", text);\n"
+    "solve satisfy;\n") == "text = cat;\n");
 
-  Rnd nfa_random(0);
-  FlatZinc::FlatZincSpace* nfa_space =
-    new FlatZinc::FlatZincSpace(nfa_random);
-  FlatZinc::Printer nfa_printer;
-  std::istringstream nfa_model(
-    "array [1..2] of set of int: transitions = [{2}, {}];\n"
-    "constraint str_nfa(\"a\", 2, {\"a\"}, transitions, 1, 2..2);\n"
+  assert(solve(
+    "var string: text :: output_var;\n"
+    "constraint str_sub(\"concatenate\", 1, 3, text);\n"
+    "solve satisfy;\n") == "text = con;\n");
+
+  assert(solve(
+    "var int: n :: output_var;\n"
+    "constraint str_find(\"cat\", \"concatenate\", n);\n"
+    "solve satisfy;\n") == "n = 4;\n");
+
+  assert(solve(
+    "var string: text :: output_var;\n"
+    "constraint str_replace(\"cat\", \"a\", \"o\", text);\n"
+    "solve satisfy;\n") == "text = cot;\n");
+
+  assert(solve(
+    "var bool: b :: output_var;\n"
+    "constraint str_contains_reif(\"concatenate\", \"cat\", b);\n"
+    "solve satisfy;\n") == "b = true;\n");
+
+  FlatZinc::Printer printer;
+  std::ostringstream errors;
+  std::istringstream inconsistent(
+    "var string: text;\n"
+    "constraint str_eq(text, \"b\");\n"
+    "constraint str_ne(text, \"b\");\n"
     "solve satisfy;\n");
-  bool nfa_rejected = false;
-  try {
-    (void) FlatZinc::parse(nfa_model, nfa_printer, options, errors,
-                          nfa_space, nfa_random);
-  } catch (const FlatZinc::Error& error) {
-    nfa_rejected = error.toString().find("str_nfa") != std::string::npos;
-  }
-  assert(nfa_rejected);
-  delete nfa_space;
+  FlatZinc::FlatZincSpace* root =
+    FlatZinc::parse(inconsistent, printer, errors);
+  assert(root != NULL);
+  assert(root->status() == SS_FAILED);
+  delete root;
   return 0;
 }

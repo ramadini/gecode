@@ -122,6 +122,11 @@ option(GECODE_ENABLE_MINIMODEL "Build minimodel module" ON)
 option(GECODE_ENABLE_DRIVER "Build driver module" ON)
 option(GECODE_ENABLE_FLATZINC "Build FlatZinc module" ON)
 
+if(GECODE_ENABLE_FLATZINC AND NOT GECODE_ENABLE_STRING_VARS)
+  message(FATAL_ERROR
+    "GECODE_ENABLE_FLATZINC requires GECODE_ENABLE_STRING_VARS")
+endif()
+
 option(GECODE_ENABLE_MPFR "Enable MPFR support" ON)
 option(GECODE_ENABLE_ALLOCATOR "Enable default allocator" ON)
 option(GECODE_ENABLE_AUDIT "Enable audit code" OFF)
@@ -1323,6 +1328,9 @@ if(GECODE_BUILD_GIST_TARGET)
 endif()
 if(GECODE_ENABLE_FLATZINC)
   set(fzn_deps minimodel driver)
+  if(GECODE_ENABLE_STRING_VARS)
+    list(APPEND fzn_deps string)
+  endif()
   if(GECODE_BUILD_GIST_TARGET)
     list(APPEND fzn_deps gist)
   endif()
@@ -1369,6 +1377,8 @@ if(GECODE_ENABLE_FLATZINC)
   endif()
   list(APPEND GECODE_INSTALL_TARGETS fzn-gecode)
   if(GECODE_ENABLE_STRING_VARS)
+    set(DASHED_SOURCE_ASSET_DIR
+        "${PROJECT_SOURCE_DIR}/tools/flatzinc")
     configure_file(${PROJECT_SOURCE_DIR}/tools/flatzinc/fzn-dashed.in
                    ${PROJECT_BINARY_DIR}/tools/flatzinc/fzn-dashed
                    @ONLY
@@ -1672,6 +1682,12 @@ if(GECODE_INSTALL)
       install(PROGRAMS ${MZN_SCRIPT} DESTINATION ${CMAKE_INSTALL_BINDIR})
       if(GECODE_ENABLE_STRING_VARS)
         install(PROGRAMS ${DASHED_SCRIPTS} DESTINATION ${CMAKE_INSTALL_BINDIR})
+        install(PROGRAMS
+          ${PROJECT_SOURCE_DIR}/tools/flatzinc/mzn2fzn-str
+          DESTINATION ${CMAKE_INSTALL_BINDIR})
+        install(DIRECTORY
+          ${PROJECT_SOURCE_DIR}/tools/flatzinc/mzn2fzn-stdlib
+          DESTINATION ${CMAKE_INSTALL_BINDIR})
       endif()
     endif()
   endif()

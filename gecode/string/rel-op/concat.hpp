@@ -1,7 +1,10 @@
+#include <gecode/int/arithmetic.hh>
+
 namespace Gecode { namespace String {
 
   forceinline ExecStatus
-  Concat::post(Home home, StringView x0, StringView x1, StringView x2) {
+  Concat::post(Home home, StringView x0, StringView x1, StringView x2,
+               bool channel) {
     if (x0.same(x2))
       rel(home, x1, STRT_EQ, StringVar(home, ""));
     else if (x1.same(x2))
@@ -12,9 +15,36 @@ namespace Gecode { namespace String {
       );
       (void) new (home) Concat(home, x0, y, x2);
       rel(home, x1, STRT_EQ, y);
+      if (channel) {
+        IntVar lx0(home, x0.min_length(), x0.max_length());
+        IntVar ly(home, y.min_length(), y.max_length());
+        IntVar lx2(home, x2.min_length(), x2.max_length());
+        length(home, StringVar(x0), lx0);
+        length(home, y, ly);
+        length(home, StringVar(x2), lx2);
+        IntArgs ia;
+        ia << 1 << 1 << -1;
+        IntVarArgs iv;
+        iv << lx0 << ly << lx2;
+        linear(home, ia, iv, IRT_EQ, 0);
+      }
     }
-    else
+    else {
       (void) new (home) Concat(home, x0, x1, x2);
+      if (channel) {
+        IntVar lx0(home, x0.min_length(), x0.max_length());
+        IntVar lx1(home, x1.min_length(), x1.max_length());
+        IntVar lx2(home, x2.min_length(), x2.max_length());
+        length(home, StringVar(x0), lx0);
+        length(home, StringVar(x1), lx1);
+        length(home, StringVar(x2), lx2);
+        IntArgs ia;
+        ia << 1 << 1 << -1;
+        IntVarArgs iv;
+        iv << lx0 << lx1 << lx2;
+        linear(home, ia, iv, IRT_EQ, 0);
+      }
+    }
     return ES_OK;
   }
 

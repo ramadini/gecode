@@ -1,0 +1,5 @@
+repository=https://github.com/MiniZinc/libminizinc.git
+tag=2.0.97
+commit=19544df
+binary_version=2.0.97_strings
+binary_sha256=d80fc825712f5d9de58ea03e952a584e667b2fdda34973d606680600e5cfd58b

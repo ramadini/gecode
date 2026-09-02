@@ -636,12 +636,16 @@ namespace Gecode { namespace String {
             case '.':
             case '\\':
             case '\'':
+            case '"':
+            case '\n':
               return std::unique_ptr<RegEx>(new CharEx(next(true)));
             case '0':
               consume('0');
               return std::unique_ptr<RegEx>(new CharEx('\0'));
             default:
-              throw std::runtime_error("Unescaped char " + char2int(top()));
+              throw std::runtime_error(
+                "Unescaped char " + string(1, top())
+              );
           }
           break;
         }

@@ -1,3 +1,5 @@
+#include <gecode/int/arithmetic.hh>
+
 namespace Gecode { namespace String {
 
   forceinline
@@ -32,6 +34,20 @@ namespace Gecode { namespace String {
         break;
       }
     (void) new (home) GConcat(home, x, y);
+    // Redundant length-channeling constraint |y| = sum_i |x[i]|.
+    IntVarArgs lxs;
+    IntArgs ia;
+    for (int i = 0; i < x.size(); ++i) {
+      IntVar lxi(home, x[i].min_length(), x[i].max_length());
+      length(home, StringVar(x[i]), lxi);
+      lxs << lxi;
+      ia << 1;
+    }
+    IntVar ly(home, y.min_length(), y.max_length());
+    length(home, StringVar(y), ly);
+    lxs << ly;
+    ia << -1;
+    linear(home, ia, lxs, IRT_EQ, 0);
     return ES_OK;
   }
 

@@ -1,3 +1,5 @@
+#include <gecode/int/arithmetic.hh>
+
 namespace Gecode { namespace String {
 
   forceinline
@@ -26,10 +28,23 @@ namespace Gecode { namespace String {
         StringVar x0(home, x.may_chars(), x.min_length(), x.max_length());
         (void) new (home) Pow(home, x, n, x0);
         rel(home, x, STRT_EQ, x0);
+        // Redundant length-channeling constraint |x0| = |x| * n.
+        IntVar lx(home, x.min_length(), x.max_length());
+        IntVar lx0(home, x0.min_length(), x0.max_length());
+        length(home, StringVar(x), lx);
+        length(home, x0, lx0);
+        Gecode::mult(home, lx, IntVar(n), lx0);
       }
     }
-    else
+    else {
       (void) new (home) Pow(home, x, n, y);
+      // Redundant length-channeling constraint |y| = |x| * n.
+      IntVar lx(home, x.min_length(), x.max_length());
+      IntVar ly(home, y.min_length(), y.max_length());
+      length(home, StringVar(x), lx);
+      length(home, StringVar(y), ly);
+      Gecode::mult(home, lx, IntVar(n), ly);
+    }
     return ES_OK;
   }
 

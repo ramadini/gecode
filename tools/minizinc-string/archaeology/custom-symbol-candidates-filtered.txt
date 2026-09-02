@@ -1,0 +1,120 @@
+MiniZinc::addCoercion(MiniZinc::EnvI&, MiniZinc::Model*, MiniZinc::Expression*, MiniZinc::Type const&)::__PRETTY_FUNCTION__
+MiniZinc::aggregateAndOrOps(MiniZinc::EnvI&, MiniZinc::BinOp*, bool, MiniZinc::BinOpType)::__PRETTY_FUNCTION__
+MiniZinc::ASTExprVecO<MiniZinc::TypeInst*>::operator[](int)::__PRETTY_FUNCTION__
+MiniZinc::ASTString const& std::__pair_get<0ul>::__get<MiniZinc::ASTString const, int>(std::pair<MiniZinc::ASTString const, int>&)
+MiniZinc::ASTString const& std::__pair_get<0ul>::__get<MiniZinc::ASTString const, MiniZinc::ASTString>(std::pair<MiniZinc::ASTString const, MiniZinc::ASTString>&)
+MiniZinc::ASTString const& std::__pair_get<0ul>::__get<MiniZinc::ASTString const, MiniZinc::OptimizeRegistry::ConstraintStatus (*)(MiniZinc::EnvI&, MiniZinc::Item*, MiniZinc::Call*, MiniZinc::Expression*&)>(std::pair<MiniZinc::ASTString const, MiniZinc::OptimizeRegistry::ConstraintStatus (*)(MiniZinc::EnvI&, MiniZinc::Item*, MiniZinc::Call*, MiniZinc::Expression*&)>&)
+MiniZinc::ASTString const& std::__pair_get<0ul>::__get<MiniZinc::ASTString const, MiniZinc::Type>(std::pair<MiniZinc::ASTString const, MiniZinc::Type>&)
+MiniZinc::ASTString const& std::__pair_get<0ul>::__get<MiniZinc::ASTString const, std::pair<MiniZinc::VarDecl*, MiniZinc::KeepAlive> >(std::pair<MiniZinc::ASTString const, std::pair<MiniZinc::VarDecl*, MiniZinc::KeepAlive> >&)
+MiniZinc::ASTString const& std::__pair_get<0ul>::__get<MiniZinc::ASTString const, std::vector<MiniZinc::FunctionI*, std::allocator<MiniZinc::FunctionI*> > >(std::pair<MiniZinc::ASTString const, std::vector<MiniZinc::FunctionI*, std::allocator<MiniZinc::FunctionI*> > >&)
+MiniZinc::ASTString* std::__make_move_if_noexcept_iterator<MiniZinc::ASTString*, MiniZinc::ASTString*>(MiniZinc::ASTString*)
+MiniZinc::ASTString* std::__uninitialized_copy_a<MiniZinc::ASTString*, MiniZinc::ASTString*, MiniZinc::ASTString>(MiniZinc::ASTString*, MiniZinc::ASTString*, MiniZinc::ASTString*, std::allocator<MiniZinc::ASTString>&)
+MiniZinc::ASTString* std::__uninitialized_copy<false>::__uninit_copy<MiniZinc::ASTString*, MiniZinc::ASTString*>(MiniZinc::ASTString*, MiniZinc::ASTString*, MiniZinc::ASTString*)
+MiniZinc::ASTString* std::uninitialized_copy<MiniZinc::ASTString*, MiniZinc::ASTString*>(MiniZinc::ASTString*, MiniZinc::ASTString*, MiniZinc::ASTString*)
+MiniZinc::b_array_to_string[abi:cxx11](MiniZinc::EnvI&, MiniZinc::Call*)
+MiniZinc::b_fix_string[abi:cxx11](MiniZinc::EnvI&, MiniZinc::Call*)
+MiniZinc::BinOp::opToString() const::__PRETTY_FUNCTION__
+MiniZinc::b_string_to_array(MiniZinc::EnvI&, MiniZinc::Call*)
+MiniZinc::CLOParser::getOption<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >(char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, bool)::__PRETTY_FUNCTION__
+MiniZinc::createDznOutput(MiniZinc::EnvI&)
+MiniZinc::createDznOutput(MiniZinc::EnvI&)::__PRETTY_FUNCTION__
+MiniZinc::createJSONOutput(MiniZinc::EnvI&)
+MiniZinc::createJSONOutput(MiniZinc::EnvI&)::__PRETTY_FUNCTION__
+MiniZinc::createOutput(MiniZinc::EnvI&, std::vector<MiniZinc::VarDecl*, std::allocator<MiniZinc::VarDecl*> >&, MiniZinc::FlatteningOptions::OutputMode)
+MiniZinc::createOutput(MiniZinc::EnvI&, std::vector<MiniZinc::VarDecl*, std::allocator<MiniZinc::VarDecl*> >&, MiniZinc::FlatteningOptions::OutputMode)::CollectFunctions::CollectFunctions(MiniZinc::EnvI&)
+MiniZinc::createOutput(MiniZinc::EnvI&, std::vector<MiniZinc::VarDecl*, std::allocator<MiniZinc::VarDecl*> >&, MiniZinc::FlatteningOptions::OutputMode)::CollectFunctions::enter(MiniZinc::Expression*)
+MiniZinc::createOutput(MiniZinc::EnvI&, std::vector<MiniZinc::VarDecl*, std::allocator<MiniZinc::VarDecl*> >&, MiniZinc::FlatteningOptions::OutputMode)::CollectFunctions::vCall(MiniZinc::Call&)
+MiniZinc::createOutput(MiniZinc::EnvI&, std::vector<MiniZinc::VarDecl*, std::allocator<MiniZinc::VarDecl*> >&, MiniZinc::FlatteningOptions::OutputMode)::OV2::OV2(MiniZinc::EnvI&)
+MiniZinc::createOutput(MiniZinc::EnvI&, std::vector<MiniZinc::VarDecl*, std::allocator<MiniZinc::VarDecl*> >&, MiniZinc::FlatteningOptions::OutputMode)::OV2::vVarDeclI(MiniZinc::VarDeclI*)
+MiniZinc::createOutput(MiniZinc::EnvI&, std::vector<MiniZinc::VarDecl*, std::allocator<MiniZinc::VarDecl*> >&, MiniZinc::FlatteningOptions::OutputMode)::OV2::vVarDeclI(MiniZinc::VarDeclI*)::__PRETTY_FUNCTION__
+MiniZinc::EE& std::forward<MiniZinc::EE&>(std::remove_reference<MiniZinc::EE&>::type&)
+MiniZinc::eval_arrayaccess(MiniZinc::EnvI&, MiniZinc::ArrayLit*, std::vector<MiniZinc::IntVal, std::allocator<MiniZinc::IntVal> > const&, bool&)::__PRETTY_FUNCTION__
+MiniZinc::eval_array_lit(MiniZinc::EnvI&, MiniZinc::Expression*)::__PRETTY_FUNCTION__
+MiniZinc::eval_bool(MiniZinc::EnvI&, MiniZinc::Expression*)::__PRETTY_FUNCTION__
+MiniZinc::eval_boolset(MiniZinc::EnvI&, MiniZinc::Expression*)::__PRETTY_FUNCTION__
+MiniZinc::eval_float(MiniZinc::EnvI&, MiniZinc::Expression*)::__PRETTY_FUNCTION__
+MiniZinc::EvalFloatSet::e(MiniZinc::EnvI&, MiniZinc::Expression*)
+MiniZinc::EvalFloatSetLit::e(MiniZinc::EnvI&, MiniZinc::Expression*)
+MiniZinc::EvalFloatSetLit::exp(MiniZinc::Expression*)
+MiniZinc::EvalFloatSetLit::Val MiniZinc::eval_id<MiniZinc::EvalFloatSetLit>(MiniZinc::EnvI&, MiniZinc::Expression*)
+MiniZinc::eval_floatset(MiniZinc::EnvI&, MiniZinc::Expression*)
+MiniZinc::eval_floatset(MiniZinc::EnvI&, MiniZinc::Expression*)::__PRETTY_FUNCTION__
+MiniZinc::EvalFloatSet::Val MiniZinc::eval_call<MiniZinc::EvalFloatSet>(MiniZinc::EnvI&, MiniZinc::Call*)
+MiniZinc::eval_int(MiniZinc::EnvI&, MiniZinc::Expression*)::__PRETTY_FUNCTION__
+MiniZinc::eval_intset(MiniZinc::EnvI&, MiniZinc::Expression*)::__PRETTY_FUNCTION__
+MiniZinc::eval_string[abi:cxx11](MiniZinc::EnvI&, MiniZinc::Expression*)::__PRETTY_FUNCTION__
+MiniZinc::eval_stringset(MiniZinc::EnvI&, MiniZinc::Expression*)
+MiniZinc::eval_typeinst(MiniZinc::EnvI&, MiniZinc::VarDecl*)::__PRETTY_FUNCTION__
+MiniZinc::Expression::cast<MiniZinc::StringLit>() const::__PRETTY_FUNCTION__
+MiniZinc::Expression::cast<MiniZinc::StringLit>()::__PRETTY_FUNCTION__
+MiniZinc::Expression::cast<MiniZinc::TypeInst>() const::__PRETTY_FUNCTION__
+MiniZinc::Expression::cast<MiniZinc::TypeInst>()::__PRETTY_FUNCTION__
+MiniZinc::Expression::type(MiniZinc::Type const&)::__PRETTY_FUNCTION__
+MiniZinc::FileUtils::directory_list(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+MiniZinc::finaliseOutput(MiniZinc::EnvI&, std::vector<MiniZinc::VarDecl*, std::allocator<MiniZinc::VarDecl*> >&)
+MiniZinc::finaliseOutput(MiniZinc::EnvI&, std::vector<MiniZinc::VarDecl*, std::allocator<MiniZinc::VarDecl*> >&)::__PRETTY_FUNCTION__
+MiniZinc::Flattener::getEnv() const::__PRETTY_FUNCTION__
+MiniZinc::flatten_linexp_binop<MiniZinc::FloatLit>(MiniZinc::EnvI&, MiniZinc::Ctx, MiniZinc::VarDecl*, MiniZinc::VarDecl*, MiniZinc::EE&, MiniZinc::Expression*, MiniZinc::Expression*, MiniZinc::BinOpType&, bool, std::vector<MiniZinc::EE, std::allocator<MiniZinc::EE> >&, std::vector<MiniZinc::KeepAlive, std::allocator<MiniZinc::KeepAlive> >&, MiniZinc::ASTString&)::__PRETTY_FUNCTION__
+MiniZinc::flatten_linexp_binop<MiniZinc::IntLit>(MiniZinc::EnvI&, MiniZinc::Ctx, MiniZinc::VarDecl*, MiniZinc::VarDecl*, MiniZinc::EE&, MiniZinc::Expression*, MiniZinc::Expression*, MiniZinc::BinOpType&, bool, std::vector<MiniZinc::EE, std::allocator<MiniZinc::EE> >&, std::vector<MiniZinc::KeepAlive, std::allocator<MiniZinc::KeepAlive> >&, MiniZinc::ASTString&)::__PRETTY_FUNCTION__
+MiniZinc::flatten_linexp_call<MiniZinc::FloatLit>(MiniZinc::EnvI&, MiniZinc::Ctx, MiniZinc::Ctx, MiniZinc::ASTString&, MiniZinc::Call*, MiniZinc::EE&, MiniZinc::VarDecl*, MiniZinc::VarDecl*, std::vector<MiniZinc::EE, std::allocator<MiniZinc::EE> >&, std::vector<MiniZinc::KeepAlive, std::allocator<MiniZinc::KeepAlive> >&)::__PRETTY_FUNCTION__
+MiniZinc::flatten_linexp_call<MiniZinc::IntLit>(MiniZinc::EnvI&, MiniZinc::Ctx, MiniZinc::Ctx, MiniZinc::ASTString&, MiniZinc::Call*, MiniZinc::EE&, MiniZinc::VarDecl*, MiniZinc::VarDecl*, std::vector<MiniZinc::EE, std::allocator<MiniZinc::EE> >&, std::vector<MiniZinc::KeepAlive, std::allocator<MiniZinc::KeepAlive> >&)::__PRETTY_FUNCTION__
+MiniZinc::FloatSetVal::Range&& std::forward<MiniZinc::FloatSetVal::Range>(std::remove_reference<MiniZinc::FloatSetVal::Range>::type&)
+MiniZinc::FloatSetVal*& std::forward<MiniZinc::FloatSetVal*&>(std::remove_reference<MiniZinc::FloatSetVal*&>::type&)
+MiniZinc::FloatVal const& std::forward<MiniZinc::FloatVal const&>(std::remove_reference<MiniZinc::FloatVal const&>::type&)
+MiniZinc::FloatVal& std::forward<MiniZinc::FloatVal&>(std::remove_reference<MiniZinc::FloatVal&>::type&)
+MiniZinc::FloatVal&& std::forward<MiniZinc::FloatVal>(std::remove_reference<MiniZinc::FloatVal>::type&)
+MiniZinc::Item::cast<MiniZinc::OutputI>() const::__PRETTY_FUNCTION__
+MiniZinc::Item::cast<MiniZinc::OutputI>()::__PRETTY_FUNCTION__
+MiniZinc::ItemIter<MiniZinc::createOutput(MiniZinc::EnvI&, std::vector<MiniZinc::VarDecl*, std::allocator<MiniZinc::VarDecl*> >&, MiniZinc::FlatteningOptions::OutputMode)::OV2>::ItemIter(MiniZinc::createOutput(MiniZinc::EnvI&, std::vector<MiniZinc::VarDecl*, std::allocator<MiniZinc::VarDecl*> >&, MiniZinc::FlatteningOptions::OutputMode)::OV2&)
+MiniZinc::ItemIter<MiniZinc::createOutput(MiniZinc::EnvI&, std::vector<MiniZinc::VarDecl*, std::allocator<MiniZinc::VarDecl*> >&, MiniZinc::FlatteningOptions::OutputMode)::OV2>::run(MiniZinc::Model*)
+MiniZinc::JSONError::JSONError(MiniZinc::EnvI&, MiniZinc::Location const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+MiniZinc::JSONParser::expectString[abi:cxx11](std::istream&)
+MiniZinc::JSONParser::parse(MiniZinc::Model*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)
+MiniZinc::JSONParser::Token const& std::forward<MiniZinc::JSONParser::Token const&>(std::remove_reference<MiniZinc::JSONParser::Token const&>::type&)
+MiniZinc::JSONParser::Token&& std::forward<MiniZinc::JSONParser::Token>(std::remove_reference<MiniZinc::JSONParser::Token>::type&)
+MiniZinc::JSONParser::Token::Token(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)
+MiniZinc::LinearTraits<MiniZinc::FloatLit>::constructLinBuiltin(MiniZinc::BinOpType, MiniZinc::ASTString&, int&, MiniZinc::FloatVal&)
+MiniZinc::LinearTraits<MiniZinc::FloatLit>::constructLinBuiltin(MiniZinc::BinOpType, MiniZinc::ASTString&, int&, MiniZinc::FloatVal&)::__PRETTY_FUNCTION__
+MiniZinc::LinearTraits<MiniZinc::FloatLit>::limit_domain(MiniZinc::BinOpType, MiniZinc::FloatSetVal*, MiniZinc::FloatVal)
+MiniZinc::LinearTraits<MiniZinc::FloatLit>::limit_domain(MiniZinc::BinOpType, MiniZinc::FloatSetVal*, MiniZinc::FloatVal)::__PRETTY_FUNCTION__
+MiniZinc::LinearTraits<MiniZinc::IntLit>::constructLinBuiltin(MiniZinc::BinOpType, MiniZinc::ASTString&, int&, MiniZinc::IntVal&)::__PRETTY_FUNCTION__
+MiniZinc::LinearTraits<MiniZinc::IntLit>::limit_domain(MiniZinc::BinOpType, MiniZinc::IntSetVal*, MiniZinc::IntVal)::__PRETTY_FUNCTION__
+MiniZinc::Line& std::forward<MiniZinc::Line&>(std::remove_reference<MiniZinc::Line&>::type&)
+MiniZinc::Model::setFilename(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)::__PRETTY_FUNCTION__
+MiniZinc::Model::setFilepath(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)::__PRETTY_FUNCTION__
+MiniZinc::MznSolver::addFlattener()::__PRETTY_FUNCTION__
+MiniZinc::newVarDecl(MiniZinc::EnvI&, MiniZinc::Ctx, MiniZinc::TypeInst*, MiniZinc::Id*, MiniZinc::VarDecl*, MiniZinc::Expression*)::__PRETTY_FUNCTION__
+MiniZinc::opToBuiltin(MiniZinc::BinOp*, MiniZinc::BinOpType)::__PRETTY_FUNCTION__
+MiniZinc::output_model_interface(MiniZinc::Env&, MiniZinc::Model*, std::ostream&)
+MiniZinc::outputVarDecls(MiniZinc::EnvI&, MiniZinc::Item*, MiniZinc::Expression*)
+MiniZinc::outputVarDecls(MiniZinc::EnvI&, MiniZinc::Item*, MiniZinc::Expression*)::O::O(MiniZinc::EnvI&, MiniZinc::Item*)
+MiniZinc::outputVarDecls(MiniZinc::EnvI&, MiniZinc::Item*, MiniZinc::Expression*)::O::vId(MiniZinc::Id&)
+MiniZinc::outputVarDecls(MiniZinc::EnvI&, MiniZinc::Item*, MiniZinc::Expression*)::O::vId(MiniZinc::Id&)::__PRETTY_FUNCTION__
+MiniZinc::output_var_desc_json(MiniZinc::Env&, MiniZinc::VarDecl*, std::ostream&)
+MiniZinc::parseData(MiniZinc::Env&, MiniZinc::Model*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, bool, bool, bool, std::ostream&)
+MiniZinc::parse(MiniZinc::Env&, MiniZinc::Model*&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, bool, bool, bool, std::ostream&)
+MiniZinc::parse(MiniZinc::Env&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, bool, bool, bool, std::ostream&)
+MiniZinc::populateOutput(MiniZinc::Env&)::__PRETTY_FUNCTION__
+MiniZinc::rb(MiniZinc::EnvI&, MiniZinc::Model*, MiniZinc::ASTString const&, std::vector<MiniZinc::Type, std::allocator<MiniZinc::Type> > const&, MiniZinc::FloatVal (*)(MiniZinc::EnvI&, MiniZinc::Call*))
+MiniZinc::Solns2Out::parseAssignments(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)::__PRETTY_FUNCTION__
+MiniZinc::SolverInstanceBase*&& std::forward<MiniZinc::SolverInstanceBase*>(std::remove_reference<MiniZinc::SolverInstanceBase*>::type&)
+MiniZinc::SyntaxError& std::forward<MiniZinc::SyntaxError&>(std::remove_reference<MiniZinc::SyntaxError&>::type&)
+MiniZinc::TopDownIterator<MiniZinc::createOutput(MiniZinc::EnvI&, std::vector<MiniZinc::VarDecl*, std::allocator<MiniZinc::VarDecl*> >&, MiniZinc::FlatteningOptions::OutputMode)::CollectFunctions>::run(MiniZinc::Expression*)
+MiniZinc::TopDownIterator<MiniZinc::createOutput(MiniZinc::EnvI&, std::vector<MiniZinc::VarDecl*, std::allocator<MiniZinc::VarDecl*> >&, MiniZinc::FlatteningOptions::OutputMode)::CollectFunctions>::TopDownIterator(MiniZinc::createOutput(MiniZinc::EnvI&, std::vector<MiniZinc::VarDecl*, std::allocator<MiniZinc::VarDecl*> >&, MiniZinc::FlatteningOptions::OutputMode)::CollectFunctions&)
+MiniZinc::TopDownIterator<MiniZinc::outputVarDecls(MiniZinc::EnvI&, MiniZinc::Item*, MiniZinc::Expression*)::O>::run(MiniZinc::Expression*)
+MiniZinc::TopDownIterator<MiniZinc::outputVarDecls(MiniZinc::EnvI&, MiniZinc::Item*, MiniZinc::Expression*)::O>::TopDownIterator(MiniZinc::outputVarDecls(MiniZinc::EnvI&, MiniZinc::Item*, MiniZinc::Expression*)::O&)
+MiniZinc::Type::dim(int)::__PRETTY_FUNCTION__
+MiniZinc::TypeError& std::forward<MiniZinc::TypeError&>(std::remove_reference<MiniZinc::TypeError&>::type&)
+MiniZinc::TypeError* std::__make_move_if_noexcept_iterator<MiniZinc::TypeError*, MiniZinc::TypeError*>(MiniZinc::TypeError*)
+MiniZinc::TypeError* std::__uninitialized_copy_a<MiniZinc::TypeError*, MiniZinc::TypeError*, MiniZinc::TypeError>(MiniZinc::TypeError*, MiniZinc::TypeError*, MiniZinc::TypeError*, std::allocator<MiniZinc::TypeError>&)
+MiniZinc::TypeError* std::__uninitialized_copy<false>::__uninit_copy<MiniZinc::TypeError*, MiniZinc::TypeError*>(MiniZinc::TypeError*, MiniZinc::TypeError*, MiniZinc::TypeError*)
+MiniZinc::TypeError* std::uninitialized_copy<MiniZinc::TypeError*, MiniZinc::TypeError*>(MiniZinc::TypeError*, MiniZinc::TypeError*, MiniZinc::TypeError*)
+MiniZinc::TypeInst** std::__copy_move<true, true, std::random_access_iterator_tag>::__copy_m<MiniZinc::TypeInst*>(MiniZinc::TypeInst* const*, MiniZinc::TypeInst* const*, MiniZinc::TypeInst**)
+MiniZinc::Type::isfloatset() const
+MiniZinc::Typer<false>::vId(MiniZinc::Id&)::__PRETTY_FUNCTION__
+MiniZinc::Typer<false>::vTypeInst(MiniZinc::TypeInst&)::__PRETTY_FUNCTION__
+MiniZinc::Typer<true>::vId(MiniZinc::Id&)::__PRETTY_FUNCTION__
+MiniZinc::Typer<true>::vTypeInst(MiniZinc::TypeInst&)::__PRETTY_FUNCTION__
+MiniZinc::Typer<true>::vVarDecl(MiniZinc::VarDecl&)::__PRETTY_FUNCTION__
+MiniZinc::Type::varstring(int)
+MiniZinc::UnOp::opToString() const::__PRETTY_FUNCTION__

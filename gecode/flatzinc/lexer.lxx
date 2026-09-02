@@ -67,6 +67,75 @@ bool parseInt(const char* text, int& value) {
   return true;
 }
 
+Gecode::FlatZinc::AST::String*
+parseString(const char* text) {
+  std::string value;
+  std::string regex;
+  size_t len = strlen(text);
+  for (size_t i = 1; i < len - 1; i++) {
+    if (text[i] != '\\') {
+      value += text[i];
+      regex += text[i];
+      continue;
+    }
+    if (i + 1 >= len - 1)
+      throw std::runtime_error("Incomplete escape sequence");
+    char c = text[++i];
+    switch (c) {
+    case 'a': c = '\a'; break;
+    case 'b': c = '\b'; break;
+    case 'e': c = '\x1b'; break;
+    case 'f': c = '\f'; break;
+    case 'n': c = '\n'; break;
+    case 'r': c = '\r'; break;
+    case 't': c = '\t'; break;
+    case 'v': c = '\v'; break;
+    case '\'': c = '\''; break;
+    case '"': c = '"'; break;
+    case '0':
+      value += '\0';
+      regex += "\\0";
+      continue;
+    case '(':
+    case ')':
+    case '[':
+    case ']':
+    case '&':
+    case '|':
+    case '*':
+    case '.':
+    case '\\':
+      value += c;
+      regex += '\\';
+      regex += c;
+      continue;
+    case 'x': {
+      if (i + 2 >= len - 1)
+        throw std::runtime_error("Incomplete hexadecimal escape sequence");
+      char hex[3] = {text[i+1], text[i+2], '\0'};
+      char* end;
+      long decoded = strtol(hex, &end, 16);
+      if (*end != '\0')
+        throw std::runtime_error("Malformed hexadecimal escape sequence");
+      c = static_cast<unsigned char>(decoded);
+      i += 2;
+      if (c == '\0') {
+        value += '\0';
+        regex += "\\0";
+        continue;
+      }
+      break;
+    }
+    default:
+      throw std::runtime_error(
+        "Unable to unescape: " + std::string(1, c));
+    }
+    value += c;
+    regex += c;
+  }
+  return new Gecode::FlatZinc::AST::String(value, regex);
+}
+
 int yy_input_proc(char* buf, int size, yyscan_t yyscanner);
 #define YY_INPUT(buf, result, max_size) \
   result = yy_input_proc(buf, max_size, yyscanner);
@@ -155,10 +224,8 @@ int yy_input_proc(char* buf, int size, yyscan_t yyscanner);
 "where"           { return FZ_WHERE; }
 [A-Za-z][A-Za-z0-9_]* { yylval->sValue = strdup(yytext); return FZ_ID; }
 _[_]*[A-Za-z][A-Za-z0-9_]* { yylval->sValue = strdup(yytext); return FZ_U_ID; }
-\"[^"\n]*\"       {
-                    yylval->sValue = strdup(yytext+1);
-                    yylval->sValue[strlen(yytext)-2] = 0;
-                    return FZ_STRING_LIT; }
+\"([^"\\]|(\\.))*\" { yylval->stringValue = parseString(yytext);
+                       return FZ_STRING_LIT; }
 .                 { yyerror("Unknown character"); }
 %%
 int yy_input_proc(char* buf, int size, yyscan_t yyscanner) {

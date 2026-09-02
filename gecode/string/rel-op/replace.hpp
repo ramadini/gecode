@@ -416,7 +416,9 @@ namespace Gecode { namespace String {
     while (true) {
       bool repeat;
       ExecStatus status = propagate_pass(home, repeat);
-      if (!repeat)
+      if (home.failed())
+        return ES_FAILED;
+      if (!repeat || status != ES_OK)
         return status;
     }
   }

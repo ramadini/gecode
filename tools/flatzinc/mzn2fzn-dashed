@@ -2,8 +2,39 @@
 
 set -eu
 
-if command -v minizinc >/dev/null 2>&1; then
-  exec minizinc --compile "$@"
+# Historical precompiled MiniZinc-to-FlatZinc converter (mzn2fzn-str,
+# version 2.0.97_strings) with native support for G-Strings' `var string`,
+# `var string(N)` and `var string of {...}` syntax. This binary predates the
+# 6.4 porting and is kept precompiled (rather than rebuilt from a patched
+# libminizinc 2.10.0) because maintaining/patching a modern libminizinc for
+# these features is a much larger, ongoing burden; see
+# tools/minizinc-string/PATCH_STATUS.md for the abandoned in-progress
+# alternative and rationale.
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+ASSET_DIR="$SCRIPT_DIR"
+SOURCE_ASSET_DIR="/home/roberto/Dashed/gecode/tools/flatzinc"
+
+case "$(uname -s):$(uname -m)" in
+  Linux:x86_64|Linux:amd64) ;;
+  *)
+    echo "mzn2fzn-dashed: the bundled compiler supports Linux x86-64 only" >&2
+    exit 1
+    ;;
+esac
+
+if [ ! -x "$ASSET_DIR/mzn2fzn-str" ] ||
+   [ ! -d "$ASSET_DIR/mzn2fzn-stdlib" ]; then
+  ASSET_DIR="$SOURCE_ASSET_DIR"
+fi
+if [ ! -x "$ASSET_DIR/mzn2fzn-str" ] ||
+   [ ! -d "$ASSET_DIR/mzn2fzn-stdlib" ]; then
+  echo "mzn2fzn-dashed: compiler runtime assets are missing" >&2
+  exit 1
 fi
 
-exec mzn-fzn "$@"
+STDLIB_DIR="$ASSET_DIR/mzn2fzn-stdlib"
+
+exec "$ASSET_DIR/mzn2fzn-str" --no-output-ozn \
+  --stdlib-dir "$STDLIB_DIR" \
+  -I "$STDLIB_DIR/string" \
+  -I "$STDLIB_DIR/javascript" "$@"

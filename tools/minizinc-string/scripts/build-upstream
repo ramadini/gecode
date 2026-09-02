@@ -1,0 +1,35 @@
+#!/bin/sh
+
+set -eu
+
+ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../../.." && pwd)
+WORK_DIR="${MZN_STRING_WORK_DIR:-$ROOT_DIR/tools/minizinc-string/.work}"
+SOURCE_DIR="$WORK_DIR/libminizinc-2.0.97"
+BUILD_DIR="$WORK_DIR/build-2.0.97"
+
+test -d "$SOURCE_DIR/.git" ||
+  { echo "missing source checkout; run fetch-upstream first" >&2; exit 1; }
+test -z "$(git -C "$SOURCE_DIR" status --porcelain)" ||
+  { echo "refusing to build dirty checkout: $SOURCE_DIR" >&2; exit 1; }
+test "$(git -C "$SOURCE_DIR" rev-parse --short=7 HEAD)" = "19544df" ||
+  { echo "source checkout is not commit 19544df" >&2; exit 1; }
+
+cmake -S "$SOURCE_DIR" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_CXX_FLAGS=-include\ limits
+# libminizinc 2.0.97 ships generated sources compatible with its parser API.
+# Build those sources instead of the incompatible output of modern Bison/Flex.
+mkdir -p "$BUILD_DIR/minizinc"
+cp "$SOURCE_DIR/lib/cached/parser.tab.cpp" "$BUILD_DIR/parser.tab.cpp"
+cp "$SOURCE_DIR/lib/cached/minizinc/parser.tab.hh" \
+  "$BUILD_DIR/minizinc/parser.tab.hh"
+cp "$SOURCE_DIR/lib/cached/minizinc/parser.tab.hh" "$BUILD_DIR/parser.tab.hh"
+cp "$SOURCE_DIR/lib/cached/lexer.yy.cpp" "$BUILD_DIR/lexer.yy.cpp"
+touch "$BUILD_DIR/parser.tab.cpp" "$BUILD_DIR/minizinc/parser.tab.hh" \
+  "$BUILD_DIR/parser.tab.hh" "$BUILD_DIR/lexer.yy.cpp"
+cmake --build "$BUILD_DIR" --target mzn2fzn
+
+compiler=$(find "$BUILD_DIR" -type f -name mzn2fzn -perm -111 | head -n 1)
+test -n "$compiler" ||
+  { echo "mzn2fzn was not produced by the upstream build" >&2; exit 1; }
+printf '%s\n' "$compiler" > "$WORK_DIR/official-mzn2fzn.path"
+"$compiler" --version
