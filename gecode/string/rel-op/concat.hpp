@@ -77,8 +77,24 @@ namespace Gecode { namespace String {
               x2.domain().is_normalized());
       int assigned = x0.assigned() + x1.assigned() + x2.assigned();
       if (assigned == 3) {
-        if (x2.val() != x0.val() + x1.val())
-          return ES_FAILED;
+        string s0, s1, s2;
+        const bool b0 = x0.domain().try_val_bytes(s0);
+        const bool b1 = x1.domain().try_val_bytes(s1);
+        const bool b2 = x2.domain().try_val_bytes(s2);
+        if (b0 && b1 && b2) {
+          if (s2 != s0 + s1)
+            return ES_FAILED;
+        }
+        else {
+          const StringVal v0 = x0.domain().val_symbols();
+          const StringVal v1 = x1.domain().val_symbols();
+          const StringVal v2 = x2.domain().val_symbols();
+          if (v2.size() != v0.size() + v1.size() ||
+              !std::equal(v0.begin(), v0.end(), v2.begin()) ||
+              !std::equal(v1.begin(), v1.end(),
+                v2.begin() + static_cast<std::ptrdiff_t>(v0.size())))
+            return ES_FAILED;
+        }
         return home.ES_SUBSUMED(*this);
       }
       if (assigned != 2)

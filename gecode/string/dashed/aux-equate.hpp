@@ -4,17 +4,37 @@ namespace Gecode { namespace String {
 
   typedef vec<std::pair<int, NSBlocks>> uvec;
 
+  /// Read-only block adapter for a concrete encoding-neutral value.
+  class StringValBlocks {
+  private:
+    const StringVal& value;
+  public:
+    explicit StringValBlocks(const StringVal& v) : value(v) {}
+    int length(void) const { return static_cast<int>(value.size()); }
+    StringSymbol at(int i) const {
+      return value[static_cast<StringVal::size_type>(i)];
+    }
+    StringSymbol front(void) const { return at(0); }
+    StringSymbol back(void) const { return at(length() - 1); }
+  };
+
   // Helpers.
   forceinline int known(const DSBlock& b) { return b.known(); }
   forceinline int known(const NSBlock& b) { return b.known(); }
   forceinline int known(char) { return true; }
+  forceinline int known(StringSymbol) { return true; }
   forceinline int lower(const DSBlock& b) { return b.l; }
   forceinline int lower(const NSBlock& b) { return b.l; }
   forceinline int lower(char) { return 1; }
+  forceinline int lower(StringSymbol) { return 1; }
   forceinline int upper(const DSBlock& b) { return b.u; }
   forceinline int upper(const NSBlock& b) { return b.u; }
   forceinline int upper(char) { return 1; }
+  forceinline int upper(StringSymbol) { return 1; }
   forceinline bool disjoint(char c1, char c2) { return c1 != c2; }
+  forceinline bool disjoint(StringSymbol c1, StringSymbol c2) {
+    return c1 != c2;
+  }
   forceinline bool disjoint(char c, const DSBlock& b) {
     return !b.S.in(char2int(c));
   }
@@ -26,6 +46,18 @@ namespace Gecode { namespace String {
   }
   forceinline bool disjoint(const NSBlock& b, char c) {
     return !b.S.in(char2int(c));
+  }
+  forceinline bool disjoint(StringSymbol c, const DSBlock& b) {
+    return !b.S.in(c);
+  }
+  forceinline bool disjoint(const DSBlock& b, StringSymbol c) {
+    return !b.S.in(c);
+  }
+  forceinline bool disjoint(StringSymbol c, const NSBlock& b) {
+    return !b.S.in(c);
+  }
+  forceinline bool disjoint(const NSBlock& b, StringSymbol c) {
+    return !b.S.in(c);
   }
   forceinline bool disjoint(const DSBlock& b1, const DSBlock& b2) {
     return b1.S.disjoint(b2.S);
@@ -42,6 +74,7 @@ namespace Gecode { namespace String {
   forceinline int null(const DSBlock& b) { return b.null(); }
   forceinline int null(const NSBlock& b) { return b.null(); }
   forceinline int null(char) { return false; }
+  forceinline int null(StringSymbol) { return false; }
 
   struct Position {
     int idx; // Block. FIXME: Blocks are 0-based, not 1-based.

@@ -31,14 +31,23 @@ namespace Gecode { namespace String {
     // std::cerr<<"propagated: "<<x0<<" = "<<x1<<std::endl;
     assert (x0.domain().is_normalized() && x1.domain().is_normalized());
     if (x0.assigned()) {
-      if (!x1.assigned())
-        GECODE_ME_CHECK(x1.eq(home, x0.val()));
-      assert (x0.val() == x1.val());
+      if (!x1.assigned()) {
+        string value;
+        if (x0.domain().try_val_bytes(value))
+          GECODE_ME_CHECK(x1.eq(home, value));
+        else
+          GECODE_ME_CHECK(x1.eq(home, x0));
+      }
+      assert (x0.domain().val_symbols() == x1.domain().val_symbols());
       return home.ES_SUBSUMED(*this);
     }
     if (x1.assigned()) {
-      GECODE_ME_CHECK(x0.eq(home, x1.val()));
-      assert (x0.val() == x1.val());
+      string value;
+      if (x1.domain().try_val_bytes(value))
+        GECODE_ME_CHECK(x0.eq(home, value));
+      else
+        GECODE_ME_CHECK(x0.eq(home, x1));
+      assert (x0.domain().val_symbols() == x1.domain().val_symbols());
       return home.ES_SUBSUMED(*this);
     }
     return ES_FIX;

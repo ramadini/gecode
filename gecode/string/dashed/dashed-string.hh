@@ -389,6 +389,9 @@ namespace Gecode { namespace String {
 
   string val() const;
 
+  /// Extract the assigned value as bytes, returning false for symbols > 255.
+  bool try_val_bytes(string& value) const;
+
   StringVal val_symbols() const;
 
   void norm_update(Space& h, NSBlocks& v);
@@ -399,11 +402,14 @@ namespace Gecode { namespace String {
 
   bool check_equate(const DashedString& that) const;
   bool check_equate(const NSBlocks& that) const;
+  bool check_equate(const StringVal& that) const;
 
   bool equate(Space& h, DashedString& that);
   bool equate(Space& h, const NSBlocks& that);
+  bool equate(Space& h, const StringVal& that);
 
   void update(Space& h, string s);
+  void update(Space& h, const StringVal& value);
   void update(Space& h, const DashedString& that);
   void update(Space& h, const NSBlocks& that);
 

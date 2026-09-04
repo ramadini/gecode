@@ -1357,49 +1357,98 @@ namespace Gecode { namespace String {
     if (y.null())
       return equate(h, x);
     if (known()) {
-      string sz = val();
-      int nz = sz.size();
+      string sz;
+      const bool z_bytes = try_val_bytes(sz);
       if (x.known()) {
-        string sx = x.val();
+        string sx;
+        const bool x_bytes = x.try_val_bytes(sx);
         if (y.known()) {
-          string sy = y.val();
-          return sz.size() == sx.size() + sy.size() &&
-                 sz.compare(0, sx.size(), sx) == 0 &&
-                 sz.compare(sx.size(), sy.size(), sy) == 0;
+          string sy;
+          const bool y_bytes = y.try_val_bytes(sy);
+          if (z_bytes && x_bytes && y_bytes)
+            return sz.size() == sx.size() + sy.size() &&
+                   sz.compare(0, sx.size(), sx) == 0 &&
+                   sz.compare(sx.size(), sy.size(), sy) == 0;
+          const StringVal vz = val_symbols();
+          const StringVal vx = x.val_symbols();
+          const StringVal vy = y.val_symbols();
+          return vz.size() == vx.size() + vy.size() &&
+                 std::equal(vx.begin(), vx.end(), vz.begin()) &&
+                 std::equal(vy.begin(), vy.end(),
+                            vz.begin() + static_cast<std::ptrdiff_t>(vx.size()));
         }
-        int nx = sx.size();
-        if (nz < nx || sz.compare(0, nx, sx) != 0)
+        if (z_bytes && x_bytes) {
+          const int nz = static_cast<int>(sz.size());
+          const int nx = static_cast<int>(sx.size());
+          if (nz < nx || sz.compare(0, nx, sx) != 0)
+            return false;
+          string suff = sz.substr(nx, nz - nx);
+          if (!check_sweep<DSBlock, DSBlocks, char, string>(y._blocks, suff))
+            return false;
+          y.update(h, suff);
+          y._changed = true;
+          return true;
+        }
+        const StringVal vz = val_symbols();
+        const StringVal vx = x.val_symbols();
+        if (vz.size() < vx.size() ||
+            !std::equal(vx.begin(), vx.end(), vz.begin()))
           return false;
-        string suff = sz.substr(nx, nz - nx);
-        if (!check_sweep<DSBlock, DSBlocks, char, string>(y._blocks, suff))
-          return false;
-        y.update(h, suff);
-        y._changed = true;
-        return true;
+        std::vector<StringSymbol> symbols(
+          vz.begin() + static_cast<std::ptrdiff_t>(vx.size()), vz.end());
+        const StringVal suff = StringVal::from_symbols(std::move(symbols));
+        return y.equate(h, suff);
       }
       else if (y.known()) {
-        string sy = y.val();
-        int ny = sy.size();
-        if (nz < ny || sz.compare(nz - ny, ny, sy) != 0)
+        string sy;
+        const bool y_bytes = y.try_val_bytes(sy);
+        if (z_bytes && y_bytes) {
+          const int nz = static_cast<int>(sz.size());
+          const int ny = static_cast<int>(sy.size());
+          if (nz < ny || sz.compare(nz - ny, ny, sy) != 0)
+            return false;
+          string pref = sz.substr(0, nz - ny);
+          if (!check_sweep<DSBlock, DSBlocks, char, string>(x._blocks, pref))
+            return false;
+          x.update(h, pref);
+          x._changed = true;
+          return true;
+        }
+        const StringVal vz = val_symbols();
+        const StringVal vy = y.val_symbols();
+        if (vz.size() < vy.size() ||
+            !std::equal(vy.begin(), vy.end(),
+              vz.begin() + static_cast<std::ptrdiff_t>(vz.size() - vy.size())))
           return false;
-        string pref = sz.substr(0, nz - ny);
-        if (!check_sweep<DSBlock, DSBlocks, char, string>(x._blocks, pref))
-          return false;
-        x.update(h, pref);
-        x._changed = true;
-        return true;
+        std::vector<StringSymbol> symbols(
+          vz.begin(),
+          vz.begin() + static_cast<std::ptrdiff_t>(vz.size() - vy.size()));
+        const StringVal pref = StringVal::from_symbols(std::move(symbols));
+        return x.equate(h, pref);
       }
     }
     if (x.known() && y.known()) {
-      string xy = x.val() + y.val();
-      int n = xy.size();
-      if (n < _min_length || n > _max_length)
-        return false;
-      if (!check_sweep<DSBlock, DSBlocks, char, string>(_blocks, xy))
-        return false;
-      update(h, xy);
-      _changed = true;
-      return true;
+      string sx, sy;
+      const bool x_bytes = x.try_val_bytes(sx);
+      const bool y_bytes = y.try_val_bytes(sy);
+      if (x_bytes && y_bytes) {
+        string xy = sx + sy;
+        int n = static_cast<int>(xy.size());
+        if (n < _min_length || n > _max_length)
+          return false;
+        if (!check_sweep<DSBlock, DSBlocks, char, string>(_blocks, xy))
+          return false;
+        update(h, xy);
+        _changed = true;
+        return true;
+      }
+      const StringVal vx = x.val_symbols();
+      const StringVal vy = y.val_symbols();
+      std::vector<StringSymbol> symbols;
+      symbols.reserve(vx.size() + vy.size());
+      symbols.insert(symbols.end(), vx.begin(), vx.end());
+      symbols.insert(symbols.end(), vy.begin(), vy.end());
+      return equate(h, StringVal::from_symbols(std::move(symbols)));
     }
     if (x._min_length > 0 && y._min_length > 0 && contains(x, y)) {
       // std::cerr << *this << " contains " << x << "  ++  " << y << "\n";
@@ -2009,22 +2058,32 @@ namespace Gecode { namespace String {
     return refine_lb(l) && refine_ub(h, u);
   }
 
-  forceinline string
-  DashedString::val() const {
-    string s;
-    s.reserve(_min_length);
+  forceinline bool
+  DashedString::try_val_bytes(string& value) const {
+    value.clear();
+    value.reserve(_min_length);
     for (int i = 0; i < _blocks.length(); ++i) {
       const DSBlock& block = at(i);
       if (!block.known())
         throw UnknownValDS("DashedString::val");
       if (!block.null()) {
         const int symbol = block.S.min();
-        if (symbol < 0 || symbol > 255)
-          throw OutOfLimitsDS("DashedString::val");
-        s.append(block.l, int2char(static_cast<unsigned>(symbol)));
+        if (symbol < 0 || symbol > 255) {
+          value.clear();
+          return false;
+        }
+        value.append(block.l, int2char(static_cast<unsigned>(symbol)));
       }
     }
-    return s;
+    return true;
+  }
+
+  forceinline string
+  DashedString::val() const {
+    string value;
+    if (!try_val_bytes(value))
+      throw OutOfLimitsDS("DashedString::val");
+    return value;
   }
 
   forceinline StringVal
@@ -2080,34 +2139,63 @@ namespace Gecode { namespace String {
   }
 
   forceinline bool
+  DashedString::check_equate(const StringVal& that) const {
+    if (that.size() < static_cast<StringVal::size_type>(_min_length) ||
+        that.size() > static_cast<StringVal::size_type>(_max_length))
+      return false;
+    const StringValBlocks blocks(that);
+    return check_sweep<DSBlock, DSBlocks, StringSymbol, StringValBlocks>(
+      _blocks, blocks
+    );
+  }
+
+  forceinline bool
   DashedString::equate(Space& h, DashedString& that) {
     // std::cerr<<"DashedString::equate "<<*this<<' '<<that<<std::endl;
     _changed = that._changed = false;
     if (!refine_card_eq(h, that))
       return false;
     if (known()) {
-      string s = val();
-      if (that.known())
-        return s == that.val();
-      else {
+      string s;
+      if (try_val_bytes(s)) {
+        if (that.known()) {
+          string t;
+          return that.try_val_bytes(t) && s == t;
+        }
         if (check_sweep<char, string, DSBlock, DSBlocks>(s, that._blocks)) {
           that.update(h, s);
           that._changed = true;
           return true;
         }
-        else
-          return false;
+        return false;
       }
+      if (that.known())
+        return equals(that);
+      if (check_sweep<DSBlock, DSBlocks, DSBlock, DSBlocks>(
+            _blocks, that._blocks)) {
+        that.update(h, *this);
+        that._changed = true;
+        return true;
+      }
+      return false;
     }
     if (that.known()) {
-      string s = that.val();
-      if (check_sweep<DSBlock, DSBlocks, char, string>(_blocks, s)) {
-        update(h, s);
+      string s;
+      if (that.try_val_bytes(s)) {
+        if (check_sweep<DSBlock, DSBlocks, char, string>(_blocks, s)) {
+          update(h, s);
+          _changed = true;
+          return true;
+        }
+        return false;
+      }
+      if (check_sweep<DSBlock, DSBlocks, DSBlock, DSBlocks>(
+            _blocks, that._blocks)) {
+        update(h, that);
         _changed = true;
         return true;
       }
-      else
-        return false;
+      return false;
     }
     if (contains(that)) {
       if (*this == that)
@@ -2173,10 +2261,29 @@ namespace Gecode { namespace String {
     return true;
   }
 
+  forceinline bool
+  DashedString::equate(Space& h, const StringVal& that) {
+    _changed = false;
+    if (!check_equate(that))
+      return false;
+    if (known())
+      return val_symbols() == that;
+    update(h, that);
+    _changed = true;
+    return true;
+  }
+
   forceinline void
   DashedString::update(Space& h, string s) {
     _blocks.update(h, s);
     _min_length = _max_length = s.size();
+    assert (is_normalized());
+  }
+
+  forceinline void
+  DashedString::update(Space& h, const StringVal& value) {
+    _blocks.update(h, value);
+    _min_length = _max_length = static_cast<int>(value.size());
     assert (is_normalized());
   }
 

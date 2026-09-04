@@ -118,11 +118,39 @@ namespace Gecode { namespace String {
     for (auto& s : x)
       length += s.min_length();
     val.reserve(length);
-    for (auto& s : x)
-      val += s.val();
+
+    bool byte_values = true;
+    for (auto& s : x) {
+      string part;
+      if (!s.domain().try_val_bytes(part)) {
+        byte_values = false;
+        break;
+      }
+      val += part;
+    }
+
+    if (byte_values) {
+      if (y.assigned()) {
+        string result;
+        if (!y.domain().try_val_bytes(result))
+          return ES_FAILED;
+        return val == result ? home.ES_SUBSUMED(*this) : ES_FAILED;
+      }
+      rel(home, y, STRT_EQ, StringVar(home, val));
+      return home.ES_SUBSUMED(*this);
+    }
+
+    std::vector<StringSymbol> symbols;
+    symbols.reserve(length);
+    for (auto& s : x) {
+      const StringVal part = s.domain().val_symbols();
+      symbols.insert(symbols.end(), part.begin(), part.end());
+    }
+    const StringVal result = StringVal::from_symbols(std::move(symbols));
     if (y.assigned())
-      return val == y.val() ? home.ES_SUBSUMED(*this) : ES_FAILED;
-    rel(home, y, STRT_EQ, StringVar(home, val));
+      return result == y.domain().val_symbols()
+        ? home.ES_SUBSUMED(*this) : ES_FAILED;
+    rel(home, y, STRT_EQ, StringVar(home, result));
     return home.ES_SUBSUMED(*this);
   }
 

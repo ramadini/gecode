@@ -901,8 +901,18 @@ namespace Gecode { namespace String {
     DashedString& x, DashedString& y, DashedString& z
   ) {
     if (z.known()) {
-      if (!check_sweep<char, string, DSBlock, ConcatView>(z.val(), xy))
-        return false;
+      string value;
+      if (z.try_val_bytes(value)) {
+        if (!check_sweep<char, string, DSBlock, ConcatView>(value, xy))
+          return false;
+      }
+      else {
+        const StringVal symbols = z.val_symbols();
+        const StringValBlocks blocks(symbols);
+        if (!check_sweep<StringSymbol, StringValBlocks, DSBlock, ConcatView>(
+              blocks, xy))
+          return false;
+      }
     }
     else
       return sweep_both<DSBlock, DSBlocks, DSBlock, ConcatView>(

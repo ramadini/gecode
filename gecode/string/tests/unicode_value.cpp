@@ -49,6 +49,138 @@ namespace {
     assert(rejected);
   }
 
+  Gecode::String::NSIntSet two_symbols(StringSymbol a, StringSymbol b) {
+    Gecode::String::NSIntSet symbols(a);
+    symbols.include(b);
+    return symbols;
+  }
+
+  class UnicodeEqSpace : public Gecode::Space {
+  public:
+    Gecode::StringVar candidate;
+    Gecode::StringVar fixed;
+
+    UnicodeEqSpace(void)
+      : candidate(*this, two_symbols(0x65E5, 0x1F600), 1, 1),
+        fixed(*this, StringVal::from_symbols({0x65E5})) {
+      Gecode::rel(*this, candidate, Gecode::STRT_EQ, fixed);
+    }
+
+    UnicodeEqSpace(UnicodeEqSpace& other)
+      : Gecode::Space(other) {
+      candidate.update(*this, other.candidate);
+      fixed.update(*this, other.fixed);
+    }
+
+    virtual Gecode::Space* copy(void) {
+      return new UnicodeEqSpace(*this);
+    }
+  };
+
+  Gecode::String::NSIntSet symbol_set(
+    std::initializer_list<StringSymbol> values
+  ) {
+    assert(values.size() > 0);
+    std::initializer_list<StringSymbol>::const_iterator i = values.begin();
+    Gecode::String::NSIntSet symbols(*i);
+    for (++i; i != values.end(); ++i)
+      symbols.include(*i);
+    return symbols;
+  }
+
+  class UnicodeConcatSpace : public Gecode::Space {
+  public:
+    Gecode::StringVar left;
+    Gecode::StringVar right;
+    Gecode::StringVar result;
+
+    enum Mode { InferRight, InferLeft, InferBoth, InferResult, InvalidFixed };
+
+    explicit UnicodeConcatSpace(Mode mode)
+      : left(), right(), result() {
+      if (mode == InferRight) {
+        left = Gecode::StringVar(*this, StringVal::from_symbols({0x65E5}));
+        right = Gecode::StringVar(
+          *this, two_symbols(0x672C, 0x1F600), 1, 1);
+        result = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x65E5, 0x672C}));
+      } else if (mode == InferLeft) {
+        left = Gecode::StringVar(
+          *this, two_symbols(0x65E5, 0x1F600), 1, 1);
+        right = Gecode::StringVar(*this, StringVal::from_symbols({0x672C}));
+        result = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x65E5, 0x672C}));
+      } else if (mode == InferBoth) {
+        left = Gecode::StringVar(
+          *this, two_symbols(0x65E5, 0x672C), 1, 1);
+        right = Gecode::StringVar(
+          *this, two_symbols(0x672C, 0x1F600), 1, 1);
+        result = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x65E5, 0x1F600}));
+      } else if (mode == InferResult) {
+        left = Gecode::StringVar(*this, StringVal::from_symbols({0x65E5}));
+        right = Gecode::StringVar(*this, StringVal::from_symbols({0x1F600}));
+        result = Gecode::StringVar(
+          *this, two_symbols(0x65E5, 0x1F600), 2, 2);
+      } else {
+        left = Gecode::StringVar(*this, StringVal::from_symbols({0x65E5}));
+        right = Gecode::StringVar(*this, StringVal::from_symbols({0x1F600}));
+        result = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x65E5, 0x672C}));
+      }
+      Gecode::rel(*this, left, right, Gecode::STRT_CAT, result);
+    }
+
+    UnicodeConcatSpace(UnicodeConcatSpace& other)
+      : Gecode::Space(other) {
+      left.update(*this, other.left);
+      right.update(*this, other.right);
+      result.update(*this, other.result);
+    }
+
+    virtual Gecode::Space* copy(void) {
+      return new UnicodeConcatSpace(*this);
+    }
+  };
+
+  class UnicodeGConcatSpace : public Gecode::Space {
+  public:
+    Gecode::StringVar result;
+
+    enum Mode { InferResult, FixedMatch, FixedMismatch };
+
+    explicit UnicodeGConcatSpace(Mode mode)
+      : result() {
+      Gecode::StringVarArgs parts(3);
+      parts[0] = Gecode::StringVar(*this, "A");
+      parts[1] = Gecode::StringVar(
+        *this, StringVal::from_symbols({0x65E5}));
+      parts[2] = Gecode::StringVar(
+        *this, StringVal::from_symbols({0x1F600}));
+
+      if (mode == InferResult) {
+        result = Gecode::StringVar(
+          *this, symbol_set({'A', 0x65E5, 0x1F600}), 3, 3);
+      } else if (mode == FixedMatch) {
+        result = Gecode::StringVar(
+          *this, StringVal::from_symbols({'A', 0x65E5, 0x1F600}));
+      } else {
+        result = Gecode::StringVar(
+          *this, StringVal::from_symbols({'A', 0x65E5, 0x672C}));
+      }
+      Gecode::gconcat(*this, parts, result);
+    }
+
+    UnicodeGConcatSpace(UnicodeGConcatSpace& other)
+      : Gecode::Space(other) {
+      result.update(*this, other.result);
+    }
+
+    virtual Gecode::Space* copy(void) {
+      return new UnicodeGConcatSpace(*this);
+    }
+  };
+
 }
 
 int main(void) {
@@ -160,6 +292,71 @@ int main(void) {
   assert(empty_space->value.val_symbols().empty());
   assert(empty_space->value.val().empty());
   delete empty_space;
+
+  UnicodeEqSpace* equality = new UnicodeEqSpace();
+  assert(equality->status() != Gecode::SS_FAILED);
+  assert(equality->candidate.assigned());
+  assert(equality->candidate.val_symbols() ==
+         StringVal::from_symbols({0x65E5}));
+  delete equality;
+
+  UnicodeConcatSpace* infer_right =
+    new UnicodeConcatSpace(UnicodeConcatSpace::InferRight);
+  assert(infer_right->status() != Gecode::SS_FAILED);
+  assert(infer_right->right.assigned());
+  assert(infer_right->right.val_symbols() ==
+         StringVal::from_symbols({0x672C}));
+  delete infer_right;
+
+  UnicodeConcatSpace* infer_left =
+    new UnicodeConcatSpace(UnicodeConcatSpace::InferLeft);
+  assert(infer_left->status() != Gecode::SS_FAILED);
+  assert(infer_left->left.assigned());
+  assert(infer_left->left.val_symbols() ==
+         StringVal::from_symbols({0x65E5}));
+  delete infer_left;
+
+  UnicodeConcatSpace* infer_both =
+    new UnicodeConcatSpace(UnicodeConcatSpace::InferBoth);
+  assert(infer_both->status() != Gecode::SS_FAILED);
+  assert(infer_both->left.assigned());
+  assert(infer_both->right.assigned());
+  assert(infer_both->left.val_symbols() ==
+         StringVal::from_symbols({0x65E5}));
+  assert(infer_both->right.val_symbols() ==
+         StringVal::from_symbols({0x1F600}));
+  delete infer_both;
+
+  UnicodeConcatSpace* infer_result =
+    new UnicodeConcatSpace(UnicodeConcatSpace::InferResult);
+  assert(infer_result->status() != Gecode::SS_FAILED);
+  assert(infer_result->result.assigned());
+  assert(infer_result->result.val_symbols() ==
+         StringVal::from_symbols({0x65E5, 0x1F600}));
+  delete infer_result;
+
+  UnicodeConcatSpace* invalid =
+    new UnicodeConcatSpace(UnicodeConcatSpace::InvalidFixed);
+  assert(invalid->status() == Gecode::SS_FAILED);
+  delete invalid;
+
+  UnicodeGConcatSpace* gconcat_result =
+    new UnicodeGConcatSpace(UnicodeGConcatSpace::InferResult);
+  assert(gconcat_result->status() != Gecode::SS_FAILED);
+  assert(gconcat_result->result.assigned());
+  assert(gconcat_result->result.val_symbols() ==
+         StringVal::from_symbols({'A', 0x65E5, 0x1F600}));
+  delete gconcat_result;
+
+  UnicodeGConcatSpace* gconcat_match =
+    new UnicodeGConcatSpace(UnicodeGConcatSpace::FixedMatch);
+  assert(gconcat_match->status() != Gecode::SS_FAILED);
+  delete gconcat_match;
+
+  UnicodeGConcatSpace* gconcat_mismatch =
+    new UnicodeGConcatSpace(UnicodeGConcatSpace::FixedMismatch);
+  assert(gconcat_mismatch->status() == Gecode::SS_FAILED);
+  delete gconcat_mismatch;
 
   return 0;
 }
