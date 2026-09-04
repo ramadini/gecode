@@ -22,17 +22,31 @@ namespace Gecode { namespace String {
     return new (home) Inc(home, *this);
   }
 
+  forceinline bool
+  Inc::assigned_ok(void) const {
+    string bytes;
+    if (x0.domain().try_val_bytes(bytes)) {
+      for (unsigned int i = 0; i + 1 < bytes.size(); ++i)
+        if (bytes[i] > bytes[i + 1] ||
+            (strict && bytes[i] == bytes[i + 1]))
+          return false;
+      return true;
+    }
+
+    const StringVal value = x0.domain().val_symbols();
+    for (StringVal::size_type i = 0; i + 1 < value.size(); ++i)
+      if (value[i] > value[i + 1] ||
+          (strict && value[i] == value[i + 1]))
+        return false;
+    return true;
+  }
+
   forceinline ExecStatus
   Inc::propagate(Space& home, const ModEventDelta&) {
     //  strict ? std::cerr<<"\nInc lt ::propagate "<<x0<<std::endl
     //         : std::cerr<<"\nInc le ::propagate "<<x0<<std::endl;
-    if (x0.assigned()) {
-      string s = x0.val();
-      for (unsigned i = 0; i + 1 < s.size(); ++i)
-        if (s[i] > s[i + 1] || (strict && s[i] == s[i + 1]))
-          return ES_FAILED;
-      return home.ES_SUBSUMED(*this);
-    }
+    if (x0.assigned())
+      return assigned_ok() ? home.ES_SUBSUMED(*this) : ES_FAILED;
     if (strict) {
       NSIntSet s(x0.may_chars());
       int m = s.size(), n = x0.min_length();
@@ -50,9 +64,7 @@ namespace Gecode { namespace String {
     }
     GECODE_ME_CHECK(x0.inc(home, strict));
     if (x0.assigned()) {
-      string s = x0.val();
-      for (unsigned i = 0; i + 1 < s.size(); ++i)
-        assert (s[i] < s[i + 1] || (!strict && s[i] == s[i + 1]));
+      assert(assigned_ok());
       return home.ES_SUBSUMED(*this);
     }
     assert (x0.domain().is_normalized());

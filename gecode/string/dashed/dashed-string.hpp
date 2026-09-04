@@ -1739,24 +1739,36 @@ namespace Gecode { namespace String {
     //std::cerr<<"DashedString::reverse "<<*this<<" = "<<x<<"^-1"<<std::endl;
     _changed = x._changed = false;
     if (known()) {
-      string s = val();
-      std::reverse(s.begin(), s.end());
-      if (check_sweep<char, string, DSBlock, DSBlocks>(s, x._blocks)) {
-        x.update(h, s);
-        x._changed = true;
-        return true;
+      string bytes;
+      if (try_val_bytes(bytes)) {
+        std::reverse(bytes.begin(), bytes.end());
+        if (check_sweep<char, string, DSBlock, DSBlocks>(bytes, x._blocks)) {
+          x.update(h, bytes);
+          x._changed = true;
+          return true;
+        }
+        return false;
       }
-      return false;
+      const StringVal value = val_symbols();
+      std::vector<StringSymbol> reversed(value.begin(), value.end());
+      std::reverse(reversed.begin(), reversed.end());
+      return x.equate(h, StringVal::from_symbols(std::move(reversed)));
     }
     if (x.known()) {
-      string s = x.val();
-      std::reverse(s.begin(), s.end());
-      if (check_sweep<DSBlock, DSBlocks, char, string>(_blocks, s)) {
-        update(h, s);
-        _changed = true;
-        return true;
+      string bytes;
+      if (x.try_val_bytes(bytes)) {
+        std::reverse(bytes.begin(), bytes.end());
+        if (check_sweep<DSBlock, DSBlocks, char, string>(_blocks, bytes)) {
+          update(h, bytes);
+          _changed = true;
+          return true;
+        }
+        return false;
       }
-      return false;
+      const StringVal value = x.val_symbols();
+      std::vector<StringSymbol> reversed(value.begin(), value.end());
+      std::reverse(reversed.begin(), reversed.end());
+      return equate(h, StringVal::from_symbols(std::move(reversed)));
     }
     if (!refine_card_eq(h, x))
       return false;

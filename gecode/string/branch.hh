@@ -93,13 +93,22 @@ namespace Gecode { namespace String { namespace Branch {
       }
       if (p.lev == Level::CARD)
         return ES_OK;
-      const string value = x[p.pos].val();
+      string bytes;
       bool selected;
-      if (p.lev == Level::LENGTH)
-        selected = static_cast<int>(value.size()) == p.split;
-      else
-        selected = p.offset < static_cast<int>(value.size()) &&
-          static_cast<int>(char2int(value[p.offset])) == p.split;
+      if (x[p.pos].domain().try_val_bytes(bytes)) {
+        if (p.lev == Level::LENGTH)
+          selected = static_cast<int>(bytes.size()) == p.split;
+        else
+          selected = p.offset < static_cast<int>(bytes.size()) &&
+            static_cast<int>(char2int(bytes[p.offset])) == p.split;
+      } else {
+        const StringVal value = x[p.pos].domain().val_symbols();
+        if (p.lev == Level::LENGTH)
+          selected = static_cast<int>(value.size()) == p.split;
+        else
+          selected = p.offset < static_cast<int>(value.size()) &&
+            value[static_cast<StringVal::size_type>(p.offset)] == p.split;
+      }
       return selected == (a == 0) ? ES_OK : ES_FAILED;
     }
 

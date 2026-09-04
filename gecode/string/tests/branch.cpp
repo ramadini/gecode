@@ -59,6 +59,50 @@ public:
   }
 };
 
+class UnicodeBranchModel : public Space {
+public:
+  StringVar value;
+
+  explicit UnicodeBranchModel(int brancher) : value() {
+    String::NSIntSet symbols(0x65E5);
+    symbols.include(0x1F600);
+    value = StringVar(*this, symbols, 1, 1);
+    StringVarArgs variables;
+    variables << value;
+    switch (brancher) {
+    case 0:
+      branch(*this, variables, STRING_VAR_NONE(), STRING_VAL_LLLL());
+      break;
+    case 1:
+      branch(*this, variables, STRING_VAR_LENMIN(), STRING_VAL_LLLL());
+      break;
+    case 2:
+      branch(*this, variables, STRING_VAR_LENMAX(), STRING_VAL_LLLL());
+      break;
+    case 3:
+      branch(*this, variables, STRING_VAR_SIZEMIN(), STRING_VAL_LLUL());
+      break;
+    case 4:
+      branch(*this, variables, STRING_VAR_BLOCKMIN(), STRING_VAL_LLLL());
+      break;
+    case 5:
+      branch(*this, variables, STRING_VAR_BLOCKMIN(), STRING_VAL_LLLM());
+      break;
+    default:
+      branch(*this, variables, STRING_VAR_LENBLOCKMIN(), STRING_VAL_LLLM());
+      break;
+    }
+  }
+
+  UnicodeBranchModel(UnicodeBranchModel& other) : Space(other) {
+    value.update(*this, other.value);
+  }
+
+  virtual Space* copy(void) {
+    return new UnicodeBranchModel(*this);
+  }
+};
+
 int
 main(void) {
   for (int brancher = 0; brancher < 7; ++brancher) {
@@ -89,6 +133,31 @@ main(void) {
         (multi_block ? 9 : 4) : (multi_block ? 7 : 3);
       assert(solutions == expected);
     }
+  }
+  for (int brancher = 0; brancher < 7; ++brancher) {
+    UnicodeBranchModel* model = new UnicodeBranchModel(brancher);
+    Search::Options options;
+    options.c_d = 1;
+    DFS<UnicodeBranchModel> search(model, options);
+    delete model;
+    int solutions = 0;
+    bool seen_bmp = false;
+    bool seen_supplementary = false;
+    while (UnicodeBranchModel* solution = search.next()) {
+      assert(solution->value.assigned());
+      const String::StringVal concrete = solution->value.val_symbols();
+      assert(concrete.size() == 1);
+      if (concrete[0] == 0x65E5)
+        seen_bmp = true;
+      else {
+        assert(concrete[0] == 0x1F600);
+        seen_supplementary = true;
+      }
+      ++solutions;
+      delete solution;
+    }
+    assert(solutions == 2);
+    assert(seen_bmp && seen_supplementary);
   }
   return 0;
 }

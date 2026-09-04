@@ -65,12 +65,25 @@ namespace Gecode { namespace String {
       assert (x0.domain().is_normalized() && x2.domain().is_normalized());
       int assigned = x0.assigned() + x1.assigned() + x2.assigned();
       if (assigned == 3) {
-        string x = x0.val(), xn;
-        int n = x1.val();
-        xn.reserve(x2.min_length());
-        for (int i = 0; i < n; ++i)
-          xn += x;
-        assert (x2.val() == xn);
+        string x_bytes, result_bytes;
+        const bool x_is_bytes = x0.domain().try_val_bytes(x_bytes);
+        const bool result_is_bytes = x2.domain().try_val_bytes(result_bytes);
+        const int n = x1.val();
+        if (x_is_bytes && result_is_bytes) {
+          string expected;
+          expected.reserve(x2.min_length());
+          for (int i = 0; i < n; ++i)
+            expected += x_bytes;
+          assert (result_bytes == expected);
+        } else {
+          const StringVal x_value = x0.domain().val_symbols();
+          std::vector<StringSymbol> expected;
+          expected.reserve(x2.min_length());
+          for (int i = 0; i < n; ++i)
+            expected.insert(expected.end(), x_value.begin(), x_value.end());
+          assert (StringVal::from_symbols(std::move(expected)) ==
+                  x2.domain().val_symbols());
+        }
         return home.ES_SUBSUMED(*this);
       }
       if (assigned == 2) {

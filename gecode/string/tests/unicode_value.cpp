@@ -88,6 +88,110 @@ namespace {
     return symbols;
   }
 
+  class UnicodeNqSpace : public Gecode::Space {
+  public:
+    Gecode::StringVar left;
+    Gecode::StringVar right;
+
+    explicit UnicodeNqSpace(bool equal)
+      : left(*this, StringVal::from_symbols({0x65E5, 0x1F600})),
+        right(*this, equal
+          ? StringVal::from_symbols({0x65E5, 0x1F600})
+          : StringVal::from_symbols({0x65E5, 0x672C})) {
+      Gecode::rel(*this, left, Gecode::STRT_NQ, right);
+    }
+
+    UnicodeNqSpace(UnicodeNqSpace& other)
+      : Gecode::Space(other) {
+      left.update(*this, other.left);
+      right.update(*this, other.right);
+    }
+
+    virtual Gecode::Space* copy(void) {
+      return new UnicodeNqSpace(*this);
+    }
+  };
+
+  class UnicodeIncreasingSpace : public Gecode::Space {
+  public:
+    Gecode::StringVar value;
+
+    UnicodeIncreasingSpace(const StringVal& concrete, bool strict)
+      : value(*this, concrete) {
+      Gecode::rel(*this, value,
+        strict ? Gecode::STRT_INCLT : Gecode::STRT_INCLQ);
+    }
+
+    UnicodeIncreasingSpace(UnicodeIncreasingSpace& other)
+      : Gecode::Space(other) {
+      value.update(*this, other.value);
+    }
+
+    virtual Gecode::Space* copy(void) {
+      return new UnicodeIncreasingSpace(*this);
+    }
+  };
+
+  class UnicodeRevSpace : public Gecode::Space {
+  public:
+    Gecode::StringVar source;
+    Gecode::StringVar result;
+
+    explicit UnicodeRevSpace(bool fixed_mismatch)
+      : source(*this, StringVal::from_symbols({'A', 0x65E5, 0x1F600})),
+        result() {
+      if (fixed_mismatch) {
+        result = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x1F600, 0x672C, 'A'}));
+      } else {
+        result = Gecode::StringVar(
+          *this, symbol_set({'A', 0x65E5, 0x1F600}), 3, 3);
+      }
+      Gecode::rel(*this, source, Gecode::STRT_REV, result);
+    }
+
+    UnicodeRevSpace(UnicodeRevSpace& other)
+      : Gecode::Space(other) {
+      source.update(*this, other.source);
+      result.update(*this, other.result);
+    }
+
+    virtual Gecode::Space* copy(void) {
+      return new UnicodeRevSpace(*this);
+    }
+  };
+
+  class UnicodePowSpace : public Gecode::Space {
+  public:
+    Gecode::StringVar base;
+    Gecode::IntVar exponent;
+    Gecode::StringVar result;
+
+    explicit UnicodePowSpace(bool fixed_mismatch)
+      : base(*this, StringVal::from_symbols({0x65E5, 0x1F600})),
+        exponent(*this, 2, 2), result() {
+      if (fixed_mismatch) {
+        result = Gecode::StringVar(*this, StringVal::from_symbols(
+          {0x65E5, 0x1F600, 0x65E5, 0x672C}));
+      } else {
+        result = Gecode::StringVar(
+          *this, symbol_set({0x65E5, 0x1F600}), 4, 4);
+      }
+      Gecode::pow(*this, base, exponent, result);
+    }
+
+    UnicodePowSpace(UnicodePowSpace& other)
+      : Gecode::Space(other) {
+      base.update(*this, other.base);
+      exponent.update(*this, other.exponent);
+      result.update(*this, other.result);
+    }
+
+    virtual Gecode::Space* copy(void) {
+      return new UnicodePowSpace(*this);
+    }
+  };
+
   class UnicodeConcatSpace : public Gecode::Space {
   public:
     Gecode::StringVar left;
@@ -339,6 +443,56 @@ int main(void) {
     new UnicodeConcatSpace(UnicodeConcatSpace::InvalidFixed);
   assert(invalid->status() == Gecode::SS_FAILED);
   delete invalid;
+
+  UnicodeNqSpace* nq_different = new UnicodeNqSpace(false);
+  assert(nq_different->status() != Gecode::SS_FAILED);
+  delete nq_different;
+
+  UnicodeNqSpace* nq_equal = new UnicodeNqSpace(true);
+  assert(nq_equal->status() == Gecode::SS_FAILED);
+  delete nq_equal;
+
+  UnicodeIncreasingSpace* increasing = new UnicodeIncreasingSpace(
+    StringVal::from_symbols({0x65E5, 0x672C, 0x1F600}), true);
+  assert(increasing->status() != Gecode::SS_FAILED);
+  delete increasing;
+
+  UnicodeIncreasingSpace* not_increasing = new UnicodeIncreasingSpace(
+    StringVal::from_symbols({0x1F600, 0x65E5}), true);
+  assert(not_increasing->status() == Gecode::SS_FAILED);
+  delete not_increasing;
+
+  UnicodeIncreasingSpace* non_strict_equal = new UnicodeIncreasingSpace(
+    StringVal::from_symbols({0x65E5, 0x65E5}), false);
+  assert(non_strict_equal->status() != Gecode::SS_FAILED);
+  delete non_strict_equal;
+
+  UnicodeIncreasingSpace* strict_equal = new UnicodeIncreasingSpace(
+    StringVal::from_symbols({0x65E5, 0x65E5}), true);
+  assert(strict_equal->status() == Gecode::SS_FAILED);
+  delete strict_equal;
+
+  UnicodeRevSpace* reverse = new UnicodeRevSpace(false);
+  assert(reverse->status() != Gecode::SS_FAILED);
+  assert(reverse->result.assigned());
+  assert(reverse->result.val_symbols() ==
+         StringVal::from_symbols({0x1F600, 0x65E5, 'A'}));
+  delete reverse;
+
+  UnicodeRevSpace* reverse_mismatch = new UnicodeRevSpace(true);
+  assert(reverse_mismatch->status() == Gecode::SS_FAILED);
+  delete reverse_mismatch;
+
+  UnicodePowSpace* power = new UnicodePowSpace(false);
+  assert(power->status() != Gecode::SS_FAILED);
+  assert(power->result.assigned());
+  assert(power->result.val_symbols() == StringVal::from_symbols(
+    {0x65E5, 0x1F600, 0x65E5, 0x1F600}));
+  delete power;
+
+  UnicodePowSpace* power_mismatch = new UnicodePowSpace(true);
+  assert(power_mismatch->status() == Gecode::SS_FAILED);
+  delete power_mismatch;
 
   UnicodeGConcatSpace* gconcat_result =
     new UnicodeGConcatSpace(UnicodeGConcatSpace::InferResult);

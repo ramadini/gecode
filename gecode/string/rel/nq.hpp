@@ -27,15 +27,22 @@ namespace Gecode { namespace String {
   Nq::propagate(Space& home, const ModEventDelta&) {
     // std::cerr<<"Nq::propagate "<<x0<<" != "<<x1<<std::endl;
     if (x1.assigned()) {
-      if (x0.assigned())
-        return x1.val() == x0.val() ? ES_FAILED : home.ES_SUBSUMED(*this);
-      if (x1.val() == "") {
+      if (x0.assigned()) {
+        string x0_bytes, x1_bytes;
+        const bool x0_is_bytes = x0.domain().try_val_bytes(x0_bytes);
+        const bool x1_is_bytes = x1.domain().try_val_bytes(x1_bytes);
+        const bool equal = x0_is_bytes && x1_is_bytes
+          ? x0_bytes == x1_bytes
+          : x0.domain().val_symbols() == x1.domain().val_symbols();
+        return equal ? ES_FAILED : home.ES_SUBSUMED(*this);
+      }
+      if (x1.max_length() == 0) {
         IntVar n(home, 1, x0.max_length());
         length(home, x0, n);
         return home.ES_SUBSUMED(*this);
       }
     }
-    if (x0.assigned() && x0.val() == "") {
+    if (x0.assigned() && x0.max_length() == 0) {
       IntVar n(home, 1, x1.max_length());
       length(home, x1, n);
       return home.ES_SUBSUMED(*this);

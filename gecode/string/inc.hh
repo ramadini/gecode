@@ -6,6 +6,8 @@ namespace Gecode { namespace String {
   class Inc : public UnaryPropagator <StringView, PC_STRING_DOM> {
   private:
     bool strict;
+    /// Test the ordering condition for an assigned value.
+    bool assigned_ok(void) const;
   protected:
     using UnaryPropagator<StringView, PC_STRING_DOM>::x0;
     /// Constructor for cloning \a p

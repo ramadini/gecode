@@ -49,9 +49,20 @@ namespace Gecode { namespace String {
       assert (x0.domain().is_normalized() && x1.domain().is_normalized());
       int assigned = x0.assigned() + x1.assigned();
       if (assigned == 2) {
-        string x0r = x0.val();
-        std::reverse(x0r.begin(), x0r.end());
-        assert (x0r == x1.val());
+        string x0_bytes, x1_bytes;
+        const bool x0_is_bytes = x0.domain().try_val_bytes(x0_bytes);
+        const bool x1_is_bytes = x1.domain().try_val_bytes(x1_bytes);
+        if (x0_is_bytes && x1_is_bytes) {
+          std::reverse(x0_bytes.begin(), x0_bytes.end());
+          assert (x0_bytes == x1_bytes);
+        } else {
+          const StringVal x0_value = x0.domain().val_symbols();
+          std::vector<StringSymbol> reversed
+            (x0_value.begin(), x0_value.end());
+          std::reverse(reversed.begin(), reversed.end());
+          assert (StringVal::from_symbols(std::move(reversed)) ==
+                  x1.domain().val_symbols());
+        }
         return home.ES_SUBSUMED(*this);
       }
       if (assigned != 1)
