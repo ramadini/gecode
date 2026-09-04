@@ -27,6 +27,11 @@ namespace Gecode {
     return x->domain().val();
   }
 
+  forceinline String::StringVal
+  StringVar::val_symbols() const {
+    return x->domain().val_symbols();
+  }
+
   forceinline const String::DashedString&
   StringVar::domain() const {
     return x->domain();

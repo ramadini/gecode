@@ -45,6 +45,7 @@
  */
 
 #include <gecode/string/exception.hpp>
+#include <gecode/string/value.hpp>
 #include <gecode/string/var-imp.hpp>
 
 namespace Gecode {
@@ -90,6 +91,10 @@ namespace Gecode {
     GECODE_STRING_EXPORT
     StringVar(Space& home, const string& s);
 
+    /// Initialize to the encoding-neutral value \a value
+    GECODE_STRING_EXPORT
+    StringVar(Space& home, const String::StringVal& value);
+
     GECODE_STRING_EXPORT
     StringVar(Space& home, String::NSBlocks& v, int mil, int mal);
 
@@ -107,6 +112,9 @@ namespace Gecode {
     *
     */
     string val(void) const;
+
+    /// Return the assigned encoding-neutral symbol sequence
+    String::StringVal val_symbols(void) const;
 
     bool assigned(void) const;
 

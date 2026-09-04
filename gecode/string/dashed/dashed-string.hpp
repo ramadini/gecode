@@ -688,6 +688,61 @@ namespace Gecode { namespace String {
   }
 
   forceinline void
+  DSBlocks::update(Space& h, const StringVal& value) {
+    if (value.empty()) {
+      clear(h);
+      return;
+    }
+
+    const int ns = static_cast<int>(value.size());
+    int m = 0;
+    StringSymbol previous = -1;
+    for (int i = 0; i < ns; ++i) {
+      const StringSymbol symbol = value[static_cast<StringVal::size_type>(i)];
+      if (symbol != previous) {
+        ++m;
+        previous = symbol;
+      }
+    }
+
+    int j = 0;
+    previous = -1;
+    if (m <= _size) {
+      for (int i = 0; i < ns; ++i) {
+        const StringSymbol symbol = value[static_cast<StringVal::size_type>(i)];
+        if (symbol == previous) {
+          ++x[j - 1].l;
+          ++x[j - 1].u;
+        } else {
+          previous = symbol;
+          x[j].S.update(h, NSIntSet(symbol));
+          x[j].l = 1;
+          x[j].u = 1;
+          ++j;
+        }
+      }
+      if (m < _size)
+        shrink(h, m);
+      return;
+    }
+
+    reset(h, m);
+    for (int i = 0; i < ns; ++i) {
+      const StringSymbol symbol = value[static_cast<StringVal::size_type>(i)];
+      if (symbol == previous) {
+        ++x[j - 1].l;
+        ++x[j - 1].u;
+      } else {
+        previous = symbol;
+        x[j].S.init(h, NSIntSet(symbol));
+        x[j].l = 1;
+        x[j].u = 1;
+        ++j;
+      }
+    }
+  }
+
+  forceinline void
   DSBlocks::insert(Space& h, int k, const DSBlock& b) {
     // std::cerr << "Inserting " << b << " at position " << k << " of " << *this << '\n';
     DSBlock* y = h.alloc<DSBlock>(n + 1);
@@ -1962,10 +2017,28 @@ namespace Gecode { namespace String {
       const DSBlock& block = at(i);
       if (!block.known())
         throw UnknownValDS("DashedString::val");
-      if (!block.null())
-        s.append(block.l, int2char(block.S.min()));
+      if (!block.null()) {
+        const int symbol = block.S.min();
+        if (symbol < 0 || symbol > 255)
+          throw OutOfLimitsDS("DashedString::val");
+        s.append(block.l, int2char(static_cast<unsigned>(symbol)));
+      }
     }
     return s;
+  }
+
+  forceinline StringVal
+  DashedString::val_symbols() const {
+    std::vector<StringSymbol> symbols;
+    symbols.reserve(_min_length);
+    for (int i = 0; i < _blocks.length(); ++i) {
+      const DSBlock& block = at(i);
+      if (!block.known())
+        throw UnknownValDS("DashedString::val_symbols");
+      if (!block.null())
+        symbols.insert(symbols.end(), block.l, block.S.min());
+    }
+    return StringVal::from_symbols(std::move(symbols));
   }
 
   forceinline string

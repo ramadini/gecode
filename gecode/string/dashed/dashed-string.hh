@@ -12,6 +12,7 @@
 #include <cmath>
 #include <gecode/int.hh>
 #include <gecode/set.hh>
+#include <gecode/string/value.hpp>
 
 /*
  * Configure linking
@@ -260,6 +261,7 @@ namespace Gecode { namespace String {
     void update(Space& h, const DSBlocks& d);
     void update(Space& h, const NSBlocks& that, int& l, int& u);
     void update(Space& h, const string& s);
+    void update(Space& h, const StringVal& value);
 
     void insert(Space& h, int k, const DSBlock& d);
 
@@ -338,6 +340,8 @@ namespace Gecode { namespace String {
 
   DashedString(Space& h, const std::string& s);
 
+  DashedString(Space& h, const StringVal& value);
+
   DashedString(Space& h, const DSBlock& b);
 
   DashedString(Space& h, const DSBlocks& bv);
@@ -384,6 +388,8 @@ namespace Gecode { namespace String {
   void set_null(Space& h);
 
   string val() const;
+
+  StringVal val_symbols() const;
 
   void norm_update(Space& h, NSBlocks& v);
 

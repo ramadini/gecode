@@ -10,6 +10,11 @@ namespace Gecode { namespace String {
     return ds.val();
   }
 
+  forceinline StringVal
+  StringVarImp::val_symbols() const {
+    return ds.val_symbols();
+  }
+
   forceinline const DashedString&
   StringVarImp::domain() const {
     return ds;

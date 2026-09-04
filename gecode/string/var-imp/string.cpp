@@ -17,6 +17,9 @@ namespace Gecode { namespace String {
   StringVarImp::StringVarImp(Space& home, string s) :
     StringVarImpBase(home), ds(home, s) {}
 
+  StringVarImp::StringVarImp(Space& home, const StringVal& value) :
+    StringVarImpBase(home), ds(home, value) {}
+
   StringVarImp::StringVarImp(Space& home, NSBlocks& v, int mil, int mal) :
     StringVarImpBase(home), ds(home, v, mil, mal) {}
 

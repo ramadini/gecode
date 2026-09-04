@@ -77,12 +77,17 @@ namespace Gecode { namespace String {
 
     StringVarImp(Space& home, string s);
 
+    StringVarImp(Space& home, const StringVal& value);
+
     StringVarImp(Space& home, NSBlocks& v, int mil, int mal);
 
     StringVarImp(Space& home, const NSIntSet& s, int a, int b);
 
     /// Return assigned value (only if assigned)
     string val(void) const;
+
+    /// Return assigned encoding-neutral value (only if assigned)
+    StringVal val_symbols(void) const;
 
     const DashedString& domain(void) const;
 

@@ -106,6 +106,7 @@ then
     exit $ret
   fi
   declare -a TESTS=( \
+      'unicode_value.cpp'\
       'str_test1.cpp' 'str_test2.cpp' 'str_test3.cpp'\
       'match_differential.cpp'\
       'lex_differential.cpp'\

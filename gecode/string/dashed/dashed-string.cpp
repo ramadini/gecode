@@ -159,6 +159,14 @@ namespace Gecode { namespace String {
     this->_blocks.update(h, s);
   }
 
+  DashedString::DashedString(Space& h, const StringVal& value)
+    : _changed(false), _blocks(h), _min_length(0), _max_length(0) {
+    if (value.size() > static_cast<StringVal::size_type>(_MAX_STR_LENGTH))
+      throw OutOfLimitsDS("DashedString::DashedString");
+    _min_length = _max_length = static_cast<int>(value.size());
+    this->_blocks.update(h, value);
+  }
+
   DashedString::DashedString(Space& h, const DashedString& d)
     : _changed(d._changed), _blocks(h, d._blocks),
       _min_length(d._min_length), _max_length(d._max_length) {}
