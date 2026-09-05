@@ -32,6 +32,16 @@ namespace Gecode { namespace String {
       }
       return accepting(q);
     };
+    bool accepted(const StringVal& s, StringVal::size_type begin = 0) const {
+      assert(begin <= s.size());
+      int q = 0;
+      for (StringVal::size_type i = begin; i < s.size(); ++i) {
+        q = search(q, s[i]);
+        if (q == -1)
+          return false;
+      }
+      return accepting(q);
+    };
     virtual NSIntSet alphabet() const = 0;
     virtual int search(int, int) const = 0;
     virtual NSIntSet neighbours(int) const = 0;

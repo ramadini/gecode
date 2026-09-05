@@ -462,6 +462,122 @@ namespace {
     }
   };
 
+  Gecode::DFA unicode_literal_dfa(void) {
+    return Gecode::DFA(0, {
+      Gecode::DFA::Transition(0, 0x65E5, 1),
+      Gecode::DFA::Transition(1, 0x1F600, 2)
+    }, {2}, false);
+  }
+
+  Gecode::DFA unicode_class_dfa(void) {
+    return Gecode::DFA(0, {
+      Gecode::DFA::Transition(0, 0x65E5, 1),
+      Gecode::DFA::Transition(0, 0x1F600, 1)
+    }, {1}, false);
+  }
+
+  Gecode::DFA unicode_active_alphabet_star_dfa(void) {
+    return Gecode::DFA(0, {
+      Gecode::DFA::Transition(0, 0x65E5, 0),
+      Gecode::DFA::Transition(0, 0x1F600, 0),
+      Gecode::DFA::Transition(0, 0x10FFFF, 0)
+    }, {0}, false);
+  }
+
+  class UnicodeRegularSpace : public Gecode::Space {
+  public:
+    enum Mode {
+      AssignedLiteral,
+      RejectedLiteral,
+      PropagatedClass,
+      FilterClass,
+      ActiveAlphabetStar,
+      MaximumScalar
+    };
+
+    Gecode::StringVar value;
+
+    explicit UnicodeRegularSpace(Mode mode) : value() {
+      if (mode == AssignedLiteral || mode == RejectedLiteral) {
+        value = Gecode::StringVar(*this, StringVal::from_symbols(
+          mode == AssignedLiteral
+            ? std::initializer_list<StringSymbol>{0x65E5, 0x1F600}
+            : std::initializer_list<StringSymbol>{0x65E5, 0x672C}));
+        Gecode::extensional(*this, value, unicode_literal_dfa());
+      } else if (mode == PropagatedClass) {
+        value = Gecode::StringVar(
+          *this, symbol_set({0x65E5, 0x1F600}), 1, 1);
+        Gecode::extensional(*this, value, unicode_class_dfa());
+        Gecode::StringVar selected(
+          *this, StringVal::from_symbols({0x1F600}));
+        Gecode::rel(*this, value, Gecode::STRT_EQ, selected);
+      } else if (mode == FilterClass) {
+        value = Gecode::StringVar(
+          *this, symbol_set({0x65E5, 0x672C, 0x1F600}), 1, 1);
+        Gecode::extensional(*this, value, unicode_class_dfa());
+      } else if (mode == ActiveAlphabetStar) {
+        value = Gecode::StringVar(*this, StringVal::from_symbols(
+          {0x65E5, 0x1F600, 0x10FFFF, 0x65E5}));
+        Gecode::extensional(
+          *this, value, unicode_active_alphabet_star_dfa());
+      } else {
+        value = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x10FFFF}));
+        Gecode::DFA maximum(0, {
+          Gecode::DFA::Transition(0, 0x10FFFF, 1)
+        }, {1}, false);
+        Gecode::extensional(*this, value, maximum);
+      }
+    }
+
+    UnicodeRegularSpace(UnicodeRegularSpace& other)
+      : Gecode::Space(other) {
+      value.update(*this, other.value);
+    }
+
+    virtual Gecode::Space* copy(void) {
+      return new UnicodeRegularSpace(*this);
+    }
+  };
+
+  class UnicodeReifiedRegularSpace : public Gecode::Space {
+  public:
+    enum Mode { AssignedAccept, AssignedReject, PropagatedAccept };
+
+    Gecode::StringVar value;
+    Gecode::BoolVar result;
+
+    explicit UnicodeReifiedRegularSpace(Mode mode)
+      : value(), result(*this, 0, 1) {
+      if (mode == PropagatedAccept) {
+        value = Gecode::StringVar(
+          *this, symbol_set({0x65E5, 0x1F600}), 1, 1);
+        Gecode::extensional(
+          *this, value, unicode_class_dfa(), result, Gecode::RM_EQV);
+        Gecode::StringVar selected(
+          *this, StringVal::from_symbols({0x1F600}));
+        Gecode::rel(*this, value, Gecode::STRT_EQ, selected);
+      } else {
+        value = Gecode::StringVar(*this, StringVal::from_symbols(
+          mode == AssignedAccept
+            ? std::initializer_list<StringSymbol>{0x65E5, 0x1F600}
+            : std::initializer_list<StringSymbol>{0x65E5, 0x672C}));
+        Gecode::extensional(
+          *this, value, unicode_literal_dfa(), result, Gecode::RM_EQV);
+      }
+    }
+
+    UnicodeReifiedRegularSpace(UnicodeReifiedRegularSpace& other)
+      : Gecode::Space(other) {
+      value.update(*this, other.value);
+      result.update(*this, other.result);
+    }
+
+    virtual Gecode::Space* copy(void) {
+      return new UnicodeReifiedRegularSpace(*this);
+    }
+  };
+
 }
 
 int main(void) {
@@ -761,6 +877,65 @@ int main(void) {
   assert(contains->status() != Gecode::SS_FAILED);
   assert(contains->result.assigned() && contains->result.val() == 1);
   delete contains;
+
+  UnicodeRegularSpace* regular_literal =
+    new UnicodeRegularSpace(UnicodeRegularSpace::AssignedLiteral);
+  assert(regular_literal->status() != Gecode::SS_FAILED);
+  delete regular_literal;
+
+  UnicodeRegularSpace* rejected_regular_literal =
+    new UnicodeRegularSpace(UnicodeRegularSpace::RejectedLiteral);
+  assert(rejected_regular_literal->status() == Gecode::SS_FAILED);
+  delete rejected_regular_literal;
+
+  UnicodeRegularSpace* propagated_regular_class =
+    new UnicodeRegularSpace(UnicodeRegularSpace::PropagatedClass);
+  assert(propagated_regular_class->status() != Gecode::SS_FAILED);
+  assert(propagated_regular_class->value.val_symbols() ==
+         StringVal::from_symbols({0x1F600}));
+  delete propagated_regular_class;
+
+  UnicodeRegularSpace* filtered_regular_class =
+    new UnicodeRegularSpace(UnicodeRegularSpace::FilterClass);
+  assert(filtered_regular_class->status() != Gecode::SS_FAILED);
+  assert(filtered_regular_class->value.may_chars().in(0x65E5));
+  assert(filtered_regular_class->value.may_chars().in(0x1F600));
+  assert(!filtered_regular_class->value.may_chars().in(0x672C));
+  delete filtered_regular_class;
+
+  UnicodeRegularSpace* regular_active_alphabet =
+    new UnicodeRegularSpace(UnicodeRegularSpace::ActiveAlphabetStar);
+  assert(regular_active_alphabet->status() != Gecode::SS_FAILED);
+  delete regular_active_alphabet;
+
+  UnicodeRegularSpace* regular_maximum =
+    new UnicodeRegularSpace(UnicodeRegularSpace::MaximumScalar);
+  assert(regular_maximum->status() != Gecode::SS_FAILED);
+  delete regular_maximum;
+
+  UnicodeReifiedRegularSpace* reified_regular_accept =
+    new UnicodeReifiedRegularSpace(
+      UnicodeReifiedRegularSpace::AssignedAccept);
+  assert(reified_regular_accept->status() != Gecode::SS_FAILED);
+  assert(reified_regular_accept->result.assigned() &&
+         reified_regular_accept->result.val() == 1);
+  delete reified_regular_accept;
+
+  UnicodeReifiedRegularSpace* reified_regular_reject =
+    new UnicodeReifiedRegularSpace(
+      UnicodeReifiedRegularSpace::AssignedReject);
+  assert(reified_regular_reject->status() != Gecode::SS_FAILED);
+  assert(reified_regular_reject->result.assigned() &&
+         reified_regular_reject->result.val() == 0);
+  delete reified_regular_reject;
+
+  UnicodeReifiedRegularSpace* reified_regular_propagated =
+    new UnicodeReifiedRegularSpace(
+      UnicodeReifiedRegularSpace::PropagatedAccept);
+  assert(reified_regular_propagated->status() != Gecode::SS_FAILED);
+  assert(reified_regular_propagated->result.assigned() &&
+         reified_regular_propagated->result.val() == 1);
+  delete reified_regular_propagated;
 
   return 0;
 }

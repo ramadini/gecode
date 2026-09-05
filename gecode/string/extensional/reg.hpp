@@ -257,11 +257,27 @@ namespace Gecode { namespace String {
     if (d.final_fst() >= d.final_lst())
       return ES_FAILED;
     if (x.assigned()) {
-      string s = x.val();
+      string bytes;
+      if (x.domain().try_val_bytes(bytes)) {
+        int q = 0;
+        for (int i = 0; i < (int) bytes.size(); ++i) {
+          int c = char2int(bytes[i]), qi = -1;
+          for (DFA::Transitions t(d, c); t(); ++t)
+            if (t.i_state() == q) {
+              qi = t.o_state();
+              break;
+            }
+          if (qi == -1)
+            return ES_FAILED;
+          q = qi;
+        }
+        return q < d.final_fst() || q >= d.final_lst() ? ES_FAILED : ES_OK;
+      }
+      const StringVal value = x.val_symbols();
       int q = 0;
-      for (int i = 0; i < (int) s.size(); ++i) {
-        int c = char2int(s[i]), qi = -1;
-        for (DFA::Transitions t(d, c); t(); ++t)
+      for (StringVal::size_type i = 0; i < value.size(); ++i) {
+        int qi = -1;
+        for (DFA::Transitions t(d, value[i]); t(); ++t)
           if (t.i_state() == q) {
             qi = t.o_state();
             break;
@@ -651,8 +667,11 @@ namespace Gecode { namespace String {
     // std::cerr<<"\nExtDFA<StringView>::propagate "<<x0<<" in dfa "<<*dfa<<std::endl;
     while (true) {
       if (x0.assigned()) {
-        // std::cerr << dfa->accepted(x0.val()) << std::endl;
-        return dfa->accepted(x0.val()) ? home.ES_SUBSUMED(*this) : ES_FAILED;
+        string bytes;
+        const bool accepted = x0.domain().try_val_bytes(bytes)
+          ? dfa->accepted(bytes)
+          : dfa->accepted(x0.val_symbols());
+        return accepted ? home.ES_SUBSUMED(*this) : ES_FAILED;
       }
       const DashedString& x = x0.domain();
       std::vector<std::vector<NSIntSet>> F(x.length());

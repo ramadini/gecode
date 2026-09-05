@@ -226,11 +226,31 @@ namespace Gecode { namespace String {
       return ES_OK;
     }
     if (x.assigned()) {
-      string s = x.val();
+      string bytes;
+      if (x.domain().try_val_bytes(bytes)) {
+        int q = 0;
+        for (int i = 0; i < (int) bytes.size(); ++i) {
+          int c = char2int(bytes[i]), qi = -1;
+          for (DFA::Transitions t(d, c); t(); ++t)
+            if (t.i_state() == q) {
+              qi = t.o_state();
+              break;
+            }
+          if (qi == -1) {
+            GECODE_ME_CHECK(b.eq(home, 0));
+            return ES_OK;
+          }
+          q = qi;
+        }
+        GECODE_ME_CHECK(b.eq(home,
+          q < d.final_fst() || q >= d.final_lst() ? 0 : 1));
+        return ES_OK;
+      }
+      const StringVal value = x.val_symbols();
       int q = 0;
-      for (int i = 0; i < (int) s.size(); ++i) {
-        int c = char2int(s[i]), qi = -1;
-        for (DFA::Transitions t(d, c); t(); ++t)
+      for (StringVal::size_type i = 0; i < value.size(); ++i) {
+        int qi = -1;
+        for (DFA::Transitions t(d, value[i]); t(); ++t)
           if (t.i_state() == q) {
             qi = t.o_state();
             break;
@@ -263,7 +283,11 @@ namespace Gecode { namespace String {
 //    std::cerr<<"ReDFA::propagate "<<b<<" <> "<<x0<<" in dfa "<<*dfa<<std::endl;
     while (true) {
       if (x0.assigned()) {
-        if (dfa->accepted(x0.val())) {
+        string bytes;
+        const bool accepted = x0.domain().try_val_bytes(bytes)
+          ? dfa->accepted(bytes)
+          : dfa->accepted(x0.val_symbols());
+        if (accepted) {
           if (rm != RM_IMP)
             GECODE_ME_CHECK(b.eq(home, 1));
           return home.ES_SUBSUMED(*this);
