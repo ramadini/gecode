@@ -285,6 +285,183 @@ namespace {
     }
   };
 
+
+  class UnicodeCharAtSpace : public Gecode::Space {
+  public:
+    Gecode::IntVar index;
+    Gecode::StringVar result;
+
+    explicit UnicodeCharAtSpace(int index_value)
+      : index(*this, index_value, index_value),
+        result(*this, symbol_set({'A', 0x65E5, 0x1F600}), 0, 1) {
+      Gecode::StringVar source(
+        *this, StringVal::from_symbols({'A', 0x65E5, 0x1F600}));
+      Gecode::substr(*this, source, index, index, result);
+    }
+
+    UnicodeCharAtSpace(UnicodeCharAtSpace& other)
+      : Gecode::Space(other) {
+      index.update(*this, other.index);
+      result.update(*this, other.result);
+    }
+
+    virtual Gecode::Space* copy(void) {
+      return new UnicodeCharAtSpace(*this);
+    }
+  };
+
+  class UnicodeSubstringSpace : public Gecode::Space {
+  public:
+    Gecode::IntVar from;
+    Gecode::IntVar to;
+    Gecode::StringVar result;
+
+    enum Mode { InferResult, InferBounds };
+
+    explicit UnicodeSubstringSpace(Mode mode)
+      : from(), to(), result() {
+      Gecode::StringVar source(
+        *this, StringVal::from_symbols({'A', 0x65E5, 0x1F600, 0x672C}));
+      if (mode == InferResult) {
+        from = Gecode::IntVar(*this, 2, 2);
+        to = Gecode::IntVar(*this, 3, 3);
+        result = Gecode::StringVar(
+          *this, symbol_set({'A', 0x65E5, 0x1F600, 0x672C}), 0, 4);
+      } else {
+        from = Gecode::IntVar(*this, 1, 4);
+        to = Gecode::IntVar(*this, 1, 4);
+        result = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x65E5, 0x1F600}));
+      }
+      Gecode::substr(*this, source, from, to, result);
+    }
+
+    UnicodeSubstringSpace(UnicodeSubstringSpace& other)
+      : Gecode::Space(other) {
+      from.update(*this, other.from);
+      to.update(*this, other.to);
+      result.update(*this, other.result);
+    }
+
+    virtual Gecode::Space* copy(void) {
+      return new UnicodeSubstringSpace(*this);
+    }
+  };
+
+  class ByteSubstringUnicodeResultSpace : public Gecode::Space {
+  public:
+    Gecode::IntVar from;
+    Gecode::IntVar to;
+    Gecode::StringVar result;
+
+    ByteSubstringUnicodeResultSpace(void)
+      : from(*this, 1, 3), to(*this, 1, 3),
+        result(*this, StringVal::from_symbols({0x65E5})) {
+      Gecode::StringVar source(*this, "ABC");
+      Gecode::substr(*this, source, from, to, result);
+    }
+
+    ByteSubstringUnicodeResultSpace(ByteSubstringUnicodeResultSpace& other)
+      : Gecode::Space(other) {
+      from.update(*this, other.from);
+      to.update(*this, other.to);
+      result.update(*this, other.result);
+    }
+
+    virtual Gecode::Space* copy(void) {
+      return new ByteSubstringUnicodeResultSpace(*this);
+    }
+  };
+
+  class UnicodeFindSpace : public Gecode::Space {
+  public:
+    Gecode::StringVar pattern;
+    Gecode::StringVar haystack;
+    Gecode::IntVar index;
+
+    enum Mode {
+      AssignedUnicode,
+      BytePatternUnicodeHaystack,
+      KnownUnicodePrefix,
+      RemoveUnicodeNoMatch,
+      InferUnicodePattern
+    };
+
+    explicit UnicodeFindSpace(Mode mode)
+      : pattern(), haystack(), index() {
+      if (mode == AssignedUnicode) {
+        pattern = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x65E5, 0x1F600}));
+        haystack = Gecode::StringVar(
+          *this, StringVal::from_symbols({'A', 0x65E5, 0x1F600, 0x672C}));
+        index = Gecode::IntVar(*this, 0, 4);
+      } else if (mode == BytePatternUnicodeHaystack) {
+        pattern = Gecode::StringVar(*this, "A");
+        haystack = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x65E5, 'A', 0x1F600}));
+        index = Gecode::IntVar(*this, 0, 3);
+      } else if (mode == KnownUnicodePrefix) {
+        pattern = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x65E5, 0x1F600}));
+        Gecode::String::NSBlocks blocks;
+        blocks.push_back(Gecode::String::NSBlock(
+          Gecode::String::NSIntSet(0x65E5), 1, 1));
+        blocks.push_back(Gecode::String::NSBlock(
+          Gecode::String::NSIntSet(0x1F600), 1, 1));
+        blocks.push_back(Gecode::String::NSBlock(
+          symbol_set({'a', 'b'}), 0, 1));
+        haystack = Gecode::StringVar(*this, blocks, 2, 3);
+        index = Gecode::IntVar(*this, 0, 3);
+      } else if (mode == RemoveUnicodeNoMatch) {
+        pattern = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x65E5}));
+        haystack = Gecode::StringVar(
+          *this, two_symbols(0x65E5, 0x672C), 1, 1);
+        index = Gecode::IntVar(*this, 0, 0);
+      } else {
+        pattern = Gecode::StringVar(
+          *this, symbol_set({0x65E5, 0x1F600, 0x672C}), 2, 2);
+        haystack = Gecode::StringVar(
+          *this, StringVal::from_symbols({'A', 0x65E5, 0x1F600, 0x672C}));
+        index = Gecode::IntVar(*this, 2, 2);
+      }
+      Gecode::find(*this, pattern, haystack, index);
+    }
+
+    UnicodeFindSpace(UnicodeFindSpace& other)
+      : Gecode::Space(other) {
+      pattern.update(*this, other.pattern);
+      haystack.update(*this, other.haystack);
+      index.update(*this, other.index);
+    }
+
+    virtual Gecode::Space* copy(void) {
+      return new UnicodeFindSpace(*this);
+    }
+  };
+
+  class UnicodeContainsSpace : public Gecode::Space {
+  public:
+    Gecode::BoolVar result;
+
+    UnicodeContainsSpace(void) : result(*this, 0, 1) {
+      Gecode::StringVar haystack(
+        *this, StringVal::from_symbols({'A', 0x65E5, 0x1F600}));
+      Gecode::StringVar needle(
+        *this, StringVal::from_symbols({0x65E5, 0x1F600}));
+      Gecode::contains(*this, haystack, needle, result);
+    }
+
+    UnicodeContainsSpace(UnicodeContainsSpace& other)
+      : Gecode::Space(other) {
+      result.update(*this, other.result);
+    }
+
+    virtual Gecode::Space* copy(void) {
+      return new UnicodeContainsSpace(*this);
+    }
+  };
+
 }
 
 int main(void) {
@@ -511,6 +688,79 @@ int main(void) {
     new UnicodeGConcatSpace(UnicodeGConcatSpace::FixedMismatch);
   assert(gconcat_mismatch->status() == Gecode::SS_FAILED);
   delete gconcat_mismatch;
+
+  UnicodeCharAtSpace* char_at = new UnicodeCharAtSpace(2);
+  assert(char_at->status() != Gecode::SS_FAILED);
+  assert(char_at->result.assigned());
+  assert(char_at->result.val_symbols() ==
+         StringVal::from_symbols({0x65E5}));
+  delete char_at;
+
+  UnicodeCharAtSpace* char_at_empty = new UnicodeCharAtSpace(4);
+  assert(char_at_empty->status() != Gecode::SS_FAILED);
+  assert(char_at_empty->result.assigned());
+  assert(char_at_empty->result.val_symbols().empty());
+  delete char_at_empty;
+
+  UnicodeSubstringSpace* substring_result =
+    new UnicodeSubstringSpace(UnicodeSubstringSpace::InferResult);
+  assert(substring_result->status() != Gecode::SS_FAILED);
+  assert(substring_result->result.assigned());
+  assert(substring_result->result.val_symbols() ==
+         StringVal::from_symbols({0x65E5, 0x1F600}));
+  delete substring_result;
+
+  UnicodeSubstringSpace* substring_bounds =
+    new UnicodeSubstringSpace(UnicodeSubstringSpace::InferBounds);
+  assert(substring_bounds->status() != Gecode::SS_FAILED);
+  assert(substring_bounds->from.assigned() && substring_bounds->from.val() == 2);
+  assert(substring_bounds->to.assigned() && substring_bounds->to.val() == 3);
+  delete substring_bounds;
+
+  ByteSubstringUnicodeResultSpace* byte_unicode_substring =
+    new ByteSubstringUnicodeResultSpace;
+  assert(byte_unicode_substring->status() == Gecode::SS_FAILED);
+  delete byte_unicode_substring;
+
+  UnicodeFindSpace* find_assigned =
+    new UnicodeFindSpace(UnicodeFindSpace::AssignedUnicode);
+  assert(find_assigned->status() != Gecode::SS_FAILED);
+  assert(find_assigned->index.assigned() && find_assigned->index.val() == 2);
+  delete find_assigned;
+
+  UnicodeFindSpace* find_byte_pattern =
+    new UnicodeFindSpace(UnicodeFindSpace::BytePatternUnicodeHaystack);
+  assert(find_byte_pattern->status() != Gecode::SS_FAILED);
+  assert(find_byte_pattern->index.assigned() &&
+         find_byte_pattern->index.val() == 2);
+  delete find_byte_pattern;
+
+  UnicodeFindSpace* find_prefix =
+    new UnicodeFindSpace(UnicodeFindSpace::KnownUnicodePrefix);
+  assert(find_prefix->status() != Gecode::SS_FAILED);
+  assert(find_prefix->index.assigned() && find_prefix->index.val() == 1);
+  delete find_prefix;
+
+  UnicodeFindSpace* find_no_match =
+    new UnicodeFindSpace(UnicodeFindSpace::RemoveUnicodeNoMatch);
+  assert(find_no_match->status() != Gecode::SS_FAILED);
+  assert(find_no_match->haystack.assigned());
+  assert(find_no_match->haystack.val_symbols() ==
+         StringVal::from_symbols({0x672C}));
+  delete find_no_match;
+
+  UnicodeFindSpace* find_pattern =
+    new UnicodeFindSpace(UnicodeFindSpace::InferUnicodePattern);
+  assert(find_pattern->status() != Gecode::SS_FAILED);
+  assert(find_pattern->pattern.assigned());
+  assert(find_pattern->pattern.val_symbols() ==
+         StringVal::from_symbols({0x65E5, 0x1F600}));
+  delete find_pattern;
+
+  UnicodeContainsSpace* contains = new UnicodeContainsSpace;
+  assert(contains->status() != Gecode::SS_FAILED);
+  assert(contains->result.assigned() && contains->result.val() == 1);
+  delete contains;
 
   return 0;
 }

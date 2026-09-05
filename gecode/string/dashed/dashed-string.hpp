@@ -2235,21 +2235,41 @@ namespace Gecode { namespace String {
     // std::cerr<<"DashedString::equate "<<*this<<' '<<that<<std::endl;
     _changed = false;
     if (known()) {
-      string s = val();
-      if (that.known())
-        return s == that.val();
-      else
+      string s;
+      if (try_val_bytes(s)) {
+        if (that.known()) {
+          for (const NSBlock& block : that)
+            if (!block.null() && block.S.min() > 255)
+              return false;
+          return s == that.val();
+        }
         return check_sweep<char, string, NSBlock, NSBlocks>(s, that);
+      }
+      return check_sweep<DSBlock, DSBlocks, NSBlock, NSBlocks>(_blocks, that);
     }
     if (that.known()) {
-      string s = that.val();
-      if (check_sweep<DSBlock, DSBlocks, char, string>(_blocks, s)) {
-        update(h, s);
+      bool byte_value = true;
+      for (const NSBlock& block : that) {
+        if (!block.null() && block.S.min() > 255) {
+          byte_value = false;
+          break;
+        }
+      }
+      if (byte_value) {
+        string s = that.val();
+        if (check_sweep<DSBlock, DSBlocks, char, string>(_blocks, s)) {
+          update(h, s);
+          _changed = true;
+          return true;
+        }
+        return false;
+      }
+      if (check_sweep<DSBlock, DSBlocks, NSBlock, NSBlocks>(_blocks, that)) {
+        update(h, that);
         _changed = true;
         return true;
       }
-      else
-        return false;
+      return false;
     }
     if (that.contains<DSBlock, DashedString>(*this))
       return true;

@@ -33,6 +33,8 @@ namespace Gecode { namespace String {
 
     string val() const;
 
+    StringVal val_symbols() const;
+
     /// Return the immutable dashed domain
     const String::DashedString& domain(void) const;
 
@@ -59,6 +61,8 @@ namespace Gecode { namespace String {
     ModEvent dom(Space& home, const NSBlocks& d);
 
     ModEvent eq(Space& home, string s);
+
+    ModEvent eq(Space& home, const StringVal& value);
 
     ModEvent eq(Space& home, StringView& y);
 

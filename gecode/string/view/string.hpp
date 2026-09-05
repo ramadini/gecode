@@ -26,6 +26,11 @@ namespace Gecode { namespace String {
     return x->ds.val();
   }
 
+  forceinline StringVal
+  StringView::val_symbols() const {
+    return x->ds.val_symbols();
+  }
+
   forceinline const String::DashedString&
   StringView::domain() const {
     return x->domain();
@@ -59,6 +64,11 @@ namespace Gecode { namespace String {
   forceinline ModEvent
   StringView::eq(Space& home, string s) {
     return x->eq(home, s);
+  }
+
+  forceinline ModEvent
+  StringView::eq(Space& home, const StringVal& value) {
+    return x->eq(home, value);
   }
 
   forceinline ModEvent

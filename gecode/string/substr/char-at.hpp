@@ -208,9 +208,17 @@ namespace Gecode { namespace String {
 
       if (x1.assigned()) {
         int index = x1.val();
-        string value = index < 1 || index > source.max_length()
-          ? "" : string(1, int2char(assigned_char_at(source, index)));
-        GECODE_ME_CHECK(x2.eq(home, value));
+        if (index < 1 || index > source.max_length()) {
+          GECODE_ME_CHECK(x2.eq(home, ""));
+        } else {
+          const StringSymbol symbol = assigned_char_at(source, index);
+          if (symbol <= 255)
+            GECODE_ME_CHECK(x2.eq
+              (home, string(1, int2char(symbol))));
+          else
+            GECODE_ME_CHECK(x2.eq
+              (home, StringVal::from_symbols({symbol})));
+        }
         return home.ES_SUBSUMED(*this);
       }
     }

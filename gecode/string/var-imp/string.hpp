@@ -110,6 +110,17 @@ namespace Gecode { namespace String {
   }
 
   forceinline ModEvent
+  StringVarImp::eq(Space& home, const StringVal& value) {
+    if (!ds.check_equate(value))
+      return ME_STRING_FAILED;
+    if (ds.known())
+      return ME_STRING_NONE;
+    int old_min_length = min_length(), old_max_length = max_length();
+    ds.update(home, value);
+    return notify(home, old_min_length, old_max_length);
+  }
+
+  forceinline ModEvent
   StringVarImp::eq(Space& home, StringVarImp* x) {
     DashedString& xs = x->ds;
     DomainState state(*this);

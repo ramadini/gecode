@@ -29,6 +29,35 @@ namespace Gecode { namespace String {
     return value[offset + count - 1];
   }
 
+  forceinline
+  Substring::SymbolSlice::SymbolSlice
+  (const StringVal& value0, int offset0, int count0)
+    : value(value0), offset(offset0), count(count0) {
+    assert(offset >= 0 && count > 0 &&
+           offset + count <= static_cast<int>(value.size()));
+  }
+
+  forceinline int
+  Substring::SymbolSlice::length(void) const {
+    return count;
+  }
+
+  forceinline StringSymbol
+  Substring::SymbolSlice::at(int index) const {
+    assert(index >= 0 && index < count);
+    return value[static_cast<StringVal::size_type>(offset + index)];
+  }
+
+  forceinline StringSymbol
+  Substring::SymbolSlice::front(void) const {
+    return at(0);
+  }
+
+  forceinline StringSymbol
+  Substring::SymbolSlice::back(void) const {
+    return at(count - 1);
+  }
+
   forceinline int
   Substring::slice_length(int source_length, int from, int to) {
     long long start = std::max(1LL, static_cast<long long>(from));
@@ -44,6 +73,19 @@ namespace Gecode { namespace String {
       return "";
     int start = std::max(1, from);
     return source.substr(start - 1, length);
+  }
+
+  forceinline StringVal
+  Substring::slice(const StringVal& source, int from, int to) {
+    int length = slice_length(static_cast<int>(source.size()), from, to);
+    if (length == 0)
+      return StringVal();
+    int start = std::max(1, from) - 1;
+    std::vector<StringSymbol> symbols;
+    symbols.reserve(static_cast<std::vector<StringSymbol>::size_type>(length));
+    for (int i = 0; i < length; ++i)
+      symbols.push_back(source[static_cast<StringVal::size_type>(start + i)]);
+    return StringVal::from_symbols(std::move(symbols));
   }
 
   forceinline bool
@@ -67,6 +109,31 @@ namespace Gecode { namespace String {
   }
 
   forceinline bool
+  Substring::candidate_supported(const StringVal& concrete_source,
+                                 int from, int to,
+                                 const StringVal* expected) const {
+    int length = slice_length
+      (static_cast<int>(concrete_source.size()), from, to);
+    if (length < x2.min_length() || length > x2.max_length())
+      return false;
+    int start = std::max(1, from);
+    if (expected != nullptr) {
+      if (length != static_cast<int>(expected->size()))
+        return false;
+      for (int i = 0; i < length; ++i)
+        if (concrete_source[static_cast<StringVal::size_type>(start - 1 + i)] !=
+            (*expected)[static_cast<StringVal::size_type>(i)])
+          return false;
+      return true;
+    }
+    if (length == 0)
+      return x2.min_length() == 0;
+    SymbolSlice candidate(concrete_source, start - 1, length);
+    return check_sweep<DSBlock, DSBlocks, StringSymbol, SymbolSlice>
+      (x2.domain().blocks(), candidate);
+  }
+
+  forceinline bool
   Substring::from_supported(const string& concrete_source, int from,
                             const string* expected) const {
     for (Gecode::Int::ViewValues<Gecode::Int::IntView> values(x1);
@@ -78,8 +145,30 @@ namespace Gecode { namespace String {
   }
 
   forceinline bool
+  Substring::from_supported(const StringVal& concrete_source, int from,
+                            const StringVal* expected) const {
+    for (Gecode::Int::ViewValues<Gecode::Int::IntView> values(x1);
+         values(); ++values)
+      if (candidate_supported
+          (concrete_source, from, values.val(), expected))
+        return true;
+    return false;
+  }
+
+  forceinline bool
   Substring::to_supported(const string& concrete_source, int to,
                           const string* expected) const {
+    for (Gecode::Int::ViewValues<Gecode::Int::IntView> values(x0);
+         values(); ++values)
+      if (candidate_supported
+          (concrete_source, values.val(), to, expected))
+        return true;
+    return false;
+  }
+
+  forceinline bool
+  Substring::to_supported(const StringVal& concrete_source, int to,
+                          const StringVal* expected) const {
     for (Gecode::Int::ViewValues<Gecode::Int::IntView> values(x0);
          values(); ++values)
       if (candidate_supported
@@ -152,6 +241,70 @@ namespace Gecode { namespace String {
     return values.val();
   }
 
+  forceinline void
+  Substring::SupportedFromSymbols::next(void) {
+    while (values() &&
+           !propagator.from_supported(source, values.val(), expected))
+      ++values;
+  }
+
+  forceinline
+  Substring::SupportedFromSymbols::SupportedFromSymbols
+  (Gecode::Int::IntView from, const Substring& propagator0,
+   const StringVal& source0, const StringVal* expected0)
+    : values(from), propagator(propagator0), source(source0),
+      expected(expected0) {
+    next();
+  }
+
+  forceinline bool
+  Substring::SupportedFromSymbols::operator ()(void) const {
+    return values();
+  }
+
+  forceinline void
+  Substring::SupportedFromSymbols::operator ++(void) {
+    ++values;
+    next();
+  }
+
+  forceinline int
+  Substring::SupportedFromSymbols::val(void) const {
+    return values.val();
+  }
+
+  forceinline void
+  Substring::SupportedToSymbols::next(void) {
+    while (values() &&
+           !propagator.to_supported(source, values.val(), expected))
+      ++values;
+  }
+
+  forceinline
+  Substring::SupportedToSymbols::SupportedToSymbols
+  (Gecode::Int::IntView to, const Substring& propagator0,
+   const StringVal& source0, const StringVal* expected0)
+    : values(to), propagator(propagator0), source(source0),
+      expected(expected0) {
+    next();
+  }
+
+  forceinline bool
+  Substring::SupportedToSymbols::operator ()(void) const {
+    return values();
+  }
+
+  forceinline void
+  Substring::SupportedToSymbols::operator ++(void) {
+    ++values;
+    next();
+  }
+
+  forceinline int
+  Substring::SupportedToSymbols::val(void) const {
+    return values.val();
+  }
+
   forceinline bool
   Substring::result_is_envelope(const NSIntSet& chars,
                                 int lower, int upper) const {
@@ -188,8 +341,13 @@ namespace Gecode { namespace String {
       return ES_OK;
     }
     if (from.assigned() && to.assigned()) {
-      GECODE_ME_CHECK(result.eq
-        (home, slice(source.val(), from.val(), to.val())));
+      string source_bytes;
+      if (source.domain().try_val_bytes(source_bytes))
+        GECODE_ME_CHECK(result.eq
+          (home, slice(source_bytes, from.val(), to.val())));
+      else
+        GECODE_ME_CHECK(result.eq
+          (home, slice(source.val_symbols(), from.val(), to.val())));
       return ES_OK;
     }
     GECODE_ME_CHECK(result.ub(home, source.max_length()));
@@ -290,8 +448,13 @@ namespace Gecode { namespace String {
     } while (repeat);
 
     if (x0.assigned() && x1.assigned()) {
-      GECODE_ME_CHECK(x2.eq
-        (home, slice(source.val(), x0.val(), x1.val())));
+      string source_bytes;
+      if (source.domain().try_val_bytes(source_bytes))
+        GECODE_ME_CHECK(x2.eq
+          (home, slice(source_bytes, x0.val(), x1.val())));
+      else
+        GECODE_ME_CHECK(x2.eq
+          (home, slice(source.val_symbols(), x0.val(), x1.val())));
       return home.ES_SUBSUMED(*this);
     }
 
@@ -300,34 +463,67 @@ namespace Gecode { namespace String {
     bool constrained = x2.assigned() ||
       !result_is_envelope(source_chars, lower, upper);
     if (constrained && supports_domains(x0, x1)) {
-      const string concrete_source = source.val();
-      string expected;
-      const string* expected_ptr = nullptr;
-      if (x2.assigned()) {
-        expected = x2.val();
-        expected_ptr = &expected;
+      string concrete_source;
+      if (source.domain().try_val_bytes(concrete_source)) {
+        string expected;
+        const string* expected_ptr = nullptr;
+        if (x2.assigned()) {
+          if (!x2.domain().try_val_bytes(expected))
+            return ES_FAILED;
+          expected_ptr = &expected;
+        }
+
+        SupportedFrom supported_from
+          (x0, *this, concrete_source, expected_ptr);
+        if (!supported_from())
+          return ES_FAILED;
+        ModEvent from_me = x0.inter_v(home, supported_from);
+        GECODE_ME_CHECK(from_me);
+
+        SupportedTo supported_to(x1, *this, concrete_source, expected_ptr);
+        if (!supported_to())
+          return ES_FAILED;
+        ModEvent to_me = x1.inter_v(home, supported_to);
+        GECODE_ME_CHECK(to_me);
+
+        if (x0.assigned() && x1.assigned()) {
+          GECODE_ME_CHECK(x2.eq(home, slice(concrete_source,
+                                            x0.val(), x1.val())));
+          return home.ES_SUBSUMED(*this);
+        }
+        if (me_modified(from_me) || me_modified(to_me))
+          return ES_NOFIX;
+      } else {
+        const StringVal concrete_symbols = source.val_symbols();
+        StringVal expected_symbols;
+        const StringVal* expected_ptr = nullptr;
+        if (x2.assigned()) {
+          expected_symbols = x2.val_symbols();
+          expected_ptr = &expected_symbols;
+        }
+
+        SupportedFromSymbols supported_from
+          (x0, *this, concrete_symbols, expected_ptr);
+        if (!supported_from())
+          return ES_FAILED;
+        ModEvent from_me = x0.inter_v(home, supported_from);
+        GECODE_ME_CHECK(from_me);
+
+        SupportedToSymbols supported_to
+          (x1, *this, concrete_symbols, expected_ptr);
+        if (!supported_to())
+          return ES_FAILED;
+        ModEvent to_me = x1.inter_v(home, supported_to);
+        GECODE_ME_CHECK(to_me);
+
+        if (x0.assigned() && x1.assigned()) {
+          GECODE_ME_CHECK(x2.eq(home, slice(concrete_symbols,
+                                            x0.val(), x1.val())));
+          return home.ES_SUBSUMED(*this);
+        }
+        if (me_modified(from_me) || me_modified(to_me))
+          return ES_NOFIX;
       }
-
-      SupportedFrom supported_from
-        (x0, *this, concrete_source, expected_ptr);
-      if (!supported_from())
-        return ES_FAILED;
-      ModEvent from_me = x0.inter_v(home, supported_from);
-      GECODE_ME_CHECK(from_me);
-
-      SupportedTo supported_to(x1, *this, concrete_source, expected_ptr);
-      if (!supported_to())
-        return ES_FAILED;
-      ModEvent to_me = x1.inter_v(home, supported_to);
-      GECODE_ME_CHECK(to_me);
-
-      if (x0.assigned() && x1.assigned()) {
-        GECODE_ME_CHECK(x2.eq(home, slice(concrete_source,
-                                          x0.val(), x1.val())));
-        return home.ES_SUBSUMED(*this);
-      }
-      if (me_modified(from_me) || me_modified(to_me))
-        return ES_NOFIX;
     }
 
     return ES_FIX;

@@ -1,5 +1,60 @@
 namespace Gecode { namespace String {
 
+  template<class Sequence>
+  forceinline int
+  find_symbol_sequence(const Sequence& haystack, const StringVal& needle) {
+    const int h = static_cast<int>(haystack.size());
+    const int n = static_cast<int>(needle.size());
+    if (n == 0)
+      return 0;
+    if (n > h)
+      return -1;
+    for (int i = 0; i <= h - n; ++i) {
+      int j = 0;
+      while (j < n &&
+             haystack[static_cast<typename Sequence::size_type>(i + j)] ==
+             needle[static_cast<StringVal::size_type>(j)])
+        ++j;
+      if (j == n)
+        return i;
+    }
+    return -1;
+  }
+
+  forceinline bool
+  find_byte_domain(const DashedString& value) {
+    for (int i = 0; i < value.length(); ++i)
+      if (!value.at(i).S.empty() && value.at(i).S.max() > 255)
+        return false;
+    return true;
+  }
+
+  forceinline std::vector<StringSymbol>
+  find_known_prefix_symbols(const DashedString& value) {
+    int end = 0;
+    std::vector<StringSymbol>::size_type length = 0;
+    for (; end < value.length(); ++end) {
+      const DSBlock& block = value.at(end);
+      if (block.null())
+        continue;
+      if (block.S.size() > 1)
+        break;
+      length += static_cast<std::vector<StringSymbol>::size_type>(block.l);
+      if (block.l < block.u) {
+        ++end;
+        break;
+      }
+    }
+    std::vector<StringSymbol> prefix;
+    prefix.reserve(length);
+    for (int i = 0; i < end; ++i) {
+      const DSBlock& block = value.at(i);
+      if (!block.null())
+        prefix.insert(prefix.end(), block.l, block.S.min());
+    }
+    return prefix;
+  }
+
   forceinline
   Find::Find(Home home, StringView x, StringView y, Gecode::Int::IntView n)
   : MixTernaryPropagator<StringView, PC_STRING_DOM,
@@ -40,67 +95,133 @@ namespace Gecode { namespace String {
       GECODE_ME_CHECK(x2.eq(home, 0));
       return home.ES_SUBSUMED(*this);
     }
-    // The substring x0 is known: we checking if x0 definitely occurs in x1, by
-    // possibly updating x2.
+    // The substring x0 is known: we check whether it definitely occurs in x1,
+    // possibly updating x2. Keep the legacy byte path unchanged when both
+    // domains contain byte-valued symbols; use scalar values otherwise.
     if (x0.assigned()) {
-      string s = x0.val();
-      if (s == "") {
-        GECODE_ME_CHECK(x2.eq(home, 1));
-        return home.ES_SUBSUMED(*this);
-      }
-      if (x1.assigned()) {
-        int i = x1.val().find(s) + 1;
-        if (i < l || i > u)
-          return ES_FAILED;
-        GECODE_ME_CHECK(x2.eq(home, i));
-        return home.ES_SUBSUMED(*this);
-      }
-      const DashedString& p1 = x1.domain();
-      string pref = p1.known_pref();
-      if (pref.size() > 0) {
-        int i = pref.find(s) + 1;
-        if (i > 0) {
+      string s;
+      const bool byte_path = x0.domain().try_val_bytes(s) &&
+        find_byte_domain(x1.domain());
+      if (byte_path) {
+        if (s == "") {
+          GECODE_ME_CHECK(x2.eq(home, 1));
+          return home.ES_SUBSUMED(*this);
+        }
+        if (x1.assigned()) {
+          int i = x1.val().find(s) + 1;
           if (i < l || i > u)
             return ES_FAILED;
           GECODE_ME_CHECK(x2.eq(home, i));
           return home.ES_SUBSUMED(*this);
         }
-      }
-      int n = p1.max_length();
-      if (n < l)
-        return ES_FAILED;
-      string curr;
-      Position start({0, 0});
-      // Checking fixed components.
-      for (int i = 0; n > 0 && i < p1.length(); ++i) {
-        const DSBlock& b = p1.at(i);
-        if (b.S.size() == 1) {
-          char c = b.S.min();
-          int fixed = min(b.l, n);
-          curr.append(fixed, c);
-          int k = curr.find(s);
-          if (k != (int) string::npos) {
-            GECODE_ME_CHECK(x2.gq(home, 1));
-            if (l == 0)
-              l = 1;
-            int ub = start.off + k + 1;
-            for (int j = 0; j < start.idx && ub < u; ++j)
-              ub += p1.at(j).u;
-            GECODE_ME_CHECK(x2.lq(home, ub));
-            if (u > ub)
-              u = ub;
-            break;
-          }
-          if (b.u > b.l) {
-            curr.assign(fixed, c);
-            start = Position({i, b.u - b.l});
+        const DashedString& p1 = x1.domain();
+        string pref = p1.known_pref();
+        if (pref.size() > 0) {
+          int i = pref.find(s) + 1;
+          if (i > 0) {
+            if (i < l || i > u)
+              return ES_FAILED;
+            GECODE_ME_CHECK(x2.eq(home, i));
+            return home.ES_SUBSUMED(*this);
           }
         }
-        else {
-          curr.clear();
-          start = Position({i, b.u});
+        int n = p1.max_length();
+        if (n < l)
+          return ES_FAILED;
+        string curr;
+        Position start({0, 0});
+        // Checking fixed components.
+        for (int i = 0; n > 0 && i < p1.length(); ++i) {
+          const DSBlock& b = p1.at(i);
+          if (b.S.size() == 1) {
+            char c = int2char(b.S.min());
+            int fixed = min(b.l, n);
+            curr.append(fixed, c);
+            int k = curr.find(s);
+            if (k != (int) string::npos) {
+              GECODE_ME_CHECK(x2.gq(home, 1));
+              if (l == 0)
+                l = 1;
+              int ub = start.off + k + 1;
+              for (int j = 0; j < start.idx && ub < u; ++j)
+                ub += p1.at(j).u;
+              GECODE_ME_CHECK(x2.lq(home, ub));
+              if (u > ub)
+                u = ub;
+              break;
+            }
+            if (b.u > b.l) {
+              curr.assign(fixed, c);
+              start = Position({i, b.u - b.l});
+            }
+          }
+          else {
+            curr.clear();
+            start = Position({i, b.u});
+          }
+          n -= b.u;
         }
-        n -= b.u;
+      } else {
+        const StringVal pattern = x0.val_symbols();
+        if (pattern.empty()) {
+          GECODE_ME_CHECK(x2.eq(home, 1));
+          return home.ES_SUBSUMED(*this);
+        }
+        if (x1.assigned()) {
+          const int pos = find_symbol_sequence(x1.val_symbols(), pattern);
+          const int i = pos + 1;
+          if (i < l || i > u)
+            return ES_FAILED;
+          GECODE_ME_CHECK(x2.eq(home, i));
+          return home.ES_SUBSUMED(*this);
+        }
+        const DashedString& p1 = x1.domain();
+        const std::vector<StringSymbol> pref = find_known_prefix_symbols(p1);
+        if (!pref.empty()) {
+          const int pos = find_symbol_sequence(pref, pattern);
+          const int i = pos + 1;
+          if (i > 0) {
+            if (i < l || i > u)
+              return ES_FAILED;
+            GECODE_ME_CHECK(x2.eq(home, i));
+            return home.ES_SUBSUMED(*this);
+          }
+        }
+        int n = p1.max_length();
+        if (n < l)
+          return ES_FAILED;
+        std::vector<StringSymbol> curr;
+        Position start({0, 0});
+        // Checking fixed components.
+        for (int i = 0; n > 0 && i < p1.length(); ++i) {
+          const DSBlock& b = p1.at(i);
+          if (b.S.size() == 1) {
+            const StringSymbol c = b.S.min();
+            const int fixed = min(b.l, n);
+            curr.insert(curr.end(), fixed, c);
+            const int k = find_symbol_sequence(curr, pattern);
+            if (k >= 0) {
+              GECODE_ME_CHECK(x2.gq(home, 1));
+              if (l == 0)
+                l = 1;
+              int ub = start.off + k + 1;
+              for (int j = 0; j < start.idx && ub < u; ++j)
+                ub += p1.at(j).u;
+              GECODE_ME_CHECK(x2.lq(home, ub));
+              if (u > ub)
+                u = ub;
+              break;
+            }
+            if (b.u > b.l) {
+              curr.assign(fixed, c);
+              start = Position({i, b.u - b.l});
+            }
+          } else {
+            curr.clear();
+            start = Position({i, b.u});
+          }
+          n -= b.u;
+        }
       }
     }
     bool mod = (l > 0);
@@ -122,9 +243,12 @@ namespace Gecode { namespace String {
     }
     // x2 = 0.
     if (l == u && u == 0) {
-      if (x0.assigned() && x0.val().size() == 1) {
+      if (x0.assigned() && x0.min_length() == 1) {
         // Removing a single character from all the bases.
-        int c = char2int(x0.val()[0]);
+        string pattern_bytes;
+        const int c = x0.domain().try_val_bytes(pattern_bytes)
+          ? char2int(pattern_bytes[0])
+          : x0.val_symbols()[0];
         StringVarImp::DomainState x1_state =
           x1.begin_refinement();
         DashedString& pdom = x1.mutable_domain(x1_state);
@@ -146,9 +270,17 @@ namespace Gecode { namespace String {
         if (changed)
           GECODE_ME_CHECK(x1.commit_refinement(home, x1_state));
         assert (pdom.is_normalized());
-        if (x1.assigned() &&
-            x1.val().find(x0.val()) != string::npos)
-          return ES_FAILED;
+        if (x1.assigned()) {
+          string haystack_bytes;
+          if (x0.domain().try_val_bytes(pattern_bytes) &&
+              x1.domain().try_val_bytes(haystack_bytes)) {
+            if (haystack_bytes.find(pattern_bytes) != string::npos)
+              return ES_FAILED;
+          } else if (find_symbol_sequence
+                     (x1.val_symbols(), x0.val_symbols()) >= 0) {
+            return ES_FAILED;
+          }
+        }
         return home.ES_SUBSUMED(*this);
       }
       return ES_FIX;
@@ -183,15 +315,33 @@ namespace Gecode { namespace String {
       // Can modify x and y.
       GECODE_ME_CHECK(x2.gq(home, l));
       if (x1.assigned()) {
+        string haystack_bytes;
+        const bool haystack_is_bytes =
+          x1.domain().try_val_bytes(haystack_bytes);
         if (x0.assigned()) {
-          int n = (int) x1.val().find(x0.val()) + 1;
+          string pattern_bytes;
+          int n;
+          if (haystack_is_bytes && x0.domain().try_val_bytes(pattern_bytes))
+            n = static_cast<int>(haystack_bytes.find(pattern_bytes)) + 1;
+          else
+            n = find_symbol_sequence(x1.val_symbols(), x0.val_symbols()) + 1;
           GECODE_ME_CHECK(x2.eq(home, n));
           return home.ES_SUBSUMED(*this);
         }
         if (x2.assigned() && x0.min_length() == x0.max_length()) {
           int n = x2.val(), m = x0.min_length();
           assert (n > 0);
-          GECODE_ME_CHECK(x0.eq(home, x1.val().substr(n - 1, m)));
+          if (haystack_is_bytes) {
+            GECODE_ME_CHECK(x0.eq(home, haystack_bytes.substr(n - 1, m)));
+          } else {
+            const StringVal haystack = x1.val_symbols();
+            std::vector<StringSymbol> symbols;
+            symbols.reserve(static_cast<std::vector<StringSymbol>::size_type>(m));
+            for (int j = 0; j < m; ++j)
+              symbols.push_back(haystack[static_cast<StringVal::size_type>(n - 1 + j)]);
+            GECODE_ME_CHECK
+              (x0.eq(home, StringVal::from_symbols(std::move(symbols))));
+          }
           return home.ES_SUBSUMED(*this);
         }
       }

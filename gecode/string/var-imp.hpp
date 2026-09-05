@@ -125,6 +125,8 @@ namespace Gecode { namespace String {
 
     ModEvent eq(Space& home, string x);
 
+    ModEvent eq(Space& home, const StringVal& value);
+
     ModEvent lex(Space& home, StringVarImp* x, bool lt);
 
     ModEvent inc(Space& home, bool lt);
