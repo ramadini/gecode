@@ -9,11 +9,13 @@ namespace Gecode { namespace String {
     NSBlocks pref(int k, const Position& p) const;
     NSBlocks suff(int k, const Position& p) const;
     ExecStatus decomp_all(Space&);
+    ExecStatus decomp_all_symbols(Space&);
     ExecStatus replace_q_x(Space&, int, bool&);
     ExecStatus replace_q1_y(Space&, int, bool&);
     ExecStatus propagate_pass(Space&, bool&);
     ModEvent refine_card(Space&);
     int occur(const string& q) const;
+    int occur(const StringVal& q) const;
     bool check_card() const;
     bool all;
     bool last;

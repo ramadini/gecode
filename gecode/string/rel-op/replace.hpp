@@ -1,6 +1,58 @@
 #include <gecode/int/arithmetic.hh>
 
+#include <algorithm>
+
 namespace Gecode { namespace String {
+
+  forceinline StringVal::size_type
+  replace_npos(void) {
+    return static_cast<StringVal::size_type>(-1);
+  }
+
+  forceinline StringVal::size_type
+  replace_find_symbols(const StringVal& value, const StringVal& pattern,
+                       StringVal::size_type from = 0) {
+    if (from > value.size())
+      return replace_npos();
+    StringVal::const_iterator position = std::search(
+      value.begin() + from, value.end(), pattern.begin(), pattern.end());
+    return position == value.end() && !pattern.empty()
+      ? replace_npos()
+      : static_cast<StringVal::size_type>(position - value.begin());
+  }
+
+  forceinline StringVal::size_type
+  replace_rfind_symbols(const StringVal& value, const StringVal& pattern) {
+    StringVal::const_iterator position = std::find_end(
+      value.begin(), value.end(), pattern.begin(), pattern.end());
+    return position == value.end() && !pattern.empty()
+      ? replace_npos()
+      : static_cast<StringVal::size_type>(position - value.begin());
+  }
+
+  forceinline StringVal
+  replace_slice_symbols(const StringVal& value, StringVal::size_type from,
+                        StringVal::size_type length = replace_npos()) {
+    assert(from <= value.size());
+    const StringVal::size_type count =
+      length == replace_npos() || length > value.size() - from
+        ? value.size() - from : length;
+    return StringVal::from_symbols(std::vector<StringSymbol>(
+      value.begin() + from, value.begin() + from + count));
+  }
+
+  forceinline StringVal
+  replace_symbol_range(const StringVal& value, StringVal::size_type position,
+                       StringVal::size_type length,
+                       const StringVal& replacement) {
+    assert(position <= value.size() && length <= value.size() - position);
+    std::vector<StringSymbol> result;
+    result.reserve(value.size() - length + replacement.size());
+    result.insert(result.end(), value.begin(), value.begin() + position);
+    result.insert(result.end(), replacement.begin(), replacement.end());
+    result.insert(result.end(), value.begin() + position + length, value.end());
+    return StringVal::from_symbols(std::move(result));
+  }
 
   // x[3] is the string resulting from x[0] by replacing the first occurrence of
   // x[1] with x[2].
@@ -73,9 +125,14 @@ namespace Gecode { namespace String {
   forceinline ExecStatus
   Replace::decomp_all(Space& home) {
     // std::cerr << "decomp_all\n";
-    string sx = x[0].val(), sq = x[1].val();
+    string sx, sq;
+    if (!x[0].domain().try_val_bytes(sx) ||
+        !x[1].domain().try_val_bytes(sq))
+      return decomp_all_symbols(home);
     if (x[2].assigned()) {
-      string sq1 = x[2].val();
+      string sq1;
+      if (!x[2].domain().try_val_bytes(sq1))
+        return decomp_all_symbols(home);
       if (sq == "") {
         if (sq1 == "") {
           rel(home, x[0], STRT_EQ, x[3]);
@@ -152,6 +209,113 @@ namespace Gecode { namespace String {
     return home.ES_SUBSUMED(*this);
   }
 
+  // Decomposes replace-all when at least one assigned operand contains a
+  // symbol that cannot be represented by the legacy byte path.
+  forceinline ExecStatus
+  Replace::decomp_all_symbols(Space& home) {
+    const StringVal sx = x[0].val_symbols();
+    const StringVal sq = x[1].val_symbols();
+    NSIntSet intermediate_alphabet = x[0].may_chars();
+    intermediate_alphabet.include(x[1].may_chars());
+    intermediate_alphabet.include(x[2].may_chars());
+    intermediate_alphabet.include(x[3].may_chars());
+    const int intermediate_max_length = x[3].max_length();
+    if (x[2].assigned()) {
+      const StringVal sq1 = x[2].val_symbols();
+      if (sq.empty()) {
+        if (sq1.empty()) {
+          rel(home, x[0], STRT_EQ, x[3]);
+          return home.ES_SUBSUMED(*this);
+        }
+        std::vector<StringSymbol> result;
+        result.reserve(sq1.size() * (sx.size() + 1) + sx.size());
+        result.insert(result.end(), sq1.begin(), sq1.end());
+        for (StringVal::const_iterator symbol = sx.begin();
+             symbol != sx.end(); ++symbol) {
+          result.push_back(*symbol);
+          result.insert(result.end(), sq1.begin(), sq1.end());
+        }
+        GECODE_ME_CHECK(x[3].eq(
+          home, StringVal::from_symbols(std::move(result))));
+      }
+      else {
+        StringVal result = sx;
+        StringVal::size_type position = replace_find_symbols(result, sq);
+        while (position != replace_npos()) {
+          result = replace_symbol_range(result, position, sq.size(), sq1);
+          position = replace_find_symbols(
+            result, sq, position + sq1.size());
+        }
+        GECODE_ME_CHECK(x[3].eq(home, result));
+      }
+    }
+    else {
+      if (sq.empty()) {
+        if (sx.empty()) {
+          rel(home, x[2], STRT_EQ, x[3]);
+          return home.ES_SUBSUMED(*this);
+        }
+        const int n = static_cast<int>(sx.size());
+        std::vector<StringVar> vx;
+        vx.reserve(n);
+        for (int i = 0; i < n; ++i)
+          vx.push_back(StringVar(
+            home, intermediate_alphabet, 0, intermediate_max_length));
+        rel(home, x[2],
+            StringVar(home, StringVal::from_symbols({sx[0]})),
+            STRT_CAT, vx[0]);
+        for (int i = 1; i < n; ++i) {
+          StringVar z(
+            home, intermediate_alphabet, 0, intermediate_max_length);
+          rel(home, x[2], StringVar(home, StringVal::from_symbols(
+                {sx[static_cast<StringVal::size_type>(i)]})), STRT_CAT, z);
+          rel(home, vx[i - 1], z, STRT_CAT, vx[i]);
+        }
+        rel(home, vx[n - 1], x[2], STRT_CAT, x[3]);
+      }
+      else {
+        StringVal::size_type position = replace_find_symbols(sx, sq);
+        if (position == replace_npos()) {
+          rel(home, x[0], STRT_EQ, x[3]);
+          return home.ES_SUBSUMED(*this);
+        }
+        std::vector<StringVar> vx(1, StringVar(
+          home, intermediate_alphabet, 0, intermediate_max_length));
+        const StringVal prefix = replace_slice_symbols(sx, 0, position);
+        if (prefix.empty())
+          rel(home, x[2], STRT_EQ, vx[0]);
+        else
+          rel(home, StringVar(home, prefix), x[2], STRT_CAT, vx[0]);
+        const StringVal::size_type query_size = sq.size();
+        StringVal::size_type previous = position + query_size;
+        position = replace_find_symbols(sx, sq, previous);
+        while (position != replace_npos()) {
+          StringVar tail = vx.back();
+          vx.push_back(StringVar(
+            home, intermediate_alphabet, 0, intermediate_max_length));
+          if (position > previous) {
+            StringVar z(
+              home, intermediate_alphabet, 0, intermediate_max_length);
+            rel(home, StringVar(home, replace_slice_symbols(
+                  sx, previous, position - previous)), x[2], STRT_CAT, z);
+            rel(home, tail, z, STRT_CAT, vx.back());
+          }
+          else
+            rel(home, tail, x[2], STRT_CAT, vx.back());
+          previous = position + query_size;
+          position = replace_find_symbols(sx, sq, previous);
+        }
+        if (previous < sx.size())
+          rel(home, vx.back(),
+              StringVar(home, replace_slice_symbols(sx, previous)),
+              STRT_CAT, x[3]);
+        else
+          rel(home, vx.back(), STRT_EQ, x[3]);
+      }
+    }
+    return home.ES_SUBSUMED(*this);
+  }
+
   // Checking if |y| = |x| + |q'| - |q| is consistent.
   forceinline bool
   Replace::check_card() const {
@@ -187,6 +351,37 @@ namespace Gecode { namespace String {
       }
       else
         curr.clear();
+    }
+    return min_occur;
+  }
+
+  forceinline int
+  Replace::occur(const StringVal& q) const {
+    if (q.empty())
+      return 0;
+    int min_occur = 0;
+    std::vector<StringSymbol> current;
+    const DashedString& source = x[0].domain();
+    for (int i = 0; i < source.length(); ++i) {
+      const DSBlock& block = source.at(i);
+      if (block.S.size() == 1) {
+        const StringSymbol symbol = block.S.min();
+        current.insert(current.end(), block.l, symbol);
+        std::vector<StringSymbol>::iterator position = std::search(
+          current.begin(), current.end(), q.begin(), q.end());
+        while (position != current.end()) {
+          ++min_occur;
+          if (!all)
+            return min_occur;
+          current.erase(current.begin(), position + q.size());
+          position = std::search(
+            current.begin(), current.end(), q.begin(), q.end());
+        }
+        if (block.l < block.u)
+          current.assign(block.l, symbol);
+      }
+      else
+        current.clear();
     }
     return min_occur;
   }
@@ -312,12 +507,26 @@ namespace Gecode { namespace String {
     }
     int min_occur = 0;
     if (x[1].assigned()) {
-      string sq = x[1].val();
-      if (x[2].assigned() && sq == x[2].val()) {
+      string sq;
+      const bool query_is_bytes = x[1].domain().try_val_bytes(sq);
+      StringVal query;
+      if (!query_is_bytes)
+        query = x[1].val_symbols();
+      bool same_replacement = false;
+      if (x[2].assigned()) {
+        string replacement_bytes;
+        if (query_is_bytes)
+          same_replacement =
+            x[2].domain().try_val_bytes(replacement_bytes) &&
+            sq == replacement_bytes;
+        else
+          same_replacement = query == x[2].val_symbols();
+      }
+      if (same_replacement) {
         rel(home, x[0], STRT_EQ, x[3]);
         return home.ES_SUBSUMED(*this);
       }
-      if (sq == "" && !all) {
+      if ((query_is_bytes ? sq.empty() : query.empty()) && !all) {
         last ? rel(home, x[0], x[2], STRT_CAT, x[3])
              : rel(home, x[2], x[0], STRT_CAT, x[3]);
         return home.ES_SUBSUMED(*this);
@@ -325,13 +534,17 @@ namespace Gecode { namespace String {
       if (x[0].assigned()) {
         if (all)
           return decomp_all(home);
-        string sx = x[0].val();
-        size_t n = last ? sx.rfind(sq) : sx.find(sq);
-        if (n == string::npos)
-          rel(home, x[0], STRT_EQ, x[3]);
-        else {
-          if (x[2].assigned()) {
-            sx.replace(n, sq.size(), x[2].val());
+        string sx;
+        string replacement_bytes;
+        const bool replacement_is_bytes = !x[2].assigned() ||
+          x[2].domain().try_val_bytes(replacement_bytes);
+        if (query_is_bytes && x[0].domain().try_val_bytes(sx) &&
+            replacement_is_bytes) {
+          size_t n = last ? sx.rfind(sq) : sx.find(sq);
+          if (n == string::npos)
+            rel(home, x[0], STRT_EQ, x[3]);
+          else if (x[2].assigned()) {
+            sx.replace(n, sq.size(), replacement_bytes);
             GECODE_ME_CHECK(x[3].eq(home, sx));
           }
           else {
@@ -342,12 +555,46 @@ namespace Gecode { namespace String {
             rel(home, z, StringVar(home, suff), STRT_CAT, x[3]);
           }
         }
+        else {
+          const StringVal source = x[0].val_symbols();
+          if (query_is_bytes)
+            query = StringVal::from_bytes(sq);
+          const StringVal::size_type position = last
+            ? replace_rfind_symbols(source, query)
+            : replace_find_symbols(source, query);
+          if (position == replace_npos())
+            rel(home, x[0], STRT_EQ, x[3]);
+          else if (x[2].assigned()) {
+            GECODE_ME_CHECK(x[3].eq(home, replace_symbol_range(
+              source, position, query.size(), x[2].val_symbols())));
+          }
+          else {
+            const StringVal prefix = replace_slice_symbols(source, 0, position);
+            const StringVal suffix = replace_slice_symbols(
+              source, position + query.size());
+            StringVar z(home);
+            rel(home, StringVar(home, prefix), x[2], STRT_CAT, z);
+            rel(home, z, StringVar(home, suffix), STRT_CAT, x[3]);
+          }
+        }
         return home.ES_SUBSUMED(*this);
       }
-      min_occur = occur(sq);
+      if (query_is_bytes && x[0].may_chars().max() <= 255)
+        min_occur = occur(sq);
+      else {
+        if (query_is_bytes)
+          query = StringVal::from_bytes(sq);
+        min_occur = occur(query);
+      }
     }
     if (x[0].assigned() && x[3].assigned()) {
-      if (x[0].val() == x[3].val()) {
+      string source_bytes, result_bytes;
+      const bool equal =
+        x[0].domain().try_val_bytes(source_bytes) &&
+        x[3].domain().try_val_bytes(result_bytes)
+          ? source_bytes == result_bytes
+          : x[0].val_symbols() == x[3].val_symbols();
+      if (equal) {
         find(home, x[1], x[0], IntVar(home, 0, 0));
         return home.ES_SUBSUMED(*this);
       }
@@ -363,7 +610,21 @@ namespace Gecode { namespace String {
       min_occur = 1;
     if (min_occur > 0 && !all) {
       // std::<<cerr << "min_occur = "<<min_occur<<": rewriting into concat!\n";
-      StringVar pref(home), suff(home);
+      NSIntSet intermediate_alphabet = x[0].may_chars();
+      intermediate_alphabet.include(x[1].may_chars());
+      intermediate_alphabet.include(x[2].may_chars());
+      intermediate_alphabet.include(x[3].may_chars());
+      StringVar pref, suff;
+      if (intermediate_alphabet.max() <= 255) {
+        pref = StringVar(home);
+        suff = StringVar(home);
+      }
+      else {
+        pref = StringVar(
+          home, intermediate_alphabet, 0, x[0].max_length());
+        suff = StringVar(
+          home, intermediate_alphabet, 0, x[0].max_length());
+      }
       StringVarArgs lhs, rhs;
       lhs << pref << x[1] << suff;
       rhs << pref << x[2] << suff;

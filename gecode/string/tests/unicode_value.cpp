@@ -578,6 +578,108 @@ namespace {
     }
   };
 
+  class UnicodeReplaceSpace : public Gecode::Space {
+  public:
+    enum Mode {
+      First,
+      Last,
+      All,
+      AllEmptyQuery,
+      AllVariableReplacement,
+      ByteQueryUnicodeSource,
+      MaximumScalar,
+      KnownUnicodeOccurrence
+    };
+
+    Gecode::StringVar source;
+    Gecode::StringVar result;
+    Gecode::StringVar replacement;
+
+    explicit UnicodeReplaceSpace(Mode mode)
+      : source(), result(), replacement() {
+      Gecode::StringVar query;
+      if (mode == AllEmptyQuery) {
+        source = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x65E5, 0x1F600}));
+        query = Gecode::StringVar(*this, StringVal());
+        replacement = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x672C}));
+        result = Gecode::StringVar(
+          *this, symbol_set({0x65E5, 0x672C, 0x1F600}), 0, 8);
+        Gecode::replace_all(*this, source, query, replacement, result);
+      } else if (mode == AllVariableReplacement) {
+        source = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x65E5, 0x1F600, 0x65E5}));
+        query = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x65E5}));
+        replacement = Gecode::StringVar(
+          *this, symbol_set({0x672C, 0x10FFFF}), 1, 1);
+        result = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x672C, 0x1F600, 0x672C}));
+        Gecode::replace_all(*this, source, query, replacement, result);
+      } else if (mode == ByteQueryUnicodeSource) {
+        source = Gecode::StringVar(
+          *this, StringVal::from_symbols({'A', 0x65E5, 'A'}));
+        query = Gecode::StringVar(*this, StringVal::from_bytes("A"));
+        replacement = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x1F600}));
+        result = Gecode::StringVar(
+          *this, symbol_set({'A', 0x65E5, 0x1F600}), 0, 8);
+        Gecode::replace_all(*this, source, query, replacement, result);
+      } else if (mode == MaximumScalar) {
+        source = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x10FFFF, 0x65E5}));
+        query = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x10FFFF}));
+        replacement = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x1F600}));
+        result = Gecode::StringVar(
+          *this, symbol_set({0x65E5, 0x1F600, 0x10FFFF}), 0, 4);
+        Gecode::replace(*this, source, query, replacement, result);
+      } else if (mode == KnownUnicodeOccurrence) {
+        Gecode::String::NSBlocks blocks;
+        blocks.push_back(Gecode::String::NSBlock(
+          Gecode::String::NSIntSet(0x65E5), 1, 1));
+        blocks.push_back(Gecode::String::NSBlock(
+          symbol_set({0x672C, 0x1F600}), 1, 1));
+        source = Gecode::StringVar(*this, blocks, 2, 2);
+        query = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x65E5}));
+        replacement = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x10FFFF}));
+        result = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x10FFFF, 0x1F600}));
+        Gecode::replace(*this, source, query, replacement, result);
+      } else {
+        source = Gecode::StringVar(*this, StringVal::from_symbols(
+          {0x65E5, 0x1F600, 0x65E5, 0x1F600}));
+        query = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x65E5, 0x1F600}));
+        replacement = Gecode::StringVar(
+          *this, StringVal::from_symbols({0x672C}));
+        result = Gecode::StringVar(
+          *this, symbol_set({0x65E5, 0x672C, 0x1F600}), 0, 8);
+        if (mode == First)
+          Gecode::replace(*this, source, query, replacement, result);
+        else if (mode == Last)
+          Gecode::replace_last(*this, source, query, replacement, result);
+        else
+          Gecode::replace_all(*this, source, query, replacement, result);
+      }
+    }
+
+    UnicodeReplaceSpace(UnicodeReplaceSpace& other)
+      : Gecode::Space(other) {
+      source.update(*this, other.source);
+      result.update(*this, other.result);
+      replacement.update(*this, other.replacement);
+    }
+
+    virtual Gecode::Space* copy(void) {
+      return new UnicodeReplaceSpace(*this);
+    }
+  };
+
 }
 
 int main(void) {
@@ -936,6 +1038,64 @@ int main(void) {
   assert(reified_regular_propagated->result.assigned() &&
          reified_regular_propagated->result.val() == 1);
   delete reified_regular_propagated;
+
+  UnicodeReplaceSpace* replace_first =
+    new UnicodeReplaceSpace(UnicodeReplaceSpace::First);
+  assert(replace_first->status() != Gecode::SS_FAILED);
+  assert(replace_first->result.val_symbols() ==
+         StringVal::from_symbols({0x672C, 0x65E5, 0x1F600}));
+  delete replace_first;
+
+  UnicodeReplaceSpace* replace_last =
+    new UnicodeReplaceSpace(UnicodeReplaceSpace::Last);
+  assert(replace_last->status() != Gecode::SS_FAILED);
+  assert(replace_last->result.val_symbols() ==
+         StringVal::from_symbols({0x65E5, 0x1F600, 0x672C}));
+  delete replace_last;
+
+  UnicodeReplaceSpace* replace_every =
+    new UnicodeReplaceSpace(UnicodeReplaceSpace::All);
+  assert(replace_every->status() != Gecode::SS_FAILED);
+  assert(replace_every->result.val_symbols() ==
+         StringVal::from_symbols({0x672C, 0x672C}));
+  delete replace_every;
+
+  UnicodeReplaceSpace* replace_empty =
+    new UnicodeReplaceSpace(UnicodeReplaceSpace::AllEmptyQuery);
+  assert(replace_empty->status() != Gecode::SS_FAILED);
+  assert(replace_empty->result.val_symbols() == StringVal::from_symbols(
+    {0x672C, 0x65E5, 0x672C, 0x1F600, 0x672C}));
+  delete replace_empty;
+
+  UnicodeReplaceSpace* replace_variable =
+    new UnicodeReplaceSpace(UnicodeReplaceSpace::AllVariableReplacement);
+  assert(replace_variable->status() != Gecode::SS_FAILED);
+  assert(replace_variable->replacement.assigned());
+  assert(replace_variable->replacement.val_symbols() ==
+         StringVal::from_symbols({0x672C}));
+  delete replace_variable;
+
+  UnicodeReplaceSpace* replace_byte_query =
+    new UnicodeReplaceSpace(UnicodeReplaceSpace::ByteQueryUnicodeSource);
+  assert(replace_byte_query->status() != Gecode::SS_FAILED);
+  assert(replace_byte_query->result.val_symbols() ==
+         StringVal::from_symbols({0x1F600, 0x65E5, 0x1F600}));
+  delete replace_byte_query;
+
+  UnicodeReplaceSpace* replace_maximum =
+    new UnicodeReplaceSpace(UnicodeReplaceSpace::MaximumScalar);
+  assert(replace_maximum->status() != Gecode::SS_FAILED);
+  assert(replace_maximum->result.val_symbols() ==
+         StringVal::from_symbols({0x1F600, 0x65E5}));
+  delete replace_maximum;
+
+  UnicodeReplaceSpace* replace_known_occurrence =
+    new UnicodeReplaceSpace(UnicodeReplaceSpace::KnownUnicodeOccurrence);
+  assert(replace_known_occurrence->status() != Gecode::SS_FAILED);
+  assert(replace_known_occurrence->source.assigned());
+  assert(replace_known_occurrence->source.val_symbols() ==
+         StringVal::from_symbols({0x65E5, 0x1F600}));
+  delete replace_known_occurrence;
 
   return 0;
 }
