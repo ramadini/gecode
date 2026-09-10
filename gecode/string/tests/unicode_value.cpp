@@ -77,6 +77,24 @@ namespace {
     }
   };
 
+  class UnicodeAlphabetSpace : public Gecode::Space {
+  public:
+    Gecode::StringVar value;
+
+    UnicodeAlphabetSpace(void)
+      : value(*this, 1, 2,
+          Gecode::String::StringAlphabet::unicode_scalars()) {}
+
+    UnicodeAlphabetSpace(UnicodeAlphabetSpace& other)
+      : Gecode::Space(other) {
+      value.update(*this, other.value);
+    }
+
+    virtual Gecode::Space* copy(void) {
+      return new UnicodeAlphabetSpace(*this);
+    }
+  };
+
   Gecode::String::NSIntSet symbol_set(
     std::initializer_list<StringSymbol> values
   ) {
@@ -741,6 +759,72 @@ int main(void) {
   assert(is_unicode_scalar_value(0x10FFFF));
   assert(!is_unicode_scalar_value(-1));
   assert(!is_unicode_scalar_value(0x110000));
+
+  const Gecode::String::StringAlphabet byte_alphabet =
+    Gecode::String::StringAlphabet::bytes();
+  assert(byte_alphabet.size() == 256);
+  assert(byte_alphabet.ranges() == 1);
+  assert(byte_alphabet.contains(0));
+  assert(byte_alphabet.contains(0xFF));
+  assert(!byte_alphabet.contains(0x100));
+
+  const Gecode::String::StringAlphabet ascii_alphabet =
+    Gecode::String::StringAlphabet::ascii();
+  assert(ascii_alphabet.size() == 128);
+  assert(ascii_alphabet.contains(0x7F));
+  assert(!ascii_alphabet.contains(0x80));
+
+  const Gecode::String::StringAlphabet latin1_alphabet =
+    Gecode::String::StringAlphabet::latin1();
+  assert(latin1_alphabet.size() == byte_alphabet.size());
+
+  const Gecode::String::StringAlphabet unicode_alphabet =
+    Gecode::String::StringAlphabet::unicode_scalars();
+  assert(unicode_alphabet.ranges() == 2);
+  assert(unicode_alphabet.size() == 0x110000 - 0x800);
+  assert(unicode_alphabet.contains(0));
+  assert(unicode_alphabet.contains(0xD7FF));
+  assert(!unicode_alphabet.contains(0xD800));
+  assert(!unicode_alphabet.contains(0xDFFF));
+  assert(unicode_alphabet.contains(0xE000));
+  assert(unicode_alphabet.contains(0x10FFFF));
+
+  const Gecode::String::StringAlphabet range_alphabet =
+    Gecode::String::StringAlphabet::from_ranges({
+      {'a', 'z'}, {'0', '9'}, {'m', 'z'}
+    });
+  assert(range_alphabet.ranges() == 2);
+  assert(range_alphabet.contains('0'));
+  assert(range_alphabet.contains('a'));
+  assert(range_alphabet.contains('z'));
+
+  const Gecode::String::StringAlphabet point_alphabet =
+    Gecode::String::StringAlphabet::from_codepoints(
+      {0x1F600, 0x65E5, 0x65E5, 0x10FFFF});
+  assert(point_alphabet.size() == 3);
+  assert(point_alphabet.contains(0x1F600));
+  assert(point_alphabet.contains(0x10FFFF));
+
+  bool rejected_surrogate_alphabet = false;
+  try {
+    (void) Gecode::String::StringAlphabet::from_ranges({
+      {0xD7FF, 0xE000}
+    });
+  }
+  catch (const std::out_of_range&) {
+    rejected_surrogate_alphabet = true;
+  }
+  assert(rejected_surrogate_alphabet);
+
+  UnicodeAlphabetSpace* alphabet_space = new UnicodeAlphabetSpace;
+  assert(alphabet_space->value.min_length() == 1);
+  assert(alphabet_space->value.max_length() == 2);
+  assert(alphabet_space->value.may_chars().in(0xD7FF));
+  assert(!alphabet_space->value.may_chars().in(0xD800));
+  assert(!alphabet_space->value.may_chars().in(0xDFFF));
+  assert(alphabet_space->value.may_chars().in(0xE000));
+  assert(alphabet_space->value.may_chars().in(0x10FFFF));
+  delete alphabet_space;
 
   const std::string japanese("\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E", 9);
   const StringVal decoded = StringVal::decode_utf8(japanese);

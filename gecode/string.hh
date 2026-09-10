@@ -48,6 +48,63 @@
 #include <gecode/string/value.hpp>
 #include <gecode/string/var-imp.hpp>
 
+namespace Gecode { namespace String {
+
+  /**
+   * \brief Finite alphabet for a string variable
+   *
+   * An alphabet contains Unicode scalar values.  In particular, surrogate
+   * code points are rejected.  The predefined byte profile preserves the
+   * legacy string-variable alphabet.
+   */
+  class GECODE_STRING_EXPORT StringAlphabet {
+  public:
+    /// Closed interval of Unicode scalar values
+    struct Range {
+      StringSymbol lower;
+      StringSymbol upper;
+
+      Range(StringSymbol l, StringSymbol u) : lower(l), upper(u) {}
+    };
+
+  private:
+    NSIntSet _symbols;
+
+    explicit StringAlphabet(const NSIntSet& symbols);
+
+  public:
+    /// Legacy byte alphabet U+0000..U+00FF
+    static StringAlphabet bytes(void);
+    /// ASCII alphabet U+0000..U+007F
+    static StringAlphabet ascii(void);
+    /// ISO-8859-1/Latin-1 code-point alphabet U+0000..U+00FF
+    static StringAlphabet latin1(void);
+    /// All Unicode scalar values, excluding UTF-16 surrogates
+    static StringAlphabet unicode_scalars(void);
+
+    /// Construct an alphabet from closed ranges
+    static StringAlphabet from_ranges(const std::vector<Range>& ranges);
+    /// Construct an alphabet from closed ranges
+    static StringAlphabet from_ranges(std::initializer_list<Range> ranges);
+    /// Construct an alphabet from individual code points
+    static StringAlphabet from_codepoints(
+      const std::vector<StringSymbol>& codepoints);
+    /// Construct an alphabet from individual code points
+    static StringAlphabet from_codepoints(
+      std::initializer_list<StringSymbol> codepoints);
+
+    /// Test whether the alphabet contains \a symbol
+    bool contains(StringSymbol symbol) const;
+    /// Return the number of scalar values in the alphabet
+    int size(void) const;
+    /// Return the number of ranges used by the compact representation
+    int ranges(void) const;
+    /// Return the compact symbol set
+    const NSIntSet& symbols(void) const;
+  };
+
+}}
+
 namespace Gecode {
 
 
@@ -87,6 +144,11 @@ namespace Gecode {
 
     GECODE_STRING_EXPORT
     StringVar(Space& home, int a, int b);
+
+    /// Initialize with length bounds and an explicit active alphabet
+    GECODE_STRING_EXPORT
+    StringVar(Space& home, int a, int b,
+              const String::StringAlphabet& alphabet);
 
     GECODE_STRING_EXPORT
     StringVar(Space& home, const string& s);
