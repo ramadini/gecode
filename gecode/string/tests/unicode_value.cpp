@@ -578,6 +578,31 @@ namespace {
     }
   };
 
+  class UnicodeGCCSpace : public Gecode::Space {
+  public:
+    Gecode::StringVar value;
+    Gecode::IntVarArray counts;
+
+    UnicodeGCCSpace(void)
+      : value(*this, StringVal::from_symbols(
+          {0x65E5, 0x1F600, 0x65E5, 0x10FFFF})),
+        counts(*this, 4, 0, 4) {
+      Gecode::IntArgs characters;
+      characters << 0x65E5 << 0x1F600 << 0x10FFFF << 0x672C;
+      Gecode::gcc(*this, value, characters, counts);
+    }
+
+    UnicodeGCCSpace(UnicodeGCCSpace& other)
+      : Gecode::Space(other) {
+      value.update(*this, other.value);
+      counts.update(*this, other.counts);
+    }
+
+    virtual Gecode::Space* copy(void) {
+      return new UnicodeGCCSpace(*this);
+    }
+  };
+
   class UnicodeReplaceSpace : public Gecode::Space {
   public:
     enum Mode {
@@ -1038,6 +1063,18 @@ int main(void) {
   assert(reified_regular_propagated->result.assigned() &&
          reified_regular_propagated->result.val() == 1);
   delete reified_regular_propagated;
+
+  UnicodeGCCSpace* unicode_gcc = new UnicodeGCCSpace;
+  assert(unicode_gcc->status() != Gecode::SS_FAILED);
+  assert(unicode_gcc->counts[0].assigned() &&
+         unicode_gcc->counts[0].val() == 2);
+  assert(unicode_gcc->counts[1].assigned() &&
+         unicode_gcc->counts[1].val() == 1);
+  assert(unicode_gcc->counts[2].assigned() &&
+         unicode_gcc->counts[2].val() == 1);
+  assert(unicode_gcc->counts[3].assigned() &&
+         unicode_gcc->counts[3].val() == 0);
+  delete unicode_gcc;
 
   UnicodeReplaceSpace* replace_first =
     new UnicodeReplaceSpace(UnicodeReplaceSpace::First);

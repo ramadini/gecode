@@ -36,7 +36,7 @@ run_mzn_with_timeout() {
 }
 
 cd "$ROOT_DIR"
-make -j4 compilelib || exit $?
+make depend && make -j4 compilelib || exit $?
 
 if
   [[ $MODE != "cpp" ]]

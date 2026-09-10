@@ -52,11 +52,22 @@ namespace Gecode { namespace String {
   GCC::assigned(Space& home) {
     const vec2& A = data->characters;
     int n = x.size();
-    string s = y.val();
-    for (int i = 0; i < n; ++i)
-      GECODE_ME_CHECK(x[A[i].second].eq(home,
-        (int) std::count(s.begin(), s.end(), int2char(A[i].first)))
-      );
+    string bytes;
+    if (y.domain().try_val_bytes(bytes)) {
+      for (int i = 0; i < n; ++i)
+        GECODE_ME_CHECK(x[A[i].second].eq(home,
+          (int) std::count(
+            bytes.begin(), bytes.end(), int2char(A[i].first)))
+        );
+    }
+    else {
+      const StringVal value = y.val_symbols();
+      for (int i = 0; i < n; ++i)
+        GECODE_ME_CHECK(x[A[i].second].eq(home,
+          (int) std::count(
+            value.begin(), value.end(), A[i].first))
+        );
+    }
     return home.ES_SUBSUMED(*this);
   }
 
