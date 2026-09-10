@@ -143,8 +143,8 @@ namespace Gecode { namespace String {
     while (true) {
       if (x0.assigned()) {
         int value = -1;
-        const string s = x0.val();
-        bool digits = !s.empty();
+        string s;
+        bool digits = x0.domain().try_val_bytes(s) && !s.empty();
         for (string::const_iterator c = s.begin(); digits && c != s.end(); ++c)
           digits = *c >= '0' && *c <= '9';
         if (digits) {

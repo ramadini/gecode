@@ -1384,6 +1384,26 @@ namespace Gecode { namespace String {
     NSBlocks(const std::vector<NSBlock>& blocks)
     : std::vector<NSBlock>(blocks) {}
 
+    forceinline explicit
+    NSBlocks(const std::vector<StringSymbol>& symbols)
+    : std::vector<NSBlock>() {
+      if (symbols.size() >
+          static_cast<std::vector<StringSymbol>::size_type>(
+            DashedString::_MAX_STR_LENGTH))
+        throw OutOfLimitsDS("NSBlocks::NSBlocks");
+      for (std::vector<StringSymbol>::const_iterator i = symbols.begin();
+           i != symbols.end(); ++i) {
+        if (!empty() && back().S.size() == 1 && back().S.min() == *i) {
+          ++back().l;
+          ++back().u;
+        }
+        else
+          emplace_back(NSIntSet(*i), 1, 1);
+      }
+      if (empty())
+        emplace_back();
+    }
+
     forceinline
     NSBlocks(std::vector<NSBlock>&& blocks)
     : std::vector<NSBlock>(std::move(blocks)) {}
@@ -1436,20 +1456,46 @@ namespace Gecode { namespace String {
       return true;
     }
 
-    forceinline string
-    val() const {
+    forceinline bool
+    try_val_bytes(string& value) const {
       if (!known())
-        throw UnknownValDS("DashedString::val");
-      if (null())
-        return "";
-      string s;
+        throw UnknownValDS("NSBlocks::try_val_bytes");
+      value.clear();
       string::size_type length = 0;
       for (const NSBlock& block : *this)
         length += block.l;
-      s.reserve(length);
+      value.reserve(length);
+      for (const NSBlock& block : *this) {
+        if (block.null())
+          continue;
+        const int symbol = block.S.min();
+        if (symbol < 0 || symbol > 255) {
+          value.clear();
+          return false;
+        }
+        value.append(block.l,
+          static_cast<char>(static_cast<unsigned char>(symbol)));
+      }
+      return true;
+    }
+
+    forceinline string
+    val() const {
+      string value;
+      if (!try_val_bytes(value))
+        throw OutOfLimitsDS("NSBlocks::val");
+      return value;
+    }
+
+    forceinline StringVal
+    val_symbols() const {
+      if (!known())
+        throw UnknownValDS("NSBlocks::val_symbols");
+      std::vector<StringSymbol> symbols;
       for (const NSBlock& block : *this)
-        s.append(block.l, unsigned(block.S.min()));
-      return s;
+        if (!block.null())
+          symbols.insert(symbols.end(), block.l, block.S.min());
+      return StringVal::from_symbols(std::move(symbols));
     }
 
     forceinline int
@@ -1624,6 +1670,32 @@ namespace Gecode { namespace String {
       return pref;
     }
 
+    forceinline std::vector<StringSymbol>
+    known_pref_symbols() const {
+      unsigned end = 0;
+      std::vector<StringSymbol>::size_type length = 0;
+      for (; end < this->size(); ++end) {
+        const NSBlock& b = at(end);
+        if (b.null())
+          continue;
+        if (b.S.size() > 1)
+          break;
+        length += static_cast<std::vector<StringSymbol>::size_type>(b.l);
+        if (b.l < b.u) {
+          ++end;
+          break;
+        }
+      }
+      std::vector<StringSymbol> prefix;
+      prefix.reserve(length);
+      for (unsigned i = 0; i < end; ++i) {
+        const NSBlock& b = at(i);
+        if (!b.null())
+          prefix.insert(prefix.end(), b.l, b.S.min());
+      }
+      return prefix;
+    }
+
     forceinline string
     known_suff() const {
       int begin = this->size();
@@ -1647,6 +1719,31 @@ namespace Gecode { namespace String {
           suff.append(b.l, unsigned(b.S.min()));
       }
       return suff;
+    }
+
+    forceinline std::vector<StringSymbol>
+    known_suff_symbols() const {
+      int begin = this->size();
+      std::vector<StringSymbol>::size_type length = 0;
+      for (int i = begin - 1; i >= 0; --i) {
+        const NSBlock& b = at(i);
+        if (b.null())
+          continue;
+        if (b.S.size() > 1)
+          break;
+        begin = i;
+        length += static_cast<std::vector<StringSymbol>::size_type>(b.l);
+        if (b.l < b.u)
+          break;
+      }
+      std::vector<StringSymbol> suffix;
+      suffix.reserve(length);
+      for (int i = begin; i < static_cast<int>(this->size()); ++i) {
+        const NSBlock& b = at(i);
+        if (!b.null())
+          suffix.insert(suffix.end(), b.l, b.S.min());
+      }
+      return suffix;
     }
 
     friend std::ostream& operator<<(std::ostream& os, const NSBlocks& v);

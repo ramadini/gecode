@@ -82,11 +82,28 @@ namespace Gecode { namespace String {
         return home.ES_SUBSUMED(*this);
       }
       if (x1.assigned()) {
-        string s = x1.val();
+        string s;
+        if (!x1.domain().try_val_bytes(s))
+          return ES_FAILED;
         if (s.empty())
           GECODE_ME_CHECK(x0.lq(home, -1));
-        else
-          GECODE_ME_CHECK(x0.eq(home, std::stoi(s)));
+        else {
+          bool digits = true;
+          for (string::const_iterator c = s.begin();
+               digits && c != s.end(); ++c)
+            digits = *c >= '0' && *c <= '9';
+          if (!digits)
+            return ES_FAILED;
+          try {
+            GECODE_ME_CHECK(x0.eq(home, std::stoi(s)));
+          }
+          catch (const std::invalid_argument&) {
+            return ES_FAILED;
+          }
+          catch (const std::out_of_range&) {
+            return ES_FAILED;
+          }
+        }
         return home.ES_SUBSUMED(*this);
       }
       if (x0.max() <= -1) {

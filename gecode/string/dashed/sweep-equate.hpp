@@ -505,7 +505,10 @@ namespace Gecode { namespace String {
         continue;
       }
       if (p_l == 0 || p_l < xi.l || u > xi.u) {
-        string kpref = p_reg.known_pref(), ksuff = p_reg.known_suff();
+        const std::vector<StringSymbol> kpref =
+          p_reg.known_pref_symbols();
+        const std::vector<StringSymbol> ksuff =
+          p_reg.known_suff_symbols();
         if (xi.l <= p_l && xlen == 1) {
           // Special case where x is a single block: the soundness of the
           // propagation is preserved by constraining the min/max length.
@@ -514,7 +517,8 @@ namespace Gecode { namespace String {
             p_reg[i].u = min(p_reg[i].u, xi.u);
           }
           p_reg.normalize();
-          if (kpref != "" || ksuff != "" || p_reg.logdim() < x.at(0).logdim()) {
+          if (!kpref.empty() || !ksuff.empty() ||
+              p_reg.logdim() < x.at(0).logdim()) {
             up.push(std::make_pair(0, std::move(p_reg)));
             // std::cerr << "1) x'_i: " << p_reg << "\n";
             return true;
@@ -523,7 +527,7 @@ namespace Gecode { namespace String {
         // Possibly crushing the matching region.
         int n = xi.S.size();
         xi.S.intersect(h, p_set);
-        if (p_l > xi.l || u < xi.u || kpref != "" || ksuff != ""
+        if (p_l > xi.l || u < xi.u || !kpref.empty() || !ksuff.empty()
         || (int) xi.S.size() < n) {
           NSBlocks v;
           int ll = max(p_l, xi.l), uu = min(u, xi.u), nn = kpref.size();

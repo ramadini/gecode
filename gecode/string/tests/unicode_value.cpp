@@ -603,6 +603,31 @@ namespace {
     }
   };
 
+  class UnicodeStrToNatSpace : public Gecode::Space {
+  public:
+    Gecode::StringVar value;
+    Gecode::IntVar number;
+
+    UnicodeStrToNatSpace(void)
+      : value(*this, symbol_set({'7', 0x65E5}), 1, 1),
+        number(*this, -1, 9) {
+      Gecode::str2nat(*this, value, number);
+      Gecode::StringVar unicode(
+        *this, StringVal::from_symbols({0x65E5}));
+      Gecode::rel(*this, value, Gecode::STRT_EQ, unicode);
+    }
+
+    UnicodeStrToNatSpace(UnicodeStrToNatSpace& other)
+      : Gecode::Space(other) {
+      value.update(*this, other.value);
+      number.update(*this, other.number);
+    }
+
+    virtual Gecode::Space* copy(void) {
+      return new UnicodeStrToNatSpace(*this);
+    }
+  };
+
   class UnicodeReplaceSpace : public Gecode::Space {
   public:
     enum Mode {
@@ -766,6 +791,30 @@ int main(void) {
     rejected_non_byte = true;
   }
   assert(rejected_non_byte);
+
+  const std::vector<StringSymbol> block_symbols =
+    {0x65E5, 0x65E5, 0x1F600, 0x10FFFF};
+  Gecode::String::NSBlocks assigned_blocks(block_symbols);
+  assert(assigned_blocks.val_symbols() ==
+         StringVal::from_symbols(block_symbols));
+  std::string assigned_block_bytes;
+  assert(!assigned_blocks.try_val_bytes(assigned_block_bytes));
+
+  Gecode::String::NSIntSet alternatives(0x65E5);
+  alternatives.include(0x672C);
+  Gecode::String::NSBlocks partial_blocks({
+    Gecode::String::NSBlock(
+      Gecode::String::NSIntSet(0x65E5), 2, 2),
+    Gecode::String::NSBlock(
+      Gecode::String::NSIntSet(0x1F600), 1, 2),
+    Gecode::String::NSBlock(alternatives, 1, 1),
+    Gecode::String::NSBlock(
+      Gecode::String::NSIntSet(0x10FFFF), 1, 1)
+  });
+  assert(partial_blocks.known_pref_symbols() ==
+         std::vector<StringSymbol>({0x65E5, 0x65E5, 0x1F600}));
+  assert(partial_blocks.known_suff_symbols() ==
+         std::vector<StringSymbol>({0x10FFFF}));
 
   FixedStringValSpace* unicode_space = new FixedStringValSpace(decoded);
   assert(unicode_space->value.assigned());
@@ -1063,6 +1112,14 @@ int main(void) {
   assert(reified_regular_propagated->result.assigned() &&
          reified_regular_propagated->result.val() == 1);
   delete reified_regular_propagated;
+
+  UnicodeStrToNatSpace* unicode_str_to_nat =
+    new UnicodeStrToNatSpace;
+  assert(unicode_str_to_nat->status() != Gecode::SS_FAILED);
+  assert(unicode_str_to_nat->value.assigned());
+  assert(unicode_str_to_nat->number.assigned() &&
+         unicode_str_to_nat->number.val() == -1);
+  delete unicode_str_to_nat;
 
   UnicodeGCCSpace* unicode_gcc = new UnicodeGCCSpace;
   assert(unicode_gcc->status() != Gecode::SS_FAILED);

@@ -630,8 +630,13 @@ namespace Gecode { namespace String {
   template <typename DFA_t>
   forceinline ExecStatus
   Reg::propagate_blocks(Space& home, NSBlocks& x, DFA_t* dfa) {
-    if (x.known())
-      return dfa->accepted(x.val()) ? ES_FIX : ES_FAILED;
+    if (x.known()) {
+      string bytes;
+      const bool accepted = x.try_val_bytes(bytes)
+        ? dfa->accepted(bytes)
+        : dfa->accepted(x.val_symbols());
+      return accepted ? ES_FIX : ES_FAILED;
+    }
     bool changed, nofix = false;
     do {
       int n = x.length();
