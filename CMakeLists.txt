@@ -1505,6 +1505,17 @@ if(BUILD_TESTING)
         Set::Sequence::SeqU1
         Set::Wait)
     endif()
+    if(GECODE_ENABLE_STRING_VARS)
+      list(APPEND GECODE_CHECK_TESTS
+        String::GCC::MustChars
+        String::Rel::Construction
+        String::Rel::AggregateBounds
+        String::Rel::SizeEstimate
+        String::Rel::NSIntSetCopy
+        String::Var::FailureAdvisors
+        String::Var::Events
+        String::Var::Lifecycle)
+    endif()
     if(GECODE_ENABLE_FLOAT_VARS)
       set(GECODE_FLOAT_CHECK_TESTS
         Float::Arithmetic::PositiveNRootBounds
@@ -1531,6 +1542,13 @@ if(BUILD_TESTING)
             "Required Float check test is missing: ${gecode_required_float_test}")
         endif()
       endforeach()
+    endif()
+
+    if(GECODE_ENABLE_STRING_VARS)
+      list(APPEND GECODE_CHECK_TESTS
+        String::Extensional::DfaReification::Assigned
+        String::Extensional::DfaReification::Deferred
+        String::Extensional::StarDecomposition)
     endif()
 
     set(GECODE_CHECK_ARGS -iter 2 -threads 0 -fixprob 1)

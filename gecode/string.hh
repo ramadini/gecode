@@ -2,6 +2,7 @@
 #define __GECODE_STRING_HH__
 
 #include <climits>
+#include <cmath>
 #include <gecode/kernel.hh>
 
 /*
@@ -125,6 +126,12 @@ namespace Gecode {
    * clusters. No normalization or locale-sensitive text processing is
    * performed.
    *
+   * Construction with negative or individually oversized lengths throws
+   * String::OutOfLimitsDS. Reversed bounds, an empty block container, and
+   * bounds or mandatory alphabets admitting no string throw String::EmptyDS.
+   * Zero-length bounds and optional empty alphabets represent the singleton
+   * empty string. Submitted block bounds are checked before normalization.
+   *
    * \ingroup TaskModelStringVars
    */
   class StringVar : public VarImpVar<String::StringVarImp> {
@@ -197,7 +204,13 @@ namespace Gecode {
     /// Test whether the domain contains exactly one concrete string
     bool assigned(void) const;
 
-    /// Return the estimated size (number of strings) of the dashed domain
+    /**
+     * \brief Return the block-product estimate of the number of strings
+     *
+     * Assigned values, including the empty string, have size one. Coupled
+     * aggregate bounds and ambiguous block decompositions can overestimate
+     * the number of strings. Large estimates can overflow to infinity.
+     */
     double size(void) const;
 
     /// Return the dashed representation of the domain

@@ -464,20 +464,18 @@ namespace Gecode { namespace String {
           for (unsigned int i = 0; i < refined.size(); ++i) {
             NSBlock& block = refined[i];
             if (s.disjoint(block.S)) {
-              if (x.min_length() > 0)
+              if (block.l > 0) {
                 home.fail();
-              else
-                rel(home, x, STRT_EQ, StringVar(home, ""));
-              return;
+                return;
+              }
+              block.u = 0;
+              changed = true;
+              continue;
             }
             int n = block.S.size();
             block.S.intersect(s);
             if (block.S.size() < n)
               changed = true;
-            if (block.u != x.max_length()) {
-              block.u = x.max_length();
-              changed = true;
-            }
           }
           if (changed) {
             StringVarImp::DomainState state =

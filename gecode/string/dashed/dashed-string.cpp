@@ -167,25 +167,70 @@ namespace Gecode { namespace String {
   DashedString::DashedString(Space& h)
     : _changed(false), _blocks(h), _min_length(0), _max_length(0) {}
 
+  namespace {
+
+    void
+    check_length_bounds(int l, int u) {
+      if (l < 0 || u < 0 || l > DashedString::_MAX_STR_LENGTH ||
+          u > DashedString::_MAX_STR_LENGTH)
+        throw OutOfLimitsDS("DashedString::DashedString");
+      if (l > u)
+        throw EmptyDS("DashedString::DashedString");
+    }
+
+  }
+
   DashedString::DashedString(Space& h, const DSBlock& b)
-    : _changed(false), _blocks(h, 1, b),
-      _min_length(b.l), _max_length(b.u) {}
+    : _changed(false), _blocks(h), _min_length(0), _max_length(0) {
+    check_length_bounds(b.l, b.u);
+    if (b.S.empty() && b.l > 0)
+      throw EmptyDS("DashedString::DashedString");
+    if (b.u == 0 || b.S.empty())
+      return;
+    _blocks.at(0).update(h, b);
+    _min_length = b.l;
+    _max_length = b.u;
+  }
 
   DashedString::DashedString(Space& h, NSBlocks& v, int mil, int mal)
-    : _changed(false), _blocks(h) {
+    : _changed(false), _blocks(h), _min_length(0), _max_length(0) {
+    check_length_bounds(mil, mal);
     if (v.empty())
       throw EmptyDS("DashedString::DashedString");
-    if ((int) v.size() > _MAX_STR_LENGTH)
+    if (v.size() > static_cast<NSBlocks::size_type>(_MAX_STR_LENGTH))
       throw OutOfLimitsDS("DashedString::DashedString");
+    int l = 0, u = 0;
+    for (const NSBlock& block : v) {
+      check_length_bounds(block.l, block.u);
+      if ((block.S.empty() && block.l > 0) ||
+          block.l > _MAX_STR_LENGTH - l)
+        throw EmptyDS("DashedString::DashedString");
+      l += block.l;
+      if (!block.S.empty())
+        u += min(block.u, _MAX_STR_LENGTH - u);
+    }
+    l = max(l, mil);
+    u = min(u, mal);
+    if (l > u)
+      throw EmptyDS("DashedString::DashedString");
     v.normalize();
+    if (u == 0)
+      return;
     update(h, v);
-    _min_length = max(_min_length, mil);
-    _max_length = min(_max_length, mal);
+    _min_length = l;
+    _max_length = u;
+    if (length() == 1) {
+      at(0).l = l;
+      at(0).u = u;
+    }
+    assert (is_normalized());
   }
 
   DashedString::DashedString(Space& h, const std::string& s)
-    : _changed(false), _blocks(h),
-      _min_length(s.size()), _max_length(s.size()) {
+    : _changed(false), _blocks(h), _min_length(0), _max_length(0) {
+    if (s.size() > static_cast<std::string::size_type>(_MAX_STR_LENGTH))
+      throw OutOfLimitsDS("DashedString::DashedString");
+    _min_length = _max_length = static_cast<int>(s.size());
     this->_blocks.update(h, s);
   }
 
