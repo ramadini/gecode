@@ -1,22 +1,24 @@
 namespace Gecode { namespace String { namespace Branch {
 
+    forceinline
     LenMin_LLLL::LenMin_LLLL(Home home, ViewArray<String::StringView>& x0):
     StringBrancher(home, x0) {};
 
+    forceinline
     LenMin_LLLL::LenMin_LLLL(Home home, LenMin_LLLL& b):
     StringBrancher(home, b) {}
 
-    Actor*
+    forceinline Actor*
     LenMin_LLLL::copy(Space& home) {
       return new (home) LenMin_LLLL(home, *this);
     }
 
-    void
+    forceinline void
     LenMin_LLLL::post(Home home, ViewArray<String::StringView>& x) {
       (void) new (home) LenMin_LLLL(home, x);
     }
 
-    Choice*
+    forceinline Choice*
     LenMin_LLLL::choice(Space&) {
       const DashedString* p = &x[start].domain();
       int l = p->max_length() - p->min_length();
@@ -33,9 +35,9 @@ namespace Gecode { namespace String { namespace Branch {
       return val_llll(pos, p);
     }
 
-    ExecStatus
+    forceinline ExecStatus
     LenMin_LLLL::commit(Space& home, const Choice& c, unsigned a) {
-      return commit_choice(home, c, Block::FIRST, a);
+      return commit_choice(home, c, a);
     }
 }}}
 

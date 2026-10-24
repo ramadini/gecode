@@ -450,6 +450,7 @@ set(GECODE_TEST_SOURCES
   test/set/rel.cpp
   test/set/sequence.cpp
   test/string.cpp
+  test/string/branch.cpp
   test/string/channel.cpp
   test/string/char2code.cpp
   test/string/char-at.cpp
