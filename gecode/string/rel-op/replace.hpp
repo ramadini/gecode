@@ -67,20 +67,18 @@ namespace Gecode { namespace String {
       rel(home, x[2], STRT_EQ, x[3]);
       return ES_OK;
     }
-    else if (x[0].same(x[3])) {
-      find(home, x[1], x[0], IntVar(home, 0, 0));
-      return ES_OK;
-    }
-    else if (x[1].same(x[3]))
-      rel(home, x[1], STRT_SUB, x[0]);
     if (!a) {
       // Enforcing |y| = |x| + [find(q, x) > 0]*(|q'|-|q|).
       IntVar lx(home,  x[0].min_length(), x[0].max_length());
       IntVar lq(home,  x[1].min_length(), x[1].max_length());
       IntVar lq1(home, x[2].min_length(), x[2].max_length());
       IntVar ly(home,  x[3].min_length(), x[3].max_length());
+      length(home, StringVar(x[0]), lx);
+      length(home, StringVar(x[1]), lq);
+      length(home, StringVar(x[2]), lq1);
+      length(home, StringVar(x[3]), ly);
       // b = [find(q, x) > 0].
-      IntVar z(home, 0, lx.max());
+      IntVar z(home, 0, max(1, lx.max()));
       find(home, x[1], x[0], z);
       BoolVar b(home, 0, 1);
       rel(home, z, IRT_GR, 0, b);
@@ -328,6 +326,8 @@ namespace Gecode { namespace String {
   // For decomp_all, it returns the minimum number of occurrences of q in x[0].
   forceinline int
   Replace::occur(const string& q) const {
+    if (q.empty())
+      return 0;
     int min_occur = 0;
     string curr;
     const DashedString& p = x[0].domain();
@@ -578,20 +578,6 @@ namespace Gecode { namespace String {
         min_occur = occur(query);
       }
     }
-    if (x[0].assigned() && x[3].assigned()) {
-      string source_bytes, result_bytes;
-      const bool equal =
-        x[0].domain().try_val_bytes(source_bytes) &&
-        x[3].domain().try_val_bytes(result_bytes)
-          ? source_bytes == result_bytes
-          : x[0].val_symbols() == x[3].val_symbols();
-      if (equal) {
-        find(home, x[1], x[0], IntVar(home, 0, 0));
-        return home.ES_SUBSUMED(*this);
-      }
-      if (min_occur == 0)
-        min_occur += 1;
-    }
     // x[0] != x[3] => x[1] occur in x[0] /\ x[2] occur in x[3].
     const DashedString& px  = x[0].domain();
     const DashedString& py  = x[3].domain();
@@ -618,7 +604,25 @@ namespace Gecode { namespace String {
       rhs << pref << x[2] << suff;
       gconcat(home, lhs, x[0]);
       gconcat(home, rhs, x[3]);
-      find(home, x[1], last ? suff : pref, IntVar(home, 0, 0));
+      IntVar boundary_length(home, 0, x[0].max_length());
+      length(home, last ? suff : pref, boundary_length);
+      IntVar position(home, 1, max(1, x[0].max_length()));
+      IntArgs coefficients;
+      coefficients << 1 << -1;
+      IntVarArgs terms;
+      terms << position << boundary_length;
+      linear(home, coefficients, terms, IRT_EQ, 1);
+      if (last) {
+        StringVar reversed_query(
+          home, x[1].may_chars(), x[1].min_length(), x[1].max_length());
+        StringVar reversed_source(
+          home, x[0].may_chars(), x[0].min_length(), x[0].max_length());
+        rel(home, x[1], STRT_REV, reversed_query);
+        rel(home, x[0], STRT_REV, reversed_source);
+        find(home, reversed_query, reversed_source, position);
+      }
+      else
+        find(home, x[1], x[0], position);
       return home.ES_SUBSUMED(*this);
     }
     ExecStatus es = replace_q_x(home, min_occur, repeat);
@@ -635,25 +639,11 @@ namespace Gecode { namespace String {
       return ES_FAILED;
     assert (px.is_normalized() && x[1].domain().is_normalized()
         && x[2].domain().is_normalized() && py.is_normalized());
-    switch (
-      x[0].assigned() + x[1].assigned() + x[2].assigned() + x[3].assigned()
-    ) {
-      case 4:
-      case 3:
-        if (x[0].assigned()) {
-          repeat = true;
-          return ES_OK;
-        }
-        return ES_FIX;
-      case 2:
-        if (x[1].assigned() && x[0].assigned()) {
-          repeat = true;
-          return ES_OK;
-        }
-        return ES_FIX;
-      default:
-        return ES_FIX;
+    if (x[0].assigned() && x[1].assigned()) {
+      repeat = true;
+      return ES_OK;
     }
+    return repeat ? ES_OK : ES_FIX;
   }
 
   forceinline ExecStatus
