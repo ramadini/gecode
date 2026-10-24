@@ -36,13 +36,9 @@ namespace Gecode { namespace String {
     string ls = std::to_string(lb), us = std::to_string(ub);
     int lsize = ls.size(), usize = us.size();
     NSBlocks dom(1, NSBlock(NSIntSet('0'), 0, x0.max_length() - 1));
-    int n = usize - lsize;
-    if (n > 0) {
-      dom.push_back(NSBlock(NSIntSet('1', us[0]), 0, 1));
-      if (n > 1)
-        dom.push_back(NSBlock(NSIntSet('0', '9'), 0, n - 1));
-      else
-        dom.push_back(NSBlock(NSIntSet('0', '9'), lsize, lsize + n - 1));
+    if (usize > lsize) {
+      // Shorter values may start with any digit, even above us[0].
+      dom.push_back(NSBlock(NSIntSet('0', '9'), 1, usize));
     }
     else {
       dom.push_back(NSBlock(NSIntSet(ls[0], us[0]), 1, 1));

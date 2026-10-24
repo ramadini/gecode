@@ -115,10 +115,12 @@ namespace Gecode { namespace String {
         if (x0.min() == 0)
           GECODE_ME_CHECK(x1.lb(home, 1));
         else {
-          GECODE_ME_CHECK(x1.lb(home, (int) std::log10(x0.min()) + 1));
+          GECODE_ME_CHECK(x1.lb(home,
+            static_cast<int>(std::to_string(x0.min()).size())));
           rel(home, x1, STRT_NQ, StringVar(home, "0"));
         }
-        GECODE_ME_CHECK(x1.ub(home, ((int) std::log10(x0.max())) + 1));
+        GECODE_ME_CHECK(x1.ub(home,
+          static_cast<int>(std::to_string(x0.max()).size())));
         try {
           GECODE_ME_CHECK(x0.gq(home, std::stoi(min_str())));
           GECODE_ME_CHECK(x0.lq(home, std::stoi(max_str())));
@@ -126,9 +128,13 @@ namespace Gecode { namespace String {
         if (x1.domain().length() == 1 && x1.domain().at(0).S.size() == 1) {
           const DSBlock& b = x1.domain().at(0);
           char a = b.S.min();
-          IntArgs ia(b.u - b.l + 1);
-          for (int i = b.l; i <= b.u; ++i)
-            ia[i - b.l] = std::stoi(string(i, a));
+          IntArgs ia;
+          for (int i = b.l; i <= b.u; ++i) {
+            try {
+              ia << std::stoi(string(i, a));
+            }
+            catch (const std::out_of_range&) {}
+          }
           IntSet is(ia);
           IntSetRanges isr(is);
           GECODE_ME_CHECK(x0.inter_r(home, isr));
@@ -136,7 +142,8 @@ namespace Gecode { namespace String {
       }
       else {
         if (x0.max() > 0)
-          GECODE_ME_CHECK(x1.ub(home, ((int) std::log10(x0.max())) + 1));
+          GECODE_ME_CHECK(x1.ub(home,
+            static_cast<int>(std::to_string(x0.max()).size())));
         else {
           NSBlocks d({NSBlock(NSIntSet('0'), 0, 1)});
           rel(home, x1, STRT_DOM, d, 0, 1);
