@@ -464,6 +464,7 @@ set(GECODE_TEST_SOURCES
   test/string/rel-op.cpp
   test/string/replace.cpp
   test/string/substring.cpp
+  test/string/var.cpp
   test/test.cpp
 )
 

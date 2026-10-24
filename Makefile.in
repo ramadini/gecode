@@ -1222,7 +1222,7 @@ endif
 
 STRINGTESTSRC00 = \
 	rel rel-op extensional predicates length channel gcc char2code element find \
-	char-at substring match replace
+	char-at substring match replace var
 STRINGTESTSRC0 = test/string.cpp $(STRINGTESTSRC00:%=test/string/%.cpp)
 ifeq "@enable_string_vars@" "yes"
 STRINGTESTOBJ = $(STRINGTESTSRC0:%.cpp=%$(OBJSUFFIX))
@@ -1465,6 +1465,14 @@ BLACKBOXCHECKENV = \
 	GECODE_TEST_BLACKBOX_EXEC=$(abspath $(BLACKBOXEXEC)) \
 	GECODE_TEST_BLACKBOX_DLL=$(abspath $(BLACKBOXDLL)) \
 	GECODE_TEST_BLACKBOX_LOG=$(BLACKBOXLOG)
+endif
+
+ifeq "@enable_string_vars@" "yes"
+CHECKTESTS += String::GCC::MustChars
+CHECKTESTS += String::Rel::Construction String::Rel::AggregateBounds \
+	String::Rel::SizeEstimate String::Rel::NSIntSetCopy
+CHECKTESTS += String::Var::FailureAdvisors String::Var::Events \
+	String::Var::Lifecycle
 endif
 
 ifeq "@enable_float_vars@" "yes"

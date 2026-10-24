@@ -1,10 +1,36 @@
 #ifndef __GECODE_STRING_NS_DASHED_HH
 #define __GECODE_STRING_NS_DASHED_HH
 
+#ifdef GECODE_HAS_FAULT_INJECTION
+#include <atomic>
+#include <new>
+#endif
+
 namespace Gecode { namespace String {
 
   /// Linked inclusive range node owned by NSIntSet
   struct NSRange {
+
+#ifdef GECODE_HAS_FAULT_INJECTION
+    /// Test-only count of live raw range allocations
+    inline static std::atomic<int> fault_live_ranges{0};
+
+    static void* operator new(size_t size) {
+      Support::FailPoint::check(Support::FailPoint::Phase::NSIntSetRange);
+      void* range = ::operator new(size);
+      fault_live_ranges.fetch_add(1, std::memory_order_relaxed);
+      return range;
+    }
+
+    static void operator delete(void* range) {
+      fault_live_ranges.fetch_sub(1, std::memory_order_relaxed);
+      ::operator delete(range);
+    }
+
+    static int fault_live_allocations(void) {
+      return fault_live_ranges.load(std::memory_order_relaxed);
+    }
+#endif
 
     int l, u;
 
@@ -1077,7 +1103,18 @@ namespace Gecode { namespace String {
     forceinline
     NSIntSet::NSIntSet(const NSIntSet& that)
     : _fst(NULL), _lst(NULL), _size(0), _len(0) {
-      *this = that;
+      NSIntSet copy;
+      for (NSRange* range = that._fst; range; range = range->next) {
+        NSRange* node = new NSRange(range->l, range->u);
+        if (copy._lst)
+          copy._lst->next = node;
+        else
+          copy._fst = node;
+        copy._lst = node;
+      }
+      copy._size = that._size;
+      copy._len = that._len;
+      *this = std::move(copy);
     }
 
     forceinline
@@ -1091,46 +1128,8 @@ namespace Gecode { namespace String {
     forceinline NSIntSet&
     NSIntSet::operator=(const NSIntSet& that) {
       if (this != &that) {
-        if (that.empty()) {
-          this->clear();
-          return *this;
-        }
-        if (this->empty()) {
-          NSRange* p = new NSRange(that._fst->l, that._fst->u);
-          this->_fst = p;
-          for (NSRange* q = that._fst->next; q; q = q->next) {
-            NSRange* r = new NSRange(q->l, q->u);
-            p->next = r;
-            p = r;
-          }
-          this->_lst = p;
-          this->_size = that._size;
-          this->_len  = that._len;
-          return *this;
-        }
-        NSRange* p = this->_fst;
-        NSRange* q = that._fst;
-        NSRange* r = NULL;
-        for (; p && q; p = p->next, q = q->next) {
-          p->l = q->l;
-          p->u = q->u;
-          r = p;
-        }
-        if (p)
-          for (; p; p = q) {
-            q = p->next;
-            delete p;
-          }
-        else
-          for (; q; q = q->next) {
-            NSRange* s = new NSRange(q->l, q->u);
-            r->next = s;
-            r = s;
-          }
-        r->next = NULL;
-        this->_lst = r;
-        this->_size = that._size;
-        this->_len  = that._len;
+        NSIntSet copy(that);
+        *this = std::move(copy);
       }
       return *this;
     }

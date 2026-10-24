@@ -1329,11 +1329,7 @@ namespace Gecode { namespace String {
           if (nz < nx || sz.compare(0, nx, sx) != 0)
             return false;
           string suff = sz.substr(nx, nz - nx);
-          if (!check_sweep<DSBlock, DSBlocks, char, string>(y._blocks, suff))
-            return false;
-          y.update(h, suff);
-          y._changed = true;
-          return true;
+          return y.equate(h, StringVal::from_bytes(suff));
         }
         const StringVal vz = val_symbols();
         const StringVal vx = x.val_symbols();
@@ -1354,11 +1350,7 @@ namespace Gecode { namespace String {
           if (nz < ny || sz.compare(nz - ny, ny, sy) != 0)
             return false;
           string pref = sz.substr(0, nz - ny);
-          if (!check_sweep<DSBlock, DSBlocks, char, string>(x._blocks, pref))
-            return false;
-          x.update(h, pref);
-          x._changed = true;
-          return true;
+          return x.equate(h, StringVal::from_bytes(pref));
         }
         const StringVal vz = val_symbols();
         const StringVal vy = y.val_symbols();
@@ -1681,12 +1673,7 @@ namespace Gecode { namespace String {
       string bytes;
       if (try_val_bytes(bytes)) {
         std::reverse(bytes.begin(), bytes.end());
-        if (check_sweep<char, string, DSBlock, DSBlocks>(bytes, x._blocks)) {
-          x.update(h, bytes);
-          x._changed = true;
-          return true;
-        }
-        return false;
+        return x.equate(h, StringVal::from_bytes(bytes));
       }
       const StringVal value = val_symbols();
       std::vector<StringSymbol> reversed(value.begin(), value.end());
@@ -1697,12 +1684,7 @@ namespace Gecode { namespace String {
       string bytes;
       if (x.try_val_bytes(bytes)) {
         std::reverse(bytes.begin(), bytes.end());
-        if (check_sweep<DSBlock, DSBlocks, char, string>(_blocks, bytes)) {
-          update(h, bytes);
-          _changed = true;
-          return true;
-        }
-        return false;
+        return equate(h, StringVal::from_bytes(bytes));
       }
       const StringVal value = x.val_symbols();
       std::vector<StringSymbol> reversed(value.begin(), value.end());
@@ -2245,62 +2227,29 @@ namespace Gecode { namespace String {
   forceinline bool
   DashedString::equate(Space& h, const NSBlocks& that) {
     _changed = false;
-    if (known()) {
-      string s;
-      if (try_val_bytes(s)) {
-        if (that.known()) {
-          for (const NSBlock& block : that)
-            if (!block.null() && block.S.min() > 255)
-              return false;
-          return s == that.val();
-        }
-        return check_sweep<char, string, NSBlock, NSBlocks>(s, that);
-      }
+    if (that.known())
+      return equate(h, that.val_symbols());
+    if (known())
       return check_sweep<DSBlock, DSBlocks, NSBlock, NSBlocks>(_blocks, that);
+    long l = 0, u = 0;
+    for (const NSBlock& block : that) {
+      l += block.l;
+      u += block.u;
     }
-    if (that.known()) {
-      bool byte_value = true;
-      for (const NSBlock& block : that) {
-        if (!block.null() && block.S.min() > 255) {
-          byte_value = false;
-          break;
-        }
-      }
-      if (byte_value) {
-        string s = that.val();
-        if (check_sweep<DSBlock, DSBlocks, char, string>(_blocks, s)) {
-          update(h, s);
-          _changed = true;
-          return true;
-        }
-        return false;
-      }
-      if (check_sweep<DSBlock, DSBlocks, NSBlock, NSBlocks>(_blocks, that)) {
-        update(h, that);
-        _changed = true;
-        return true;
-      }
+    l = max(long(_min_length), l);
+    u = min(long(_max_length), u);
+    if (l > u)
       return false;
-    }
     if (that.contains<DSBlock, DashedString>(*this))
       return true;
     if (contains(that)) {
       update(h, that);
       _changed = true;
-      return true;
+      return refine_card(h, static_cast<int>(l), static_cast<int>(u));
     }
     if (!sweep_equate(h, *this, that))
       return false;
-    int l = 0;
-    long u = 0;
-    for (unsigned i = 0; i < that.size(); ++i) {
-      const NSBlock& b = that[i];
-      l += b.l;
-      u += b.u;
-    }
-    if (!refine_card(h, max(_min_length, l), min(_max_length, u)))
-      return false;
-    return true;
+    return refine_card(h, static_cast<int>(l), static_cast<int>(u));
   }
 
   forceinline bool

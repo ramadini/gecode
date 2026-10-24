@@ -115,6 +115,9 @@ namespace Gecode { namespace String {
     /// Enforce this = reverse(\a y)
     ModEvent rev(Space& home, StringView& y);
 
+    /// Test whether delta \a d describes a domain change
+    bool any(const Delta& d) const;
+
     /// Update this view while cloning \a y into \a home
     void update(Space& home, StringView& y);
 

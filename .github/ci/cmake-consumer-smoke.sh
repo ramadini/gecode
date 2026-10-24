@@ -257,10 +257,18 @@ target_link_libraries(consumer_l PRIVATE ${Gecode_LIBRARIES})
 EOF
 cat > "$work/l/main.cpp" <<'EOF'
 #include <gecode/string.hh>
+class StringSpace : public Gecode::Space {
+public:
+  Gecode::StringVar x;
+  StringSpace(void) : x(*this, "Dashed") {}
+  StringSpace(StringSpace& s) : Gecode::Space(s) { x.update(*this, s.x); }
+  virtual Gecode::Space* copy(void) { return new StringSpace(*this); }
+};
 int main(void) {
   const Gecode::String::StringVal value =
     Gecode::String::StringVal::decode_utf8("Dashed");
-  return value.to_utf8() == "Dashed" ? 0 : 1;
+  StringSpace home;
+  return value.to_utf8() == "Dashed" && home.x.size() == 1.0 ? 0 : 1;
 }
 EOF
 

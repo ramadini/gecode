@@ -81,6 +81,22 @@ namespace Test { namespace String { namespace GCC {
 
   MustChars must_chars;
 
+  class EmptyMustChars : public Test {
+  public:
+    EmptyMustChars(void) : Test("GCC::MustChars::Empty", 1, "abc", 3) {}
+
+    virtual bool solution(const Assignment&) const {
+      return true;
+    }
+
+    virtual void post(Gecode::Space& home, Gecode::StringVarArray& x) {
+      Gecode::String::NSIntSet characters;
+      Gecode::must_chars(home, x[0], characters);
+    }
+  };
+
+  EmptyMustChars empty_must_chars;
+
 }}}
 
 // STATISTICS: test-string

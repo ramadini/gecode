@@ -180,6 +180,9 @@ namespace Gecode { namespace String {
     /// Enforce this = reverse(\a x)
     ModEvent rev(Space& home, StringVarImp* x);
 
+    /// Test whether delta \a d describes a domain change
+    static bool any(const Delta& d);
+
     /// \name Dependencies
     //@{
     /**

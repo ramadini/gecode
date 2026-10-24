@@ -1505,6 +1505,17 @@ if(BUILD_TESTING)
         Set::Sequence::SeqU1
         Set::Wait)
     endif()
+    if(GECODE_ENABLE_STRING_VARS)
+      list(APPEND GECODE_CHECK_TESTS
+        String::GCC::MustChars
+        String::Rel::Construction
+        String::Rel::AggregateBounds
+        String::Rel::SizeEstimate
+        String::Rel::NSIntSetCopy
+        String::Var::FailureAdvisors
+        String::Var::Events
+        String::Var::Lifecycle)
+    endif()
     if(GECODE_ENABLE_FLOAT_VARS)
       set(GECODE_FLOAT_CHECK_TESTS
         Float::Arithmetic::PositiveNRootBounds
