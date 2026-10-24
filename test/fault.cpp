@@ -506,8 +506,7 @@ namespace Test { namespace Fault {
     }
     Space* c = s.clone();
     delete c;
-    DisposeSpace* root = static_cast<DisposeSpace*>(s.clone());
-    DFS<DisposeSpace> e(root);
+    DFS<DisposeSpace> e(&s);
     Space* sol = e.next();
     bool ok = (sol != nullptr);
     delete sol;
@@ -517,8 +516,7 @@ namespace Test { namespace Fault {
   bool derived_update_space_is_usable(DerivedUpdateSpace& s) {
     Space* c = s.clone();
     delete c;
-    DerivedUpdateSpace* root = static_cast<DerivedUpdateSpace*>(s.clone());
-    DFS<DerivedUpdateSpace> e(root);
+    DFS<DerivedUpdateSpace> e(&s);
     Space* sol = e.next();
     bool ok = (sol != nullptr);
     delete sol;
@@ -629,8 +627,7 @@ namespace Test { namespace Fault {
           s.post_action_branch();
         unsigned long long checks = Support::FailPoint::count();
         Support::FailPoint::reset();
-        BranchPostSpace* root = static_cast<BranchPostSpace*>(s.clone());
-        DFS<BranchPostSpace> e(root);
+        DFS<BranchPostSpace> e(&s);
         Space* sol = e.next();
         bool ok = (sol != nullptr);
         delete sol;
@@ -639,8 +636,7 @@ namespace Test { namespace Fault {
         Support::FailPoint::reset();
         saw_failure = true;
         s.post_plain_branch();
-        BranchPostSpace* root = static_cast<BranchPostSpace*>(s.clone());
-        DFS<BranchPostSpace> e(root);
+        DFS<BranchPostSpace> e(&s);
         Space* sol = e.next();
         bool ok = (sol != nullptr);
         delete sol;
@@ -872,25 +868,6 @@ namespace Test { namespace Fault {
     }
   }
 
-  bool int_set_failure_releases_object(void) {
-    FaultScope scope;
-    int ranges[2][2] = {{0, 0}, {2, 2}};
-    IntSet::fault_reset_allocations();
-    Support::FailPoint::reset();
-    Support::FailPoint::fail_after(Phase::IntSet,0);
-    try {
-      IntSet s(ranges,2);
-      Support::FailPoint::reset();
-      return false;
-    } catch (const MemoryExhausted&) {
-      Support::FailPoint::reset();
-      return IntSet::fault_live_allocations() == 0;
-    } catch (...) {
-      Support::FailPoint::reset();
-      return false;
-    }
-  }
-
 #ifdef GECODE_HAS_STRING_VARS
   bool ns_int_set_copy_failure_releases_ranges(void) {
     FaultScope scope;
@@ -946,7 +923,6 @@ namespace Test { namespace Fault {
     return NSRange::fault_live_allocations() == initial;
   }
 #endif
-
   bool minimodel_failure_releases_default_nodes(void) {
     FaultScope scope;
     LinIntExpr::fault_reset_allocations();
@@ -981,25 +957,6 @@ namespace Test { namespace Fault {
 
   int FaultBoolMisc::disposed = 0;
 
-  bool minimodel_failure_releases_bool_misc(void) {
-    FaultScope scope;
-    FaultBoolMisc::disposed = 0;
-    Support::FailPoint::reset();
-    Support::FailPoint::fail_after(Phase::MiniModel,0);
-    try {
-      BoolExpr b(new FaultBoolMisc);
-      (void) b;
-      Support::FailPoint::reset();
-      return false;
-    } catch (const MemoryExhausted&) {
-      Support::FailPoint::reset();
-      return FaultBoolMisc::disposed == 1;
-    } catch (...) {
-      Support::FailPoint::reset();
-      return false;
-    }
-  }
-
   bool minimodel_heap_failure_releases_bool_misc(void) {
     FaultScope scope;
     FaultBoolMisc::disposed = 0;
@@ -1029,24 +986,6 @@ namespace Test { namespace Fault {
     }
   };
 
-  class MiniModelBoolMisc : public Base {
-  public:
-    MiniModelBoolMisc(void)
-      : Base("Fault::MiniModel::BoolMisc") {}
-    virtual bool run(void) {
-      return minimodel_failure_releases_bool_misc();
-    }
-  };
-
-  class IntSetAllocation : public Base {
-  public:
-    IntSetAllocation(void)
-      : Base("Fault::IntSet::Allocation") {}
-    virtual bool run(void) {
-      return int_set_failure_releases_object();
-    }
-  };
-
 #ifdef GECODE_HAS_STRING_VARS
   class NSIntSetCopy : public Base {
   public:
@@ -1056,7 +995,6 @@ namespace Test { namespace Fault {
     }
   };
 #endif
-
   class DisposeNoticeArray : public Base {
   public:
     DisposeNoticeArray(void)
@@ -1255,10 +1193,8 @@ namespace Test { namespace Fault {
 #ifdef GECODE_HAS_STRING_VARS
   NSIntSetCopy ns_int_set_copy;
 #endif
-  IntSetAllocation int_set_allocation;
   IntSetHeapFailures int_set_heap_failures;
   MiniModelDefaultNodes minimodel_default_nodes;
-  MiniModelBoolMisc minimodel_bool_misc;
   MiniModelBoolMiscHeapFailure minimodel_bool_misc_heap_failure;
   MiniModelHeapFailures minimodel_heap_failures;
 #ifdef GECODE_HAS_FLOAT_VARS

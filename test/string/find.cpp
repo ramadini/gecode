@@ -157,7 +157,8 @@ namespace Test { namespace String { namespace Find {
     }
 
   public:
-    ReverseBoundaries(void) : Base("String::RFind::Boundaries") {}
+    ReverseBoundaries(void)
+      : Base("String::RFind::Boundaries", TestTags::check()) {}
 
     virtual bool run(void) {
       for (int first : {static_cast<int>('a'), 0x100})

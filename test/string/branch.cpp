@@ -147,7 +147,7 @@ namespace Test { namespace String { namespace Branch {
   /// Replay the reviewed length endpoint before and after assignment
   class LengthReplay : public Base {
   public:
-    LengthReplay(void) : Base("String::Branch::LengthReplay") {}
+    LengthReplay(void) : Base("String::Branch::LengthReplay", TestTags::check()) {}
 
     virtual bool run(void) {
       NSBlocks domain;
@@ -179,7 +179,7 @@ namespace Test { namespace String { namespace Branch {
   /// Replay a saved scalar position after block splitting and merging
   class SymbolReplay : public Base {
   public:
-    SymbolReplay(void) : Base("String::Branch::SymbolReplay") {}
+    SymbolReplay(void) : Base("String::Branch::SymbolReplay", TestTags::check()) {}
 
     virtual bool run(void) {
       enum Fixture { BYTES, UNICODE, PREFIX, MANDATORY };
@@ -250,7 +250,7 @@ namespace Test { namespace String { namespace Branch {
 
   class FixedReplay : public Base {
   public:
-    FixedReplay(void) : Base("String::Branch::FixedReplay") {}
+    FixedReplay(void) : Base("String::Branch::FixedReplay", TestTags::check()) {}
 
     virtual bool run(void) {
       const Word word{0x100, 0x1f600};
@@ -267,7 +267,7 @@ namespace Test { namespace String { namespace Branch {
   /// Check exact alternatives and DFS recomputation on tiny structured domains
   class Recompute : public Base {
   public:
-    Recompute(void) : Base("String::Branch::Recompute") {}
+    Recompute(void) : Base("String::Branch::Recompute", TestTags::check()) {}
 
     virtual bool run(void) {
       const unsigned int distances[][2] = {{1, 1}, {2, 1}, {8, 2}};

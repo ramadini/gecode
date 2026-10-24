@@ -107,6 +107,7 @@ endif()
 set(GECODE_ENABLE_GIST "${GECODE_ENABLE_GIST_DEFAULT}" CACHE STRING "Enable Gist (AUTO, ON, or OFF)")
 set_property(CACHE GECODE_ENABLE_GIST PROPERTY STRINGS AUTO ON OFF)
 option(GECODE_ENABLE_CPPROFILER "Enable CPProfiler support" ON)
+option(GECODE_ENABLE_EXPERIMENTAL "Enable experimental preview APIs" OFF)
 option(GECODE_ENABLE_CBS "Enable counting-based search support" OFF)
 set(GECODE_ENABLE_EXAMPLES_DEFAULT ${PROJECT_IS_TOP_LEVEL})
 option(GECODE_ENABLE_EXAMPLES "Build examples" ${GECODE_ENABLE_EXAMPLES_DEFAULT})
@@ -129,6 +130,7 @@ endif()
 
 option(GECODE_ENABLE_MPFR "Enable MPFR support" ON)
 option(GECODE_ENABLE_ALLOCATOR "Enable default allocator" ON)
+option(GECODE_ENABLE_MIMALLOC "Use a private mimalloc backend" OFF)
 option(GECODE_ENABLE_AUDIT "Enable audit code" OFF)
 # Test-only; FailPoint state is process-global and is supported only by the
 # dedicated isolated single-threaded fault-test executable below.
@@ -705,6 +707,9 @@ endif()
 if(GECODE_ENABLE_CPPROFILER)
   set(GECODE_HAS_CPPROFILER "/**/")
 endif()
+if(GECODE_ENABLE_EXPERIMENTAL)
+  set(GECODE_HAS_EXPERIMENTAL "/**/")
+endif()
 if(GECODE_ENABLE_CBS)
   set(GECODE_HAS_CBS "/**/")
 endif()
@@ -788,6 +793,17 @@ if(HAVE_BUILTIN_POPCOUNTLL)
   set(GECODE_HAS_BUILTIN_POPCOUNTLL "/**/")
 endif()
 
+if(GECODE_ENABLE_MIMALLOC)
+  if(NOT GECODE_ENABLE_ALLOCATOR)
+    message(FATAL_ERROR "GECODE_ENABLE_MIMALLOC requires GECODE_ENABLE_ALLOCATOR=ON")
+  endif()
+  if(GECODE_SANITIZER_NORMALIZED)
+    message(FATAL_ERROR "GECODE_ENABLE_MIMALLOC does not support GECODE_SANITIZER; use the system allocator for sanitizer builds")
+  endif()
+  include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/GecodeMimalloc.cmake)
+  gecode_configure_mimalloc()
+endif()
+
 # Process config.hpp using autoconf-like undef handling.
 list(LENGTH CONFIG length)
 math(EXPR length "${length} - 1")
@@ -816,6 +832,10 @@ foreach(i RANGE ${length})
   set(CONFIG_OUT "${CONFIG_OUT}${line}")
 endforeach()
 
+if(GECODE_ENABLE_MIMALLOC)
+  string(APPEND CONFIG_OUT "\n/* Use the private mimalloc backend (CMake only). */\n#define GECODE_MIMALLOC 1\n")
+endif()
+
 file(CONFIGURE OUTPUT "${GECODE_BINARY_DIR}/gecode/support/config.hpp" CONTENT
 "/* gecode/support/config.hpp.  Generated from config.hpp.in by configure.  */
 /* gecode/support/config.hpp.in.  Generated from configure.ac by autoheader.  */
@@ -828,7 +848,7 @@ ${CONFIG_OUT}")
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/GecodeSources.cmake)
 if(GECODE_ENABLE_FAULT_INJECTION)
   list(APPEND GECODE_SUPPORT_SOURCES gecode/support/failpoint.cpp)
-  set(GECODE_FAULT_TEST_SOURCES test/test.cpp test/fault.cpp)
+  set(GECODE_FAULT_TEST_SOURCES ${GECODE_TEST_MAIN_SOURCE} test/fault.cpp)
 endif()
 
 # ---------------------------------------------------------------------------
@@ -1149,7 +1169,11 @@ endif()
 
 function(add_gecode_component_library lib)
   string(TOUPPER ${lib} libupper)
-  set(sources ${GECODE_${libupper}_SOURCES})
+  if(ARGN)
+    set(sources ${ARGN})
+  else()
+    set(sources ${GECODE_${libupper}_SOURCES})
+  endif()
   set(component_output_name "${GECODE_LIB_PREFIX}gecode${lib}${GECODE_LIB_SUFFIX}")
   if(lib STREQUAL "float" AND NOT (GECODE_ENABLE_MPFR AND MPFR_FOUND))
     # Keep in sync with Make behavior: skip empty MPFR-only source when MPFR is absent.
@@ -1251,6 +1275,16 @@ endfunction()
 foreach(component ${GECODE_LIBRARY_COMPONENTS})
   add_gecode_component_library(${component})
 endforeach()
+
+if(GECODE_ENABLE_MIMALLOC)
+  foreach(kind shared static)
+    if(TARGET gecodesupport_${kind})
+      target_sources(gecodesupport_${kind} PRIVATE $<TARGET_OBJECTS:mimalloc-obj>)
+      target_include_directories(gecodesupport_${kind} PRIVATE "${GECODE_MIMALLOC_SOURCE_DIR}/include")
+      target_link_libraries(gecodesupport_${kind} PRIVATE ${GECODE_MIMALLOC_LIBRARIES})
+    endif()
+  endforeach()
+endif()
 
 if(GECODE_ENABLE_THREAD)
   find_package(Threads REQUIRED)
@@ -1410,8 +1444,66 @@ if(GECODE_ENABLE_FLATZINC)
 endif()
 
 if(BUILD_TESTING)
-  set(GECODE_CAN_BUILD_TESTS TRUE)
-  foreach(required search int minimodel driver)
+  set(GECODE_CAN_BUILD_TEST_HARNESS TRUE)
+  foreach(required search int)
+    if(NOT TARGET gecode${required})
+      set(GECODE_CAN_BUILD_TEST_HARNESS FALSE)
+    endif()
+  endforeach()
+
+  if(GECODE_CAN_BUILD_TEST_HARNESS)
+    add_gecode_component_library(test ${GECODE_TEST_CORE_SOURCES})
+    gecode_link_component(test search int)
+    add_gecode_component_library(testint ${GECODE_TEST_INT_SOURCES})
+    gecode_link_component(testint test)
+    if(TARGET gecodeset)
+      add_gecode_component_library(testset ${GECODE_TEST_SET_SOURCES})
+      gecode_link_component(testset testint set)
+    endif()
+    if(TARGET gecodefloat)
+      add_gecode_component_library(testfloat ${GECODE_TEST_FLOAT_SOURCES})
+      gecode_link_component(testfloat test float)
+    endif()
+
+    add_executable(public-runner-smoke EXCLUDE_FROM_ALL ${GECODE_TEST_PUBLIC_RUNNER_SMOKE_SOURCE})
+    target_link_libraries(public-runner-smoke PRIVATE gecodetest)
+    add_test(NAME public-runner-smoke COMMAND public-runner-smoke)
+
+    add_executable(public-int-smoke EXCLUDE_FROM_ALL ${GECODE_TEST_PUBLIC_INT_SMOKE_SOURCE})
+    target_link_libraries(public-int-smoke PRIVATE gecodetestint)
+    add_test(NAME public-int-smoke COMMAND public-int-smoke)
+
+    set(GECODE_PUBLIC_TEST_SMOKE_TARGETS public-runner-smoke public-int-smoke)
+    if(TARGET gecodetestset)
+      add_executable(public-set-smoke EXCLUDE_FROM_ALL ${GECODE_TEST_PUBLIC_SET_SMOKE_SOURCE})
+      target_link_libraries(public-set-smoke PRIVATE gecodetestset)
+      add_test(NAME public-set-smoke COMMAND public-set-smoke)
+      list(APPEND GECODE_PUBLIC_TEST_SMOKE_TARGETS public-set-smoke)
+    endif()
+    if(TARGET gecodetestfloat)
+      add_executable(public-float-smoke EXCLUDE_FROM_ALL ${GECODE_TEST_PUBLIC_FLOAT_SMOKE_SOURCE})
+      target_link_libraries(public-float-smoke PRIVATE gecodetestfloat)
+      add_test(NAME public-float-smoke COMMAND public-float-smoke)
+      list(APPEND GECODE_PUBLIC_TEST_SMOKE_TARGETS public-float-smoke)
+    endif()
+
+    add_test(NAME build-public-test-smokes
+      COMMAND ${CMAKE_COMMAND} --build "${CMAKE_BINARY_DIR}"
+              --target ${GECODE_PUBLIC_TEST_SMOKE_TARGETS} --config $<CONFIG>
+    )
+    set_tests_properties(build-public-test-smokes PROPERTIES
+      FIXTURES_SETUP public-test-smokes-built
+      RESOURCE_LOCK gecode-test-build
+    )
+    set_tests_properties(${GECODE_PUBLIC_TEST_SMOKE_TARGETS} PROPERTIES
+      FIXTURES_REQUIRED public-test-smokes-built
+    )
+  else()
+    message(WARNING "Skipping public test harness targets because required modules are disabled")
+  endif()
+
+  set(GECODE_CAN_BUILD_TESTS ${GECODE_CAN_BUILD_TEST_HARNESS})
+  foreach(required minimodel driver)
     if(NOT TARGET gecode${required})
       set(GECODE_CAN_BUILD_TESTS FALSE)
     endif()
@@ -1438,6 +1530,12 @@ if(BUILD_TESTING)
   endif()
 
   set(GECODE_TEST_SOURCES_SELECTED ${GECODE_TEST_SOURCES})
+  if(TARGET gecodetestset)
+    list(REMOVE_ITEM GECODE_TEST_SOURCES_SELECTED test/set.cpp)
+  endif()
+  if(TARGET gecodetestfloat)
+    list(REMOVE_ITEM GECODE_TEST_SOURCES_SELECTED test/float.cpp)
+  endif()
   if(NOT GECODE_ENABLE_SET_VARS)
     list(FILTER GECODE_TEST_SOURCES_SELECTED EXCLUDE REGEX "^test/set(/|\\.cpp)")
   endif()
@@ -1452,8 +1550,16 @@ if(BUILD_TESTING)
   endif()
 
   if(GECODE_CAN_BUILD_TESTS)
-    add_executable(gecode-test EXCLUDE_FROM_ALL ${GECODE_TEST_SOURCES_SELECTED})
+    add_executable(gecode-test EXCLUDE_FROM_ALL ${GECODE_TEST_MAIN_SOURCE} ${GECODE_TEST_SOURCES_SELECTED})
     set(GECODE_TEST_LINK_LIBS gecodeminimodel)
+    if(TARGET gecodetestset)
+      list(APPEND GECODE_TEST_LINK_LIBS gecodetestset)
+    else()
+      list(APPEND GECODE_TEST_LINK_LIBS gecodetestint)
+    endif()
+    if(TARGET gecodetestfloat)
+      list(APPEND GECODE_TEST_LINK_LIBS gecodetestfloat)
+    endif()
     if(GECODE_ENABLE_FLATZINC)
       list(APPEND GECODE_TEST_LINK_LIBS gecodeflatzinc)
     endif()
@@ -1479,116 +1585,7 @@ if(BUILD_TESTING)
         "${GECODE_TEST_BLACKBOX_LOG}.dll_parallel")
     endif()
 
-    set(GECODE_CHECK_TESTS
-      Branch::Int::Dense::3
-      Int::Arithmetic::Abs
-      Int::Arithmetic::ArgMax
-      Int::Arithmetic::Max::Nary
-      Int::Cumulative::Man::Fix::0::4
-      Int::Distinct::Random
-      Int::Extensional::TupleSet::Sparse::IncrementalDelta
-      Int::Extensional::TupleSet::Auto::DefaultDispatch
-      Int::Linear::Bool::Int::Lq
-      Int::MiniModel::LinExpr::Bool::352
-      NoGoods::Queens
-      Search::DFS::Sol::Binary::Nary::Binary::1::1::1)
-    if(GECODE_ENABLE_FLATZINC)
-      list(INSERT GECODE_CHECK_TESTS 1
-        FlatZinc::Options
-        FlatZinc::magic_square
-        FlatZinc::blackbox)
-    endif()
-    if(GECODE_ENABLE_SET_VARS)
-      list(APPEND GECODE_CHECK_TESTS
-        Set::Dom::Dom::Gr
-        Set::RelOp::ConstSSI::Union
-        Set::Sequence::SeqU1
-        Set::Wait)
-    endif()
-    if(GECODE_ENABLE_STRING_VARS)
-      list(APPEND GECODE_CHECK_TESTS
-        String::RelOp::Power
-        String::GCC::MustChars
-        String::Substring::ClippedBoundaries
-        String::RFind::Boundaries
-        String::Branch::LengthReplay
-        String::Branch::SymbolReplay
-        String::Branch::FixedReplay
-        String::Branch::Recompute
-        String::Channel::StrToNat::0To999
-        String::Channel::StrToNat::9To101
-        String::Channel::StrToNat::1To101
-        String::Channel::StrToNat::-1To101
-        String::Channel::NatToStr::-1To0
-        String::Channel::NatToStr::0To2147483646
-        String::Rel::Construction
-        String::Rel::AggregateBounds
-        String::Rel::SizeEstimate
-        String::Rel::NSIntSetCopy
-        String::Replace::All
-        String::Replace::First::EqualResult::Alias
-        String::Replace::First::EqualResult::Distinct
-        String::Replace::Last::EqualResult::Alias
-        String::Replace::Last::EqualResult::Distinct
-        String::Replace::All::EqualResult::Alias
-        String::Replace::All::EqualResult::Distinct
-        String::Replace::First::QueryResult
-        String::Replace::Last::QueryResult
-        String::Replace::All::QueryResult
-        String::Replace::First::EmptySource
-        String::Replace::Last::EmptySource
-        String::Replace::All::EmptyQuery::Bytes
-        String::Replace::All::EmptyQuery::Scalars
-        String::Replace::All::VariableQuery
-        String::Replace::First::Overlap
-        String::Replace::Last::Overlap
-        String::Rel::ScalarIncreasing
-        String::Rel::ScalarDecreasing
-        String::Predicates::ScalarAlphabet
-        String::Replace::ScalarReplacement
-        String::Var::FailureAdvisors
-        String::Var::Events
-        String::Var::Lifecycle)
-    endif()
-    if(GECODE_ENABLE_FLOAT_VARS)
-      set(GECODE_FLOAT_CHECK_TESTS
-        Float::Arithmetic::PositiveNRootBounds
-        Float::Arithmetic::PowConsistency
-        Float::Arithmetic::MultZeroEndpoint
-        Float::Arithmetic::Pow::N::2::XY::Sol::C
-        Float::Arithmetic::NRoot::N::2::XY::Sol::C
-        Float::Arithmetic::Mult::XYZ::Sol::C)
-      list(APPEND GECODE_CHECK_TESTS ${GECODE_FLOAT_CHECK_TESTS})
-
-      # Keep the fast CI selection honest when Float regressions are added or
-      # the list above is edited.  These names must remain registered in the
-      # ordinary check target rather than living only in ad-hoc test commands.
-      set(GECODE_REQUIRED_FLOAT_CHECK_TESTS
-        Float::Arithmetic::PositiveNRootBounds
-        Float::Arithmetic::PowConsistency
-        Float::Arithmetic::MultZeroEndpoint
-        Float::Arithmetic::Pow::N::2::XY::Sol::C
-        Float::Arithmetic::NRoot::N::2::XY::Sol::C
-        Float::Arithmetic::Mult::XYZ::Sol::C)
-      foreach(gecode_required_float_test ${GECODE_REQUIRED_FLOAT_CHECK_TESTS})
-        if(NOT gecode_required_float_test IN_LIST GECODE_CHECK_TESTS)
-          message(FATAL_ERROR
-            "Required Float check test is missing: ${gecode_required_float_test}")
-        endif()
-      endforeach()
-    endif()
-
-    if(GECODE_ENABLE_STRING_VARS)
-      list(APPEND GECODE_CHECK_TESTS
-        String::Extensional::DfaReification::Assigned
-        String::Extensional::DfaReification::Deferred
-        String::Extensional::StarDecomposition)
-    endif()
-
-    set(GECODE_CHECK_ARGS -iter 2 -threads 0 -fixprob 1)
-    foreach(gecode_check_test ${GECODE_CHECK_TESTS})
-      list(APPEND GECODE_CHECK_ARGS -test ${gecode_check_test})
-    endforeach()
+    set(GECODE_CHECK_ARGS -iter 2 -threads 0 -fixprob 1 -tag check)
 
     # Keep ctest robust while leaving the large test binaries out of the default build.
     set(GECODE_TEST_BUILD_TARGETS gecode-test)
@@ -1601,7 +1598,8 @@ if(BUILD_TESTING)
       COMMAND ${CMAKE_COMMAND} --build "${CMAKE_BINARY_DIR}"
               --target ${GECODE_TEST_BUILD_TARGETS} --config $<CONFIG>)
     set_tests_properties(build-gecode-test PROPERTIES
-      FIXTURES_SETUP "${GECODE_TEST_BUILD_FIXTURES}")
+      FIXTURES_SETUP "${GECODE_TEST_BUILD_FIXTURES}"
+      RESOURCE_LOCK gecode-test-build)
     add_test(NAME test COMMAND gecode-test ${GECODE_CHECK_ARGS})
     set_tests_properties(test PROPERTIES
       FIXTURES_REQUIRED gecode-test-built)
@@ -1614,16 +1612,6 @@ if(BUILD_TESTING)
         ENVIRONMENT "${GECODE_TEST_BLACKBOX_ENV}")
     endif()
     set(GECODE_CHECK_DEPENDS gecode-test)
-    if(GECODE_ENABLE_FLOAT_VARS)
-      add_custom_target(verify-gecode-check-tests
-        COMMAND ${CMAKE_COMMAND}
-          "-DTEST_EXECUTABLE=$<TARGET_FILE:gecode-test>"
-          "-DREQUIRED_TESTS=${GECODE_REQUIRED_FLOAT_CHECK_TESTS}"
-          -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/VerifyTestSelection.cmake
-        DEPENDS gecode-test
-        VERBATIM)
-      list(APPEND GECODE_CHECK_DEPENDS verify-gecode-check-tests)
-    endif()
     if(GECODE_ENABLE_FLATZINC)
       list(APPEND GECODE_CHECK_DEPENDS
         gecode-test-blackbox-exec
@@ -1636,10 +1624,34 @@ if(BUILD_TESTING)
                 $<TARGET_FILE:gecode-test> ${GECODE_CHECK_ARGS}
         DEPENDS ${GECODE_CHECK_DEPENDS}
         USES_TERMINAL)
+      add_custom_target(check-standard
+        COMMAND ${CMAKE_COMMAND} -E env
+                GECODE_TEST_BLACKBOX_EXEC=$<TARGET_FILE:gecode-test-blackbox-exec>
+                GECODE_TEST_BLACKBOX_DLL=$<TARGET_FILE:gecode-test-blackbox-dll>
+                GECODE_TEST_BLACKBOX_LOG=${GECODE_TEST_BLACKBOX_LOG}
+                $<TARGET_FILE:gecode-test> -tag standard
+        DEPENDS ${GECODE_CHECK_DEPENDS}
+        USES_TERMINAL)
+      add_custom_target(check-sweep
+        COMMAND ${CMAKE_COMMAND} -E env
+                GECODE_TEST_BLACKBOX_EXEC=$<TARGET_FILE:gecode-test-blackbox-exec>
+                GECODE_TEST_BLACKBOX_DLL=$<TARGET_FILE:gecode-test-blackbox-dll>
+                GECODE_TEST_BLACKBOX_LOG=${GECODE_TEST_BLACKBOX_LOG}
+                $<TARGET_FILE:gecode-test> -tag sweep
+        DEPENDS ${GECODE_CHECK_DEPENDS}
+        USES_TERMINAL)
     else()
       add_custom_target(check
         COMMAND $<TARGET_FILE:gecode-test> ${GECODE_CHECK_ARGS}
         DEPENDS ${GECODE_CHECK_DEPENDS}
+        USES_TERMINAL)
+      add_custom_target(check-standard
+        COMMAND $<TARGET_FILE:gecode-test> -tag standard
+        DEPENDS gecode-test
+        USES_TERMINAL)
+      add_custom_target(check-sweep
+        COMMAND $<TARGET_FILE:gecode-test> -tag sweep
+        DEPENDS gecode-test
         USES_TERMINAL)
     endif()
     if(GECODE_ENABLE_FAULT_INJECTION)
@@ -1658,10 +1670,18 @@ if(BUILD_TESTING)
     message(WARNING "Skipping gecode-test/check targets because required modules are disabled")
     add_custom_target(check
       COMMAND ${CMAKE_COMMAND} -E echo "Skipping check target because required modules are disabled")
+    add_custom_target(check-standard
+      COMMAND ${CMAKE_COMMAND} -E echo "Skipping check-standard target because required modules are disabled")
+    add_custom_target(check-sweep
+      COMMAND ${CMAKE_COMMAND} -E echo "Skipping check-sweep target because required modules are disabled")
   endif()
 else()
   add_custom_target(check
     COMMAND ${CMAKE_COMMAND} -E echo "Skipping check target because BUILD_TESTING is OFF")
+  add_custom_target(check-standard
+    COMMAND ${CMAKE_COMMAND} -E echo "Skipping check-standard target because BUILD_TESTING is OFF")
+  add_custom_target(check-sweep
+    COMMAND ${CMAKE_COMMAND} -E echo "Skipping check-sweep target because BUILD_TESTING is OFF")
 endif()
 
 # ---------------------------------------------------------------------------
@@ -1721,6 +1741,11 @@ endif()
 # ---------------------------------------------------------------------------
 if(GECODE_INSTALL)
   include(CMakePackageConfigHelpers)
+  if(GECODE_ENABLE_MIMALLOC)
+    install(FILES "${GECODE_MIMALLOC_SOURCE_DIR}/LICENSE"
+      DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/gecode
+      RENAME mimalloc-LICENSE)
+  endif()
 
   install(TARGETS ${GECODE_INSTALL_TARGETS}
     EXPORT GecodeTargets
@@ -1767,6 +1792,26 @@ if(GECODE_INSTALL)
     install(FILES ${GECODE_VAR_TYPE_HPP} ${GECODE_VAR_IMP_HPP}
       DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/gecode/kernel/)
   endif()
+  if(TARGET gecodetest AND TARGET gecodetestint)
+    install(FILES
+      ${CMAKE_CURRENT_SOURCE_DIR}/test/test.hh
+      ${CMAKE_CURRENT_SOURCE_DIR}/test/test.hpp
+      ${CMAKE_CURRENT_SOURCE_DIR}/test/int.hh
+      ${CMAKE_CURRENT_SOURCE_DIR}/test/int.hpp
+      DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/test)
+    if(TARGET gecodetestset)
+      install(FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test/set.hh
+        ${CMAKE_CURRENT_SOURCE_DIR}/test/set.hpp
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/test)
+    endif()
+    if(TARGET gecodetestfloat)
+      install(FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/test/float.hh
+        ${CMAKE_CURRENT_SOURCE_DIR}/test/float.hpp
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/test)
+    endif()
+  endif()
 
   if(GECODE_ENABLE_FLATZINC)
     install(DIRECTORY gecode/flatzinc/mznlib/
@@ -1787,6 +1832,18 @@ if(GECODE_INSTALL)
   set(GECODE_PACKAGE_NEEDS_MPFR OFF)
   if(GECODE_ENABLE_FLOAT_VARS AND GECODE_ENABLE_MPFR AND MPFR_FOUND)
     set(GECODE_PACKAGE_NEEDS_MPFR ON)
+  endif()
+  set(GECODE_PACKAGE_HAS_TEST_COMPONENT OFF)
+  set(GECODE_PACKAGE_TEST_TYPES "")
+  if(TARGET gecodetest AND TARGET gecodetestint)
+    set(GECODE_PACKAGE_HAS_TEST_COMPONENT ON)
+    set(GECODE_PACKAGE_TEST_TYPES int)
+    if(TARGET gecodetestset)
+      list(APPEND GECODE_PACKAGE_TEST_TYPES set)
+    endif()
+    if(TARGET gecodetestfloat)
+      list(APPEND GECODE_PACKAGE_TEST_TYPES float)
+    endif()
   endif()
   set(GECODE_PACKAGE_QT_MAJOR "")
   set(GECODE_PACKAGE_QT_COMPONENTS "")
@@ -1828,3 +1885,35 @@ if(GECODE_INSTALL)
 endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+# Report resolved options after dependency checks and target creation.
+include(FeatureSummary)
+foreach(gecode_option IN ITEMS
+    GECODE_BUILD_SHARED GECODE_BUILD_STATIC
+    GECODE_ENABLE_THREAD GECODE_ENABLE_CPPROFILER GECODE_ENABLE_CBS
+    GECODE_ENABLE_EXPERIMENTAL
+    GECODE_ENABLE_EXAMPLES GECODE_INSTALL
+    GECODE_ENABLE_SEARCH GECODE_ENABLE_INT_VARS GECODE_ENABLE_SET_VARS
+    GECODE_ENABLE_FLOAT_VARS GECODE_ENABLE_MINIMODEL GECODE_ENABLE_DRIVER
+    GECODE_ENABLE_FLATZINC GECODE_ENABLE_ALLOCATOR GECODE_ENABLE_MIMALLOC GECODE_ENABLE_AUDIT
+    GECODE_ENABLE_FAULT_INJECTION GECODE_REGENERATE_VARIMP
+    GECODE_DOC_SEARCH GECODE_DOC_TAGFILE)
+  get_property(gecode_option_description CACHE ${gecode_option} PROPERTY HELPSTRING)
+  add_feature_info(${gecode_option} ${gecode_option} "${gecode_option_description}")
+endforeach()
+add_feature_info(GECODE_ENABLE_QT GECODE_HAS_QT_RUNTIME
+  "Qt support (requested: ${GECODE_ENABLE_QT})")
+add_feature_info(GECODE_ENABLE_GIST GECODE_BUILD_GIST_TARGET
+  "Gist (requested: ${GECODE_ENABLE_GIST})")
+add_feature_info(GECODE_ENABLE_MPFR GECODE_HAS_MPFR
+  "MPFR support (requested: ${GECODE_ENABLE_MPFR})")
+add_feature_info(GECODE_ENABLE_GCC_VISIBILITY GECODE_GCC_HAS_CLASS_VISIBILITY
+  "GCC visibility attributes (requested: ${GECODE_ENABLE_GCC_VISIBILITY})")
+add_feature_info(GECODE_ENABLE_OSX_UNFAIR_MUTEX GECODE_USE_OSX_UNFAIR_MUTEX
+  "macOS unfair mutexes (requested: ${GECODE_ENABLE_OSX_UNFAIR_MUTEX})")
+add_feature_info(GECODE_DOC_DOT GECODE_DOXYGEN_DOT
+  "Graphviz dot graphs (requested: ${GECODE_DOC_DOT})")
+add_feature_info(BUILD_TESTING "BUILD_TESTING;GECODE_CAN_BUILD_TESTS"
+  "Test targets (requested: ${BUILD_TESTING})")
+feature_summary(WHAT ENABLED_FEATURES DISABLED_FEATURES
+  DESCRIPTION "Gecode ${GECODE_PROJECT_VERSION} configuration:")

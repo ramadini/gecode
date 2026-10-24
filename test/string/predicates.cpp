@@ -178,7 +178,8 @@ namespace Test { namespace String { namespace Predicates {
     }
 
   public:
-    ScalarAlphabet(void) : Base("String::Predicates::ScalarAlphabet") {}
+    ScalarAlphabet(void)
+      : Base("String::Predicates::ScalarAlphabet", TestTags::check()) {}
 
     virtual bool run(void) {
       for (Assignment pair(2, "ab", 2); pair(); ++pair)

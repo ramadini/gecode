@@ -56,6 +56,8 @@
 #     driver|iter|support|example|test|gist|flatzinc|other
 #   What:   bug|documentation|performance|new|removed|change
 #   Rank:   minor|major
+#   Experimental: true|false <optional, defaults to false>
+#     True entries appear under Experimental changes within each release.
 #   Bug:    <optional, for number from bugzilla>
 #   Issue:  <optional, for number from github>
 #   Thanks: <optional, who reported etc>
@@ -66,6 +68,350 @@
 #    ... If a more section is included, then it will be displayed as an
 #    optional section in the html page.
 #
+
+[RELEASE]
+Version: 6.5.0
+Date: unreleased
+[DESCRIPTION]
+This release adds variable lists whose length can be decided during search,
+new arithmetic and distance constraints, and support for nondeterministic
+finite automata. MiniZinc models gain access to more native constraints and
+scheduling interfaces with explicit end variables. Parallel search worker
+counts can be adjusted without rebuilding engines, and search can be paused
+without losing its state.
+
+Regular constraints use less temporary memory during construction, and an
+optional mimalloc backend is available for CMake builds. The public test
+harness can be installed for use by downstream propagator projects, with
+test tags for different coverage levels and replay of failed iterations.
+The release also fixes floating-point rounding and arithmetic errors,
+brancher callback disposal, and several FlatZinc issues.
+
+The release also includes experimental A* (AStar) and complete anytime beam
+search (CABS). These engines are disabled by default and require an explicit
+build option. Their APIs may change or be removed in future feature releases.
+
+[ENTRY]
+Module: kernel
+What:   new
+Rank:   minor
+[DESCRIPTION]
+Add Space::NoGPI and Space::UseGPI to control global propagator information
+during scoped posting. NoGPI keeps new propagators' information local to the
+space, with zero AFC; UseGPI enables global information within such a scope.
+
+[ENTRY]
+Module: kernel
+What:   bug
+Rank:   minor
+[DESCRIPTION]
+Release branch filter and print callbacks when their branchers are disposed.
+
+[ENTRY]
+Module: kernel
+What:   bug
+Rank:   minor
+[DESCRIPTION]
+Avoid treating function branchers as propagators when enabling tracing.
+
+[ENTRY]
+Module: search
+What:   new
+Rank:   major
+[DESCRIPTION]
+Add Search::WorkerControl to adjust the number of active DFS or BAB workers
+without rebuilding the engine. Requesting zero pauses search while retaining
+its state.
+[MORE]
+Worker capacity is fixed when the engine is constructed. Requests take effect
+asynchronously at scheduler boundaries; callers can redistribute a worker
+budget, but a decrease does not immediately stop workers already executing.
+Controls also apply to leaf engines owned by RBS and parallel PBS. A paused
+asset can finish a PBS round without resuming search.
+
+[ENTRY]
+Module: search
+What:   new
+Rank:   major
+Experimental: true
+[DESCRIPTION]
+Add experimental A* (AStar) and complete anytime beam search (CABS), with
+parallel search, worker control, and portfolios with BAB.
+[MORE]
+Both engines use objective bounds for pruning and optional ranks to guide
+exploration. CABS also supports model-defined dominance.
+Enable them with --enable-experimental or GECODE_ENABLE_EXPERIMENTAL=ON;
+they are disabled by default. APIs may change or be removed in future
+feature releases.
+
+The fifteen-puzzle and TSPTW examples demonstrate both engines. TSPTW
+compares a closed CP model with a transition model that constructs the
+route one city at a time.
+
+[ENTRY]
+Module: int
+What:   new
+Rank:   major
+[DESCRIPTION]
+Add OpenIntVarList and OpenBoolVarList for lists whose length is decided
+during propagation and search. Constraints and branching can follow list
+growth instead of requiring a fixed array of variables.
+[MORE]
+OpenVarList supports storage and cloning for other variable types through a
+factory; constraint and branching overloads remain specific to each type.
+Regular-language filtering excludes prefixes whose shortest accepting
+continuation exceeds the maximum list length.
+Branching uses standard variable and value selectors, with either incremental
+list construction or a length decision before assigning values.
+
+Factories and transitions run inside Space::NoGPI scopes by default;
+callbacks can opt into global information with Space::UseGPI.
+The open-route example introduces list construction and branching.
+The common-pattern example demonstrates constrained frequent subsequence
+mining, and fifteen-puzzle compares open lists with fixed arrays.
+
+[ENTRY]
+Module: int
+What:   new
+Rank:   major
+[DESCRIPTION]
+Add DFA::nfa factories for finite automata with nondeterministic transitions,
+allowing regular constraints to use them without determinization.
+[MORE]
+The factories retain nondeterminism without minimization; epsilon transitions
+are not supported. Cloning preserves branching paths through assigned
+prefixes of these automata.
+
+[ENTRY]
+Module: int
+What:   new
+Rank:   major
+[DESCRIPTION]
+Add ordinary and reified gcd, n-ary product, and n-ary product_mod
+constraints, and reified divides. All reification modes are supported.
+[MORE]
+GCD results are nonnegative, with gcd(0,0)=0. Zero divides zero but does not
+divide a nonzero integer. Modular products accept a fixed or variable
+positive modulus and use nonnegative Euclidean residues, including for
+negative products.
+
+Propagation uses bounds and algebraic reasoning, without guaranteeing bounds
+consistency. The propagation-level argument does not select different
+consistency strengths.
+
+[ENTRY]
+Module: int
+What:   new
+Rank:   major
+[DESCRIPTION]
+Add minimum-distance constraints that equate a variable to the smallest
+distance between selected sites. Distances can use a shared matrix or a
+shared callable evaluated on demand.
+[MORE]
+Forward-bound propagation is available as a single propagator or one
+propagator per pair, with optional conflict-matching upper bounds. An
+overload adds inclusive lower bounds on distances between selected-position
+pairs. Propagation is incomplete; it does not guarantee bounds or domain
+consistency.
+
+The propagation algorithms follow:
+M. Z. Lagerkvist, Propagation Algorithms for the Minimum-Distance Constraint
+over Selected Points, ModRef 2026.
+
+[ENTRY]
+Module: int
+What:   new
+Rank:   major
+[DESCRIPTION]
+Add inter_distance to require a fixed or variable minimum separation between
+all pairs of integer variables. Basic propagation checks feasibility and
+bounds the distance; advanced propagation adds quadratic bounds filtering.
+[MORE]
+Advanced filtering runs as a separate, more expensive propagation stage.
+The algorithms are described in:
+C.-G. Quimper, A. Lopez-Ortiz, G. Pesant, A Quadratic Propagator for the
+Inter-Distance Constraint, AAAI 2006, and Constraint Programming Letters 3
+(2008), 21-35.
+M. R. Garey, D. S. Johnson, B. B. Simons, R. E. Tarjan, Scheduling Unit-Time
+Tasks with Arbitrary Release Times and Deadlines, SIAM Journal on Computing
+10(2) (1981), 256-269.
+
+[ENTRY]
+Module: int
+What:   performance
+Rank:   major
+[DESCRIPTION]
+Strengthen advanced cumulative overload checking for fixed-processing tasks
+with bounded knapsack reasoning. This detects conflicts missed by ordinary
+overload checking.
+[MORE]
+The algorithm is described in:
+S. Cloutier, C.-G. Quimper, Augmenting the Cumulative Overload Check
+with Integral Resource Usage Reasoning, CP 2026.
+
+[ENTRY]
+Module: int
+What:   performance
+Rank:   major
+[DESCRIPTION]
+Reduce temporary memory use when constructing regular constraints by keeping
+only states reachable at each sequence position and able to reach acceptance.
+[MORE]
+Construction uses sparse forward frontiers and backward reachability instead
+of allocating a temporary state for every automaton state at every sequence
+position. The persistent graph is unchanged.
+
+[ENTRY]
+Module: int
+What:   performance
+Rank:   minor
+[DESCRIPTION]
+Compact sparse state identifiers before allocating DFA construction arrays,
+so temporary storage is bounded by the specification size. Process repeated
+final-state identifiers only once.
+
+[ENTRY]
+Module: int
+What:   bug
+Rank:   minor
+[DESCRIPTION]
+Fix iterator invalidation during counting-based search cache cleanup.
+
+[ENTRY]
+Module: flatzinc
+What:   new
+Rank:   major
+[DESCRIPTION]
+Extend the MiniZinc library with native conditionals, count inequalities,
+nondeterministic regular constraints, and optional distinctness and scheduling
+through standard FlatZinc hooks.
+[MORE]
+Documented modelling predicates expose additional arithmetic, distance,
+rectangle, and set constraints through typed FlatZinc bindings. New
+annotations select basic, advanced, or combined propagation algorithms,
+and single-propagator or per-pair minimum-distance propagation.
+
+[ENTRY]
+Module: flatzinc
+What:   new
+Rank:   major
+[DESCRIPTION]
+Add scheduling bindings with explicit start, duration, and end variables for
+unary and cumulative resources, including optional tasks and multiple
+machines. Move cumulative dispatch into the MiniZinc library.
+[MORE]
+The MiniZinc library selects native propagators according to duration,
+resource usage, and capacity bounds. Its cumulative translation preserves
+MiniZinc's zero-duration semantics: empty tasks consume no capacity.
+Variable resource usage and capacity use a native encoding where integer
+limits permit, with a fallback that checks load at task starts. This avoids
+expanding the scheduling horizon into a constraint for every time point.
+
+The explicit-end bindings require callers to constrain start + duration =
+end for each task, or each present task in an optional binding. Existing
+FlatZinc scheduling bindings remain available.
+
+[ENTRY]
+Module: flatzinc
+What:   bug
+Rank:   minor
+[DESCRIPTION]
+Honor propagation annotations in cumulative and unary scheduling bindings,
+including unary specializations of cumulative constraints.
+
+[ENTRY]
+Module: flatzinc
+What:   bug
+Rank:   minor
+[DESCRIPTION]
+Allow zero-duration tasks in the single-task cumulative posting path without
+requiring their resource usage to fit the capacity.
+
+[ENTRY]
+Module: flatzinc
+What:   bug
+Rank:   minor
+[DESCRIPTION]
+Select the matching installed MiniZinc solver configuration in mzn-gecode
+launchers, so the executable and constraint library use the same installation.
+
+[ENTRY]
+Module: flatzinc
+What:   bug
+Rank:   minor
+[DESCRIPTION]
+Avoid allocating unused search cutoffs when restarts are disabled.
+
+[ENTRY]
+Module: float
+What:   bug
+Rank:   minor
+[DESCRIPTION]
+Preserve the calling thread's rounding mode in Float::Rounding scopes and
+FloatVal operations, including median queries.
+[MORE]
+Save the mode before rounding initialization and retain Boost's unprotected
+policy for nested operations.
+
+[ENTRY]
+Module: float
+What:   bug
+Rank:   minor
+[DESCRIPTION]
+Preserve exact fixed-base power and logarithm solutions with explicitly
+rounded MPFR bounds. Handle base-one powers and remove an invalid shortcut
+for shared variables.
+
+[ENTRY]
+Module: minimodel
+What:   new
+Rank:   minor
+Issue:  145
+[DESCRIPTION]
+Allow Boolean expressions to be initialized from C++ Boolean constants.
+
+[ENTRY]
+Module: support
+What:   new
+Rank:   minor
+[DESCRIPTION]
+Add an optional mimalloc backend for shared and static Gecode libraries in
+CMake builds. The system allocator remains the default.
+[MORE]
+Enable GECODE_ENABLE_MIMALLOC to use mimalloc for Gecode heap and space
+storage. Application malloc and new are unaffected. Embedded mimalloc
+symbols use a gecode_ prefix to avoid conflicts with other allocator copies.
+Mimalloc may improve parallel search performance on some workloads.
+
+[ENTRY]
+Module: test
+What:   new
+Rank:   major
+[DESCRIPTION]
+Install reusable core, integer, set, and float test-harness libraries and
+headers through CMake and Autoconf, so downstream propagator projects can
+register and run Gecode-style tests. Add exact replay of a failed iteration
+with -replay.
+[MORE]
+Harness libraries follow the configured shared and static Gecode library
+variants and support each configured variable family.
+
+[ENTRY]
+Module: test
+What:   new
+Rank:   major
+[DESCRIPTION]
+Add self-declared check, standard, and sweep tags to the public test harness.
+The check targets run a focused integrity suite; check-standard provides
+broader coverage, and check-sweep selects exhaustive tests.
+
+[ENTRY]
+Module: other
+What:   bug
+Rank:   minor
+[DESCRIPTION]
+Require a C++17-capable compiler and standard library in Autoconf builds.
+Select a working language mode when needed and preserve supported newer modes.
 
 [RELEASE]
 Version: 6.4.0

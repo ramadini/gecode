@@ -64,7 +64,7 @@ jobs:
 
     - name: Configure
       shell: bash
-      run: ./configure
+      run: ./configure --enable-experimental
 
     - name: Build
       shell: bash
@@ -148,6 +148,12 @@ jobs:
         set -euxo pipefail
         cmake --build . --config $BUILD_TYPE --target check
 
+    - name: Run public test harness smokes
+      if: matrix.os == 'ubuntu-latest'
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: ctest --build-config "$BUILD_TYPE" --output-on-failure -R '^public-.*-smoke$'
+
     - name: Install CMake package
       working-directory: ${{github.workspace}}/build
       shell: bash
@@ -210,10 +216,24 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y flex bison libgmp-dev libmpfr-dev ninja-build
 
+    - name: Install MiniZinc 2.10.1
+      shell: bash
+      run: |
+        archive="$RUNNER_TEMP/minizinc-2.10.1.tgz"
+        minizinc_dir="$RUNNER_TEMP/minizinc-2.10.1"
+        curl --fail --location --retry 3 --output "$archive" \
+          https://github.com/MiniZinc/MiniZincIDE/releases/download/2.10.1/MiniZincIDE-2.10.1-x86_64-linux-gnu.tgz
+        printf '%s  %s\n' b63dd88491d47b05d0eb0ff4aa1112d1e6f77292c023800b20b98851458ce01c "$archive" | sha256sum --check
+        mkdir -p "$minizinc_dir"
+        tar -xzf "$archive" -C "$minizinc_dir" --strip-components=1
+        echo "$minizinc_dir/bin" >> "$GITHUB_PATH"
+        "$minizinc_dir/bin/minizinc" --version
+
     - name: Configure CMake with Ninja
       shell: bash
       run: >
         cmake -S "$GITHUB_WORKSPACE" -B "$GITHUB_WORKSPACE/build-ninja"
+        -DGECODE_ENABLE_EXPERIMENTAL=ON
         -G Ninja
         -DCMAKE_BUILD_TYPE=$BUILD_TYPE
         -DGECODE_ENABLE_QT=OFF
@@ -257,6 +277,88 @@ jobs:
         set -euxo pipefail
         cmake --install "$GITHUB_WORKSPACE/build-ninja" --prefix "$GITHUB_WORKSPACE/install-ninja"
         bash .github/ci/flatzinc-tools-smoke.sh "$GITHUB_WORKSPACE/install-ninja"
+
+  build-cmake-allocator:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        variant: [static, both]
+
+    steps:
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+    - name: Build and install allocator package
+      shell: bash
+      run: |
+        set -euxo pipefail
+        cmake -S . -B build-allocator \
+          -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
+          -DGECODE_BUILD_SHARED=${{ matrix.variant == 'both' }} \
+          -DGECODE_BUILD_STATIC=ON \
+          -DGECODE_ENABLE_MIMALLOC=ON \
+          -DGECODE_ENABLE_GCC_VISIBILITY=OFF \
+          -DBUILD_TESTING=OFF -DGECODE_ENABLE_EXAMPLES=OFF \
+          -DGECODE_ENABLE_SEARCH=OFF -DGECODE_ENABLE_INT_VARS=OFF \
+          -DGECODE_ENABLE_SET_VARS=OFF -DGECODE_ENABLE_FLOAT_VARS=OFF \
+          -DGECODE_ENABLE_STRING_VARS=OFF \
+          -DGECODE_ENABLE_MINIMODEL=OFF -DGECODE_ENABLE_DRIVER=OFF \
+          -DGECODE_ENABLE_FLATZINC=OFF -DGECODE_ENABLE_QT=OFF -DGECODE_ENABLE_GIST=OFF
+        cmake --build build-allocator --config "$BUILD_TYPE" --parallel 2
+        cmake --install build-allocator --config "$BUILD_TYPE" --prefix "$GITHUB_WORKSPACE/install-allocator"
+
+    - name: Check private allocator exports
+      shell: bash
+      run: |
+        set -euxo pipefail
+        if test -f install-allocator/lib/libgecodesupport.so; then
+          nm -D --defined-only install-allocator/lib/libgecodesupport.so > build-allocator/exports.txt
+          if grep -E '[[:space:]](_*mi_[[:alnum:]_]+|gecode_+mi_[[:alnum:]_]+|malloc|calloc|realloc|free|aligned_alloc|posix_memalign)$' build-allocator/exports.txt; then
+            echo "Allocator implementation or malloc replacement exported by gecodesupport"
+            exit 1
+          fi
+        fi
+        if test -f install-allocator/lib/libgecodesupport.a; then
+          nm -g --defined-only install-allocator/lib/libgecodesupport.a > build-allocator/symbols.txt
+          if grep -E '[[:space:]](_*mi_[[:alnum:]_]+|malloc|calloc|realloc|free|aligned_alloc|posix_memalign)$' build-allocator/symbols.txt; then
+            echo "Unprefixed allocator symbol in static gecodesupport"
+            exit 1
+          fi
+          grep -q '[[:space:]]gecode_mi_malloc$' build-allocator/symbols.txt
+        fi
+
+    - name: Reject unsupported allocator combinations
+      shell: bash
+      run: |
+        set -euxo pipefail
+        if cmake -S . -B "$RUNNER_TEMP/mimalloc-custom" \
+          -DGECODE_ENABLE_MIMALLOC=ON -DGECODE_ENABLE_ALLOCATOR=OFF > "$RUNNER_TEMP/mimalloc-custom.log" 2>&1; then
+          exit 1
+        fi
+        grep -q 'requires GECODE_ENABLE_ALLOCATOR=ON' "$RUNNER_TEMP/mimalloc-custom.log"
+        if cmake -S . -B "$RUNNER_TEMP/mimalloc-sanitizer" \
+          -DGECODE_ENABLE_MIMALLOC=ON -DGECODE_SANITIZER=address > "$RUNNER_TEMP/mimalloc-sanitizer.log" 2>&1; then
+          exit 1
+        fi
+        grep -q 'does not support GECODE_SANITIZER' "$RUNNER_TEMP/mimalloc-sanitizer.log"
+
+    - name: Installed allocator coexistence and thread transfer
+      shell: bash
+      run: |
+        set -euxo pipefail
+        for variant in shared static; do
+          if test "$variant" = "shared" && ! test -f install-allocator/lib/libgecodesupport.so; then continue; fi
+          if test "$variant" = "static" && ! test -f install-allocator/lib/libgecodesupport.a; then continue; fi
+          cmake -S test/package/allocator -B "build-allocator-consumer-$variant" \
+            -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
+            -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/install-allocator" \
+            -DGECODE_LINK_VARIANT="$variant" -DGECODE_EXPECT_MIMALLOC=ON \
+            -DGECODE_HOST_MIMALLOC_OVERRIDE=ON \
+            -DMIMALLOC_SOURCE_DIR="$GITHUB_WORKSPACE/build-allocator/_deps/gecode_mimalloc-src"
+          cmake --build "build-allocator-consumer-$variant" --config "$BUILD_TYPE" --parallel 2
+          ctest --test-dir "build-allocator-consumer-$variant" --build-config "$BUILD_TYPE" --output-on-failure
+        done
+        test -f install-allocator/share/licenses/gecode/mimalloc-LICENSE
+        test ! -f install-allocator/include/mimalloc.h
 
   build-32-bit-linkage:
     runs-on: ubuntu-latest
@@ -396,6 +498,7 @@ jobs:
         -DGECODE_ENABLE_MPFR=OFF
         -DGECODE_BUILD_SHARED=${{ matrix.build_shared }}
         -DGECODE_BUILD_STATIC=${{ matrix.build_static }}
+        -DGECODE_ENABLE_EXPERIMENTAL=${{ matrix.build_shared }}
 
     - name: Build
       shell: pwsh
@@ -405,6 +508,10 @@ jobs:
       shell: pwsh
       run: cmake --build "${{ github.workspace }}\\build" --config ${{ env.BUILD_TYPE }} --target check
 
+    - name: Run public test harness smokes
+      shell: pwsh
+      run: ctest --test-dir "${{ github.workspace }}\\build" -C ${{ env.BUILD_TYPE }} --output-on-failure -R '^public-.*-smoke$'
+
     - name: Install CMake package
       shell: pwsh
       run: cmake --install "${{ github.workspace }}\\build" --config ${{ env.BUILD_TYPE }} --prefix "${{ github.workspace }}\\install"
@@ -412,6 +519,18 @@ jobs:
     - name: Consumer smoke tests
       shell: pwsh
       run: .\.github\ci\cmake-consumer-smoke.ps1 "${{ github.workspace }}\install"
+
+    - name: Installed test-library consumer
+      shell: pwsh
+      run: |
+        $prefix = "${{ github.workspace }}\install"
+        $build = "$env:RUNNER_TEMP\test-library-consumer"
+        cmake -S test/package/public-test-component -B $build "-DCMAKE_PREFIX_PATH=$prefix"
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        cmake --build $build --config $env:BUILD_TYPE
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        $env:PATH = "$prefix\bin;$env:PATH"
+        ctest --test-dir $build -C $env:BUILD_TYPE --output-on-failure
 
   build-cmake-windows-vcpkg:
     runs-on: windows-2022
@@ -428,9 +547,9 @@ jobs:
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
       with:
         path: ${{ runner.temp }}\vcpkg-binary-cache
-        key: vcpkg-${{ runner.os }}-x64-windows-857036234d15fbed8f30fed66e898d7725446c0c-${{ hashFiles('vcpkg.json') }}
+        key: vcpkg-${{ runner.os }}-x64-windows-37bb045f3c7a747d3e5d1c13b6fe6a0aec4b5d00-${{ hashFiles('vcpkg.json') }}
         restore-keys: |
-          vcpkg-${{ runner.os }}-x64-windows-857036234d15fbed8f30fed66e898d7725446c0c-
+          vcpkg-${{ runner.os }}-x64-windows-37bb045f3c7a747d3e5d1c13b6fe6a0aec4b5d00-
 
     - name: Setup vcpkg
       shell: pwsh
@@ -439,7 +558,7 @@ jobs:
         $vcpkgBinaryCache = Join-Path $env:RUNNER_TEMP "vcpkg-binary-cache"
         New-Item -ItemType Directory -Force -Path $vcpkgBinaryCache | Out-Null
         git clone https://github.com/microsoft/vcpkg $vcpkgRoot
-        git -C $vcpkgRoot checkout 857036234d15fbed8f30fed66e898d7725446c0c
+        git -C $vcpkgRoot checkout 37bb045f3c7a747d3e5d1c13b6fe6a0aec4b5d00
         & (Join-Path $vcpkgRoot "bootstrap-vcpkg.bat") -disableMetrics
         "VCPKG_ROOT=$vcpkgRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         "VCPKG_DEFAULT_BINARY_CACHE=$vcpkgBinaryCache" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
@@ -491,6 +610,7 @@ jobs:
           -DGECODE_ENABLE_MPFR=OFF \
           -DGECODE_BUILD_SHARED=OFF \
           -DGECODE_BUILD_STATIC=ON \
+          -DGECODE_ENABLE_EXPERIMENTAL=ON \
           -DGECODE_ENABLE_EXAMPLES=OFF \
           -DGECODE_ENABLE_FLATZINC=OFF
 
@@ -559,7 +679,7 @@ jobs:
       shell: msys2 {0}
       run: |
         export PATH="$UV_DIR:$PATH"
-        CC=gcc CXX=g++ ./configure --with-host-os=Windows --disable-qt --disable-gist --disable-mpfr
+        CC=gcc CXX=g++ ./configure --with-host-os=Windows --disable-qt --disable-gist --disable-mpfr --enable-experimental
 
     - name: Build
       shell: msys2 {0}

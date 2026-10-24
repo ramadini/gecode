@@ -139,7 +139,8 @@ namespace Test { namespace String { namespace RelOp {
   public:
     Power(int exponent0, bool shared0)
       : Test("RelOp::Power::" + std::to_string(exponent0) +
-             (shared0 ? "::XX" : "::XY"), shared0 ? 1 : 2, "a", 2),
+             (shared0 ? "::XX" : "::XY"), shared0 ? 1 : 2, "a", 2,
+             false, TestTags::check()),
         exponent(exponent0), shared(shared0) {}
 
     virtual bool solution(const Assignment& a) const {
@@ -175,7 +176,8 @@ namespace Test { namespace String { namespace RelOp {
   /// Empty power must preserve every representable nonnegative exponent
   class EmptyPower : public Base {
   public:
-    EmptyPower(void) : Base("String::RelOp::Power::EmptyDomain") {}
+    EmptyPower(void)
+      : Base("String::RelOp::Power::EmptyDomain", TestTags::check()) {}
 
     virtual bool run(void) {
       PowerSpace home;
@@ -193,7 +195,8 @@ namespace Test { namespace String { namespace RelOp {
   /// A possibly empty base permits the full nonnegative exponent range
   class OptionalPower : public Base {
   public:
-    OptionalPower(void) : Base("String::RelOp::Power::OptionalDomain") {}
+    OptionalPower(void)
+      : Base("String::RelOp::Power::OptionalDomain", TestTags::check()) {}
 
     virtual bool run(void) {
       PowerSpace home;

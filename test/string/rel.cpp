@@ -243,7 +243,7 @@ namespace Test { namespace String { namespace Rel {
   public:
     ScalarOrder(bool decreasing0)
       : Base(decreasing0 ? "String::Rel::ScalarDecreasing"
-                         : "String::Rel::ScalarIncreasing"),
+                         : "String::Rel::ScalarIncreasing", TestTags::check()),
         decreasing(decreasing0) {}
 
     virtual bool run(void) {
@@ -301,7 +301,7 @@ namespace Test { namespace String { namespace Rel {
     }
 
   public:
-    Construction(void) : Base("String::Rel::Construction") {}
+    Construction(void) : Base("String::Rel::Construction", TestTags::check()) {}
 
     virtual bool run(void) {
       using namespace Gecode;
@@ -405,7 +405,8 @@ namespace Test { namespace String { namespace Rel {
                                   Gecode::StringVar x, Gecode::StringVar y);
 
   public:
-    AggregateBounds(void) : Base("String::Rel::AggregateBounds") {}
+    AggregateBounds(void)
+      : Base("String::Rel::AggregateBounds", TestTags::check()) {}
 
     virtual bool run(void) {
       using namespace Gecode;
@@ -555,7 +556,7 @@ namespace Test { namespace String { namespace Rel {
     }
 
   public:
-    SizeEstimate(void) : Base("String::Rel::SizeEstimate") {}
+    SizeEstimate(void) : Base("String::Rel::SizeEstimate", TestTags::check()) {}
 
     virtual bool run(void) {
       using namespace Gecode;
@@ -595,7 +596,7 @@ namespace Test { namespace String { namespace Rel {
     }
 
   public:
-    NSIntSetCopy(void) : Base("String::Rel::NSIntSetCopy") {}
+    NSIntSetCopy(void) : Base("String::Rel::NSIntSetCopy", TestTags::check()) {}
 
     virtual bool run(void) {
       using Gecode::String::NSIntSet;

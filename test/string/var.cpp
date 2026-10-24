@@ -210,7 +210,8 @@ namespace Test { namespace String { namespace Var {
   /// Rejected tells notify only failure subscribers, exactly once
   class FailureAdvisors : public Base {
   public:
-    FailureAdvisors(void) : Base("String::Var::FailureAdvisors") {}
+    FailureAdvisors(void)
+      : Base("String::Var::FailureAdvisors", TestTags::check()) {}
 
     virtual bool run(void) {
       typedef ModEvent (*Tell)(ObserverSpace&);
@@ -261,7 +262,7 @@ namespace Test { namespace String { namespace Var {
     }
 
   public:
-    Events(void) : Base("String::Var::Events") {}
+    Events(void) : Base("String::Var::Events", TestTags::check()) {}
 
     virtual bool run(void) {
       using namespace Gecode::String;
@@ -308,7 +309,7 @@ namespace Test { namespace String { namespace Var {
   /// Copy subscriptions normally, then cancel them on assignment or disposal
   class Lifecycle : public Base {
   public:
-    Lifecycle(void) : Base("String::Var::Lifecycle") {}
+    Lifecycle(void) : Base("String::Var::Lifecycle", TestTags::check()) {}
 
     virtual bool run(void) {
       using namespace Gecode::String;

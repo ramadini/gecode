@@ -155,7 +155,8 @@ namespace Test { namespace String { namespace Extensional {
   public:
     DfaReification(bool assigned0)
       : Base(std::string("String::Extensional::DfaReification::") +
-             (assigned0 ? "Assigned" : "Deferred")), assigned(assigned0) {}
+             (assigned0 ? "Assigned" : "Deferred"), TestTags::check()),
+        assigned(assigned0) {}
 
     virtual bool run(void) {
       using namespace Gecode;
@@ -245,7 +246,7 @@ namespace Test { namespace String { namespace Extensional {
   public:
     StarDecomposition(const std::string& name, int a_min0, int b_min0,
                       int min, int max, const std::string& alphabet0)
-      : Base("String::Extensional::StarDecomposition::" + name),
+      : Base("String::Extensional::StarDecomposition::" + name, TestTags::check()),
         a_min(a_min0), b_min(b_min0), min_length(min), max_length(max),
         alphabet(alphabet0) {}
 

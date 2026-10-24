@@ -1,6 +1,6 @@
-#line 2 "gecode/flatzinc/lexer.yy.cpp"
+#line 1 "gecode/flatzinc/lexer.yy.cpp"
 
-#line 4 "gecode/flatzinc/lexer.yy.cpp"
+#line 3 "gecode/flatzinc/lexer.yy.cpp"
 
 #define  YY_INT_ALIGNED short int
 
@@ -794,8 +794,8 @@ parseString(const char* text, Gecode::FlatZinc::ParserState* state) {
 int yy_input_proc(char* buf, int size, yyscan_t yyscanner);
 #define YY_INPUT(buf, result, max_size) \
   result = yy_input_proc(buf, max_size, yyscanner);
+#line 797 "gecode/flatzinc/lexer.yy.cpp"
 #line 798 "gecode/flatzinc/lexer.yy.cpp"
-#line 799 "gecode/flatzinc/lexer.yy.cpp"
 
 #define INITIAL 0
 
@@ -1072,7 +1072,7 @@ YY_DECL
 #line 199 "./gecode/flatzinc/lexer.lxx"
 
 
-#line 1076 "gecode/flatzinc/lexer.yy.cpp"
+#line 1075 "gecode/flatzinc/lexer.yy.cpp"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1453,7 +1453,7 @@ YY_RULE_SETUP
 #line 287 "./gecode/flatzinc/lexer.lxx"
 ECHO;
 	YY_BREAK
-#line 1457 "gecode/flatzinc/lexer.yy.cpp"
+#line 1456 "gecode/flatzinc/lexer.yy.cpp"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 

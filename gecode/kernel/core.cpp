@@ -118,7 +118,7 @@ namespace Gecode {
   VarImpDisposerBase* Space::vd[AllVarConf::idx_d];
 #endif
 
-  Space::Space(void) : mm(ssd.data().sm) {
+  Space::Space(void) : mm(ssd.data().sm), no_gpi(false) {
 #ifdef GECODE_HAS_CBS
     var_id_counter = 0;
 #endif
@@ -249,9 +249,8 @@ namespace Gecode {
   TraceRecorder*
   Space::findtracerecorder(void) {
     for (Actor** a=d_fst; a<d_cur; a++) {
-      Propagator* p = Propagator::cast(*a);
-      if (!p->disabled())
-        if (TraceRecorder* tr = dynamic_cast<TraceRecorder*>(p)) {
+      if (TraceRecorder* tr = dynamic_cast<TraceRecorder*>(*a))
+        if (!tr->disabled()) {
           std::swap(*d_fst,*a);
           return tr;
         }
@@ -540,7 +539,8 @@ namespace Gecode {
     // Process failure
   failed:
     // Count failure
-    ssd.data().gpi.fail(p->gpi());
+    if (!p->local_info())
+      ssd.data().gpi.fail(p->gpi());
     // Mark as failed
     fail();
     // Propagate top priority propagators
@@ -563,6 +563,19 @@ namespace Gecode {
     return SS_FAILED;
   }
 
+
+  void
+  Brancher::prepare(Space&, StatusStatistics&) {}
+
+  void
+  Space::prepare(StatusStatistics& stat) {
+    while (!failed() && b_status != Brancher::cast(&bl)) {
+      Brancher* active = b_status;
+      active->prepare(*this,stat);
+      if (status(stat) != SS_BRANCH || b_status == active)
+        return;
+    }
+  }
 
   const Choice*
   Space::choice(void) {
@@ -727,7 +740,7 @@ namespace Gecode {
 #ifdef GECODE_HAS_CBS
       var_id_counter(s.var_id_counter),
 #endif
-      d_fst(&Actor::sentinel),d_cur(nullptr),d_lst(nullptr) {
+      no_gpi(false), d_fst(&Actor::sentinel),d_cur(nullptr),d_lst(nullptr) {
 #ifdef GECODE_HAS_VAR_DISPOSE
     for (int i=0; i<AllVarConf::idx_d; i++)
       _vars_d[i] = nullptr;
@@ -920,11 +933,23 @@ namespace Gecode {
   }
 
 
+  void*
+  Space::local_info(unsigned int gid) {
+    static_assert(alignof(Kernel::GPI::Info) >= 4,
+                  "Propagator information needs two tag bits");
+    Kernel::GPI::Info* i = alloc<Kernel::GPI::Info>(1);
+    i->init(ssd.data().gpi.next_pid(),gid);
+    i->afc = 0.0;
+    return Support::ptrjoin(i,0b10);
+  }
+
   void
   Space::afc_unshare(void) {
     if (ssd.data().gpi.unshare()) {
       for (Propagators ps(*this); ps(); ++ps) {
         Propagator& p = ps.propagator();
+        if (p.local_info())
+          continue;
         Kernel::GPI::Info* gpi
           = ssd.data().gpi.allocate(p.gpi().pid,p.gpi().gid);
         if (p.disabled())

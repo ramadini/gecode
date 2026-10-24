@@ -78,8 +78,23 @@ def main() -> int:
 
     whatorder = ["new", "removed", "change", "bug", "performance", "documentation"]
 
-    hastext = defaultdict(int)
     text = defaultdict(str)
+
+    def flush_current_release() -> None:
+        sys.stdout.write(f"Changes in Version {version} ({date})\n\n")
+        sys.stdout.write(f"Scope:{info}")
+        for experimental in (False, True):
+            if experimental and any(text[(True, mod, what)] for mod in modorder for what in whatorder):
+                sys.stdout.write("Experimental changes\n")
+            for mod in modorder:
+                if any(text[(experimental, mod, what)] for what in whatorder):
+                    sys.stdout.write(f"- {modclear[mod]}\n")
+                    for what in whatorder:
+                        k = (experimental, mod, what)
+                        if text[k]:
+                            sys.stdout.write(f"  - {whatclear[what]}\n" + text[k])
+                            text[k] = ""
+        sys.stdout.write("\n------------------------------------------------------------------------------\n\n")
 
     lines = sys.stdin.readlines()
     idx = 0
@@ -101,21 +116,7 @@ def main() -> int:
 
         if re.match(r"^\[RELEASE\]", l):
             if not first:
-                sys.stdout.write(f"Changes in Version {version} ({date})\n\n")
-                sys.stdout.write(f"Scope:{info}")
-
-                for mod in modorder:
-                    if hastext[mod]:
-                        sys.stdout.write(f"- {modclear[mod]}\n")
-                        hastext[mod] = 0
-                        for what in whatorder:
-                            k = f"{mod}-{what}"
-                            if text[k] != "":
-                                sys.stdout.write(f"  - {whatclear[what]}\n")
-                                sys.stdout.write(text[k])
-                                text[k] = ""
-
-                sys.stdout.write("\n------------------------------------------------------------------------------\n\n")
+                flush_current_release()
 
             first = False
             version = ""
@@ -146,6 +147,7 @@ def main() -> int:
             continue
 
         if re.match(r"^\[ENTRY\]", l):
+            experimental = False
             desc = ""
             bug = ""
             issue = ""
@@ -160,6 +162,13 @@ def main() -> int:
                 l = l.replace("%Gecode", "Gecode")
                 if re.search(r"\[DESCRIPTION\]", l):
                     break
+                m = re.fullmatch(r"Experimental:[\t ]*(.*)\n?", l)
+                if m:
+                    value = m.group(1).rstrip("\n")
+                    if value not in {"true", "false"}:
+                        print("gentxtchangelog: invalid Experimental value " + repr(value), file=sys.stderr)
+                        return 1
+                    experimental = value == "true"
                 m = re.search(r"Module:[\t ]*(.*)$", l)
                 if m:
                     mod = m.group(1)
@@ -195,7 +204,6 @@ def main() -> int:
             if desc.endswith("\n"):
                 desc = desc[:-1]
 
-            hastext[mod] = 1
             rb = rankclear.get(rank, "")
             if bug != "":
                 rb = rb + f", bugzilla entry {bug}"
@@ -204,9 +212,12 @@ def main() -> int:
             if thanks != "":
                 rb = rb + f", thanks to {thanks}"
 
-            k = f"{mod}-{what}"
+            k = (experimental, mod, what)
             text[k] = text[k] + f"    - {desc}({rb})\n"
             continue
+
+    if not first and any(text.values()):
+        flush_current_release()
 
     sys.stdout.write(
         """Initial release (2005-12-06)

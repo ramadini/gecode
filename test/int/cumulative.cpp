@@ -35,6 +35,8 @@
 
 #include <gecode/minimodel.hh>
 
+#include <memory>
+
 namespace Test { namespace Int {
 
   /// Tests for cumulative scheduling constraints
@@ -71,7 +73,10 @@ namespace Test { namespace Int {
                         const Gecode::IntArgs& u0,
                         int o0,
                         Gecode::IntPropLevel ipl0)
-        : Test("Cumulative::Man::Fix::"+str(o0)+"::"+
+        : Test((o0 == 0) && (c0 == 4)
+               ? TestTags::check()
+               : TestTags(TestTags::sweep()),
+               "Cumulative::Man::Fix::"+str(o0)+"::"+
                str(c0)+"::"+str(p0)+"::"+str(u0)+"::"+str(ipl0),
                (c0 >= 0) ? p0.size():p0.size()+1,0,st(c0,p0,u0),false,ipl0),
           c(c0), p(p0), u(u0), o(o0) {
@@ -174,7 +179,9 @@ namespace Test { namespace Int {
                         const Gecode::IntArgs& u0,
                         int o0,
                         Gecode::IntPropLevel ipl0)
-        : Test("Cumulative::Opt::Fix::"+str(o0)+"::"+
+        : Test((o0 == Gecode::Int::Limits::min) && (c0 == -1)
+               ? TestTags(TestTags::standard()) : TestTags(TestTags::sweep()),
+               "Cumulative::Opt::Fix::"+str(o0)+"::"+
                str(c0)+"::"+str(p0)+"::"+str(u0)+"::"+str(ipl0),
                (c0 >= 0) ? 2*p0.size() : 2*p0.size()+1,0,st(c0,p0,u0),
                false,ipl0),
@@ -280,7 +287,7 @@ namespace Test { namespace Int {
                         const Gecode::IntArgs& u0,
                         int o0,
                         Gecode::IntPropLevel ipl0)
-        : Test("Cumulative::Man::Flex::"+str(o0)+"::"+
+        : Test(TestTags::sweep(),"Cumulative::Man::Flex::"+str(o0)+"::"+
                str(c0)+"::"+str(minP)+"::"+str(maxP)+"::"+str(u0)+
                "::"+str(ipl0),
                (c0 >= 0) ? 2*u0.size() : 2*u0.size()+1,
@@ -393,7 +400,10 @@ namespace Test { namespace Int {
                         const Gecode::IntArgs& u0,
                         int o0,
                         Gecode::IntPropLevel ipl0)
-        : Test("Cumulative::Opt::Flex::"+str(o0)+"::"+
+        : Test((o0 == Gecode::Int::Limits::min) && (c0 == 4) &&
+               (minP == 0) && (maxP == 2)
+               ? TestTags(TestTags::standard()) : TestTags(TestTags::sweep()),
+               "Cumulative::Opt::Flex::"+str(o0)+"::"+
                str(c0)+"::"+str(minP)+"::"+str(maxP)+"::"+str(u0)+
                "::"+str(ipl0),
                (c0 >= 0) ? 3*u0.size() : 3*u0.size()+1,
@@ -483,6 +493,158 @@ namespace Test { namespace Int {
         }
       }
     };
+
+    /// Fixed-end tasks must accept exactly the capacity-feasible schedules
+    class ManFixECumulative : public Test {
+    public:
+      ManFixECumulative(void)
+        : Test("Cumulative::Man::FixE",4,
+               Gecode::IntSet({0,9,19,29,39}),false,Gecode::IPL_ADVANCED) {
+        testfix = false;
+        contest = CTL_NONE;
+      }
+      virtual bool solution(const Assignment& x) const {
+        for (int i=0; i<4; i++)
+          if (x[i] >= 10*(i+1))
+            return false;
+        for (int t=0; t<40; t++) {
+          int used = 0;
+          for (int i=0; i<4; i++)
+            if ((x[i] <= t) && (t < 10*(i+1)))
+              used += 2;
+          if (used > 4)
+            return false;
+        }
+        return true;
+      }
+      virtual void post(Gecode::Space& home, Gecode::IntVarArray& x) {
+        Gecode::IntArgs ends({10,20,30,40});
+        Gecode::TaskTypeArgs types(4);
+        for (int i=0; i<4; i++) {
+          Gecode::dom(home,x[i],0,ends[i]-1);
+          types[i] = Gecode::TT_FIXE;
+        }
+        Gecode::cumulative(home,4,types,x,ends,
+                           Gecode::IntArgs({2,2,2,2}),ipl);
+      }
+    };
+    ManFixECumulative manFixECumulative;
+
+    /// Check overload detection before search, including capacity wakeups
+    // Complete assignments cannot distinguish basic from advanced propagation.
+    class KnapsackAugmentedOverload : public Test::Base {
+    private:
+      class Fixture : public Gecode::Space {
+      public:
+        Gecode::IntVarArray starts;
+        Fixture(Gecode::IntPropLevel level)
+          : starts(*this,5,0,6) {
+          starts[0] = Gecode::IntVar(*this,1,4);
+          starts[1] = Gecode::IntVar(*this,0,6);
+          starts[2] = Gecode::IntVar(*this,2,6);
+          starts[3] = Gecode::IntVar(*this,0,0);
+          starts[4] = Gecode::IntVar(*this,0,1);
+          Gecode::cumulative(*this,3,starts,
+            Gecode::IntArgs({3,1,1,2,4}),
+            Gecode::IntArgs({3,3,1,2,1}),level);
+        }
+        Fixture(Fixture& fixture) : Gecode::Space(fixture) {
+          starts.update(*this,fixture.starts);
+        }
+        virtual Gecode::Space* copy(void) {
+          return new Fixture(*this);
+        }
+      };
+
+      class VariableCapacityFixture : public Gecode::Space {
+      public:
+        Gecode::IntVarArray starts;
+        Gecode::IntVar capacity;
+        VariableCapacityFixture(void)
+          : starts(*this,5,0,6), capacity(*this,3,4) {
+          starts[0] = Gecode::IntVar(*this,1,4);
+          starts[1] = Gecode::IntVar(*this,0,6);
+          starts[2] = Gecode::IntVar(*this,2,6);
+          starts[3] = Gecode::IntVar(*this,0,0);
+          starts[4] = Gecode::IntVar(*this,0,1);
+          Gecode::cumulative(*this,capacity,starts,
+            Gecode::IntArgs({3,1,1,2,4}),
+            Gecode::IntArgs({3,3,1,2,1}),Gecode::IPL_ADVANCED);
+        }
+        VariableCapacityFixture(VariableCapacityFixture& fixture)
+          : Gecode::Space(fixture) {
+          starts.update(*this,fixture.starts);
+          capacity.update(*this,fixture.capacity);
+        }
+        virtual Gecode::Space* copy(void) {
+          return new VariableCapacityFixture(*this);
+        }
+      };
+
+      static bool variable_capacity_rechecks(void) {
+        VariableCapacityFixture root;
+        if (root.status() == Gecode::SS_FAILED)
+          return false;
+        std::unique_ptr<VariableCapacityFixture> clone(
+          static_cast<VariableCapacityFixture*>(root.clone()));
+        Gecode::rel(*clone,clone->capacity,Gecode::IRT_EQ,3);
+        return clone->status() == Gecode::SS_FAILED;
+      }
+
+      static bool optional_subset(void) {
+        class OptionalSubsetFixture : public Gecode::Space {
+        public:
+          OptionalSubsetFixture(Gecode::IntPropLevel level) {
+            const int n = 69;
+            Gecode::IntVarArgs starts(n);
+            Gecode::BoolVarArgs mandatory(n);
+            Gecode::IntArgs processing(n);
+            Gecode::IntArgs demand(n);
+            for (int i=0; i<n; i++) {
+              starts[i] = Gecode::IntVar(*this,2*i,2*i);
+              mandatory[i] = Gecode::BoolVar(*this,i < 5 ? 1 : 0,1);
+              processing[i] = 1;
+              demand[i] = 2+(i & 1);
+            }
+            const int earliest[] = {1,0,2,0,0};
+            const int latest[] = {4,6,6,0,1};
+            const int durations[] = {3,1,1,2,4};
+            const int demands[] = {3,3,1,2,1};
+            for (int i=0; i<5; i++) {
+              starts[i] = Gecode::IntVar(*this,earliest[i],latest[i]);
+              processing[i] = durations[i];
+              demand[i] = demands[i];
+            }
+            Gecode::cumulative(*this,3,starts,processing,demand,mandatory,
+                               level);
+          }
+          OptionalSubsetFixture(OptionalSubsetFixture& fixture)
+            : Gecode::Space(fixture) {}
+          virtual Gecode::Space* copy(void) {
+            return new OptionalSubsetFixture(*this);
+          }
+        };
+
+        OptionalSubsetFixture basic(Gecode::IPL_BASIC);
+        OptionalSubsetFixture advanced(Gecode::IPL_ADVANCED);
+        return (basic.status() != Gecode::SS_FAILED) &&
+               (advanced.status() == Gecode::SS_FAILED);
+      }
+
+    public:
+      KnapsackAugmentedOverload(void)
+        : Test::Base("Cumulative::KnapsackAugmentedOverload") {}
+
+      virtual bool run(void) {
+        Fixture basic(Gecode::IPL_BASIC);
+        Fixture advanced(Gecode::IPL_ADVANCED);
+        return (basic.status() != Gecode::SS_FAILED) &&
+          (advanced.status() == Gecode::SS_FAILED) &&
+          variable_capacity_rechecks() && optional_subset();
+      }
+    };
+
+    KnapsackAugmentedOverload knapsackAugmentedOverload;
 
     /// Help class to create and register tests
     class Create {

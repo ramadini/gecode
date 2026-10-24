@@ -166,7 +166,8 @@ namespace Test { namespace String { namespace Substring {
     }
 
   public:
-    ClippedBoundaries(void) : Base("String::Substring::ClippedBoundaries") {}
+    ClippedBoundaries(void)
+      : Base("String::Substring::ClippedBoundaries", TestTags::check()) {}
 
     virtual bool run(void) {
       if (!retains_empty_indices() || !retains_excluded_scalars())

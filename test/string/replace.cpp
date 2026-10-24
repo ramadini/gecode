@@ -41,7 +41,8 @@ namespace Test { namespace String { namespace Replace {
 
   public:
     Occurrence(Kind kind0)
-      : Test("Replace::" + name(kind0), 2, "ab", 3), kind(kind0) {}
+      : Test("Replace::" + name(kind0), 2, "ab", 3, false, TestTags::check()),
+        kind(kind0) {}
 
     virtual bool solution(const Assignment& assignment) const {
       return assignment[1] == replace(assignment[0], kind);
@@ -77,7 +78,8 @@ namespace Test { namespace String { namespace Replace {
   public:
     EqualResult(Gecode::StringOpType operation0, bool shared0)
       : Test("Replace::" + operation_name(operation0) + "::EqualResult::" +
-             (shared0 ? "Alias" : "Distinct"), 2, "ab", 1),
+             (shared0 ? "Alias" : "Distinct"), 2, "ab", 1,
+             false, TestTags::check()),
         operation(operation0), shared(shared0) {}
 
     virtual bool solution(const Assignment& assignment) const {
@@ -97,7 +99,7 @@ namespace Test { namespace String { namespace Replace {
   public:
     QueryResult(Gecode::StringOpType operation0)
       : Test("Replace::" + operation_name(operation0) + "::QueryResult",
-             1, "ab", 2), operation(operation0) {}
+             1, "ab", 2, false, TestTags::check()), operation(operation0) {}
 
     virtual bool solution(const Assignment& assignment) const {
       return (operation != Gecode::STRT_REPALL) && (assignment[0] == "a");
@@ -116,7 +118,7 @@ namespace Test { namespace String { namespace Replace {
   public:
     EmptySource(Gecode::StringOpType operation0)
       : Test("Replace::" + operation_name(operation0) + "::EmptySource",
-             2, "ab", 1), operation(operation0) {}
+             2, "ab", 1, false, TestTags::check()), operation(operation0) {}
 
     virtual bool solution(const Assignment& assignment) const {
       return assignment[0] == assignment[1];
@@ -182,7 +184,7 @@ namespace Test { namespace String { namespace Replace {
   public:
     EmptyQuery(bool scalar)
       : Base(scalar ? "String::Replace::All::EmptyQuery::Scalars"
-                    : "String::Replace::All::EmptyQuery::Bytes"),
+                    : "String::Replace::All::EmptyQuery::Bytes", TestTags::check()),
         symbol(scalar ? 0x100 : 'a') {}
 
     virtual bool run(void) {
@@ -237,7 +239,8 @@ namespace Test { namespace String { namespace Replace {
 
   class VariableQuery : public Base {
   public:
-    VariableQuery(void) : Base("String::Replace::All::VariableQuery") {}
+    VariableQuery(void)
+      : Base("String::Replace::All::VariableQuery", TestTags::check()) {}
 
     virtual bool run(void) {
       using Gecode::String::StringVal;
@@ -365,7 +368,7 @@ namespace Test { namespace String { namespace Replace {
   public:
     Overlap(bool last0)
       : Base(last0 ? "String::Replace::Last::Overlap"
-                   : "String::Replace::First::Overlap"), last(last0) {}
+                   : "String::Replace::First::Overlap", TestTags::check()), last(last0) {}
 
     virtual bool run(void) {
       const Gecode::String::StringSymbol symbols[] = {'a', 0x100};
@@ -485,7 +488,8 @@ namespace Test { namespace String { namespace Replace {
     }
 
   public:
-    ScalarReplacement(void) : Base("String::Replace::ScalarReplacement") {}
+    ScalarReplacement(void)
+      : Base("String::Replace::ScalarReplacement", TestTags::check()) {}
 
     virtual bool run(void) {
       for (int symbol : {static_cast<int>('b'), 0x102})

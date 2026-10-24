@@ -97,18 +97,7 @@ AC_GECODE_RUNENVIRONMENT
 
 dnl determine which compiler we are using
 AC_CXX_COMPILER_VENDOR(ac_gecode_compiler_vendor)
-case $ac_gecode_compiler_vendor in
-gnu)
-  AC_CHECK_GCC_VERSION(4,2)
-  ;;
-intel)
-  ;;
-microsoft)
-  AC_CHECK_MSVC_VERSION(1800,2013)
-  ;;
-*)
-  ;;
-esac
+AC_GECODE_CXX17
 
 AC_GECODE_RESOURCE
 
@@ -292,6 +281,7 @@ dnl ------------------------------------------------------------------
 AC_GECODE_MPFR
 AC_GECODE_QT
 AC_GECODE_GIST
+AC_GECODE_EXPERIMENTAL
 AC_GECODE_CBS
 AC_GECODE_CPPROFILER
 AC_GECODE_FLEXBISON

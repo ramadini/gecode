@@ -122,7 +122,7 @@ namespace Test {
       /// Create and register a bounded string test
       Test(const std::string& name, int arity,
            const std::string& alphabet, int max_length,
-           bool reified=false);
+           bool reified=false, TestTags tags=TestTags::standard());
       /// Check whether assignment \a a is a solution
       virtual bool solution(const Assignment& a) const = 0;
       /// Post the tested constraint

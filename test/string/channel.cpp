@@ -58,8 +58,9 @@ namespace Test { namespace String { namespace Channel {
 
   public:
     StrToNat(int lo0, int hi0, const std::string& alphabet0 = "09a+",
-             int max_length0 = 2)
-      : Test("Channel::" + name(lo0, hi0), 1, alphabet0, max_length0),
+             int max_length0 = 2, TestTags tags=TestTags::standard())
+      : Test("Channel::" + name(lo0, hi0), 1, alphabet0, max_length0,
+             false, tags),
         lo(lo0), hi(hi0) {}
 
     virtual bool solution(const Assignment& a) const {
@@ -88,8 +89,10 @@ namespace Test { namespace String { namespace Channel {
 
   public:
     NatToStr(int lo0, int hi0, const std::string& alphabet0 = "09a+",
-             int max_length0 = 2, int min_length0 = 0)
-      : Test("Channel::" + name(lo0, hi0), 1, alphabet0, max_length0),
+             int max_length0 = 2, int min_length0 = 0,
+             TestTags tags=TestTags::standard())
+      : Test("Channel::" + name(lo0, hi0), 1, alphabet0, max_length0,
+             false, tags),
         lo(lo0), hi(hi0), min_length(min_length0) {}
 
     virtual bool solution(const Assignment& a) const {
@@ -129,10 +132,10 @@ namespace Test { namespace String { namespace Channel {
   StrToNat str_to_nat_wide(-1, 99);
   StrToNat str_to_nat_narrow(0, 5);
   StrToNat str_to_nat_unreachable(11, 50);
-  StrToNat str_to_nat_three_digits(0, 999, "12", 3);
-  StrToNat str_to_nat_digit_boundary(9, 101, "019", 3);
-  StrToNat str_to_nat_leading_zeros(1, 101, "019", 4);
-  StrToNat str_to_nat_invalid(-1, 101, "019a", 3);
+  StrToNat str_to_nat_three_digits(0, 999, "12", 3, TestTags::check());
+  StrToNat str_to_nat_digit_boundary(9, 101, "019", 3, TestTags::check());
+  StrToNat str_to_nat_leading_zeros(1, 101, "019", 4, TestTags::check());
+  StrToNat str_to_nat_invalid(-1, 101, "019a", 3, TestTags::check());
   StrToNat str_to_nat_equal_width(100, 219, "0129", 3);
   StrToNat str_to_nat_four_digits(10, 1001, "012", 4);
 
@@ -140,8 +143,9 @@ namespace Test { namespace String { namespace Channel {
   NatToStr nat_to_str_wide(-1, 99);
   NatToStr nat_to_str_narrow(0, 5);
   NatToStr nat_to_str_unreachable(11, 50);
-  NatToStr nat_to_str_zero(-1, 0, "01", 1, 1);
-  NatToStr nat_to_str_max_digits(0, Gecode::Int::Limits::max, "9", 10, 9);
+  NatToStr nat_to_str_zero(-1, 0, "01", 1, 1, TestTags::check());
+  NatToStr nat_to_str_max_digits(0, Gecode::Int::Limits::max, "9", 10, 9,
+                                TestTags::check());
 
 }}}
 

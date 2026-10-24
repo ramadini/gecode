@@ -62,6 +62,47 @@ namespace Gecode { namespace Search {
     /// Initialize with location \a l
     NoBest(const char* l);
   };
+  /// %Exception: Invalid requested number of search workers
+  class GECODE_SEARCH_EXPORT InvalidWorkerRequest : public Exception {
+  public:
+    /// Initialize with location \a l
+    InvalidWorkerRequest(const char* l);
+  };
+  /// %Exception: Request through an empty worker control
+  class GECODE_SEARCH_EXPORT UninitializedWorkerControl : public Exception {
+  public:
+    /// Initialize with location \a l
+    UninitializedWorkerControl(const char* l);
+  };
+  /// %Exception: Worker control is already bound or used in an unsupported engine
+  class GECODE_SEARCH_EXPORT WorkerControlInUse : public Exception {
+  public:
+    /// Initialize with location \a l
+    WorkerControlInUse(const char* l);
+  };
+#ifdef GECODE_HAS_EXPERIMENTAL
+  /// %Exception: CABS does not support search tracers
+  class GECODE_SEARCH_EXPORT UnsupportedCABSTracer : public Exception {
+  public:
+    UnsupportedCABSTracer(const char* l);
+  };
+  /// %Exception: CABS requires total-bound guidance
+  class GECODE_SEARCH_EXPORT UninitializedCABSBound : public Exception {
+  public:
+    UninitializedCABSBound(const char* l);
+  };
+  /// %Exception: A* does not support search tracers
+  class GECODE_SEARCH_EXPORT UnsupportedAStarTracer : public Exception {
+  public:
+    UnsupportedAStarTracer(const char* l);
+  };
+  /// %Exception: A* requires total-bound guidance
+  class GECODE_SEARCH_EXPORT UninitializedAStarBound : public Exception {
+  public:
+    UninitializedAStarBound(const char* l);
+  };
+#endif
+
   //@}
 }}
 

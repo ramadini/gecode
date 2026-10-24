@@ -1749,6 +1749,75 @@ namespace Gecode {
 
 
   /**
+   * \defgroup TaskModelIntInterDistance Inter-distance constraint
+   * \ingroup TaskModelInt
+   */
+  //@{
+  /** \brief Post bounds-consistent propagator for \f$|x_i-x_j|\geq p\f$ for all \f$0\leq i\neq j<|x|\f$
+   *
+   * Domains with holes are treated as intervals between their bounds.
+   *
+   * - \a IPL_BASIC checks interval feasibility in \f$O(n\log n)\f$ time
+   *   and linear temporary space, where \f$n=|x|\f$.
+   * - \a IPL_ADVANCED and \a IPL_BASIC_ADVANCED first perform
+   *   the basic check, then schedule quadratic bounds(Z) filtering at
+   *   a higher cost. This filtering uses quadratic temporary space.
+   *
+   * The default, \a IPL_DEF, uses both stages. The value/bounds/domain part
+   * of \a ipl does not affect these algorithms.
+   *
+   * A zero distance, or fewer than two variables, imposes no restriction.
+   * A distance of one is propagated as a bounds-consistent distinct constraint.
+   *
+   * The propagator uses algorithms taken from:
+   *
+   * Claude-Guy Quimper, Alejandro Lopez-Ortiz, and Gilles Pesant,
+   * A Quadratic Propagator for the Inter-Distance Constraint,
+   * AAAI, pages 123-128, 2006.
+   *
+   * and
+   *
+   * M. R. Garey, D. S. Johnson, B. B. Simons, and R. E. Tarjan,
+   * Scheduling Unit-Time Tasks with Arbitrary Release Times and Deadlines,
+   * SIAM Journal on Computing 10(2), pages 256-269, 1981.
+   *
+   * Throws Int::OutOfLimits if \a p is negative or exceeds Int::Limits::max.
+   * Throws Int::ArgumentSame if \a p is positive and \a x contains the same
+   * unassigned variable multiply.
+   */
+  GECODE_INT_EXPORT void
+  inter_distance(Home home, const IntVarArgs& x, int p,
+                 IntPropLevel ipl=IPL_DEF);
+  /** \brief Post inter-distance constraint with variable separation
+   *
+   * Constrains \f$p\geq0\f$ and \f$|x_i-x_j|\geq p\f$ for all
+   * \f$0\leq i\neq j<|x|\f$.
+   *
+   * Uses the same algorithm options as the fixed-distance overload.
+   * The basic stage additionally tightens \a p's upper bound by binary
+   * search using the linear-space feasibility checker. Its time bound
+   * is \f$O(n\log n\log(1+\max(p)))\f$. The advanced stage provides
+   * bounds(Z) consistency for \a x using the minimum of \a p, giving
+   * bounds(Z) consistency for the whole constraint.
+   *
+   * The variable-distance algorithm is taken from:
+   *
+   * Claude-Guy Quimper, Alejandro Lopez-Ortiz, and Gilles Pesant,
+   * A Quadratic Propagator for the Inter-Distance Constraint,
+   * Constraint Programming Letters 3, pages 21-35, 2008, Section 5.
+   *
+   * Fewer than two variables only constrain \a p to be nonnegative.
+   * With at least two variables, throws Int::ArgumentSame if \a p is the
+   * same unassigned variable as a member of \a x, or if \a p can be positive
+   * and \a x contains the same unassigned variable multiply.
+   */
+  GECODE_INT_EXPORT void
+  inter_distance(Home home, const IntVarArgs& x, IntVar p,
+                 IntPropLevel ipl=IPL_DEF);
+  //@}
+
+
+  /**
    * \defgroup TaskModelIntDistinct Distinct constraints
    * \ingroup TaskModelInt
    */
@@ -2192,7 +2261,12 @@ namespace Gecode {
    */
 
   /**
-   * \brief Deterministic finite automaton (%DFA)
+   * \brief Finite automaton with deterministic construction by default
+   *
+   * The constructors and init() require deterministic transitions.
+   * Use nfa() to retain nondeterministic transitions without determinization
+   * or minimization. Every transition consumes one symbol; epsilon
+   * transitions are not supported.
    *
    * After initialization, the start state is always zero.
    * The final states are contiguous ranging from the first to the
@@ -2301,6 +2375,28 @@ namespace Gecode {
     GECODE_INT_EXPORT
     DFA(int s, std::initializer_list<Transition> t,
         std::initializer_list<int> f, bool minimize=true);
+    /**
+     * \brief Construct a nondeterministic finite automaton
+     *
+     * Start state is \a s. The last transition in \a t must have -1 as
+     * its input state, and the last final state in \a f must be -1.
+     * Multiple transitions may share an input state and symbol.
+     * Every transition consumes one symbol; epsilon transitions are not
+     * supported. Unreachable states are removed, but the automaton is
+     * neither determinized nor minimized.
+     */
+    GECODE_INT_EXPORT
+    static DFA nfa(int s, Transition t[], int f[]);
+    /**
+     * \brief Construct a nondeterministic finite automaton from lists
+     *
+     * Start state is \a s, transitions are \a t, and final states are
+     * \a f. No sentinel elements are needed. As for the array overload,
+     * nondeterminism is retained and epsilon transitions are not supported.
+     */
+    GECODE_INT_EXPORT
+    static DFA nfa(int s, std::initializer_list<Transition> t,
+                   std::initializer_list<int> f);
     /// Initialize by DFA \a d (DFA is shared)
     DFA(const DFA& d);
     /// Test whether DFA is equal to \a d
@@ -2328,7 +2424,351 @@ namespace Gecode {
     std::size_t hash(void) const;
   };
 
+  /**
+   * \brief Space-local list of variables with an open length
+   *
+   * Variables can be appended until the list is closed. The length
+   * variable denotes the eventual list length. Propagation constructs the
+   * positions required by the minimum length. The known_length() query counts
+   * the constructed positions. Indexed access is limited to this prefix;
+   * get() constructs positions and constrains the eventual length to include
+   * the requested position.
+   *
+   * Handles in one Space share the same list. Updating during cloning
+   * preserves that sharing in the clone with separate mutable state.
+   *
+   * OpenIntVarList and OpenBoolVarList provide standard factories.
+   * Other variable types use a factory passed to OpenVarList<Var>, for
+   * example a function returning SetVar or FloatVar. Storage, cloning, and
+   * materialization are shared; constraint and branching overloads remain
+   * specific to the variable type. Var must provide the usual Gecode variable
+   * handle operations: default and copy construction, assignment, assigned(),
+   * varimp(), and update().
+   *
+   * Operations require an initialized list belonging to the supplied space.
+   * Appended variables must also be initialized and belong to that space.
+   *
+   * A list can be used in an ordinary Space:
+   * \code
+   * class Model : public Space {
+   * public:
+   *   OpenIntVarList x;
+   *   Model(void) : x(*this,IntSet(0,2),3) {
+   *     rel(*this,x.length(),IRT_GQ,1);
+   *     distinct(*this,x);
+   *     branch(*this,x);
+   *   }
+   *   Model(Model& s) : Space(s) {
+   *     x.update(*this,s.x);
+   *   }
+   *   virtual Space* copy(void) {
+   *     return new Model(*this);
+   *   }
+   * };
+   * \endcode
+   *
+   * The \ref CommonPattern "common-pattern example" finds constrained
+   * frequent subsequences across several inputs. The pattern length is a
+   * decision variable. The open list avoids allocating an array up to the
+   * input-length bound and encoding an unused suffix with a termination
+   * symbol. Prefix projection and regular constraints on the pattern
+   * language follow list growth.
+   * The \ref OpenRoute "open-route example" is a smaller introduction,
+   * including search and printing solutions.
+   *
+   * \ingroup TaskModelInt
+   */
+  template<class Var>
+  class OpenVarList : public LocalHandle {
+  private:
+    /// Space-local list implementation
+    class Object;
+  public:
+    /**
+     * \brief Function creating the variable at position \a i in \a home
+     *
+     * The function object is shared between clones. It must be deterministic
+     * and safe for concurrent calls. Captured data must be owned or shared
+     * and must not be space-local. Returned variables must belong to \a home
+     * and be initialized.
+     *
+     * Materialization calls the factory inside a Space::NoGPI scope.
+     * New propagators keep their information in the space and have zero
+     * AFC, so AFC-based branching does not count them. Identifiers and
+     * groups remain available. Group changes are local to the space; clones
+     * copy the current group. A callback-local
+     * Space::UseGPI scope enables global information and ordinary AFC for
+     * selected postings. Nested materialization starts a new NoGPI scope.
+     * Each scope restores the previous setting on exit, including
+     * exception unwinding.
+     */
+    typedef std::function<Var(Space& home, int i)> Factory;
+    /**
+     * \brief Function called after materializing position \a i
+     *
+     * The function object is shared between clones. It must be
+     * deterministic and safe for concurrent calls. Captured data must be
+     * owned or shared and must not be space-local; \a home and \a x refer
+     * to the current space.
+     *
+     * Calls from materialize() and direct append() run inside a
+     * Space::NoGPI scope with the same AFC and group behavior as Factory.
+     * A callback-local Space::UseGPI scope enables global information for
+     * selected postings. Nested materialize() or append() calls enter their
+     * own NoGPI scope and restore the callback's setting when they return.
+     */
+    typedef std::function<void(Space& home, OpenVarList<Var> x, int i)>
+      Transition;
+    /// Construct an uninitialized list
+    OpenVarList(void);
+    /// Construct a list using \a create for each position
+    OpenVarList(Space& home, Factory create,
+                int max=Int::Limits::max);
+    /// Construct a list using \a create and transition function \a t
+    OpenVarList(Space& home, Factory create, Transition t,
+                int max=Int::Limits::max);
+    /// Update during cloning
+    void update(Space& home, OpenVarList<Var>& s);
+    /// Return the number of constructed positions (their values may be unassigned)
+    int known_length(void) const;
+    /// Return variable at position \a i, where 0 <= \a i < known_length()
+    Var operator [](int i) const;
+    /// Return the eventual-length variable
+    IntVar length(void) const;
+    /**
+     * \brief Append variable \a x
+     *
+     * Constrains the eventual length to include the new position and calls
+     * the transition function, if supplied, inside a Space::NoGPI scope.
+     * The appended position is available to the transition through indexed
+     * access. Appending beyond the maximum eventual length fails the space.
+     *
+     * Throws an exception of type Int::ArgumentSame if \a x is an
+     * unassigned variable already in the list.
+     */
+    void append(Space& home, Var x);
+    /**
+     * \brief Materialize the first \a n variables
+     *
+     * The eventual length is constrained to be at least \a n. Positions
+     * required by its minimum are materialized, including any increase
+     * imposed by the transition function.
+     *
+     * Factory and transition calls run inside Space::NoGPI scopes by
+     * default. A callback-local Space::UseGPI scope enables global
+     * information for selected postings (see Factory).
+     */
+    void materialize(Space& home, int n);
+    /**
+     * \brief Require and return the variable at position \a i
+     *
+     * Constrains the eventual length to be at least \a i+1 and materializes
+     * positions through \a i, using the Space::NoGPI scopes documented
+     * for materialize().
+     *
+     * Returns an uninitialized variable if \a home is failed or
+     * materialization fails. Throws Int::OutOfLimits for a negative index,
+     * an index outside Int::Limits, or (in a nonfailed space) an index at
+     * least length().max(). Check for failure before using the result,
+     * for example with an integer list:
+     * \code
+     * IntVar y = x.get(home,i);
+     * if (home.failed())
+     *   return;
+     * rel(home,y,IRT_NQ,0);
+     * \endcode
+     */
+    Var get(Space& home, int i);
+    /**
+     * \brief Close the list at its materialized length
+     *
+     * First materializes any positions required by the minimum eventual
+     * length, using the Space::NoGPI scopes documented for materialize(),
+     * then assigns the eventual length to the number of positions.
+     * The contained variables can remain unassigned.
+     */
+    void close(Space& home);
+    /**
+     * \brief Subscribe \a p to the addition of positions
+     *
+     * This reports construction of positions. Subscribe separately to the
+     * length variable or contained variables for length or value changes.
+     */
+    void subscribe(Space& home, Propagator& p);
+    /// Cancel the subscription of \a p to the addition of positions
+    void cancel(Space& home, Propagator& p);
+    /// Reschedule \a p for the addition of positions
+    void reschedule(Space& home, Propagator& p);
+  };
+
+
+  /**
+   * \brief Open list of integer variables
+   * \ingroup TaskModelInt
+   */
+  class OpenIntVarList : public OpenVarList<IntVar> {
+  public:
+    /**
+     * \brief Function returning the domain for position \a i
+     *
+     * Like Factory, it must be deterministic, safe for concurrent calls, and
+     * must not capture space-local data. Captured data must be owned or shared.
+     * The function object is shared between clones.
+     */
+    typedef std::function<IntSet(int i)> Domain;
+    using OpenVarList<IntVar>::OpenVarList;
+    /// Construct an uninitialized list
+    GECODE_INT_EXPORT OpenIntVarList(void);
+    /// Share an integer list constructed through a variable factory
+    OpenIntVarList(const OpenVarList<IntVar>& x);
+    /// Construct a list with maximal length \a max and full domains
+    GECODE_INT_EXPORT
+    OpenIntVarList(Space& home, int max=Int::Limits::max);
+    /// Construct a list using domain \a d for every position
+    GECODE_INT_EXPORT
+    OpenIntVarList(Space& home, const IntSet& d,
+                   int max=Int::Limits::max);
+    /// Construct a list using domain \a d and transition function \a t
+    GECODE_INT_EXPORT
+    OpenIntVarList(Space& home, const IntSet& d, Transition t,
+                   int max=Int::Limits::max);
+    /// Construct a list using \a d to create each position
+    GECODE_INT_EXPORT
+    OpenIntVarList(Space& home, Domain d,
+                   int max=Int::Limits::max);
+    /// Construct a list using \a d and transition function \a t
+    GECODE_INT_EXPORT
+    OpenIntVarList(Space& home, Domain d, Transition t,
+                   int max=Int::Limits::max);
+  private:
+    /// Convert a position-dependent domain to a variable factory
+    static Factory factory(Domain d);
+  };
+
+  /**
+   * \brief Open list of Boolean variables
+   * \ingroup TaskModelInt
+   */
+  class OpenBoolVarList : public OpenVarList<BoolVar> {
+  public:
+    using OpenVarList<BoolVar>::OpenVarList;
+    /// Construct an uninitialized list
+    GECODE_INT_EXPORT OpenBoolVarList(void);
+    /// Share a Boolean list constructed through a variable factory
+    OpenBoolVarList(const OpenVarList<BoolVar>& x);
+    /// Construct a list with maximal length \a max and domains 0..1
+    GECODE_INT_EXPORT
+    OpenBoolVarList(Space& home, int max=Int::Limits::max);
+    /// Construct a list with domains 0..1 and transition function \a t
+    GECODE_INT_EXPORT
+    OpenBoolVarList(Space& home, Transition t,
+                    int max=Int::Limits::max);
+  };
+
 }
+
+namespace Gecode {
+
+  /**
+   * \brief Constrain all materialized variables in \a x to be distinct
+   *
+   * The constraint is value consistent and applies to variables added
+   * after posting. The propagation level \a ipl is ignored.
+   *
+   * \ingroup TaskModelIntDistinct
+   */
+  GECODE_INT_EXPORT void
+  distinct(Home home, OpenIntVarList x,
+           IntPropLevel ipl=IPL_DEF);
+
+  /**
+   * \brief Constrain consecutive materialized variables in \a x by \a irt
+   *
+   * The constraint applies to variables added after posting.
+   *
+   * \ingroup TaskModelIntRel
+   */
+  GECODE_INT_EXPORT void
+  rel(Home home, OpenIntVarList x, IntRelType irt,
+      IntPropLevel ipl=IPL_DEF);
+
+  /**
+   * \brief Post a sliding sequence constraint on \a x
+   *
+   * Each complete window of size \a q, including windows completed after
+   * posting, contains between \a l and \a u values from \a s. A list shorter
+   * than \a q has no complete windows and satisfies the constraint.
+   *
+   * \ingroup TaskModelIntSequence
+   */
+  GECODE_INT_EXPORT void
+  sequence(Home home, OpenIntVarList x, const IntSet& s,
+           int q, int l, int u, IntPropLevel ipl=IPL_DEF);
+
+  /**
+   * \brief Constrain the sum of every complete window in \a x
+   *
+   * Each complete window of size \a q, including windows completed after
+   * posting, has a sum between \a l and \a u. A list shorter than \a q has no
+   * complete windows and satisfies the constraint.
+   *
+   * \ingroup TaskModelIntSequence
+   */
+  GECODE_INT_EXPORT void
+  slidingsum(Home home, OpenIntVarList x,
+             int q, int l, int u, IntPropLevel ipl=IPL_DEF);
+
+  /**
+   * \brief Constrain \a y to the minimum of the eventual sequence \a x
+   *
+   * The eventual sequence must be nonempty. Bounds are enforced as positions
+   * appear; at least one variable must equal \a y when the list closes.
+   *
+   * \ingroup TaskModelIntArith
+   */
+  GECODE_INT_EXPORT void
+  min(Home home, OpenIntVarList x, IntVar y,
+      IntPropLevel ipl=IPL_DEF);
+
+  /**
+   * \brief Constrain \a y to the maximum of the eventual sequence \a x
+   *
+   * The eventual sequence must be nonempty. Bounds are enforced as positions
+   * appear; at least one variable must equal \a y when the list closes.
+   *
+   * \ingroup TaskModelIntArith
+   */
+  GECODE_INT_EXPORT void
+  max(Home home, OpenIntVarList x, IntVar y,
+      IntPropLevel ipl=IPL_DEF);
+
+  /**
+   * \brief Constrain \a s to precede \a t in the eventual sequence \a x
+   *
+   * Every occurrence of \a t requires an earlier occurrence of \a s;
+   * neither value is required to occur. The constraint applies to variables
+   * added after posting. The propagation level \a ipl is ignored.
+   *
+   * \ingroup TaskModelIntPrecede
+   */
+  GECODE_INT_EXPORT void
+  precede(Home home, OpenIntVarList x, int s, int t,
+          IntPropLevel ipl=IPL_DEF);
+
+  /**
+   * \brief Constrain successive values in \a c to precede each other in \a x
+   *
+   * The constraint applies to variables added after posting.
+   *
+   * \ingroup TaskModelIntPrecede
+   */
+  GECODE_INT_EXPORT void
+  precede(Home home, OpenIntVarList x, const IntArgs& c,
+          IntPropLevel ipl=IPL_DEF);
+
+}
+
+#include <gecode/int/open-var-list.hpp>
 
 #include <gecode/int/extensional/dfa.hpp>
 
@@ -2717,7 +3157,7 @@ namespace Gecode {
    * \brief Post domain consistent propagator for extensional constraint described by a DFA
    *
    * The elements of \a x must be a word of the language described by
-   * the DFA \a d.
+   * the automaton \a d, which may be constructed with DFA::nfa().
    *
    * Throws an exception of type Int::ArgumentSame, if \a x contains
    * the same unassigned variable multiply. If shared occurrences of variables
@@ -2733,7 +3173,7 @@ namespace Gecode {
    * \brief Post domain consistent propagator for extensional constraint described by a DFA
    *
    * The elements of \a x must be a word of the language described by
-   * the DFA \a d.
+   * the automaton \a d, which may be constructed with DFA::nfa().
    *
    * Throws an exception of type Int::ArgumentSame, if \a x contains
    * the same unassigned variable multiply. If shared occurrences of variables
@@ -2743,6 +3183,34 @@ namespace Gecode {
    */
   GECODE_INT_EXPORT void
   extensional(Home home, const BoolVarArgs& x, DFA d,
+              IntPropLevel ipl=IPL_DEF);
+
+  /**
+   * \brief Post an open regular-language constraint
+   *
+   * While \a x is open, its materialized prefix must have a continuation
+   * accepted by \a d within the maximum length of \a x. Future variable domains
+   * and holes in the length domain are not used to filter these continuations.
+   * Once its length equals its materialized size, the complete list must be
+   * accepted by \a d.
+   *
+   * \ingroup TaskModelIntExt
+   */
+  GECODE_INT_EXPORT void
+  extensional(Home home, OpenIntVarList x, DFA d,
+              IntPropLevel ipl=IPL_DEF);
+
+  /**
+   * \brief Post an open regular-language constraint on Boolean variables
+   *
+   * As for integer lists, the materialized prefix must have an accepted
+   * continuation within its maximum length while open, and the complete
+   * list must be accepted when closed.
+   *
+   * \ingroup TaskModelIntExt
+   */
+  GECODE_INT_EXPORT void
+  extensional(Home home, OpenBoolVarList x, DFA d,
               IntPropLevel ipl=IPL_DEF);
 
   /** \brief Post propagator for \f$x\in t\f$.
@@ -2870,6 +3338,122 @@ namespace Gecode {
 }
 
 #include <gecode/int/extensional.hpp>
+
+namespace Gecode {
+
+
+  /**
+   * \defgroup TaskModelIntMinDistance Minimum distance constraints
+   * \ingroup TaskModelInt
+   */
+  //@{
+  /** \brief Shared distances between indexed sites
+   *
+   * Distances are nonnegative, symmetric, and zero on the diagonal.
+   * No triangle inequality is required. Site indices range from zero to
+   * size()-1. Matrix entries or a callable are shared across propagators,
+   * clones, and search threads.
+   */
+  class IntDistance : public SharedHandle {
+  protected:
+    /// Shared matrix or callable
+    class Data : public SharedHandle::Object {
+    public:
+      const int n; ///< Number of sites
+      const IntSharedArray matrix; ///< Row-major matrix, empty for a callable
+      const std::function<int(int,int)> function; ///< Computed distance
+      Data(int n, const IntArgs& matrix);
+      Data(int n, std::function<int(int,int)> function);
+      virtual ~Data(void);
+    };
+  public:
+    /** \brief Copy and validate an \a n by \a n row-major distance matrix
+     *
+     * Throws Int::OutOfLimits for invalid sizes or distances,
+     * Int::ArgumentSizeMismatch for a wrong number of entries, and
+     * Int::IllegalOperation for asymmetry or a nonzero diagonal.
+     */
+    GECODE_INT_EXPORT IntDistance(int n, const IntArgs& matrix);
+    /** \brief Compute distances on demand for \a n sites
+     *
+     * The callable must return a stable, symmetric, nonnegative distance
+     * within Int::Limits, and zero for equal indices. It must own or share
+     * its captured data, be safe for concurrent calls, and not depend on a
+     * Space. Construction does not evaluate it or materialize a matrix.
+     * Results are checked for range and a zero diagonal when evaluated;
+     * symmetry is the caller's responsibility.
+     * Throws Int::OutOfLimits for an invalid site count and InvalidFunction
+     * for an empty callable.
+     */
+    GECODE_INT_EXPORT IntDistance(int n, std::function<int(int,int)> function);
+    /// Number of sites
+    int size(void) const;
+    /// Distance between valid indices \a a and \a b
+    int operator ()(int a, int b) const;
+  };
+
+  /// Organization of forward-bound minimum-distance propagation
+  enum class MinDistancePropKind {
+    MDP_DECOMPOSED,    ///< One propagator per selected-position pair
+    MDP_SINGLE         ///< One propagator with advisors and cached pair maxima
+  };
+  /// One propagator per selected-position pair
+  static constexpr MinDistancePropKind MDP_DECOMPOSED =
+    MinDistancePropKind::MDP_DECOMPOSED;
+  /// One propagator with advisors and cached pair maxima
+  static constexpr MinDistancePropKind MDP_SINGLE =
+    MinDistancePropKind::MDP_SINGLE;
+
+  /** \brief Post \f$z=\min_{i<j}d(x_i,x_j)\f$
+   *
+   * The default organization is MDP_SINGLE.
+   * Uses forward pruning from assigned endpoints and pairwise upper bounds
+   * on \a z. Both organizations implement the same filtering. MDP_DECOMPOSED
+   * retains separate actors and failure counts; MDP_SINGLE retains one
+   * actor, linear advisor state, and a quadratic array of pair witnesses.
+   * This is incomplete propagation, not full bounds or domain consistency.
+   *
+   * The forward-bound and conflict-matching algorithms follow
+   * M. Z. Lagerkvist, Propagation Algorithms for the Minimum-Distance
+   * Constraint over Selected Points, ModRef 2026.
+   *
+   * A separate greedy conflict-matching upper bound is enabled by default.
+   * IPL_BASIC disables it; IPL_ADVANCED and IPL_BASIC_ADVANCED enable it
+   * together with forward propagation. The matching certificate is weakly
+   * monotonic and may miss pruning. It uses integer thresholds and O(d.size())
+   * temporary storage, without constructing a graph or distance-level array.
+   *
+   * Domains in \a x are restricted to valid site indices; repeated sites
+   * and repeated variables are permitted. Post distinctness separately when
+   * needed. Throws Int::TooFewArguments if fewer than two positions are
+   * given, and Int::IllegalOperation for an unknown organization.
+   */
+  GECODE_INT_EXPORT void
+  minimum_distance(Home home, const IntVarArgs& x, IntVar z,
+                   const IntDistance& d, IntPropLevel ipl=IPL_DEF,
+                   MinDistancePropKind kind=MDP_SINGLE);
+  /** \brief Post the minimum-distance relation with pair requirements
+   *
+   * In addition, requires \f$d(x_i,x_j)\geq r_{ij}\f$. The \a r matrix is
+   * row-major, symmetric, nonnegative, zero on its diagonal, and has
+   * x.size() squared entries. Requirements are inclusive. Positions are
+   * labelled: ordering them is only a valid symmetry break if requirements
+   * are invariant under the corresponding permutations.
+   *
+   * Has the same propagation and argument requirements as the other
+   * overload. Throws Int::ArgumentSizeMismatch for a wrong matrix size,
+   * Int::OutOfLimits for invalid requirements, and Int::IllegalOperation
+   * for asymmetry or a nonzero diagonal.
+   */
+  GECODE_INT_EXPORT void
+  minimum_distance(Home home, const IntVarArgs& x, IntVar z,
+                   const IntDistance& d, const IntArgs& r,
+                   IntPropLevel ipl=IPL_DEF, MinDistancePropKind kind=MDP_SINGLE);
+  //@}
+
+}
+
+#include <gecode/int/min-distance.hpp>
 
 namespace Gecode {
 
@@ -3030,6 +3614,120 @@ namespace Gecode {
   GECODE_INT_EXPORT void
   mult(Home home, IntVar x0, IntVar x1, IntVar x2,
        IntPropLevel ipl=IPL_DEF);
+
+  /** \brief Post propagator for \f$\gcd(x_0,x_1)=x_2\f$
+   *
+   * The greatest common divisor is nonnegative, with
+   * \f$\gcd(0,0)=0\f$. Negative operands are interpreted by absolute
+   * value. Uses sound bounds and algebraic propagation; bounds consistency
+   * is not guaranteed. The propagation level \a ipl is currently ignored.
+   */
+  GECODE_INT_EXPORT void
+  gcd(Home home, IntVar x0, IntVar x1, IntVar x2,
+      IntPropLevel ipl=IPL_DEF);
+
+  /** \brief Post propagator for
+   * \f$(\gcd(x_0,x_1)=x_2)\leftrightarrow r\f$
+   *
+   * Supports all reification modes. The greatest common divisor is
+   * nonnegative, with \f$\gcd(0,0)=0\f$. Uses conservative algebraic
+   * entailment and disentailment tests. The propagation level \a ipl is
+   * currently ignored.
+   */
+  GECODE_INT_EXPORT void
+  gcd(Home home, IntVar x0, IntVar x1, IntVar x2, Reify r,
+      IntPropLevel ipl=IPL_DEF);
+
+  /** \brief Reify whether \a divisor divides \a dividend
+   *
+   * Divisibility means that an integer \f$k\f$ exists such that
+   * \f$dividend=divisor\cdot k\f$. Consequently, zero divides zero, but
+   * zero does not divide a nonzero integer. Supports all reification modes.
+   * Uses bounds and conservative algebraic propagation; bounds consistency
+   * is not guaranteed. The propagation level \a ipl is currently ignored.
+   */
+  GECODE_INT_EXPORT void
+  divides(Home home, IntVar divisor, IntVar dividend, Reify r,
+          IntPropLevel ipl=IPL_DEF);
+
+  /** \brief Constrain \a y to the exact product of the variables in \a x
+   *
+   * The product of an empty array is one.
+   * Uses bounds and algebraic propagation, without guaranteeing bounds
+   * consistency. The propagation level \a ipl is currently ignored.
+   * \ingroup TaskModelInt
+   */
+  GECODE_INT_EXPORT void
+  product(Home home, const IntVarArgs& x, IntVar y,
+          IntPropLevel ipl=IPL_DEF);
+
+  /** \brief Reify whether \a y is the exact product of the variables in \a x
+   *
+   * The product of an empty array is one.
+   * Supports all reification modes using conservative algebraic tests.
+   * The propagation level \a ipl is currently ignored.
+   * \ingroup TaskModelInt
+   */
+  GECODE_INT_EXPORT void
+  product(Home home, const IntVarArgs& x, IntVar y, Reify r,
+          IntPropLevel ipl=IPL_DEF);
+
+  /** \brief Constrain \a y to the product of \a x modulo \a m
+   *
+   * The modulus \a m must be positive. The result uses the canonical
+   * Euclidean residue in the range zero through \a m minus one. The product
+   * of an empty array is one.
+   * Unlike mod(), a negative product still has a nonnegative residue.
+   * Uses bounds and algebraic propagation, without guaranteeing bounds
+   * consistency. The propagation level \a ipl is currently ignored.
+   * Throws Int::OutOfLimits if \a m is nonpositive or exceeds Int::Limits::max.
+   * \ingroup TaskModelInt
+   */
+  GECODE_INT_EXPORT void
+  product_mod(Home home, const IntVarArgs& x, int m, IntVar y,
+              IntPropLevel ipl=IPL_DEF);
+
+  /** \brief Reify whether \a y is the product of \a x modulo \a m
+   *
+   * The modulus \a m must be positive. The result uses the canonical
+   * Euclidean residue in the range zero through \a m minus one. The product
+   * of an empty array is one.
+   * Supports all reification modes using conservative algebraic tests,
+   * without guaranteeing bounds consistency; \a ipl is currently ignored.
+   * Throws Int::OutOfLimits if \a m is nonpositive or exceeds Int::Limits::max,
+   * even for an inactive implication.
+   * \ingroup TaskModelInt
+   */
+  GECODE_INT_EXPORT void
+  product_mod(Home home, const IntVarArgs& x, int m, IntVar y, Reify r,
+              IntPropLevel ipl=IPL_DEF);
+
+  /** \brief Constrain \a y to the product of \a x modulo \a m
+   *
+   * The variable modulus \a m is constrained to be positive and \a y uses
+   * the canonical Euclidean residue, so that \f$0\leq y<m\f$. The product
+   * of an empty array is one.
+   * Uses bounds and algebraic propagation, without guaranteeing bounds
+   * consistency. The propagation level \a ipl is currently ignored.
+   * \ingroup TaskModelInt
+   */
+  GECODE_INT_EXPORT void
+  product_mod(Home home, const IntVarArgs& x, IntVar m, IntVar y,
+              IntPropLevel ipl=IPL_DEF);
+
+  /** \brief Reify whether \a y is the product of \a x modulo \a m
+   *
+   * The reified proposition includes \f$m>0\f$, the canonical range
+   * \f$0\leq y<m\f$, and congruence with the product. The product of an
+   * empty array is one.
+   * Supports all reification modes using conservative algebraic tests,
+   * without guaranteeing bounds consistency; \a ipl is currently ignored.
+   * An inactive implication does not constrain the modulus or result.
+   * \ingroup TaskModelInt
+   */
+  GECODE_INT_EXPORT void
+  product_mod(Home home, const IntVarArgs& x, IntVar m, IntVar y, Reify r,
+              IntPropLevel ipl=IPL_DEF);
 
   /** \brief Post propagator for \f$x_0\ \mathrm{div}\ x_1=x_2 \land x_0\ \mathrm{mod}\ x_1 = x_3\f$
    *
@@ -3843,10 +4541,17 @@ namespace Gecode {
    * propagation level \a ipl as follows:
    *  - If \a IPL_BASIC is set, the propagator performs overload checking
    *    and time-tabling propagation.
-   *  - If \a IPL_ADVANCED is set, the propagator performs overload checking
-   *    and edge finding.
+   *  - If \a IPL_ADVANCED is set, the propagator performs overload checking,
+   *    edge finding, and bounded knapsack-augmented overload checking for
+   *    fixed-processing tasks.
    *  - If both flags are combined, all the above listed propagation is
    *    performed.
+   *
+   * The knapsack check runs for 4 to 64 participating tasks when the
+   * current capacity upper bound is between 2 and 127. Each task must have
+   * a fixed processing time. Each demand must be positive and at most that
+   * bound, with at least one demand above 1.
+   * Outside these limits, only the knapsack check is skipped.
    *
    * The propagator uses algorithms taken from:
    *
@@ -3859,6 +4564,11 @@ namespace Gecode {
    * Petr Vilím, Edge finding filtering algorithm for discrete cumulative
    * resources in O(kn log n). In I. P. Gent, editor, CP, volume 5732 of LNCS,
    * pages 802-816. Springer, 2009.
+   *
+   * and
+   *
+   * Samuel Cloutier and Claude-Guy Quimper, Augmenting the Cumulative
+   * Overload Check with Integral Resource Usage Reasoning, CP, 2026.
    *
    *  - Throws an exception of type Int::ArgumentSizeMismatch, if \a t, \a s
    *    \a p, or \a u are of different size.
@@ -3902,10 +4612,17 @@ namespace Gecode {
    * propagation level \a ipl as follows:
    *  - If \a IPL_BASIC is set, the propagator performs overload checking
    *    and time-tabling propagation.
-   *  - If \a IPL_ADVANCED is set, the propagator performs overload checking
-   *    and edge finding.
+   *  - If \a IPL_ADVANCED is set, the propagator performs overload checking,
+   *    edge finding, and bounded knapsack-augmented overload checking for
+   *    fixed-processing tasks.
    *  - If both flags are combined, all the above listed propagation is
    *    performed.
+   *
+   * The knapsack check considers only currently mandatory tasks. It runs
+   * for 4 to 64 such tasks when the current capacity upper bound is between
+   * 2 and 127. Each task must have a fixed processing time. Each demand must
+   * be positive and at most that bound, with at least one demand above 1.
+   * Outside these limits, only the knapsack check is skipped.
    *
    * The propagator uses algorithms taken from:
    *
@@ -3918,6 +4635,11 @@ namespace Gecode {
    * Petr Vilím, Edge finding filtering algorithm for discrete cumulative
    * resources in O(kn log n). In I. P. Gent, editor, CP, volume 5732 of LNCS,
    * pages 802-816. Springer, 2009.
+   *
+   * and
+   *
+   * Samuel Cloutier and Claude-Guy Quimper, Augmenting the Cumulative
+   * Overload Check with Integral Resource Usage Reasoning, CP, 2026.
    *
    *  - Throws an exception of type Int::ArgumentSizeMismatch, if \a t, \a s
    *    \a p, or \a u are of different size.
@@ -3947,10 +4669,17 @@ namespace Gecode {
    * propagation level \a ipl as follows:
    *  - If \a IPL_BASIC is set, the propagator performs overload checking
    *    and time-tabling propagation.
-   *  - If \a IPL_ADVANCED is set, the propagator performs overload checking
-   *    and edge finding.
+   *  - If \a IPL_ADVANCED is set, the propagator performs overload checking,
+   *    edge finding, and bounded knapsack-augmented overload checking for
+   *    fixed-processing tasks.
    *  - If both flags are combined, all the above listed propagation is
    *    performed.
+   *
+   * The knapsack check runs for 4 to 64 participating tasks when the
+   * current capacity upper bound is between 2 and 127. Each task must have
+   * a fixed processing time. Each demand must be positive and at most that
+   * bound, with at least one demand above 1.
+   * Outside these limits, only the knapsack check is skipped.
    *
    * The propagator uses algorithms taken from:
    *
@@ -3963,6 +4692,11 @@ namespace Gecode {
    * Petr Vilím, Edge finding filtering algorithm for discrete cumulative
    * resources in O(kn log n). In I. P. Gent, editor, CP, volume 5732 of LNCS,
    * pages 802-816. Springer, 2009.
+   *
+   * and
+   *
+   * Samuel Cloutier and Claude-Guy Quimper, Augmenting the Cumulative
+   * Overload Check with Integral Resource Usage Reasoning, CP, 2026.
    *
    *  - Throws an exception of type Int::ArgumentSizeMismatch, if \a s
    *    \a p, or \a u are of different size.
@@ -3992,10 +4726,17 @@ namespace Gecode {
    * propagation level \a ipl as follows:
    *  - If \a IPL_BASIC is set, the propagator performs overload checking
    *    and time-tabling propagation.
-   *  - If \a IPL_ADVANCED is set, the propagator performs overload checking
-   *    and edge finding.
+   *  - If \a IPL_ADVANCED is set, the propagator performs overload checking,
+   *    edge finding, and bounded knapsack-augmented overload checking for
+   *    fixed-processing tasks.
    *  - If both flags are combined, all the above listed propagation is
    *    performed.
+   *
+   * The knapsack check considers only currently mandatory tasks. It runs
+   * for 4 to 64 such tasks when the current capacity upper bound is between
+   * 2 and 127. Each task must have a fixed processing time. Each demand must
+   * be positive and at most that bound, with at least one demand above 1.
+   * Outside these limits, only the knapsack check is skipped.
    *
    * The propagator uses algorithms taken from:
    *
@@ -4008,6 +4749,11 @@ namespace Gecode {
    * Petr Vilím, Edge finding filtering algorithm for discrete cumulative
    * resources in O(kn log n). In I. P. Gent, editor, CP, volume 5732 of LNCS,
    * pages 802-816. Springer, 2009.
+   *
+   * and
+   *
+   * Samuel Cloutier and Claude-Guy Quimper, Augmenting the Cumulative
+   * Overload Check with Integral Resource Usage Reasoning, CP, 2026.
    *
    *  - Throws an exception of type Int::ArgumentSizeMismatch, if \a s,
    *    \a p, \a u, or \a m are of different size.
@@ -5436,6 +6182,70 @@ namespace Gecode {
   GECODE_INT_EXPORT void
   branch(Home home, IntVar x, IntValBranch vals,
          IntVarValPrint vvp=nullptr);
+  /**
+   * \brief Branch over the eventual integer list \a x
+   *
+   * Selects the first unassigned materialized variable and its minimum
+   * value. Once all materialized variables are assigned, tries closing the
+   * list before extending it by one position.
+   * \ingroup TaskModelIntBranch
+   */
+  GECODE_INT_EXPORT void
+  branch(Home home, OpenIntVarList x);
+  /**
+   * \brief Branch over the eventual Boolean list \a x
+   * \ingroup TaskModelIntBranch
+   */
+  GECODE_INT_EXPORT void
+  branch(Home home, OpenBoolVarList x);
+  /**
+   * \brief Branch over an open integer list with standard selectors
+   *
+   * Selectors consider all materialized positions accepted by the filter.
+   * Once no unassigned variable is accepted, the brancher tries closing at
+   * known_length() before requiring another position and resuming
+   * value selection. Filters and callbacks receive the position in the list.
+   * Variables rejected by the filter may remain unassigned in a solution.
+   * Without a practical bound on list length, search can be very expensive.
+   *
+   * To decide the length before list values, post an ordinary brancher on
+   * x.length() before the list brancher, for example:
+   * \code
+   * branch(home,x.length(),INT_VAL_MIN());
+   * branch(home,x,INT_VAR_SIZE_MIN(),INT_VAL_MIN());
+   * \endcode
+   * Branchers run in posting order. Once the length is assigned, propagation
+   * materializes that many positions before the list brancher selects values.
+   *
+   * Action and CHB selection require the complete list to be materialized
+   * when posting; otherwise Int::UnknownBranching is thrown.
+   * \ingroup TaskModelIntBranch
+   */
+  GECODE_INT_EXPORT void
+  branch(Home home, OpenIntVarList x,
+         IntVarBranch vars, IntValBranch vals,
+         IntBranchFilter bf=nullptr, IntVarValPrint vvp=nullptr);
+  /// Branch over an open integer list with tie-breaking selectors
+  GECODE_INT_EXPORT void
+  branch(Home home, OpenIntVarList x,
+         TieBreak<IntVarBranch> vars, IntValBranch vals,
+         IntBranchFilter bf=nullptr, IntVarValPrint vvp=nullptr);
+  /**
+   * \brief Branch over an open Boolean list with standard selectors
+   *
+   * The incremental branching, filter, and Action/CHB restrictions are as
+   * for integers.
+   * \ingroup TaskModelIntBranch
+   */
+  GECODE_INT_EXPORT void
+  branch(Home home, OpenBoolVarList x,
+         BoolVarBranch vars, BoolValBranch vals,
+         BoolBranchFilter bf=nullptr, BoolVarValPrint vvp=nullptr);
+  /// Branch over an open Boolean list with tie-breaking selectors
+  GECODE_INT_EXPORT void
+  branch(Home home, OpenBoolVarList x,
+         TieBreak<BoolVarBranch> vars, BoolValBranch vals,
+         BoolBranchFilter bf=nullptr, BoolVarValPrint vvp=nullptr);
   /**
    * \brief Branch over \a x with variable selection \a vars and value selection \a vals
    *
