@@ -58,7 +58,10 @@ set(GECODE_EXAMPLE_SOURCES
   sports-league.cpp
   steel-mill.cpp
   steiner.cpp
+  string-dna.cpp
+  string-frame.cpp
   string-palindrome.cpp
+  string-unicode-equation.cpp
   sudoku-advanced.cpp
   sudoku.cpp
   tsp.cpp
@@ -77,7 +80,10 @@ set(GECODE_FLOAT_EXAMPLES
   descartes-folium)
 
 set(GECODE_STRING_EXAMPLES
-  string-palindrome)
+  string-dna
+  string-frame
+  string-palindrome
+  string-unicode-equation)
 
 set(GECODE_MPFR_FLOAT_EXAMPLES
   archimedean-spiral

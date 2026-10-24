@@ -1046,7 +1046,7 @@ SETEXAMPLEEXE  =
 endif
 
 STRINGEXAMPLESRC0 = \
-	string-palindrome
+	string-dna string-frame string-palindrome string-unicode-equation
 STRINGEXAMPLESRC  = $(STRINGEXAMPLESRC0:%=examples/%.cpp)
 ifeq "@enable_string_vars@" "yes"
 STRINGEXAMPLEEXE  = $(STRINGEXAMPLESRC:%.cpp=%$(EXESUFFIX))
