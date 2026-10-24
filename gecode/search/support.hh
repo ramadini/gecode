@@ -51,6 +51,9 @@ namespace Gecode { namespace Search {
   public:
     /// Initialization
     WorkerToEngine(Space* s, const Options& o);
+    /// Initialization with additional worker configuration
+    template<class Configuration>
+    WorkerToEngine(Space* s, const Options& o, const Configuration& configuration);
     /// Return next solution (nullptr, if none exists or search has been stopped)
     virtual Space* next(void);
     /// Return statistics
@@ -75,7 +78,12 @@ namespace Gecode { namespace Search {
 
   template<class Worker>
   WorkerToEngine<Worker>::WorkerToEngine(Space* s, const Options& o)
-    : w(s,o) {}
+    : Engine(o,1U), w(s,o) {}
+  template<class Worker>
+  template<class Configuration>
+  WorkerToEngine<Worker>::WorkerToEngine(Space* s, const Options& o,
+                                        const Configuration& configuration)
+    : Engine(o,1U), w(s,o,configuration) {}
   template<class Worker>
   Space*
   WorkerToEngine<Worker>::next(void) {

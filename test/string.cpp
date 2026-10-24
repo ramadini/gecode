@@ -272,8 +272,9 @@ namespace Test { namespace String {
   }
 
   Test::Test(const std::string& name, int arity0,
-             const std::string& alphabet0, int max_length0, bool reified0)
-    : Base("String::" + name), arity(arity0), alphabet(alphabet0),
+             const std::string& alphabet0, int max_length0, bool reified0,
+             TestTags tags)
+    : Base("String::" + name, tags), arity(arity0), alphabet(alphabet0),
       max_length(max_length0), reified(reified0) {}
 
   void

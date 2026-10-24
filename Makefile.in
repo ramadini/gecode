@@ -266,21 +266,25 @@ SEARCHSRC0 = \
 	dfs bab lds \
 	seq/rbs seq/dead seq/pbs par/pbs \
 	rbs pbs nogoods exception tracer \
-	cpprofiler/tracer
+	cpprofiler/tracer worker-control
 SEARCHHDR0 = \
 	statistics.hpp stop.hpp options.hpp cutoff.hpp \
-	support.hh worker.hh exception.hpp engine.hpp base.hpp \
+	support.hh beam-heap.hh worker.hh worker-control.hh exception.hpp engine.hpp base.hpp \
 	nogoods.hh nogoods.hpp build.hpp traits.hpp sebs.hpp \
 	seq/path.hh seq/path.hpp seq/dfs.hh seq/dfs.hpp \
-	seq/bab.hh seq/bab.hpp seq/lds.hh seq/lds.hpp \
-	seq/rbs.hh seq/rbs.hpp seq/dead.hh \
+	seq/bab.hh seq/bab.hpp seq/astar.hh seq/cabs.hh seq/lds.hh seq/lds.hpp \
+	seq/rbs.hh seq/rbs.hpp seq/dead.hh seq/choice-expansion.hh \
 	seq/pbs.hh seq/pbs.hpp \
 	par/path.hh par/path.hpp par/engine.hh par/engine.hpp \
 	par/dfs.hh par/dfs.hpp par/bab.hh par/bab.hpp \
-	par/pbs.hh par/pbs.hpp \
-	dfs.hpp bab.hpp lds.hpp rbs.hpp pbs.hpp \
+	par/pbs.hh par/pbs.hpp par/frontier.hh \
+	dfs.hpp bab.hpp astar.hpp cabs.hpp lds.hpp rbs.hpp pbs.hpp \
 	relax.hh tracer.hpp trace-recorder.hpp \
 	cpprofiler/message.hpp cpprofiler/connector.hpp
+
+ifeq "@enable_experimental@" "yes"
+SEARCHSRC0 += astar cabs par/frontier
+endif
 
 SEARCHSRC	= $(SEARCHSRC0:%=gecode/search/%.cpp)
 SEARCHHDR	= gecode/search.hh $(SEARCHHDR0:%=gecode/search/%)
@@ -323,7 +327,9 @@ INTSRC0 = \
 	int-set.cpp var-imp/int.cpp var-imp/bool.cpp var/int.cpp \
 	var/bool.cpp array.cpp bool.cpp bool/eqv.cpp \
 	extensional/dfa.cpp extensional/tuple-set.cpp \
-	extensional-regular.cpp extensional-tuple-set.cpp \
+	extensional-regular.cpp extensional-open-regular.cpp \
+	extensional-tuple-set.cpp \
+	open-var-list.cpp \
 	dom.cpp rel.cpp precede.cpp element.cpp count.cpp \
 	arithmetic.cpp exec.cpp \
 	exec/when.cpp element/pair.cpp \
@@ -337,8 +343,8 @@ INTSRC0 = \
 	bin-packing/conflict-graph.cpp \
 	order.cpp order/propagate.cpp \
 	unary.cpp cumulative.cpp cumulatives.cpp \
-	circuit.cpp no-overlap.cpp nvalues.cpp \
-	member.cpp branch/action.cpp branch/chb.cpp \
+	circuit.cpp no-overlap.cpp inter-distance.cpp nvalues.cpp \
+	member.cpp min-distance.cpp branch/action.cpp branch/chb.cpp \
 	arithmetic/mult.cpp  \
 	branch/view-sel.cpp branch/val-sel-commit.cpp \
 	branch/view-values.cpp \
@@ -348,11 +354,13 @@ INTSRC0 = \
 	exception.cpp
 
 INTHDR0 = \
+	open-var-list.hpp \
 	limits.hpp support-values.hh support-values.hpp \
 	idx-view.hh idx-view.hpp div.hh div.hpp \
 	exec.hh exec/when.hpp \
 	arithmetic/abs.hpp arithmetic/max.hpp arithmetic/argmax.hpp \
-	arithmetic/mult.hpp arithmetic/divmod.hpp \
+	arithmetic/mult.hpp arithmetic/gcd.hpp arithmetic/divides.hpp \
+	arithmetic/product.hpp arithmetic/product-mod.hpp arithmetic/divmod.hpp \
 	arithmetic/pow-ops.hpp arithmetic/pow.hpp arithmetic/nroot.hpp \
 	bool/or.hpp bool/eq.hpp bool/lq.hpp bool/eqv.hpp bool/base.hpp \
 	bool/clause.hpp bool/ite.hpp \
@@ -397,7 +405,8 @@ INTHDR0 = \
 	view/offset.hpp view/rel-test.hpp view/scale.hpp view/iter.hpp \
 	arithmetic.hh array.hpp array-traits.hpp bool.hh branch.hh \
 	distinct.hh dom.hh \
-	element.hh exception.hpp  gcc.hh linear.hh \
+	element.hh min-distance.hh min-distance.hpp min-distance/prop.hpp \
+	exception.hpp  gcc.hh linear.hh \
 	reify.hpp propagator.hpp extensional.hh rel.hh \
 	sorted.hh var-imp.hpp view.hpp ipl.hpp irt.hpp \
 	channel.hh channel.hpp channel/dom.hpp channel/val.hpp \
@@ -417,6 +426,7 @@ INTHDR0 = \
 	unary/man-prop.hpp unary/opt-prop.hpp unary/post.hpp \
 	cumulative.hh cumulative/man-prop.hpp cumulative/opt-prop.hpp \
 	cumulative/task-view.hpp cumulative/overload.hpp \
+	cumulative/knapsack-overload.hpp \
 	cumulative/time-tabling.hpp cumulative/task.hpp \
 	cumulative/edge-finding.hpp cumulative/post.hpp \
 	cumulative/tree.hpp cumulative/limits.hpp \
@@ -425,7 +435,7 @@ INTHDR0 = \
 	circuit.hh circuit/base.hpp circuit/val.hpp circuit/dom.hpp \
 	no-overlap.hh no-overlap/dim.hpp no-overlap/box.hpp \
 	no-overlap/base.hpp no-overlap/man.hpp no-overlap/opt.hpp \
-	nvalues.hh nvalues/range-event.hpp \
+	inter-distance.hh nvalues.hh nvalues/range-event.hpp \
 	nvalues/sym-bit-matrix.hpp nvalues/graph.hpp \
 	nvalues/bool-base.hpp nvalues/bool-eq.hpp \
 	nvalues/bool-lq.hpp nvalues/bool-gq.hpp \
@@ -555,7 +565,8 @@ FLOATBUILDDIRS	= \
 
 STRINGSRC0 = \
 	var/string.cpp var-imp/string.cpp dashed/dashed-string.cpp exception.cpp \
-	array.cpp branch.cpp length.cpp char2code.cpp pow.cpp find.cpp rel.cpp rel-op.cpp substr.cpp \
+	array.cpp branch.cpp length.cpp char2code.cpp concat.cpp pow.cpp find.cpp \
+	rel.cpp rel-op.cpp replace.cpp substr.cpp \
 	gcc.cpp gconcat.cpp extensional.cpp element.cpp channel.cpp match.cpp
 
 STRINGHDR0 = \
@@ -884,14 +895,16 @@ endif
 # FLATZINC
 #
 
-FLATZINCSRC0 = flatzinc.cpp registry.cpp branch.cpp blackbox-backend.cpp \
+FLATZINCSRC0 = flatzinc.cpp registry.cpp registry-set.cpp registry-float.cpp \
+  registry-scheduling.cpp branch.cpp blackbox-backend.cpp \
   blackbox-process-none.cpp blackbox-process-posix.cpp \
   blackbox-process-windows.cpp blackbox-propagator.cpp
 FLATZINC_GENSRC0 = parser.tab.cpp lexer.yy.cpp
 FLATZINCHDR0 = ast.hh conexpr.hh option.hh parser.hh \
 	plugin.hh registry.hh symboltable.hh varspec.hh \
 	branch.hh branch.hpp lastval.hh complete.hh
-FLATZINCPRIVATEHDR0 = blackbox.hh blackbox-backend.hh blackbox-process.hh
+FLATZINCPRIVATEHDR0 = registry-internal.hh blackbox.hh \
+  blackbox-backend.hh blackbox-process.hh
 
 FLATZINCSRC = $(FLATZINCSRC0:%=gecode/flatzinc/%)
 FLATZINC_GENSRC = $(FLATZINC_GENSRC0:%=gecode/flatzinc/%)
@@ -981,10 +994,16 @@ INTEXAMPLESRC0 =						\
 	word-square crossword open-shop car-sequencing sat      \
 	bin-packing knights tsp perfect-square schurs-lemma     \
 	dominating-queens colored-matrix multi-bin-packing	\
-	qcp job-shop
+	qcp job-shop open-route common-pattern fifteen-puzzle
 
 
-INTEXAMPLEHDR  = $(INTEXAMPLEHDR0:%=examples/%.hpp)
+ifeq "@enable_experimental@" "yes"
+INTEXAMPLESRC0 += tsptw
+endif
+
+INTEXAMPLEHDR  = $(INTEXAMPLEHDR0:%=examples/%.hpp) \
+	examples/common-pattern.hh \
+	examples/tsptw-data.hh examples/tsptw-transition.hh
 INTEXAMPLESRC  = $(INTEXAMPLESRC0:%=examples/%.cpp)
 ifeq "@enable_examples@" "yes"
 INSTALLEXAMPLEHDR = $(INTEXAMPLEHDR)
@@ -1174,12 +1193,13 @@ else
 STATICTARGETS=
 endif
 
-export LIBTARGETS = $(DLLTARGETS) $(STATICTARGETS)
+export LIBTARGETS = $(DLLTARGETS) $(STATICTARGETS) $(TESTPUBLICINSTALLLIBTARGETS)
 
 ifeq "@need_soname@" "yes"
 export LIBLINKTARGETS = \
 	$(DLLTARGETS:%$(DLLSUFFIX)=%$(SOSUFFIX)) \
-	$(DLLTARGETS:%$(DLLSUFFIX)=%$(SOLINKSUFFIX))
+	$(DLLTARGETS:%$(DLLSUFFIX)=%$(SOLINKSUFFIX)) \
+	$(TESTPUBLICINSTALLLIBLINKTARGETS)
 else
 export LIBLINKTARGETS =
 endif
@@ -1187,8 +1207,8 @@ endif
 PDBS = $(ALLLIB:%$(LIBSUFFIX)=%$(PDBSUFFIX))
 
 ifeq "@INSTALLLIBS@" "yes"
-LIBLIBTARGETS = $(ALLLIB)
-PDBTARGETS = $(PDBS)
+LIBLIBTARGETS = $(ALLLIB) $(TESTPUBLICINSTALLLIBLIBTARGETS)
+PDBTARGETS = $(PDBS) $(TESTPUBLICINSTALLPDBTARGETS)
 else
 LIBLIBTARGETS =
 PDBTARGETS =
@@ -1202,10 +1222,10 @@ EXETARGETS = $(FLATZINCEXE) $(FLATZINCLAUNCHER) $(FLATZINCDASHEDLAUNCHERS)
 
 INTTESTSRC00 = \
 	channel arithmetic basic bool count dom distinct element extensional \
-	rel linear gcc sorted unshare exec sequence \
+	rel linear gcc sorted unshare exec sequence open-var-list \
 	mm-arithmetic mm-bool mm-lin mm-count mm-rel \
 	bin-packing order unary cumulative cumulatives circuit \
-	no-overlap precede nvalues member
+	no-overlap precede inter-distance nvalues member min-distance
 INTTESTSRC0 = test/int.cpp $(INTTESTSRC00:%=test/int/%.cpp)
 INTTESTOBJ = $(INTTESTSRC0:%.cpp=%$(OBJSUFFIX))
 
@@ -1222,7 +1242,7 @@ endif
 
 STRINGTESTSRC00 = \
 	rel rel-op extensional predicates length channel gcc char2code element find \
-	char-at substring match replace
+	char-at substring match replace branch var
 STRINGTESTSRC0 = test/string.cpp $(STRINGTESTSRC00:%=test/string/%.cpp)
 ifeq "@enable_string_vars@" "yes"
 STRINGTESTOBJ = $(STRINGTESTSRC0:%.cpp=%$(OBJSUFFIX))
@@ -1250,6 +1270,7 @@ FLATZINCTESTSRC0 = \
   test/flatzinc/bugfix_r7854.cpp \
   test/flatzinc/empty_domain_1.cpp \
   test/flatzinc/empty_domain_2.cpp \
+  test/flatzinc/native-registry.cpp \
   test/flatzinc/int_set_as_type1.cpp \
   test/flatzinc/int_set_as_type2.cpp \
   test/flatzinc/issue166.cpp \
@@ -1373,11 +1394,35 @@ BLACKBOXEXECSRC = test/flatzinc/blackbox-exec.cpp
 BLACKBOXDLLSRC = test/flatzinc/blackbox-dll.cpp
 BLACKBOXSRC = $(BLACKBOXEXECSRC) $(BLACKBOXDLLSRC)
 
-TESTSRC0 = test/test.cpp test/afc.cpp test/ldsb.cpp test/region.cpp \
+TESTCORESRC = test/test.cpp
+TESTCOREOBJ = $(TESTCORESRC:%.cpp=%$(OBJSUFFIX))
+TESTMAINSRC = test/test-main.cpp
+TESTMAINOBJ = $(TESTMAINSRC:%.cpp=%$(OBJSUFFIX))
+TESTINTSEAMSRC = test/int.cpp
+TESTINTSEAMOBJ = $(TESTINTSEAMSRC:%.cpp=%$(OBJSUFFIX))
+TESTSETSEAMSRC = test/set.cpp
+TESTSETSEAMOBJ = $(TESTSETSEAMSRC:%.cpp=%$(OBJSUFFIX))
+TESTFLOATSEAMSRC = test/float.cpp
+TESTFLOATSEAMOBJ = $(TESTFLOATSEAMSRC:%.cpp=%$(OBJSUFFIX))
+TESTPUBLICRUNNERSMOKESRC = test/public-runner-smoke.cpp
+TESTPUBLICRUNNERSMOKEOBJ = $(TESTPUBLICRUNNERSMOKESRC:%.cpp=%$(OBJSUFFIX))
+TESTPUBLICINTSMOKESRC = test/public-int-smoke.cpp
+TESTPUBLICINTSMOKEOBJ = $(TESTPUBLICINTSMOKESRC:%.cpp=%$(OBJSUFFIX))
+TESTPUBLICSETSMOKESRC = test/public-set-smoke.cpp
+TESTPUBLICSETSMOKEOBJ = $(TESTPUBLICSETSMOKESRC:%.cpp=%$(OBJSUFFIX))
+TESTPUBLICFLOATSMOKESRC = test/public-float-smoke.cpp
+TESTPUBLICFLOATSMOKEOBJ = $(TESTPUBLICFLOATSMOKESRC:%.cpp=%$(OBJSUFFIX))
+TESTAUXOBJ = $(TESTMAINOBJ) $(TESTPUBLICRUNNERSMOKEOBJ) \
+	$(TESTPUBLICINTSMOKEOBJ) $(TESTPUBLICSETSMOKEOBJ) \
+	$(TESTPUBLICFLOATSMOKEOBJ)
+
+TESTSRC0 = $(TESTCORESRC) test/afc.cpp test/ldsb.cpp test/region.cpp \
 	test/groups.cpp
 # FailPoint is CMake-only; keep the Autoconf test executable fault-free.
 
 TESTSRC = \
+	$(TESTMAINSRC) $(TESTPUBLICRUNNERSMOKESRC) $(TESTPUBLICINTSMOKESRC) \
+	$(TESTPUBLICSETSMOKESRC) $(TESTPUBLICFLOATSMOKESRC) \
 	$(TESTSRC0) $(INTTESTSRC0) $(SETTESTSRC0) $(FLOATTESTSRC0) $(STRINGTESTSRC0) \
 	$(BRANCHTESTSRC0) $(SEARCHTESTSRC0) \
 	$(ARRAYTESTSRC0) $(FLATZINCTESTSRC0) $(BLACKBOXSRC)
@@ -1386,14 +1431,148 @@ TESTHDR0 = \
 	test.hh test.hpp int.hh int.hpp set.hh set.hpp float.hh float.hpp string.hh string.hpp \
 	branch.hh assign.hh flatzinc.hh
 TESTHDR = $(TESTHDR0:%=test/%)
-TESTOBJ	= $(INTTESTOBJ) $(SETTESTOBJ) $(FLOATTESTOBJ) $(STRINGTESTOBJ) \
+
+TESTPUBLICINSTALLHDR =
+TESTPUBLICINSTALLLIBTARGETS =
+TESTPUBLICINSTALLLIBLINKTARGETS =
+TESTPUBLICINSTALLLIBLIBTARGETS =
+TESTPUBLICINSTALLPDBTARGETS =
+TESTPUBLICLIBTARGETS =
+TESTHARNESSOBJ =
+ifeq "@enable_search@" "yes"
+ifeq "@enable_int_vars@" "yes"
+TESTPUBLICINSTALLHDR += test/test.hh test/test.hpp
+TESTHARNESSOBJ += $(TESTCOREOBJ)
+export TESTCOREDLL = $(LIBPREFIX)test$(DLLSUFFIX)
+export TESTCORELIB = $(LIBPREFIX)test$(LIBSUFFIX)
+export TESTCORESTATICLIB = $(LIBPREFIX)test$(STATICLIBSUFFIX)
+export LINKTESTCORE = $(LINKPREFIX)test$(LINKSUFFIX)
+ifeq "@need_soname@" "yes"
+TESTCORESONAME = @WLSONAME@$(LIBPREFIX)test$(SOSUFFIX)
+endif
+ifeq "@enable_resource@" "yes"
+TESTCORERC = $(LIBPREFIX)test$(RCSUFFIX)
+TESTCORERES = $(LIBPREFIX)test$(RESSUFFIX)
+endif
+ifeq "@BUILDDLL@" "yes"
+TESTPUBLICINSTALLLIBTARGETS += $(TESTCOREDLL)
+TESTPUBLICINSTALLLIBLINKTARGETS += $(TESTCOREDLL:%$(DLLSUFFIX)=%$(SOLINKSUFFIX)) $(TESTCOREDLL:%$(DLLSUFFIX)=%$(SOSUFFIX))
+TESTPUBLICINSTALLLIBLIBTARGETS += $(TESTCORELIB)
+TESTPUBLICINSTALLPDBTARGETS += $(TESTCORELIB:%$(LIBSUFFIX)=%$(PDBSUFFIX))
+TESTPUBLICLIBTARGETS += $(TESTCORELIB)
+else
+TESTPUBLICLIBTARGETS += $(TESTCORESTATICLIB)
+endif
+ifeq "@BUILDSTATIC@" "yes"
+TESTPUBLICINSTALLLIBTARGETS += $(TESTCORESTATICLIB)
+endif
+TESTPUBLICINSTALLHDR += test/int.hh test/int.hpp
+TESTHARNESSOBJ += $(TESTINTSEAMOBJ)
+export TESTINTDLL = $(LIBPREFIX)testint$(DLLSUFFIX)
+export TESTINTLIB = $(LIBPREFIX)testint$(LIBSUFFIX)
+export TESTINTSTATICLIB = $(LIBPREFIX)testint$(STATICLIBSUFFIX)
+export LINKTESTINT = $(LINKPREFIX)testint$(LINKSUFFIX)
+ifeq "@need_soname@" "yes"
+TESTINTSONAME = @WLSONAME@$(LIBPREFIX)testint$(SOSUFFIX)
+endif
+ifeq "@enable_resource@" "yes"
+TESTINTRC = $(LIBPREFIX)testint$(RCSUFFIX)
+TESTINTRES = $(LIBPREFIX)testint$(RESSUFFIX)
+endif
+ifeq "@BUILDDLL@" "yes"
+TESTPUBLICINSTALLLIBTARGETS += $(TESTINTDLL)
+TESTPUBLICINSTALLLIBLINKTARGETS += $(TESTINTDLL:%$(DLLSUFFIX)=%$(SOLINKSUFFIX)) $(TESTINTDLL:%$(DLLSUFFIX)=%$(SOSUFFIX))
+TESTPUBLICINSTALLLIBLIBTARGETS += $(TESTINTLIB)
+TESTPUBLICINSTALLPDBTARGETS += $(TESTINTLIB:%$(LIBSUFFIX)=%$(PDBSUFFIX))
+TESTPUBLICLIBTARGETS += $(TESTINTLIB)
+else
+TESTPUBLICLIBTARGETS += $(TESTINTSTATICLIB)
+endif
+ifeq "@BUILDSTATIC@" "yes"
+TESTPUBLICINSTALLLIBTARGETS += $(TESTINTSTATICLIB)
+endif
+ifeq "@enable_set_vars@" "yes"
+TESTPUBLICINSTALLHDR += test/set.hh test/set.hpp
+TESTHARNESSOBJ += $(TESTSETSEAMOBJ)
+export TESTSETDLL = $(LIBPREFIX)testset$(DLLSUFFIX)
+export TESTSETLIB = $(LIBPREFIX)testset$(LIBSUFFIX)
+export TESTSETSTATICLIB = $(LIBPREFIX)testset$(STATICLIBSUFFIX)
+export LINKTESTSET = $(LINKPREFIX)testset$(LINKSUFFIX)
+ifeq "@need_soname@" "yes"
+TESTSETSONAME = @WLSONAME@$(LIBPREFIX)testset$(SOSUFFIX)
+endif
+ifeq "@enable_resource@" "yes"
+TESTSETRC = $(LIBPREFIX)testset$(RCSUFFIX)
+TESTSETRES = $(LIBPREFIX)testset$(RESSUFFIX)
+endif
+ifeq "@BUILDDLL@" "yes"
+TESTPUBLICINSTALLLIBTARGETS += $(TESTSETDLL)
+TESTPUBLICINSTALLLIBLINKTARGETS += $(TESTSETDLL:%$(DLLSUFFIX)=%$(SOLINKSUFFIX)) $(TESTSETDLL:%$(DLLSUFFIX)=%$(SOSUFFIX))
+TESTPUBLICINSTALLLIBLIBTARGETS += $(TESTSETLIB)
+TESTPUBLICINSTALLPDBTARGETS += $(TESTSETLIB:%$(LIBSUFFIX)=%$(PDBSUFFIX))
+TESTPUBLICLIBTARGETS += $(TESTSETLIB)
+else
+TESTPUBLICLIBTARGETS += $(TESTSETSTATICLIB)
+endif
+ifeq "@BUILDSTATIC@" "yes"
+TESTPUBLICINSTALLLIBTARGETS += $(TESTSETSTATICLIB)
+endif
+endif
+ifeq "@enable_float_vars@" "yes"
+TESTPUBLICINSTALLHDR += test/float.hh test/float.hpp
+TESTHARNESSOBJ += $(TESTFLOATSEAMOBJ)
+export TESTFLOATDLL = $(LIBPREFIX)testfloat$(DLLSUFFIX)
+export TESTFLOATLIB = $(LIBPREFIX)testfloat$(LIBSUFFIX)
+export TESTFLOATSTATICLIB = $(LIBPREFIX)testfloat$(STATICLIBSUFFIX)
+export LINKTESTFLOAT = $(LINKPREFIX)testfloat$(LINKSUFFIX)
+ifeq "@need_soname@" "yes"
+TESTFLOATSONAME = @WLSONAME@$(LIBPREFIX)testfloat$(SOSUFFIX)
+endif
+ifeq "@enable_resource@" "yes"
+TESTFLOATRC = $(LIBPREFIX)testfloat$(RCSUFFIX)
+TESTFLOATRES = $(LIBPREFIX)testfloat$(RESSUFFIX)
+endif
+ifeq "@BUILDDLL@" "yes"
+TESTPUBLICINSTALLLIBTARGETS += $(TESTFLOATDLL)
+TESTPUBLICINSTALLLIBLINKTARGETS += $(TESTFLOATDLL:%$(DLLSUFFIX)=%$(SOLINKSUFFIX)) $(TESTFLOATDLL:%$(DLLSUFFIX)=%$(SOSUFFIX))
+TESTPUBLICINSTALLLIBLIBTARGETS += $(TESTFLOATLIB)
+TESTPUBLICINSTALLPDBTARGETS += $(TESTFLOATLIB:%$(LIBSUFFIX)=%$(PDBSUFFIX))
+TESTPUBLICLIBTARGETS += $(TESTFLOATLIB)
+else
+TESTPUBLICLIBTARGETS += $(TESTFLOATSTATICLIB)
+endif
+ifeq "@BUILDSTATIC@" "yes"
+TESTPUBLICINSTALLLIBTARGETS += $(TESTFLOATSTATICLIB)
+endif
+endif
+endif
+endif
+TESTPUBLICLINK = $(LINKTESTFLOAT) $(LINKTESTSET) $(LINKTESTINT) $(LINKTESTCORE)
+
+TESTOBJ0	= $(INTTESTOBJ) $(SETTESTOBJ) $(FLOATTESTOBJ) $(STRINGTESTOBJ) \
 	$(FLATZINCTESTOBJ:%.cpp=%$(OBJSUFFIX)) \
 	$(BRANCHTESTSRC0:%.cpp=%$(OBJSUFFIX)) \
 	$(SEARCHTESTSRC0:%.cpp=%$(OBJSUFFIX)) \
 	$(ARRAYTESTSRC0:%.cpp=%$(OBJSUFFIX)) \
 	$(TESTSRC0:%.cpp=%$(OBJSUFFIX))
+TESTOBJ = $(filter-out $(TESTHARNESSOBJ),$(TESTOBJ0))
 TESTSBJ	= $(TESTOBJ:%$(OBJSUFFIX)=%$(SBJSUFFIX))
 TESTEXE	= test/test$(EXESUFFIX)
+TESTPUBLICRUNNERSMOKEEXE = test/public-runner-smoke$(EXESUFFIX)
+TESTPUBLICINTSMOKEEXE = test/public-int-smoke$(EXESUFFIX)
+ifeq "@enable_set_vars@" "yes"
+TESTPUBLICSETSMOKEEXE = test/public-set-smoke$(EXESUFFIX)
+else
+TESTPUBLICSETSMOKEEXE =
+endif
+ifeq "@enable_float_vars@" "yes"
+TESTPUBLICFLOATSMOKEEXE = test/public-float-smoke$(EXESUFFIX)
+else
+TESTPUBLICFLOATSMOKEEXE =
+endif
+TESTPUBLICSMOKEEXES = $(TESTPUBLICRUNNERSMOKEEXE) \
+	$(TESTPUBLICINTSMOKEEXE) $(TESTPUBLICSETSMOKEEXE) \
+	$(TESTPUBLICFLOATSMOKEEXE)
 BLACKBOXEXECOBJ = $(BLACKBOXEXECSRC:%.cpp=%$(OBJSUFFIX))
 BLACKBOXDLLOBJ = $(BLACKBOXDLLSRC:%.cpp=%$(OBJSUFFIX))
 BLACKBOXEXEC = test/flatzinc/blackbox-exec$(EXESUFFIX)
@@ -1439,64 +1618,30 @@ compilelib: mkcompiledirs
 compileexamples: $(EXAMPLEEXE)
 
 test: mkcompiledirs $(BLACKBOXFIXTURES)
-	@$(MAKE) $(VARIMP) $(TESTEXE)
-
-CHECKTESTS = Branch::Int::Dense::3 \
-	FlatZinc::magic_square \
-	Int::Arithmetic::Abs \
-	Int::Arithmetic::ArgMax \
-	Int::Arithmetic::Max::Nary \
-	Int::Cumulative::Man::Fix::0::4 \
-	Int::Distinct::Random \
-	Int::Extensional::TupleSet::Sparse::IncrementalDelta \
-	Int::Extensional::TupleSet::Auto::DefaultDispatch \
-	Int::Linear::Bool::Int::Lq \
-	Int::MiniModel::LinExpr::Bool::352 \
-	NoGoods::Queens \
-	Search::DFS::Sol::Binary::Nary::Binary::1::1::1 \
-	Set::Dom::Dom::Gr \
-	Set::RelOp::ConstSSI::Union \
-	Set::Sequence::SeqU1 \
-	Set::Wait
+	@$(MAKE) $(VARIMP) $(TESTEXE) $(TESTPUBLICSMOKEEXES)
 
 ifeq "@enable_flatzinc@" "yes"
-CHECKTESTS += FlatZinc::Options FlatZinc::blackbox
 BLACKBOXCHECKENV = \
 	GECODE_TEST_BLACKBOX_EXEC=$(abspath $(BLACKBOXEXEC)) \
 	GECODE_TEST_BLACKBOX_DLL=$(abspath $(BLACKBOXDLL)) \
 	GECODE_TEST_BLACKBOX_LOG=$(BLACKBOXLOG)
 endif
 
-ifeq "@enable_float_vars@" "yes"
-FLOATCHECKTESTS = Float::Arithmetic::PositiveNRootBounds \
-	Float::Arithmetic::PowConsistency \
-	Float::Arithmetic::MultZeroEndpoint \
-	Float::Arithmetic::Pow::N::2::XY::Sol::C \
-	Float::Arithmetic::NRoot::N::2::XY::Sol::C \
-	Float::Arithmetic::Mult::XYZ::Sol::C
-CHECKTESTS += $(FLOATCHECKTESTS)
-REQUIREDFLOATCHECKTESTS = Float::Arithmetic::PositiveNRootBounds \
-	Float::Arithmetic::PowConsistency \
-	Float::Arithmetic::MultZeroEndpoint \
-	Float::Arithmetic::Pow::N::2::XY::Sol::C \
-	Float::Arithmetic::NRoot::N::2::XY::Sol::C \
-	Float::Arithmetic::Mult::XYZ::Sol::C
-endif
-
 # A basic integrity test
 check: test
-	@for t in $(REQUIREDFLOATCHECKTESTS); do \
-		case " $(CHECKTESTS) " in *" $$t "*) ;; \
-		*) echo "Required Float check test is missing: $$t" >&2; exit 1 ;; \
-		esac; \
-		if ! $(RUNENVIRONMENT) $(TESTEXE) -list | grep -Fqx "$$t"; then \
-			echo "Required Float check test is not registered: $$t" >&2; \
-			exit 1; \
-		fi; \
+	@for t in $(TESTPUBLICSMOKEEXES); do \
+		$(RUNENVIRONMENT) $$t || exit 1; \
 	done
 	$(BLACKBOXCHECKENV) $(RUNENVIRONMENT) \
-		$(TESTEXE) -iter 2 -threads 0 -fixprob 1 \
-		$(CHECKTESTS:%=-test %)
+		$(TESTEXE) -iter 2 -threads 0 -fixprob 1 -tag check
+
+# The standard test suite without sweep tests
+check-standard: test
+	$(BLACKBOXCHECKENV) $(RUNENVIRONMENT) $(TESTEXE) -tag standard
+
+# Really heavy sweep tests
+check-sweep: test
+	$(BLACKBOXCHECKENV) $(RUNENVIRONMENT) $(TESTEXE) -tag sweep
 
 .PHONY: regenerate
 regenerate:
@@ -1535,12 +1680,12 @@ VIS = @ALLVIS@
 VISDEP = $(VIS) \
 	$(top_srcdir)/misc/genvarimp.py Makefile
 
-gecode/kernel/var-type.hpp: $(VISDEP)
+gecode/kernel/var-type.hpp: $(VISDEP) | mkcompiledirs
 	$(UVRUN) $(top_srcdir)/misc/genvarimp.py -typehpp $(VIS) > $@
-gecode/kernel/var-imp.hpp: $(VISDEP)
+gecode/kernel/var-imp.hpp: $(VISDEP) | mkcompiledirs
 	$(UVRUN) $(top_srcdir)/misc/genvarimp.py -header $(VIS) > $@
 
-$(ALLOBJ) $(ALLSBJ) $(TESTOBJ) $(TESTSBJ): $(VARIMP)
+$(ALLOBJ) $(ALLSBJ) $(TESTOBJ) $(TESTSBJ) $(TESTAUXOBJ) $(TESTHARNESSOBJ): $(VARIMP) | mkcompiledirs
 
 #
 # Object targets
@@ -1624,6 +1769,22 @@ examples/%$(SBJSUFFIX): $(top_srcdir)/examples/%.cpp
 	@COMPILESBJ@$@ @CXXIN@$<
 
 
+$(TESTCOREOBJ): $(top_srcdir)/test/test.cpp
+	$(CXX) $(CXXFLAGS) $(subst GECODE_BUILD_SUPPORT,GECODE_BUILD_TEST,@GECODE_BUILD_SUPPORT_FLAG@) \
+		@COMPILEOBJ@$@ @CXXIN@$<
+
+$(TESTINTSEAMOBJ): $(top_srcdir)/test/int.cpp
+	$(CXX) $(CXXFLAGS) $(subst GECODE_BUILD_SUPPORT,GECODE_BUILD_TESTINT,@GECODE_BUILD_SUPPORT_FLAG@) \
+		@COMPILEOBJ@$@ @CXXIN@$<
+
+$(TESTSETSEAMOBJ): $(top_srcdir)/test/set.cpp
+	$(CXX) $(CXXFLAGS) $(subst GECODE_BUILD_SUPPORT,GECODE_BUILD_TESTSET,@GECODE_BUILD_SUPPORT_FLAG@) \
+		@COMPILEOBJ@$@ @CXXIN@$<
+
+$(TESTFLOATSEAMOBJ): $(top_srcdir)/test/float.cpp
+	$(CXX) $(CXXFLAGS) $(subst GECODE_BUILD_SUPPORT,GECODE_BUILD_TESTFLOAT,@GECODE_BUILD_SUPPORT_FLAG@) \
+		@COMPILEOBJ@$@ @CXXIN@$<
+
 test/%$(OBJSUFFIX): $(top_srcdir)/test/%.cpp
 	$(CXX) $(CXXFLAGS) $(EXAMPLES_EXTRA_CXXFLAGS) \
 		@COMPILEOBJ@$@ @CXXIN@$<
@@ -1659,27 +1820,27 @@ $(GISTMOCSRC:%.cpp=%$(SBJSUFFIX)): gecode/gist/moc_%$(SBJSUFFIX): gecode/gist/mo
 	@COMPILESBJ@$@ @CXXIN@$<
 
 .PRECIOUS: gecode/gist/moc_%.cpp
-gecode/gist/moc_%.cpp: $(top_srcdir)/gecode/gist/%.hh
+gecode/gist/moc_%.cpp: $(top_srcdir)/gecode/gist/%.hh | mkcompiledirs
 	$(MOC) $(CPPFLAGS) -pgecode/gist $< -o $@
 
 .PRECIOUS: gecode/flatzinc/%.cpp gecode/flatzinc/%.hh
 ifeq "@HAVE_FLEXBISON@" "yes"
 gecode/flatzinc/lexer.yy.cpp: \
 	$(top_srcdir)/gecode/flatzinc/lexer.lxx \
-	$(top_srcdir)/gecode/flatzinc/parser.tab.hpp
+	$(top_srcdir)/gecode/flatzinc/parser.tab.hpp | mkcompiledirs
 	flex -ogecode/flatzinc/lexer.yy.cpp \
 		$(top_srcdir)/gecode/flatzinc/lexer.lxx
 
 gecode/flatzinc/parser.tab.hpp gecode/flatzinc/parser.tab.cpp: \
-	$(top_srcdir)/gecode/flatzinc/parser.yxx
+	$(top_srcdir)/gecode/flatzinc/parser.yxx | mkcompiledirs
 	bison -t -o gecode/flatzinc/parser.tab.cpp -d $<
 else
 ifneq "$(top_srcdir)" "."
-gecode/flatzinc/lexer.yy.cpp: $(top_srcdir)/gecode/flatzinc/lexer.yy.cpp
+gecode/flatzinc/lexer.yy.cpp: $(top_srcdir)/gecode/flatzinc/lexer.yy.cpp | mkcompiledirs
 	cp $(@:%=$(top_srcdir)/%) $@
-gecode/flatzinc/parser.tab.hpp: $(top_srcdir)/gecode/flatzinc/parser.tab.hpp
+gecode/flatzinc/parser.tab.hpp: $(top_srcdir)/gecode/flatzinc/parser.tab.hpp | mkcompiledirs
 	cp $(@:%=$(top_srcdir)/%) $@
-gecode/flatzinc/parser.tab.cpp: $(top_srcdir)/gecode/flatzinc/parser.tab.cpp
+gecode/flatzinc/parser.tab.cpp: $(top_srcdir)/gecode/flatzinc/parser.tab.cpp | mkcompiledirs
 	cp $(@:%=$(top_srcdir)/%) $@
 endif
 endif
@@ -1790,6 +1951,34 @@ $(FLATZINCDLL): $(FLATZINCOBJ) $(SUPPORTDLL) $(KERNELDLL) $(SEARCHDLL) \
 		$(LINKDL) @LINKOUTPUT@$(FLATZINCDLL)
 	$(CREATELINK) $@ $(@:%$(DLLSUFFIX)=%$(SOLINKSUFFIX))
 	$(CREATELINK) $@ $(@:%$(DLLSUFFIX)=%$(SOSUFFIX))
+ifneq "$(TESTCOREDLL)" ""
+$(TESTCOREDLL): $(TESTCOREOBJ) $(SEARCHDLL) $(INTDLL) $(KERNELDLL) $(SUPPORTDLL)
+	$(CXX) $(DLLFLAGS) $(TESTCOREOBJ) $(TESTCORESONAME) \
+		@DLLPATH@ $(LINKSEARCH) $(LINKINT) $(LINKKERNEL) $(LINKSUPPORT) @LINKOUTPUT@$(TESTCOREDLL)
+	$(CREATELINK) $@ $(@:%$(DLLSUFFIX)=%$(SOLINKSUFFIX))
+	$(CREATELINK) $@ $(@:%$(DLLSUFFIX)=%$(SOSUFFIX))
+endif
+ifneq "$(TESTINTDLL)" ""
+$(TESTINTDLL): $(TESTINTSEAMOBJ) $(TESTCOREDLL) $(INTDLL)
+	$(CXX) $(DLLFLAGS) $(TESTINTSEAMOBJ) $(TESTINTSONAME) \
+		@DLLPATH@ $(LINKTESTCORE) $(LINKINT) $(LINKSEARCH) $(LINKKERNEL) $(LINKSUPPORT) @LINKOUTPUT@$(TESTINTDLL)
+	$(CREATELINK) $@ $(@:%$(DLLSUFFIX)=%$(SOLINKSUFFIX))
+	$(CREATELINK) $@ $(@:%$(DLLSUFFIX)=%$(SOSUFFIX))
+endif
+ifneq "$(TESTSETDLL)" ""
+$(TESTSETDLL): $(TESTSETSEAMOBJ) $(TESTINTDLL) $(TESTCOREDLL) $(SETDLL) $(INTDLL)
+	$(CXX) $(DLLFLAGS) $(TESTSETSEAMOBJ) $(TESTSETSONAME) \
+		@DLLPATH@ $(LINKTESTINT) $(LINKTESTCORE) $(LINKSET) $(LINKSEARCH) $(LINKINT) $(LINKKERNEL) $(LINKSUPPORT) @LINKOUTPUT@$(TESTSETDLL)
+	$(CREATELINK) $@ $(@:%$(DLLSUFFIX)=%$(SOLINKSUFFIX))
+	$(CREATELINK) $@ $(@:%$(DLLSUFFIX)=%$(SOSUFFIX))
+endif
+ifneq "$(TESTFLOATDLL)" ""
+$(TESTFLOATDLL): $(TESTFLOATSEAMOBJ) $(TESTCOREDLL) $(FLOATDLL) $(INTDLL)
+	$(CXX) $(DLLFLAGS) $(TESTFLOATSEAMOBJ) $(TESTFLOATSONAME) \
+		@DLLPATH@ $(LINKTESTCORE) $(LINKFLOAT) $(LINKSEARCH) $(LINKINT) $(LINKKERNEL) $(LINKSUPPORT) @LINKOUTPUT@$(TESTFLOATDLL)
+	$(CREATELINK) $@ $(@:%$(DLLSUFFIX)=%$(SOLINKSUFFIX))
+	$(CREATELINK) $@ $(@:%$(DLLSUFFIX)=%$(SOSUFFIX))
+endif
 else
 export LINKALL =
 
@@ -1910,6 +2099,50 @@ $(FLATZINCDLL) $(FLATZINCLIB): $(FLATZINCOBJ) $(FLATZINCRES) \
 	$(FIXMANIFEST) $(FLATZINCDLL).manifest
 	$(MANIFEST) -manifest $(FLATZINCDLL).manifest \
 		    -outputresource:$(FLATZINCDLL)\;2
+ifneq "$(TESTCOREDLL)" ""
+ifeq "@enable_resource@" "yes"
+$(TESTCORERC): | mkcompiledirs
+	$(RCGEN) $(TESTCOREDLL) test/test.cpp test/test.hh test/test.hpp > $@
+endif
+$(TESTCOREDLL) $(TESTCORELIB): $(TESTCOREOBJ) $(TESTCORERES) $(SEARCHDLL) $(INTDLL) $(KERNELDLL) $(SUPPORTDLL)
+	$(CXX) $(DLLFLAGS) $(TESTCOREOBJ) $(TESTCORERES) \
+		@DLLPATH@ @LINKOUTPUT@$(TESTCOREDLL) $(LINKSEARCH) $(LINKINT) $(LINKKERNEL) $(LINKSUPPORT) $(GLDFLAGS)
+	$(FIXMANIFEST) $(TESTCOREDLL).manifest
+	$(MANIFEST) -manifest $(TESTCOREDLL).manifest -outputresource:$(TESTCOREDLL)\;2
+endif
+ifneq "$(TESTINTDLL)" ""
+ifeq "@enable_resource@" "yes"
+$(TESTINTRC): | mkcompiledirs
+	$(RCGEN) $(TESTINTDLL) test/int.cpp test/int.hh test/int.hpp > $@
+endif
+$(TESTINTDLL) $(TESTINTLIB): $(TESTINTSEAMOBJ) $(TESTINTRES) $(TESTCOREDLL) $(INTDLL)
+	$(CXX) $(DLLFLAGS) $(TESTINTSEAMOBJ) $(TESTINTRES) \
+		@DLLPATH@ @LINKOUTPUT@$(TESTINTDLL) $(LINKTESTCORE) $(LINKINT) $(LINKSEARCH) $(LINKKERNEL) $(LINKSUPPORT) $(GLDFLAGS)
+	$(FIXMANIFEST) $(TESTINTDLL).manifest
+	$(MANIFEST) -manifest $(TESTINTDLL).manifest -outputresource:$(TESTINTDLL)\;2
+endif
+ifneq "$(TESTSETDLL)" ""
+ifeq "@enable_resource@" "yes"
+$(TESTSETRC): | mkcompiledirs
+	$(RCGEN) $(TESTSETDLL) test/set.cpp test/set.hh test/set.hpp > $@
+endif
+$(TESTSETDLL) $(TESTSETLIB): $(TESTSETSEAMOBJ) $(TESTSETRES) $(TESTINTDLL) $(TESTCOREDLL) $(SETDLL) $(INTDLL)
+	$(CXX) $(DLLFLAGS) $(TESTSETSEAMOBJ) $(TESTSETRES) \
+		@DLLPATH@ @LINKOUTPUT@$(TESTSETDLL) $(LINKTESTINT) $(LINKTESTCORE) $(LINKSET) $(LINKSEARCH) $(LINKINT) $(LINKKERNEL) $(LINKSUPPORT) $(GLDFLAGS)
+	$(FIXMANIFEST) $(TESTSETDLL).manifest
+	$(MANIFEST) -manifest $(TESTSETDLL).manifest -outputresource:$(TESTSETDLL)\;2
+endif
+ifneq "$(TESTFLOATDLL)" ""
+ifeq "@enable_resource@" "yes"
+$(TESTFLOATRC): | mkcompiledirs
+	$(RCGEN) $(TESTFLOATDLL) test/float.cpp test/float.hh test/float.hpp > $@
+endif
+$(TESTFLOATDLL) $(TESTFLOATLIB): $(TESTFLOATSEAMOBJ) $(TESTFLOATRES) $(TESTCOREDLL) $(FLOATDLL) $(INTDLL)
+	$(CXX) $(DLLFLAGS) $(TESTFLOATSEAMOBJ) $(TESTFLOATRES) \
+		@DLLPATH@ @LINKOUTPUT@$(TESTFLOATDLL) $(LINKTESTCORE) $(LINKFLOAT) $(LINKSEARCH) $(LINKINT) $(LINKKERNEL) $(LINKSUPPORT) $(GLDFLAGS)
+	$(FIXMANIFEST) $(TESTFLOATDLL).manifest
+	$(MANIFEST) -manifest $(TESTFLOATDLL).manifest -outputresource:$(TESTFLOATDLL)\;2
+endif
 endif
 
 #
@@ -1949,6 +2182,22 @@ $(GISTSTATICLIB): $(GISTOBJ)
 $(FLATZINCSTATICLIB): $(FLATZINCOBJ)
 	$(AR) $(ARFLAGS) $@ $(FLATZINCOBJ)
 	$(RANLIB) $@
+$(TESTCORESTATICLIB): $(TESTCOREOBJ)
+	$(AR) $(ARFLAGS) $@ $(TESTCOREOBJ)
+	$(RANLIB) $@
+$(TESTINTSTATICLIB): $(TESTINTSEAMOBJ)
+	$(AR) $(ARFLAGS) $@ $(TESTINTSEAMOBJ)
+	$(RANLIB) $@
+ifeq "@enable_set_vars@" "yes"
+$(TESTSETSTATICLIB): $(TESTSETSEAMOBJ)
+	$(AR) $(ARFLAGS) $@ $(TESTSETSEAMOBJ)
+	$(RANLIB) $@
+endif
+ifeq "@enable_float_vars@" "yes"
+$(TESTFLOATSTATICLIB): $(TESTFLOATSEAMOBJ)
+	$(AR) $(ARFLAGS) $@ $(TESTFLOATSEAMOBJ)
+	$(RANLIB) $@
+endif
 
 #
 # Mac OS X Framework
@@ -2005,18 +2254,80 @@ endif
 
 ifeq "@enable_resource@" "yes"
 TESTRES = $(TESTEXE).res
+TESTPUBLICRUNNERSMOKERES = $(TESTPUBLICRUNNERSMOKEEXE).res
+TESTPUBLICINTSMOKERES = $(TESTPUBLICINTSMOKEEXE).res
+ifeq "@enable_set_vars@" "yes"
+TESTPUBLICSETSMOKERES = $(TESTPUBLICSETSMOKEEXE).res
+else
+TESTPUBLICSETSMOKERES =
+endif
+ifeq "@enable_float_vars@" "yes"
+TESTPUBLICFLOATSMOKERES = $(TESTPUBLICFLOATSMOKEEXE).res
+else
+TESTPUBLICFLOATSMOKERES =
+endif
 $(TESTEXE).rc:
-	$(RCGEN) $(TESTEXE) $(TESTSRC) $(TESTHDR) > $@
+	$(RCGEN) $(TESTEXE) $(TESTSRC) $(TESTHDR) $(TESTMAINSRC) > $@
+$(TESTPUBLICRUNNERSMOKEEXE).rc:
+	$(RCGEN) $(TESTPUBLICRUNNERSMOKEEXE) $(TESTPUBLICRUNNERSMOKESRC) test/test.hh test/test.hpp > $@
+$(TESTPUBLICINTSMOKEEXE).rc:
+	$(RCGEN) $(TESTPUBLICINTSMOKEEXE) $(TESTPUBLICINTSMOKESRC) test/test.hh test/test.hpp test/int.hh test/int.hpp > $@
+ifeq "@enable_set_vars@" "yes"
+$(TESTPUBLICSETSMOKEEXE).rc:
+	$(RCGEN) $(TESTPUBLICSETSMOKEEXE) $(TESTPUBLICSETSMOKESRC) test/test.hh test/test.hpp test/int.hh test/int.hpp test/set.hh test/set.hpp > $@
+endif
+ifeq "@enable_float_vars@" "yes"
+$(TESTPUBLICFLOATSMOKEEXE).rc:
+	$(RCGEN) $(TESTPUBLICFLOATSMOKEEXE) $(TESTPUBLICFLOATSMOKESRC) test/test.hh test/test.hpp test/float.hh test/float.hpp > $@
+endif
+$(TESTEXE).rc $(TESTPUBLICRUNNERSMOKEEXE).rc $(TESTPUBLICINTSMOKEEXE).rc \
+	$(TESTPUBLICSETSMOKEEXE:%=%.rc) $(TESTPUBLICFLOATSMOKEEXE:%=%.rc): | mkcompiledirs
 else
 TESTRES =
+TESTPUBLICRUNNERSMOKERES =
+TESTPUBLICINTSMOKERES =
+TESTPUBLICSETSMOKERES =
+TESTPUBLICFLOATSMOKERES =
 endif
-$(TESTEXE): $(TESTOBJ) $(TESTRES) $(ALLLIB)
-	$(CXX) @EXEOUTPUT@$@ $(TESTOBJ) $(TESTRES) $(DLLPATH) $(CXXFLAGS) \
-	$(LINKALL) $(GLDFLAGS) $(LINKQT) $(LINKCPPROFILER)
+$(TESTEXE): $(TESTMAINOBJ) $(TESTOBJ) $(TESTRES) $(ALLLIB) $(TESTPUBLICLIBTARGETS)
+	$(CXX) @EXEOUTPUT@$@ $(TESTMAINOBJ) $(TESTOBJ) $(TESTRES) $(DLLPATH) $(CXXFLAGS) \
+	$(TESTPUBLICLINK) $(LINKALL) $(GLDFLAGS) $(LINKQT) $(LINKCPPROFILER)
 	$(FIXMANIFEST) $@.manifest $(DLLSUFFIX)
 	$(MANIFEST) -manifest $@.manifest -outputresource:$@\;1
 
-$(BLACKBOXEXECOBJ) $(BLACKBOXDLLOBJ): | mkcompiledirs
+$(TESTOBJ) $(TESTAUXOBJ) $(BLACKBOXEXECOBJ) $(BLACKBOXDLLOBJ): | mkcompiledirs
+
+$(TESTPUBLICRUNNERSMOKEEXE): $(TESTPUBLICRUNNERSMOKEOBJ) $(TESTPUBLICLIBTARGETS) $(TESTPUBLICRUNNERSMOKERES) $(ALLLIB)
+	$(CXX) @EXEOUTPUT@$@ $(TESTPUBLICRUNNERSMOKEOBJ)  $(TESTPUBLICRUNNERSMOKERES) \
+		$(DLLPATH) $(CXXFLAGS) \
+		$(LINKTESTCORE) $(LINKSEARCH) $(LINKINT) $(LINKKERNEL) $(LINKSUPPORT) $(GLDFLAGS)
+	$(FIXMANIFEST) $@.manifest $(DLLSUFFIX)
+	$(MANIFEST) -manifest $@.manifest -outputresource:$@\;1
+
+$(TESTPUBLICINTSMOKEEXE): $(TESTPUBLICINTSMOKEOBJ) $(TESTPUBLICLIBTARGETS) $(TESTPUBLICINTSMOKERES) $(ALLLIB)
+	$(CXX) @EXEOUTPUT@$@ $(TESTPUBLICINTSMOKEOBJ)  $(TESTPUBLICINTSMOKERES) \
+		$(DLLPATH) $(CXXFLAGS) \
+		$(LINKTESTINT) $(LINKTESTCORE) $(LINKSEARCH) $(LINKINT) $(LINKKERNEL) $(LINKSUPPORT) $(GLDFLAGS)
+	$(FIXMANIFEST) $@.manifest $(DLLSUFFIX)
+	$(MANIFEST) -manifest $@.manifest -outputresource:$@\;1
+
+ifeq "@enable_set_vars@" "yes"
+$(TESTPUBLICSETSMOKEEXE): $(TESTPUBLICSETSMOKEOBJ) $(TESTPUBLICLIBTARGETS) $(TESTPUBLICSETSMOKERES) $(ALLLIB)
+	$(CXX) @EXEOUTPUT@$@ $(TESTPUBLICSETSMOKEOBJ)  $(TESTPUBLICSETSMOKERES) \
+		$(DLLPATH) $(CXXFLAGS) \
+		$(LINKTESTSET) $(LINKTESTINT) $(LINKTESTCORE) $(LINKSET) $(LINKSEARCH) $(LINKINT) $(LINKKERNEL) $(LINKSUPPORT) $(GLDFLAGS)
+	$(FIXMANIFEST) $@.manifest $(DLLSUFFIX)
+	$(MANIFEST) -manifest $@.manifest -outputresource:$@\;1
+endif
+
+ifeq "@enable_float_vars@" "yes"
+$(TESTPUBLICFLOATSMOKEEXE): $(TESTPUBLICFLOATSMOKEOBJ) $(TESTPUBLICLIBTARGETS) $(TESTPUBLICFLOATSMOKERES) $(ALLLIB)
+	$(CXX) @EXEOUTPUT@$@ $(TESTPUBLICFLOATSMOKEOBJ)  $(TESTPUBLICFLOATSMOKERES) \
+		$(DLLPATH) $(CXXFLAGS) \
+		$(LINKTESTFLOAT) $(LINKTESTCORE) $(LINKFLOAT) $(LINKSEARCH) $(LINKINT) $(LINKKERNEL) $(LINKSUPPORT) $(GLDFLAGS)
+	$(FIXMANIFEST) $@.manifest $(DLLSUFFIX)
+	$(MANIFEST) -manifest $@.manifest -outputresource:$@\;1
+endif
 
 $(BLACKBOXEXEC): $(BLACKBOXEXECOBJ)
 	$(CXX) @EXEOUTPUT@$@ $(BLACKBOXEXECOBJ) $(CXXFLAGS)
@@ -2167,7 +2478,7 @@ endif
 
 endif
 
-doinstallheaders: $(INSTALLHDR:%=$(top_srcdir)/%) $(EXTRA_HEADERS) $(VARIMPHDR) $(FLATZINCCONFIG)
+doinstallheaders: $(INSTALLHDR:%=$(top_srcdir)/%) $(EXTRA_HEADERS) $(VARIMPHDR) $(FLATZINCCONFIG) $(TESTPUBLICINSTALLHDR:%=$(top_srcdir)/%)
 	mkdir -p $(DESTDIR)$(includedir) && \
 	(cd $(top_srcdir) && tar cf - $(INSTALLHDR)) | \
 	  (cd $(DESTDIR)$(includedir) && tar xf -) && \
@@ -2177,6 +2488,12 @@ doinstallheaders: $(INSTALLHDR:%=$(top_srcdir)/%) $(EXTRA_HEADERS) $(VARIMPHDR) 
 	for_extraheaders="$(EXTRA_HEADERS)" && \
 	  for f in $$for_extraheaders; do \
 	    cp $$f $(DESTDIR)$(includedir)/$$f; done && \
+	for_publictestheaders="$(TESTPUBLICINSTALLHDR)" && \
+	  if test -n "$$for_publictestheaders"; then \
+	    mkdir -p $(DESTDIR)$(includedir)/test; \
+	  fi && \
+	  for f in $$for_publictestheaders; do \
+	    cp $(top_srcdir)/$$f $(DESTDIR)$(includedir)/test; done && \
 	for_flatconf="$(FLATZINCCONFIG)" && \
 	  if test -n "$$for_flatconf"; then \
 	    mkdir -p $(DESTDIR)$(datadir)/minizinc/solvers && \
@@ -2290,7 +2607,8 @@ clean:
 	$(RMF) doxygen.log doxygen.hh doxygen.conf.use stat.hh \
 		 changelog.hh doxygen.hh license.hh header.html
 	$(RMF) $(ALLOBJ) $(ALLSBJ) $(ALLOBJ:%$(OBJSUFFIX)=%.pdb)
-	$(RMF) $(TESTOBJ) $(TESTSBJ) $(TESTOBJ:%$(OBJSUFFIX)=%.pdb)
+	$(RMF) $(TESTOBJ) $(TESTHARNESSOBJ) $(TESTAUXOBJ) $(TESTSBJ) \
+		$(TESTOBJ:%$(OBJSUFFIX)=%.pdb) $(TESTAUXOBJ:%$(OBJSUFFIX)=%.pdb)
 	$(RMF) $(BLACKBOXEXECOBJ) $(BLACKBOXDLLOBJ) \
 		$(BLACKBOXEXECOBJ:%$(OBJSUFFIX)=%.pdb) \
 		$(BLACKBOXDLLOBJ:%$(OBJSUFFIX)=%.pdb)
@@ -2307,6 +2625,14 @@ clean:
 		$(EXAMPLEEXE:%=%.rc) $(EXAMPLEEXE:%=%.res)
 	$(RMF) $(TESTEXE:%.exe=%.pdb) $(TESTEXE:%=%.manifest) \
 		$(TESTEXE:%=%.rc) $(TESTEXE:%=%.res)
+	$(RMF) $(TESTPUBLICRUNNERSMOKEEXE:%.exe=%.pdb) $(TESTPUBLICRUNNERSMOKEEXE:%=%.manifest) \
+		$(TESTPUBLICRUNNERSMOKEEXE:%=%.rc) $(TESTPUBLICRUNNERSMOKEEXE:%=%.res)
+	$(RMF) $(TESTPUBLICINTSMOKEEXE:%.exe=%.pdb) $(TESTPUBLICINTSMOKEEXE:%=%.manifest) \
+		$(TESTPUBLICINTSMOKEEXE:%=%.rc) $(TESTPUBLICINTSMOKEEXE:%=%.res)
+	$(RMF) $(TESTPUBLICSETSMOKEEXE:%.exe=%.pdb) $(TESTPUBLICSETSMOKEEXE:%=%.manifest) \
+		$(TESTPUBLICSETSMOKEEXE:%=%.rc) $(TESTPUBLICSETSMOKEEXE:%=%.res)
+	$(RMF) $(TESTPUBLICFLOATSMOKEEXE:%.exe=%.pdb) $(TESTPUBLICFLOATSMOKEEXE:%=%.manifest) \
+		$(TESTPUBLICFLOATSMOKEEXE:%=%.rc) $(TESTPUBLICFLOATSMOKEEXE:%=%.res)
 	$(RMF) $(BLACKBOXEXEC:%.exe=%.pdb) $(BLACKBOXEXEC:%=%.manifest) \
 		$(BLACKBOXDLL:%$(DLLSUFFIX)=%$(LIBSUFFIX)) \
 		$(BLACKBOXDLL:%$(DLLSUFFIX)=%$(PDBSUFFIX)) \
@@ -2325,11 +2651,15 @@ veryclean: clean
 		$(LIBTARGETS:%$(DLLSUFFIX)=%$(SOSUFFIX))
 	$(RMF) $(EXAMPLEEXE)
 	$(RMF) $(TESTEXE)
+	$(RMF) $(TESTPUBLICRUNNERSMOKEEXE)
+	$(RMF) $(TESTPUBLICINTSMOKEEXE)
+	$(RMF) $(TESTPUBLICSETSMOKEEXE)
+	$(RMF) $(TESTPUBLICFLOATSMOKEEXE)
 	$(RMF) $(BLACKBOXFIXTURES)
 	$(RMF) $(FLATZINCEXE)
 	$(RMF) doc ChangeLog
-	$(RMF) $(ALLOBJ:%$(OBJSUFFIX)=%.gcno) $(TESTOBJ:%$(OBJSUFFIX)=%.gcno)
-	$(RMF) $(ALLOBJ:%$(OBJSUFFIX)=%.gcda) $(TESTOBJ:%$(OBJSUFFIX)=%.gcda)
+	$(RMF) $(ALLOBJ:%$(OBJSUFFIX)=%.gcno) $(TESTOBJ:%$(OBJSUFFIX)=%.gcno) $(TESTAUXOBJ:%$(OBJSUFFIX)=%.gcno)
+	$(RMF) $(ALLOBJ:%$(OBJSUFFIX)=%.gcda) $(TESTOBJ:%$(OBJSUFFIX)=%.gcda) $(TESTAUXOBJ:%$(OBJSUFFIX)=%.gcda)
 
 distclean: veryclean
 	$(RMF) $(VARIMP)

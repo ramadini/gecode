@@ -55,7 +55,14 @@ namespace Gecode { namespace String {
         GECODE_ME_CHECK(x1.gq(home, 1));
       else
         GECODE_ME_CHECK(x1.gq(home, 0));
-      GECODE_ME_CHECK(x1.lq(home, DashedString::_MAX_STR_LENGTH));
+      if (x1.min() > x2.max_length())
+        GECODE_ME_CHECK(x0.eq(home, ""));
+      if (x0.max_length() == 0) {
+        GECODE_ME_CHECK(x2.eq(home, ""));
+        return home.ES_SUBSUMED(*this);
+      }
+      if (x0.min_length() > 0)
+        GECODE_ME_CHECK(x1.lq(home, x2.max_length() / x0.min_length()));
       int l = x1.min(), u = x1.max();
       GECODE_ME_CHECK(x2.pow(home, x0, l, u));
       GECODE_ME_CHECK(x1.gq(home, l));

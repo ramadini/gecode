@@ -21,7 +21,7 @@ work="$RUNNER_TEMP/gecode-consumers"
 rm -rf "$work"
 mkdir -p "$work/a" "$work/b" "$work/c" "$work/d/cmake" "$work/e/cmake" "$work/e/stale" \
   "$work/f" "$work/g" "$work/h" "$work/i" "$work/j" "$work/k" \
-  "$work/l" \
+  "$work/l" "$work/m" \
   "$work/mpfr-prefix/lib/cmake/MPFR"
 
 cat > "$work/a/CMakeLists.txt" <<'EOF'
@@ -81,18 +81,10 @@ cat > "$work/c/CMakeLists.txt" <<'EOF'
 cmake_minimum_required(VERSION 3.21)
 project(consumer_c LANGUAGES CXX)
 find_package(Gecode CONFIG REQUIRED COMPONENTS gecodedriver)
-if(NOT Gecode_LIBRARIES STREQUAL "Gecode::gecodedriver")
+if(NOT TARGET Gecode::gecodedriver OR
+   NOT Gecode_LIBRARIES STREQUAL "Gecode::gecodedriver")
   message(FATAL_ERROR "Expected canonical library for legacy component, got: ${Gecode_LIBRARIES}")
 endif()
-add_executable(consumer_c main.cpp)
-target_link_libraries(consumer_c PRIVATE Gecode::gecodedriver)
-EOF
-cat > "$work/c/main.cpp" <<'EOF'
-#include <gecode/driver.hh>
-int main(void) {
-  Gecode::Options options("consumer_c");
-  return options.model();
-}
 EOF
 
 cat > "$work/d/CMakeLists.txt" <<'EOF'
@@ -188,15 +180,10 @@ cat > "$work/g/CMakeLists.txt" <<'EOF'
 cmake_minimum_required(VERSION 3.21)
 project(consumer_g LANGUAGES CXX)
 find_package(Gecode CONFIG REQUIRED COMPONENTS gecodesupport)
-if(NOT Gecode_LIBRARIES STREQUAL "Gecode::gecodesupport")
+if(NOT TARGET Gecode::gecodesupport OR
+   NOT Gecode_LIBRARIES STREQUAL "Gecode::gecodesupport")
   message(FATAL_ERROR "Expected canonical library for legacy component, got: ${Gecode_LIBRARIES}")
 endif()
-add_executable(consumer_g main.cpp)
-target_link_libraries(consumer_g PRIVATE ${Gecode_LIBRARIES})
-EOF
-cat > "$work/g/main.cpp" <<'EOF'
-#include <gecode/support.hh>
-int main(void) { return 0; }
 EOF
 
 cat > "$work/h/CMakeLists.txt" <<'EOF'
@@ -254,13 +241,149 @@ if(NOT Gecode_LIBRARIES STREQUAL "Gecode::gecodestring")
 endif()
 add_executable(consumer_l main.cpp)
 target_link_libraries(consumer_l PRIVATE ${Gecode_LIBRARIES})
+if(Gecode_flatzinc_FOUND)
+  find_package(Gecode CONFIG REQUIRED COMPONENTS flatzinc)
+  add_executable(consumer_l_flatzinc flatzinc.cpp)
+  target_link_libraries(consumer_l_flatzinc PRIVATE Gecode::gecodeflatzinc)
+endif()
 EOF
 cat > "$work/l/main.cpp" <<'EOF'
 #include <gecode/string.hh>
+#include <gecode/string/concat.hh>
+#include <memory>
+
+using namespace Gecode;
+
+class ConsumerConcat : public String::Concat {
+public:
+  ConsumerConcat(Home home, String::StringView x, String::StringView y,
+                 String::StringView z) : String::Concat(home, x, y, z) {}
+  ConsumerConcat(Space& home, ConsumerConcat& p) : String::Concat(home, p) {}
+  virtual Actor* copy(Space& home) { return new (home) ConsumerConcat(home, *this); }
+};
+
+class StringSpace : public Space {
+public:
+  StringVar x;
+  StringVarArray results;
+  StringSpace(void) : x(*this, 1, 1), results(*this, 6) {
+    for (int i = 0; i < results.size(); ++i)
+      results[i] = StringVar(*this, 0, 10);
+    StringVar source(*this, "aba"), query(*this, "a"), replacement(*this, "x");
+    rel(*this, x, StringVar(*this, "b"), STRT_CAT, results[0]);
+    rel(*this, source, query, replacement, STRT_REP, results[1]);
+    replace(*this, source, query, replacement, results[2]);
+    replace_all(*this, source, query, replacement, results[3]);
+    replace_last(*this, source, query, replacement, results[4]);
+    (void) new (*this) ConsumerConcat(*this, x, StringVar(*this, "c"), results[5]);
+  }
+  StringSpace(StringSpace& s) : Space(s) {
+    x.update(*this, s.x);
+    results.update(*this, s.results);
+  }
+  virtual Space* copy(void) { return new StringSpace(*this); }
+};
+
 int main(void) {
-  const Gecode::String::StringVal value =
-    Gecode::String::StringVal::decode_utf8("Dashed");
-  return value.to_utf8() == "Dashed" ? 0 : 1;
+  const String::StringVal value = String::StringVal::decode_utf8("Dashed");
+  StringSpace home;
+  if (value.to_utf8() != "Dashed" || home.status() == SS_FAILED)
+    return 1;
+  std::unique_ptr<StringSpace> clone(static_cast<StringSpace*>(home.clone()));
+  rel(*clone, clone->x, STRT_EQ, StringVar(*clone, "a"));
+  if (clone->status() == SS_FAILED || clone->x.size() != 1.0)
+    return 1;
+  const char* expected[] = {"ab", "xba", "xba", "xbx", "abx", "ac"};
+  for (int i = 0; i < clone->results.size(); ++i)
+    if (!clone->results[i].assigned() || clone->results[i].val() != expected[i])
+      return 1;
+  return 0;
+}
+EOF
+
+cat > "$work/l/flatzinc.cpp" <<'EOF'
+#include <gecode/flatzinc.hh>
+#include <memory>
+#include <sstream>
+
+int main(void) {
+  std::istringstream input(
+    "constraint str_concat_c(\"a\", \"b\", \"ab\"); solve satisfy;");
+  Gecode::FlatZinc::Printer printer;
+  std::unique_ptr<Gecode::FlatZinc::FlatZincSpace> home(
+    Gecode::FlatZinc::parse(input, printer));
+  return home && home->status() != Gecode::SS_FAILED ? 0 : 1;
+}
+EOF
+
+cat > "$work/m/CMakeLists.txt" <<'EOF'
+cmake_minimum_required(VERSION 3.21)
+project(consumer_m LANGUAGES CXX)
+find_package(Gecode CONFIG REQUIRED COMPONENTS flatzinc)
+add_executable(consumer_m main.cpp)
+target_link_libraries(consumer_m PRIVATE Gecode::gecodeflatzinc)
+EOF
+cat > "$work/m/main.cpp" <<'EOF'
+#include <gecode/flatzinc.hh>
+#include <iostream>
+#include <memory>
+#include <sstream>
+
+bool check(const char* name, const char* model, bool expect_failed = false) {
+  std::istringstream source(model);
+  std::ostringstream errors;
+  Gecode::FlatZinc::Printer printer;
+  std::unique_ptr<Gecode::FlatZinc::FlatZincSpace> space(
+    Gecode::FlatZinc::parse(source, printer, errors));
+  if (!space || (space->status() == Gecode::SS_FAILED) != expect_failed) {
+    std::cerr << name << ": unexpected parse or propagation result\n"
+              << errors.str();
+    return false;
+  }
+  return true;
+}
+
+int main() {
+  bool ok = check("integer and boolean aliases",
+    "var 0..1:x; var bool:b; constraint fzn_int_eq(x,1); "
+    "constraint gecode_bool_eq(b,true); constraint bool2int(b,x); "
+    "constraint fzn_gecode_all_different_offset_fzn([0,0],[x,2]); "
+    "solve satisfy;");
+  ok = check("scheduling aliases",
+    "constraint fzn_cumulatives([0,0],[2,2],[1,1],1); solve satisfy;",
+    true) && ok;
+  ok = check("flexible scheduling alias",
+    "constraint fzn_gecode_cumulatives_flex([0,0],[2,2],[2,2],"
+    "[3,-2],[0,0],[1],true); solve satisfy;") && ok;
+  ok = check("membership and fallback aliases",
+    "var 0..2:x; var bool:b; constraint set_in(x,{1}); "
+    "constraint fzn_set_in_reif(x,{1},b); constraint bool_eq(b,true); "
+    "constraint gecode_set_in_imp(x,{1},b); solve satisfy;") && ok;
+  ok = check("membership propagation",
+    "var 0..0:x; constraint set_in(x,{1}); solve satisfy;", true) && ok;
+#ifdef GECODE_HAS_SET_VARS
+  ok = check("set aliases",
+    "var set of 1..2:s; constraint fzn_gecode_set_ite(true,{1},{2},s); "
+    "constraint gecode_set_eq(s,{1}); constraint set_card(s,1); "
+    "solve satisfy;") && ok;
+  ok = check("set propagation",
+    "var set of 1..2:s; constraint set_eq(s,{1}); "
+    "constraint fzn_set_card(s,2); solve satisfy;", true) && ok;
+#endif
+#ifdef GECODE_HAS_FLOAT_VARS
+  ok = check("float aliases",
+    "var 0.0..4.0:x; constraint fzn_int2float(2,x); "
+    "constraint gecode_float_plus(x,2.0,4.0); "
+    "constraint fzn_gecode_float_pow(x,2,4.0); solve satisfy;") && ok;
+  ok = check("float propagation",
+    "var 0.0..1.0:x; constraint fzn_float_eq(x,2.0); solve satisfy;",
+    true) && ok;
+#ifdef GECODE_HAS_MPFR
+  ok = check("MPFR aliases",
+    "constraint gecode_float_exp(0.0,1.0); solve satisfy;") && ok;
+#endif
+#endif
+  return ok ? 0 : 1;
 }
 EOF
 
@@ -289,10 +412,13 @@ cmake -S "$work/b" -B "$work/b/build" -DCMAKE_PREFIX_PATH="$prefix"
 cmake --build "$work/b/build" -j4
 
 cmake -S "$work/c" -B "$work/c/build" -DCMAKE_PREFIX_PATH="$prefix"
-cmake --build "$work/c/build" -j4
 
 cmake -S "$work/l" -B "$work/l/build" -DCMAKE_PREFIX_PATH="$prefix"
 cmake --build "$work/l/build" -j4
+"$work/l/build/consumer_l"
+if [ -x "$work/l/build/consumer_l_flatzinc" ]; then
+  "$work/l/build/consumer_l_flatzinc"
+fi
 
 # A support-only consumer must not discover dependencies belonging exclusively
 # to Float, FlatZinc, or Gist, even when those targets exist in the package.
@@ -308,7 +434,6 @@ cmake -S "$work/g" -B "$work/g/build" \
   -DCMAKE_DISABLE_FIND_PACKAGE_MPFR=TRUE \
   -DCMAKE_DISABLE_FIND_PACKAGE_Qt5=TRUE \
   -DCMAKE_DISABLE_FIND_PACKAGE_Qt6=TRUE
-cmake --build "$work/g/build" -j4
 
 if cmake -S "$work/h" -B "$work/h/build" -DCMAKE_PREFIX_PATH="$prefix"; then
   echo "Unknown required Gecode component unexpectedly succeeded" >&2
@@ -360,3 +485,17 @@ fi
 "$prefix/bin/fzn-gecode" --help
 test -x "$prefix/bin/mzn-gecode"
 ! grep -q "/usr/local" "$prefix/bin/mzn-gecode"
+
+# Build and run a downstream test against the installed harness.
+source_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cmake -S "$source_root/test/package/public-test-component" -B "$work/test" \
+  -DGecode_DIR="$prefix/lib/cmake/Gecode" \
+  -DCMAKE_PREFIX_PATH="$cmake_prefix_path"
+cmake --build "$work/test" -j4
+ctest --test-dir "$work/test" --output-on-failure
+
+# Parsing pulls every enabled registry family from an ordinary static archive.
+test ! -e "$expected_include/gecode/flatzinc/registry-internal.hh"
+cmake -S "$work/m" -B "$work/m/build" -DCMAKE_PREFIX_PATH="$prefix"
+cmake --build "$work/m/build" -j4
+"$work/m/build/consumer_m"

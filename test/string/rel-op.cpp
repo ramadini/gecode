@@ -139,10 +139,18 @@ namespace Test { namespace String { namespace RelOp {
   public:
     Power(int exponent0, bool shared0)
       : Test("RelOp::Power::" + std::to_string(exponent0) +
-             (shared0 ? "::XX" : "::XY"), shared0 ? 1 : 2, "a", 2),
+             (shared0 ? "::XX" : "::XY"), shared0 ? 1 : 2, "a", 2,
+             false, TestTags::check()),
         exponent(exponent0), shared(shared0) {}
 
     virtual bool solution(const Assignment& a) const {
+      if (exponent < 0)
+        return false;
+      const std::string& result = a[shared ? 0 : 1];
+      if (a[0].empty())
+        return result.empty();
+      if (exponent > static_cast<int>(result.size() / a[0].size()))
+        return false;
       std::string value;
       for (int i = 0; i < exponent; ++i)
         value += a[0];
@@ -152,6 +160,59 @@ namespace Test { namespace String { namespace RelOp {
     virtual void post(Gecode::Space& home, Gecode::StringVarArray& x) {
       Gecode::IntVar n(home, exponent, exponent);
       Gecode::pow(home, x[0], n, x[shared ? 0 : 1]);
+    }
+  };
+
+  /// Space for checking power domains directly
+  class PowerSpace : public Gecode::Space {
+  public:
+    PowerSpace(void) {}
+    PowerSpace(PowerSpace& s) : Gecode::Space(s) {}
+    virtual Gecode::Space* copy(void) {
+      return new PowerSpace(*this);
+    }
+  };
+
+  /// Empty power must preserve every representable nonnegative exponent
+  class EmptyPower : public Base {
+  public:
+    EmptyPower(void)
+      : Base("String::RelOp::Power::EmptyDomain", TestTags::check()) {}
+
+    virtual bool run(void) {
+      PowerSpace home;
+      Gecode::StringVar base(home, "");
+      Gecode::StringVar result(home, Gecode::String::NSIntSet('a'), 0, 2);
+      Gecode::IntVar exponent(home, -1, Gecode::Int::Limits::max);
+      Gecode::pow(home, base, exponent, result);
+      return (home.status() != Gecode::SS_FAILED) &&
+        result.assigned() && result.val().empty() &&
+        (exponent.min() == 0) &&
+        (exponent.max() == Gecode::Int::Limits::max);
+    }
+  };
+
+  /// A possibly empty base permits the full nonnegative exponent range
+  class OptionalPower : public Base {
+  public:
+    OptionalPower(void)
+      : Base("String::RelOp::Power::OptionalDomain", TestTags::check()) {}
+
+    virtual bool run(void) {
+      PowerSpace home;
+      Gecode::StringVar base(home, Gecode::String::NSIntSet('a'), 0, 2);
+      Gecode::StringVar result(home, Gecode::String::NSIntSet('a'), 0, 2);
+      Gecode::IntVar exponent(home, 0, Gecode::Int::Limits::max);
+      Gecode::pow(home, base, exponent, result);
+      if ((home.status() == Gecode::SS_FAILED) ||
+          (exponent.min() != 0) ||
+          (exponent.max() != Gecode::Int::Limits::max))
+        return false;
+      Gecode::rel(home, exponent, Gecode::IRT_EQ, 65536);
+      return (home.status() != Gecode::SS_FAILED) &&
+        base.assigned() && base.val().empty() &&
+        result.assigned() && result.val().empty() &&
+        exponent.assigned() && (exponent.val() == 65536);
     }
   };
 
@@ -174,6 +235,13 @@ namespace Test { namespace String { namespace RelOp {
   Case lower_xy(false, false);
   Case lower_xx(false, true);
 
+  EmptyPower empty_power;
+  OptionalPower optional_power;
+  Power power_negative_xy(-1, false);
+  Power power_negative_xx(-1, true);
+  Power power_large_xy(65536, false);
+  Power power_large_xx(65536, true);
+  Power power_max_xy(Gecode::Int::Limits::max, false);
   Power power_zero_xy(0, false);
   Power power_two_xy(2, false);
   Power power_zero_xx(0, true);

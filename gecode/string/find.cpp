@@ -1,6 +1,5 @@
 #include <gecode/string.hh>
 #include <gecode/string/find.hh>
-#include <gecode/string/replace.hh>
 #include <gecode/int/arithmetic.hh>
 
 namespace Gecode {
@@ -19,19 +18,19 @@ namespace Gecode {
     GECODE_POST;
     int lx = x.min_length(), ux = x.max_length(),
         ly = y.min_length(), uy = y.max_length();
-    rel(home, n, IRT_LQ, uy);
+    rel(home, n, IRT_LQ, uy + 1);
     rel(home, n, IRT_GQ, 0);
     // x1 = rev(x), y1 = rev(y), m = find(x1, y1).
-    StringVar x1(home, lx, ux);
+    StringVar x1(home, x.may_chars(), lx, ux);
     rel(home, x, STRT_REV, x1);
-    StringVar y1(home, ly, uy);
+    StringVar y1(home, y.may_chars(), ly, uy);
     rel(home, y, STRT_REV, y1);
-    IntVar m(home, 0, uy);
+    IntVar m(home, 0, std::max(1, uy));
     find(home, x1, y1, m);
     // e - |y| + |x| + m = 2 => e = |y| - |x| - m + 2.
     IntVar lxv(home, lx, ux);
     IntVar lyv(home, ly, uy);
-    IntVar e(home, ly - ux - uy + 2, uy - lx + 2);
+    IntVar e(home, ly - ux - std::max(1, uy) + 2, uy - lx + 2);
     length(home, x, lxv);
     length(home, y, lyv);
     IntArgs a;
@@ -45,40 +44,7 @@ namespace Gecode {
     IntVar r(home, 0, 1);
     channel(home, b, r);
     // n = e * r.
-    Int::Arithmetic::MultBnd::post(home, e, r, n);
-  }
-
-  void
-  replace(Home home, StringVar x, StringVar q, StringVar q1, StringVar y) {
-    GECODE_POST;
-    ViewArray<String::StringView> a(home, 4);
-    a[0] = x;
-    a[1] = q;
-    a[2] = q1;
-    a[3] = y;
-    GECODE_ES_FAIL(String::Replace::post(home, a));
-  }
-
-  void
-  replace_all(Home home, StringVar x, StringVar q, StringVar q1, StringVar y) {
-    GECODE_POST;
-    ViewArray<String::StringView> a(home, 4);
-    a[0] = x;
-    a[1] = q;
-    a[2] = q1;
-    a[3] = y;
-    GECODE_ES_FAIL(String::Replace::post(home, a, true));
-  }
-
-  void
-  replace_last(Home home, StringVar x, StringVar q, StringVar q1, StringVar y) {
-    GECODE_POST;
-    ViewArray<String::StringView> a(home, 4);
-    a[0] = x;
-    a[1] = q;
-    a[2] = q1;
-    a[3] = y;
-    GECODE_ES_FAIL(String::Replace::post(home, a, false, true));
+    GECODE_ES_FAIL(Int::Arithmetic::MultBnd::post(home, e, r, n));
   }
 
 }

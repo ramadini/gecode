@@ -26,10 +26,12 @@ namespace Gecode { namespace String {
   Inc::assigned_ok(void) const {
     string bytes;
     if (x0.domain().try_val_bytes(bytes)) {
-      for (unsigned int i = 0; i + 1 < bytes.size(); ++i)
-        if (bytes[i] > bytes[i + 1] ||
-            (strict && bytes[i] == bytes[i + 1]))
+      for (unsigned int i = 0; i + 1 < bytes.size(); ++i) {
+        const unsigned char left = static_cast<unsigned char>(bytes[i]);
+        const unsigned char right = static_cast<unsigned char>(bytes[i + 1]);
+        if (left > right || (strict && left == right))
           return false;
+      }
       return true;
     }
 

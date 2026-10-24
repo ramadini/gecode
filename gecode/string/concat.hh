@@ -7,7 +7,7 @@ namespace Gecode { namespace String {
    * \brief %Propagator for string concatenation
    *
    */
-  class Concat :
+  class GECODE_VTABLE_EXPORT Concat :
   public MixTernaryPropagator
     <StringView, PC_STRING_DOM, StringView, PC_STRING_DOM, StringView, PC_STRING_DOM> {
   protected:
@@ -23,10 +23,13 @@ namespace Gecode { namespace String {
     Concat(Home home, StringView x0, StringView x1, StringView x2);
   public:
     /// Copy propagator during cloning
+    GECODE_STRING_EXPORT
     virtual Actor* copy(Space& home);
     /// Perform propagation
+    GECODE_STRING_EXPORT
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator \f$ z=x \cdot y \f$
+    GECODE_STRING_EXPORT
     static ExecStatus post(Home home, StringView x, StringView y, StringView z,
                            bool channel=true);
   };

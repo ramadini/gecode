@@ -95,40 +95,20 @@ namespace Test { namespace Int {
       */
      //@{
      /// %Test public default linear expression behavior
-     class LinExprDefaultSpace : public Gecode::Space {
+     class LinExprDefault : public Test {
      public:
-       Gecode::IntVar x;
-       LinExprDefaultSpace(void) : x(*this,-5,5) {
+       LinExprDefault(void) : Test("MiniModel::LinExpr::Default",1,-5,5) {}
+       virtual bool solution(const Assignment& x) const {
+         return x[0] == 1;
+       }
+       virtual void post(Gecode::Space& home, Gecode::IntVarArray& x) {
          using namespace Gecode;
          LinIntExpr e;
          LinIntExpr c(e);
-         LinIntExpr a = e + x;
+         LinIntExpr a = e + x[0];
          LinIntExpr b = 2 + c;
          LinIntExpr m = 3 * e;
-         rel(*this, a + b + m == 3);
-       }
-       LinExprDefaultSpace(LinExprDefaultSpace& s) : Gecode::Space(s) {
-         x.update(*this,s.x);
-       }
-       virtual Gecode::Space* copy(void) {
-         return new LinExprDefaultSpace(*this);
-       }
-     };
-
-     /// %Test public default linear expression behavior
-     class LinExprDefault : public Test::Base {
-     public:
-       LinExprDefault(void) : Test::Base("MiniModel::LinExpr::Default") {}
-       virtual bool run(void) {
-         LinExprDefaultSpace* s = new LinExprDefaultSpace;
-         Gecode::DFS<LinExprDefaultSpace> e(s);
-         delete s;
-         LinExprDefaultSpace* sol = e.next();
-         if (sol == nullptr)
-           return false;
-         bool ok = sol->x.assigned() && (sol->x.val() == 1);
-         delete sol;
-         return ok && (e.next() == nullptr);
+         rel(home, a + b + m == 3);
        }
      };
 
@@ -140,7 +120,8 @@ namespace Test { namespace Int {
      public:
        /// Create and register test
        LinExprInt(const LinInstr* lis0, const std::string& s)
-         : Test("MiniModel::LinExpr::Int::"+s,4,-3,3), lis(lis0) {
+         : Test(TestTags::sweep(),"MiniModel::LinExpr::Int::"+s,4,-3,3),
+           lis(lis0) {
          testfix = false;
        }
        /// %Test whether \a x is solution
@@ -163,8 +144,9 @@ namespace Test { namespace Int {
        const LinInstr* lis;
      public:
        /// Create and register test
-       LinExprBool(const LinInstr* lis0, const std::string& s)
-         : Test("MiniModel::LinExpr::Bool::"+s,4,-3,3), lis(lis0) {
+       LinExprBool(TestTags tags, const LinInstr* lis0,
+                   const std::string& s)
+         : Test(tags,"MiniModel::LinExpr::Bool::"+s,4,-3,3), lis(lis0) {
          testfix = false;
        }
        /// %Test whether \a x is solution
@@ -193,7 +175,8 @@ namespace Test { namespace Int {
      public:
        /// Create and register test
        LinExprMixed(const LinInstr* lis0, const std::string& s)
-         : Test("MiniModel::LinExpr::Mixed::"+s,4,-3,3), lis(lis0) {
+         : Test(TestTags::sweep(),"MiniModel::LinExpr::Mixed::"+s,4,-3,3),
+           lis(lis0) {
          testfix = false;
        }
        /// %Test whether \a x is solution
@@ -2193,7 +2176,10 @@ namespace Test { namespace Int {
              s = "0" + s;
            }
            (void) new LinExprInt(li[i],s);
-           (void) new LinExprBool(li[i],s);
+           TestTags bool_tags = (i == 352)
+             ? TestTags::check()
+             : TestTags(TestTags::sweep());
+           (void) new LinExprBool(bool_tags,li[i],s);
            (void) new LinExprMixed(li[i],s);
          }
          IntRelTypes irts;

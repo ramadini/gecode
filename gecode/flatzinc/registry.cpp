@@ -35,19 +35,16 @@
  *
  */
 
-#include <gecode/flatzinc/registry.hh>
+#include <gecode/flatzinc/registry-internal.hh>
+#ifdef GECODE_HAS_STRING_VARS
+#include <gecode/string/concat.hh>
+#endif
 #include <gecode/kernel.hh>
 #include <gecode/int.hh>
 #include <gecode/minimodel.hh>
 
-#ifdef GECODE_HAS_SET_VARS
-#include <gecode/set.hh>
-#endif
 #ifdef GECODE_HAS_FLOAT_VARS
 #include <gecode/float.hh>
-#endif
-#ifdef GECODE_HAS_STRING_VARS
-#include <gecode/string/concat.hh>
 #endif
 #include <gecode/flatzinc.hh>
 #include <gecode/flatzinc/blackbox.hh>
@@ -861,7 +858,11 @@ namespace Gecode { namespace FlatZinc {
         dom(s, s.arg2IntVar(ce[0]), d);
       }
     }
-    void p_int_in_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+  }
+
+  namespace RegistryDetail {
+
+    void post_int_in_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
       IntSet d = s.arg2intset(ce[1]);
       if (ce[0]->isBoolVar()) {
         IntSetRanges dr(d);
@@ -881,7 +882,7 @@ namespace Gecode { namespace FlatZinc {
         dom(s, s.arg2IntVar(ce[0]), d, s.arg2BoolVar(ce[2]));
       }
     }
-    void p_int_in_imp(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
+    void post_int_in_imp(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
       IntSet d = s.arg2intset(ce[1]);
       if (ce[0]->isBoolVar()) {
         IntSetRanges dr(d);
@@ -899,6 +900,10 @@ namespace Gecode { namespace FlatZinc {
         dom(s, s.arg2IntVar(ce[0]), d, Reify(s.arg2BoolVar(ce[2]),RM_IMP));
       }
     }
+
+  }
+
+  namespace {
 
     /* constraints from the standard library */
 
@@ -1216,6 +1221,40 @@ namespace Gecode { namespace FlatZinc {
                 ce[6]->getSet(), ann);
     }
 
+
+    void p_regular_nfa_int(FlatZincSpace& s, const ConExpr& ce,
+                           AST::Node* ann) {
+      IntVarArgs x = s.arg2intvarargs(ce[0]);
+      int q = ce[1]->getInt(), first_symbol = ce[2]->getInt();
+      int symbols = ce[3]->getInt(), initial = ce[5]->getInt();
+      IntSetArgs table = s.arg2intsetargs(ce[4]);
+      IntSet finals = s.arg2intset(ce[6]);
+      if ((q <= 0) || (symbols <= 0) ||
+          (static_cast<long long>(q)*symbols != table.size()) ||
+          (initial < 1) || (initial > q) ||
+          ((finals.size() != 0) && ((finals.min() < 1) || (finals.max() > q))) ||
+          (first_symbol < Int::Limits::min) ||
+          (static_cast<long long>(first_symbol)+symbols-1 > Int::Limits::max))
+        throw FlatZinc::Error("Registry", "invalid NFA dimensions or states");
+      std::vector<DFA::Transition> transitions;
+      for (int state=0; state<q; state++)
+        for (int symbol=0; symbol<symbols; symbol++) {
+          const IntSet& targets = table[state*symbols+symbol];
+          if ((targets.size() != 0) && ((targets.min() < 1) || (targets.max() > q)))
+            throw FlatZinc::Error("Registry", "invalid NFA transition");
+          for (IntSetValues target(targets); target(); ++target)
+            transitions.push_back(DFA::Transition(state+1,first_symbol+symbol,target.val()));
+        }
+      transitions.push_back(DFA::Transition(-1,0,0));
+      std::vector<int> accepting;
+      for (IntSetValues final(finals); final(); ++final)
+        accepting.push_back(final.val());
+      accepting.push_back(-1);
+      DFA automaton = DFA::nfa(initial,transitions.data(),accepting.data());
+      unshare(s,x);
+      extensional(s,x,s.getSharedDFA(automaton),s.ann2ipl(ann));
+    }
+
     void
     p_sort(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
       IntVarArgs x = s.arg2intvarargs(ce[0]);
@@ -1328,180 +1367,9 @@ namespace Gecode { namespace FlatZinc {
       IntArgs duration = s.arg2intargs(ce[1]);
       IntArgs height = s.arg2intargs(ce[2]);
       BoolVarArgs opt = s.arg2boolvarargs(ce[3]);
-      int bound = ce[4]->getInt();
+      IntVar bound = s.arg2IntVar(ce[4]);
       unshare(s,start);
       cumulative(s,bound,start,duration,height,opt,s.ann2ipl(ann));
-    }
-
-    void p_cumulatives(FlatZincSpace& s, const ConExpr& ce,
-                      AST::Node* ann) {
-      if (ce.size() == 6) {
-        // Full cumulatives call
-        IntVarArgs start = s.arg2intvarargs(ce[0]);
-        IntVarArgs duration = s.arg2intvarargs(ce[1]);
-        IntVarArgs resources = s.arg2intvarargs(ce[2]);
-        IntVarArgs machine = s.arg2intvarargs(ce[3]);
-        IntArgs bound = s.arg2intargs(ce[4]);
-        bool upper = ce[5]->getBool();
-        int n = start.size();
-
-        if (duration.assigned()) {
-          IntArgs durationI(n);
-          for (int i = n; (i--) != 0;) {
-            durationI[i] = duration[i].val();
-          }
-          IntVarArgs end(n);
-          for (int i = n; (i--) != 0;) {
-            end[i] = expr(s, start[i] + durationI[i]);
-          }
-          if (machine.assigned()) {
-            IntArgs machineI(n);
-            for (int i = n; (i--) != 0;) {
-              machineI[i] = machine[i].val();
-            }
-            if (resources.assigned()) {
-              IntArgs resourcesI(n);
-              for (int i = n; (i--) != 0;) {
-                resourcesI[i] = resources[i].val();
-              }
-              cumulatives(s, machineI, start, durationI, end, resourcesI, bound, upper, s.ann2ipl(ann));
-            } else {
-              cumulatives(s, machineI, start, durationI, end, resources, bound, upper, s.ann2ipl(ann));
-            }
-          } else if (resources.assigned()) {
-            IntArgs resourcesI(n);
-            for (int i = n; (i--) != 0;) {
-              resourcesI[i] = resources[i].val();
-            }
-            cumulatives(s, machine, start, durationI, end, resourcesI, bound, upper, s.ann2ipl(ann));
-          } else {
-            cumulatives(s, machine, start, durationI, end, resources, bound, upper, s.ann2ipl(ann));
-          }
-        } else {
-          IntVarArgs end(n);
-          for (int i = n; (i--) != 0;) {
-            end[i] = expr(s, start[i] + duration[i]);
-          }
-          if (machine.assigned()) {
-            IntArgs machineI(n);
-            for (int i = n; (i--) != 0;) {
-              machineI[i] = machine[i].val();
-            }
-            if (resources.assigned()) {
-              IntArgs resourcesI(n);
-              for (int i = n; (i--) != 0;) {
-                resourcesI[i] = resources[i].val();
-              }
-              cumulatives(s, machineI, start, duration, end, resourcesI, bound, upper, s.ann2ipl(ann));
-            } else {
-              cumulatives(s, machineI, start, duration, end, resources, bound, upper, s.ann2ipl(ann));
-            }
-          } else if (resources.assigned()) {
-            IntArgs resourcesI(n);
-            for (int i = n; (i--) != 0;) {
-              resourcesI[i] = resources[i].val();
-            }
-            cumulatives(s, machine, start, duration, end, resourcesI, bound, upper, s.ann2ipl(ann));
-          } else {
-            cumulatives(s, machine, start, duration, end, resources, bound, upper, s.ann2ipl(ann));
-          }
-        }
-        return;
-      }
-
-      IntVarArgs start = s.arg2intvarargs(ce[0]);
-      IntVarArgs duration = s.arg2intvarargs(ce[1]);
-      IntVarArgs height = s.arg2intvarargs(ce[2]);
-      int n = start.size();
-      IntVar bound = s.arg2IntVar(ce[3]);
-
-      if (n==0)
-        return;
-
-      if (n == 1) {
-        rel(s, height[0] <= bound);
-        return;
-      }
-
-      bool nonzeroDuration = true;
-      for (int i=0; i<n; i++) {
-        if (duration[i].min() <= 0) {
-          nonzeroDuration = false;
-          break;
-        }
-      }
-
-      int minHeight = std::min(height[0].min(),height[1].min());
-      int minHeight2 = std::max(height[0].min(),height[1].min());
-      for (int i=2; i<n; i++) {
-        if (height[i].min() < minHeight) {
-          minHeight2 = minHeight;
-          minHeight = height[i].min();
-        } else if (height[i].min() < minHeight2) {
-          minHeight2 = height[i].min();
-        }
-      }
-      bool disjunctive = nonzeroDuration && (
-       (minHeight > bound.max()/2) ||
-       (minHeight2 > bound.max()/2 && minHeight+minHeight2>bound.max()));
-      if (disjunctive) {
-        rel(s, bound >= max(height));
-        // Unary
-        if (duration.assigned()) {
-          IntArgs durationI(n);
-          for (int i=n; i--;)
-            durationI[i] = duration[i].val();
-          unshare(s,start);
-          unary(s,start,durationI);
-        } else {
-          IntVarArgs end(n);
-          for (int i=n; i--;)
-            end[i] = expr(s,start[i]+duration[i]);
-          unshare(s,start);
-          unary(s,start,duration,end);
-        }
-      } else if (nonzeroDuration && height.assigned()) {
-        IntArgs heightI(n);
-        for (int i=n; i--;)
-          heightI[i] = height[i].val();
-        if (duration.assigned()) {
-          IntArgs durationI(n);
-          for (int i=n; i--;)
-            durationI[i] = duration[i].val();
-          cumulative(s, bound, start, durationI, heightI);
-        } else {
-          IntVarArgs end(n);
-          for (int i = n; i--; )
-            end[i] = expr(s,start[i]+duration[i]);
-          cumulative(s, bound, start, duration, end, heightI);
-        }
-      } else if (nonzeroDuration && bound.assigned()) {
-        IntArgs machine = IntArgs::create(n,0,0);
-        IntArgs limit({bound.val()});
-        IntVarArgs end(n);
-        for (int i=n; i--;)
-          end[i] = expr(s,start[i]+duration[i]);
-        cumulatives(s, machine, start, duration, end, height, limit, true,
-                    s.ann2ipl(ann));
-      } else {
-        int min = Gecode::Int::Limits::max;
-        int max = Gecode::Int::Limits::min;
-        IntVarArgs end(start.size());
-        for (int i = start.size(); i--; ) {
-          min = std::min(min, start[i].min());
-          max = std::max(max, start[i].max() + duration[i].max());
-          end[i] = expr(s, start[i] + duration[i]);
-        }
-        for (int time = min; time < max; ++time) {
-          IntVarArgs x(start.size());
-          for (int i = start.size(); i--; ) {
-            IntVar overlaps = channel(s, expr(s, (start[i] <= time) &&
-                                                 (time < end[i])));
-            x[i] = expr(s, overlaps * height[i]);
-          }
-          linear(s, x, IRT_LQ, bound);
-        }
-      }
     }
 
     void p_among_seq_int(FlatZincSpace& s, const ConExpr& ce,
@@ -1527,20 +1395,20 @@ namespace Gecode { namespace FlatZinc {
       sequence(s, x, S, q, l, u, s.ann2ipl(ann));
     }
 
-    void p_schedule_unary(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
+    void p_schedule_unary(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
       IntVarArgs x = s.arg2intvarargs(ce[0]);
       IntArgs p = s.arg2intargs(ce[1]);
       unshare(s,x);
-      unary(s, x, p);
+      unary(s, x, p, s.ann2ipl(ann));
     }
 
     void p_schedule_unary_optional(FlatZincSpace& s, const ConExpr& ce,
-                                   AST::Node*) {
+                                   AST::Node* ann) {
       IntVarArgs x = s.arg2intvarargs(ce[0]);
       IntArgs p = s.arg2intargs(ce[1]);
       BoolVarArgs m = s.arg2boolvarargs(ce[2]);
       unshare(s,x);
-      unary(s, x, p, m);
+      unary(s, x, p, m, s.ann2ipl(ann));
     }
 
     void p_circuit(FlatZincSpace& s, const ConExpr& ce, AST::Node *ann) {
@@ -1772,11 +1640,315 @@ fvar,
       mode, target, args, reason);
     }
 
-    class IntPoster {
+
+    // Relation codes are documented in gecode_fzn.mzn.
+    IntRelType int_relation(AST::Node* arg) {
+      switch (arg->getInt()) {
+      case 1: return IRT_EQ;
+      case 2: return IRT_NQ;
+      case 3: return IRT_LQ;
+      case 4: return IRT_LE;
+      case 5: return IRT_GQ;
+      case 6: return IRT_GR;
+      default: throw FlatZinc::Error("Registry", "invalid integer relation");
+      }
+    }
+
+    void p_inter_distance(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      IntVarArgs x = s.arg2intvarargs(ce[0]);
+      if (ce[1]->isIntVar()) {
+        // The native propagator rejects aliases between x and the distance.
+        x << s.arg2IntVar(ce[1]);
+        unshare(s, x);
+        inter_distance(s, x.slice(0,1,x.size()-1), x[x.size()-1],
+                       s.ann2ipl(ann));
+      } else {
+        if (ce[1]->getInt() < 0) {
+          s.fail();
+          return;
+        }
+        unshare(s, x);
+        inter_distance(s, x, ce[1]->getInt(), s.ann2ipl(ann));
+      }
+    }
+
+    void p_distinct_optional(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      IntVarArgs x = s.arg2intvarargs(ce[0]);
+      BoolVarArgs present = s.arg2boolvarargs(ce[1]);
+      if (x.size() != present.size())
+        throw FlatZinc::Error("Registry", "optional distinct arrays must have equal lengths");
+      int lo = Int::Limits::max, hi = Int::Limits::min, n = 0;
+      bool mandatory = true;
+      for (int i=0; i<x.size(); i++)
+        if (!present[i].zero()) {
+          lo = std::min(lo,x[i].min());
+          hi = std::max(hi,x[i].max());
+          n++;
+          mandatory = mandatory && present[i].one();
+        }
+      if (n < 2)
+        return;
+      // Native optional distinct needs unused values outside the active domains.
+      if ((hi < Int::Limits::max-n) || (lo > Int::Limits::min+n)) {
+        unshare(s, x);
+        distinct(s, present, x, s.ann2ipl(ann));
+      } else if (mandatory) {
+        IntVarArgs active;
+        for (int i=0; i<x.size(); i++)
+          if (present[i].one()) active << x[i];
+        unshare(s, active);
+        distinct(s, active, s.ann2ipl(ann));
+      } else {
+        for (int i=0; i<x.size(); i++)
+          for (int j=i+1; j<x.size(); j++)
+            rel(s, x[i], IRT_NQ, x[j],
+                Reify(expr(s, present[i] && present[j]), RM_IMP), s.ann2ipl(ann));
+      }
+    }
+    void p_distinct_except(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      IntVarArgs x = s.arg2intvarargs(ce[0]);
+      int c = ce[1]->getInt();
+      // An excluded value outside the variable limits cannot occur in x.
+      if ((c < Int::Limits::min) || (c > Int::Limits::max)) {
+        unshare(s, x);
+        distinct(s, x, s.ann2ipl(ann));
+        return;
+      }
+      int lo = Int::Limits::max, hi = Int::Limits::min, n = 0;
+      for (int i=0; i<x.size(); i++)
+        if (!(x[i].assigned() && (x[i].val() == c))) {
+          lo = std::min(lo,x[i].min());
+          hi = std::max(hi,x[i].max());
+          n++;
+        }
+      if (n < 2)
+        return;
+      // The native propagator needs unused values outside the active domains.
+      if ((hi < Int::Limits::max-n) || (lo > Int::Limits::min+n)) {
+        unshare(s, x);
+        distinct(s, x, c, s.ann2ipl(ann));
+      } else {
+        for (int i=0; i<x.size(); i++)
+          for (int j=i+1; j<x.size(); j++)
+            rel(s, x[i], IRT_NQ, x[j],
+                Reify(expr(s, (x[i] != c) && (x[j] != c)), RM_IMP), s.ann2ipl(ann));
+      }
+    }
+    void p_bool_int_channel(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      BoolVarArgs x = s.arg2boolvarargs(ce[0]);
+      unshare(s, x);
+      channel(s, x, s.arg2IntVar(ce[1]), ce[2]->getInt(), s.ann2ipl(ann));
+    }
+    void p_sort_permutation(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      IntVarArgs x = s.arg2intvarargs(ce[0]);
+      IntVarArgs y = s.arg2intvarargs(ce[1]);
+      IntVarArgs z = s.arg2intvarargs(ce[2]);
+      if ((x.size() != y.size()) || (x.size() != z.size()))
+        throw FlatZinc::Error("Registry", "sort arrays must have equal lengths");
+      int offset = ce[3]->getInt();
+      for (int i=0; i<z.size(); i++)
+        z[i] = expr(s, z[i]-offset);
+      IntVarArgs xyz;
+      xyz << x << y << z;
+      unshare(s, xyz);
+      sorted(s, xyz.slice(0,1,x.size()), xyz.slice(x.size(),1,y.size()),
+             xyz.slice(x.size()+y.size()), s.ann2ipl(ann));
+    }
+
+    void p_count_int(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      count(s, s.arg2intvarargs(ce[0]), s.arg2IntVar(ce[1]),
+            int_relation(ce[2]), s.arg2IntVar(ce[3]), s.ann2ipl(ann));
+    }
+    void p_count_matches(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      IntVarArgs x = s.arg2intvarargs(ce[0]);
+      IntArgs y = s.arg2intargs(ce[1]);
+      IntRelType irt = int_relation(ce[2]);
+      IntVar n = s.arg2IntVar(ce[3]);
+      IntPropLevel ipl = s.ann2ipl(ann);
+      if (x.size() != y.size())
+        throw Int::ArgumentSizeMismatch("Int::count");
+      // Native matching counts use offset views for x[i]-y[i].
+      bool safe = true;
+      for (int i=0; i<x.size(); i++)
+        if ((y[i] < Int::Limits::min) || (y[i] > Int::Limits::max) ||
+            (static_cast<long long>(x[i].min())-y[i] < Int::Limits::min) ||
+            (static_cast<long long>(x[i].max())-y[i] > Int::Limits::max)) {
+          safe = false;
+          break;
+        }
+      if (safe) {
+        count(s, x, y, irt, n, ipl);
+      } else {
+        BoolVarArgs matches(x.size());
+        for (int i=0; i<x.size(); i++) {
+          if (x[i].in(y[i])) {
+            matches[i] = BoolVar(s,0,1);
+            rel(s, x[i], IRT_EQ, y[i], Reify(matches[i]), ipl);
+          } else {
+            matches[i] = BoolVar(s,0,0);
+          }
+        }
+        linear(s, matches, irt, n, ipl);
+      }
+    }
+    void p_array_int_ne(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      rel(s, s.arg2intvarargs(ce[0]), IRT_NQ,
+          s.arg2intvarargs(ce[1]), s.ann2ipl(ann));
+    }
+    void p_array_bool_ne(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      rel(s, s.arg2boolvarargs(ce[0]), IRT_NQ,
+          s.arg2boolvarargs(ce[1]), s.ann2ipl(ann));
+    }
+    void p_not_all_equal_int(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      rel(s, s.arg2intvarargs(ce[0]), IRT_NQ, s.ann2ipl(ann));
+    }
+    void p_int_ite(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      ite(s, s.arg2BoolVar(ce[0]), s.arg2IntVar(ce[1]), s.arg2IntVar(ce[2]),
+          s.arg2IntVar(ce[3]), s.ann2ipl(ann));
+    }
+    void p_bool_ite(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      ite(s, s.arg2BoolVar(ce[0]), s.arg2BoolVar(ce[1]), s.arg2BoolVar(ce[2]),
+          s.arg2BoolVar(ce[3]), s.ann2ipl(ann));
+    }
+    void p_gcd(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      gcd(s, s.arg2IntVar(ce[0]), s.arg2IntVar(ce[1]), s.arg2IntVar(ce[2]),
+          s.ann2ipl(ann));
+    }
+    template<ReifyMode mode>
+    void p_gcd_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      gcd(s, s.arg2IntVar(ce[0]), s.arg2IntVar(ce[1]), s.arg2IntVar(ce[2]),
+          Reify(s.arg2BoolVar(ce[3]), mode), s.ann2ipl(ann));
+    }
+    void p_divides(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      divides(s, s.arg2IntVar(ce[0]), s.arg2IntVar(ce[1]),
+              Reify(BoolVar(s,1,1),RM_EQV), s.ann2ipl(ann));
+    }
+    template<ReifyMode mode>
+    void p_divides_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      divides(s, s.arg2IntVar(ce[0]), s.arg2IntVar(ce[1]),
+              Reify(s.arg2BoolVar(ce[2]),mode), s.ann2ipl(ann));
+    }
+    void p_product(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      product(s, s.arg2intvarargs(ce[0]), s.arg2IntVar(ce[1]), s.ann2ipl(ann));
+    }
+    template<ReifyMode mode>
+    void p_product_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      product(s, s.arg2intvarargs(ce[0]), s.arg2IntVar(ce[1]),
+              Reify(s.arg2BoolVar(ce[2]),mode), s.ann2ipl(ann));
+    }
+    template<bool fixed>
+    void p_product_mod(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      IntVarArgs x = s.arg2intvarargs(ce[0]);
+      IntVar y = s.arg2IntVar(ce[2]);
+      if (fixed)
+        product_mod(s,x,ce[1]->getInt(),y,s.ann2ipl(ann));
+      else
+        product_mod(s,x,s.arg2IntVar(ce[1]),y,s.ann2ipl(ann));
+    }
+    template<bool fixed, ReifyMode mode>
+    void p_product_mod_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      IntVarArgs x = s.arg2intvarargs(ce[0]);
+      IntVar y = s.arg2IntVar(ce[2]);
+      Reify r(s.arg2BoolVar(ce[3]),mode);
+      if (fixed)
+        product_mod(s,x,ce[1]->getInt(),y,r,s.ann2ipl(ann));
+      else
+        product_mod(s,x,s.arg2IntVar(ce[1]),y,r,s.ann2ipl(ann));
+    }
+    void p_minimum_distance(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      IntVarArgs x = s.arg2intvarargs(ce[0]);
+      IntDistance d(ce[1]->getInt(),s.arg2intargs(ce[2]));
+      MinDistancePropKind kind = ann && ann->hasAtom("gecode_decomposed_propagation")
+        ? MDP_DECOMPOSED : MDP_SINGLE;
+      if (ce.size() == 5)
+        minimum_distance(s,x,s.arg2IntVar(ce[3]),d,
+                         s.arg2intargs(ce[4]),s.ann2ipl(ann),kind);
+      else
+        minimum_distance(s,x,s.arg2IntVar(ce[3]),d,s.ann2ipl(ann),kind);
+    }
+
+    void p_int_nroot(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      nroot(s, s.arg2IntVar(ce[0]), ce[1]->getInt(), s.arg2IntVar(ce[2]),
+            s.ann2ipl(ann));
+    }
+
+    void p_nooverlap_optional(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      nooverlap(s, s.arg2intvarargs(ce[0]), s.arg2intargs(ce[1]),
+                s.arg2intvarargs(ce[2]), s.arg2intargs(ce[3]),
+                s.arg2boolvarargs(ce[4]), s.ann2ipl(ann));
+    }
+    void p_nooverlap_flex(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      nooverlap(s, s.arg2intvarargs(ce[0]), s.arg2intvarargs(ce[1]),
+                s.arg2intvarargs(ce[2]), s.arg2intvarargs(ce[3]),
+                s.arg2intvarargs(ce[4]), s.arg2intvarargs(ce[5]),
+                s.arg2boolvarargs(ce[6]), s.ann2ipl(ann));
+    }
+
+    void p_arg_min_int(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      IntVarArgs xy = s.arg2intvarargs(ce[0]);
+      xy << s.arg2IntVar(ce[2]);
+      unshare(s, xy);
+      argmin(s, xy.slice(0,1,xy.size()-1), ce[1]->getInt(),
+                xy[xy.size()-1], ce[3]->getBool(), s.ann2ipl(ann));
+    }
+
+    void p_arg_max_int(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      IntVarArgs xy = s.arg2intvarargs(ce[0]);
+      xy << s.arg2IntVar(ce[2]);
+      unshare(s, xy);
+      argmax(s, xy.slice(0,1,xy.size()-1), ce[1]->getInt(),
+                xy[xy.size()-1], ce[3]->getBool(), s.ann2ipl(ann));
+    }
+
+    void p_arg_min_bool(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      BoolVarArgs x = s.arg2boolvarargs(ce[0]);
+      argmin(s, x, ce[1]->getInt(), s.arg2IntVar(ce[2]),
+                ce[3]->getBool(), s.ann2ipl(ann));
+    }
+
+    void p_arg_max_bool(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      BoolVarArgs x = s.arg2boolvarargs(ce[0]);
+      argmax(s, x, ce[1]->getInt(), s.arg2IntVar(ce[2]),
+                ce[3]->getBool(), s.ann2ipl(ann));
+    }
+
+    void p_unary_flex(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      IntVarArgs start = s.arg2intvarargs(ce[0]);
+      unshare(s, start);
+      unary(s, start, s.arg2intvarargs(ce[1]), s.arg2intvarargs(ce[2]),
+            s.ann2ipl(ann));
+    }
+
+    void p_cumulative_flex(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      IntVarArgs start = s.arg2intvarargs(ce[0]);
+      unshare(s, start);
+      cumulative(s, s.arg2IntVar(ce[4]), start,
+                 s.arg2intvarargs(ce[1]), s.arg2intvarargs(ce[2]),
+                 s.arg2intargs(ce[3]), s.ann2ipl(ann));
+    }
+
+    void p_unary_flex_optional(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      IntVarArgs start = s.arg2intvarargs(ce[0]);
+      unshare(s, start);
+      unary(s, start, s.arg2intvarargs(ce[1]), s.arg2intvarargs(ce[2]),
+            s.arg2boolvarargs(ce[3]), s.ann2ipl(ann));
+    }
+
+
+    void p_cumulative_flex_optional(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
+      IntVarArgs start = s.arg2intvarargs(ce[0]);
+      unshare(s, start);
+      cumulative(s, s.arg2IntVar(ce[4]), start, s.arg2intvarargs(ce[1]),
+                 s.arg2intvarargs(ce[2]), s.arg2intargs(ce[3]),
+                 s.arg2boolvarargs(ce[5]), s.ann2ipl(ann));
+    }
+
+    class BuiltinPosters {
     public:
-      IntPoster(void) {
+      BuiltinPosters(void) {
         registry().add("all_different_int", &p_distinct);
         registry().add("all_different_offset", &p_distinctOffset);
+        registry().add("gecode_all_different_offset_fzn", &p_distinctOffset);
         registry().add("all_equal_int", &p_all_equal);
         registry().add("int_eq", &p_int_eq);
         registry().add("int_ne", &p_int_ne);
@@ -1872,12 +2044,12 @@ fvar,
         registry().add("gecode_bool_element2d", &p_array_bool_element2d);
         registry().add("bool2int", &p_bool2int);
         registry().add("int_in", &p_int_in);
-        registry().add("int_in_reif", &p_int_in_reif);
-        registry().add("int_in_imp", &p_int_in_imp);
+        registry().add("int_in_reif", &RegistryDetail::post_int_in_reif);
+        registry().add("int_in_imp", &RegistryDetail::post_int_in_imp);
 #ifndef GECODE_HAS_SET_VARS
         registry().add("set_in", &p_int_in);
-        registry().add("set_in_reif", &p_int_in_reif);
-        registry().add("set_in_imp", &p_int_in_imp);
+        registry().add("set_in_reif", &RegistryDetail::post_int_in_reif);
+        registry().add("set_in_imp", &RegistryDetail::post_int_in_imp);
 #endif
 
         registry().add("array_int_lt", &p_array_int_lt);
@@ -1921,7 +2093,7 @@ fvar,
         registry().add("gecode_table_bool", &p_table_bool);
         registry().add("gecode_table_bool_reif", &p_table_bool_reif);
         registry().add("gecode_table_bool_imp", &p_table_bool_imp);
-        registry().add("cumulatives", &p_cumulatives);
+        registry().add("cumulatives", &RegistryDetail::post_cumulatives);
         registry().add("gecode_among_seq_int", &p_among_seq_int);
         registry().add("gecode_among_seq_bool", &p_among_seq_bool);
 
@@ -1953,6 +2125,7 @@ fvar,
         registry().add("gecode_circuit_cost_array", &p_circuit_cost_array);
         registry().add("gecode_circuit_cost", &p_circuit_cost);
         registry().add("gecode_nooverlap", &p_nooverlap);
+        registry().add("gecode_nooverlap_fzn", &p_nooverlap);
         registry().add("gecode_precede", &p_precede);
         registry().add("nvalue",&p_nvalue);
         registry().add("among",&p_among);
@@ -1961,363 +2134,63 @@ fvar,
         registry().add("member_bool",&p_member_bool);
         registry().add("gecode_member_bool_reif",&p_member_bool_reif);
 
+        registry().add("gecode_unary_flex", &p_unary_flex);
+        registry().add("gecode_cumulative_flex", &p_cumulative_flex);
+        registry().add("gecode_cumulatives_flex", &RegistryDetail::post_cumulatives);
+        registry().add("gecode_unary_flex_optional", &p_unary_flex_optional);
+        registry().add("gecode_cumulative_flex_optional", &p_cumulative_flex_optional);
+        registry().add("gecode_array_int_ne", &p_array_int_ne);
+        registry().add("gecode_not_all_equal_int", &p_not_all_equal_int);
+        registry().add("gecode_array_bool_ne", &p_array_bool_ne);
+        registry().add("gecode_inter_distance", &p_inter_distance);
+        registry().add("gecode_inter_distance_fzn", &p_inter_distance);
+        registry().add("gecode_bool_int_channel", &p_bool_int_channel);
+        registry().add("gecode_sort_permutation", &p_sort_permutation);
+        registry().add("gecode_count_int_fzn", &p_count_int);
+        registry().add("gecode_count_matches_fzn", &p_count_matches);
+        registry().add("gecode_int_ite", &p_int_ite);
+        registry().add("gecode_bool_ite", &p_bool_ite);
+        registry().add("gecode_gcd_int", &p_gcd);
+        registry().add("gecode_gcd_int_reif", &p_gcd_reif<RM_EQV>);
+        registry().add("gecode_gcd_int_imp", &p_gcd_reif<RM_IMP>);
+        registry().add("gecode_divides_int", &p_divides);
+        registry().add("gecode_divides_int_reif", &p_divides_reif<RM_EQV>);
+        registry().add("gecode_divides_int_imp", &p_divides_reif<RM_IMP>);
+        registry().add("gecode_product_int", &p_product);
+        registry().add("gecode_product_int_reif", &p_product_reif<RM_EQV>);
+        registry().add("gecode_product_int_imp", &p_product_reif<RM_IMP>);
+        registry().add("gecode_product_mod_fixed_fzn", &p_product_mod<true>);
+        registry().add("gecode_product_mod_fixed_fzn_reif", &p_product_mod_reif<true,RM_EQV>);
+        registry().add("gecode_product_mod_fixed_fzn_imp", &p_product_mod_reif<true,RM_IMP>);
+        registry().add("gecode_product_mod_var_fzn", &p_product_mod<false>);
+        registry().add("gecode_product_mod_var_fzn_reif", &p_product_mod_reif<false,RM_EQV>);
+        registry().add("gecode_product_mod_var_fzn_imp", &p_product_mod_reif<false,RM_IMP>);
+        registry().add("gecode_minimum_distance_fzn", &p_minimum_distance);
+        registry().add("gecode_minimum_distance_required_fzn", &p_minimum_distance);
+        registry().add("gecode_int_nroot", &p_int_nroot);
+        registry().add("gecode_nooverlap_optional", &p_nooverlap_optional);
+        registry().add("gecode_all_different_optional", &p_distinct_optional);
+        registry().add("gecode_all_different_except", &p_distinct_except);
+        registry().add("gecode_regular_nfa_int_fzn", &p_regular_nfa_int);
+        registry().add("gecode_nooverlap_flex_optional", &p_nooverlap_flex);
+        registry().add("gecode_arg_min_int", &p_arg_min_int);
+        registry().add("gecode_arg_max_int", &p_arg_max_int);
+        registry().add("gecode_arg_min_bool", &p_arg_min_bool);
+        registry().add("gecode_arg_max_bool", &p_arg_max_bool);
+
         registry().add("gecode_blackbox", &p_blackbox);
         registry().add("gecode_blackbox_bounds", &p_blackbox_bounds);
-      }
-    };
-    IntPoster __int_poster;
 
 #ifdef GECODE_HAS_SET_VARS
-    void p_set_OP(FlatZincSpace& s, SetOpType op,
-                  const ConExpr& ce, AST::Node *) {
-      rel(s, s.arg2SetVar(ce[0]), op, s.arg2SetVar(ce[1]),
-          SRT_EQ, s.arg2SetVar(ce[2]));
-    }
-    void p_set_union(FlatZincSpace& s, const ConExpr& ce, AST::Node *ann) {
-      p_set_OP(s, SOT_UNION, ce, ann);
-    }
-    void p_set_intersect(FlatZincSpace& s, const ConExpr& ce, AST::Node *ann) {
-      p_set_OP(s, SOT_INTER, ce, ann);
-    }
-    void p_set_diff(FlatZincSpace& s, const ConExpr& ce, AST::Node *ann) {
-      p_set_OP(s, SOT_MINUS, ce, ann);
-    }
-
-    void p_set_symdiff(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      SetVar x = s.arg2SetVar(ce[0]);
-      SetVar y = s.arg2SetVar(ce[1]);
-
-      SetVarLubRanges xub(x);
-      IntSet xubs(xub);
-      SetVar x_y(s,IntSet::empty,xubs);
-      rel(s, x, SOT_MINUS, y, SRT_EQ, x_y);
-
-      SetVarLubRanges yub(y);
-      IntSet yubs(yub);
-      SetVar y_x(s,IntSet::empty,yubs);
-      rel(s, y, SOT_MINUS, x, SRT_EQ, y_x);
-
-      rel(s, x_y, SOT_UNION, y_x, SRT_EQ, s.arg2SetVar(ce[2]));
-    }
-
-    void p_array_set_OP(FlatZincSpace& s, SetOpType op,
-                        const ConExpr& ce, AST::Node *) {
-      SetVarArgs xs = s.arg2setvarargs(ce[0]);
-      rel(s, op, xs, s.arg2SetVar(ce[1]));
-    }
-    void p_array_set_union(FlatZincSpace& s, const ConExpr& ce, AST::Node *ann) {
-      p_array_set_OP(s, SOT_UNION, ce, ann);
-    }
-    void p_array_set_partition(FlatZincSpace& s, const ConExpr& ce, AST::Node *ann) {
-      p_array_set_OP(s, SOT_DUNION, ce, ann);
-    }
-
-
-    void p_set_rel(FlatZincSpace& s, SetRelType srt, const ConExpr& ce) {
-      rel(s, s.arg2SetVar(ce[0]), srt, s.arg2SetVar(ce[1]));
-    }
-
-    void p_set_eq(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-      p_set_rel(s, SRT_EQ, ce);
-    }
-    void p_set_ne(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-      p_set_rel(s, SRT_NQ, ce);
-    }
-    void p_set_subset(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-      p_set_rel(s, SRT_SUB, ce);
-    }
-    void p_set_superset(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-      p_set_rel(s, SRT_SUP, ce);
-    }
-    void p_set_le(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-      p_set_rel(s, SRT_LQ, ce);
-    }
-    void p_set_lt(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-      p_set_rel(s, SRT_LE, ce);
-    }
-    void p_set_card(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-      if (!ce[1]->isIntVar()) {
-        cardinality(s, s.arg2SetVar(ce[0]), ce[1]->getInt(),
-                    ce[1]->getInt());
-      } else {
-        cardinality(s, s.arg2SetVar(ce[0]), s.arg2IntVar(ce[1]));
-      }
-    }
-    void p_set_in(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-      if (!ce[1]->isSetVar()) {
-        IntSet d = s.arg2intset(ce[1]);
-        if (ce[0]->isBoolVar()) {
-          IntSetRanges dr(d);
-          Iter::Ranges::Singleton sr(0,1);
-          Iter::Ranges::Inter<IntSetRanges,Iter::Ranges::Singleton> i(dr,sr);
-          IntSet d01(i);
-          if (d01.size() == 0) {
-            s.fail();
-          } else {
-            rel(s, s.arg2BoolVar(ce[0]), IRT_GQ, d01.min());
-            rel(s, s.arg2BoolVar(ce[0]), IRT_LQ, d01.max());
-          }
-        } else {
-          dom(s, s.arg2IntVar(ce[0]), d);
-        }
-      } else {
-        if (!ce[0]->isIntVar()) {
-          dom(s, s.arg2SetVar(ce[1]), SRT_SUP, ce[0]->getInt());
-        } else {
-          rel(s, s.arg2SetVar(ce[1]), SRT_SUP, s.arg2IntVar(ce[0]));
-        }
-      }
-    }
-    void p_set_rel_reif(FlatZincSpace& s, SetRelType srt, const ConExpr& ce) {
-      rel(s, s.arg2SetVar(ce[0]), srt, s.arg2SetVar(ce[1]),
-          s.arg2BoolVar(ce[2]));
-    }
-
-    void p_set_eq_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-      p_set_rel_reif(s,SRT_EQ,ce);
-    }
-    void p_set_le_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-      p_set_rel_reif(s,SRT_LQ,ce);
-    }
-    void p_set_lt_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-      p_set_rel_reif(s,SRT_LE,ce);
-    }
-    void p_set_ne_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-      p_set_rel_reif(s,SRT_NQ,ce);
-    }
-    void p_set_subset_reif(FlatZincSpace& s, const ConExpr& ce,
-                           AST::Node *) {
-      p_set_rel_reif(s,SRT_SUB,ce);
-    }
-    void p_set_superset_reif(FlatZincSpace& s, const ConExpr& ce,
-                             AST::Node *) {
-      p_set_rel_reif(s,SRT_SUP,ce);
-    }
-    void p_set_in_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann, ReifyMode rm) {
-      if (!ce[1]->isSetVar()) {
-        if (rm==RM_EQV) {
-          p_int_in_reif(s,ce,ann);
-        } else {
-          assert(rm==RM_IMP);
-          p_int_in_imp(s,ce,ann);
-        }
-      } else {
-        if (!ce[0]->isIntVar()) {
-          dom(s, s.arg2SetVar(ce[1]), SRT_SUP, ce[0]->getInt(),
-              Reify(s.arg2BoolVar(ce[2]),rm));
-        } else {
-          rel(s, s.arg2SetVar(ce[1]), SRT_SUP, s.arg2IntVar(ce[0]),
-              Reify(s.arg2BoolVar(ce[2]),rm));
-        }
-      }
-    }
-    void p_set_in_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
-      p_set_in_reif(s,ce,ann,RM_EQV);
-    }
-    void p_set_in_imp(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
-      p_set_in_reif(s,ce,ann,RM_IMP);
-    }
-    void p_set_disjoint(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-      rel(s, s.arg2SetVar(ce[0]), SRT_DISJ, s.arg2SetVar(ce[1]));
-    }
-
-    void p_link_set_to_booleans(FlatZincSpace& s, const ConExpr& ce,
-                                AST::Node *) {
-      SetVar x = s.arg2SetVar(ce[0]);
-      int idx = ce[2]->getInt();
-      assert(idx >= 0);
-      rel(s, x || IntSet(Set::Limits::min,idx-1));
-      BoolVarArgs y = s.arg2boolvarargs(ce[1],idx);
-      unshare(s, y);
-      channel(s, y, x);
-    }
-
-    void p_array_set_element(FlatZincSpace& s, const ConExpr& ce,
-                             AST::Node*) {
-      bool isConstant = true;
-      AST::Array* a = ce[1]->getArray();
-      for (int i=a->a.size(); i--;) {
-        if (a->a[i]->isSetVar()) {
-          isConstant = false;
-          break;
-        }
-      }
-      IntVar selector = s.arg2IntVar(ce[0]);
-      rel(s, selector > 0);
-      if (isConstant) {
-        IntSetArgs sv = s.arg2intsetargs(ce[1],1);
-        element(s, sv, selector, s.arg2SetVar(ce[2]));
-      } else {
-        SetVarArgs sv = s.arg2setvarargs(ce[1], 1);
-        element(s, sv, selector, s.arg2SetVar(ce[2]));
-      }
-    }
-
-    void p_array_set_element_op(FlatZincSpace& s, const ConExpr& ce,
-                                AST::Node*, SetOpType op,
-                                const IntSet& universe =
-                                IntSet(Set::Limits::min,Set::Limits::max)) {
-      bool isConstant = true;
-      AST::Array* a = ce[1]->getArray();
-      for (int i=a->a.size(); i--;) {
-        if (a->a[i]->isSetVar()) {
-          isConstant = false;
-          break;
-        }
-      }
-      SetVar selector = s.arg2SetVar(ce[0]);
-      dom(s, selector, SRT_DISJ, 0);
-      if (isConstant) {
-        IntSetArgs sv = s.arg2intsetargs(ce[1], 1);
-        element(s, op, sv, selector, s.arg2SetVar(ce[2]), universe);
-      } else {
-        SetVarArgs sv = s.arg2setvarargs(ce[1], 1);
-        element(s, op, sv, selector, s.arg2SetVar(ce[2]), universe);
-      }
-    }
-
-    void p_array_set_element_union(FlatZincSpace& s, const ConExpr& ce,
-                                       AST::Node* ann) {
-      p_array_set_element_op(s, ce, ann, SOT_UNION);
-    }
-
-    void p_array_set_element_intersect(FlatZincSpace& s, const ConExpr& ce,
-                                       AST::Node* ann) {
-      p_array_set_element_op(s, ce, ann, SOT_INTER);
-    }
-
-    void p_array_set_element_intersect_in(FlatZincSpace& s,
-                                              const ConExpr& ce,
-                                              AST::Node* ann) {
-      IntSet d = s.arg2intset(ce[3]);
-      p_array_set_element_op(s, ce, ann, SOT_INTER, d);
-    }
-
-    void p_array_set_element_partition(FlatZincSpace& s, const ConExpr& ce,
-                                           AST::Node* ann) {
-      p_array_set_element_op(s, ce, ann, SOT_DUNION);
-    }
-
-    void p_set_convex(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-      convex(s, s.arg2SetVar(ce[0]));
-    }
-
-    void p_array_set_seq(FlatZincSpace& s, const ConExpr& ce, AST::Node *) {
-      SetVarArgs sv = s.arg2setvarargs(ce[0]);
-      sequence(s, sv);
-    }
-
-    void p_array_set_seq_union(FlatZincSpace& s, const ConExpr& ce,
-                               AST::Node *) {
-      SetVarArgs sv = s.arg2setvarargs(ce[0]);
-      sequence(s, sv, s.arg2SetVar(ce[1]));
-    }
-
-    void p_int_set_channel(FlatZincSpace& s, const ConExpr& ce,
-                           AST::Node *) {
-      int xoff=ce[1]->getInt();
-      assert(xoff >= 0);
-      int yoff=ce[3]->getInt();
-      assert(yoff >= 0);
-      IntVarArgs xv = s.arg2intvarargs(ce[0], xoff);
-      SetVarArgs yv = s.arg2setvarargs(ce[2], yoff, 1, IntSet(0, xoff-1));
-      IntSet xd(yoff,yv.size()-1);
-      for (int i=xoff; i<xv.size(); i++) {
-        dom(s, xv[i], xd);
-      }
-      IntSet yd(xoff,xv.size()-1);
-      for (int i=yoff; i<yv.size(); i++) {
-        dom(s, yv[i], SRT_SUB, yd);
-      }
-      channel(s,xv,yv);
-    }
-
-    void p_range(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      int xoff=ce[1]->getInt();
-      assert(xoff >= 0);
-      IntVarArgs xv = s.arg2intvarargs(ce[0],xoff);
-      element(s, SOT_UNION, xv, s.arg2SetVar(ce[2]), s.arg2SetVar(ce[3]));
-    }
-
-    void p_weights(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      IntArgs e = s.arg2intargs(ce[0]);
-      IntArgs w = s.arg2intargs(ce[1]);
-      SetVar x = s.arg2SetVar(ce[2]);
-      IntVar y = s.arg2IntVar(ce[3]);
-      weights(s,e,w,x,y);
-    }
-
-    void p_inverse_set(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      int xoff = ce[2]->getInt();
-      int yoff = ce[3]->getInt();
-      SetVarArgs x = s.arg2setvarargs(ce[0],xoff);
-      SetVarArgs y = s.arg2setvarargs(ce[1],yoff);
-      channel(s, x, y);
-    }
-
-    void p_precede_set(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      SetVarArgs x = s.arg2setvarargs(ce[0]);
-      int p_s = ce[1]->getInt();
-      int p_t = ce[2]->getInt();
-      precede(s,x,p_s,p_t);
-    }
-
-    class SetPoster {
-    public:
-      SetPoster(void) {
-        registry().add("set_eq", &p_set_eq);
-        registry().add("set_le", &p_set_le);
-        registry().add("set_lt", &p_set_lt);
-        registry().add("equal", &p_set_eq);
-        registry().add("set_ne", &p_set_ne);
-        registry().add("set_union", &p_set_union);
-        registry().add("array_set_element", &p_array_set_element);
-        registry().add("array_var_set_element", &p_array_set_element);
-        registry().add("set_intersect", &p_set_intersect);
-        registry().add("set_diff", &p_set_diff);
-        registry().add("set_symdiff", &p_set_symdiff);
-        registry().add("set_subset", &p_set_subset);
-        registry().add("set_superset", &p_set_superset);
-        registry().add("set_card", &p_set_card);
-        registry().add("set_in", &p_set_in);
-        registry().add("set_eq_reif", &p_set_eq_reif);
-        registry().add("set_le_reif", &p_set_le_reif);
-        registry().add("set_lt_reif", &p_set_lt_reif);
-        registry().add("equal_reif", &p_set_eq_reif);
-        registry().add("set_ne_reif", &p_set_ne_reif);
-        registry().add("set_subset_reif", &p_set_subset_reif);
-        registry().add("set_superset_reif", &p_set_superset_reif);
-        registry().add("set_in_reif", &p_set_in_reif);
-        registry().add("set_in_imp", &p_set_in_imp);
-        registry().add("disjoint", &p_set_disjoint);
-        registry().add("gecode_link_set_to_booleans",
-                       &p_link_set_to_booleans);
-
-        registry().add("array_set_union", &p_array_set_union);
-        registry().add("array_set_partition", &p_array_set_partition);
-        registry().add("set_convex", &p_set_convex);
-        registry().add("array_set_seq", &p_array_set_seq);
-        registry().add("array_set_seq_union", &p_array_set_seq_union);
-        registry().add("gecode_array_set_element_union",
-                       &p_array_set_element_union);
-        registry().add("gecode_array_set_element_intersect",
-                       &p_array_set_element_intersect);
-        registry().add("gecode_array_set_element_intersect_in",
-                       &p_array_set_element_intersect_in);
-        registry().add("gecode_array_set_element_partition",
-                       &p_array_set_element_partition);
-        registry().add("gecode_int_set_channel",
-                       &p_int_set_channel);
-        registry().add("gecode_range",
-                       &p_range);
-        registry().add("gecode_set_weights",
-                       &p_weights);
-        registry().add("gecode_inverse_set", &p_inverse_set);
-        registry().add("gecode_precede_set", &p_precede_set);
+        RegistryDetail::register_set(registry());
+#endif
+#ifdef GECODE_HAS_FLOAT_VARS
+        RegistryDetail::register_float(registry());
+#endif
       }
     };
-    SetPoster __set_poster;
-#endif
+    BuiltinPosters builtin_posters;
+
 
 #ifdef GECODE_HAS_STRING_VARS
     void p_str_rel(FlatZincSpace& s, StringRelType srt, const ConExpr& ce) {
@@ -2672,221 +2545,6 @@ fvar,
                        &p_array_var_str_element);
       }
     } __string_poster;
-#endif
-
-#ifdef GECODE_HAS_FLOAT_VARS
-
-    void p_int2float(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      IntVar x0 = s.arg2IntVar(ce[0]);
-      FloatVar x1 = s.arg2FloatVar(ce[1]);
-      channel(s, x0, x1);
-    }
-
-    void p_float_lin_cmp(FlatZincSpace& s, FloatRelType frt,
-                         const ConExpr& ce, AST::Node*) {
-      FloatValArgs fa = s.arg2floatargs(ce[0]);
-      FloatVarArgs fv = s.arg2floatvarargs(ce[1]);
-      linear(s, fa, fv, frt, ce[2]->getFloat());
-    }
-    void p_float_lin_cmp_reif(FlatZincSpace& s, FloatRelType frt,
-                              const ConExpr& ce, AST::Node*) {
-      FloatValArgs fa = s.arg2floatargs(ce[0]);
-      FloatVarArgs fv = s.arg2floatvarargs(ce[1]);
-      linear(s, fa, fv, frt, ce[2]->getFloat(), s.arg2BoolVar(ce[3]));
-    }
-    void p_float_lin_eq(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
-      p_float_lin_cmp(s,FRT_EQ,ce,ann);
-    }
-    void p_float_lin_eq_reif(FlatZincSpace& s, const ConExpr& ce,
-                             AST::Node* ann) {
-      p_float_lin_cmp_reif(s,FRT_EQ,ce,ann);
-    }
-    void p_float_lin_le(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
-      p_float_lin_cmp(s,FRT_LQ,ce,ann);
-    }
-    void p_float_lin_lt(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
-      p_float_lin_cmp(s,FRT_LE,ce,ann);
-    }
-    void p_float_lin_le_reif(FlatZincSpace& s, const ConExpr& ce,
-                             AST::Node* ann) {
-      p_float_lin_cmp_reif(s,FRT_LQ,ce,ann);
-    }
-    void p_float_lin_lt_reif(FlatZincSpace& s, const ConExpr& ce,
-                             AST::Node* ann) {
-      p_float_lin_cmp_reif(s,FRT_LE,ce,ann);
-    }
-
-    void p_float_times(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      FloatVar x = s.arg2FloatVar(ce[0]);
-      FloatVar y = s.arg2FloatVar(ce[1]);
-      FloatVar z = s.arg2FloatVar(ce[2]);
-      mult(s,x,y,z);
-    }
-
-    void p_float_div(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      FloatVar x = s.arg2FloatVar(ce[0]);
-      FloatVar y = s.arg2FloatVar(ce[1]);
-      FloatVar z = s.arg2FloatVar(ce[2]);
-      div(s,x,y,z);
-    }
-
-    void p_float_plus(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      FloatVar x = s.arg2FloatVar(ce[0]);
-      FloatVar y = s.arg2FloatVar(ce[1]);
-      FloatVar z = s.arg2FloatVar(ce[2]);
-      rel(s,x+y==z);
-    }
-
-    void p_float_sqrt(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      FloatVar x = s.arg2FloatVar(ce[0]);
-      FloatVar y = s.arg2FloatVar(ce[1]);
-      sqrt(s,x,y);
-    }
-
-    void p_float_abs(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      FloatVar x = s.arg2FloatVar(ce[0]);
-      FloatVar y = s.arg2FloatVar(ce[1]);
-      abs(s,x,y);
-    }
-
-    void p_float_eq(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      FloatVar x = s.arg2FloatVar(ce[0]);
-      FloatVar y = s.arg2FloatVar(ce[1]);
-      rel(s,x,FRT_EQ,y);
-    }
-    void p_float_eq_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      FloatVar x = s.arg2FloatVar(ce[0]);
-      FloatVar y = s.arg2FloatVar(ce[1]);
-      BoolVar  b = s.arg2BoolVar(ce[2]);
-      rel(s,x,FRT_EQ,y,b);
-    }
-    void p_float_le(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      FloatVar x = s.arg2FloatVar(ce[0]);
-      FloatVar y = s.arg2FloatVar(ce[1]);
-      rel(s,x,FRT_LQ,y);
-    }
-    void p_float_le_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      FloatVar x = s.arg2FloatVar(ce[0]);
-      FloatVar y = s.arg2FloatVar(ce[1]);
-      BoolVar  b = s.arg2BoolVar(ce[2]);
-      rel(s,x,FRT_LQ,y,b);
-    }
-    void p_float_max(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      FloatVar x = s.arg2FloatVar(ce[0]);
-      FloatVar y = s.arg2FloatVar(ce[1]);
-      FloatVar z = s.arg2FloatVar(ce[2]);
-      max(s,x,y,z);
-    }
-    void p_float_min(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      FloatVar x = s.arg2FloatVar(ce[0]);
-      FloatVar y = s.arg2FloatVar(ce[1]);
-      FloatVar z = s.arg2FloatVar(ce[2]);
-      min(s,x,y,z);
-    }
-    void p_float_lt(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      FloatVar x = s.arg2FloatVar(ce[0]);
-      FloatVar y = s.arg2FloatVar(ce[1]);
-      rel(s, x, FRT_LQ, y);
-      rel(s, x, FRT_EQ, y, BoolVar(s,0,0));
-    }
-
-    void p_float_lt_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      FloatVar x = s.arg2FloatVar(ce[0]);
-      FloatVar y = s.arg2FloatVar(ce[1]);
-      BoolVar b = s.arg2BoolVar(ce[2]);
-      BoolVar b0(s,0,1);
-      BoolVar b1(s,0,1);
-      rel(s, b == (b0 && !b1));
-      rel(s, x, FRT_LQ, y, b0);
-      rel(s, x, FRT_EQ, y, b1);
-    }
-
-    void p_float_ne(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      FloatVar x = s.arg2FloatVar(ce[0]);
-      FloatVar y = s.arg2FloatVar(ce[1]);
-      rel(s, x, FRT_EQ, y, BoolVar(s,0,0));
-    }
-
-#ifdef GECODE_HAS_MPFR
-#define P_FLOAT_OP(Op) \
-    void p_float_ ## Op (FlatZincSpace& s, const ConExpr& ce, AST::Node*) {\
-      FloatVar x = s.arg2FloatVar(ce[0]);\
-      FloatVar y = s.arg2FloatVar(ce[1]);\
-      Op(s,x,y);\
-    }
-    P_FLOAT_OP(acos)
-    P_FLOAT_OP(asin)
-    P_FLOAT_OP(atan)
-    P_FLOAT_OP(cos)
-    P_FLOAT_OP(exp)
-    P_FLOAT_OP(sin)
-    P_FLOAT_OP(tan)
-    // P_FLOAT_OP(sinh)
-    // P_FLOAT_OP(tanh)
-    // P_FLOAT_OP(cosh)
-#undef P_FLOAT_OP
-
-    void p_float_ln(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      FloatVar x = s.arg2FloatVar(ce[0]);
-      FloatVar y = s.arg2FloatVar(ce[1]);
-      log(s,x,y);
-    }
-    void p_float_log10(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      FloatVar x = s.arg2FloatVar(ce[0]);
-      FloatVar y = s.arg2FloatVar(ce[1]);
-      log(s,10.0,x,y);
-    }
-    void p_float_log2(FlatZincSpace& s, const ConExpr& ce, AST::Node*) {
-      FloatVar x = s.arg2FloatVar(ce[0]);
-      FloatVar y = s.arg2FloatVar(ce[1]);
-      log(s,2.0,x,y);
-    }
-
-#endif
-
-    class FloatPoster {
-    public:
-      FloatPoster(void) {
-        registry().add("int2float",&p_int2float);
-        registry().add("float_abs",&p_float_abs);
-        registry().add("float_sqrt",&p_float_sqrt);
-        registry().add("float_eq",&p_float_eq);
-        registry().add("float_eq_reif",&p_float_eq_reif);
-        registry().add("float_le",&p_float_le);
-        registry().add("float_le_reif",&p_float_le_reif);
-        registry().add("float_lt",&p_float_lt);
-        registry().add("float_lt_reif",&p_float_lt_reif);
-        registry().add("float_ne",&p_float_ne);
-        registry().add("float_times",&p_float_times);
-        registry().add("float_div",&p_float_div);
-        registry().add("float_plus",&p_float_plus);
-        registry().add("float_max",&p_float_max);
-        registry().add("float_min",&p_float_min);
-
-        registry().add("float_lin_eq",&p_float_lin_eq);
-        registry().add("float_lin_eq_reif",&p_float_lin_eq_reif);
-        registry().add("float_lin_le",&p_float_lin_le);
-        registry().add("float_lin_lt",&p_float_lin_lt);
-        registry().add("float_lin_le_reif",&p_float_lin_le_reif);
-        registry().add("float_lin_lt_reif",&p_float_lin_lt_reif);
-
-#ifdef GECODE_HAS_MPFR
-        registry().add("float_acos",&p_float_acos);
-        registry().add("float_asin",&p_float_asin);
-        registry().add("float_atan",&p_float_atan);
-        registry().add("float_cos",&p_float_cos);
-        // registry().add("float_cosh",&p_float_cosh);
-        registry().add("float_exp",&p_float_exp);
-        registry().add("float_ln",&p_float_ln);
-        registry().add("float_log10",&p_float_log10);
-        registry().add("float_log2",&p_float_log2);
-        registry().add("float_sin",&p_float_sin);
-        // registry().add("float_sinh",&p_float_sinh);
-        registry().add("float_tan",&p_float_tan);
-        // registry().add("float_tanh",&p_float_tanh);
-#endif
-      }
-    } __float_poster;
 #endif
 
   }

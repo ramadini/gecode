@@ -48,7 +48,16 @@ set(GECODE_SEARCH_SOURCES
   gecode/search/seq/rbs.cpp
   gecode/search/stop.cpp
   gecode/search/tracer.cpp
+  gecode/search/worker-control.cpp
 )
+
+if(GECODE_ENABLE_EXPERIMENTAL)
+  list(APPEND GECODE_SEARCH_SOURCES
+    gecode/search/astar.cpp
+    gecode/search/cabs.cpp
+    gecode/search/par/frontier.cpp
+  )
+endif()
 
 set(GECODE_INT_SOURCES
   gecode/int/arithmetic.cpp
@@ -82,11 +91,14 @@ set(GECODE_INT_SOURCES
   gecode/int/exec.cpp
   gecode/int/exec/when.cpp
   gecode/int/extensional-regular.cpp
+  gecode/int/extensional-open-regular.cpp
   gecode/int/extensional-tuple-set.cpp
+  gecode/int/open-var-list.cpp
   gecode/int/extensional/dfa.cpp
   gecode/int/extensional/tuple-set.cpp
   gecode/int/gcc.cpp
   gecode/int/int-set.cpp
+  gecode/int/inter-distance.cpp
   gecode/int/ldsb.cpp
   gecode/int/ldsb/sym-imp.cpp
   gecode/int/ldsb/sym-obj.cpp
@@ -95,6 +107,7 @@ set(GECODE_INT_SOURCES
   gecode/int/linear/bool-post.cpp
   gecode/int/linear/int-post.cpp
   gecode/int/member.cpp
+  gecode/int/min-distance.cpp
   gecode/int/no-overlap.cpp
   gecode/int/nvalues.cpp
   gecode/int/order.cpp
@@ -197,6 +210,7 @@ set(GECODE_STRING_SOURCES
   gecode/string/branch.cpp
   gecode/string/channel.cpp
   gecode/string/char2code.cpp
+  gecode/string/concat.cpp
   gecode/string/dashed/dashed-string.cpp
   gecode/string/element.cpp
   gecode/string/exception.cpp
@@ -209,6 +223,7 @@ set(GECODE_STRING_SOURCES
   gecode/string/pow.cpp
   gecode/string/rel.cpp
   gecode/string/rel-op.cpp
+  gecode/string/replace.cpp
   gecode/string/substr.cpp
   gecode/string/var-imp/string.cpp
   gecode/string/var/string.cpp
@@ -264,7 +279,32 @@ set(GECODE_FLATZINC_SOURCES
   gecode/flatzinc/lexer.yy.cpp
   gecode/flatzinc/parser.tab.cpp
   gecode/flatzinc/registry.cpp
+  gecode/flatzinc/registry-scheduling.cpp
+  gecode/flatzinc/registry-set.cpp
+  gecode/flatzinc/registry-float.cpp
 )
+
+set(GECODE_TEST_CORE_SOURCES
+  test/test.cpp
+)
+
+set(GECODE_TEST_INT_SOURCES
+  test/int.cpp
+)
+
+set(GECODE_TEST_SET_SOURCES
+  test/set.cpp
+)
+
+set(GECODE_TEST_FLOAT_SOURCES
+  test/float.cpp
+)
+
+set(GECODE_TEST_MAIN_SOURCE test/test-main.cpp)
+set(GECODE_TEST_PUBLIC_RUNNER_SMOKE_SOURCE test/public-runner-smoke.cpp)
+set(GECODE_TEST_PUBLIC_INT_SMOKE_SOURCE test/public-int-smoke.cpp)
+set(GECODE_TEST_PUBLIC_SET_SMOKE_SOURCE test/public-set-smoke.cpp)
+set(GECODE_TEST_PUBLIC_FLOAT_SMOKE_SOURCE test/public-float-smoke.cpp)
 
 set(GECODE_TEST_SOURCES
   test/afc.cpp
@@ -313,6 +353,7 @@ set(GECODE_TEST_SOURCES
   test/flatzinc/eq20.cpp
   test/flatzinc/factory_planning_instance.cpp
   test/flatzinc/golomb.cpp
+  test/flatzinc/native-registry.cpp
   test/flatzinc/int_set_as_type1.cpp
   test/flatzinc/int_set_as_type2.cpp
   test/flatzinc/issue166.cpp
@@ -398,7 +439,6 @@ set(GECODE_TEST_SOURCES
   test/float/transcendental.cpp
   test/float/trigonometric.cpp
   test/groups.cpp
-  test/int.cpp
   test/int/arithmetic.cpp
   test/int/basic.cpp
   test/int/bin-packing.cpp
@@ -414,8 +454,10 @@ set(GECODE_TEST_SOURCES
   test/int/exec.cpp
   test/int/extensional.cpp
   test/int/gcc.cpp
+  test/int/inter-distance.cpp
   test/int/linear.cpp
   test/int/member.cpp
+  test/int/min-distance.cpp
   test/int/mm-arithmetic.cpp
   test/int/mm-bool.cpp
   test/int/mm-count.cpp
@@ -424,6 +466,7 @@ set(GECODE_TEST_SOURCES
   test/int/no-overlap.cpp
   test/int/nvalues.cpp
   test/int/order.cpp
+  test/int/open-var-list.cpp
   test/int/precede.cpp
   test/int/rel.cpp
   test/int/sequence.cpp
@@ -450,6 +493,7 @@ set(GECODE_TEST_SOURCES
   test/set/rel.cpp
   test/set/sequence.cpp
   test/string.cpp
+  test/string/branch.cpp
   test/string/channel.cpp
   test/string/char2code.cpp
   test/string/char-at.cpp
@@ -464,7 +508,7 @@ set(GECODE_TEST_SOURCES
   test/string/rel-op.cpp
   test/string/replace.cpp
   test/string/substring.cpp
-  test/test.cpp
+  test/string/var.cpp
 )
 
 set(GECODE_TEST_BLACKBOX_EXEC_SOURCE test/flatzinc/blackbox-exec.cpp)

@@ -66,7 +66,8 @@ namespace Test { namespace String { namespace GCC {
 
   class MustChars : public Test {
   public:
-    MustChars(void) : Test("GCC::MustChars", 1, "abc", 3) {}
+    MustChars(void)
+      : Test("GCC::MustChars", 1, "abc", 3, false, TestTags::check()) {}
 
     virtual bool solution(const Assignment& assignment) const {
       const std::string& value = assignment[0];
@@ -80,6 +81,23 @@ namespace Test { namespace String { namespace GCC {
   };
 
   MustChars must_chars;
+
+  class EmptyMustChars : public Test {
+  public:
+    EmptyMustChars(void)
+      : Test("GCC::MustChars::Empty", 1, "abc", 3, false, TestTags::check()) {}
+
+    virtual bool solution(const Assignment&) const {
+      return true;
+    }
+
+    virtual void post(Gecode::Space& home, Gecode::StringVarArray& x) {
+      Gecode::String::NSIntSet characters;
+      Gecode::must_chars(home, x[0], characters);
+    }
+  };
+
+  EmptyMustChars empty_must_chars;
 
 }}}
 

@@ -34,6 +34,22 @@
 #include <gecode/search.hh>
 
 namespace Gecode { namespace Search {
+#ifdef GECODE_HAS_EXPERIMENTAL
+  UnsupportedCABSTracer::UnsupportedCABSTracer(const char* l)
+    : Exception(l,"CABS does not support search tracers") {}
+
+  UninitializedCABSBound::UninitializedCABSBound(const char* l)
+    : Exception(l,"CABS total-bound guidance is missing") {}
+
+  UnsupportedAStarTracer::UnsupportedAStarTracer(const char* l)
+    : Exception(l,"A* does not support search tracers") {}
+
+  UninitializedAStarBound::UninitializedAStarBound(const char* l)
+    : Exception(l,"A* total-bound guidance is missing") {}
+
+
+
+#endif
 
   UninitializedCutoff::UninitializedCutoff(const char* l)
     : Exception(l,"Cutoff for restart-based search is missing") {}
@@ -47,6 +63,15 @@ namespace Gecode { namespace Search {
 
   NoBest::NoBest(const char* l)
     : Exception(l,"Best solution search is not supported") {}
+
+  InvalidWorkerRequest::InvalidWorkerRequest(const char* l)
+    : Exception(l,"Invalid number of requested search workers") {}
+
+  UninitializedWorkerControl::UninitializedWorkerControl(const char* l)
+    : Exception(l,"Worker control is not initialized") {}
+
+  WorkerControlInUse::WorkerControlInUse(const char* l)
+    : Exception(l,"Worker control is already bound or has unsupported engine placement") {}
 
 }}
 

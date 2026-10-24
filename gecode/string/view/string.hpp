@@ -132,6 +132,11 @@ namespace Gecode { namespace String {
     return x->rev(home, a.varimp());
   }
 
+  forceinline bool
+  StringView::any(const Delta& d) const {
+    return StringVarImp::any(d);
+  }
+
   forceinline int
   StringView::min_length() const {
     return x->ds.min_length();

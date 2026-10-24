@@ -237,13 +237,18 @@ namespace Gecode { namespace String {
               break;
             }
           if (qi == -1) {
-            GECODE_ME_CHECK(b.eq(home, 0));
+            if (rm != RM_PMI)
+              GECODE_ME_CHECK(b.eq(home, 0));
             return ES_OK;
           }
           q = qi;
         }
-        GECODE_ME_CHECK(b.eq(home,
-          q < d.final_fst() || q >= d.final_lst() ? 0 : 1));
+        if (q < d.final_fst() || q >= d.final_lst()) {
+          if (rm != RM_PMI)
+            GECODE_ME_CHECK(b.eq(home, 0));
+        } else if (rm != RM_IMP) {
+          GECODE_ME_CHECK(b.eq(home, 1));
+        }
         return ES_OK;
       }
       const StringVal value = x.val_symbols();
@@ -256,15 +261,18 @@ namespace Gecode { namespace String {
             break;
           }
         if (qi == -1) {
-          GECODE_ME_CHECK(b.eq(home, 0));
+          if (rm != RM_PMI)
+            GECODE_ME_CHECK(b.eq(home, 0));
           return ES_OK;
         }
         q = qi;
       }
-      if (q < d.final_fst() || q >= d.final_lst())
-        GECODE_ME_CHECK(b.eq(home, 0));
-      else
+      if (q < d.final_fst() || q >= d.final_lst()) {
+        if (rm != RM_PMI)
+          GECODE_ME_CHECK(b.eq(home, 0));
+      } else if (rm != RM_IMP) {
         GECODE_ME_CHECK(b.eq(home, 1));
+      }
       return ES_OK;
     }
     (void) new (home) ReReg(home, x, new compDFA(d, x.may_chars()), b);

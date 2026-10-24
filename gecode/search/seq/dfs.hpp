@@ -89,7 +89,7 @@ namespace Gecode { namespace Search { namespace Seq {
      */
     start();
     while (true) {
-      if (stop(opt))
+      if (stop_seq(opt))
         return nullptr;
       while (cur == nullptr) {
         if (path.empty())
@@ -100,6 +100,10 @@ namespace Gecode { namespace Search { namespace Seq {
         path.next();
       }
       node++;
+#ifdef GECODE_HAS_EXPERIMENTAL
+      if (cur->status(*this) == SS_BRANCH)
+        cur->prepare(*this);
+#endif
       SearchTracer::EdgeInfo ei;
       if (tracer && (path.entries() > 0)) {
         typename Path<Tracer>::Edge& top = path.top();

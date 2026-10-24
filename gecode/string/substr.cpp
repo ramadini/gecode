@@ -3,12 +3,8 @@
 
 namespace Gecode {
 
-  /*
-   * y = x[i..j] <==> y = x[i] x[i + 1] ... x[j].
-   * lx = |x| /\ n = max(1, i) /\ m = min(lx, j) /\ ly = |y| /\
-   * ly = min(lx, max(0, m - n + 1)) /\ x = y' ++ y ++ y'' /\
-   * y' :: X^{min(lx, n - 1)} /\ y'' :: X^{max(0, lx - m)} /\ X = chars(x)
-   */
+  // Clip both boundaries into x, keeping the end at or after the start.
+  // Empty intervals then leave x = prefix ++ suffix without overlap.
   void
   substr(Home home, StringVar x, IntVar i, IntVar j, StringVar y) {
     GECODE_POST;
@@ -23,58 +19,48 @@ namespace Gecode {
         (home, source, from, to, result));
       return;
     }
-    int x1 = x.min_length(),
-        x2 = x.max_length(),
-        n1 = std::max(1, i.min()),
-        n2 = std::max(1, i.max()),
-        m1 = std::max(0, std::min(x1, j.min())),
-        m2 = std::max(0, std::min(x2, j.max()));
-    if (x2 == 0 || m1 > m2 || n1 > n2 || n1 > m2 || n1 > x2) {
-      GECODE_ME_FAIL(y.varimp()->eq(home, ""));
-      return;
-    }
-    IntVar n(home, n1, n2),
-         n_1(home, n1 - 1, n2 - 1),
-           m(home, m1, m2),
-           p(home, m1 - n2 + 1, m2 - n1 + 1),
-       l(home, 0, p.max()),
-           lx(home, x1, x2),
-       lx_m(home, x1 - m2, x2 - m1),
-           ly (home, 0, x2),
-       ly1(home, 0, x2),
-       ly2(home, 0, x2);
+    const int lower = x.min_length(), upper = x.max_length();
+    const int first_lower = std::max(1, i.min());
+    const int first_upper = std::max(1, i.max());
+    IntVar lx(home, lower, upper),
+      first(home, first_lower, first_upper),
+      before_first(home, first_lower - 1, first_upper - 1),
+      nonnegative_last(home, std::max(0, j.min()), std::max(0, j.max())),
+      clipped_last(home, 0, upper),
+      end(home, 0, upper),
+      prefix_length(home, 0, upper),
+      result_length(home, 0, upper),
+      suffix_length(home, 0, upper);
 
-    min(home, lx, j, m);
-    max(home, IntVar(home, 1, 1), i, n);
-    IntArgs a;
-    a << -1 << 1 << 1;
-    IntVarArgs v;
-    v << m << n << p;
-    linear(home, a, v, IRT_EQ, 1); // -m + n + p = 1 ==> p = m - n + 1
-    max(home, IntVar(home, 0, 0), p, l); // l = max(0, p) = max(0, m - n + 1)
-    min(home, l, lx, ly);
     length(home, x, lx);
-    length(home, y, ly);
+    max(home, IntVar(home, 1, 1), i, first);
+    IntArgs offset_coefficients;
+    offset_coefficients << 1 << -1;
+    IntVarArgs offset_bounds;
+    offset_bounds << first << before_first;
+    linear(home, offset_coefficients, offset_bounds, IRT_EQ, 1);
+    min(home, lx, before_first, prefix_length);
+    max(home, IntVar(home, 0, 0), j, nonnegative_last);
+    min(home, lx, nonnegative_last, clipped_last);
+    max(home, prefix_length, clipped_last, end);
 
-    StringVar y1(home), y1y(home);
-    rel(home, y1, y,  STRT_CAT, y1y);
-    IntArgs a1;
-    a1 << -1 << 1;
-    IntVarArgs v1;
-    v1 << n_1 << n;
-    linear(home, a1, v1, IRT_EQ, 1);
-    min(home, lx, n_1, ly1);
-    length(home, y1,  ly1);
+    IntArgs coefficients;
+    coefficients << 1 << 1 << -1;
+    IntVarArgs result_bounds;
+    result_bounds << prefix_length << result_length << end;
+    linear(home, coefficients, result_bounds, IRT_EQ, 0);
+    IntVarArgs suffix_bounds;
+    suffix_bounds << end << suffix_length << lx;
+    linear(home, coefficients, suffix_bounds, IRT_EQ, 0);
+    length(home, y, result_length);
 
-    StringVar y2(home);
-    rel(home, y1y, y2, STRT_CAT, x);
-    IntArgs a2;
-    a2 << 1 << -1 << -1;
-    IntVarArgs v2;
-    v2 << lx << m << lx_m;
-    linear(home, a2, v2, IRT_EQ, 0);
-    max(home, IntVar(home, 0, 0), lx_m, ly2);
-    length(home, y2, ly2);
+    StringVar prefix(home, x.may_chars(), 0, upper),
+      prefix_result(home, x.may_chars(), 0, upper),
+      suffix(home, x.may_chars(), 0, upper);
+    length(home, prefix, prefix_length);
+    length(home, suffix, suffix_length);
+    rel(home, prefix, y, STRT_CAT, prefix_result);
+    rel(home, prefix_result, suffix, STRT_CAT, x);
   }
 
   // x contains y <==> find(y, x) = n /\ n > 0.
@@ -102,14 +88,18 @@ namespace Gecode {
   // x startswith y <==> x = y ++ z.
   void
   startswith(Home home, StringVar x, StringVar y) {
-    StringVar z(home);
+    GECODE_POST;
+    StringVar z(home, x.may_chars(), 0,
+                std::max(0, x.max_length() - y.min_length()));
     rel(home, y, z, STRT_CAT, x);
   }
 
   // x endswith y <==> x = z ++ y.
   void
   endswith(Home home, StringVar x, StringVar y) {
-    StringVar z(home);
+    GECODE_POST;
+    StringVar z(home, x.may_chars(), 0,
+                std::max(0, x.max_length() - y.min_length()));
     rel(home, z, y, STRT_CAT, x);
   }
 
@@ -125,7 +115,8 @@ namespace Gecode {
   void
   endswith(Home home, StringVar x, StringVar y, BoolVar b) {
     IntVar i(home, 0, std::max(1, x.max_length()));
-    StringVar x1(home), y1(home);
+    StringVar x1(home, x.may_chars(), x.min_length(), x.max_length()),
+      y1(home, y.may_chars(), y.min_length(), y.max_length());
     rel(home, x, STRT_REV, x1);
     rel(home, y, STRT_REV, y1);
     find(home, y1, x1, i);
