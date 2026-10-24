@@ -113,6 +113,8 @@ What:   bug
 Rank:   minor
 [DESCRIPTION]
 Avoid treating function branchers as propagators when enabling tracing.
+Keep brancher and iterator end markers as links instead of downcasting them
+to actors.
 
 [ENTRY]
 Module: search
