@@ -26,6 +26,10 @@
 
 #include "test/string.hh"
 
+#include <memory>
+#include <set>
+#include <vector>
+
 namespace Test { namespace String { namespace Rel {
 
   /// Test an increasing or decreasing string relation
@@ -152,6 +156,120 @@ namespace Test { namespace String { namespace Rel {
     }
   };
 
+  /// Space for assigned scalar-value checks
+  class ScalarValueSpace : public Gecode::Space {
+  public:
+    ScalarValueSpace(void) {}
+    ScalarValueSpace(ScalarValueSpace& s) : Gecode::Space(s) {}
+    virtual Gecode::Space* copy(void) {
+      return new ScalarValueSpace(*this);
+    }
+  };
+
+  /// Enumerate an open scalar domain after posting a monotone relation
+  class ScalarOrderSpace : public Gecode::Space {
+  public:
+    Gecode::StringVarArray x;
+
+    ScalarOrderSpace(int first, int last, bool strict, bool decreasing)
+      : x(*this, 1) {
+      x[0] = Gecode::StringVar(
+        *this, Gecode::String::NSIntSet(first, last), 0, 2);
+      Gecode::rel(*this, x[0], decreasing
+        ? (strict ? Gecode::STRT_DECLT : Gecode::STRT_DECLQ)
+        : (strict ? Gecode::STRT_INCLT : Gecode::STRT_INCLQ));
+      Gecode::branch(*this, Gecode::StringVarArgs(x),
+                     Gecode::STRING_VAR_NONE(), Gecode::STRING_VAL_LLLL());
+    }
+
+    ScalarOrderSpace(ScalarOrderSpace& s) : Gecode::Space(s) {
+      x.update(*this, s.x);
+    }
+
+    virtual Gecode::Space* copy(void) {
+      return new ScalarOrderSpace(*this);
+    }
+  };
+
+  /// Compare assigned and searched values with scalar-vector ordering
+  class ScalarOrder : public Base {
+  private:
+    typedef std::vector<Gecode::String::StringSymbol> Word;
+    typedef std::set<Word> Words;
+
+    bool decreasing;
+
+    static bool ordered(const Word& word, bool strict, bool decreasing) {
+      for (Word::size_type i = 1; i < word.size(); ++i)
+        if ((strict && word[i - 1] == word[i]) ||
+            (decreasing ? word[i - 1] < word[i] : word[i - 1] > word[i]))
+          return false;
+      return true;
+    }
+
+    static bool assigned_matches(const Word& word, bool strict,
+                                 bool decreasing) {
+      ScalarValueSpace home;
+      Gecode::StringVar x(
+        home, Gecode::String::StringVal::from_symbols(word));
+      Gecode::rel(home, x, decreasing
+        ? (strict ? Gecode::STRT_DECLT : Gecode::STRT_DECLQ)
+        : (strict ? Gecode::STRT_INCLT : Gecode::STRT_INCLQ));
+      return (home.status() != Gecode::SS_FAILED) ==
+        ordered(word, strict, decreasing);
+    }
+
+    static bool search_matches(int first, int last, bool strict,
+                               bool decreasing, const Words& expected) {
+      ScalarOrderSpace root(first, last, strict, decreasing);
+      if (root.status() == Gecode::SS_FAILED)
+        return false;
+      Gecode::Search::Options options;
+      options.threads = 1;
+      Gecode::DFS<ScalarOrderSpace> search(&root, options);
+      Words actual;
+      while (ScalarOrderSpace* solution = search.next()) {
+        std::unique_ptr<ScalarOrderSpace> s(solution);
+        if (!s->x[0].assigned())
+          return false;
+        const Gecode::String::StringVal value = s->x[0].val_symbols();
+        const Word word(value.begin(), value.end());
+        if (!actual.insert(word).second)
+          return false;
+      }
+      return actual == expected;
+    }
+
+  public:
+    ScalarOrder(bool decreasing0)
+      : Base(decreasing0 ? "String::Rel::ScalarDecreasing"
+                         : "String::Rel::ScalarIncreasing"),
+        decreasing(decreasing0) {}
+
+    virtual bool run(void) {
+      for (int first : {0x7F, 0x100, 0x10FFFE}) {
+        std::vector<Word> candidates(1);
+        for (int a = first; a <= first + 1; ++a) {
+          candidates.push_back(Word{a});
+          for (int b = first; b <= first + 1; ++b)
+            candidates.push_back(Word{a, b});
+        }
+        for (bool strict : {false, true}) {
+          Words expected;
+          for (const Word& word : candidates) {
+            if (!assigned_matches(word, strict, decreasing))
+              return false;
+            if (ordered(word, strict, decreasing))
+              expected.insert(word);
+          }
+          if (!search_matches(first, first + 1, strict, decreasing, expected))
+            return false;
+        }
+      }
+      return true;
+    }
+  };
+
   Binary eq_xy(Gecode::STRT_EQ, false);
   Binary nq_xy(Gecode::STRT_NQ, false);
   Binary lt_xy(Gecode::STRT_LEXLT, false);
@@ -166,6 +284,8 @@ namespace Test { namespace String { namespace Rel {
   Unary dec_lq(Gecode::STRT_DECLQ);
   Domain domain;
   LexExtrema lex_extrema;
+  ScalarOrder scalar_increasing(false);
+  ScalarOrder scalar_decreasing(true);
 
 }}}
 

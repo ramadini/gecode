@@ -154,16 +154,23 @@ namespace Gecode { namespace String {
       }
     }
     else {
+      NSIntSet intermediate_alphabet = x[0].may_chars();
+      intermediate_alphabet.include(x[2].may_chars());
+      const int intermediate_max_length = x[3].max_length();
       if (sq == "") {
         if (sx == "") {
           rel(home, x[2], STRT_EQ, x[3]);
           return home.ES_SUBSUMED(*this);
         }
         int n = sx.size();
-        StringVarArray vx(home, n);
+        StringVarArgs vx(n);
+        for (int i = 0; i < n; ++i)
+          vx[i] = StringVar(
+            home, intermediate_alphabet, 0, intermediate_max_length);
         rel(home, x[2], StringVar(home, string(1, sx[0])), STRT_CAT, vx[0]);
         for (int i = 1; i < n; ++i) {
-          StringVar z(home);
+          StringVar z(
+            home, intermediate_alphabet, 0, intermediate_max_length);
           rel(home, x[2], StringVar(home, string(1, sx[i])), STRT_CAT, z);
           rel(home, vx[i - 1], z, STRT_CAT, vx[i]);
         }
@@ -175,7 +182,8 @@ namespace Gecode { namespace String {
           rel(home, x[0], STRT_EQ, x[3]);
           return home.ES_SUBSUMED(*this);
         }
-        std::vector<StringVar> vx(1, StringVar(home));
+        std::vector<StringVar> vx(1, StringVar(
+          home, intermediate_alphabet, 0, intermediate_max_length));
         string s = sx.substr(0, pos);
         if (s == "")
           rel(home, x[2], STRT_EQ, vx[0]);
@@ -185,9 +193,11 @@ namespace Gecode { namespace String {
         pos = sx.find(sq, pos1);
         while (pos != string::npos) {
           StringVar last = vx.back();
-          vx.push_back(StringVar(home));
+          vx.push_back(StringVar(
+            home, intermediate_alphabet, 0, intermediate_max_length));
           if (pos > pos1) {
-            StringVar z(home);
+            StringVar z(
+              home, intermediate_alphabet, 0, intermediate_max_length);
             rel(home,
               StringVar(home, sx.substr(pos1, pos - pos1)), x[2], STRT_CAT, z
             );
@@ -214,9 +224,7 @@ namespace Gecode { namespace String {
     const StringVal sx = x[0].val_symbols();
     const StringVal sq = x[1].val_symbols();
     NSIntSet intermediate_alphabet = x[0].may_chars();
-    intermediate_alphabet.include(x[1].may_chars());
     intermediate_alphabet.include(x[2].may_chars());
-    intermediate_alphabet.include(x[3].may_chars());
     const int intermediate_max_length = x[3].max_length();
     if (x[2].assigned()) {
       const StringVal sq1 = x[2].val_symbols();
@@ -541,7 +549,9 @@ namespace Gecode { namespace String {
           else {
             string pref = sx.substr(0, n);
             string suff = sx.substr(n + sq.size());
-            StringVar z(home);
+            NSIntSet intermediate_alphabet = x[0].may_chars();
+            intermediate_alphabet.include(x[2].may_chars());
+            StringVar z(home, intermediate_alphabet, 0, x[3].max_length());
             rel(home, StringVar(home, pref), x[2], STRT_CAT, z);
             rel(home, z, StringVar(home, suff), STRT_CAT, x[3]);
           }
@@ -563,7 +573,9 @@ namespace Gecode { namespace String {
             const StringVal prefix = replace_slice_symbols(source, 0, position);
             const StringVal suffix = replace_slice_symbols(
               source, position + query.size());
-            StringVar z(home);
+            NSIntSet intermediate_alphabet = x[0].may_chars();
+            intermediate_alphabet.include(x[2].may_chars());
+            StringVar z(home, intermediate_alphabet, 0, x[3].max_length());
             rel(home, StringVar(home, prefix), x[2], STRT_CAT, z);
             rel(home, z, StringVar(home, suffix), STRT_CAT, x[3]);
           }
@@ -598,21 +610,8 @@ namespace Gecode { namespace String {
     if (min_occur == 0 && !px.check_equate(py))
       min_occur = 1;
     if (min_occur > 0 && !all) {
-      NSIntSet intermediate_alphabet = x[0].may_chars();
-      intermediate_alphabet.include(x[1].may_chars());
-      intermediate_alphabet.include(x[2].may_chars());
-      intermediate_alphabet.include(x[3].may_chars());
-      StringVar pref, suff;
-      if (intermediate_alphabet.max() <= 255) {
-        pref = StringVar(home);
-        suff = StringVar(home);
-      }
-      else {
-        pref = StringVar(
-          home, intermediate_alphabet, 0, x[0].max_length());
-        suff = StringVar(
-          home, intermediate_alphabet, 0, x[0].max_length());
-      }
+      StringVar pref(home, x[0].may_chars(), 0, x[0].max_length()),
+        suff(home, x[0].may_chars(), 0, x[0].max_length());
       StringVarArgs lhs, rhs;
       lhs << pref << x[1] << suff;
       rhs << pref << x[2] << suff;

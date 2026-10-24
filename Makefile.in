@@ -1467,6 +1467,13 @@ BLACKBOXCHECKENV = \
 	GECODE_TEST_BLACKBOX_LOG=$(BLACKBOXLOG)
 endif
 
+ifeq "@enable_string_vars@" "yes"
+CHECKTESTS += String::Rel::ScalarIncreasing String::Rel::ScalarDecreasing \
+	String::Substring::ClippedBoundaries String::RFind::Boundaries \
+	String::Predicates::ScalarAlphabet String::Replace::ScalarReplacement
+CHECKTESTS += String::RelOp::Power
+endif
+
 ifeq "@enable_float_vars@" "yes"
 FLOATCHECKTESTS = Float::Arithmetic::PositiveNRootBounds \
 	Float::Arithmetic::PowConsistency \

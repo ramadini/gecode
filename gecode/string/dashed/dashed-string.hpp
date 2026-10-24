@@ -1272,8 +1272,8 @@ namespace Gecode { namespace String {
 
   forceinline bool
   DashedString::refine_card_pow(Space& h, DashedString& x, int n1, int n2) {
-    long lx = x._min_length, ly = max(lx * n1, _min_length),
-         ux = x._max_length, uy = min(ux * n2, _max_length);
+    long long lx = x._min_length, ly = max(lx * n1, _min_length),
+              ux = x._max_length, uy = min(ux * n2, _max_length);
     bool again;
     do {
       again = false;
@@ -1472,7 +1472,7 @@ namespace Gecode { namespace String {
       normalize(h);
     // Scanning backward.
     bool changed = false;
-    c = _MAX_STR_ALPHA;
+    c = UNICODE_MAX + 1;
     for (int i = _blocks.length() - 1; i >= 0; --i) {
       DSBlock& b = _blocks.at(i);
       if (b.S.min() > c)
@@ -1746,7 +1746,8 @@ namespace Gecode { namespace String {
       return true;
     }
     NSBlocks xn = x.pow(n1);
-    int u = min(_MAX_STR_LENGTH, long(x._max_length) * (n2 - n1));
+    int u = min(_MAX_STR_LENGTH,
+                static_cast<long long>(x._max_length) * (n2 - n1));
     xn.emplace_back(x.may_chars(), 0, u);
     xn.normalize();
     if (!sweep_equate(h, *this, xn))

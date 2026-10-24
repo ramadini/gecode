@@ -1505,6 +1505,16 @@ if(BUILD_TESTING)
         Set::Sequence::SeqU1
         Set::Wait)
     endif()
+    if(GECODE_ENABLE_STRING_VARS)
+      list(APPEND GECODE_CHECK_TESTS
+        String::RelOp::Power
+        String::Substring::ClippedBoundaries
+        String::RFind::Boundaries
+        String::Rel::ScalarIncreasing
+        String::Rel::ScalarDecreasing
+        String::Predicates::ScalarAlphabet
+        String::Replace::ScalarReplacement)
+    endif()
     if(GECODE_ENABLE_FLOAT_VARS)
       set(GECODE_FLOAT_CHECK_TESTS
         Float::Arithmetic::PositiveNRootBounds
