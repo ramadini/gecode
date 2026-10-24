@@ -57,6 +57,7 @@ namespace Gecode { namespace Support { namespace FailPoint {
     SpaceDisposeNoticeArray,
     SpaceDisposalArray,
     IntSet,
+    NSIntSetRange,
     MiniModel
   };
 

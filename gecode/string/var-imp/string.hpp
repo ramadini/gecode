@@ -73,7 +73,7 @@ namespace Gecode { namespace String {
   StringVarImp::dom(Space& home, const NSBlocks& d) {
     DomainState state(*this);
     if (!ds.equate(home, d))
-      return ME_STRING_FAILED;
+      return fail(home);
     return notify(home, ME_STRING_NONE, state);
   }
 
@@ -100,19 +100,13 @@ namespace Gecode { namespace String {
 
   forceinline ModEvent
   StringVarImp::eq(Space& home, string x) {
-    if (!check_sweep<DSBlock, DashedString, char, string>(ds, x))
-      return ME_STRING_FAILED;
-    if (ds.known())
-      return ME_STRING_NONE;
-    int old_min_length = min_length(), old_max_length = max_length();
-    ds.update(home, x);
-    return notify(home, old_min_length, old_max_length);
+    return eq(home, StringVal::from_bytes(x));
   }
 
   forceinline ModEvent
   StringVarImp::eq(Space& home, const StringVal& value) {
     if (!ds.check_equate(value))
-      return ME_STRING_FAILED;
+      return fail(home);
     if (ds.known())
       return ME_STRING_NONE;
     int old_min_length = min_length(), old_max_length = max_length();
@@ -126,7 +120,7 @@ namespace Gecode { namespace String {
     DomainState state(*this);
     DomainState xstate(*x);
     if (!ds.equate(home, xs))
-      return ME_STRING_FAILED;
+      return fail(home);
     ModEvent me = notify(home, ME_STRING_NONE, state);
     GECODE_ME_CHECK(me);
     return notify(home, me, xstate);
@@ -138,7 +132,7 @@ namespace Gecode { namespace String {
     DomainState state(*this);
     DomainState xstate(*x);
     if (!ds.lex(home, xs, lt))
-      return ME_STRING_FAILED;
+      return fail(home);
     ModEvent me = notify(home, ME_STRING_NONE, state);
     GECODE_ME_CHECK(me);
     return notify(home, me, xstate);
@@ -148,7 +142,7 @@ namespace Gecode { namespace String {
   StringVarImp::inc(Space& home, bool lt) {
     DomainState state(*this);
     if (!ds.increasing(home, lt))
-      return ME_STRING_FAILED;
+      return fail(home);
     return notify(home, ME_STRING_NONE, state);
   }
 
@@ -159,7 +153,9 @@ namespace Gecode { namespace String {
   ) {
     int old_min_length = min_length(), old_max_length = max_length();
     ds.commit(home, l, v, b, split, a);
-    Delta d = StringDelta(ds._changed);
+    if (home.failed())
+      return fail(home);
+    StringDelta d(ds._changed);
     return notify(home, old_min_length, old_max_length, d);
   }
 
@@ -167,7 +163,7 @@ namespace Gecode { namespace String {
   StringVarImp::lb(Space& home, int l) {
     DomainState state(*this);
     if (!ds.refine_lb(l))
-      return ME_STRING_FAILED;
+      return fail(home);
     return notify(home, ME_STRING_NONE, state);
   }
 
@@ -175,7 +171,7 @@ namespace Gecode { namespace String {
   StringVarImp::ub(Space& home, int u) {
     DomainState state(*this);
     if (!ds.refine_ub(home, u))
-      return ME_STRING_FAILED;
+      return fail(home);
     return notify(home, ME_STRING_NONE, state);
   }
 
@@ -187,7 +183,7 @@ namespace Gecode { namespace String {
     DomainState xstate(*x);
     DomainState ystate(*y);
     if (!ds.concat(home, xs, ys))
-      return ME_STRING_FAILED;
+      return fail(home);
     ModEvent me = notify(home, ME_STRING_NONE, state);
     GECODE_ME_CHECK(me);
     me = notify(home, me, xstate);
@@ -213,7 +209,7 @@ namespace Gecode { namespace String {
     Region region;
     GConcatView view(region, xs);
     if (!sweep_concat(home, view, xs, ds))
-      return ME_STRING_FAILED;
+      return fail(home);
     ModEvent me = notify(home, ME_STRING_NONE, state);
     GECODE_ME_CHECK(me);
     for (const DomainState& xstate : states) {
@@ -229,7 +225,7 @@ namespace Gecode { namespace String {
     DomainState state(*this);
     DomainState xstate(*x);
     if (!ds.find(home, xs, l, u, b))
-      return ME_STRING_FAILED;
+      return fail(home);
     ModEvent me = notify(home, ME_STRING_NONE, state);
     GECODE_ME_CHECK(me);
     return notify(home, me, xstate);
@@ -241,7 +237,7 @@ namespace Gecode { namespace String {
     DomainState state(*this);
     DomainState xstate(*x);
     if (!ds.pow(home, xs, l, u))
-      return ME_STRING_FAILED;
+      return fail(home);
     ModEvent me = notify(home, ME_STRING_NONE, state);
     GECODE_ME_CHECK(me);
     return notify(home, me, xstate);
@@ -253,10 +249,15 @@ namespace Gecode { namespace String {
     DomainState state(*this);
     DomainState xstate(*x);
     if (!ds.rev(home, xs))
-      return ME_STRING_FAILED;
+      return fail(home);
     ModEvent me = notify(home, ME_STRING_NONE, state);
     GECODE_ME_CHECK(me);
     return notify(home, me, xstate);
+  }
+
+  forceinline bool
+  StringVarImp::any(const Delta& d) {
+    return static_cast<const StringDelta&>(d).any();
   }
 
   forceinline void

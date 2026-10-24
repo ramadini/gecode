@@ -254,13 +254,78 @@ if(NOT Gecode_LIBRARIES STREQUAL "Gecode::gecodestring")
 endif()
 add_executable(consumer_l main.cpp)
 target_link_libraries(consumer_l PRIVATE ${Gecode_LIBRARIES})
+if(Gecode_flatzinc_FOUND)
+  find_package(Gecode CONFIG REQUIRED COMPONENTS flatzinc)
+  add_executable(consumer_l_flatzinc flatzinc.cpp)
+  target_link_libraries(consumer_l_flatzinc PRIVATE Gecode::gecodeflatzinc)
+endif()
 EOF
 cat > "$work/l/main.cpp" <<'EOF'
 #include <gecode/string.hh>
+#include <gecode/string/concat.hh>
+#include <memory>
+
+using namespace Gecode;
+
+class ConsumerConcat : public String::Concat {
+public:
+  ConsumerConcat(Home home, String::StringView x, String::StringView y,
+                 String::StringView z) : String::Concat(home, x, y, z) {}
+  ConsumerConcat(Space& home, ConsumerConcat& p) : String::Concat(home, p) {}
+  virtual Actor* copy(Space& home) { return new (home) ConsumerConcat(home, *this); }
+};
+
+class StringSpace : public Space {
+public:
+  StringVar x;
+  StringVarArray results;
+  StringSpace(void) : x(*this, 1, 1), results(*this, 6) {
+    for (int i = 0; i < results.size(); ++i)
+      results[i] = StringVar(*this, 0, 10);
+    StringVar source(*this, "aba"), query(*this, "a"), replacement(*this, "x");
+    rel(*this, x, StringVar(*this, "b"), STRT_CAT, results[0]);
+    rel(*this, source, query, replacement, STRT_REP, results[1]);
+    replace(*this, source, query, replacement, results[2]);
+    replace_all(*this, source, query, replacement, results[3]);
+    replace_last(*this, source, query, replacement, results[4]);
+    (void) new (*this) ConsumerConcat(*this, x, StringVar(*this, "c"), results[5]);
+  }
+  StringSpace(StringSpace& s) : Space(s) {
+    x.update(*this, s.x);
+    results.update(*this, s.results);
+  }
+  virtual Space* copy(void) { return new StringSpace(*this); }
+};
+
 int main(void) {
-  const Gecode::String::StringVal value =
-    Gecode::String::StringVal::decode_utf8("Dashed");
-  return value.to_utf8() == "Dashed" ? 0 : 1;
+  const String::StringVal value = String::StringVal::decode_utf8("Dashed");
+  StringSpace home;
+  if (value.to_utf8() != "Dashed" || home.status() == SS_FAILED)
+    return 1;
+  std::unique_ptr<StringSpace> clone(static_cast<StringSpace*>(home.clone()));
+  rel(*clone, clone->x, STRT_EQ, StringVar(*clone, "a"));
+  if (clone->status() == SS_FAILED || clone->x.size() != 1.0)
+    return 1;
+  const char* expected[] = {"ab", "xba", "xba", "xbx", "abx", "ac"};
+  for (int i = 0; i < clone->results.size(); ++i)
+    if (!clone->results[i].assigned() || clone->results[i].val() != expected[i])
+      return 1;
+  return 0;
+}
+EOF
+
+cat > "$work/l/flatzinc.cpp" <<'EOF'
+#include <gecode/flatzinc.hh>
+#include <memory>
+#include <sstream>
+
+int main(void) {
+  std::istringstream input(
+    "constraint str_concat_c(\"a\", \"b\", \"ab\"); solve satisfy;");
+  Gecode::FlatZinc::Printer printer;
+  std::unique_ptr<Gecode::FlatZinc::FlatZincSpace> home(
+    Gecode::FlatZinc::parse(input, printer));
+  return home && home->status() != Gecode::SS_FAILED ? 0 : 1;
 }
 EOF
 
@@ -293,6 +358,10 @@ cmake --build "$work/c/build" -j4
 
 cmake -S "$work/l" -B "$work/l/build" -DCMAKE_PREFIX_PATH="$prefix"
 cmake --build "$work/l/build" -j4
+"$work/l/build/consumer_l"
+if [ -x "$work/l/build/consumer_l_flatzinc" ]; then
+  "$work/l/build/consumer_l_flatzinc"
+fi
 
 # A support-only consumer must not discover dependencies belonging exclusively
 # to Float, FlatZinc, or Gist, even when those targets exist in the package.

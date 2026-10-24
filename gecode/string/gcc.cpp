@@ -18,9 +18,16 @@ namespace Gecode {
 
   void
   must_chars(Home home, StringVar x, const String::NSIntSet& s) {
+    GECODE_POST;
     IntArgs cover;
     for (String::NSIntSet::iterator it = s.begin(); it(); ++it)
       cover << *it;
+    if (cover.size() == 0)
+      return;
+    if (cover.size() > x.max_length()) {
+      home.fail();
+      return;
+    }
     IntVarArgs count;
     int ub = x.max_length() - cover.size() + 1;
     for (int i = 0; i < cover.size(); ++i)

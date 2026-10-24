@@ -3,7 +3,7 @@
 
 namespace Gecode { namespace String {
 
-  class Replace : public NaryPropagator<StringView, PC_STRING_DOM> {
+  class GECODE_VTABLE_EXPORT Replace : public NaryPropagator<StringView, PC_STRING_DOM> {
     int lb_card(int, const Position&, const Position&) const;
     int ub_card(int, const Position&, const Position&) const;
     NSBlocks pref(int k, const Position& p) const;
@@ -29,11 +29,14 @@ namespace Gecode { namespace String {
     );
   public:
     /// Copy propagator during cloning
+    GECODE_STRING_EXPORT
     virtual Actor* copy(Space& home);
     /// Perform propagation
+    GECODE_STRING_EXPORT
     virtual ExecStatus propagate(Space& home, const ModEventDelta& med);
     /// Post propagator string replace
-    static  ExecStatus post(
+    GECODE_STRING_EXPORT
+    static ExecStatus post(
       Home, ViewArray<StringView>&, bool all = false, bool last = false
     );
   };

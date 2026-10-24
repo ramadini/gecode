@@ -21,13 +21,15 @@ namespace Gecode { namespace String {
         GECODE_ES_FAIL((Inc::post(home, x0, false)));
         break;
       case STRT_DECLT: {
-        StringVar xr(home);
+        StringVar xr(home, x0.may_chars(),
+                     x0.min_length(), x0.max_length());
         rel(home, x0, STRT_REV, xr);
         GECODE_ES_FAIL((Inc::post(home, xr, true)));
         break;
       }
       case STRT_DECLQ: {
-        StringVar xr(home);
+        StringVar xr(home, x0.may_chars(),
+                     x0.min_length(), x0.max_length());
         rel(home, x0, STRT_REV, xr);
         GECODE_ES_FAIL((Inc::post(home, xr, false)));
         break;

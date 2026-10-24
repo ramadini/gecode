@@ -167,25 +167,70 @@ namespace Gecode { namespace String {
   DashedString::DashedString(Space& h)
     : _changed(false), _blocks(h), _min_length(0), _max_length(0) {}
 
+  namespace {
+
+    void
+    check_length_bounds(int l, int u) {
+      if (l < 0 || u < 0 || l > DashedString::_MAX_STR_LENGTH ||
+          u > DashedString::_MAX_STR_LENGTH)
+        throw OutOfLimitsDS("DashedString::DashedString");
+      if (l > u)
+        throw EmptyDS("DashedString::DashedString");
+    }
+
+  }
+
   DashedString::DashedString(Space& h, const DSBlock& b)
-    : _changed(false), _blocks(h, 1, b),
-      _min_length(b.l), _max_length(b.u) {}
+    : _changed(false), _blocks(h), _min_length(0), _max_length(0) {
+    check_length_bounds(b.l, b.u);
+    if (b.S.empty() && b.l > 0)
+      throw EmptyDS("DashedString::DashedString");
+    if (b.u == 0 || b.S.empty())
+      return;
+    _blocks.at(0).update(h, b);
+    _min_length = b.l;
+    _max_length = b.u;
+  }
 
   DashedString::DashedString(Space& h, NSBlocks& v, int mil, int mal)
-    : _changed(false), _blocks(h) {
+    : _changed(false), _blocks(h), _min_length(0), _max_length(0) {
+    check_length_bounds(mil, mal);
     if (v.empty())
       throw EmptyDS("DashedString::DashedString");
-    if ((int) v.size() > _MAX_STR_LENGTH)
+    if (v.size() > static_cast<NSBlocks::size_type>(_MAX_STR_LENGTH))
       throw OutOfLimitsDS("DashedString::DashedString");
+    int l = 0, u = 0;
+    for (const NSBlock& block : v) {
+      check_length_bounds(block.l, block.u);
+      if ((block.S.empty() && block.l > 0) ||
+          block.l > _MAX_STR_LENGTH - l)
+        throw EmptyDS("DashedString::DashedString");
+      l += block.l;
+      if (!block.S.empty())
+        u += min(block.u, _MAX_STR_LENGTH - u);
+    }
+    l = max(l, mil);
+    u = min(u, mal);
+    if (l > u)
+      throw EmptyDS("DashedString::DashedString");
     v.normalize();
+    if (u == 0)
+      return;
     update(h, v);
-    _min_length = max(_min_length, mil);
-    _max_length = min(_max_length, mal);
+    _min_length = l;
+    _max_length = u;
+    if (length() == 1) {
+      at(0).l = l;
+      at(0).u = u;
+    }
+    assert (is_normalized());
   }
 
   DashedString::DashedString(Space& h, const std::string& s)
-    : _changed(false), _blocks(h),
-      _min_length(s.size()), _max_length(s.size()) {
+    : _changed(false), _blocks(h), _min_length(0), _max_length(0) {
+    if (s.size() > static_cast<std::string::size_type>(_MAX_STR_LENGTH))
+      throw OutOfLimitsDS("DashedString::DashedString");
+    _min_length = _max_length = static_cast<int>(s.size());
     this->_blocks.update(h, s);
   }
 
@@ -200,6 +245,84 @@ namespace Gecode { namespace String {
   DashedString::DashedString(Space& h, const DashedString& d)
     : _changed(d._changed), _blocks(h, d._blocks),
       _min_length(d._min_length), _max_length(d._max_length) {}
+
+  bool
+  DashedString::equate(Space& h, DashedString& that) {
+    _changed = that._changed = false;
+    if (!refine_card_eq(h, that))
+      return false;
+    if (known()) {
+      string s;
+      if (try_val_bytes(s)) {
+        if (that.known()) {
+          string t;
+          return that.try_val_bytes(t) && s == t;
+        }
+        if (check_sweep<char, string, DSBlock, DSBlocks>(s, that._blocks)) {
+          that.update(h, s);
+          that._changed = true;
+          return true;
+        }
+        return false;
+      }
+      if (that.known())
+        return equals(that);
+      if (check_sweep<DSBlock, DSBlocks, DSBlock, DSBlocks>(
+            _blocks, that._blocks)) {
+        that.update(h, *this);
+        that._changed = true;
+        return true;
+      }
+      return false;
+    }
+    if (that.known()) {
+      string s;
+      if (that.try_val_bytes(s)) {
+        if (check_sweep<DSBlock, DSBlocks, char, string>(_blocks, s)) {
+          update(h, s);
+          _changed = true;
+          return true;
+        }
+        return false;
+      }
+      if (check_sweep<DSBlock, DSBlocks, DSBlock, DSBlocks>(
+            _blocks, that._blocks)) {
+        update(h, that);
+        _changed = true;
+        return true;
+      }
+      return false;
+    }
+    if (contains(that)) {
+      if (*this == that)
+        return true;
+      update(h, that);
+      _changed = true;
+      return true;
+    }
+    if (that.contains(*this)) {
+      that.update(h, *this);
+      that._changed = true;
+      return true;
+    }
+    if (!sweep_equate(h, *this, that))
+      return false;
+    if ((_changed || that._changed) && !refine_card_eq(h, that))
+      return false;
+    return true;
+  }
+
+  bool
+  DashedString::equate(Space& h, const StringVal& that) {
+    _changed = false;
+    if (!check_equate(that))
+      return false;
+    if (known())
+      return val_symbols() == that;
+    update(h, that);
+    _changed = true;
+    return true;
+  }
 
 }}
 

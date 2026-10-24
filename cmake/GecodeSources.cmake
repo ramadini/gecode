@@ -197,6 +197,7 @@ set(GECODE_STRING_SOURCES
   gecode/string/branch.cpp
   gecode/string/channel.cpp
   gecode/string/char2code.cpp
+  gecode/string/concat.cpp
   gecode/string/dashed/dashed-string.cpp
   gecode/string/element.cpp
   gecode/string/exception.cpp
@@ -209,6 +210,7 @@ set(GECODE_STRING_SOURCES
   gecode/string/pow.cpp
   gecode/string/rel.cpp
   gecode/string/rel-op.cpp
+  gecode/string/replace.cpp
   gecode/string/substr.cpp
   gecode/string/var-imp/string.cpp
   gecode/string/var/string.cpp
@@ -464,6 +466,7 @@ set(GECODE_TEST_SOURCES
   test/string/rel-op.cpp
   test/string/replace.cpp
   test/string/substring.cpp
+  test/string/var.cpp
   test/test.cpp
 )
 

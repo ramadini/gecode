@@ -555,7 +555,8 @@ FLOATBUILDDIRS	= \
 
 STRINGSRC0 = \
 	var/string.cpp var-imp/string.cpp dashed/dashed-string.cpp exception.cpp \
-	array.cpp branch.cpp length.cpp char2code.cpp pow.cpp find.cpp rel.cpp rel-op.cpp substr.cpp \
+	array.cpp branch.cpp length.cpp char2code.cpp concat.cpp pow.cpp find.cpp \
+	rel.cpp rel-op.cpp replace.cpp substr.cpp \
 	gcc.cpp gconcat.cpp extensional.cpp element.cpp channel.cpp match.cpp
 
 STRINGHDR0 = \
@@ -1222,7 +1223,7 @@ endif
 
 STRINGTESTSRC00 = \
 	rel rel-op extensional predicates length channel gcc char2code element find \
-	char-at substring match replace
+	char-at substring match replace var
 STRINGTESTSRC0 = test/string.cpp $(STRINGTESTSRC00:%=test/string/%.cpp)
 ifeq "@enable_string_vars@" "yes"
 STRINGTESTOBJ = $(STRINGTESTSRC0:%.cpp=%$(OBJSUFFIX))
@@ -1465,6 +1466,41 @@ BLACKBOXCHECKENV = \
 	GECODE_TEST_BLACKBOX_EXEC=$(abspath $(BLACKBOXEXEC)) \
 	GECODE_TEST_BLACKBOX_DLL=$(abspath $(BLACKBOXDLL)) \
 	GECODE_TEST_BLACKBOX_LOG=$(BLACKBOXLOG)
+endif
+
+ifeq "@enable_string_vars@" "yes"
+CHECKTESTS += String::GCC::MustChars \
+	String::Rel::Construction \
+	String::Rel::AggregateBounds \
+	String::Rel::SizeEstimate \
+	String::Rel::NSIntSetCopy \
+	String::Var::FailureAdvisors \
+	String::Var::Events \
+	String::Var::Lifecycle \
+	String::Replace::All \
+	String::Replace::First::EqualResult::Alias \
+	String::Replace::First::EqualResult::Distinct \
+	String::Replace::Last::EqualResult::Alias \
+	String::Replace::Last::EqualResult::Distinct \
+	String::Replace::All::EqualResult::Alias \
+	String::Replace::All::EqualResult::Distinct \
+	String::Replace::First::QueryResult \
+	String::Replace::Last::QueryResult \
+	String::Replace::All::QueryResult \
+	String::Replace::First::EmptySource \
+	String::Replace::Last::EmptySource \
+	String::Replace::All::EmptyQuery::Bytes \
+	String::Replace::All::EmptyQuery::Scalars \
+	String::Replace::All::VariableQuery \
+	String::Replace::First::Overlap \
+	String::Replace::Last::Overlap \
+	String::RelOp::Power \
+	String::Substring::ClippedBoundaries \
+	String::RFind::Boundaries \
+	String::Rel::ScalarIncreasing \
+	String::Rel::ScalarDecreasing \
+	String::Predicates::ScalarAlphabet \
+	String::Replace::ScalarReplacement
 endif
 
 ifeq "@enable_float_vars@" "yes"

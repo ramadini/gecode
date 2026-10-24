@@ -7,6 +7,8 @@
 
 #include "test/string.hh"
 
+#include <memory>
+
 namespace Test { namespace String { namespace Find {
 
   class FirstA : public Test {
@@ -89,6 +91,94 @@ namespace Test { namespace String { namespace Find {
 
   LastAB rabsent_ab(0);
   LastAB last_ab(2);
+
+  class ReverseSpace : public Gecode::Space {
+  public:
+    Gecode::StringVar pattern;
+    Gecode::StringVar source;
+    Gecode::IntVar index;
+
+    ReverseSpace(const Gecode::String::StringVal& pattern_value,
+                 const Gecode::String::StringVal& source_value, bool assigned,
+                 int first)
+      : pattern(assigned ? Gecode::StringVar(*this, pattern_value) :
+          Gecode::StringVar(*this,
+            Gecode::String::NSIntSet(first, first + 1), 0, 2)),
+        source(assigned ? Gecode::StringVar(*this, source_value) :
+          Gecode::StringVar(*this,
+            Gecode::String::NSIntSet(first, first + 1), 0, 3)),
+        index(*this, 0, 4) {
+      Gecode::rfind(*this, pattern, source, index);
+      if (!assigned) {
+        Gecode::rel(*this, pattern, Gecode::STRT_EQ,
+                    Gecode::StringVar(*this, pattern_value));
+        Gecode::rel(*this, source, Gecode::STRT_EQ,
+                    Gecode::StringVar(*this, source_value));
+      }
+      Gecode::branch(*this, index, Gecode::INT_VAL_MIN());
+    }
+
+    ReverseSpace(ReverseSpace& s) : Gecode::Space(s) {
+      pattern.update(*this, s.pattern);
+      source.update(*this, s.source);
+      index.update(*this, s.index);
+    }
+
+    virtual Gecode::Space* copy(void) {
+      return new ReverseSpace(*this);
+    }
+  };
+
+  class ReverseBoundaries : public Base {
+  private:
+    static int last_position(const Gecode::String::StringVal& pattern,
+                             const Gecode::String::StringVal& source) {
+      int last = 0;
+      for (int offset = 0; offset <= static_cast<int>(source.size()); ++offset)
+        if (pattern.size() <= source.size() - offset &&
+            std::equal(pattern.begin(), pattern.end(), source.begin() + offset))
+          last = offset + 1;
+      return last;
+    }
+
+    static bool matches(const Gecode::String::StringVal& pattern,
+                        const Gecode::String::StringVal& source, bool assigned,
+                        int first) {
+      ReverseSpace root(pattern, source, assigned, first);
+      Gecode::Search::Options options;
+      options.threads = 1;
+      Gecode::DFS<ReverseSpace> search(&root, options);
+      std::unique_ptr<ReverseSpace> solution(search.next());
+      if (!solution || !solution->index.assigned() ||
+          solution->index.val() != last_position(pattern, source))
+        return false;
+      std::unique_ptr<ReverseSpace> extra(search.next());
+      return !extra;
+    }
+
+  public:
+    ReverseBoundaries(void) : Base("String::RFind::Boundaries") {}
+
+    virtual bool run(void) {
+      for (int first : {static_cast<int>('a'), 0x100})
+        for (Assignment pattern(1, "ab", 2); pattern(); ++pattern)
+          for (Assignment source(1, "ab", 3); source(); ++source) {
+            std::vector<Gecode::String::StringSymbol> p, s;
+            for (char symbol : pattern[0])
+              p.push_back(first + symbol - 'a');
+            for (char symbol : source[0])
+              s.push_back(first + symbol - 'a');
+            for (bool assigned : {false, true})
+              if (!matches(Gecode::String::StringVal::from_symbols(p),
+                           Gecode::String::StringVal::from_symbols(s),
+                           assigned, first))
+                return false;
+          }
+      return true;
+    }
+  };
+
+  ReverseBoundaries reverse_boundaries;
 
 }}}
 
