@@ -1504,6 +1504,14 @@ CHECKTESTS += String::Replace::All \
 CHECKTESTS += String::Branch::LengthSelection String::Branch::Positional \
 	String::Branch::LengthReplay String::Branch::SymbolReplay \
 	String::Branch::FixedReplay String::Branch::Recompute
+CHECKTESTS += String::Rel::ScalarIncreasing String::Rel::ScalarDecreasing \
+	String::Substring::ClippedBoundaries String::RFind::Boundaries \
+	String::Predicates::ScalarAlphabet String::Replace::ScalarReplacement
+CHECKTESTS += String::RelOp::Power
+CHECKTESTS += String::RelOp::GConcat::Empty String::Find::Extraction \
+	String::Match::EmptyClass String::Match::EmptyInput \
+	String::Match::EpsilonPattern String::Rel::OptionalIncreasing \
+	String::Rel::OptionalStrictIncreasing
 endif
 
 ifeq "@enable_float_vars@" "yes"

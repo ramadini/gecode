@@ -26,6 +26,8 @@
 
 #include "test/string.hh"
 
+#include <algorithm>
+
 namespace Test { namespace String { namespace Predicates {
 
   /// Test prefix, suffix, and containment predicates
@@ -118,6 +120,81 @@ namespace Test { namespace String { namespace Predicates {
       }
     }
   };
+
+  class ScalarSpace : public Gecode::Space {
+  public:
+    ScalarSpace(void) {}
+    ScalarSpace(ScalarSpace& s) : Gecode::Space(s) {}
+    virtual Gecode::Space* copy(void) {
+      return new ScalarSpace(*this);
+    }
+  };
+
+  /// Prefix and suffix truth over a mixed byte/scalar alphabet
+  class ScalarAlphabet : public Base {
+  private:
+    typedef std::vector<Gecode::String::StringSymbol> Word;
+
+    static Word symbols(const std::string& bytes) {
+      Word word;
+      for (char symbol : bytes)
+        word.push_back(symbol == 'a' ? 'a' : 0x100);
+      return word;
+    }
+
+    static bool matches(const Word& source, const Word& query, bool suffix) {
+      return query.size() <= source.size() &&
+        std::equal(query.begin(), query.end(),
+                   suffix ? source.end() - query.size() : source.begin());
+    }
+
+    static bool check(const Word& source, const Word& query, bool suffix,
+                      bool reified, bool assigned) {
+      using namespace Gecode;
+      using Gecode::String::StringVal;
+      ScalarSpace home;
+      Gecode::String::NSIntSet alphabet('a');
+      alphabet.add(0x100);
+      StringVar x = assigned ? StringVar(home, StringVal::from_symbols(source))
+                             : StringVar(home, alphabet, 0, 2);
+      StringVar y = assigned ? StringVar(home, StringVal::from_symbols(query))
+                             : StringVar(home, alphabet, 0, 2);
+      BoolVar truth(home, 0, 1);
+      if (reified) {
+        if (suffix)
+          endswith(home, x, y, truth);
+        else
+          startswith(home, x, y, truth);
+      } else if (suffix)
+        endswith(home, x, y);
+      else
+        startswith(home, x, y);
+      if (!assigned) {
+        rel(home, x, STRT_EQ, StringVar(home, StringVal::from_symbols(source)));
+        rel(home, y, STRT_EQ, StringVar(home, StringVal::from_symbols(query)));
+      }
+      const bool failed = home.status() == SS_FAILED;
+      const bool expected = matches(source, query, suffix);
+      return reified ? !failed && truth.assigned() && truth.val() == expected
+                     : failed != expected;
+    }
+
+  public:
+    ScalarAlphabet(void) : Base("String::Predicates::ScalarAlphabet") {}
+
+    virtual bool run(void) {
+      for (Assignment pair(2, "ab", 2); pair(); ++pair)
+        for (bool suffix : {false, true})
+          for (bool reified : {false, true})
+            for (bool assigned : {false, true})
+              if (!check(symbols(pair[0]), symbols(pair[1]), suffix,
+                         reified, assigned))
+                return false;
+      return true;
+    }
+  };
+
+  ScalarAlphabet scalar_alphabet;
 
   Predicate starts_with_xy(Predicate::STARTS_WITH, false);
   Predicate starts_with_xx(Predicate::STARTS_WITH, true);

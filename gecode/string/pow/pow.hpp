@@ -51,15 +51,24 @@ namespace Gecode { namespace String {
   ExecStatus
   Pow::propagate(Space& home, const ModEventDelta&) {
     while (true) {
+      bool modified = false;
       if (x2.min_length() > 0)
-        GECODE_ME_CHECK(x1.gq(home, 1));
+        GECODE_ME_CHECK_MODIFIED(modified, x1.gq(home, 1));
       else
-        GECODE_ME_CHECK(x1.gq(home, 0));
-      GECODE_ME_CHECK(x1.lq(home, DashedString::_MAX_STR_LENGTH));
+        GECODE_ME_CHECK_MODIFIED(modified, x1.gq(home, 0));
+      if (x1.min() > x2.max_length())
+        GECODE_ME_CHECK_MODIFIED(modified, x0.eq(home, ""));
+      if (x0.max_length() == 0) {
+        GECODE_ME_CHECK_MODIFIED(modified, x2.eq(home, ""));
+        return home.ES_SUBSUMED(*this);
+      }
+      if (x0.min_length() > 0)
+        GECODE_ME_CHECK_MODIFIED(
+            modified, x1.lq(home, x2.max_length() / x0.min_length()));
       int l = x1.min(), u = x1.max();
-      GECODE_ME_CHECK(x2.pow(home, x0, l, u));
-      GECODE_ME_CHECK(x1.gq(home, l));
-      GECODE_ME_CHECK(x1.lq(home, u));
+      GECODE_ME_CHECK_MODIFIED(modified, x2.pow(home, x0, l, u));
+      GECODE_ME_CHECK_MODIFIED(modified, x1.gq(home, l));
+      GECODE_ME_CHECK_MODIFIED(modified, x1.lq(home, u));
       assert (x0.domain().is_normalized() && x2.domain().is_normalized());
       int assigned = x0.assigned() + x1.assigned() + x2.assigned();
       if (assigned == 3) {
@@ -72,24 +81,21 @@ namespace Gecode { namespace String {
           expected.reserve(x2.min_length());
           for (int i = 0; i < n; ++i)
             expected += x_bytes;
-          assert (result_bytes == expected);
+          if (result_bytes != expected)
+            return ES_FAILED;
         } else {
           const StringVal x_value = x0.domain().val_symbols();
           std::vector<StringSymbol> expected;
           expected.reserve(x2.min_length());
           for (int i = 0; i < n; ++i)
             expected.insert(expected.end(), x_value.begin(), x_value.end());
-          assert (StringVal::from_symbols(std::move(expected)) ==
-                  x2.domain().val_symbols());
+          if (StringVal::from_symbols(std::move(expected)) !=
+              x2.domain().val_symbols())
+            return ES_FAILED;
         }
         return home.ES_SUBSUMED(*this);
       }
-      if (assigned == 2) {
-        if ((x1.assigned() && x1.val() == 0) ||
-            (x0.max_length() == 0 && x2.max_length() == 0))
-          return ES_FIX;
-      }
-      else
+      if (!modified)
         return ES_FIX;
     }
   }

@@ -316,17 +316,8 @@ namespace Gecode { namespace String {
         string haystack_bytes;
         const bool haystack_is_bytes =
           x1.domain().try_val_bytes(haystack_bytes);
-        if (x0.assigned()) {
-          string pattern_bytes;
-          int n;
-          if (haystack_is_bytes && x0.domain().try_val_bytes(pattern_bytes))
-            n = static_cast<int>(haystack_bytes.find(pattern_bytes)) + 1;
-          else
-            n = find_symbol_sequence(x1.val_symbols(), x0.val_symbols()) + 1;
-          GECODE_ME_CHECK(x2.eq(home, n));
-          return home.ES_SUBSUMED(*this);
-        }
-        if (x2.assigned() && x0.min_length() == x0.max_length()) {
+        if (!x0.assigned() && x2.assigned() &&
+            x0.min_length() == x0.max_length()) {
           int n = x2.val(), m = x0.min_length();
           assert (n > 0);
           if (haystack_is_bytes) {
@@ -340,6 +331,15 @@ namespace Gecode { namespace String {
             GECODE_ME_CHECK
               (x0.eq(home, StringVal::from_symbols(std::move(symbols))));
           }
+        }
+        if (x0.assigned()) {
+          string pattern_bytes;
+          int n;
+          if (haystack_is_bytes && x0.domain().try_val_bytes(pattern_bytes))
+            n = static_cast<int>(haystack_bytes.find(pattern_bytes)) + 1;
+          else
+            n = find_symbol_sequence(x1.val_symbols(), x0.val_symbols()) + 1;
+          GECODE_ME_CHECK(x2.eq(home, n));
           return home.ES_SUBSUMED(*this);
         }
       }

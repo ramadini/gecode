@@ -1559,7 +1559,21 @@ if(BUILD_TESTING)
         String::Branch::LengthReplay
         String::Branch::SymbolReplay
         String::Branch::FixedReplay
-        String::Branch::Recompute)
+        String::Branch::Recompute
+        String::RelOp::Power
+        String::RelOp::GConcat::Empty
+        String::Find::Extraction
+        String::Match::EmptyClass
+        String::Match::EmptyInput
+        String::Match::EpsilonPattern
+        String::Substring::ClippedBoundaries
+        String::RFind::Boundaries
+        String::Rel::ScalarIncreasing
+        String::Rel::ScalarDecreasing
+        String::Rel::OptionalIncreasing
+        String::Rel::OptionalStrictIncreasing
+        String::Predicates::ScalarAlphabet
+        String::Replace::ScalarReplacement)
     endif()
     if(GECODE_ENABLE_FLOAT_VARS)
       set(GECODE_FLOAT_CHECK_TESTS

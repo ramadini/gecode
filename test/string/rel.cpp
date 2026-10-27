@@ -27,6 +27,8 @@
 #include "test/string.hh"
 
 #include <cmath>
+#include <memory>
+#include <set>
 
 namespace Test { namespace String { namespace Rel {
 
@@ -161,6 +163,202 @@ namespace Test { namespace String { namespace Rel {
     ContractSpace(ContractSpace& s) : Gecode::Space(s) {}
     virtual Gecode::Space* copy(void) {
       return new ContractSpace(*this);
+    }
+  };
+
+  /// Omit incompatible optional runs in either increasing scan
+  class OptionalIncreasing : public Base {
+  private:
+    bool strict;
+
+    bool omission(int first, bool reverse) const {
+      using namespace Gecode;
+      ContractSpace home;
+      Gecode::String::NSBlocks blocks;
+      blocks.emplace_back(Gecode::String::NSIntSet(first + 1),
+                          reverse ? 0 : 1, 1);
+      blocks.emplace_back(Gecode::String::NSIntSet(first),
+                          reverse ? 1 : 0, 1);
+      StringVar x(home, blocks, 1, 2);
+      rel(home, x, strict ? STRT_INCLT : STRT_INCLQ);
+      const auto expected = Gecode::String::StringVal::from_symbols(
+        {reverse ? first : first + 1});
+      return home.status() != SS_FAILED && x.assigned() &&
+        x.val_symbols() == expected && x.min_length() == 1 &&
+        x.max_length() == 1 && x.domain().is_normalized();
+    }
+
+    bool mandatory(int first) const {
+      using namespace Gecode;
+      ContractSpace home;
+      Gecode::String::NSBlocks blocks;
+      // Three symbols avoid the strict alphabet-size shortcut.
+      blocks.emplace_back(Gecode::String::NSIntSet(first + 1, first + 2),
+                          1, 1);
+      blocks.emplace_back(Gecode::String::NSIntSet(first), 1, 2);
+      StringVar x(home, blocks, 2, 3);
+      rel(home, x, strict ? STRT_INCLT : STRT_INCLQ);
+      return home.status() == SS_FAILED;
+    }
+
+    bool aggregate(int first, bool reverse) const {
+      using namespace Gecode;
+      // Omission leaves a run whose local bounds alone allow length 1 or 3.
+      for (int length : {1, 2, 3}) {
+        ContractSpace home;
+        Gecode::String::NSBlocks blocks;
+        if (reverse) {
+          blocks.emplace_back(Gecode::String::NSIntSet(first), 0, 2);
+          blocks.emplace_back(Gecode::String::NSIntSet(first + 2), 0, 1);
+          blocks.emplace_back(Gecode::String::NSIntSet(first + 1), 1, 1);
+        } else {
+          blocks.emplace_back(Gecode::String::NSIntSet(first + 1), 1, 1);
+          blocks.emplace_back(Gecode::String::NSIntSet(first), 0, 1);
+          blocks.emplace_back(Gecode::String::NSIntSet(first + 2), 0, 2);
+        }
+        StringVar x(home, blocks, 2, 2);
+        rel(home, x, strict ? STRT_INCLT : STRT_INCLQ);
+        if (home.status() == SS_FAILED || x.min_length() != 2 ||
+            x.max_length() != 2 || !x.domain().is_normalized())
+          return false;
+        std::vector<Gecode::String::StringSymbol> symbols(length - 1,
+          reverse ? first : first + 2);
+        if (reverse)
+          symbols.push_back(first + 1);
+        else
+          symbols.insert(symbols.begin(), first + 1);
+        const auto value = Gecode::String::StringVal::from_symbols(symbols);
+        rel(home, x, STRT_EQ, StringVar(home, value));
+        if (length == 2) {
+          if (home.status() == SS_FAILED || !x.assigned() ||
+              x.val_symbols() != value || !x.domain().is_normalized())
+            return false;
+        } else if (home.status() != SS_FAILED) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+  public:
+    OptionalIncreasing(bool strict0)
+      : Base(strict0 ? "String::Rel::OptionalStrictIncreasing"
+                     : "String::Rel::OptionalIncreasing"),
+        strict(strict0) {}
+
+    virtual bool run(void) {
+      for (int first : {static_cast<int>('a'), 0x100}) {
+        if (!mandatory(first))
+          return false;
+        for (bool reverse : {false, true})
+          if (!omission(first, reverse) || !aggregate(first, reverse))
+            return false;
+      }
+      return true;
+    }
+  };
+
+  /// Enumerate an open scalar domain after posting a monotone relation
+  class ScalarOrderSpace : public Gecode::Space {
+  public:
+    Gecode::StringVarArray x;
+
+    ScalarOrderSpace(int first, int last, bool strict, bool decreasing)
+      : x(*this, 1) {
+      x[0] = Gecode::StringVar(
+        *this, Gecode::String::NSIntSet(first, last), 0, 2);
+      Gecode::rel(*this, x[0], decreasing
+        ? (strict ? Gecode::STRT_DECLT : Gecode::STRT_DECLQ)
+        : (strict ? Gecode::STRT_INCLT : Gecode::STRT_INCLQ));
+      Gecode::branch(*this, Gecode::StringVarArgs(x),
+                     Gecode::STRING_VAR_NONE(), Gecode::STRING_VAL_LLLL());
+    }
+
+    ScalarOrderSpace(ScalarOrderSpace& s) : Gecode::Space(s) {
+      x.update(*this, s.x);
+    }
+
+    virtual Gecode::Space* copy(void) {
+      return new ScalarOrderSpace(*this);
+    }
+  };
+
+  /// Compare assigned and searched values with scalar-vector ordering
+  class ScalarOrder : public Base {
+  private:
+    typedef std::vector<Gecode::String::StringSymbol> Word;
+    typedef std::set<Word> Words;
+
+    bool decreasing;
+
+    static bool ordered(const Word& word, bool strict, bool decreasing) {
+      for (Word::size_type i = 1; i < word.size(); ++i)
+        if ((strict && word[i - 1] == word[i]) ||
+            (decreasing ? word[i - 1] < word[i] : word[i - 1] > word[i]))
+          return false;
+      return true;
+    }
+
+    static bool assigned_matches(const Word& word, bool strict,
+                                 bool decreasing) {
+      ContractSpace home;
+      Gecode::StringVar x(
+        home, Gecode::String::StringVal::from_symbols(word));
+      Gecode::rel(home, x, decreasing
+        ? (strict ? Gecode::STRT_DECLT : Gecode::STRT_DECLQ)
+        : (strict ? Gecode::STRT_INCLT : Gecode::STRT_INCLQ));
+      return (home.status() != Gecode::SS_FAILED) ==
+        ordered(word, strict, decreasing);
+    }
+
+    static bool search_matches(int first, int last, bool strict,
+                               bool decreasing, const Words& expected) {
+      ScalarOrderSpace root(first, last, strict, decreasing);
+      if (root.status() == Gecode::SS_FAILED)
+        return false;
+      Gecode::Search::Options options;
+      options.threads = 1;
+      Gecode::DFS<ScalarOrderSpace> search(&root, options);
+      Words actual;
+      while (ScalarOrderSpace* solution = search.next()) {
+        std::unique_ptr<ScalarOrderSpace> s(solution);
+        if (!s->x[0].assigned())
+          return false;
+        const Gecode::String::StringVal value = s->x[0].val_symbols();
+        const Word word(value.begin(), value.end());
+        if (!actual.insert(word).second)
+          return false;
+      }
+      return actual == expected;
+    }
+
+  public:
+    ScalarOrder(bool decreasing0)
+      : Base(decreasing0 ? "String::Rel::ScalarDecreasing"
+                         : "String::Rel::ScalarIncreasing"),
+        decreasing(decreasing0) {}
+
+    virtual bool run(void) {
+      for (int first : {0x7F, 0x100, 0x10FFFE}) {
+        std::vector<Word> candidates(1);
+        for (int a = first; a <= first + 1; ++a) {
+          candidates.push_back(Word{a});
+          for (int b = first; b <= first + 1; ++b)
+            candidates.push_back(Word{a, b});
+        }
+        for (bool strict : {false, true}) {
+          Words expected;
+          for (const Word& word : candidates) {
+            if (!assigned_matches(word, strict, decreasing))
+              return false;
+            if (ordered(word, strict, decreasing))
+              expected.insert(word);
+          }
+          if (!search_matches(first, first + 1, strict, decreasing, expected))
+            return false;
+        }
+      }
+      return true;
     }
   };
 
@@ -439,7 +637,8 @@ namespace Test { namespace String { namespace Rel {
     }
 
   public:
-    AggregateBounds(void) : Base("String::Rel::AggregateBounds") {}
+    AggregateBounds(void)
+      : Base("String::Rel::AggregateBounds") {}
 
     virtual bool run(void) {
       using namespace Gecode;
@@ -685,6 +884,10 @@ namespace Test { namespace String { namespace Rel {
   ByteTopContainment byte_top_containment;
   AggregateBounds aggregate_bounds;
   SizeEstimate size_estimate;
+  ScalarOrder scalar_increasing(false);
+  ScalarOrder scalar_decreasing(true);
+  OptionalIncreasing optional_increasing(false);
+  OptionalIncreasing optional_strict_increasing(true);
 
 }}}
 

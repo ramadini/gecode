@@ -5,10 +5,11 @@ namespace Gecode {
 
   void
   gconcat(Home home, StringVarArgs x, StringVar y) {
+    GECODE_POST;
     ViewArray<String::StringView> v(home, x);
     switch (v.size()) {
     case 0:
-      home.fail();
+      GECODE_ME_FAIL(y.varimp()->ub(home, 0));
       return;
     case 1:
       rel(home, v[0], STRT_EQ, y);

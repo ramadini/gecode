@@ -163,7 +163,7 @@ namespace Gecode { namespace String {
     TrimDFAHandle language(expression->symbolic_dfa(active_alphabet));
     const unsigned int cardinality = match_language_cardinality(*language);
     if (cardinality == 0)
-      return ES_FAILED;
+      return me_failed(i.eq(home, 0)) ? ES_FAILED : ES_OK;
 
     TrimDFAHandle pref(
       expression->symbolic_dfa(active_alphabet, false, true));

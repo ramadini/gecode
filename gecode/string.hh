@@ -251,8 +251,8 @@ namespace Gecode {
     STRT_REP,    ///< Replace
     STRT_REPALL, ///< Replace all
     STRT_REPLST, ///< Replace last
-    STRT_LCASE,  ///< Lower case
-    STRT_UCASE,  ///< Upper case
+    STRT_LCASE,  ///< ASCII lower case; preserve other scalar values
+    STRT_UCASE,  ///< ASCII upper case; preserve other scalar values
   };
 
 }
@@ -416,7 +416,12 @@ namespace Gecode {
   GECODE_STRING_EXPORT void
   rel(Home home, StringVar x, StringRelType rt, StringVar y, Reify r);
 
-  /// Post unary operation \f$ y = ot(x)\f$
+  /**
+   * \brief Post unary operation \f$ y = ot(x)\f$
+   *
+   * STRT_LCASE maps ASCII A-Z to a-z; STRT_UCASE maps ASCII a-z to A-Z.
+   * Both preserve all other Unicode scalar values.
+   */
   GECODE_STRING_EXPORT void
   rel(Home home, StringVar x, StringOpType ot, StringVar y);
 
