@@ -1534,7 +1534,26 @@ if(BUILD_TESTING)
         String::Channel::StrToNat::Overflow
         String::Channel::StrToNat::Boundaries
         String::Channel::NatToStr::-1To0
-        String::Channel::NatToStr::0To2147483646)
+        String::Channel::NatToStr::0To2147483646
+        String::Replace::All
+        String::Replace::First::EqualResult::Alias
+        String::Replace::First::EqualResult::Distinct
+        String::Replace::Last::EqualResult::Alias
+        String::Replace::Last::EqualResult::Distinct
+        String::Replace::All::EqualResult::Alias
+        String::Replace::All::EqualResult::Distinct
+        String::Replace::First::QueryResult
+        String::Replace::Last::QueryResult
+        String::Replace::All::QueryResult
+        String::Replace::First::EmptySource
+        String::Replace::Last::EmptySource
+        String::Replace::All::EmptyQuery::Bytes
+        String::Replace::All::EmptyQuery::Scalars
+        String::Replace::All::VariableQuery
+        String::Replace::All::OptionalOccurrences::Bytes
+        String::Replace::All::OptionalOccurrences::Scalars
+        String::Replace::First::Overlap
+        String::Replace::Last::Overlap)
     endif()
     if(GECODE_ENABLE_FLOAT_VARS)
       set(GECODE_FLOAT_CHECK_TESTS
