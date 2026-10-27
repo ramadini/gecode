@@ -32,6 +32,11 @@ namespace Gecode {
     return x->domain().val_symbols();
   }
 
+  forceinline double
+  StringVar::size() const {
+    return std::exp(domain().logdim());
+  }
+
   forceinline const String::DashedString&
   StringVar::domain() const {
     return x->domain();

@@ -254,13 +254,57 @@ if(NOT Gecode_LIBRARIES STREQUAL "Gecode::gecodestring")
 endif()
 add_executable(consumer_l main.cpp)
 target_link_libraries(consumer_l PRIVATE ${Gecode_LIBRARIES})
+if(TARGET Gecode::gecodestring_static)
+  add_executable(consumer_l_static main.cpp)
+  target_link_libraries(consumer_l_static PRIVATE Gecode::gecodestring_static)
+endif()
 EOF
 cat > "$work/l/main.cpp" <<'EOF'
 #include <gecode/string.hh>
+class StringSpace : public Gecode::Space {
+public:
+  Gecode::StringVar x;
+  Gecode::StringVarArray domain_array;
+  Gecode::StringVarArray domain_args;
+  StringSpace(void) : x(*this, "Dashed") {
+    Gecode::String::NSBlocks domain;
+    domain.emplace_back(Gecode::String::NSIntSet('a', 'b'), 1, 1);
+    const Gecode::String::NSBlocks const_domain(domain);
+    domain_array = Gecode::StringVarArray(*this, 2, domain);
+    domain_args = Gecode::StringVarArray(*this,
+      Gecode::StringVarArgs(*this, 2, const_domain));
+  }
+  StringSpace(StringSpace& s) : Gecode::Space(s) {
+    x.update(*this, s.x);
+    domain_array.update(*this, s.domain_array);
+    domain_args.update(*this, s.domain_args);
+  }
+  virtual Gecode::Space* copy(void) { return new StringSpace(*this); }
+};
 int main(void) {
-  const Gecode::String::StringVal value =
-    Gecode::String::StringVal::decode_utf8("Dashed");
-  return value.to_utf8() == "Dashed" ? 0 : 1;
+  using namespace Gecode;
+  const String::StringVal value = String::StringVal::decode_utf8("Dashed");
+  StringSpace home;
+  if (value.to_utf8() != "Dashed" || home.x.size() != 1.0)
+    return 1;
+  StringVarArgs collections[] = {StringVarArgs(home.domain_array),
+                                 StringVarArgs(home.domain_args)};
+  for (const StringVarArgs& variables : collections) {
+    if (variables.size() != 2 || variables[0].assigned() ||
+        variables[1].assigned() || variables[0].min_length() != 1 ||
+        variables[0].max_length() != 1 || variables[1].min_length() != 1 ||
+        variables[1].max_length() != 1)
+      return 1;
+    rel(home, variables[0], STRT_EQ, StringVar(home, "a"));
+    if (home.status() == SS_FAILED || !variables[0].assigned() ||
+        variables[0].val() != "a" || variables[1].assigned())
+      return 1;
+    rel(home, variables[1], STRT_EQ, StringVar(home, "b"));
+    if (home.status() == SS_FAILED || !variables[1].assigned() ||
+        variables[1].val() != "b" || variables[0].val() != "a")
+      return 1;
+  }
+  return 0;
 }
 EOF
 
@@ -293,6 +337,10 @@ cmake --build "$work/c/build" -j4
 
 cmake -S "$work/l" -B "$work/l/build" -DCMAKE_PREFIX_PATH="$prefix"
 cmake --build "$work/l/build" -j4
+"$work/l/build/consumer_l"
+if [ -x "$work/l/build/consumer_l_static" ]; then
+  "$work/l/build/consumer_l_static"
+fi
 
 # A support-only consumer must not discover dependencies belonging exclusively
 # to Float, FlatZinc, or Gist, even when those targets exist in the package.

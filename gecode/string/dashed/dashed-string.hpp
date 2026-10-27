@@ -374,7 +374,8 @@ namespace Gecode { namespace String {
   forceinline bool
   DSBlock::isTop() const {
     return l == 0 && u == DashedString::_MAX_STR_LENGTH &&
-           S.size() == (unsigned) DashedString::_MAX_STR_ALPHA + 1;
+           S.size() == (unsigned) DashedString::_MAX_STR_ALPHA + 1 &&
+           S.min() == 0 && S.max() == DashedString::_MAX_STR_ALPHA;
   }
 
   forceinline void
@@ -1329,11 +1330,7 @@ namespace Gecode { namespace String {
           if (nz < nx || sz.compare(0, nx, sx) != 0)
             return false;
           string suff = sz.substr(nx, nz - nx);
-          if (!check_sweep<DSBlock, DSBlocks, char, string>(y._blocks, suff))
-            return false;
-          y.update(h, suff);
-          y._changed = true;
-          return true;
+          return y.equate(h, StringVal::from_bytes(suff));
         }
         const StringVal vz = val_symbols();
         const StringVal vx = x.val_symbols();
@@ -1354,11 +1351,7 @@ namespace Gecode { namespace String {
           if (nz < ny || sz.compare(nz - ny, ny, sy) != 0)
             return false;
           string pref = sz.substr(0, nz - ny);
-          if (!check_sweep<DSBlock, DSBlocks, char, string>(x._blocks, pref))
-            return false;
-          x.update(h, pref);
-          x._changed = true;
-          return true;
+          return x.equate(h, StringVal::from_bytes(pref));
         }
         const StringVal vz = val_symbols();
         const StringVal vy = y.val_symbols();
@@ -1681,12 +1674,7 @@ namespace Gecode { namespace String {
       string bytes;
       if (try_val_bytes(bytes)) {
         std::reverse(bytes.begin(), bytes.end());
-        if (check_sweep<char, string, DSBlock, DSBlocks>(bytes, x._blocks)) {
-          x.update(h, bytes);
-          x._changed = true;
-          return true;
-        }
-        return false;
+        return x.equate(h, StringVal::from_bytes(bytes));
       }
       const StringVal value = val_symbols();
       std::vector<StringSymbol> reversed(value.begin(), value.end());
@@ -1697,12 +1685,7 @@ namespace Gecode { namespace String {
       string bytes;
       if (x.try_val_bytes(bytes)) {
         std::reverse(bytes.begin(), bytes.end());
-        if (check_sweep<DSBlock, DSBlocks, char, string>(_blocks, bytes)) {
-          update(h, bytes);
-          _changed = true;
-          return true;
-        }
-        return false;
+        return equate(h, StringVal::from_bytes(bytes));
       }
       const StringVal value = x.val_symbols();
       std::vector<StringSymbol> reversed(value.begin(), value.end());
@@ -2245,62 +2228,29 @@ namespace Gecode { namespace String {
   forceinline bool
   DashedString::equate(Space& h, const NSBlocks& that) {
     _changed = false;
-    if (known()) {
-      string s;
-      if (try_val_bytes(s)) {
-        if (that.known()) {
-          for (const NSBlock& block : that)
-            if (!block.null() && block.S.min() > 255)
-              return false;
-          return s == that.val();
-        }
-        return check_sweep<char, string, NSBlock, NSBlocks>(s, that);
-      }
+    if (that.known())
+      return equate(h, that.val_symbols());
+    if (known())
       return check_sweep<DSBlock, DSBlocks, NSBlock, NSBlocks>(_blocks, that);
+    long l = 0, u = 0;
+    for (const NSBlock& block : that) {
+      l += block.l;
+      u += block.u;
     }
-    if (that.known()) {
-      bool byte_value = true;
-      for (const NSBlock& block : that) {
-        if (!block.null() && block.S.min() > 255) {
-          byte_value = false;
-          break;
-        }
-      }
-      if (byte_value) {
-        string s = that.val();
-        if (check_sweep<DSBlock, DSBlocks, char, string>(_blocks, s)) {
-          update(h, s);
-          _changed = true;
-          return true;
-        }
-        return false;
-      }
-      if (check_sweep<DSBlock, DSBlocks, NSBlock, NSBlocks>(_blocks, that)) {
-        update(h, that);
-        _changed = true;
-        return true;
-      }
+    l = max(long(_min_length), l);
+    u = min(long(_max_length), u);
+    if (l > u)
       return false;
-    }
     if (that.contains<DSBlock, DashedString>(*this))
       return true;
     if (contains(that)) {
       update(h, that);
       _changed = true;
-      return true;
+      return refine_card(h, static_cast<int>(l), static_cast<int>(u));
     }
     if (!sweep_equate(h, *this, that))
       return false;
-    int l = 0;
-    long u = 0;
-    for (unsigned i = 0; i < that.size(); ++i) {
-      const NSBlock& b = that[i];
-      l += b.l;
-      u += b.u;
-    }
-    if (!refine_card(h, max(_min_length, l), min(_max_length, u)))
-      return false;
-    return true;
+    return refine_card(h, static_cast<int>(l), static_cast<int>(u));
   }
 
   forceinline bool
@@ -2425,8 +2375,14 @@ namespace Gecode { namespace String {
     if (_min_length > that._min_length
     ||  _max_length < that._max_length)
       return false;
-    if (isTop() || (that.null() && _min_length == 0))
+    if (that.null() && _min_length == 0)
       return true;
+    if (isTop()) {
+      for (int i = 0; i < that.length(); ++i)
+        if (!that.at(i).null() && !at(0).S.contains(that.at(i).S))
+          return false;
+      return true;
+    }
     int n1 = length(), n2 = that.length();
     if (n1 < n2)
       return false;
@@ -2443,8 +2399,25 @@ namespace Gecode { namespace String {
   }
   forceinline bool
   DashedString::contains(const NSBlocks& that) const {
-    if (isTop() || (that.null() && _min_length == 0))
+    long lower = 0, upper = 0;
+    for (const NSBlock& block : that) {
+      if (block.null())
+        continue;
+      if (block.u > _max_length - upper)
+        return false;
+      lower += block.l;
+      upper += block.u;
+    }
+    if (_min_length > lower || _max_length < upper)
+      return false;
+    if (upper == 0)
       return true;
+    if (isTop()) {
+      for (const NSBlock& block : that)
+        if (!block.null() && !at(0).S.contains(block.S))
+          return false;
+      return true;
+    }
     int n1 = length(), n2 = that.length();
     if (n1 < n2)
       return false;
@@ -2461,8 +2434,15 @@ namespace Gecode { namespace String {
   }
   forceinline bool
   DashedString::contains(const DashedString& x, const DashedString& y) const {
+    if (_min_length > static_cast<long>(x._min_length) + y._min_length ||
+        _max_length < static_cast<long>(x._max_length) + y._max_length)
+      return false;
+    if (x.null())
+      return contains(y);
+    if (y.null())
+      return contains(x);
     if (isTop())
-      return true;
+      return contains(x) && contains(y);
     int n1 = length(), n2 = x.length() + y.length(), norm = 0;
     if (x.blocks().back().S == y.at(0).S) {
       norm = 1;

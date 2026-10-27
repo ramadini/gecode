@@ -136,7 +136,8 @@ namespace Gecode { namespace String {
               GECODE_ME_CHECK(x[k].gq(home, S[j].first));
             if (S[j].second < x[k].max())
               GECODE_ME_CHECK(x[k].lq(home, S[j].second));
-            l += max(0, x[k].min() - S[j].second + b.u);
+            if (b.S.contains(A[j].first))
+              l += max(0, x[k].min() - S[j].second + b.u);
           }
         }
         if (b.l < l && l <= b.u) {

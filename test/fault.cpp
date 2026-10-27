@@ -33,6 +33,9 @@
 
 #include <gecode/minimodel.hh>
 #include <gecode/search.hh>
+#ifdef GECODE_HAS_STRING_VARS
+#include <gecode/string.hh>
+#endif
 
 #include "test/test.hh"
 
@@ -888,6 +891,62 @@ namespace Test { namespace Fault {
     }
   }
 
+#ifdef GECODE_HAS_STRING_VARS
+  bool ns_int_set_copy_failure_releases_ranges(void) {
+    FaultScope scope;
+    using Gecode::String::NSIntSet;
+    using Gecode::String::NSRange;
+    const int initial = NSRange::fault_live_allocations();
+    {
+      NSIntSet source(1,2);
+      source.add(5);
+      source.include(NSIntSet(9,11));
+      enum class Operation { Construct, AssignEmpty, AssignNonempty };
+      for (Operation operation : {Operation::Construct, Operation::AssignEmpty,
+                                  Operation::AssignNonempty}) {
+        NSIntSet target;
+        if (operation == Operation::AssignNonempty)
+          target.add(20);
+        const int live = NSRange::fault_live_allocations();
+        bool failed = false;
+        Support::FailPoint::fail_after(Phase::NSIntSetRange,1);
+        try {
+          if (operation == Operation::Construct) {
+            NSIntSet copy(source);
+          } else {
+            target = source;
+          }
+        } catch (const MemoryExhausted&) {
+          failed = Support::FailPoint::count() == 2;
+        } catch (...) {
+          Support::FailPoint::reset();
+          return false;
+        }
+        Support::FailPoint::reset();
+        if (!failed || NSRange::fault_live_allocations() != live ||
+            !source.consistent() || source.size() != 6 ||
+            source.length() != 3 || source.toString() != "{1..2,5,9..11}" ||
+            !target.consistent() ||
+            (operation == Operation::AssignNonempty
+             ? target.toString() != "{20}" : !target.empty()))
+          return false;
+        {
+          NSIntSet copy(source);
+          if (!copy.consistent() || copy.size() != 6 || copy.length() != 3 ||
+              copy.toString() != "{1..2,5,9..11}" ||
+              copy.first() == source.first())
+            return false;
+          target = copy;
+          if (!target.consistent() || target.size() != 6 ||
+              target.length() != 3 || target.toString() != "{1..2,5,9..11}")
+            return false;
+        }
+      }
+    }
+    return NSRange::fault_live_allocations() == initial;
+  }
+#endif
+
   bool minimodel_failure_releases_default_nodes(void) {
     FaultScope scope;
     LinIntExpr::fault_reset_allocations();
@@ -987,6 +1046,93 @@ namespace Test { namespace Fault {
       return int_set_failure_releases_object();
     }
   };
+
+#ifdef GECODE_HAS_STRING_VARS
+  class NSIntSetCopy : public Base {
+  public:
+    NSIntSetCopy(void) : Base("Fault::String::NSIntSetCopy") {}
+    virtual bool run(void) {
+      return ns_int_set_copy_failure_releases_ranges();
+    }
+  };
+  class NSIntSetRangeFailure : public Base {
+  public:
+    enum Operation { ConstructDS, IntersectNS, IntersectDS, ExcludeNS };
+  private:
+    Operation operation;
+  public:
+    NSIntSetRangeFailure(const char* name, Operation op)
+      : Base(name), operation(op) {}
+    virtual bool run(void) {
+      FaultScope scope;
+      using Gecode::String::DSIntSet;
+      using Gecode::String::NSIntSet;
+      using Gecode::String::NSRange;
+      const int initial = NSRange::fault_live_allocations();
+      bool passed = false;
+      {
+        MiniModelSpace home;
+        NSIntSet source(1);
+        source.add(3);
+        source.add(5);
+        NSIntSet mask(1);
+        mask.add(3);
+        if (operation == ExcludeNS) {
+          source = NSIntSet(1,5);
+          mask = NSIntSet(2);
+          mask.add(4);
+        }
+        const NSIntSet original(source);
+        const DSIntSet space_source(home,source);
+        const DSIntSet space_mask(home,mask);
+        const int live = NSRange::fault_live_allocations();
+        auto apply = [&]() {
+          switch (operation) {
+          case ConstructDS: {
+            NSIntSet copy(space_source);
+            return copy.consistent() && copy.size() == 3 &&
+              copy.length() == 3 && copy.toString() == "{1,3,5}";
+          }
+          case IntersectNS:
+            source.intersect(mask);
+            break;
+          case IntersectDS:
+            source.intersect(space_mask);
+            break;
+          case ExcludeNS:
+            source.exclude(mask);
+            break;
+          }
+          return source.consistent() &&
+            (operation == ExcludeNS
+             ? source.size() == 3 && source.length() == 3 &&
+               source.toString() == "{1,3,5}"
+             : source.size() == 2 && source.length() == 2 &&
+               source.toString() == "{1,3}");
+        };
+        bool failed = false;
+        Support::FailPoint::fail_after(Phase::NSIntSetRange,1);
+        try {
+          (void) apply();
+        } catch (const MemoryExhausted&) {
+          failed = Support::FailPoint::count() == 2;
+        } catch (...) {
+          Support::FailPoint::reset();
+          return false;
+        }
+        Support::FailPoint::reset();
+        passed = failed && NSRange::fault_live_allocations() == live &&
+          source.consistent() && source == original &&
+          original == space_source && mask.consistent() && mask == space_mask &&
+          mask.toString() == (operation == ExcludeNS ? "{2,4}" : "{1,3}");
+        if (passed)
+          passed = apply() && original == space_source && mask == space_mask &&
+            mask.consistent();
+      }
+      return NSRange::fault_live_allocations() == initial && passed;
+    }
+  };
+#endif
 
   class DisposeNoticeArray : public Base {
   public:
@@ -1183,6 +1329,17 @@ namespace Test { namespace Fault {
   DisposeNoticeArrayResize dispose_notice_array_resize;
   HeapAllocation heap_allocation;
   HeapReallocation heap_reallocation;
+#ifdef GECODE_HAS_STRING_VARS
+  NSIntSetCopy ns_int_set_copy;
+  NSIntSetRangeFailure ns_int_set_ds_copy(
+    "Fault::String::NSIntSetDSCopy",NSIntSetRangeFailure::ConstructDS);
+  NSIntSetRangeFailure ns_int_set_intersect_ns(
+    "Fault::String::NSIntSetIntersectNS",NSIntSetRangeFailure::IntersectNS);
+  NSIntSetRangeFailure ns_int_set_intersect_ds(
+    "Fault::String::NSIntSetIntersectDS",NSIntSetRangeFailure::IntersectDS);
+  NSIntSetRangeFailure ns_int_set_exclude_ns(
+    "Fault::String::NSIntSetExcludeNS",NSIntSetRangeFailure::ExcludeNS);
+#endif
   IntSetAllocation int_set_allocation;
   IntSetHeapFailures int_set_heap_failures;
   MiniModelDefaultNodes minimodel_default_nodes;

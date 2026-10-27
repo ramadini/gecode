@@ -2,6 +2,7 @@
 #define __GECODE_STRING_HH__
 
 #include <climits>
+#include <cmath>
 #include <gecode/kernel.hh>
 
 /*
@@ -125,6 +126,12 @@ namespace Gecode {
    * clusters. No normalization or locale-sensitive text processing is
    * performed.
    *
+   * Construction with negative or individually oversized lengths throws
+   * String::OutOfLimitsDS. Reversed bounds, an empty block container, and
+   * bounds or mandatory alphabets admitting no string throw String::EmptyDS.
+   * Zero-length bounds and optional empty alphabets represent the singleton
+   * empty string. Submitted block bounds are checked before normalization.
+   *
    * \ingroup TaskModelStringVars
    */
   class StringVar : public VarImpVar<String::StringVarImp> {
@@ -197,7 +204,13 @@ namespace Gecode {
     /// Test whether the domain contains exactly one concrete string
     bool assigned(void) const;
 
-    /// Return the estimated size (number of strings) of the dashed domain
+    /**
+     * \brief Return the block-product estimate of the number of strings
+     *
+     * Assigned values, including the empty string, have size one. Coupled
+     * aggregate bounds and ambiguous block decompositions can overestimate
+     * the number of strings. Large estimates can overflow to infinity.
+     */
     double size(void) const;
 
     /// Return the dashed representation of the domain
@@ -354,7 +367,12 @@ namespace Gecode {
   GECODE_STRING_EXPORT void
   str2nat(Home home, StringVar x, IntVar n);
 
-  /// Channel the single scalar value in \a x to its numeric value \a n
+  /**
+   * \brief Channel an empty or single-scalar string \a x to \a n
+   *
+   * The empty string maps to -1. A single Unicode scalar value maps to its
+   * numeric value. Strings containing more than one scalar value have no support.
+   */
   GECODE_STRING_EXPORT void
   char2code(Home home, StringVar x, IntVar n);
   //@}
@@ -487,7 +505,10 @@ namespace Gecode {
    * \ingroup TaskModelString
    */
   //@{
-  /// Post propagator for \f$ gcc(x, a, n) \f$
+  /** \brief Post propagator for \f$ gcc(x, a, n) \f$
+   *
+   * Throws Int::ArgumentSizeMismatch if \a a and \a n have different sizes.
+   */
   GECODE_STRING_EXPORT void
   gcc(Home home, StringVar x, const IntArgs& a, IntVarArgs n);
 
@@ -565,7 +586,12 @@ namespace Gecode {
   * \ingroup TaskModelString
   */
   //@{
-  /// Post propagator for \f$ a[i] = x \f$
+  /**
+   * \brief Post element selection with a one-based index \a i
+   *
+   * The valid index interval is 1 through a.size(), inclusive. The selected
+   * entry in the zero-based C++ argument array satisfies \f$ a[i-1] = x \f$.
+   */
   GECODE_STRING_EXPORT void
   element(Home home, StringVarArgs a, IntVar i, StringVar x);
   //@}

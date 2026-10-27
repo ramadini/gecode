@@ -1,10 +1,36 @@
 #ifndef __GECODE_STRING_NS_DASHED_HH
 #define __GECODE_STRING_NS_DASHED_HH
 
+#ifdef GECODE_HAS_FAULT_INJECTION
+#include <atomic>
+#include <new>
+#endif
+
 namespace Gecode { namespace String {
 
   /// Linked inclusive range node owned by NSIntSet
   struct NSRange {
+
+#ifdef GECODE_HAS_FAULT_INJECTION
+    /// Test-only count of live raw range allocations
+    inline static std::atomic<int> fault_live_ranges{0};
+
+    static void* operator new(size_t size) {
+      Support::FailPoint::check(Support::FailPoint::Phase::NSIntSetRange);
+      void* range = ::operator new(size);
+      fault_live_ranges.fetch_add(1, std::memory_order_relaxed);
+      return range;
+    }
+
+    static void operator delete(void* range) {
+      fault_live_ranges.fetch_sub(1, std::memory_order_relaxed);
+      ::operator delete(range);
+    }
+
+    static int fault_live_allocations(void) {
+      return fault_live_ranges.load(std::memory_order_relaxed);
+    }
+#endif
 
     int l, u;
 
@@ -242,24 +268,19 @@ namespace Gecode { namespace String {
 
     forceinline
     NSIntSet::NSIntSet(const DSIntSet& s)
-    : _fst(NULL), _lst(NULL), _size(s.size()), _len(0) {
-      if (!s.empty()) {
-        int len = 0;
-        Gecode::Set::BndSetRanges i(s);
-        NSRange* p = new NSRange(i.min(), i.max());
-        _fst = p;
-        ++i;
-        ++len;
-        while (i()) {
-          NSRange* q = new NSRange(i.min(), i.max());
-          p->next = q;
-          p = q;
-          ++i;
-          ++len;
-        }
-        _lst = p;
-        _len = len;
+    : _fst(NULL), _lst(NULL), _size(0), _len(0) {
+      NSIntSet copy;
+      for (Gecode::Set::BndSetRanges i(s); i(); ++i) {
+        NSRange* node = new NSRange(i.min(), i.max());
+        if (copy._lst)
+          copy._lst->next = node;
+        else
+          copy._fst = node;
+        copy._lst = node;
+        ++copy._len;
       }
+      copy._size = s.size();
+      *this = std::move(copy);
     }
 
     forceinline
@@ -506,9 +527,7 @@ namespace Gecode { namespace String {
       }
       NSRange* i1 = this->_fst;
       NSRange* i2 = that ._fst;
-      NSRange* first = NULL;
-      NSRange* last = NULL;
-      int size = 0, len = 0;
+      NSIntSet intersection;
       while (i1 && i2) {
         if (i1->l > i2->u)
           i2 = i2->next;
@@ -517,27 +536,21 @@ namespace Gecode { namespace String {
         else {
           int l = std::max(i1->l, i2->l);
           int u = std::min(i1->u, i2->u);
-          size += u - l + 1;
-          ++len;
           NSRange* p = new NSRange(l, u);
-          if (first)
-            last->next = p;
+          if (intersection._lst)
+            intersection._lst->next = p;
           else
-            first = p;
-          last = p;
+            intersection._fst = p;
+          intersection._lst = p;
+          intersection._size += u - l + 1;
+          ++intersection._len;
           if (i1->u > i2->u)
             i2 = i2->next;
           else
             i1 = i1->next;
         }
       }
-      this->clear();
-      if (last)
-        last->next = NULL;
-      this->_fst  = first;
-      this->_lst  = last;
-      this->_len  = len;
-      this->_size = size;
+      *this = std::move(intersection);
     }
 
     forceinline void
@@ -560,9 +573,7 @@ namespace Gecode { namespace String {
         return;
       }
       NSRange* i1 = this->_fst;
-      NSRange* first = NULL;
-      NSRange* last = NULL;
-      int size = 0, len = 0;
+      NSIntSet intersection;
       while (i1 && i2) {
         if (i1->l > i2->max())
           i2 = i2->next();
@@ -571,27 +582,21 @@ namespace Gecode { namespace String {
         else {
           int l = std::max(i1->l, i2->min());
           int u = std::min(i1->u, i2->max());
-          size += u - l + 1;
-          ++len;
           NSRange* p = new NSRange(l, u);
-          if (first)
-            last->next = p;
+          if (intersection._lst)
+            intersection._lst->next = p;
           else
-            first = p;
-          last = p;
+            intersection._fst = p;
+          intersection._lst = p;
+          intersection._size += u - l + 1;
+          ++intersection._len;
           if (i1->u > i2->max())
             i2 = i2->next();
           else
             i1 = i1->next;
         }
       }
-      this->clear();
-      if (last)
-        last->next = NULL;
-      this->_fst  = first;
-      this->_lst  = last;
-      this->_len  = len;
-      this->_size = size;
+      *this = std::move(intersection);
     }
 
     forceinline NSIntSet
@@ -637,11 +642,8 @@ namespace Gecode { namespace String {
         clear();
         return;
       }
-      NSRange* first = NULL;
-      NSRange* last = NULL;
+      NSIntSet difference;
       NSRange* excluded = that._fst;
-      int size = 0;
-      int len = 0;
       for (NSRange* range = _fst; range; range = range->next) {
         int next = range->l;
         while (excluded && excluded->u < next)
@@ -649,13 +651,13 @@ namespace Gecode { namespace String {
         while (excluded && excluded->l <= range->u) {
           if (next < excluded->l) {
             NSRange* kept = new NSRange(next, excluded->l - 1);
-            if (last)
-              last->next = kept;
+            if (difference._lst)
+              difference._lst->next = kept;
             else
-              first = kept;
-            last = kept;
-            size += kept->u - kept->l + 1;
-            ++len;
+              difference._fst = kept;
+            difference._lst = kept;
+            difference._size += kept->u - kept->l + 1;
+            ++difference._len;
           }
           if (excluded->u >= range->u) {
             next = range->u + 1;
@@ -666,20 +668,16 @@ namespace Gecode { namespace String {
         }
         if (next <= range->u) {
           NSRange* kept = new NSRange(next, range->u);
-          if (last)
-            last->next = kept;
+          if (difference._lst)
+            difference._lst->next = kept;
           else
-            first = kept;
-          last = kept;
-          size += kept->u - kept->l + 1;
-          ++len;
+            difference._fst = kept;
+          difference._lst = kept;
+          difference._size += kept->u - kept->l + 1;
+          ++difference._len;
         }
       }
-      clear();
-      _fst = first;
-      _lst = last;
-      _size = size;
-      _len = len;
+      *this = std::move(difference);
     }
 
     forceinline void
@@ -1077,7 +1075,18 @@ namespace Gecode { namespace String {
     forceinline
     NSIntSet::NSIntSet(const NSIntSet& that)
     : _fst(NULL), _lst(NULL), _size(0), _len(0) {
-      *this = that;
+      NSIntSet copy;
+      for (NSRange* range = that._fst; range; range = range->next) {
+        NSRange* node = new NSRange(range->l, range->u);
+        if (copy._lst)
+          copy._lst->next = node;
+        else
+          copy._fst = node;
+        copy._lst = node;
+      }
+      copy._size = that._size;
+      copy._len = that._len;
+      *this = std::move(copy);
     }
 
     forceinline
@@ -1091,46 +1100,8 @@ namespace Gecode { namespace String {
     forceinline NSIntSet&
     NSIntSet::operator=(const NSIntSet& that) {
       if (this != &that) {
-        if (that.empty()) {
-          this->clear();
-          return *this;
-        }
-        if (this->empty()) {
-          NSRange* p = new NSRange(that._fst->l, that._fst->u);
-          this->_fst = p;
-          for (NSRange* q = that._fst->next; q; q = q->next) {
-            NSRange* r = new NSRange(q->l, q->u);
-            p->next = r;
-            p = r;
-          }
-          this->_lst = p;
-          this->_size = that._size;
-          this->_len  = that._len;
-          return *this;
-        }
-        NSRange* p = this->_fst;
-        NSRange* q = that._fst;
-        NSRange* r = NULL;
-        for (; p && q; p = p->next, q = q->next) {
-          p->l = q->l;
-          p->u = q->u;
-          r = p;
-        }
-        if (p)
-          for (; p; p = q) {
-            q = p->next;
-            delete p;
-          }
-        else
-          for (; q; q = q->next) {
-            NSRange* s = new NSRange(q->l, q->u);
-            r->next = s;
-            r = s;
-          }
-        r->next = NULL;
-        this->_lst = r;
-        this->_size = that._size;
-        this->_len  = that._len;
+        NSIntSet copy(that);
+        *this = std::move(copy);
       }
       return *this;
     }
@@ -1232,7 +1203,8 @@ namespace Gecode { namespace String {
     forceinline bool
     isTop() const {
       return l == 0 && u == DashedString::_MAX_STR_LENGTH &&
-        S.size() == (int) DashedString::_MAX_STR_ALPHA + 1;
+        S.size() == (int) DashedString::_MAX_STR_ALPHA + 1 &&
+        S.min() == 0 && S.max() == DashedString::_MAX_STR_ALPHA;
     }
 
     forceinline
@@ -1532,8 +1504,19 @@ namespace Gecode { namespace String {
     template <typename Block, typename Blocks>
     forceinline bool
     contains(const Blocks& that) const {
-      if (this->isTop())
+      if (this->isTop()) {
+        long upper = 0;
+        for (int i = 0; i < that.length(); ++i) {
+          const Block& block = that.at(i);
+          if (block.null())
+            continue;
+          upper += block.u;
+          if (upper > DashedString::_MAX_STR_LENGTH ||
+              !this->at(0).S.contains(block.S))
+            return false;
+        }
         return true;
+      }
       int n1 = this->length(), n2 = that.length();
       if (n1 < n2)
         return false;

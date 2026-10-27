@@ -440,7 +440,7 @@ namespace Gecode { namespace String {
         NSBlocks x_new;
         pref.concat(suff, x_new);
         x_new.normalize();
-        GECODE_ME_CHECK(x0.varimp()->refine(home, x_new));
+        GECODE_ME_CHECK(x0.dom(home, x_new));
       }
       GECODE_ME_CHECK(x1.lq(home, std::max(0, x0.max_length() - minR + 1)));
       assert (X.is_normalized());
