@@ -1526,7 +1526,15 @@ if(BUILD_TESTING)
         String::Rel::NSIntSetCopy
         String::Var::FailureAdvisors
         String::Var::Events
-        String::Var::Lifecycle)
+        String::Var::Lifecycle
+        String::Channel::StrToNat::0To999
+        String::Channel::StrToNat::9To101
+        String::Channel::StrToNat::1To101
+        String::Channel::StrToNat::-1To101
+        String::Channel::StrToNat::Overflow
+        String::Channel::StrToNat::Boundaries
+        String::Channel::NatToStr::-1To0
+        String::Channel::NatToStr::0To2147483646)
     endif()
     if(GECODE_ENABLE_FLOAT_VARS)
       set(GECODE_FLOAT_CHECK_TESTS

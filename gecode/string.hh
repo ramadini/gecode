@@ -359,11 +359,22 @@ namespace Gecode {
    * \ingroup TaskModelString
    */
   //@{
-  /// Channel \a n to its non-negative ASCII decimal representation \a x
+  /**
+   * \brief Channel \a n to its ASCII decimal representation \a x
+   *
+   * Negative values of \a n map to the empty string. Nonnegative values map
+   * to their decimal representation without leading zeros, with zero as "0".
+   */
   GECODE_STRING_EXPORT void
   nat2str(Home home, IntVar n, StringVar x);
 
-  /// Channel a non-negative ASCII decimal representation \a x to \a n
+  /**
+   * \brief Channel an ASCII decimal representation \a x to \a n
+   *
+   * Leading zeros are accepted. Empty strings, strings containing non-digits,
+   * and values exceeding native int map to -1. A parsed value must also fit
+   * the IntVar range; native INT_MAX has no support and does not map to -1.
+   */
   GECODE_STRING_EXPORT void
   str2nat(Home home, StringVar x, IntVar n);
 
