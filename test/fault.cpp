@@ -892,6 +892,38 @@ namespace Test { namespace Fault {
   }
 
 #ifdef GECODE_HAS_STRING_VARS
+  bool direct_dfa_post_failure_releases_ranges(void) {
+    FaultScope scope;
+    using Gecode::String::NSRange;
+    const int initial = NSRange::fault_live_allocations();
+    const DFA d = REG('a');
+    bool failed = false;
+    {
+      MiniModelSpace home;
+      StringVar x(home,0,1,Gecode::String::StringAlphabet::ascii());
+      Support::FailPoint::fail_after(Phase::NSIntSetRange,1);
+      try {
+        extensional(home,x,d);
+      } catch (const MemoryExhausted&) {
+        failed = Support::FailPoint::count() == 2;
+      } catch (...) {
+        Support::FailPoint::reset();
+        return false;
+      }
+      Support::FailPoint::reset();
+    }
+    if (!failed || NSRange::fault_live_allocations() != initial)
+      return false;
+    bool passed = false;
+    {
+      MiniModelSpace home;
+      StringVar x(home,0,1,Gecode::String::StringAlphabet::ascii());
+      extensional(home,x,d);
+      passed = home.status() == SS_SOLVED && x.assigned() && x.val() == "a";
+    }
+    return passed && NSRange::fault_live_allocations() == initial;
+  }
+
   bool ns_int_set_copy_failure_releases_ranges(void) {
     FaultScope scope;
     using Gecode::String::NSIntSet;
@@ -1048,6 +1080,14 @@ namespace Test { namespace Fault {
   };
 
 #ifdef GECODE_HAS_STRING_VARS
+  class DirectDFAPost : public Base {
+  public:
+    DirectDFAPost(void) : Base("Fault::String::DirectDFAPost") {}
+    virtual bool run(void) {
+      return direct_dfa_post_failure_releases_ranges();
+    }
+  };
+
   class NSIntSetCopy : public Base {
   public:
     NSIntSetCopy(void) : Base("Fault::String::NSIntSetCopy") {}
@@ -1330,6 +1370,7 @@ namespace Test { namespace Fault {
   HeapAllocation heap_allocation;
   HeapReallocation heap_reallocation;
 #ifdef GECODE_HAS_STRING_VARS
+  DirectDFAPost direct_dfa_post;
   NSIntSetCopy ns_int_set_copy;
   NSIntSetRangeFailure ns_int_set_ds_copy(
     "Fault::String::NSIntSetDSCopy",NSIntSetRangeFailure::ConstructDS);

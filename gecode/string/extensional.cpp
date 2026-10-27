@@ -4,6 +4,148 @@
 
 namespace Gecode { namespace String {
 
+  namespace {
+
+    // Active nodes retain their explicit membership. Inactive component strings
+    // are epsilon, so concat and element remain unconditional.
+    class AlternativePoster : public RegExVisitor {
+    private:
+      Home home;
+      StringVar x;
+      BoolVar active;
+      VarArgs& variables;
+
+    public:
+      AlternativePoster(Home home0, StringVar x0, BoolVar active0,
+                        VarArgs& variables0)
+        : home(home0), x(x0), active(active0), variables(variables0) {}
+
+      void
+      visit(const EmptyEx&) {
+        rel(home, x, STRT_EQ, StringVar(home, ""));
+      }
+
+      void
+      visit(const CharEx& node) {
+        StringVar literal(home, StringVal::decode_utf8(node.get_string()));
+        rel(home, x, STRT_EQ, literal, Reify(active, RM_IMP));
+      }
+
+      void
+      visit(const RangeEx& node) {
+        const int lower = node.min_length();
+        if (lower < 0 || lower > node.max_length()) {
+          home.fail();
+          return;
+        }
+        const int target_max = x.max_length();
+        const int upper = std::min(node.max_length(), target_max);
+        const NSIntSet symbols = node.get_chars(x.may_chars());
+        if (symbols.empty() || upper == 0) {
+          rel(home, x, STRT_EQ, StringVar(home, ""));
+        } else {
+          NSBlocks blocks({NSBlock(symbols, 0, upper)});
+          rel(home, x, STRT_DOM, blocks, 0, upper);
+        }
+        if (home.failed())
+          return;
+        // Keep the selected minimum even when the effective alphabet is empty.
+        if (lower > target_max) {
+          rel(home, active, IRT_EQ, 0);
+        } else if (lower > 0) {
+          IntVar length_var(home, 0, upper);
+          variables.iva << length_var;
+          length(home, x, length_var);
+          rel(home, length_var, IRT_GQ, lower, Reify(active, RM_IMP));
+        }
+      }
+
+      void
+      visit(const StarEx& node) {
+        // Existing explicit stars admit epsilon, including the intersection
+        // and literal-power routes that native compilation cannot replace.
+        node.post(home, x, variables);
+      }
+
+      void
+      visit(const ConcatEx& node) {
+        if (node.left().empty()) {
+          node.right().post_alternative(home, x, active, variables);
+          return;
+        }
+        if (node.right().empty()) {
+          node.left().post_alternative(home, x, active, variables);
+          return;
+        }
+        const NSIntSet alphabet = x.may_chars();
+        const int upper = x.max_length();
+        StringVar left(home, alphabet, 0, upper);
+        variables.sva << left;
+        StringVar right(home, alphabet, 0, upper);
+        variables.sva << right;
+        node.left().post_alternative(home, left, active, variables);
+        node.right().post_alternative(home, right, active, variables);
+        rel(home, left, right, STRT_CAT, x);
+      }
+
+      void
+      visit(const InterEx& node) {
+        node.left().post_alternative(home, x, active, variables);
+        node.right().post_alternative(home, x, active, variables);
+      }
+
+      void
+      visit(const UnionEx& node) {
+        const NSIntSet alphabet = x.may_chars();
+        const int upper = x.max_length();
+        StringVar left(home, alphabet, 0, upper);
+        variables.sva << left;
+        StringVar right(home, alphabet, 0, upper);
+        variables.sva << right;
+        IntVar selector(home, 1, 2);
+        variables.iva << selector;
+        BoolVar select_left(home, 0, 1);
+        variables.bva << select_left;
+        BoolVar select_right(home, 0, 1);
+        variables.bva << select_right;
+        BoolVar left_active(home, 0, 1);
+        variables.bva << left_active;
+        BoolVar right_active(home, 0, 1);
+        variables.bva << right_active;
+        rel(home, selector, IRT_EQ, 1, Reify(select_left));
+        rel(home, selector, IRT_EQ, 2, Reify(select_right));
+        rel(home, active, BOT_AND, select_left, left_active);
+        rel(home, active, BOT_AND, select_right, right_active);
+        rel(home, active, BOT_OR, select_left, 1);
+        element(home, StringVarArgs() << left << right, selector, x);
+        node.left().post_alternative(home, left, left_active, variables);
+        node.right().post_alternative(home, right, right_active, variables);
+      }
+    };
+
+  } // namespace
+
+  void
+  RegEx::post_alternative(Home home, StringVar x, BoolVar active,
+                          VarArgs& variables) const {
+    GECODE_POST;
+    BoolVar empty(home, 0, 1);
+    variables.bva << empty;
+    rel(home, x, STRT_EQ, StringVar(home, ""), Reify(empty));
+    rel(home, active, BOT_OR, empty, 1);
+    if (home.failed())
+      return;
+    AlternativePoster poster(home, x, active, variables);
+    accept(poster);
+  }
+
+  void
+  RegEx::post_automaton(Home home, StringVar x) const {
+    GECODE_POST;
+    TrimDFAHandle automaton(symbolic_dfa(x.may_chars()));
+    GECODE_ES_FAIL(Reg::post(home, StringView(x), automaton.get()));
+  }
+
   trimDFA*
   RegEx::symbolic_dfa(const NSIntSet& active_alphabet) const {
     return symbolic_dfa(active_alphabet, false, false);
@@ -49,24 +191,16 @@ namespace Gecode { namespace String {
         partitions.push_back(std::move(remaining));
     }
 
-    try {
-      REG pattern = symbolic_reg(partitions, active_alphabet);
-      if (leading_wildcard || trailing_wildcard) {
-        REG sigma_star = *symbolic_class(active_alphabet, partitions);
-        if (leading_wildcard && trailing_wildcard)
-          return new trimDFA(
-            DFA(sigma_star + pattern + sigma_star), partitions);
-        if (leading_wildcard)
-          return new trimDFA(DFA(sigma_star + pattern), partitions);
-        return new trimDFA(DFA(pattern + sigma_star), partitions);
-      }
-      return new trimDFA(DFA(pattern), partitions);
+    RegLanguage pattern = symbolic_reg(partitions, active_alphabet);
+    if (leading_wildcard || trailing_wildcard) {
+      const RegLanguage sigma_star =
+          symbolic_class(active_alphabet, partitions).star();
+      if (leading_wildcard)
+        pattern = sigma_star.concat(pattern);
+      if (trailing_wildcard)
+        pattern = pattern.concat(sigma_star);
     }
-    catch (const MiniModel::TooFewArguments&) {
-      DFA::Transition t[1] = { DFA::Transition(-1, -1, -1) };
-      int f[1] = {-1};
-      return new trimDFA(DFA(0, t, f), partitions);
-    }
+    return new trimDFA(pattern.dfa(), partitions);
   }
 
 }}
@@ -88,10 +222,7 @@ namespace Gecode {
         post_native_regex(home, x, intersection->right());
         return;
       }
-      String::TrimDFAHandle automaton(
-        expression.symbolic_dfa(x.may_chars()));
-      GECODE_ES_FAIL(String::Reg::post(
-        home, String::StringView(x), automaton.get()));
+      expression.post_automaton(home, x);
     }
 
     void
@@ -208,6 +339,11 @@ namespace Gecode {
 
   void
   extensional(Home home, StringVar x, StringVarArgs y) {
+    GECODE_POST;
+    if (y.size() == 0) {
+      home.fail();
+      return;
+    }
     IntVar i(home, 1, y.size());
     element(home, y, i, x);
   }
@@ -216,6 +352,11 @@ namespace Gecode {
   extensional(
     Home home, StringVar x, const std::vector<String::StringVal>& y
   ) {
+    GECODE_POST;
+    if (y.empty()) {
+      home.fail();
+      return;
+    }
     IntVar i(home, 1, y.size());
     StringVarArgs a;
     for (const String::StringVal& value : y)
@@ -225,6 +366,11 @@ namespace Gecode {
 
   void
   extensional(Home home, StringVar x, const std::vector<std::string>& y) {
+    GECODE_POST;
+    if (y.empty()) {
+      home.fail();
+      return;
+    }
     IntVar i(home, 1, y.size());
     StringVarArgs a;
     for (auto& s : y)

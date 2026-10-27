@@ -1539,6 +1539,16 @@ CHECKTESTS += String::Channel::StrToNat::0To999 \
 	String::Channel::StrToNat::Boundaries \
 	String::Channel::NatToStr::-1To0 \
 	String::Channel::NatToStr::0To2147483646
+CHECKTESTS += String::Extensional::DfaReification::Assigned \
+	String::Extensional::DfaReification::Deferred \
+	String::Extensional::StarDecomposition \
+	String::Extensional::RegexReification \
+	String::Extensional::BoundedStar \
+	String::Extensional::C12 \
+	String::Extensional::SingletonIntersection \
+	String::Extensional::C13 \
+	String::Extensional::ClassParentheses \
+	String::Extensional::Collections
 endif
 
 # A basic integrity test

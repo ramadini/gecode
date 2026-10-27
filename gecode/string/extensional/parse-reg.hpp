@@ -24,6 +24,7 @@
 
 #include <gecode/minimodel.hh>
 #include <memory>
+#include <optional>
 
 namespace Gecode { namespace String {
 
@@ -49,6 +50,53 @@ namespace Gecode { namespace String {
     virtual ~RegExVisitor(void) {}
   };
 
+  /// Compiled language: absent expression means empty; REG() means epsilon.
+  class RegLanguage {
+  private:
+    std::optional<REG> expression;
+
+  public:
+    RegLanguage() = default;
+    explicit RegLanguage(const REG& r) : expression(r) {}
+
+    RegLanguage
+    alternative(const RegLanguage& other) const {
+      if (!expression)
+        return other;
+      if (!other.expression)
+        return *this;
+      return RegLanguage(REG(*expression) | *other.expression);
+    }
+
+    RegLanguage
+    concat(const RegLanguage& other) const {
+      if (!expression || !other.expression)
+        return RegLanguage();
+      return RegLanguage(REG(*expression) + *other.expression);
+    }
+
+    RegLanguage
+    star() const {
+      return expression ? RegLanguage(*REG(*expression)) : RegLanguage(REG());
+    }
+
+    RegLanguage
+    repeat(int lower, int upper) const {
+      if (!expression)
+        return lower == 0 ? RegLanguage(REG()) : RegLanguage();
+      return RegLanguage(REG(*expression)(lower, upper));
+    }
+
+    DFA
+    dfa() const {
+      if (expression)
+        return DFA(REG(*expression));
+      DFA::Transition transitions[] = {DFA::Transition(-1, -1, -1)};
+      int finals[] = {-1};
+      return DFA(0, transitions, finals);
+    }
+  };
+
   /**
    * \brief Owned regular-expression syntax-tree node
    *
@@ -58,14 +106,14 @@ namespace Gecode { namespace String {
    */
   class RegEx {
   protected:
-    static REG
+    static RegLanguage
     symbolic_class(const NSIntSet& characters,
                    const std::vector<NSIntSet>& partitions) {
       IntArgs symbols;
       for (unsigned int i = 0; i < partitions.size(); ++i)
         if (!characters.disjoint(partitions[i]))
           symbols << static_cast<int>(i);
-      return REG(symbols);
+      return symbols.size() == 0 ? RegLanguage() : RegLanguage(REG(symbols));
     }
 
   public:
@@ -76,30 +124,34 @@ namespace Gecode { namespace String {
     virtual bool has_star()   const { return false; }
     virtual bool has_empty()  const { return false; }
     virtual bool intro_vars() const { return false; }
+    /// Certify that this node's star is exactly get_chars(active_alphabet)*
+    virtual bool
+    star_is_alphabet() const {
+      return false;
+    }
     /// Post a decomposition in a positive Boolean context
     virtual void post(Home, StringVar, VarArgs&)    const = 0;
     virtual void accept(RegExVisitor&) const = 0;
     virtual string str() const = 0;
-    virtual REG reg()    const = 0;
-    virtual REG symbolic_reg(
-      const std::vector<NSIntSet>&, const NSIntSet&) const = 0;
+    virtual RegLanguage reg() const = 0;
+    virtual RegLanguage symbolic_reg(const std::vector<NSIntSet>&,
+                                     const NSIntSet&) const = 0;
     virtual void collect_symbol_sets(
       const NSIntSet&, std::vector<NSIntSet>&) const = 0;
     DFA dfa() const {
-      try {
-        return DFA(this->reg());
-      }
-      catch (const MiniModel::TooFewArguments&) {
-        DFA::Transition t[1] = { DFA::Transition(-1, -1, -1) };
-        int f[1] = {-1};
-        return DFA(0, t, f);
-      };
+      return reg().dfa();
     }
     GECODE_STRING_EXPORT trimDFA*
     symbolic_dfa(const NSIntSet& active_alphabet) const;
     GECODE_STRING_EXPORT trimDFA*
     symbolic_dfa(const NSIntSet& active_alphabet,
                  bool leading_wildcard, bool trailing_wildcard) const;
+    /// Compile and post membership over the variable's active scalar alphabet
+    GECODE_STRING_EXPORT void post_automaton(Home home, StringVar x) const;
+    /// Post explicit membership when active, otherwise require epsilon.
+    GECODE_STRING_EXPORT void
+    post_alternative(Home home, StringVar x, BoolVar active,
+                     VarArgs& variables) const;
     virtual string get_string()  const = 0;
     virtual NSIntSet get_chars() const = 0;
     virtual NSIntSet get_chars(const NSIntSet&) const {
@@ -114,6 +166,10 @@ namespace Gecode { namespace String {
     bool empty() const { return true;  }
     bool has_empty() const { return true; }
     bool decomp() const { return true;  }
+    bool
+    star_is_alphabet() const {
+      return true;
+    }
     string get_string() const { return ""; }
     NSIntSet get_chars() const { return NSIntSet(); }
     void
@@ -127,10 +183,13 @@ namespace Gecode { namespace String {
     void accept(RegExVisitor& visitor) const {
       visitor.visit(*this);
     }
-    REG reg() const { return REG(); }
-    REG symbolic_reg(
-      const std::vector<NSIntSet>&, const NSIntSet&) const {
-      return REG();
+    RegLanguage
+    reg() const {
+      return RegLanguage(REG());
+    }
+    RegLanguage
+    symbolic_reg(const std::vector<NSIntSet>&, const NSIntSet&) const {
+      return RegLanguage(REG());
     }
     void collect_symbol_sets(
       const NSIntSet&, std::vector<NSIntSet>&) const {}
@@ -166,6 +225,11 @@ namespace Gecode { namespace String {
         return true;
     }
     bool intro_vars() const { return !empty(); }
+    bool
+    star_is_alphabet() const {
+      return (lhs->empty() && rhs->star_is_alphabet()) ||
+             (rhs->empty() && lhs->star_is_alphabet());
+    }
     string get_string() const { return lhs->get_string() + rhs->get_string(); }
     NSIntSet
     get_chars() const {
@@ -211,32 +275,15 @@ namespace Gecode { namespace String {
         }
       }
     }
-    REG reg() const {
-      if (lhs->empty()) {
-        if (rhs->empty())
-          return REG();
-        else
-          return rhs->reg();
-      }
-      else {
-        if (rhs->empty())
-        return lhs->reg();
-      else
-        return lhs->reg() + rhs->reg();
-      }
+    RegLanguage
+    reg() const {
+      return lhs->reg().concat(rhs->reg());
     }
-    REG symbolic_reg(
-      const std::vector<NSIntSet>& partitions,
-      const NSIntSet& active_alphabet) const {
-      if (lhs->empty()) {
-        if (rhs->empty())
-          return REG();
-        return rhs->symbolic_reg(partitions, active_alphabet);
-      }
-      if (rhs->empty())
-        return lhs->symbolic_reg(partitions, active_alphabet);
-      return lhs->symbolic_reg(partitions, active_alphabet) +
-        rhs->symbolic_reg(partitions, active_alphabet);
+    RegLanguage
+    symbolic_reg(const std::vector<NSIntSet>& partitions,
+                 const NSIntSet& active_alphabet) const {
+      return lhs->symbolic_reg(partitions, active_alphabet)
+          .concat(rhs->symbolic_reg(partitions, active_alphabet));
     }
     void collect_symbol_sets(
       const NSIntSet& active_alphabet, std::vector<NSIntSet>& sets) const {
@@ -260,6 +307,10 @@ namespace Gecode { namespace String {
       bool has_union() const { return lhs->has_union() || rhs->has_union(); }
       bool has_concat() const { return lhs->has_concat() || rhs->has_concat(); }
       bool intro_vars() const { return lhs->intro_vars() || rhs->intro_vars(); }
+      bool
+      star_is_alphabet() const {
+        return lhs->star_is_alphabet() && rhs->star_is_alphabet();
+      }
       string get_string() const {
         string x = lhs->get_string(), y = rhs->get_string();
         if (x != y)
@@ -297,25 +348,26 @@ namespace Gecode { namespace String {
         lhs->post(home, x, va);
         rhs->post(home, x, va);
       }
-      REG reg() const {
+      RegLanguage
+      reg() const {
         try {
           if (lhs->get_string() == rhs->get_string())
             return lhs->reg();
           // Distinct singleton languages have an empty intersection.
-          return REG(IntArgs::create(0, 1));
+          return RegLanguage();
         }
         catch (const std::runtime_error&) {
           throw std::runtime_error(
             "General REG intersection is not implemented");
         }
       }
-      REG symbolic_reg(
-        const std::vector<NSIntSet>& partitions,
-        const NSIntSet& active_alphabet) const {
+      RegLanguage
+      symbolic_reg(const std::vector<NSIntSet>& partitions,
+                   const NSIntSet& active_alphabet) const {
         try {
           if (lhs->get_string() == rhs->get_string())
             return lhs->symbolic_reg(partitions, active_alphabet);
-          return REG(IntArgs::create(0, 1));
+          return RegLanguage();
         }
         catch (const std::runtime_error&) {
           throw std::runtime_error(
@@ -343,6 +395,10 @@ namespace Gecode { namespace String {
     bool has_star() const { return lhs->has_star() || rhs->has_star(); }
     bool has_union()  const { return !empty(); }
     bool intro_vars() const { return !empty(); }
+    bool
+    star_is_alphabet() const {
+      return lhs->star_is_alphabet() && rhs->star_is_alphabet();
+    }
     bool has_concat()  const {
       if (lhs->empty())
         return rhs->has_concat();
@@ -353,11 +409,11 @@ namespace Gecode { namespace String {
     }
     string
     get_string() const {
-      if (lhs->empty())
-        return rhs->get_string();
-      if (rhs->empty())
-        return lhs->get_string();
-      throw std::runtime_error("Can't get a string from <E | E'> regex.\n");
+      const string left = lhs->get_string();
+      const string right = rhs->get_string();
+      if (left != right)
+        throw std::runtime_error("Regular-expression union is not a singleton");
+      return left;
     }
     NSIntSet
     get_chars() const {
@@ -386,24 +442,17 @@ namespace Gecode { namespace String {
           rel(home, x, STRT_EQ, StringVar(home, ""));
         return;
       }
-      int lx = x.min_length(), ux = x.max_length();
-      NSIntSet Sx = x.may_chars();
-      StringVar x1(home, Sx, lx, ux), x2(home, Sx, lx, ux);
-      StringVarArgs a;
-      a << x1 << x2;
-      IntVar i(home, 1, 2);
-      element(home, a, i, x);
-      lhs->post(home, x1, va);
-      rhs->post(home, x2, va);
-      va.iva << i;
-      va.sva << x1 << x2;
+      post_alternative(home, x, BoolVar(home, 1, 1), va);
     }
-    REG reg() const { return lhs->reg() | rhs->reg(); }
-    REG symbolic_reg(
-      const std::vector<NSIntSet>& partitions,
-      const NSIntSet& active_alphabet) const {
-      return lhs->symbolic_reg(partitions, active_alphabet) |
-        rhs->symbolic_reg(partitions, active_alphabet);
+    RegLanguage
+    reg() const {
+      return lhs->reg().alternative(rhs->reg());
+    }
+    RegLanguage
+    symbolic_reg(const std::vector<NSIntSet>& partitions,
+                 const NSIntSet& active_alphabet) const {
+      return lhs->symbolic_reg(partitions, active_alphabet)
+          .alternative(rhs->symbolic_reg(partitions, active_alphabet));
     }
     void collect_symbol_sets(
       const NSIntSet& active_alphabet, std::vector<NSIntSet>& sets) const {
@@ -448,14 +497,20 @@ namespace Gecode { namespace String {
     post(Home home, StringVar x, VarArgs& va) const {
       GECODE_POST;
       if (this->decomp() && DashedString::_DECOMP_REGEX) {
-        int l = DashedString::_MAX_STR_LENGTH;
         if (base->has_concat()) {
-          string s = base->get_string();
-          IntVar n(home, 0, l);
-          pow(home, StringVar(home, StringVal::decode_utf8(s)), n, x);
+          string literal;
+          try {
+            literal = base->get_string();
+          } catch (const std::runtime_error&) {
+            post_automaton(home, x);
+            return;
+          }
+          IntVar n(home, 0, DashedString::_MAX_STR_LENGTH);
+          pow(home, StringVar(home, StringVal::decode_utf8(literal)), n, x);
           va.iva << n;
+          return;
         }
-        else {
+        if (base->star_is_alphabet()) {
           StringView view(x);
           const DashedString& domain = view.domain();
           NSBlocks refined(domain.blocks());
@@ -464,20 +519,18 @@ namespace Gecode { namespace String {
           for (unsigned int i = 0; i < refined.size(); ++i) {
             NSBlock& block = refined[i];
             if (s.disjoint(block.S)) {
-              if (x.min_length() > 0)
+              if (block.l > 0) {
                 home.fail();
-              else
-                rel(home, x, STRT_EQ, StringVar(home, ""));
-              return;
+                return;
+              }
+              block.u = 0;
+              changed = true;
+              continue;
             }
             int n = block.S.size();
             block.S.intersect(s);
             if (block.S.size() < n)
               changed = true;
-            if (block.u != x.max_length()) {
-              block.u = x.max_length();
-              changed = true;
-            }
           }
           if (changed) {
             StringVarImp::DomainState state =
@@ -493,16 +546,19 @@ namespace Gecode { namespace String {
               return;
             GECODE_ME_FAIL(view.commit_refinement(home, state));
           }
+          return;
         }
-        return;
       }
-      extensional(home, x, dfa());
+      post_automaton(home, x);
     }
-    REG reg() const { return *(base->reg()); }
-    REG symbolic_reg(
-      const std::vector<NSIntSet>& partitions,
-      const NSIntSet& active_alphabet) const {
-      return *(base->symbolic_reg(partitions, active_alphabet));
+    RegLanguage
+    reg() const {
+      return base->reg().star();
+    }
+    RegLanguage
+    symbolic_reg(const std::vector<NSIntSet>& partitions,
+                 const NSIntSet& active_alphabet) const {
+      return base->symbolic_reg(partitions, active_alphabet).star();
     }
     void collect_symbol_sets(
       const NSIntSet& active_alphabet, std::vector<NSIntSet>& sets) const {
@@ -519,6 +575,10 @@ namespace Gecode { namespace String {
       return "'" + StringVal::from_symbols({i}).to_utf8() + "'";
     }
     bool decomp() const { return true; }
+    bool
+    star_is_alphabet() const {
+      return true;
+    }
     string get_string() const {
       return StringVal::from_symbols({i}).to_utf8();
     }
@@ -535,10 +595,13 @@ namespace Gecode { namespace String {
       else
         home.fail();
     }
-    REG reg() const { return REG(i); }
-    REG symbolic_reg(
-      const std::vector<NSIntSet>& partitions,
-      const NSIntSet&) const {
+    RegLanguage
+    reg() const {
+      return RegLanguage(REG(i));
+    }
+    RegLanguage
+    symbolic_reg(const std::vector<NSIntSet>& partitions,
+                 const NSIntSet&) const {
       return symbolic_class(NSIntSet(i), partitions);
     }
     void collect_symbol_sets(
@@ -571,13 +634,15 @@ namespace Gecode { namespace String {
       return result;
     }
 
-    REG legacy_reg(const NSIntSet& symbols) const {
+    RegLanguage
+    legacy_reg(const NSIntSet& symbols) const {
       check_automaton_size(symbols.size());
       IntArgs values;
       for (NSIntSet::iterator symbol(symbols); symbol(); ++symbol)
         values << *symbol;
-      REG result(values);
-      return result(l, u);
+      const RegLanguage result =
+          values.size() == 0 ? RegLanguage() : RegLanguage(REG(values));
+      return result.repeat(l, u);
     }
 
   public:
@@ -603,6 +668,10 @@ namespace Gecode { namespace String {
              ", " + std::to_string(l) + ", " + std::to_string(u) + "]";
     }
     bool decomp() const { return true; }
+    bool
+    star_is_alphabet() const {
+      return l <= 1 && 1 <= u;
+    }
     bool has_union() const {
       return wildcard || complement || characters.size() > 1;
     }
@@ -640,28 +709,35 @@ namespace Gecode { namespace String {
     void
     post(Home home, StringVar x, VarArgs&) const {
       GECODE_POST;
+      if (l < 0 || l > u) {
+        home.fail();
+        return;
+      }
       const NSIntSet symbols = effective(x.may_chars());
-      if (symbols.empty() || l > u)
+      if (u == 0 || (symbols.empty() && l == 0))
+        rel(home, x, STRT_EQ, StringVar(home, ""));
+      else if (symbols.empty())
         home.fail();
       else {
         NSBlocks d({NSBlock(symbols, l, u)});
         rel(home, x, STRT_DOM, d, l, u);
       }
     }
-    REG reg() const {
+    RegLanguage
+    reg() const {
       return legacy_reg(get_chars());
     }
-    REG symbolic_reg(
-      const std::vector<NSIntSet>& partitions,
-      const NSIntSet& active_alphabet) const {
+    RegLanguage
+    symbolic_reg(const std::vector<NSIntSet>& partitions,
+                 const NSIntSet& active_alphabet) const {
       const NSIntSet symbols = effective(active_alphabet);
-      REG result = symbolic_class(symbols, partitions);
+      const RegLanguage result = symbolic_class(symbols, partitions);
       int selected = 0;
       for (const NSIntSet& partition : partitions)
         if (!symbols.disjoint(partition))
           ++selected;
       check_automaton_size(selected);
-      return result(l, u);
+      return result.repeat(l, u);
     }
     void collect_symbol_sets(
       const NSIntSet& active_alphabet, std::vector<NSIntSet>& sets) const {
@@ -828,7 +904,7 @@ namespace Gecode { namespace String {
     StringSymbol class_symbol() {
       if (!more() || top() == ']')
         throw std::runtime_error("Missing character in character class");
-      return top() == '\\' ? escaped_symbol() : next();
+      return top() == '\\' ? escaped_symbol() : next(true);
     }
 
     int cardinality() {
