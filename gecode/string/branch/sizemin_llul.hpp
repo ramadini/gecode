@@ -1,22 +1,24 @@
 namespace Gecode { namespace String { namespace Branch {
 
+    forceinline
     SizeMin_LLUL::SizeMin_LLUL(Home home, ViewArray<String::StringView>& x0):
     StringBrancher(home, x0) {};
 
+    forceinline
     SizeMin_LLUL::SizeMin_LLUL(Home home, SizeMin_LLUL& b):
     StringBrancher(home, b) {}
 
-    Actor*
+    forceinline Actor*
     SizeMin_LLUL::copy(Space& home) {
       return new (home) SizeMin_LLUL(home, *this);
     }
 
-    void
+    forceinline void
     SizeMin_LLUL::post(Home home, ViewArray<String::StringView>& x) {
       (void) new (home) SizeMin_LLUL(home, x);
     }
 
-    Choice*
+    forceinline Choice*
     SizeMin_LLUL::choice(Space&) {
       const DashedString* p = &x[start].domain();
       double l = p->logdim();
@@ -29,12 +31,13 @@ namespace Gecode { namespace String { namespace Branch {
           pos = i;
         }
       }
-      return val_llul(pos, p);
+      // LLUL retains its legacy name but makes the same decisions as LLLL.
+      return val_llll(pos, p);
     }
 
-    ExecStatus
+    forceinline ExecStatus
     SizeMin_LLUL::commit(Space& home, const Choice& c, unsigned a) {
-      return commit_choice(home, c, Block::FIRST, a);
+      return commit_choice(home, c, a);
     }
 
 }}}

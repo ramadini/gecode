@@ -24,6 +24,7 @@ namespace Gecode { namespace String { namespace Branch {
       const DSBlock& b = p->at(p->first_na_block());
       double s = b.logdim();
       int d = p->max_length() - p->min_length();
+      // Use the maximum supported span when the initial length is fixed.
       if (d == 0)
         d = DashedString::_MAX_STR_LENGTH;
       int l = b.u - b.l;
@@ -37,6 +38,7 @@ namespace Gecode { namespace String { namespace Branch {
           int li = bi.u - bi.l;
           int mi = p->min_length();
           int di = p->max_length() - p->min_length();
+          // Positive spans compare only with d; equal spans retain selection.
           if (di > 0) {
             if (di < d) {
               d = di;
@@ -47,6 +49,8 @@ namespace Gecode { namespace String { namespace Branch {
             }
             continue;
           }
+          // Fixed lengths compare block estimate/span, then minimum length.
+          // Replacing the selection here deliberately leaves d unchanged.
           if (si < s || (si == s && li < l) || (si == s && li == l && mi < m)) {
             s = si;
             l = li;
@@ -60,7 +64,7 @@ namespace Gecode { namespace String { namespace Branch {
 
     forceinline ExecStatus
     LenBlockMin_LLLM::commit(Space& home, const Choice& c, unsigned a) {
-      return commit_choice(home, c, Block::FIRST, a);
+      return commit_choice(home, c, a);
     }
 
 }}}

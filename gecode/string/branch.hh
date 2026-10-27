@@ -13,9 +13,9 @@ namespace Gecode { namespace String { namespace Branch {
   /**
    * \brief Common brancher with archive-safe dashed-domain choices
    *
-   * Direct choices split a dashed block when that split is a complete
-   * partition. Fixed-length domains with overlapping optional blocks instead
-   * use a positional restriction, so both alternatives remain exhaustive.
+   * Length choices retain the selected endpoint. Symbol choices retain the
+   * concrete scalar position, so replay is independent of the current dashed
+   * layout and both alternatives remain exhaustive.
    * Choices archive scalar data only and never retain pointers into a Space.
    */
   class StringBrancher : public Brancher {
@@ -31,7 +31,7 @@ namespace Gecode { namespace String { namespace Branch {
 
     /// Encoding used to reconstruct a choice from an Archive
     enum class ChoiceKind {
-      DIRECT,   ///< Split one aggregate or dashed-block component
+      LENGTH,   ///< Split the aggregate length at a saved endpoint
       POSITION, ///< Restrict one concrete scalar position
       FIXED     ///< Assign the only concrete scalar sequence
     };
@@ -56,20 +56,17 @@ namespace Gecode { namespace String { namespace Branch {
 
     };
 
-    /// Choice that replays a direct dashed-domain split
-    class PosLevVal : public StringChoice {
+    /// Choice that replays a saved length endpoint
+    class LengthVal : public StringChoice {
     public:
 
-      Level lev;
       Value val;
-      int split = 0;
-      int offset;
+      int split;
 
-      PosLevVal(
-        const StringBrancher& b, unsigned p, Level l, Value v, int s, int o
+      LengthVal(
+        const StringBrancher& b, unsigned p, Value v, int s
       ):
-        StringChoice(b, ChoiceKind::DIRECT, p),
-        lev(l), val(v), split(s), offset(o) {}
+        StringChoice(b, ChoiceKind::LENGTH, p), val(v), split(s) {}
 
       virtual size_t
       size(void) const {
@@ -79,7 +76,7 @@ namespace Gecode { namespace String { namespace Branch {
       virtual void
       archive(Archive& e) const {
         archive_header(e);
-        e << lev << val << split << offset;
+        e << val << split;
       }
 
     };
@@ -149,14 +146,14 @@ namespace Gecode { namespace String { namespace Branch {
     };
 
     /**
-     * Test whether direct block splits partition all represented strings.
+     * Test whether each scalar position belongs to one fixed dashed block.
      *
      * Optional repetition in a multi-block domain can make one concrete
      * position originate in several blocks; that case requires positional
-     * replay.
+     * replay. A fixed-length single block also has fixed repetition.
      */
     bool
-    direct_partition_safe(const DashedString* p) const {
+    has_fixed_block_positions(const DashedString* p) const {
       if (p->length() == 1)
         return true;
       for (int i = 0; i < p->length(); ++i)
@@ -199,21 +196,12 @@ namespace Gecode { namespace String { namespace Branch {
       return selected;
     }
 
-    /// Build a direct length, repetition, or symbol-set decision
-    PosLevVal*
-    direct_decision(
-      int pos, const Gecode::String::DashedString* p, Level lev, Value val
-    ) {
-      if (lev == Level::LENGTH) {
-        int split = val == Value::MIN ? p->min_length() : p->max_length();
-        return new PosLevVal(*this, pos, lev, val, split, -1);
-      }
+    /// Save the first unassigned block's selected symbol and scalar offset
+    PositionVal*
+    block_decision(int pos, const DashedString* p, Value val) {
+      assert(p->min_length() == p->max_length());
       int index = p->first_na_block();
       const DSBlock& block = p->at(index);
-      if (lev == Level::CARD) {
-        int split = val == Value::MIN ? block.l : block.u;
-        return new PosLevVal(*this, pos, lev, val, split, -1);
-      }
       int offset = 0;
       for (int i = 0; i < index; ++i)
         offset += p->at(i).l;
@@ -232,7 +220,9 @@ namespace Gecode { namespace String { namespace Branch {
         default:
           GECODE_NEVER;
       }
-      return new PosLevVal(*this, pos, lev, val, split, offset);
+      return new PositionVal(
+        *this, pos, val, split, offset, p->min_length(),
+        p->may_chars(), NSIntSet(block.S));
     }
 
     /**
@@ -278,64 +268,59 @@ namespace Gecode { namespace String { namespace Branch {
         *this, pos, StringVal::from_symbols(std::move(concrete)));
     }
 
-    /// Replay a direct choice, including against an already assigned clone
+    /// Replay the saved length predicate, including on assigned clones
     ExecStatus
-    commit_direct(
-      Space& home, const PosLevVal& p, Block block, unsigned a
-    ) {
-      if (!x[p.pos].assigned()) {
-        x[p.pos].commit(home, p.lev, p.val, block, p.split, a);
-        return ES_OK;
+    commit_length(Space& home, const LengthVal& p, unsigned a) {
+      ModEvent me;
+      if (p.val == Value::MIN)
+        me = a == 0 ? x[p.pos].ub(home, p.split) :
+          x[p.pos].lb(home, p.split + 1);
+      else
+        me = a == 0 ? x[p.pos].lb(home, p.split) :
+          x[p.pos].ub(home, p.split - 1);
+      return me_failed(me) ? ES_FAILED : ES_OK;
+    }
+
+    /// Enforce the saved positional predicate and retain a progressing view
+    ExecStatus
+    commit_position(Space& home, const PositionVal& p, unsigned a) {
+      NSIntSet selected(p.chars);
+      if (a == 0)
+        selected = NSIntSet(p.split);
+      else
+        selected.remove(p.split);
+      if (selected.empty())
+        return ES_FAILED;
+      NSBlocks restriction;
+      if (p.index > 0)
+        restriction.emplace_back(p.alphabet, p.index, p.index);
+      restriction.emplace_back(std::move(selected), 1, 1);
+      if (p.index + 1 < p.length)
+        restriction.emplace_back(p.alphabet, p.length - p.index - 1,
+                                 p.length - p.index - 1);
+      if (!has_fixed_block_positions(&x[p.pos].domain())) {
+        // Branch on fixed positions while equality retains the original
+        // domain's correlations between optional blocks.
+        StringVar proxy(home, restriction, p.length, p.length);
+        rel(home, StringVar(x[p.pos]), STRT_EQ, proxy);
+        x[p.pos] = StringView(proxy);
+        return home.failed() ? ES_FAILED : ES_OK;
       }
-      if (p.lev == Level::CARD)
-        return ES_OK;
-      string bytes;
-      bool selected;
-      if (x[p.pos].domain().try_val_bytes(bytes)) {
-        if (p.lev == Level::LENGTH)
-          selected = static_cast<int>(bytes.size()) == p.split;
-        else
-          selected = p.offset < static_cast<int>(bytes.size()) &&
-            static_cast<int>(char2int(bytes[p.offset])) == p.split;
-      } else {
-        const StringVal value = x[p.pos].domain().val_symbols();
-        if (p.lev == Level::LENGTH)
-          selected = static_cast<int>(value.size()) == p.split;
-        else
-          selected = p.offset < static_cast<int>(value.size()) &&
-            value[static_cast<StringVal::size_type>(p.offset)] == p.split;
-      }
-      return selected == (a == 0) ? ES_OK : ES_FAILED;
+      ModEvent me = x[p.pos].dom(home, restriction);
+      return me_failed(me) ? ES_FAILED : ES_OK;
     }
 
     /// Replay any supported choice representation
     ExecStatus
-    commit_choice(Space& home, const Choice& c, Block block, unsigned a) {
+    commit_choice(Space& home, const Choice& c, unsigned a) {
       const StringChoice& base = static_cast<const StringChoice&>(c);
       switch (base.kind) {
-        case ChoiceKind::DIRECT:
-          return commit_direct(
-            home, static_cast<const PosLevVal&>(base), block, a);
-        case ChoiceKind::POSITION: {
-          const PositionVal& p = static_cast<const PositionVal&>(base);
-          NSIntSet selected(p.chars);
-          if (a == 0)
-            selected = NSIntSet(p.split);
-          else
-            selected.remove(p.split);
-          if (selected.empty())
-            return ES_FAILED;
-          NSBlocks restriction;
-          if (p.index > 0)
-            restriction.emplace_back(p.alphabet, p.index, p.index);
-          restriction.emplace_back(std::move(selected), 1, 1);
-          if (p.index + 1 < p.length)
-            restriction.emplace_back(
-              p.alphabet, p.length - p.index - 1,
-              p.length - p.index - 1);
-          ModEvent me = x[p.pos].dom(home, restriction);
-          return me_failed(me) ? ES_FAILED : ES_OK;
-        }
+        case ChoiceKind::LENGTH:
+          return commit_length(
+            home, static_cast<const LengthVal&>(base), a);
+        case ChoiceKind::POSITION:
+          return commit_position(home, static_cast<const PositionVal&>(base),
+                                 a);
         case ChoiceKind::FIXED: {
           if (a != 0)
             return ES_FAILED;
@@ -349,60 +334,24 @@ namespace Gecode { namespace String { namespace Branch {
       return ES_FAILED;
     }
 
+    /// Try minimum length, then the smallest symbol at an unresolved position
     Choice*
-    val_llll(int pos, const Gecode::String::DashedString* p) {
+    val_llll(int pos, const DashedString* p) {
       if (p->min_length() < p->max_length())
-        return direct_decision(pos, p, Level::LENGTH, Value::MIN);
-      if (!direct_partition_safe(p))
+        return new LengthVal(*this, pos, Value::MIN, p->min_length());
+      if (!has_fixed_block_positions(p))
         return position_decision(pos, p, Value::MIN);
-      int i = p->first_na_block();
-      const DSBlock& b = p->at(i);
-      if (b.l < b.u)
-        return direct_decision(pos, p, Level::CARD, Value::MIN);
-      else
-        return direct_decision(pos, p, Level::BASE, Value::MIN);
+      return block_decision(pos, p, Value::MIN);
     }
 
+    /// Try minimum length, then prefer a mandatory symbol at that position
     Choice*
-    val_llul(int pos, const Gecode::String::DashedString* p) {
+    val_lllm(int pos, const DashedString* p) {
       if (p->min_length() < p->max_length())
-        return direct_decision(pos, p, Level::LENGTH, Value::MIN);
-      if (!direct_partition_safe(p))
-        return position_decision(pos, p, Value::MIN);
-      int i = p->first_na_block();
-      const DSBlock& b = p->at(i);
-      if (b.l < b.u)
-        return direct_decision(pos, p, Level::CARD, Value::MAX);
-      else
-        return direct_decision(pos, p, Level::BASE, Value::MIN);
-    }
-
-    Choice*
-    val_ulul(int pos, const Gecode::String::DashedString* p) {
-      if (p->min_length() < p->max_length())
-        return direct_decision(pos, p, Level::LENGTH, Value::MAX);
-      if (!direct_partition_safe(p))
-        return position_decision(pos, p, Value::MAX);
-      int i = p->first_na_block();
-      const DSBlock& b = p->at(i);
-      if (b.l < b.u)
-        return direct_decision(pos, p, Level::CARD, Value::MAX);
-      else
-        return direct_decision(pos, p, Level::BASE, Value::MIN);
-    }
-
-    Choice*
-    val_lllm(int pos, const Gecode::String::DashedString* p) {
-      if (p->min_length() < p->max_length())
-        return direct_decision(pos, p, Level::LENGTH, Value::MIN);
-      if (!direct_partition_safe(p))
+        return new LengthVal(*this, pos, Value::MIN, p->min_length());
+      if (!has_fixed_block_positions(p))
         return position_decision(pos, p, Value::MUSTMIN);
-      int i = p->first_na_block();
-      const DSBlock& b = p->at(i);
-      if (b.l < b.u)
-        return direct_decision(pos, p, Level::CARD, Value::MIN);
-      else
-        return direct_decision(pos, p, Level::BASE, Value::MUSTMIN);
+      return block_decision(pos, p, Value::MUSTMIN);
     }
 
   public:
@@ -434,11 +383,10 @@ namespace Gecode { namespace String { namespace Branch {
       int kind, pos;
       e >> kind >> pos;
       switch (ChoiceKind(kind)) {
-        case ChoiceKind::DIRECT: {
-          int lev, val, split, offset;
-          e >> lev >> val >> split >> offset;
-          return new PosLevVal(
-            *this, pos, Level(lev), Value(val), split, offset);
+        case ChoiceKind::LENGTH: {
+          int val, split;
+          e >> val >> split;
+          return new LengthVal(*this, pos, Value(val), split);
         }
         case ChoiceKind::POSITION: {
           int val, split, index, length, range_count;
@@ -484,9 +432,9 @@ namespace Gecode { namespace String { namespace Branch {
       const StringChoice& base = static_cast<const StringChoice&>(c);
       o << "Alt. " << a << " -- Var. " << base.pos;
       switch (base.kind) {
-        case ChoiceKind::DIRECT: {
-          const PosLevVal& p = static_cast<const PosLevVal&>(base);
-          o << " -- Lev. " << p.lev << " -- Val. " << p.val;
+        case ChoiceKind::LENGTH: {
+          const LengthVal& p = static_cast<const LengthVal&>(base);
+          o << " -- Length. " << p.split << " -- Val. " << p.val;
           break;
         }
         case ChoiceKind::POSITION: {
@@ -575,7 +523,7 @@ namespace Gecode { namespace String { namespace Branch {
 
 namespace Gecode { namespace String { namespace Branch {
 
-  /// Minimum estimated-domain variable selection with LLUL value selection
+  /// Minimum estimated-domain selection; legacy LLUL uses LLLL decisions
   struct SizeMin_LLUL: public StringBrancher {
 
     SizeMin_LLUL(Home home, ViewArray<String::StringView>& x0);
@@ -597,7 +545,7 @@ namespace Gecode { namespace String { namespace Branch {
 
 namespace Gecode { namespace String { namespace Branch {
 
-  /// Minimum-block-count variable selection with LLLL value selection
+  /// Select by the first unassigned block's estimate with LLLL values
   struct BlockMin_LLLL: public StringBrancher {
 
     BlockMin_LLLL(Home home, ViewArray<String::StringView>& x0);
@@ -619,7 +567,7 @@ namespace Gecode { namespace String { namespace Branch {
 
 namespace Gecode { namespace String { namespace Branch {
 
-  /// Minimum-block-count variable selection with LLLM value selection
+  /// Select by the first unassigned block's estimate with LLLM values
   struct BlockMin_LLLM: public StringBrancher {
 
     BlockMin_LLLM(Home home, ViewArray<String::StringView>& x0);
@@ -641,7 +589,8 @@ namespace Gecode { namespace String { namespace Branch {
 
 namespace Gecode { namespace String { namespace Branch {
 
-  /// Minimum-length/block-count selection with LLLM value selection
+  /// Length-span/block scan with LLLM values
+  /// \sa StringVarBranch::STRING_VAR_LENBLOCKMIN
   struct LenBlockMin_LLLM: public StringBrancher {
 
     LenBlockMin_LLLM(Home home, ViewArray<String::StringView>& x0);

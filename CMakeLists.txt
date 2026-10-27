@@ -1553,7 +1553,13 @@ if(BUILD_TESTING)
         String::Replace::All::OptionalOccurrences::Bytes
         String::Replace::All::OptionalOccurrences::Scalars
         String::Replace::First::Overlap
-        String::Replace::Last::Overlap)
+        String::Replace::Last::Overlap
+        String::Branch::LengthSelection
+        String::Branch::Positional
+        String::Branch::LengthReplay
+        String::Branch::SymbolReplay
+        String::Branch::FixedReplay
+        String::Branch::Recompute)
     endif()
     if(GECODE_ENABLE_FLOAT_VARS)
       set(GECODE_FLOAT_CHECK_TESTS

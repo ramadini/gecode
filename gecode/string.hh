@@ -651,12 +651,37 @@ namespace Gecode {
   public:
     /// Which variable selection
     enum Select {
-      STRING_VAR_NONE = 0,  ///< First unassigned variable
-      STRING_VAR_LENBLOCKMIN, ///< Smallest minimum length, then fewest blocks
-      STRING_VAR_BLOCKMIN, ///< Fewest dashed blocks
-      STRING_VAR_SIZEMIN,  ///< Smallest estimated domain
-      STRING_VAR_LENMIN,   ///< Smallest minimum length
-      STRING_VAR_LENMAX    ///< Largest maximum length
+      STRING_VAR_NONE = 0,    ///< First unassigned variable
+      /**
+       * \brief Scan by length span and first-unassigned-block estimates
+       *
+       * Scan unassigned variables in array order, initially selecting the
+       * first. The running length-span threshold is its maximum minus minimum
+       * length, or the maximum supported string length if its length is fixed.
+       * A later variable with positive length span replaces the selection only
+       * if its span is smaller than the threshold, and updates the threshold.
+       * Equal positive spans do not use block estimates to break ties.
+       *
+       * A fixed-length candidate instead compares its first unassigned block's
+       * log-cardinality estimate, then that block's repetition span, then its
+       * minimum string length against the current selection. A smaller value
+       * at the first differing comparison replaces the selection; exact ties
+       * retain it. This replacement leaves the length-span threshold unchanged.
+       * Mixed fixed/variable-length scans therefore depend on array order,
+       * rather than a single ordering key. For two variables with lengths
+       * 1..5 and 4..5, the latter is selected.
+       */
+      STRING_VAR_LENBLOCKMIN,
+      /**
+       * \brief Smallest estimate for the first unassigned block
+       *
+       * Compare the estimated cardinality of each variable's first unassigned
+       * block, then its repetition span, then the variable's minimum length.
+       */
+      STRING_VAR_BLOCKMIN,
+      STRING_VAR_SIZEMIN, ///< Smallest estimated domain
+      STRING_VAR_LENMIN,  ///< Smallest minimum length
+      STRING_VAR_LENMAX   ///< Largest maximum length
     };
 
   protected:
@@ -682,15 +707,22 @@ namespace Gecode {
   /**
    * \brief String value selection
    * \ingroup TaskModelStringBranch
+   *
+   * When length varies, first try the minimum length, then larger lengths.
+   * At fixed length, branch on a symbol at the first unresolved scalar
+   * position. LLLL first tries the smallest available symbol. LLLM prefers
+   * the smallest available symbol that occurs in a mandatory singleton block
+   * of any variable in the brancher's array, falling back to the smallest
+   * available symbol. There is no separate repetition decision.
    */
   class StringValBranch : public ValBranch<StringVar> {
 
   public:
     /// Which value selection
     enum Select {
-      STRING_VAL_LLLL, ///< Lower length, lower repetition, lower symbol
-      STRING_VAL_LLUL, ///< Lower length, upper repetition, lower symbol
-      STRING_VAL_LLLM  ///< Lower length/repetition, preferred mandatory symbol
+      STRING_VAL_LLLL, ///< Minimum length, then smallest positional symbol
+      STRING_VAL_LLUL, ///< Legacy spelling for LLLL decisions; SIZEMIN only
+      STRING_VAL_LLLM  ///< Minimum length, then preferred positional symbol
     };
 
   protected:
@@ -722,11 +754,11 @@ namespace Gecode {
   GECODE_STRING_EXPORT void
   none_llll(Home home, const StringVarArgs& x);
 
-  /// Branch on the smallest estimated domain using STRING_VAL_LLUL
+  /// Branch on the smallest estimated domain using legacy LLUL (LLLL decisions)
   GECODE_STRING_EXPORT void
   sizemin_llul(Home home, const StringVarArray& x);
 
-  /// Branch on the smallest estimated domain using STRING_VAL_LLUL
+  /// Branch on the smallest estimated domain using legacy LLUL (LLLL decisions)
   GECODE_STRING_EXPORT void
   sizemin_llul(Home home, const StringVarArgs& x);
 
@@ -746,27 +778,29 @@ namespace Gecode {
   GECODE_STRING_EXPORT void
   lenmin_llll(Home home, const StringVarArgs& x);
 
-  /// Branch on the fewest dashed blocks using STRING_VAL_LLLL
+  /// Branch by the first unassigned block's estimate using STRING_VAL_LLLL
   GECODE_STRING_EXPORT void
   blockmin_llll(Home home, const StringVarArray& x);
 
-  /// Branch on the fewest dashed blocks using STRING_VAL_LLLL
+  /// Branch by the first unassigned block's estimate using STRING_VAL_LLLL
   GECODE_STRING_EXPORT void
   blockmin_llll(Home home, const StringVarArgs& x);
 
-  /// Branch on the fewest dashed blocks using STRING_VAL_LLLM
+  /// Branch by the first unassigned block's estimate using STRING_VAL_LLLM
   GECODE_STRING_EXPORT void
   blockmin_lllm(Home home, const StringVarArray& x);
 
-  /// Branch on the fewest dashed blocks using STRING_VAL_LLLM
+  /// Branch by the first unassigned block's estimate using STRING_VAL_LLLM
   GECODE_STRING_EXPORT void
   blockmin_lllm(Home home, const StringVarArgs& x);
 
-  /// Branch by minimum length and block count using STRING_VAL_LLLM
+  /// Branch by the length-span/block scan using STRING_VAL_LLLM
+  /// \sa StringVarBranch::STRING_VAR_LENBLOCKMIN
   GECODE_STRING_EXPORT void
   lenblockmin_lllm(Home home, const StringVarArray& x);
 
-  /// Branch by minimum length and block count using STRING_VAL_LLLM
+  /// Branch by the length-span/block scan using STRING_VAL_LLLM
+  /// \sa StringVarBranch::STRING_VAR_LENBLOCKMIN
   GECODE_STRING_EXPORT void
   lenblockmin_lllm(Home home, const StringVarArgs& x);
 
@@ -774,24 +808,33 @@ namespace Gecode {
   StringVarBranch STRING_VAR_NONE(void);
   /// Select the variable with the smallest estimated domain
   StringVarBranch STRING_VAR_SIZEMIN(void);
-  /// Select the variable with the fewest dashed blocks
+  /// Select by the first unassigned block's estimate and its tie-breaks
+  /// \sa StringVarBranch::STRING_VAR_BLOCKMIN
   StringVarBranch STRING_VAR_BLOCKMIN(void);
-  /// Select by minimum length, breaking ties by block count
+  /// Select by the length-span/block scan
+  /// \sa StringVarBranch::STRING_VAR_LENBLOCKMIN
   StringVarBranch STRING_VAR_LENBLOCKMIN(void);
   /// Select the variable with the smallest minimum length
   StringVarBranch STRING_VAR_LENMIN(void);
   /// Select the variable with the largest maximum length
   StringVarBranch STRING_VAR_LENMAX(void);
 
-  /// Select lower length, repetition, and symbol alternatives
+  /// Select minimum length, then the smallest positional symbol
   StringValBranch STRING_VAL_LLLL(void);
-  /// Select lower length/symbol and upper repetition alternatives
+  /// Select legacy LLUL spelling for LLLL decisions (SIZEMIN only)
   StringValBranch STRING_VAL_LLUL(void);
-  /// Prefer mandatory symbols after lower length/repetition alternatives
+  /// Select minimum length, then prefer mandatory positional symbols
   StringValBranch STRING_VAL_LLLM(void);
 
   /**
    * \brief Post string branching with compatible selectors
+   *
+   * Supported combinations are:
+   * - STRING_VAR_NONE(), STRING_VAR_LENMIN(), or STRING_VAR_LENMAX() with
+   *   STRING_VAL_LLLL();
+   * - STRING_VAR_SIZEMIN() with STRING_VAL_LLUL(), whose decisions are LLLL;
+   * - STRING_VAR_BLOCKMIN() with STRING_VAL_LLLL() or STRING_VAL_LLLM();
+   * - STRING_VAR_LENBLOCKMIN() with STRING_VAL_LLLM().
    *
    * Unsupported variable/value selector combinations raise
    * String::UnknownBranching.

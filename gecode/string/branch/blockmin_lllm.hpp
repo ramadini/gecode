@@ -46,7 +46,7 @@ namespace Gecode { namespace String { namespace Branch {
 
     forceinline ExecStatus
     BlockMin_LLLM::commit(Space& home, const Choice& c, unsigned a) {
-      return commit_choice(home, c, Block::FIRST, a);
+      return commit_choice(home, c, a);
     }
 
 }}}

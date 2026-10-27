@@ -1222,7 +1222,7 @@ endif
 
 STRINGTESTSRC00 = \
 	rel rel-op extensional predicates length channel gcc char2code element find \
-	char-at substring match replace var
+	char-at substring match replace branch var
 STRINGTESTSRC0 = test/string.cpp $(STRINGTESTSRC00:%=test/string/%.cpp)
 ifeq "@enable_string_vars@" "yes"
 STRINGTESTOBJ = $(STRINGTESTSRC0:%.cpp=%$(OBJSUFFIX))
@@ -1501,6 +1501,9 @@ CHECKTESTS += String::Replace::All \
 	String::Replace::All::OptionalOccurrences::Bytes \
 	String::Replace::All::OptionalOccurrences::Scalars \
 	String::Replace::First::Overlap String::Replace::Last::Overlap
+CHECKTESTS += String::Branch::LengthSelection String::Branch::Positional \
+	String::Branch::LengthReplay String::Branch::SymbolReplay \
+	String::Branch::FixedReplay String::Branch::Recompute
 endif
 
 ifeq "@enable_float_vars@" "yes"
