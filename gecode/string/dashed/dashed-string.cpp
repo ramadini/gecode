@@ -2,6 +2,29 @@
 
 namespace Gecode { namespace String {
 
+#ifdef GECODE_HAS_FAULT_INJECTION
+  std::atomic<int> NSRange::fault_live_ranges{0};
+
+  void*
+  NSRange::operator new(size_t size) {
+    Support::FailPoint::check(Support::FailPoint::Phase::NSIntSetRange);
+    void* range = ::operator new(size);
+    fault_live_ranges.fetch_add(1, std::memory_order_relaxed);
+    return range;
+  }
+
+  void
+  NSRange::operator delete(void* range) {
+    fault_live_ranges.fetch_sub(1, std::memory_order_relaxed);
+    ::operator delete(range);
+  }
+
+  int
+  NSRange::fault_live_allocations(void) {
+    return fault_live_ranges.load(std::memory_order_relaxed);
+  }
+#endif
+
   OutOfLimitsDS::OutOfLimitsDS(const char* l)
     : Exception(l, "Dashed string out of limits") {}
 

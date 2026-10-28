@@ -149,6 +149,17 @@ enabled. CTest registers the fault suite as a separate process with
 `-threads 1` and serializes it with the fault-injection resource lock. The
 FailPoint facility is not a supported application API.
 
+Also run the fault suite in a separate Release shared-library build with the
+default hidden visibility. Sanitizer builds can change symbol visibility, so
+they do not replace this check of allocation accounting across library boundaries.
+
+```bash
+cmake -S . -B build-fault-release -DCMAKE_BUILD_TYPE=Release \
+  -DGECODE_BUILD_SHARED=ON -DGECODE_BUILD_STATIC=OFF \
+  -DGECODE_ENABLE_FAULT_INJECTION=ON
+cmake --build build-fault-release --target check-fault
+```
+
 For a sanitizer build, configure a separate build directory. For example:
 
 ```bash

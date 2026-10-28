@@ -13,23 +13,13 @@ namespace Gecode { namespace String {
 
 #ifdef GECODE_HAS_FAULT_INJECTION
     /// Test-only count of live raw range allocations
-    inline static std::atomic<int> fault_live_ranges{0};
+    static std::atomic<int> fault_live_ranges;
 
-    static void* operator new(size_t size) {
-      Support::FailPoint::check(Support::FailPoint::Phase::NSIntSetRange);
-      void* range = ::operator new(size);
-      fault_live_ranges.fetch_add(1, std::memory_order_relaxed);
-      return range;
-    }
+    GECODE_STRING_EXPORT static void* operator new(size_t size);
 
-    static void operator delete(void* range) {
-      fault_live_ranges.fetch_sub(1, std::memory_order_relaxed);
-      ::operator delete(range);
-    }
+    GECODE_STRING_EXPORT static void operator delete(void* range);
 
-    static int fault_live_allocations(void) {
-      return fault_live_ranges.load(std::memory_order_relaxed);
-    }
+    GECODE_STRING_EXPORT static int fault_live_allocations(void);
 #endif
 
     int l, u;
