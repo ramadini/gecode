@@ -579,6 +579,71 @@ namespace Test { namespace String { namespace Rel {
     }
   };
 
+  class StructuredRefinement : public Base {
+  private:
+    static bool direct(int lower, int upper) {
+      using namespace Gecode;
+      using namespace Gecode::String;
+      ContractSpace home;
+      const NSIntSet alphabet(0, 255);
+      StringVar value(home);
+      NSBlocks blocks;
+      blocks.emplace_back(alphabet, 0, upper - 7);
+      for (char symbol : std::string("<script"))
+        blocks.emplace_back(NSIntSet(symbol), 1, 1);
+      blocks.emplace_back(alphabet, 0, upper - 7);
+      if (me_failed(value.varimp()->dom(home, blocks)) ||
+          me_failed(value.varimp()->lb(home, lower)) ||
+          me_failed(value.varimp()->ub(home, upper)) ||
+          value.min_length() != lower || value.max_length() != upper ||
+          !value.domain().is_normalized() || value.domain().length() != 9)
+        return false;
+      for (int i = 0; i < 7; ++i) {
+        const DSBlock& block = value.domain().at(i + 1);
+        if (block.l != 1 || block.u != 1 || block.S.size() != 1 ||
+            block.S.min() != blocks[i + 1].S.min())
+          return false;
+      }
+      std::vector<StringSymbol> witness;
+      for (char symbol : std::string("<script"))
+        witness.push_back(symbol);
+      if (lower > 7)
+        witness.push_back('x');
+      if (!value.domain().check_equate(StringVal::from_symbols(witness)))
+        return false;
+      witness.assign(lower, 'x');
+      return !value.domain().check_equate(StringVal::from_symbols(witness));
+    }
+
+    static bool find_prefix(void) {
+      using namespace Gecode;
+      ContractSpace home;
+      StringVar value(home);
+      IntVar prefix(home, 0, 65535);
+      IntVar script(home, 1, 65535);
+      find(home, StringVar(home, "<"), value, prefix);
+      find(home, StringVar(home, "<script"), value, script);
+      if (home.status() == SS_FAILED || prefix.min() != 1 ||
+          value.domain().length() != 9 ||
+          value.min_length() != 7 || value.max_length() != 65535)
+        return false;
+      rel(home, prefix, IRT_EQ, 0);
+      return home.status() == SS_FAILED;
+    }
+
+  public:
+    StructuredRefinement(void)
+      : Base("String::Rel::StructuredRefinement") {}
+
+    virtual bool run(void) {
+      for (int lower : {7, 8})
+        for (int upper : {9, Gecode::String::DashedString::_MAX_STR_LENGTH})
+          if (!direct(lower, upper))
+            return false;
+      return find_prefix();
+    }
+  };
+
   /// Keep aggregate restrictions on direct tells and concrete operations
   class AggregateBounds : public Base {
   private:
@@ -882,6 +947,7 @@ namespace Test { namespace String { namespace Rel {
   LexExtrema lex_extrema;
   Construction construction;
   ByteTopContainment byte_top_containment;
+  StructuredRefinement structured_refinement;
   AggregateBounds aggregate_bounds;
   SizeEstimate size_estimate;
   ScalarOrder scalar_increasing(false);

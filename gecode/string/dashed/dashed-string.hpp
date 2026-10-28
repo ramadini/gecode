@@ -2241,7 +2241,18 @@ namespace Gecode { namespace String {
       return false;
     if (that.contains<DSBlock, DashedString>(*this))
       return true;
-    if (contains(that)) {
+    bool contained = contains(that);
+    if (!contained && isTop()) {
+      // Intersected length bounds already restrict the whole candidate.
+      // Its raw block maxima need not fit simultaneously.
+      contained = true;
+      for (const NSBlock& block : that)
+        if (!block.null() && !at(0).S.contains(block.S)) {
+          contained = false;
+          break;
+        }
+    }
+    if (contained) {
       update(h, that);
       _changed = true;
       return refine_card(h, static_cast<int>(l), static_cast<int>(u));

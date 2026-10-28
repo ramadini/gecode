@@ -1469,6 +1469,7 @@ endif
 
 ifeq "@enable_string_vars@" "yes"
 CHECKTESTS += String::Rel::ByteTopContainment
+CHECKTESTS += String::Rel::StructuredRefinement
 CHECKTESTS += String::Match::AggregateBounds::DFA
 CHECKTESTS += String::Match::AggregateBounds::NFA
 CHECKTESTS += String::Match::AggregateBounds::AUTO

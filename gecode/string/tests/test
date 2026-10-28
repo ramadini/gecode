@@ -17,10 +17,10 @@ fi
 
 echo 'Compiling'
 time "${CXX:-g++}" -O0 -ggdb -pipe -Wall -Wno-switch -I"$ROOT_DIR" \
-  -std=c++11 -c -o "$BUILD_DIR/test.o" "$SOURCE"
+  -std=c++17 -c -o "$BUILD_DIR/test.o" "$SOURCE"
 
 echo 'Linking'
-time "${CXX:-g++}" -o "$BUILD_DIR/test" "$BUILD_DIR/test.o" -std=c++11 \
+time "${CXX:-g++}" -o "$BUILD_DIR/test" "$BUILD_DIR/test.o" -std=c++17 \
   -L"$ROOT_DIR" -Wl,-rpath,"$ROOT_DIR" \
   -lgecodeflatzinc -lgecodestring -lgecodeint -lgecodeset -lgecodedriver \
   "${GIST_LIBS[@]}" -lgecodesearch \

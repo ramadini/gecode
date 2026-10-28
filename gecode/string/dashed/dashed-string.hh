@@ -481,7 +481,13 @@ namespace Gecode { namespace String {
    * change marker; notification remains the caller's responsibility.
    */
   bool equate(Space& h, DashedString& that);
-  /// Refine this domain to equality with temporary domain \a that
+  /**
+   * \brief Refine this domain to equality with temporary domain \a that
+   *
+   * Keep the intersected aggregate bounds when adopting the candidate's
+   * blocks. For the byte-top domain, an alphabet-compatible candidate keeps
+   * its structure even if its raw block maxima exceed the total length bound.
+   */
   bool equate(Space& h, const NSBlocks& that);
   /// Refine this domain to assigned scalar sequence \a that
   bool equate(Space& h, const StringVal& that);

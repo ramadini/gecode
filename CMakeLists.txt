@@ -1508,6 +1508,7 @@ if(BUILD_TESTING)
     if(GECODE_ENABLE_STRING_VARS)
       list(APPEND GECODE_CHECK_TESTS
         String::Rel::ByteTopContainment
+        String::Rel::StructuredRefinement
         String::Match::AggregateBounds::DFA
         String::Match::AggregateBounds::NFA
         String::Match::AggregateBounds::AUTO

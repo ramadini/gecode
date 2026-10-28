@@ -19,6 +19,11 @@ unchanged for compatibility.
   - Qt 6 Gui, Widgets, and PrintSupport, or the matching Qt 5.15+ components,
     for Gist
 
+The standalone String test helper (`gecode/string/tests/test`), also used by
+`gecode/string/tests/run-tests`, compiles clients as C++17 with `-O0` and
+assertions enabled. It links against the libraries in the source-tree root;
+use Debug libraries there when testing an entirely unoptimized configuration.
+
 ## Quick Start
 
 Single-config generators (Unix Makefiles / Ninja):
