@@ -148,6 +148,17 @@ namespace Test { namespace String {
     return Gecode::PropagatorGroup::all.size(*this);
   }
 
+  void
+  TestSpace::disable(void) {
+    Gecode::PropagatorGroup::all.disable(*this);
+    (void) status();
+  }
+
+  void
+  TestSpace::enable(void) {
+    Gecode::PropagatorGroup::all.enable(*this);
+  }
+
   int
   TestSpace::rndvar(void) const {
     assert(!assigned());
@@ -387,10 +398,67 @@ namespace Test { namespace String {
                          assignment);
       }
 
+      for (int cloned = 0; cloned < 2; ++cloned) {
+        std::unique_ptr<TestSpace> s(
+          new TestSpace(arity, alphabet, max_length, this));
+        s->post();
+        s->disable();
+        s->restrict_lengths(assignment);
+        s->assign(assignment, true);
+        if (cloned && !s->failed())
+          s.reset(static_cast<TestSpace*>(s->clone()));
+        s->assign(assignment);
+        (void) s->failed();
+        s->enable();
+        if (s->failed() == sol)
+          return failure(cloned ? "Disabled clone" : "Disabled assignment",
+                         sol ? "Pruned solution" : "Accepted non-solution",
+                         assignment);
+        if (sol && (s->propagators() != 0))
+          return failure(cloned ? "Disabled clone" : "Disabled assignment",
+                         "No subsumption", assignment);
+      }
+
       if (reified) {
         const ReifyMode modes[] = {RM_EQV, RM_IMP, RM_PMI};
         for (unsigned int m = 0; m < sizeof(modes) / sizeof(modes[0]); ++m) {
           const ReifyMode mode = modes[m];
+          for (int control = -1; control < 2; ++control)
+            for (int cloned = 0; cloned < 2; ++cloned) {
+              std::unique_ptr<TestSpace> s(new TestSpace(
+                arity, alphabet, max_length, this, mode));
+              s->post();
+              s->disable();
+              if (control >= 0)
+                s->rel(control != 0);
+              s->assign(assignment, true);
+              if (cloned && !s->failed())
+                s.reset(static_cast<TestSpace*>(s->clone()));
+              s->assign(assignment);
+              (void) s->failed();
+              s->enable();
+              const bool contradiction = control >= 0 &&
+                ((mode == RM_EQV && (control != static_cast<int>(sol))) ||
+                 (mode == RM_IMP && control == 1 && !sol) ||
+                 (mode == RM_PMI && control == 0 && sol));
+              if (s->failed() != contradiction)
+                return failure("Disabled reification",
+                               contradiction ? "Did not fail" :
+                                               "Pruned solution",
+                               assignment);
+              if (contradiction)
+                continue;
+              const bool forced = (mode == RM_EQV) ||
+                ((mode == RM_IMP) && !sol) || ((mode == RM_PMI) && sol);
+              if (control < 0 && forced &&
+                  (!s->r.var().assigned() ||
+                   s->r.var().val() != static_cast<int>(sol)))
+                return failure("Disabled reification", "Wrong control value",
+                               assignment);
+              if (s->propagators() != 0)
+                return failure("Disabled reification", "No subsumption",
+                               assignment);
+            }
           {
             std::unique_ptr<TestSpace> s(new TestSpace(
               arity, alphabet, max_length, this, mode));

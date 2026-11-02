@@ -101,6 +101,10 @@ namespace Test {
       bool assigned(void) const;
       /// Return the number of propagators
       unsigned int propagators(void);
+      /// Disable propagators and drain their pending executions
+      void disable(void);
+      /// Enable and reschedule propagators
+      void enable(void);
       /// Assign the reification control variable
       void rel(bool value);
       /// Assign all variables, optionally skipping one
@@ -111,7 +115,12 @@ namespace Test {
       bool prune(const Assignment& a, bool test_fixpoint=true);
     };
 
-    /// Base class for bounded string constraint tests
+    /**
+     * \brief Native bounded string constraint tests
+     *
+     * Exercise assignments, pruning, cloning, disable/enable cycles,
+     * reification, subsumption, and exhaustive solution enumeration.
+     */
     class Test : public Base {
     protected:
       int arity;
